@@ -948,12 +948,10 @@ impl RuntimeRegistrationClient {
     pub async fn fetch_pending_commands(&self) -> Result<Vec<PendingRuntimeCommand>> {
         let url = format!("{}/api/v1/runtime/commands", self.base_url);
         let timestamp_unix_ms = Utc::now().timestamp_millis();
-        let signature = sign_runtime_machine_payload(
+        let signature = sign_runtime_command_fetch_payload(
             self.signing_key.as_ref(),
-            "runtime_commands.v1",
             &self.machine_id,
             timestamp_unix_ms,
-            None,
         );
 
         let resp = self
@@ -1123,6 +1121,16 @@ fn sign_runtime_command_ack_payload(
         .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
+fn sign_runtime_command_fetch_payload(
+    signing_key: &SigningKey,
+    machine_id: &str,
+    timestamp_unix_ms: i64,
+) -> String {
+    let message = format!("runtime_commands.v1:{}:{}", machine_id, timestamp_unix_ms);
+    base64::engine::general_purpose::STANDARD
+        .encode(signing_key.sign(message.as_bytes()).to_bytes())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1163,18 +1171,13 @@ mod tests {
         let signing_key = SigningKey::from_bytes(&[7u8; 32]);
         let machine_id = "dev_0123456789abcdef0123456789abcdef";
         let timestamp_unix_ms = 1_900_500_000_000_i64;
-        let signature = sign_runtime_machine_payload(
-            &signing_key,
-            "runtime_commands.v1",
-            machine_id,
-            timestamp_unix_ms,
-            None,
-        );
+        let signature =
+            sign_runtime_command_fetch_payload(&signing_key, machine_id, timestamp_unix_ms);
         let signature_bytes = base64::engine::general_purpose::STANDARD
             .decode(signature)
             .unwrap();
         let signature = Signature::from_slice(&signature_bytes).unwrap();
-        let message = format!("runtime_commands.v1:{}:{}:", machine_id, timestamp_unix_ms);
+        let message = format!("runtime_commands.v1:{}:{}", machine_id, timestamp_unix_ms);
         signing_key
             .verifying_key()
             .verify(message.as_bytes(), &signature)
