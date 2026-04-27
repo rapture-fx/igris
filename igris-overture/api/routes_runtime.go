@@ -95,6 +95,7 @@ type runtimeInstanceHeartbeatRequest struct {
 	BtState                     json.RawMessage `json:"bt_state,omitempty"`
 	LocalCommandSpoolDepth      uint64          `json:"local_command_spool_depth,omitempty"`
 	LocalCommandClearGeneration uint64          `json:"local_command_clear_generation,omitempty"`
+	LocalCommandStatuses        json.RawMessage `json:"local_command_statuses,omitempty"`
 	TimestampUnixMs             int64           `json:"timestamp_unix_ms"`
 	Signature                   string          `json:"signature"`
 }
@@ -356,18 +357,20 @@ func (h *RuntimeHandler) Heartbeat(c *fiber.Ctx) error {
 			    status = 'active', ip_address = $2,
 			    bt_state = $5::jsonb, bt_state_updated_at = $1,
 			    local_command_spool_depth = $6,
-			    local_command_clear_generation = $7
+			    local_command_clear_generation = $7,
+			    local_command_statuses = COALESCE($8::jsonb, '[]'::jsonb)
 			WHERE tenant_id = $3 AND machine_id = $4
-		`, now, c.IP(), tenantID, req.MachineID, req.BtState, req.LocalCommandSpoolDepth, req.LocalCommandClearGeneration)
+		`, now, c.IP(), tenantID, req.MachineID, req.BtState, req.LocalCommandSpoolDepth, req.LocalCommandClearGeneration, nullableJSON(req.LocalCommandStatuses))
 	} else {
 		result, err = h.db.ExecContext(ctx, `
 			UPDATE runtime_instances
 			SET last_heartbeat = $1, last_seen_at = $1, is_healthy = true,
 			    status = 'active', ip_address = $2,
 			    local_command_spool_depth = $5,
-			    local_command_clear_generation = $6
+			    local_command_clear_generation = $6,
+			    local_command_statuses = COALESCE($7::jsonb, '[]'::jsonb)
 			WHERE tenant_id = $3 AND machine_id = $4
-		`, now, c.IP(), tenantID, req.MachineID, req.LocalCommandSpoolDepth, req.LocalCommandClearGeneration)
+		`, now, c.IP(), tenantID, req.MachineID, req.LocalCommandSpoolDepth, req.LocalCommandClearGeneration, nullableJSON(req.LocalCommandStatuses))
 	}
 	if err != nil {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Heartbeat DB error")
@@ -888,6 +891,13 @@ func nullableString(s string) interface{} {
 	return s
 }
 
+func nullableJSON(raw json.RawMessage) interface{} {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil
+	}
+	return raw
+}
+
 func (h *RuntimeHandler) runtimePublicKeyForMachine(ctx context.Context, tenantID, machineID string) (string, error) {
 	var publicKey string
 	err := h.db.QueryRowContext(ctx, `
@@ -925,6 +935,21 @@ func verifyRuntimeMachineSignature(publicKeyHex, purpose string, req runtimeInst
 }
 
 func verifyRuntimeHeartbeatSignature(publicKeyHex string, req runtimeInstanceHeartbeatRequest) error {
+	if len(req.LocalCommandStatuses) > 0 && string(req.LocalCommandStatuses) != "null" {
+		statusHash := sha256.Sum256(req.LocalCommandStatuses)
+		message := fmt.Sprintf(
+			"runtime_heartbeat.v3:%s:%d:%s:%d:%d:%s",
+			req.MachineID,
+			req.TimestampUnixMs,
+			runtimeBtStateHash(req.BtState),
+			req.LocalCommandSpoolDepth,
+			req.LocalCommandClearGeneration,
+			hex.EncodeToString(statusHash[:]),
+		)
+		if err := verifyRuntimeSignatureMessage(publicKeyHex, req.Signature, message); err == nil {
+			return nil
+		}
+	}
 	message := fmt.Sprintf(
 		"runtime_heartbeat.v2:%s:%d:%s:%d:%d",
 		req.MachineID,
