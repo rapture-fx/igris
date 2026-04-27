@@ -195,9 +195,10 @@ func TestRuntimeGetPendingCommandsDecoratesDeliveryKeys(t *testing.T) {
 			rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
 		},
 		{
-			columns: []string{"pending_commands"},
+			columns: []string{"pending_commands", "pending_commands_clear_generation"},
 			rows: [][]driver.Value{{
 				[]byte(`[{"command_id":"cmd-1","type":"ros_publish","topic":"/igris/prompt","message_type":"std_msgs/String","payload":{"data":"hello"}}]`),
+				int64(7),
 			}},
 		},
 	})
@@ -224,11 +225,13 @@ func TestRuntimeGetPendingCommandsDecoratesDeliveryKeys(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var body struct {
-		Commands []map[string]any `json:"commands"`
+		Commands        []map[string]any `json:"commands"`
+		ClearGeneration int64            `json:"clear_generation"`
 	}
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
 	require.Len(t, body.Commands, 1)
 	require.Equal(t, "cmd-1", body.Commands[0]["delivery_key"])
+	require.Equal(t, int64(7), body.ClearGeneration)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
