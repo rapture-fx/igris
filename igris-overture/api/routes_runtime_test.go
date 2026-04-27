@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/sha256"
 	"database/sql/driver"
 	"encoding/base64"
 	"encoding/hex"
@@ -54,6 +55,21 @@ func signRuntimeMachineRequest(t *testing.T, privateKey ed25519.PrivateKey, purp
 		}, ":")
 		return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
 	}
+	if purpose == "runtime_heartbeat.v3" {
+		statusesJSON, err := json.Marshal(req["local_command_statuses"])
+		require.NoError(t, err)
+		statusHash := sha256.Sum256(statusesJSON)
+		message := strings.Join([]string{
+			purpose,
+			req["machine_id"].(string),
+			int64String(req["timestamp_unix_ms"].(int64)),
+			btHash,
+			strconv.FormatUint(uint64Value(req["local_command_spool_depth"]), 10),
+			strconv.FormatUint(uint64Value(req["local_command_clear_generation"]), 10),
+			hex.EncodeToString(statusHash[:]),
+		}, ":")
+		return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
+	}
 	message := strings.Join([]string{
 		purpose,
 		req["machine_id"].(string),
@@ -61,6 +77,55 @@ func signRuntimeMachineRequest(t *testing.T, privateKey ed25519.PrivateKey, purp
 		btHash,
 	}, ":")
 	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
+}
+
+func TestRuntimeHeartbeatAcceptsCommandStatusesV3(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"public_key_ed25519"},
+			rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
+		},
+		{
+			columns: []string{"jsonb_array_length", "coalesce"},
+			rows:    [][]driver.Value{{int64(0), int64(1)}},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+
+	handler := NewRuntimeHandler(db, nil)
+	app := fiber.New()
+	app.Post("/heartbeat", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "tenant-1")
+		return handler.Heartbeat(c)
+	})
+
+	body := map[string]any{
+		"machine_id":                     "dev-machine-1",
+		"timestamp_unix_ms":              time.Now().UnixMilli(),
+		"local_command_spool_depth":      uint64(1),
+		"local_command_clear_generation": uint64(12),
+		"local_command_statuses": []map[string]any{
+			{
+				"delivery_key":       "cmd-1",
+				"command_type":       "ros_publish",
+				"state":              "owned",
+				"updated_at_unix_ms": uint64(1700000000000),
+			},
+		},
+	}
+	body["signature"] = signRuntimeMachineRequest(t, privateKey, "runtime_heartbeat.v3", body)
+	payload, err := json.Marshal(body)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/heartbeat", strings.NewReader(string(payload)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func signRuntimeCommandFetchRequest(t *testing.T, privateKey ed25519.PrivateKey, req map[string]any) string {
