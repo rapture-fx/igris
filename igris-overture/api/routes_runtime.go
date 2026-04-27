@@ -104,6 +104,11 @@ type runtimeCommandAckRequest struct {
 	Signature       string   `json:"signature"`
 }
 
+type runtimeCommandsResponse struct {
+	Commands        []map[string]interface{} `json:"commands"`
+	ClearGeneration int64                    `json:"clear_generation"`
+}
+
 // Register handles POST /api/v1/runtime/register
 func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
@@ -443,12 +448,16 @@ func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
 		})
 	}
 
-	var rawCommands []byte
+	var (
+		rawCommands     []byte
+		clearGeneration int64
+	)
 	err = h.db.QueryRowContext(ctx, `
-		SELECT COALESCE(pending_commands, '[]'::jsonb)
+		SELECT COALESCE(pending_commands, '[]'::jsonb),
+		       COALESCE(pending_commands_clear_generation, 0)
 		FROM runtime_instances
 		WHERE tenant_id = $1 AND machine_id = $2
-	`, tenantID, machineID).Scan(&rawCommands)
+	`, tenantID, machineID).Scan(&rawCommands, &clearGeneration)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -471,8 +480,9 @@ func (h *RuntimeHandler) GetPendingCommands(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(fiber.Map{
-		"commands": commands,
+	return c.JSON(runtimeCommandsResponse{
+		Commands:        commands,
+		ClearGeneration: clearGeneration,
 	})
 }
 
