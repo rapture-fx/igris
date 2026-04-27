@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
 	"strconv"
 	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
 	"github.com/gofiber/fiber/v2"
@@ -17,6 +19,10 @@ import (
 type FleetConfig struct {
 	DBEnabled bool
 	DB        *sql.DB
+}
+
+var runtimeRevokeCommands = func(ctx context.Context, runtimeEndpoint, tenantID string, deliveryKeys []string, revokeOwned bool, reason string) (*internal.RuntimeCommandRevokeResult, error) {
+	return internal.NewRuntimeClient(runtimeEndpoint).RevokeCommands(ctx, tenantID, deliveryKeys, revokeOwned, reason)
 }
 
 // RegisterRequest represents agent registration payload
@@ -1111,7 +1117,8 @@ func getSwarmStatus(db *sql.DB) fiber.Handler {
 				COALESCE(status, 'unknown') AS status,
 				COALESCE(last_heartbeat, last_seen_at) AS last_heartbeat,
 				jsonb_array_length(COALESCE(pending_commands, '[]'::jsonb)) AS control_plane_pending_commands_count,
-				COALESCE(local_command_spool_depth, 0) AS local_spool_commands_count
+				COALESCE(local_command_spool_depth, 0) AS local_spool_commands_count,
+				COALESCE(local_command_statuses, '[]'::jsonb) AS local_command_statuses
 			FROM runtime_instances
 			WHERE tenant_id = $1
 			ORDER BY last_seen_at DESC
@@ -1130,18 +1137,29 @@ func getSwarmStatus(db *sql.DB) fiber.Handler {
 			PendingCommandsCount     int    `json:"pending_commands_count"`
 			ControlPlanePendingCount int    `json:"control_plane_pending_commands_count"`
 			LocalSpoolPendingCount   int    `json:"local_spool_commands_count"`
+			LocalCommandStatuses     any    `json:"local_command_statuses"`
 		}
 
 		agents := make([]SwarmAgent, 0)
 		for rows.Next() {
 			var a SwarmAgent
 			var lastHeartbeat time.Time
-			if err := rows.Scan(&a.ID, &a.Status, &lastHeartbeat, &a.ControlPlanePendingCount, &a.LocalSpoolPendingCount); err != nil {
+			var localCommandStatuses []byte
+			if err := rows.Scan(&a.ID, &a.Status, &lastHeartbeat, &a.ControlPlanePendingCount, &a.LocalSpoolPendingCount, &localCommandStatuses); err != nil {
 				continue
 			}
 			a.PendingCommandsCount = a.ControlPlanePendingCount + a.LocalSpoolPendingCount
 			a.Name = a.ID
 			a.LastHeartbeat = lastHeartbeat.UTC().Format(time.RFC3339)
+			if len(localCommandStatuses) > 0 {
+				var decoded any
+				if err := json.Unmarshal(localCommandStatuses, &decoded); err == nil {
+					a.LocalCommandStatuses = decoded
+				}
+			}
+			if a.LocalCommandStatuses == nil {
+				a.LocalCommandStatuses = []any{}
+			}
 			agents = append(agents, a)
 		}
 
@@ -1492,6 +1510,7 @@ func swarmClearAgent(db *sql.DB) fiber.Handler {
 		}
 		runtimeID := c.Params("id")
 
+		var runtimeEndpoint string
 		result, err := db.ExecContext(c.Context(), `
 			UPDATE runtime_instances
 			SET pending_commands = '[]'::jsonb,
@@ -1507,6 +1526,16 @@ func swarmClearAgent(db *sql.DB) fiber.Handler {
 		n, _ := result.RowsAffected()
 		if n == 0 {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "agent not found"})
+		}
+		_ = db.QueryRowContext(c.Context(), `
+			SELECT COALESCE(endpoint, '')
+			FROM runtime_instances
+			WHERE runtime_id = $1 AND tenant_id = $2
+		`, runtimeID, tenantID).Scan(&runtimeEndpoint)
+		if runtimeEndpoint != "" {
+			if _, err := runtimeRevokeCommands(c.Context(), runtimeEndpoint, tenantID, nil, true, "operator cleared runtime fleet command queue"); err != nil {
+				log.Printf("[Swarm] Best-effort runtime revoke failed: runtime=%s err=%v", runtimeID, err)
+			}
 		}
 		return c.JSON(fiber.Map{"cleared": true})
 	}
