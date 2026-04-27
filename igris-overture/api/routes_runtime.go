@@ -113,10 +113,10 @@ type runtimeCommandsResponse struct {
 }
 
 type runtimeCommandAckResponse struct {
-	Status            string `json:"status"`
-	AckedCount        int    `json:"acked_count"`
-	OwnershipGranted  bool   `json:"ownership_granted"`
-	ClearGeneration   int64  `json:"clear_generation"`
+	Status           string `json:"status"`
+	AckedCount       int    `json:"acked_count"`
+	OwnershipGranted bool   `json:"ownership_granted"`
+	ClearGeneration  int64  `json:"clear_generation"`
 }
 
 // Register handles POST /api/v1/runtime/register
