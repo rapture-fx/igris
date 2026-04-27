@@ -1369,10 +1369,7 @@ mod tests {
         let signature = Signature::from_slice(&signature_bytes).unwrap();
         let message = format!(
             "runtime_heartbeat.v2:{}:{}::{}:{}",
-            machine_id,
-            timestamp_unix_ms,
-            3,
-            12
+            machine_id, timestamp_unix_ms, 3, 12
         );
         signing_key
             .verifying_key()
