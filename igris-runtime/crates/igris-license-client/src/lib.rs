@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tracing::{error, info, warn};
 
@@ -718,10 +718,12 @@ pub struct RuntimeRegistrationClient {
     machine_id: String,
     hostname: String,
     platform: String,
+    runtime_endpoint: Option<String>,
     public_key_ed25519: String,
     signing_key: Arc<SigningKey>,
     command_spool_depth: Arc<AtomicU64>,
     command_clear_generation: Arc<AtomicU64>,
+    command_statuses: Arc<Mutex<Vec<RuntimeCommandStatusTelemetry>>>,
     client: reqwest::Client,
 }
 
@@ -779,6 +781,16 @@ pub struct RuntimeCommandAckResponse {
     pub clear_generation: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RuntimeCommandStatusTelemetry {
+    pub delivery_key: String,
+    pub command_type: String,
+    pub state: String,
+    pub updated_at_unix_ms: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
 /// Response from POST /api/v1/runtime/register
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RuntimeRegisterResponse {
@@ -805,6 +817,10 @@ impl RuntimeRegistrationClient {
         let machine_id = LicenseClient::generate_device_id();
         let hostname = gethostname::gethostname().to_string_lossy().to_string();
         let platform = format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH);
+        let runtime_endpoint = std::env::var("IGRIS_RUNTIME_ENDPOINT")
+            .ok()
+            .map(|value| value.trim().to_string())
+            .filter(|value| !value.is_empty());
 
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(10))
@@ -817,10 +833,12 @@ impl RuntimeRegistrationClient {
             machine_id,
             hostname,
             platform,
+            runtime_endpoint,
             public_key_ed25519,
             signing_key,
             command_spool_depth: Arc::new(AtomicU64::new(0)),
             command_clear_generation: Arc::new(AtomicU64::new(0)),
+            command_statuses: Arc::new(Mutex::new(Vec::new())),
             client,
         }
     }
@@ -838,7 +856,7 @@ impl RuntimeRegistrationClient {
             &self.platform,
             runtime_version,
             &self.public_key_ed25519,
-            None,
+            self.runtime_endpoint.as_deref(),
             timestamp_unix_ms,
         );
 
@@ -847,6 +865,7 @@ impl RuntimeRegistrationClient {
             "hostname":         self.hostname,
             "platform":         self.platform,
             "runtime_version":  runtime_version,
+            "endpoint":         self.runtime_endpoint,
             "public_key_ed25519": self.public_key_ed25519,
             "timestamp_unix_ms": timestamp_unix_ms,
             "signature": signature,
@@ -903,6 +922,16 @@ impl RuntimeRegistrationClient {
         let timestamp_unix_ms = Utc::now().timestamp_millis();
         let command_spool_depth = self.command_spool_depth.load(Ordering::Relaxed);
         let command_clear_generation = self.command_clear_generation.load(Ordering::Relaxed);
+        let command_statuses = self
+            .command_statuses
+            .lock()
+            .map(|value| value.clone())
+            .unwrap_or_default();
+        let command_statuses_json = if command_statuses.is_empty() {
+            None
+        } else {
+            Some(serde_json::to_string(&command_statuses)?)
+        };
         let signature = sign_runtime_heartbeat_payload(
             self.signing_key.as_ref(),
             &self.machine_id,
@@ -910,6 +939,7 @@ impl RuntimeRegistrationClient {
             None,
             command_spool_depth,
             command_clear_generation,
+            command_statuses_json.as_deref(),
         );
 
         let payload = serde_json::json!({
@@ -917,6 +947,7 @@ impl RuntimeRegistrationClient {
             "timestamp_unix_ms": timestamp_unix_ms,
             "local_command_spool_depth": command_spool_depth,
             "local_command_clear_generation": command_clear_generation,
+            "local_command_statuses": command_statuses,
             "signature": signature,
         });
 
@@ -1066,10 +1097,14 @@ impl RuntimeRegistrationClient {
         depth: u64,
         clear_generation: u64,
         _ownership_confirmed: bool,
+        statuses: &[RuntimeCommandStatusTelemetry],
     ) {
         self.command_spool_depth.store(depth, Ordering::Relaxed);
         self.command_clear_generation
             .store(clear_generation, Ordering::Relaxed);
+        if let Ok(mut guard) = self.command_statuses.lock() {
+            *guard = statuses.to_vec();
+        }
     }
 }
 
@@ -1154,18 +1189,31 @@ fn sign_runtime_heartbeat_payload(
     bt_state: Option<&str>,
     local_command_spool_depth: u64,
     local_command_clear_generation: u64,
+    local_command_statuses_json: Option<&str>,
 ) -> String {
     let bt_state_hash = bt_state
         .map(|value| hex::encode(Sha256::digest(value.as_bytes())))
         .unwrap_or_default();
-    let message = format!(
-        "runtime_heartbeat.v2:{}:{}:{}:{}:{}",
-        machine_id,
-        timestamp_unix_ms,
-        bt_state_hash,
-        local_command_spool_depth,
-        local_command_clear_generation
-    );
+    let message = if let Some(statuses_json) = local_command_statuses_json {
+        format!(
+            "runtime_heartbeat.v3:{}:{}:{}:{}:{}:{}",
+            machine_id,
+            timestamp_unix_ms,
+            bt_state_hash,
+            local_command_spool_depth,
+            local_command_clear_generation,
+            hex::encode(Sha256::digest(statuses_json.as_bytes()))
+        )
+    } else {
+        format!(
+            "runtime_heartbeat.v2:{}:{}:{}:{}:{}",
+            machine_id,
+            timestamp_unix_ms,
+            bt_state_hash,
+            local_command_spool_depth,
+            local_command_clear_generation
+        )
+    };
     base64::engine::general_purpose::STANDARD
         .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
@@ -1362,6 +1410,7 @@ mod tests {
             None,
             3,
             12,
+            None,
         );
         let signature_bytes = base64::engine::general_purpose::STANDARD
             .decode(signature)
