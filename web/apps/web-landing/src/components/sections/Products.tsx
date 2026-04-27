@@ -38,7 +38,7 @@ export default function Products() {
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingBottom: 0 }}>
           <div style={{ position: 'relative' }} className="py-10 sm:py-60">
-            <div className="hidden sm:block" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <div className="hidden sm:flex items-center justify-end" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%' }}>
               <img 
                 src="/salt.png" 
                 alt="Product"
@@ -76,8 +76,14 @@ export default function Products() {
                 </p>
               </div>
             </div>
-            <div className="sm:hidden">
-              <div style={{ maxWidth: '320px' }} className="max-w-full md:max-w-[320px]">
+            <div className="sm:hidden flex flex-col gap-6">
+              <img
+                src="/salt.png"
+                alt="Product"
+                className="w-full rounded-xl"
+                style={{ maxHeight: '260px', objectFit: 'contain', objectPosition: 'center' }}
+              />
+              <div className="max-w-full">
                 <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Hybrid behavior trees meet LLM reasoning.
                 </p>
