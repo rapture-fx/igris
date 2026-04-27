@@ -51,6 +51,16 @@ func signRuntimeMachineRequest(t *testing.T, privateKey ed25519.PrivateKey, purp
 	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
 }
 
+func signRuntimeCommandFetchRequest(t *testing.T, privateKey ed25519.PrivateKey, req map[string]any) string {
+	t.Helper()
+	message := strings.Join([]string{
+		"runtime_commands.v1",
+		req["machine_id"].(string),
+		int64String(req["timestamp_unix_ms"].(int64)),
+	}, ":")
+	return base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message)))
+}
+
 func signRuntimeCommandAckRequest(t *testing.T, privateKey ed25519.PrivateKey, req map[string]any) string {
 	t.Helper()
 	keys, ok := req["delivery_keys"].([]string)
@@ -174,6 +184,51 @@ func TestRuntimeGetPendingCommandsRejectsUnsignedRequest(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestRuntimeGetPendingCommandsDecoratesDeliveryKeys(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"public_key_ed25519"},
+			rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
+		},
+		{
+			columns: []string{"pending_commands"},
+			rows: [][]driver.Value{{
+				[]byte(`[{"command_id":"cmd-1","type":"ros_publish","topic":"/igris/prompt","message_type":"std_msgs/String","payload":{"data":"hello"}}]`),
+			}},
+		},
+	})
+
+	handler := NewRuntimeHandler(db, nil)
+	app := fiber.New()
+	app.Get("/commands", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "tenant-1")
+		return handler.GetPendingCommands(c)
+	})
+
+	params := map[string]any{
+		"machine_id":        "dev-machine-1",
+		"timestamp_unix_ms": time.Now().UnixMilli(),
+	}
+	signature := signRuntimeCommandFetchRequest(t, privateKey, params)
+	url := "/commands?machine_id=dev-machine-1&timestamp_unix_ms=" + int64String(params["timestamp_unix_ms"].(int64)) + "&signature=" + signature
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		Commands []map[string]any `json:"commands"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Len(t, body.Commands, 1)
+	require.Equal(t, "cmd-1", body.Commands[0]["delivery_key"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestRuntimeAckPendingCommandsRejectsUnsignedRequest(t *testing.T) {
 	publicKey, _, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
@@ -196,6 +251,56 @@ func TestRuntimeAckPendingCommandsRejectsUnsignedRequest(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestRuntimeAckPendingCommandsRemovesDeliveryKeys(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(
+		t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{"public_key_ed25519"},
+				rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
+			},
+			{
+				columns: []string{"pending_commands"},
+				rows: [][]driver.Value{{
+					[]byte(`[{"command_id":"cmd-1","type":"ros_publish"},{"command_id":"cmd-2","type":"config_push"}]`),
+				}},
+			},
+		},
+		queuedRouteExecExpectation{rowsAffected: 1},
+	)
+
+	handler := NewRuntimeHandler(db, nil)
+	app := fiber.New()
+	app.Post("/commands/ack", func(c *fiber.Ctx) error {
+		c.Locals("tenant_id", "tenant-1")
+		return handler.AckPendingCommands(c)
+	})
+
+	body := map[string]any{
+		"machine_id":        "dev-machine-1",
+		"delivery_keys":     []string{"cmd-1"},
+		"timestamp_unix_ms": time.Now().UnixMilli(),
+	}
+	body["signature"] = signRuntimeCommandAckRequest(t, privateKey, body)
+	payload, err := json.Marshal(body)
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/commands/ack", strings.NewReader(string(payload)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var responseBody map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&responseBody))
+	require.Equal(t, float64(1), responseBody["acked_count"])
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
