@@ -77,6 +77,10 @@ mod tests {
             task_cancellation_registry: Arc::new(std::sync::RwLock::new(
                 std::collections::HashMap::new(),
             )),
+            runtime_command_cancellation_registry: Arc::new(std::sync::RwLock::new(
+                std::collections::HashMap::new(),
+            )),
+            runtime_command_spool_lock: Arc::new(tokio::sync::Mutex::new(())),
             bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
             #[cfg(feature = "robotics-platform")]
             ros2_manager: None,
