@@ -195,7 +195,14 @@ Completed on 2026-04-25.
 - Aligned governed runtime identity across Overture and the runtime by using the Overture-assigned registry `runtime_id` for permission-envelope and signed-policy validation instead of reusing MCP `swarm_peer_id`.
 - Hardened `GET /api/v1/runtime/commands` so pending-command retrieval also requires a signed runtime proof-of-possession request.
 - Added a signed runtime command fetch client to `igris-license-client` and wired a background command-poll loop into `igris-server` after successful Overture registration.
-- Added a local runtime command spool and dead-letter journal so fetched control-plane commands are durably persisted before execution and are not silently lost on runtime crash or unsupported-command handling.
+- Reworked fleet command delivery from destructive clear-on-read to explicit delivery ownership:
+  - Overture now returns stable delivery keys on `/api/v1/runtime/commands`
+  - the runtime persists fetched commands locally first
+  - the runtime then acknowledges delivery back to Overture through `/api/v1/runtime/commands/ack`
+  - only acknowledged local spool entries are executed
+- Added a local runtime command spool and dead-letter journal so control-plane commands are durably persisted before execution and are not silently lost on crash or unsupported-command handling.
+- Fixed the runtime/Overture fetch-signature contract by introducing a dedicated `runtime_commands.v1:{machine_id}:{timestamp}` signing path instead of reusing the generic machine payload format with a trailing BT-state segment.
+- Restricted `ros_publish` in the fleet command path to non-actuating topic handling and explicitly rejected direct `/cmd_vel` actuation so robotics actuation continues to flow through the governed task/policy path.
 - Added guarded runtime-side command handling for `ros_publish` with explicit fail-safe rejection/dead-letter behavior for unsupported `ros_lifecycle`, `config_push`, `ota_update`, and unknown command types.
 - Moved task capability derivation to submit-time persistence so recovery redispatch reuses the stored governance contract instead of recomputing policy on every retry.
 - Persisted signed task permission envelopes at submit-time before asynchronous dispatch so governed tasks keep their original admission contract even if Overture crashes before first dispatch.
@@ -209,6 +216,9 @@ Completed on 2026-04-25.
 - `CARGO_TARGET_DIR=/tmp/igris-runtime-target-review2 cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server middleware::security_tests -- --nocapture`
 - `CARGO_TARGET_DIR=/tmp/igris-runtime-target-robotics cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
 - `GOCACHE=/tmp/igris-gocache-review-fix13 go test ./igris-overture/api ./igris-overture/coordinator ./igris-overture/slo -count=1`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-review3 cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server middleware::security_tests -- --nocapture`
+- `CARGO_TARGET_DIR=/tmp/igris-runtime-target-robotics2 cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
+- `GOCACHE=/tmp/igris-gocache-review-fix17 go test ./igris-overture/api ./igris-overture/coordinator ./igris-overture/slo -count=1`
 
 ## Launch Gates
 
