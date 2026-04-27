@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -213,8 +214,11 @@ func TestRuntimeGetPendingCommandsDecoratesDeliveryKeys(t *testing.T) {
 		"timestamp_unix_ms": time.Now().UnixMilli(),
 	}
 	signature := signRuntimeCommandFetchRequest(t, privateKey, params)
-	url := "/commands?machine_id=dev-machine-1&timestamp_unix_ms=" + int64String(params["timestamp_unix_ms"].(int64)) + "&signature=" + signature
-	req := httptest.NewRequest(http.MethodGet, url, nil)
+	query := url.Values{}
+	query.Set("machine_id", "dev-machine-1")
+	query.Set("timestamp_unix_ms", int64String(params["timestamp_unix_ms"].(int64)))
+	query.Set("signature", signature)
+	req := httptest.NewRequest(http.MethodGet, "/commands?"+query.Encode(), nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
