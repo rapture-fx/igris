@@ -59,7 +59,7 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Image + Button */}
-            <div className="relative rounded-r-2xl overflow-hidden min-h-[200px] md:min-h-0">
+            <div className="relative rounded-r-2xl overflow-hidden min-h-[220px] md:min-h-0">
               <div 
                 className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
@@ -108,7 +108,7 @@ export default function AutonomousSystems() {
               </div>
             </div>
             {/* Col 2 - Full Background Image */}
-            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[120px] md:min-h-0">
+            <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[220px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                 <Image
                   src="/rozf.png"

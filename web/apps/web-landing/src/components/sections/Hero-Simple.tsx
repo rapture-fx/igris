@@ -35,7 +35,7 @@ export default function Hero() {
                   <span className="mt-1 md:mt-2 block">and proves what it did.</span>
                 </h1>
               </div>
-              <div className="text-left md:text-right" style={{ maxWidth: '250px' }}>
+              <div className="text-left md:text-right w-full md:max-w-[250px]">
                 <p className="text-xs md:text-lg" style={{ color: '#000000', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                 </p>
@@ -43,8 +43,8 @@ export default function Hero() {
             </div>
 
             {/* Image with frame */}
-            <div className="rounded-xl overflow-hidden relative border" style={{ height: 'auto', minHeight: '400px', maxHeight: '1000px', borderColor: 'rgba(209,213,219,0.35)', padding: '16px' }}>
-              <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-xl" style={{ minHeight: '400px', maxHeight: '1000px' }} />
+            <div className="rounded-xl overflow-hidden relative border min-h-[200px] md:min-h-[400px]" style={{ height: 'auto', maxHeight: '1000px', borderColor: 'rgba(209,213,219,0.35)', padding: '16px' }}>
+              <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-xl min-h-[200px] md:min-h-[400px]" style={{ maxHeight: '1000px' }} />
             </div>
 
             {/* Install command - below image */}

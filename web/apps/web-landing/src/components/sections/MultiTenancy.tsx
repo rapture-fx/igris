@@ -36,10 +36,10 @@ export default function MultiTenancy() {
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
   return (
-    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
+    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      {/* Title */}
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
-          {/* Title */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 py-6 md:py-8">
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Proof is built in
@@ -53,14 +53,18 @@ export default function MultiTenancy() {
               <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
             </Link>
           </div>
+        </div>
+      </div>
 
-          {/* Full-width border below title */}
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
+      {/* Full-width border below title */}
+      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
 
-          {/* Bento grid: 3 columns, 2 rows */}
+      {/* Bento grid */}
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-8">
             {/* Row 1: Signed execution (2 cols) | Fail-safe (1 col, spans 2 rows) */}
-            <div className={cardClass + " md:col-span-2"} style={{ minHeight: '200px', fontFamily }}>
+            <div className={cardClass + " md:col-span-2"} style={{ minHeight: '160px', fontFamily }}>
               <div className="mt-auto">
                 <h4 className={titleClass} style={{ fontFamily }}>
                   {features[0].title}
@@ -70,9 +74,9 @@ export default function MultiTenancy() {
                 </p>
               </div>
             </div>
-            
+
             {/* Tall card spanning 2 rows */}
-            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '200px', fontFamily }}>
+            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '160px', fontFamily }}>
               <div className="mt-auto">
                 <h4 className={titleClass} style={{ fontFamily }}>
                   {features[1].title}
@@ -84,7 +88,7 @@ export default function MultiTenancy() {
             </div>
 
             {/* Row 2: Air-gapped (1 col) | Verified (1 col) */}
-            <div className={cardClass} style={{ minHeight: '200px', fontFamily }}>
+            <div className={cardClass} style={{ minHeight: '160px', fontFamily }}>
               <div className="mt-auto">
                 <h4 className={titleClass} style={{ fontFamily }}>
                   {features[2].title}
@@ -94,8 +98,8 @@ export default function MultiTenancy() {
                 </p>
               </div>
             </div>
-            
-            <div className={cardClass} style={{ minHeight: '200px', fontFamily }}>
+
+            <div className={cardClass} style={{ minHeight: '160px', fontFamily }}>
               <div className="mt-auto">
                 <h4 className={titleClass} style={{ fontFamily }}>
                   {features[3].title}
