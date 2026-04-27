@@ -210,6 +210,13 @@ Completed on 2026-04-25.
 - Added generation-bound command ownership acknowledgment so runtimes only execute locally spooled commands after Overture confirms the same fetched clear generation is still current.
 - Persisted local spool ownership state in the runtime spool file so post-ack restarts keep executing already-owned commands without requiring a second control-plane ack.
 - Extended runtime heartbeat and fleet status reporting with runtime-local spool depth and clear generation so Overture surfaces real queued-work backlog after ownership handoff instead of only the DB queue depth.
+- Added a runtime-side revoke channel for already-owned fleet commands through `POST /v1/runtime/commands/revoke`, protected by the existing runtime auth and Overture decision-signature path.
+- Registered per-command cancellation tokens inside `igris-server` before execution starts, synchronized spool access with a runtime-local mutex, and changed spool draining to explicit `queued -> owned -> executing -> completed/dead_lettered/cancelled` transitions.
+- Persisted operator-visible runtime command lifecycle states in the local spool and surfaced them in signed heartbeat `runtime_heartbeat.v3` payloads so Overture can show `queued`, `owned`, `executing`, `revoked`, and `cancelled` states instead of only queue depth.
+- Added `local_command_statuses` persistence on `runtime_instances` and surfaced it in fleet swarm status responses.
+- Extended runtime registration to include an optional `IGRIS_RUNTIME_ENDPOINT`, and changed Overture fleet `clear` to best-effort revoke already-owned commands on a reachable runtime endpoint after invalidating the control-plane queue.
+- Threaded task cancellation tokens into contained agent execution and long-running robotics execution so durable task cancellation can interrupt in-flight worker-routed AI steps and Nav2 waits instead of only failing before or after a step boundary.
+- Updated robotics signed task-flow fixtures to include governed `robotics.execute` permission envelopes so the robotics test path stays aligned with the fail-closed capability model.
 - Moved task capability derivation to submit-time persistence so recovery redispatch reuses the stored governance contract instead of recomputing policy on every retry.
 - Persisted signed task permission envelopes at submit-time before asynchronous dispatch so governed tasks keep their original admission contract even if Overture crashes before first dispatch.
 - Narrowed permission-envelope hydration to the recovery path and only when signed governance is active, so recovery redispatch reuses the original envelope without adding extra control-plane reads to unrelated task APIs.
@@ -229,6 +236,14 @@ Completed on 2026-04-25.
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
 - `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
 - `GOCACHE=/tmp/igris-gocache-review-fix20 go test ./igris-overture/api -count=1`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-license-client -- --nocapture`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server middleware::security_tests -- --nocapture`
+- `cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server`
+- `cargo check --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform runtime_task_signed_ros2_timeout_emits_failure_audit_artifacts -- --nocapture`
+- `cargo test --manifest-path /Users/wira/Desktop/system/igris-runtime/Cargo.toml -p igris-server --features robotics-platform runtime_task_signed_ros2_cancel_navigation_completes_with_audit_artifacts -- --nocapture`
+- `GOCACHE=/tmp/igris-gocache-hardcancel3 go test ./igris-overture/api -run "^$" -count=1`
+- `GOCACHE=/tmp/igris-gocache-hardcancel5 go test ./igris-overture/api -run "TestRuntimeHeartbeatCountsLocalSpoolAsPending|TestRuntimeAckPendingCommandsRejectsGenerationMismatch|TestRuntimeAckPendingCommandsRemovesDeliveryKeys|TestRuntimeHeartbeatAcceptsCommandStatusesV3" -count=1 -timeout=120s`
 
 ## Launch Gates
 
