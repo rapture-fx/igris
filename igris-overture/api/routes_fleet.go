@@ -1123,13 +1123,13 @@ func getSwarmStatus(db *sql.DB) fiber.Handler {
 		defer rows.Close()
 
 		type SwarmAgent struct {
-			ID                         string `json:"id"`
-			Name                       string `json:"name"`
-			Status                     string `json:"status"`
-			LastHeartbeat              string `json:"last_heartbeat"`
-			PendingCommandsCount       int    `json:"pending_commands_count"`
-			ControlPlanePendingCount   int    `json:"control_plane_pending_commands_count"`
-			LocalSpoolPendingCount     int    `json:"local_spool_commands_count"`
+			ID                       string `json:"id"`
+			Name                     string `json:"name"`
+			Status                   string `json:"status"`
+			LastHeartbeat            string `json:"last_heartbeat"`
+			PendingCommandsCount     int    `json:"pending_commands_count"`
+			ControlPlanePendingCount int    `json:"control_plane_pending_commands_count"`
+			LocalSpoolPendingCount   int    `json:"local_spool_commands_count"`
 		}
 
 		agents := make([]SwarmAgent, 0)
