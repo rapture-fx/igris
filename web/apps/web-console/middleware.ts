@@ -17,9 +17,9 @@ function isPublic(pathname: string): boolean {
   );
 }
 
-function hasSession(req: NextRequest): boolean {
-  const cookieHeader = req.headers.get('cookie') ?? '';
-  return cookieHeader.includes('better-auth.session_token=');
+function hasSession(_req: NextRequest): boolean {
+  // AUTH DISABLED FOR LOCAL DEVELOPMENT
+  return true;
 }
 
 // Simple in-memory rate limiter (resets on deploy — use Redis for production)
