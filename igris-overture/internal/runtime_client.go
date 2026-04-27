@@ -35,11 +35,28 @@ type RuntimeCancelResult struct {
 	Payload    map[string]any
 }
 
+type RuntimeCommandRevokeResult struct {
+	StatusCode int
+	Payload    map[string]any
+}
+
 func (r *RuntimeCancelResult) Signaled() bool {
 	return r != nil && r.StatusCode == http.StatusAccepted
 }
 
 func (r *RuntimeCancelResult) ResponsePayload() map[string]any {
+	if r == nil {
+		return nil
+	}
+	payload := make(map[string]any, len(r.Payload)+1)
+	for key, value := range r.Payload {
+		payload[key] = value
+	}
+	payload["status_code"] = r.StatusCode
+	return payload
+}
+
+func (r *RuntimeCommandRevokeResult) ResponsePayload() map[string]any {
 	if r == nil {
 		return nil
 	}
@@ -151,6 +168,53 @@ func (c *RuntimeClient) CancelTask(ctx context.Context, taskID uuid.UUID, tenant
 	}
 
 	return &RuntimeCancelResult{
+		StatusCode: resp.StatusCode,
+		Payload:    payload,
+	}, nil
+}
+
+func (c *RuntimeClient) RevokeCommands(ctx context.Context, tenantID string, deliveryKeys []string, revokeOwned bool, reason string) (*RuntimeCommandRevokeResult, error) {
+	bodyMap := map[string]any{
+		"revoke_owned": revokeOwned,
+	}
+	if len(deliveryKeys) > 0 {
+		bodyMap["delivery_keys"] = deliveryKeys
+	}
+	if reason != "" {
+		bodyMap["reason"] = reason
+	}
+	body, err := json.Marshal(bodyMap)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/v1/runtime/commands/revoke", c.baseURL), bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Igris-Tenant", tenantID)
+	c.setAuthHeader(req)
+	c.setDecisionSigHeader(req, body)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	raw, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	if resp.StatusCode != http.StatusAccepted && resp.StatusCode != http.StatusNotFound && resp.StatusCode != http.StatusConflict {
+		return nil, fmt.Errorf("runtime command revoke failed: status=%d body=%s", resp.StatusCode, string(raw))
+	}
+
+	payload := map[string]any{}
+	if len(bytes.TrimSpace(raw)) > 0 {
+		if err := json.Unmarshal(raw, &payload); err != nil {
+			payload["raw_body"] = string(raw)
+		}
+	}
+
+	return &RuntimeCommandRevokeResult{
 		StatusCode: resp.StatusCode,
 		Payload:    payload,
 	}, nil
