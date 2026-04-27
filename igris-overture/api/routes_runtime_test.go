@@ -210,9 +210,9 @@ func TestRuntimeHeartbeatCountsLocalSpoolAsPending(t *testing.T) {
 	})
 
 	body := map[string]any{
-		"machine_id":                    "dev-machine-1",
-		"timestamp_unix_ms":             time.Now().UnixMilli(),
-		"local_command_spool_depth":     uint64(2),
+		"machine_id":                     "dev-machine-1",
+		"timestamp_unix_ms":              time.Now().UnixMilli(),
+		"local_command_spool_depth":      uint64(2),
 		"local_command_clear_generation": uint64(9),
 	}
 	body["signature"] = signRuntimeMachineRequest(t, privateKey, "runtime_heartbeat.v2", body)
@@ -363,10 +363,10 @@ func TestRuntimeAckPendingCommandsRemovesDeliveryKeys(t *testing.T) {
 	})
 
 	body := map[string]any{
-		"machine_id":               "dev-machine-1",
-		"delivery_keys":            []string{"cmd-1"},
+		"machine_id":                "dev-machine-1",
+		"delivery_keys":             []string{"cmd-1"},
 		"expected_clear_generation": uint64(0),
-		"timestamp_unix_ms":        time.Now().UnixMilli(),
+		"timestamp_unix_ms":         time.Now().UnixMilli(),
 	}
 	body["signature"] = signRuntimeCommandAckRequest(t, privateKey, body)
 	payload, err := json.Marshal(body)
@@ -412,10 +412,10 @@ func TestRuntimeAckPendingCommandsRejectsGenerationMismatch(t *testing.T) {
 	})
 
 	body := map[string]any{
-		"machine_id":               "dev-machine-1",
-		"delivery_keys":            []string{"cmd-1"},
+		"machine_id":                "dev-machine-1",
+		"delivery_keys":             []string{"cmd-1"},
 		"expected_clear_generation": uint64(7),
-		"timestamp_unix_ms":        time.Now().UnixMilli(),
+		"timestamp_unix_ms":         time.Now().UnixMilli(),
 	}
 	body["signature"] = signRuntimeCommandAckRequest(t, privateKey, body)
 	payload, err := json.Marshal(body)
