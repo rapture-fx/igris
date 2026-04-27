@@ -946,7 +946,7 @@ impl RuntimeRegistrationClient {
         Ok(())
     }
 
-    /// Fetch and clear queued runtime commands from Overture.
+    /// Fetch queued runtime commands plus the current control-plane clear generation.
     pub async fn fetch_pending_commands(&self) -> Result<RuntimeCommandsResponse> {
         let url = format!("{}/api/v1/runtime/commands", self.base_url);
         let timestamp_unix_ms = Utc::now().timestamp_millis();
