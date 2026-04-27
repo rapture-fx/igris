@@ -18,6 +18,7 @@ use std::net::SocketAddr;
 use std::path::{Path as StdPath, PathBuf};
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt};
+use tokio::sync::watch;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 use tracing::{error, info, warn};
@@ -154,6 +155,11 @@ pub(crate) struct AppState {
     /// Registry of in-flight durable task cancellation signals keyed by task_id.
     pub(crate) task_cancellation_registry:
         Arc<std::sync::RwLock<HashMap<uuid::Uuid, tokio::sync::watch::Sender<bool>>>>,
+    /// Registry of in-flight runtime command cancellation signals keyed by delivery key.
+    pub(crate) runtime_command_cancellation_registry:
+        Arc<std::sync::RwLock<HashMap<String, watch::Sender<bool>>>>,
+    /// Synchronizes access to the durable runtime command spool file.
+    pub(crate) runtime_command_spool_lock: Arc<tokio::sync::Mutex<()>>,
     // ── BT Live Streaming ─────────────────────────────────────────────────────
     /// Watch sender for per-tick BT state. The `btree_run` handler wires its
     /// executor tick observer to this sender; the `/v1/btree/events` SSE
@@ -219,6 +225,8 @@ struct RuntimeCommandSpoolState {
     #[serde(default)]
     ownership_confirmed: bool,
     #[serde(default)]
+    statuses: Vec<igris_license_client::RuntimeCommandStatusTelemetry>,
+    #[serde(default)]
     commands: Vec<igris_license_client::PendingRuntimeCommand>,
 }
 
@@ -234,6 +242,45 @@ enum RuntimeCommandProcessResult {
     Completed,
     DeadLetter(String),
     Retry(String),
+    Cancelled(String),
+}
+
+struct RuntimeCommandCancellationGuard {
+    registry: Arc<std::sync::RwLock<HashMap<String, watch::Sender<bool>>>>,
+    delivery_key: String,
+}
+
+impl Drop for RuntimeCommandCancellationGuard {
+    fn drop(&mut self) {
+        if let Ok(mut guard) = self.registry.write() {
+            guard.remove(&self.delivery_key);
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct RuntimeCommandRevokeRequest {
+    #[serde(default)]
+    delivery_keys: Vec<String>,
+    #[serde(default)]
+    revoke_owned: bool,
+    #[serde(default)]
+    reason: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct RuntimeCommandRevokeResponse {
+    revoked_count: usize,
+    signaled_count: usize,
+    removed_count: usize,
+    remaining_count: usize,
+}
+
+fn runtime_command_updated_at_unix_ms() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|value| value.as_millis() as u64)
+        .unwrap_or(0)
 }
 
 fn runtime_command_spool_path() -> PathBuf {
@@ -277,6 +324,7 @@ fn load_runtime_command_spool(path: &StdPath) -> anyhow::Result<RuntimeCommandSp
         RuntimeCommandSpoolDiskState::Legacy(commands) => Ok(RuntimeCommandSpoolState {
             clear_generation: 0,
             ownership_confirmed: false,
+            statuses: Vec::new(),
             commands,
         }),
     }
@@ -322,6 +370,61 @@ fn merge_runtime_commands(
     Ok(added)
 }
 
+fn trim_runtime_command_statuses(
+    statuses: &mut Vec<igris_license_client::RuntimeCommandStatusTelemetry>,
+) {
+    const MAX_RUNTIME_COMMAND_STATUSES: usize = 64;
+    if statuses.len() > MAX_RUNTIME_COMMAND_STATUSES {
+        let drain_len = statuses.len() - MAX_RUNTIME_COMMAND_STATUSES;
+        statuses.drain(0..drain_len);
+    }
+}
+
+fn upsert_runtime_command_status(
+    spool: &mut RuntimeCommandSpoolState,
+    delivery_key: String,
+    command_type: String,
+    state: &str,
+    reason: Option<String>,
+) {
+    if let Some(existing) = spool
+        .statuses
+        .iter_mut()
+        .find(|entry| entry.delivery_key == delivery_key)
+    {
+        existing.command_type = command_type;
+        existing.state = state.to_string();
+        existing.updated_at_unix_ms = runtime_command_updated_at_unix_ms();
+        existing.reason = reason;
+    } else {
+        spool.statuses.push(igris_license_client::RuntimeCommandStatusTelemetry {
+            delivery_key,
+            command_type,
+            state: state.to_string(),
+            updated_at_unix_ms: runtime_command_updated_at_unix_ms(),
+            reason,
+        });
+        trim_runtime_command_statuses(&mut spool.statuses);
+    }
+}
+
+fn sync_runtime_command_status_for_commands(
+    spool: &mut RuntimeCommandSpoolState,
+    lifecycle_state: &str,
+) -> anyhow::Result<()> {
+    let commands = spool.commands.clone();
+    for command in commands {
+        upsert_runtime_command_status(
+            spool,
+            runtime_command_delivery_key(&command)?,
+            command.command_type.clone(),
+            lifecycle_state,
+            None,
+        );
+    }
+    Ok(())
+}
+
 fn sync_runtime_command_spool_telemetry(
     client: &igris_license_client::RuntimeRegistrationClient,
     spool: &RuntimeCommandSpoolState,
@@ -330,7 +433,39 @@ fn sync_runtime_command_spool_telemetry(
         spool.commands.len() as u64,
         spool.clear_generation,
         spool.ownership_confirmed,
+        &spool.statuses,
     );
+}
+
+fn register_runtime_command_cancellation(
+    state: &AppState,
+    delivery_key: &str,
+) -> (RuntimeCommandCancellationGuard, watch::Receiver<bool>) {
+    let (tx, rx) = watch::channel(false);
+    if let Ok(mut guard) = state.runtime_command_cancellation_registry.write() {
+        guard.insert(delivery_key.to_string(), tx);
+    }
+    (
+        RuntimeCommandCancellationGuard {
+            registry: state.runtime_command_cancellation_registry.clone(),
+            delivery_key: delivery_key.to_string(),
+        },
+        rx,
+    )
+}
+
+fn signal_runtime_command_cancellation(state: &AppState, delivery_key: &str) -> bool {
+    state
+        .runtime_command_cancellation_registry
+        .read()
+        .ok()
+        .and_then(|guard| guard.get(delivery_key).cloned())
+        .map(|sender| sender.send(true).is_ok())
+        .unwrap_or(false)
+}
+
+fn is_runtime_command_canceled(cancel_rx: &watch::Receiver<bool>) -> bool {
+    *cancel_rx.borrow()
 }
 
 async fn acknowledge_runtime_command_spool(
@@ -398,7 +533,13 @@ fn ros_command_string_payload(payload: Option<&serde_json::Value>) -> Option<Str
 async fn process_ros_publish_command(
     state: &AppState,
     command: &igris_license_client::PendingRuntimeCommand,
+    cancel_rx: &watch::Receiver<bool>,
 ) -> RuntimeCommandProcessResult {
+    if is_runtime_command_canceled(cancel_rx) {
+        return RuntimeCommandProcessResult::Cancelled(
+            "runtime command was revoked before execution".to_string(),
+        );
+    }
     let Some(manager) = state.ros2_manager.as_ref() else {
         return RuntimeCommandProcessResult::DeadLetter(
             "ros_publish command rejected because ROS2 is not enabled on this runtime".to_string(),
@@ -467,6 +608,7 @@ async fn process_ros_publish_command(
 async fn process_ros_publish_command(
     _state: &AppState,
     _command: &igris_license_client::PendingRuntimeCommand,
+    _cancel_rx: &watch::Receiver<bool>,
 ) -> RuntimeCommandProcessResult {
     RuntimeCommandProcessResult::DeadLetter(
         "ros_publish command rejected because this runtime was built without robotics support"
@@ -477,7 +619,13 @@ async fn process_ros_publish_command(
 async fn process_runtime_command(
     state: &AppState,
     command: &igris_license_client::PendingRuntimeCommand,
+    cancel_rx: &watch::Receiver<bool>,
 ) -> RuntimeCommandProcessResult {
+    if is_runtime_command_canceled(cancel_rx) {
+        return RuntimeCommandProcessResult::Cancelled(
+            "runtime command was revoked before execution".to_string(),
+        );
+    }
     if runtime_execution_blocked_by_safe_idle(state) {
         return RuntimeCommandProcessResult::Retry(safe_idle_rejection_message(
             "fleet command execution",
@@ -485,7 +633,7 @@ async fn process_runtime_command(
     }
 
     match command.command_type.as_str() {
-        "ros_publish" => process_ros_publish_command(state, command).await,
+        "ros_publish" => process_ros_publish_command(state, command, cancel_rx).await,
         "ros_lifecycle" => RuntimeCommandProcessResult::DeadLetter(
             "ros_lifecycle command fetched but runtime lifecycle control is not implemented yet"
                 .to_string(),
@@ -508,17 +656,54 @@ async fn process_runtime_command(
 async fn drain_runtime_command_spool(
     state: &AppState,
     machine_id: &str,
-    commands: &mut Vec<igris_license_client::PendingRuntimeCommand>,
+    spool_path: &StdPath,
     deadletter_path: &StdPath,
+    client: &igris_license_client::RuntimeRegistrationClient,
 ) -> anyhow::Result<bool> {
-    if commands.is_empty() {
-        return Ok(true);
-    }
+    loop {
+        let command = {
+            let _lock = state.runtime_command_spool_lock.lock().await;
+            let mut spool = load_runtime_command_spool(spool_path)?;
+            let Some(command) = spool.commands.first().cloned() else {
+                sync_runtime_command_spool_telemetry(client, &spool);
+                return Ok(true);
+            };
+            let delivery_key = runtime_command_delivery_key(&command)?;
+            upsert_runtime_command_status(
+                &mut spool,
+                delivery_key,
+                command.command_type.clone(),
+                "executing",
+                None,
+            );
+            persist_runtime_command_spool(spool_path, &spool)?;
+            sync_runtime_command_spool_telemetry(client, &spool);
+            command
+        };
 
-    while let Some(command) = commands.first().cloned() {
-        match process_runtime_command(state, &command).await {
+        let delivery_key = runtime_command_delivery_key(&command)?;
+        let (_cancel_guard, cancel_rx) = register_runtime_command_cancellation(state, &delivery_key);
+        match process_runtime_command(state, &command, &cancel_rx).await {
             RuntimeCommandProcessResult::Completed => {
-                commands.remove(0);
+                let _lock = state.runtime_command_spool_lock.lock().await;
+                let mut spool = load_runtime_command_spool(spool_path)?;
+                spool.commands.retain(|queued| {
+                    runtime_command_delivery_key(queued)
+                        .map(|key| key != delivery_key)
+                        .unwrap_or(true)
+                });
+                upsert_runtime_command_status(
+                    &mut spool,
+                    delivery_key.clone(),
+                    command.command_type.clone(),
+                    "completed",
+                    None,
+                );
+                if spool.commands.is_empty() {
+                    spool.ownership_confirmed = false;
+                }
+                persist_runtime_command_spool(spool_path, &spool)?;
+                sync_runtime_command_spool_telemetry(client, &spool);
             }
             RuntimeCommandProcessResult::DeadLetter(reason) => {
                 warn!(
@@ -526,19 +711,71 @@ async fn drain_runtime_command_spool(
                     command.command_type, reason
                 );
                 append_runtime_command_deadletter(deadletter_path, machine_id, &command, &reason)?;
-                commands.remove(0);
+                let _lock = state.runtime_command_spool_lock.lock().await;
+                let mut spool = load_runtime_command_spool(spool_path)?;
+                spool.commands.retain(|queued| {
+                    runtime_command_delivery_key(queued)
+                        .map(|key| key != delivery_key)
+                        .unwrap_or(true)
+                });
+                upsert_runtime_command_status(
+                    &mut spool,
+                    delivery_key.clone(),
+                    command.command_type.clone(),
+                    "dead_lettered",
+                    Some(reason),
+                );
+                if spool.commands.is_empty() {
+                    spool.ownership_confirmed = false;
+                }
+                persist_runtime_command_spool(spool_path, &spool)?;
+                sync_runtime_command_spool_telemetry(client, &spool);
             }
             RuntimeCommandProcessResult::Retry(reason) => {
                 warn!(
                     "[Runtime/Fleet] Command type={} deferred: {}",
                     command.command_type, reason
                 );
+                let _lock = state.runtime_command_spool_lock.lock().await;
+                let mut spool = load_runtime_command_spool(spool_path)?;
+                upsert_runtime_command_status(
+                    &mut spool,
+                    delivery_key.clone(),
+                    command.command_type.clone(),
+                    "owned",
+                    Some(reason),
+                );
+                persist_runtime_command_spool(spool_path, &spool)?;
+                sync_runtime_command_spool_telemetry(client, &spool);
                 return Ok(false);
+            }
+            RuntimeCommandProcessResult::Cancelled(reason) => {
+                warn!(
+                    "[Runtime/Fleet] Command type={} cancelled: {}",
+                    command.command_type, reason
+                );
+                let _lock = state.runtime_command_spool_lock.lock().await;
+                let mut spool = load_runtime_command_spool(spool_path)?;
+                spool.commands.retain(|queued| {
+                    runtime_command_delivery_key(queued)
+                        .map(|key| key != delivery_key)
+                        .unwrap_or(true)
+                });
+                upsert_runtime_command_status(
+                    &mut spool,
+                    delivery_key.clone(),
+                    command.command_type.clone(),
+                    "cancelled",
+                    Some(reason),
+                );
+                if spool.commands.is_empty() {
+                    spool.ownership_confirmed = false;
+                }
+                persist_runtime_command_spool(spool_path, &spool)?;
+                sync_runtime_command_spool_telemetry(client, &spool);
             }
         }
     }
-
-    Ok(true)
 }
 
 async fn start_runtime_command_loop(
@@ -553,17 +790,27 @@ async fn start_runtime_command_loop(
     loop {
         interval.tick().await;
 
-        let mut spool = match load_runtime_command_spool(&spool_path) {
-            Ok(spool) => spool,
-            Err(err) => {
-                warn!("[Runtime/Fleet] Failed to load command spool: {}", err);
-                continue;
+        {
+            let _lock = state.runtime_command_spool_lock.lock().await;
+            match load_runtime_command_spool(&spool_path) {
+                Ok(spool) => sync_runtime_command_spool_telemetry(&client, &spool),
+                Err(err) => {
+                    warn!("[Runtime/Fleet] Failed to load command spool: {}", err);
+                    continue;
+                }
             }
-        };
-        sync_runtime_command_spool_telemetry(&client, &spool);
+        }
 
         match client.fetch_pending_commands().await {
             Ok(response) => {
+                let _lock = state.runtime_command_spool_lock.lock().await;
+                let mut spool = match load_runtime_command_spool(&spool_path) {
+                    Ok(spool) => spool,
+                    Err(err) => {
+                        warn!("[Runtime/Fleet] Failed to load command spool: {}", err);
+                        continue;
+                    }
+                };
                 if response.clear_generation > spool.clear_generation {
                     if !spool.commands.is_empty() {
                         warn!(
@@ -572,6 +819,17 @@ async fn start_runtime_command_loop(
                             spool.clear_generation,
                             response.clear_generation
                         );
+                    }
+                    for command in spool.commands.clone() {
+                        if let Ok(delivery_key) = runtime_command_delivery_key(&command) {
+                            upsert_runtime_command_status(
+                                &mut spool,
+                                delivery_key,
+                                command.command_type.clone(),
+                                "revoked",
+                                Some("control-plane clear generation advanced".to_string()),
+                            );
+                        }
                     }
                     spool.clear_generation = response.clear_generation;
                     spool.ownership_confirmed = false;
@@ -596,6 +854,14 @@ async fn start_runtime_command_loop(
                 };
                 if added > 0 {
                     spool.ownership_confirmed = false;
+                    if let Err(err) = sync_runtime_command_status_for_commands(&mut spool, "queued")
+                    {
+                        warn!(
+                            "[Runtime/Fleet] Failed to assign queued command statuses: {}",
+                            err
+                        );
+                        continue;
+                    }
                 }
                 if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
                     warn!(
@@ -611,12 +877,34 @@ async fn start_runtime_command_loop(
             }
         }
 
-        if !spool.ownership_confirmed && !spool.commands.is_empty() {
-            let ack = match acknowledge_runtime_command_spool(&client, &spool).await {
+        let spool_snapshot = {
+            let _lock = state.runtime_command_spool_lock.lock().await;
+            match load_runtime_command_spool(&spool_path) {
+                Ok(spool) => spool,
+                Err(err) => {
+                    warn!("[Runtime/Fleet] Failed to load command spool before ack: {}", err);
+                    continue;
+                }
+            }
+        };
+
+        if !spool_snapshot.ownership_confirmed && !spool_snapshot.commands.is_empty() {
+            let ack = match acknowledge_runtime_command_spool(&client, &spool_snapshot).await {
                 Ok(ack) => ack,
                 Err(err) => {
                     warn!(
                         "[Runtime/Fleet] Failed to acknowledge locally persisted commands: {}",
+                        err
+                    );
+                    continue;
+                }
+            };
+            let _lock = state.runtime_command_spool_lock.lock().await;
+            let mut spool = match load_runtime_command_spool(&spool_path) {
+                Ok(spool) => spool,
+                Err(err) => {
+                    warn!(
+                        "[Runtime/Fleet] Failed to reload command spool after ack response: {}",
                         err
                     );
                     continue;
@@ -628,6 +916,17 @@ async fn start_runtime_command_loop(
                     spool.commands.len(),
                     ack.clear_generation
                 );
+                for command in spool.commands.clone() {
+                    if let Ok(delivery_key) = runtime_command_delivery_key(&command) {
+                        upsert_runtime_command_status(
+                            &mut spool,
+                            delivery_key,
+                            command.command_type.clone(),
+                            "revoked",
+                            Some("control-plane ownership was not granted".to_string()),
+                        );
+                    }
+                }
                 spool.clear_generation = ack.clear_generation;
                 spool.ownership_confirmed = false;
                 spool.commands.clear();
@@ -643,6 +942,13 @@ async fn start_runtime_command_loop(
             }
             spool.clear_generation = ack.clear_generation;
             spool.ownership_confirmed = true;
+            if let Err(err) = sync_runtime_command_status_for_commands(&mut spool, "owned") {
+                warn!(
+                    "[Runtime/Fleet] Failed to assign owned command statuses: {}",
+                    err
+                );
+                continue;
+            }
             if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
                 warn!(
                     "[Runtime/Fleet] Failed to persist acknowledged command spool: {}",
@@ -656,8 +962,9 @@ async fn start_runtime_command_loop(
         let drain_result = match drain_runtime_command_spool(
             &state,
             &machine_id,
-            &mut spool.commands,
+            &spool_path,
             &deadletter_path,
+            &client,
         )
         .await
         {
@@ -667,21 +974,106 @@ async fn start_runtime_command_loop(
                 continue;
             }
         };
-        if spool.commands.is_empty() {
-            spool.ownership_confirmed = false;
-        }
-        if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
-            warn!(
-                "[Runtime/Fleet] Failed to persist command spool after drain: {}",
-                err
-            );
-            continue;
-        }
-        sync_runtime_command_spool_telemetry(&client, &spool);
         if !drain_result {
             continue;
         }
     }
+}
+
+async fn handle_runtime_command_revoke(
+    State(state): State<AppState>,
+    Json(req): Json<RuntimeCommandRevokeRequest>,
+) -> impl IntoResponse {
+    let revoke_all_owned = req.revoke_owned;
+    let reason = req
+        .reason
+        .clone()
+        .unwrap_or_else(|| "operator requested runtime command revocation".to_string());
+    let requested_keys: std::collections::HashSet<String> = req
+        .delivery_keys
+        .iter()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .collect();
+
+    let _lock = state.runtime_command_spool_lock.lock().await;
+    let spool_path = runtime_command_spool_path();
+    let mut spool = match load_runtime_command_spool(&spool_path) {
+        Ok(spool) => spool,
+        Err(err) => {
+            error!("[Runtime/Fleet] Failed to load spool for revoke: {}", err);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({"error": "failed_to_load_runtime_command_spool"})),
+            )
+                .into_response();
+        }
+    };
+
+    let mut revoked_count = 0usize;
+    let mut removed_count = 0usize;
+    let mut signaled_count = 0usize;
+    let mut retained = Vec::with_capacity(spool.commands.len());
+
+    for command in spool.commands.clone() {
+        let Ok(delivery_key) = runtime_command_delivery_key(&command) else {
+            retained.push(command);
+            continue;
+        };
+        let selected = revoke_all_owned || requested_keys.contains(&delivery_key);
+        if !selected {
+            retained.push(command);
+            continue;
+        }
+
+        revoked_count += 1;
+        let active = signal_runtime_command_cancellation(&state, &delivery_key);
+        if active {
+            signaled_count += 1;
+            upsert_runtime_command_status(
+                &mut spool,
+                delivery_key,
+                command.command_type.clone(),
+                "revoked",
+                Some(reason.clone()),
+            );
+            retained.push(command);
+            continue;
+        }
+
+        removed_count += 1;
+        upsert_runtime_command_status(
+            &mut spool,
+            delivery_key,
+            command.command_type.clone(),
+            "revoked",
+            Some(reason.clone()),
+        );
+    }
+
+    spool.commands = retained;
+    if spool.commands.is_empty() {
+        spool.ownership_confirmed = false;
+    }
+    if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
+        error!("[Runtime/Fleet] Failed to persist spool revoke state: {}", err);
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": "failed_to_persist_runtime_command_spool"})),
+        )
+            .into_response();
+    }
+
+    (
+        StatusCode::ACCEPTED,
+        Json(RuntimeCommandRevokeResponse {
+            revoked_count,
+            signaled_count,
+            removed_count,
+            remaining_count: spool.commands.len(),
+        }),
+    )
+        .into_response()
 }
 
 fn apply_auth_env_overrides(config: &mut IgrisConfig) {
@@ -4090,6 +4482,8 @@ async fn main() -> anyhow::Result<()> {
         receipt_log,
         lifecycle_registry,
         task_cancellation_registry: Arc::new(std::sync::RwLock::new(HashMap::new())),
+        runtime_command_cancellation_registry: Arc::new(std::sync::RwLock::new(HashMap::new())),
+        runtime_command_spool_lock: Arc::new(tokio::sync::Mutex::new(())),
         bt_state_tx: Arc::new(tokio::sync::watch::channel(serde_json::Value::Null).0),
         #[cfg(feature = "robotics-platform")]
         ros2_manager: None, // Populated below if ENABLE_ROS2=true
@@ -4223,6 +4617,10 @@ async fn main() -> anyhow::Result<()> {
             .route(
                 "/v1/runtime/task/:task_id/wal",
                 get(task_executor::handle_task_wal),
+            )
+            .route(
+                "/v1/runtime/commands/revoke",
+                post(handle_runtime_command_revoke),
             );
     } else {
         info!(
