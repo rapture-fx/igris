@@ -346,9 +346,10 @@ func TestRuntimeAckPendingCommandsRemovesDeliveryKeys(t *testing.T) {
 				rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
 			},
 			{
-				columns: []string{"pending_commands"},
+				columns: []string{"pending_commands", "pending_commands_clear_generation"},
 				rows: [][]driver.Value{{
 					[]byte(`[{"command_id":"cmd-1","type":"ros_publish"},{"command_id":"cmd-2","type":"config_push"}]`),
+					int64(0),
 				}},
 			},
 		},
