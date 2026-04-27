@@ -7,6 +7,7 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{error, info, warn};
@@ -719,6 +720,8 @@ pub struct RuntimeRegistrationClient {
     platform: String,
     public_key_ed25519: String,
     signing_key: Arc<SigningKey>,
+    command_spool_depth: Arc<AtomicU64>,
+    command_clear_generation: Arc<AtomicU64>,
     client: reqwest::Client,
 }
 
@@ -764,6 +767,18 @@ pub struct RuntimeCommandsResponse {
     pub clear_generation: u64,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct RuntimeCommandAckResponse {
+    #[serde(default)]
+    pub status: String,
+    #[serde(default)]
+    pub acked_count: u64,
+    #[serde(default)]
+    pub ownership_granted: bool,
+    #[serde(default)]
+    pub clear_generation: u64,
+}
+
 /// Response from POST /api/v1/runtime/register
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RuntimeRegisterResponse {
@@ -804,6 +819,8 @@ impl RuntimeRegistrationClient {
             platform,
             public_key_ed25519,
             signing_key,
+            command_spool_depth: Arc::new(AtomicU64::new(0)),
+            command_clear_generation: Arc::new(AtomicU64::new(0)),
             client,
         }
     }
@@ -884,17 +901,22 @@ impl RuntimeRegistrationClient {
     pub async fn heartbeat(&self) -> Result<()> {
         let url = format!("{}/api/v1/runtime/heartbeat", self.base_url);
         let timestamp_unix_ms = Utc::now().timestamp_millis();
-        let signature = sign_runtime_machine_payload(
+        let command_spool_depth = self.command_spool_depth.load(Ordering::Relaxed);
+        let command_clear_generation = self.command_clear_generation.load(Ordering::Relaxed);
+        let signature = sign_runtime_heartbeat_payload(
             self.signing_key.as_ref(),
-            "runtime_heartbeat.v1",
             &self.machine_id,
             timestamp_unix_ms,
             None,
+            command_spool_depth,
+            command_clear_generation,
         );
 
         let payload = serde_json::json!({
             "machine_id": self.machine_id,
             "timestamp_unix_ms": timestamp_unix_ms,
+            "local_command_spool_depth": command_spool_depth,
+            "local_command_clear_generation": command_clear_generation,
             "signature": signature,
         });
 
@@ -984,7 +1006,11 @@ impl RuntimeRegistrationClient {
     }
 
     /// Acknowledge that the runtime durably persisted the fetched commands.
-    pub async fn ack_pending_commands(&self, delivery_keys: &[String]) -> Result<()> {
+    pub async fn ack_pending_commands(
+        &self,
+        delivery_keys: &[String],
+        expected_clear_generation: u64,
+    ) -> Result<RuntimeCommandAckResponse> {
         let url = format!("{}/api/v1/runtime/commands/ack", self.base_url);
         let mut keys: Vec<String> = delivery_keys
             .iter()
@@ -999,11 +1025,13 @@ impl RuntimeRegistrationClient {
             self.signing_key.as_ref(),
             &self.machine_id,
             &keys,
+            expected_clear_generation,
             timestamp_unix_ms,
         );
         let payload = serde_json::json!({
             "machine_id": self.machine_id,
             "delivery_keys": keys,
+            "expected_clear_generation": expected_clear_generation,
             "timestamp_unix_ms": timestamp_unix_ms,
             "signature": signature,
         });
@@ -1017,19 +1045,31 @@ impl RuntimeRegistrationClient {
             .await
             .map_err(|e| anyhow!("Command ack request failed: {}", e))?;
         let status = resp.status();
+        let body = resp
+            .text()
+            .await
+            .unwrap_or_else(|_| "unable to read ack response".to_string());
         if !status.is_success() {
-            let body = resp
-                .text()
-                .await
-                .unwrap_or_else(|_| "unable to read ack response".to_string());
             return Err(anyhow!("Command ack error ({}): {}", status, body));
         }
-        Ok(())
+        serde_json::from_str(&body)
+            .map_err(|e| anyhow!("Failed to parse command ack response: {}", e))
     }
 
     /// Return the machine ID used by this client (for logging).
     pub fn machine_id(&self) -> &str {
         &self.machine_id
+    }
+
+    pub fn record_command_spool_state(
+        &self,
+        depth: u64,
+        clear_generation: u64,
+        _ownership_confirmed: bool,
+    ) {
+        self.command_spool_depth.store(depth, Ordering::Relaxed);
+        self.command_clear_generation
+            .store(clear_generation, Ordering::Relaxed);
     }
 }
 
@@ -1107,17 +1147,42 @@ fn sign_runtime_machine_payload(
         .encode(signing_key.sign(message.as_bytes()).to_bytes())
 }
 
+fn sign_runtime_heartbeat_payload(
+    signing_key: &SigningKey,
+    machine_id: &str,
+    timestamp_unix_ms: i64,
+    bt_state: Option<&str>,
+    local_command_spool_depth: u64,
+    local_command_clear_generation: u64,
+) -> String {
+    let bt_state_hash = bt_state
+        .map(|value| hex::encode(Sha256::digest(value.as_bytes())))
+        .unwrap_or_default();
+    let message = format!(
+        "runtime_heartbeat.v2:{}:{}:{}:{}:{}",
+        machine_id,
+        timestamp_unix_ms,
+        bt_state_hash,
+        local_command_spool_depth,
+        local_command_clear_generation
+    );
+    base64::engine::general_purpose::STANDARD
+        .encode(signing_key.sign(message.as_bytes()).to_bytes())
+}
+
 fn sign_runtime_command_ack_payload(
     signing_key: &SigningKey,
     machine_id: &str,
     delivery_keys: &[String],
+    expected_clear_generation: u64,
     timestamp_unix_ms: i64,
 ) -> String {
     let message = format!(
-        "runtime_commands_ack.v1:{}:{}:{}",
+        "runtime_commands_ack.v1:{}:{}:{}:{}",
         machine_id,
         timestamp_unix_ms,
-        delivery_keys.join(",")
+        delivery_keys.join(","),
+        expected_clear_generation
     );
     base64::engine::general_purpose::STANDARD
         .encode(signing_key.sign(message.as_bytes()).to_bytes())
@@ -1257,11 +1322,13 @@ mod tests {
         let signing_key = SigningKey::from_bytes(&[9u8; 32]);
         let machine_id = "dev_0123456789abcdef0123456789abcdef";
         let timestamp_unix_ms = 1_900_500_100_000_i64;
+        let expected_clear_generation = 8_u64;
         let delivery_keys = vec!["command-b".to_string(), "command-a".to_string()];
         let signature = sign_runtime_command_ack_payload(
             &signing_key,
             machine_id,
             &["command-a".to_string(), "command-b".to_string()],
+            expected_clear_generation,
             timestamp_unix_ms,
         );
         let signature_bytes = base64::engine::general_purpose::STANDARD
@@ -1271,10 +1338,41 @@ mod tests {
         let mut sorted = delivery_keys;
         sorted.sort();
         let message = format!(
-            "runtime_commands_ack.v1:{}:{}:{}",
+            "runtime_commands_ack.v1:{}:{}:{}:{}",
             machine_id,
             timestamp_unix_ms,
-            sorted.join(",")
+            sorted.join(","),
+            expected_clear_generation
+        );
+        signing_key
+            .verifying_key()
+            .verify(message.as_bytes(), &signature)
+            .unwrap();
+    }
+
+    #[test]
+    fn runtime_heartbeat_signature_matches_control_plane_contract() {
+        let signing_key = SigningKey::from_bytes(&[11u8; 32]);
+        let machine_id = "dev_0123456789abcdef0123456789abcdef";
+        let timestamp_unix_ms = 1_900_500_200_000_i64;
+        let signature = sign_runtime_heartbeat_payload(
+            &signing_key,
+            machine_id,
+            timestamp_unix_ms,
+            None,
+            3,
+            12,
+        );
+        let signature_bytes = base64::engine::general_purpose::STANDARD
+            .decode(signature)
+            .unwrap();
+        let signature = Signature::from_slice(&signature_bytes).unwrap();
+        let message = format!(
+            "runtime_heartbeat.v2:{}:{}::{}:{}",
+            machine_id,
+            timestamp_unix_ms,
+            3,
+            12
         );
         signing_key
             .verifying_key()
