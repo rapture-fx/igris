@@ -217,6 +217,8 @@ struct RuntimeCommandSpoolState {
     #[serde(default)]
     clear_generation: u64,
     #[serde(default)]
+    ownership_confirmed: bool,
+    #[serde(default)]
     commands: Vec<igris_license_client::PendingRuntimeCommand>,
 }
 
@@ -274,6 +276,7 @@ fn load_runtime_command_spool(path: &StdPath) -> anyhow::Result<RuntimeCommandSp
         RuntimeCommandSpoolDiskState::State(state) => Ok(state),
         RuntimeCommandSpoolDiskState::Legacy(commands) => Ok(RuntimeCommandSpoolState {
             clear_generation: 0,
+            ownership_confirmed: false,
             commands,
         }),
     }
@@ -319,18 +322,36 @@ fn merge_runtime_commands(
     Ok(added)
 }
 
+fn sync_runtime_command_spool_telemetry(
+    client: &igris_license_client::RuntimeRegistrationClient,
+    spool: &RuntimeCommandSpoolState,
+) {
+    client.record_command_spool_state(
+        spool.commands.len() as u64,
+        spool.clear_generation,
+        spool.ownership_confirmed,
+    );
+}
+
 async fn acknowledge_runtime_command_spool(
     client: &igris_license_client::RuntimeRegistrationClient,
-    commands: &[igris_license_client::PendingRuntimeCommand],
-) -> anyhow::Result<()> {
-    let mut delivery_keys = Vec::with_capacity(commands.len());
-    for command in commands {
+    state: &RuntimeCommandSpoolState,
+) -> anyhow::Result<igris_license_client::RuntimeCommandAckResponse> {
+    let mut delivery_keys = Vec::with_capacity(state.commands.len());
+    for command in &state.commands {
         delivery_keys.push(runtime_command_delivery_key(command)?);
     }
     if delivery_keys.is_empty() {
-        return Ok(());
+        return Ok(igris_license_client::RuntimeCommandAckResponse {
+            status: "empty".to_string(),
+            acked_count: 0,
+            ownership_granted: true,
+            clear_generation: state.clear_generation,
+        });
     }
-    client.ack_pending_commands(&delivery_keys).await
+    client
+        .ack_pending_commands(&delivery_keys, state.clear_generation)
+        .await
 }
 
 fn append_runtime_command_deadletter(
@@ -539,6 +560,7 @@ async fn start_runtime_command_loop(
                 continue;
             }
         };
+        sync_runtime_command_spool_telemetry(&client, &spool);
 
         match client.fetch_pending_commands().await {
             Ok(response) => {
@@ -552,6 +574,7 @@ async fn start_runtime_command_loop(
                         );
                     }
                     spool.clear_generation = response.clear_generation;
+                    spool.ownership_confirmed = false;
                     spool.commands.clear();
                 }
 
@@ -561,12 +584,18 @@ async fn start_runtime_command_loop(
                         response.commands.len()
                     );
                 }
-                if let Err(err) = merge_runtime_commands(&mut spool.commands, response.commands) {
-                    warn!(
-                        "[Runtime/Fleet] Failed to merge fetched command spool: {}",
-                        err
-                    );
-                    continue;
+                let added = match merge_runtime_commands(&mut spool.commands, response.commands) {
+                    Ok(added) => added,
+                    Err(err) => {
+                        warn!(
+                            "[Runtime/Fleet] Failed to merge fetched command spool: {}",
+                            err
+                        );
+                        continue;
+                    }
+                };
+                if added > 0 {
+                    spool.ownership_confirmed = false;
                 }
                 if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
                     warn!(
@@ -575,18 +604,53 @@ async fn start_runtime_command_loop(
                     );
                     continue;
                 }
+                sync_runtime_command_spool_telemetry(&client, &spool);
             }
             Err(err) => {
                 warn!("[Runtime/Fleet] Pending command fetch failed: {}", err);
             }
         }
 
-        if let Err(err) = acknowledge_runtime_command_spool(&client, &spool.commands).await {
-            warn!(
-                "[Runtime/Fleet] Failed to acknowledge locally persisted commands: {}",
-                err
-            );
-            continue;
+        if !spool.ownership_confirmed && !spool.commands.is_empty() {
+            let ack = match acknowledge_runtime_command_spool(&client, &spool).await {
+                Ok(ack) => ack,
+                Err(err) => {
+                    warn!(
+                        "[Runtime/Fleet] Failed to acknowledge locally persisted commands: {}",
+                        err
+                    );
+                    continue;
+                }
+            };
+            if !ack.ownership_granted {
+                warn!(
+                    "[Runtime/Fleet] Dropping {} locally spooled command(s) because control-plane ownership was revoked at clear generation {}",
+                    spool.commands.len(),
+                    ack.clear_generation
+                );
+                spool.clear_generation = ack.clear_generation;
+                spool.ownership_confirmed = false;
+                spool.commands.clear();
+                if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
+                    warn!(
+                        "[Runtime/Fleet] Failed to persist ownership-revoked spool state: {}",
+                        err
+                    );
+                    continue;
+                }
+                sync_runtime_command_spool_telemetry(&client, &spool);
+                continue;
+            }
+            spool.clear_generation = ack.clear_generation;
+            spool.ownership_confirmed = true;
+            if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
+                warn!(
+                    "[Runtime/Fleet] Failed to persist acknowledged command spool: {}",
+                    err
+                );
+                continue;
+            }
+            sync_runtime_command_spool_telemetry(&client, &spool);
         }
 
         let drain_result = match drain_runtime_command_spool(
@@ -603,6 +667,9 @@ async fn start_runtime_command_loop(
                 continue;
             }
         };
+        if spool.commands.is_empty() {
+            spool.ownership_confirmed = false;
+        }
         if let Err(err) = persist_runtime_command_spool(&spool_path, &spool) {
             warn!(
                 "[Runtime/Fleet] Failed to persist command spool after drain: {}",
@@ -610,6 +677,7 @@ async fn start_runtime_command_loop(
             );
             continue;
         }
+        sync_runtime_command_spool_telemetry(&client, &spool);
         if !drain_result {
             continue;
         }
