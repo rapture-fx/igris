@@ -888,7 +888,7 @@ pub async fn handle_task_submit(
         req.task_id,
         runtime_id.clone(),
     ));
-    let (_cancel_guard, cancel_rx) = register_task_cancellation(&state, req.task_id);
+    let (_cancel_guard, mut cancel_rx) = register_task_cancellation(&state, req.task_id);
 
     let start_step = if let Some(ref token) = req.resume_from {
         match wal.committed_state() {
@@ -1227,6 +1227,7 @@ pub async fn handle_task_submit(
                     &graph_blackboard,
                     req.containment.as_ref(),
                     max_tick_ms,
+                    &cancel_rx,
                 )
                 .await
             }
@@ -1240,6 +1241,7 @@ pub async fn handle_task_submit(
                     req.containment.as_ref(),
                     &req.signed_policy_decisions,
                     max_tick_ms,
+                    &mut cancel_rx,
                 )
                 .await
             }
@@ -2941,6 +2943,8 @@ async fn execute_agent_step_stream(
         step.mode.as_deref(),
         req.containment.as_ref(),
         max_tick_ms,
+        cancel_rx,
+        req.task_id,
     )
     .await
     {
@@ -3204,6 +3208,7 @@ async fn execute_agent_step(
     graph_blackboard: &serde_json::Value,
     containment: Option<&Bounds>,
     max_tick_ms: u64,
+    cancel_rx: &watch::Receiver<bool>,
 ) -> anyhow::Result<StepExecutionResult> {
     let _ = step.temperature;
     let resolved_messages = resolve_execute_messages(&step.messages, graph_blackboard);
@@ -3247,6 +3252,8 @@ async fn execute_agent_step(
         step.mode.as_deref(),
         containment,
         max_tick_ms,
+        cancel_rx,
+        task_id,
     )
     .await?;
     let content = route_result.content;
@@ -3279,7 +3286,14 @@ async fn execute_contained_agent_route(
     mode: Option<&str>,
     containment: Option<&Bounds>,
     max_tick_ms: u64,
+    cancel_rx: &watch::Receiver<bool>,
+    task_id: Uuid,
 ) -> anyhow::Result<WorkerExecuteResult> {
+    enum RouteExecutionOutcome {
+        Worker(Result<serde_json::Value, igris_safety::ViolationKind>),
+        Cancelled,
+    }
+
     let (route_plan, thompson_provider_id) =
         crate::runtime_execute::build_worker_routing_plan(state, mode).await?;
     let log_path = std::env::var("IGRIS_VIOLATIONS_LOG")
@@ -3302,21 +3316,6 @@ async fn execute_contained_agent_route(
         state.violation_bus.clone(),
     );
     let started_at = Instant::now();
-    let route_result = guard
-        .execute(
-            serde_json::to_value(WorkerExecuteJob {
-                kind: "route".to_string(),
-                prompt: Some(prompt),
-                mode: mode.map(str::to_string),
-                route_plan: Some(route_plan),
-                test_delay_ms: None,
-                test_response_content: None,
-                test_response_provider: None,
-            })
-            .unwrap_or_default(),
-        )
-        .await;
-
     let update_thompson = |success: bool| async move {
         if let Some(provider_id) = thompson_provider_id.as_deref() {
             let _ = state
@@ -3330,41 +3329,66 @@ async fn execute_contained_agent_route(
                 .await;
         }
     };
+    let mut cancel_rx = cancel_rx.clone();
+    let route_outcome = tokio::select! {
+        result = guard.execute(
+            serde_json::to_value(WorkerExecuteJob {
+                kind: "route".to_string(),
+                prompt: Some(prompt),
+                mode: mode.map(str::to_string),
+                route_plan: Some(route_plan),
+                test_delay_ms: None,
+                test_response_content: None,
+                test_response_provider: None,
+            })
+            .unwrap_or_default(),
+        ) => RouteExecutionOutcome::Worker(result),
+        changed = cancel_rx.changed() => {
+            let _ = changed;
+            RouteExecutionOutcome::Cancelled
+        },
+    };
 
-    match route_result {
-        Ok(worker_result) => {
-            if worker_result.get("status").and_then(|value| value.as_str()) != Some("ok") {
+    match route_outcome {
+        RouteExecutionOutcome::Cancelled => {
+            update_thompson(false).await;
+            anyhow::bail!("{}", task_cancellation_reason(task_id));
+        }
+        RouteExecutionOutcome::Worker(route_result) => match route_result {
+            Ok(worker_result) => {
+                if worker_result.get("status").and_then(|value| value.as_str()) != Some("ok") {
+                    update_thompson(false).await;
+                    anyhow::bail!(
+                        "{}",
+                        worker_result
+                            .get("error")
+                            .and_then(|value| value.as_str())
+                            .unwrap_or("worker execution failed")
+                    );
+                }
+
+                let parsed_result: WorkerExecuteResult = serde_json::from_value(
+                    worker_result
+                        .get("result")
+                        .cloned()
+                        .unwrap_or_else(|| serde_json::json!({})),
+                )
+                .map_err(|e| anyhow::anyhow!("invalid worker result: {}", e))?;
+                update_thompson(true).await;
+                Ok(parsed_result)
+            }
+            Err(kind) => {
                 update_thompson(false).await;
                 anyhow::bail!(
-                    "{}",
-                    worker_result
-                        .get("error")
-                        .and_then(|value| value.as_str())
-                        .unwrap_or("worker execution failed")
-                );
+                    "containment violation: {} after {}ms",
+                    match kind {
+                        igris_safety::ViolationKind::Time => "time",
+                        igris_safety::ViolationKind::Cpu => "cpu",
+                    },
+                    max_tick_ms
+                )
             }
-
-            let parsed_result: WorkerExecuteResult = serde_json::from_value(
-                worker_result
-                    .get("result")
-                    .cloned()
-                    .unwrap_or_else(|| serde_json::json!({})),
-            )
-            .map_err(|e| anyhow::anyhow!("invalid worker result: {}", e))?;
-            update_thompson(true).await;
-            Ok(parsed_result)
-        }
-        Err(kind) => {
-            update_thompson(false).await;
-            anyhow::bail!(
-                "containment violation: {} after {}ms",
-                match kind {
-                    igris_safety::ViolationKind::Time => "time",
-                    igris_safety::ViolationKind::Cpu => "cpu",
-                },
-                max_tick_ms
-            )
-        }
+        },
     }
 }
 
@@ -3422,7 +3446,14 @@ async fn execute_robotics_step(
     containment: Option<&Bounds>,
     signed_policy_decisions: &[GovernedPolicyDecision],
     max_tick_ms: u64,
+    cancel_rx: &mut watch::Receiver<bool>,
 ) -> anyhow::Result<StepExecutionResult> {
+    #[cfg(feature = "robotics-platform")]
+    enum RoboticsExecutionOutcome<T> {
+        Completed(T),
+        Cancelled,
+    }
+
     let governed_action = RuntimeTaskStep::Robotics(step.clone())
         .governed_action()
         .ok_or_else(|| anyhow::anyhow!("robotics action is missing governed action metadata"))?;
@@ -3477,22 +3508,28 @@ async fn execute_robotics_step(
         }
 
         let action_name = robotics_action_name(&resolved_action).to_string();
-        match tokio::time::timeout(
-            Duration::from_millis(max_tick_ms),
-            execute_resolved_robotics_action(
-                &state,
-                &manager,
-                task_id,
-                tenant_id,
-                &resolved_action,
-                governance_metadata.clone(),
-                max_tick_ms,
-            ),
-        )
-        .await
-        {
-            Ok(result) => result,
-            Err(_) => {
+        let mut action_cancel_rx = cancel_rx.clone();
+        match tokio::select! {
+            result = tokio::time::timeout(
+                Duration::from_millis(max_tick_ms),
+                execute_resolved_robotics_action(
+                    &state,
+                    &manager,
+                    task_id,
+                    tenant_id,
+                    &resolved_action,
+                    governance_metadata.clone(),
+                    max_tick_ms,
+                    &mut action_cancel_rx,
+                ),
+            ) => RoboticsExecutionOutcome::Completed(result),
+            changed = cancel_rx.changed() => {
+                let _ = changed;
+                RoboticsExecutionOutcome::Cancelled
+            }
+        } {
+            RoboticsExecutionOutcome::Completed(Ok(result)) => result,
+            RoboticsExecutionOutcome::Completed(Err(_)) => {
                 let _ = manager.node().cancel_navigation().await;
                 let _ = manager.node().publish_zero_velocity().await;
                 let velocity = manager.node().last_velocity().await;
@@ -3513,6 +3550,11 @@ async fn execute_robotics_step(
                     max_tick_ms
                 );
             }
+            RoboticsExecutionOutcome::Cancelled => {
+                let _ = manager.node().cancel_navigation().await;
+                let _ = manager.node().publish_zero_velocity().await;
+                anyhow::bail!("{}", task_cancellation_reason(task_id));
+            }
         }
     }
 
@@ -3523,6 +3565,7 @@ async fn execute_robotics_step(
             step,
             graph_blackboard,
             max_tick_ms,
+            cancel_rx,
             signed_policy_decisions,
         );
         anyhow::bail!(
@@ -3540,7 +3583,13 @@ async fn execute_resolved_robotics_action(
     resolved_action: &RoboticsAction,
     governance_metadata: Option<serde_json::Value>,
     max_tick_ms: u64,
+    cancel_rx: &mut watch::Receiver<bool>,
 ) -> anyhow::Result<StepExecutionResult> {
+    enum NavigationWaitOutcome<T> {
+        Completed(T),
+        Cancelled,
+    }
+
     match resolved_action {
         RoboticsAction::NavigateToPose {
             goal,
@@ -3559,14 +3608,20 @@ async fn execute_resolved_robotics_action(
 
             let timeout_ms = wait_timeout_ms.unwrap_or(max_tick_ms);
             let goal_id = handle.goal_id().await;
-            let nav_state = match tokio::time::timeout(
-                Duration::from_millis(timeout_ms),
-                handle.wait(),
-            )
-            .await
-            {
-                Ok(result) => result?,
-                Err(_) => {
+            let nav_state = match tokio::select! {
+                result = tokio::time::timeout(
+                    Duration::from_millis(timeout_ms),
+                    handle.wait(),
+                ) => NavigationWaitOutcome::Completed(result),
+                changed = cancel_rx.changed() => {
+                    let _ = manager.node().cancel_navigation().await;
+                    let _ = manager.node().publish_zero_velocity().await;
+                    let _ = changed;
+                    NavigationWaitOutcome::Cancelled
+                }
+            } {
+                NavigationWaitOutcome::Completed(Ok(result)) => result?,
+                NavigationWaitOutcome::Completed(Err(_)) => {
                     let feedback = handle.feedback().await;
                     let velocity = manager.node().last_velocity().await;
                     emit_robotics_timeout_violation(
@@ -3585,6 +3640,9 @@ async fn execute_resolved_robotics_action(
                     )
                     .await;
                     anyhow::bail!("navigation timed out after {}ms", timeout_ms);
+                }
+                NavigationWaitOutcome::Cancelled => {
+                    anyhow::bail!("{}", task_cancellation_reason(task_id));
                 }
             };
             let feedback = handle.feedback().await;
