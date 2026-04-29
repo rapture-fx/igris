@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/apiClient';
@@ -362,12 +361,13 @@ export default function BTEditorPage() {
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (!dragging.current) return;
-      const dx = (e.clientX - dragging.current.startX) / zoom;
-      const dy = (e.clientY - dragging.current.startY) / zoom;
+      const d = dragging.current;
+      if (!d) return;
+      const dx = (e.clientX - d.startX) / zoom;
+      const dy = (e.clientY - d.startY) / zoom;
       setNodes((prev) => prev.map((n) =>
-        n.id === dragging.current!.id
-          ? { ...n, x: Math.max(0, dragging.current!.nodeX + dx), y: Math.max(0, dragging.current!.nodeY + dy) }
+        n.id === d.id
+          ? { ...n, x: Math.max(0, d.nodeX + dx), y: Math.max(0, d.nodeY + dy) }
           : n,
       ));
     };
@@ -518,8 +518,19 @@ export default function BTEditorPage() {
     : 'custom';
 
   return (
-    <DashboardLayout>
+    <DashboardLayout fullWidth>
       <div className="flex flex-col h-[calc(100vh-4rem)] gap-0">
+
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <div className="flex-shrink-0 pb-4">
+          <h1 className="text-base font-semibold text-gray-900">BT Editor</h1>
+          <p className="text-xs text-black mt-0.5">
+            Visual behavior tree designer. Double-click the canvas to add nodes, drag to reposition.
+          </p>
+        </div>
+
+        {/* ── Editor Card ─────────────────────────────────────────────────── */}
+        <div className="flex-1 min-h-0 border border-gray-200 shadow rounded-3xl overflow-hidden flex flex-col">
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white flex-shrink-0">
@@ -579,7 +590,7 @@ export default function BTEditorPage() {
         <div className="flex flex-1 min-h-0">
 
           {/* Left panel */}
-          <div className="w-60 flex-shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col overflow-y-auto">
+          <div className="w-60 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
             <div className="px-3 py-3 border-b border-gray-200">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Node Palette</p>
               <div className="space-y-1">
@@ -670,7 +681,7 @@ export default function BTEditorPage() {
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 relative bg-[#fafafa] overflow-hidden" style={{ cursor: connecting ? 'crosshair' : 'default' }}>
+          <div className="flex-1 relative bg-gray-50 overflow-hidden" style={{ cursor: connecting ? 'crosshair' : 'default' }}>
             <div
               ref={canvasRef}
               style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', position: 'relative', width: '100%', height: '100%', minHeight: 600 }}
@@ -926,6 +937,7 @@ export default function BTEditorPage() {
           )}
         </div>
 
+        </div>{/* end editor card */}
       </div>
     </DashboardLayout>
   );
