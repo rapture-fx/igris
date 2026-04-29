@@ -75,40 +75,33 @@ interface DailySpend {
 
 
 const SUMMARY_CARDS = [
-  { key: 'active_executions', label: 'Active Executions', icon: Terminal, sub: 'Currently running', link: '/execution/runs' },
-  { key: 'violations_24h', label: 'Violations', icon: AlertTriangle, sub: 'Last 24 hours', link: '/proof/violations' },
-  { key: 'online_devices', label: 'Online Devices', icon: Server, sub: 'Fleet status', link: '/fleet/devices' },
-  { key: 'model_requests_24h', label: 'Model Requests', icon: Cpu, sub: 'Last 24 hours', link: '/models/routing' },
-  { key: 'quota_usage_percent', label: 'Quota Usage', icon: Gauge, sub: '% of limit used', link: '/settings/license', suffix: '%' },
-  { key: 'active_alerts', label: 'Active Alerts', icon: Bell, sub: 'Requiring attention', link: '/history/alerts' },
+  { key: 'active_executions', label: 'Active Executions', sub: 'Currently running', link: '/execution/runs' },
+  { key: 'online_devices', label: 'Online Devices', sub: 'Fleet status', link: '/fleet/devices' },
+  { key: 'model_requests_24h', label: 'Model Requests', sub: 'Last 24 hours', link: '/models/routing' },
+  { key: 'quota_usage_percent', label: 'Quota Usage', sub: '% of limit used', link: '/settings/license', suffix: '%' },
 ];
 
 function StatCard({
-  label, icon: Icon, sub, link, value, suffix = '', loading,
+  label, sub, link, value, suffix = '', loading,
 }: {
-  label: string; icon: any; sub: string; link: string;
+  label: string; sub: string; link: string;
   value?: number; suffix?: string; loading: boolean;
 }) {
   return (
     <Link href={link}>
-      <Card className="border border-gray-200 shadow-sm hover:border-gray-300 transition-colors cursor-pointer group">
-        <CardHeader className="pb-1 pt-4 px-4">
-          <CardTitle className="text-xs font-medium text-black flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-black" />
-            {label}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pb-4 px-4">
+      <div className="border border-gray-200 shadow hover:border-gray-300 transition-colors cursor-pointer rounded-3xl overflow-hidden bg-white">
+        <div className="px-4 pt-4 pb-2 text-xs font-medium text-black">{label}</div>
+        <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-5 pb-6">
           {loading ? (
-            <Skeleton className="h-7 w-16 mt-1" />
+            <Skeleton className="h-9 w-20" />
           ) : (
-            <div className={`text-base font-semibold text-gray-900 tabular-nums`}>
+            <div className="text-4xl font-bold text-gray-900 tabular-nums">
               {value ?? '—'}{suffix}
             </div>
           )}
-          <p className="text-xs text-black mt-0.5">{sub}</p>
-        </CardContent>
-      </Card>
+          <p className="text-xs text-black mt-1 text-right">{sub}</p>
+        </div>
+      </div>
     </Link>
   );
 }
@@ -175,12 +168,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {SUMMARY_CARDS.map((card) => (
             <StatCard
               key={card.key}
               label={card.label}
-              icon={card.icon}
               sub={card.sub}
               link={card.link}
               value={(stats as any)?.[card.key]}
@@ -192,27 +184,24 @@ export default function DashboardPage() {
 
         {/* Runtime Usage Card */}
         {runtimeUsage && (
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="px-4 pt-4 pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-xs font-medium text-gray-900 flex items-center gap-1.5">
+          <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+            <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+              <span className="text-xs font-medium text-black flex items-center gap-1.5">
                 <Zap className="h-3.5 w-3.5 text-gray-700" />
                 Runtime Usage
-              </CardTitle>
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-gray-500 capitalize">
                   {runtimeUsage.tier_name} · ${Math.round(runtimeUsage.monthly_price_cents / 100)}/mo
                 </span>
                 {runtimeUsage.runtimes.percent >= 80 && (
-                  <Link
-                    href="/settings/billing"
-                    className="text-[11px] text-blue-600 hover:text-blue-700 font-medium"
-                  >
+                  <Link href="/settings/billing" className="text-[11px] text-blue-600 hover:text-blue-700 font-medium">
                     Upgrade
                   </Link>
                 )}
               </div>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
+            </div>
+            <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 py-4">
               <div className="flex justify-between text-xs mb-2">
                 <span className="text-gray-500">Runtimes registered</span>
                 <span className="tabular-nums font-medium text-gray-900">
@@ -226,26 +215,25 @@ export default function DashboardPage() {
                   <Link href="/settings/billing" className="underline">Upgrade to add more.</Link>
                 </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Main + Side */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* Recent Executions */}
           <div className="xl:col-span-2">
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-900">Recent Executions</CardTitle>
+            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-black">Recent Executions</span>
                 <Link href="/execution/runs" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
                   View all <ArrowRight className="h-3 w-3" />
                 </Link>
-              </CardHeader>
-              <Separator />
-              <div className="overflow-auto max-h-72 scrollbar-hide">
+              </div>
+              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-auto max-h-96 scrollbar-hide">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-100">
+                    <tr className="border-b border-gray-200">
                       <th className="px-4 py-2.5 text-left font-medium text-black">ID</th>
                       <th className="px-4 py-2.5 text-left font-medium text-black">Agent</th>
                       <th className="px-4 py-2.5 text-left font-medium text-black">Model</th>
@@ -256,7 +244,7 @@ export default function DashboardPage() {
                   <tbody>
                     {execLoading ? (
                       Array.from({ length: 6 }).map((_, i) => (
-                        <tr key={i} className="border-b border-gray-50">
+                        <tr key={i} className="border-b border-gray-100">
                           {Array.from({ length: 5 }).map((_, j) => (
                             <td key={j} className="px-4 py-2.5">
                               <Skeleton className="h-4 w-20" />
@@ -270,7 +258,7 @@ export default function DashboardPage() {
                       </tr>
                     ) : (
                       (executions ?? []).map((ex) => (
-                        <tr key={ex.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                        <tr key={ex.id} className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors">
                           <td className="px-4 py-2.5 text-black">{truncateText(ex.id, 12)}</td>
                           <td className="px-4 py-2.5 text-gray-700">{truncateText(ex.agent_id, 14)}</td>
                           <td className="px-4 py-2.5 text-black">{ex.model ?? '—'}</td>
@@ -284,20 +272,19 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* Recent Violations */}
           <div>
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-900">Recent Violations</CardTitle>
+            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-black">Recent Violations</span>
                 <Link href="/proof/violations" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
                   View all <ArrowRight className="h-3 w-3" />
                 </Link>
-              </CardHeader>
-              <Separator />
-              <div className="divide-y divide-gray-50 max-h-72 overflow-y-auto scrollbar-hide">
+              </div>
+              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl divide-y divide-gray-100 min-h-96 max-h-[480px] overflow-y-auto scrollbar-hide">
                 {violLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <div key={i} className="px-4 py-3">
@@ -321,7 +308,7 @@ export default function DashboardPage() {
                   ))
                 )}
               </div>
-            </Card>
+            </div>
           </div>
         </div>
 
@@ -329,15 +316,14 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* Model Requests Chart */}
           <div className="xl:col-span-2">
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-900">Model Requests (24h)</CardTitle>
+            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-black">Model Requests (24h)</span>
                 <Link href="/models/routing" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
                   Routing <ArrowRight className="h-3 w-3" />
                 </Link>
-              </CardHeader>
-              <Separator />
-              <CardContent className="px-4 pt-3 pb-4">
+              </div>
+              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-3 pb-4">
                 <ResponsiveContainer width="100%" height={160}>
                   <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <defs>
@@ -346,74 +332,48 @@ export default function DashboardPage() {
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
+                    <CartesianGrid strokeDasharray="2 4" stroke="#e5e7eb" vertical={false} />
                     <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                     <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                     <Tooltip
                       contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
                       itemStyle={{ color: '#374151' }}
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="requests"
-                      stroke="#3b82f6"
-                      strokeWidth={1}
-                      fill="url(#requestsFill)"
-                      dot={false}
-                    />
+                    <Area type="monotone" dataKey="requests" stroke="#3b82f6" strokeWidth={1} fill="url(#requestsFill)" dot={false} />
                   </AreaChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Daily Spend */}
           <div>
-            <Card className="border border-gray-200 h-full">
-              <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-900">Daily Spend</CardTitle>
+            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white h-full">
+              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                <span className="text-xs font-medium text-black">Daily Spend</span>
                 <Link href="/models/cost" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
                   See more <ArrowRight className="h-3 w-3" />
                 </Link>
-              </CardHeader>
-              <Separator />
-              <CardContent className="px-2 pt-4 pb-3">
+              </div>
+              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-2 pt-4 pb-3">
                 {dailyLoading ? (
                   <Skeleton className="h-[160px] w-full" />
                 ) : (
                   <ResponsiveContainer width="100%" height={160}>
                     <LineChart data={dailySpend.slice(-14)} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 10, fill: '#9ca3af' }}
-                        tickLine={false}
-                        axisLine={false}
-                        interval={2}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 10, fill: '#9ca3af' }}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(v) => `$${v}`}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} interval={2} />
+                      <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
                       <Tooltip
                         contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
                         formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cost']}
                       />
-                      <Line
-                        type="monotone"
-                        dataKey="cost"
-                        stroke="#111827"
-                        strokeWidth={1.5}
-                        dot={false}
-                        activeDot={{ r: 3, fill: '#111827', strokeWidth: 0 }}
-                      />
+                      <Line type="monotone" dataKey="cost" stroke="#111827" strokeWidth={1.5} dot={false} activeDot={{ r: 3, fill: '#111827', strokeWidth: 0 }} />
                     </LineChart>
                   </ResponsiveContainer>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>
