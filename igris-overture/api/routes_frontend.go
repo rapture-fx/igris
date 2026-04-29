@@ -3,26 +3,27 @@
 // This file implements all endpoints that the web-console needs but were either
 // missing from the backend or registered under the wrong path prefix:
 //
-//   Priority 1 — GET /v1/tenants/current
-//   Priority 2 — GET /v1/usage/summary
-//   Priority 3 — /v1/cognitive/* aliases for /api/v1/cognitive/*
-//   Priority 4 — GET /v1/analytics/cost, /cost/providers, /cost/trend
-//                GET /v1/routing/stats (already exists), /leaderboard (already exists)
-//                GET /v1/audit (already exists in routes_tenancy.go)
-//   Priority 5 — GET /v1/routing/speculative/races
-//   Priority 6 — Shadow, Council, EscapeVector endpoints
+//	Priority 1 — GET /v1/tenants/current
+//	Priority 2 — GET /v1/usage/summary
+//	Priority 3 — /v1/cognitive/* aliases for /api/v1/cognitive/*
+//	Priority 4 — GET /v1/analytics/cost, /cost/providers, /cost/trend
+//	             GET /v1/routing/stats (already exists), /leaderboard (already exists)
+//	             GET /v1/audit (already exists in routes_tenancy.go)
+//	Priority 5 — GET /v1/routing/speculative/races
+//	Priority 6 — Shadow, Council, EscapeVector endpoints
 package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/igris-overture/cognitive"
 	"github.com/Igris-inertial/system/igris-overture/database"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
+	"github.com/gofiber/fiber/v2"
 )
 
 // ============================================================================
@@ -141,19 +142,19 @@ func RegisterCognitiveV1Aliases(app *fiber.App, applier *cognitive.Applier, db *
 // CurrentTenantResponse mirrors TenantResponse but also exposes trial / tier
 // fields that the console dashboard needs.
 type CurrentTenantResponse struct {
-	TenantID            string  `json:"tenant_id"`
-	TenantName          string  `json:"tenant_name"`
-	Email               string  `json:"email,omitempty"`
-	Company             string  `json:"company,omitempty"`
-	Status              string  `json:"status"`
-	Tier                string  `json:"tier"`
-	APIKeyPrefix        string  `json:"api_key_prefix,omitempty"`
-	RuntimeLimit        int     `json:"runtime_limit"`
-	CreatedAt           string  `json:"created_at"`
-	TrialActive         bool    `json:"trial_active"`
-	TrialTier           *string `json:"trial_tier,omitempty"`
-	TrialEndsAt         *string `json:"trial_ends_at,omitempty"`
-	SubscriptionStatus  string  `json:"subscription_status"`
+	TenantID           string  `json:"tenant_id"`
+	TenantName         string  `json:"tenant_name"`
+	Email              string  `json:"email,omitempty"`
+	Company            string  `json:"company,omitempty"`
+	Status             string  `json:"status"`
+	Tier               string  `json:"tier"`
+	APIKeyPrefix       string  `json:"api_key_prefix,omitempty"`
+	RuntimeLimit       int     `json:"runtime_limit"`
+	CreatedAt          string  `json:"created_at"`
+	TrialActive        bool    `json:"trial_active"`
+	TrialTier          *string `json:"trial_tier,omitempty"`
+	TrialEndsAt        *string `json:"trial_ends_at,omitempty"`
+	SubscriptionStatus string  `json:"subscription_status"`
 }
 
 func makeGetCurrentTenant(db *sql.DB) fiber.Handler {
@@ -328,12 +329,12 @@ func makeGetSpeculativeRaces(db *sql.DB) fiber.Handler {
 		}
 
 		type RaceEntry struct {
-			ID                  string   `json:"id"`
-			CreatedAt           string   `json:"created_at"`
-			Winner              *string  `json:"winner"`
-			Providers           []string `json:"providers"`
-			LatencyImprovementMs int     `json:"latency_improvement_ms"`
-			CostDeltaPercent    float64  `json:"cost_delta_percent"`
+			ID                   string   `json:"id"`
+			CreatedAt            string   `json:"created_at"`
+			Winner               *string  `json:"winner"`
+			Providers            []string `json:"providers"`
+			LatencyImprovementMs int      `json:"latency_improvement_ms"`
+			CostDeltaPercent     float64  `json:"cost_delta_percent"`
 		}
 
 		var races []RaceEntry
@@ -427,12 +428,12 @@ func makeGetShadowStatus(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"enabled":               enabled,
+			"enabled":                enabled,
 			"shadow_traffic_percent": shadowPercent,
-			"requests_24h":          requests24h,
-			"quality_delta":         qualityDelta,
-			"discrepancies_found":   discrepancies,
-			"last_updated":          lastUpdated,
+			"requests_24h":           requests24h,
+			"quality_delta":          qualityDelta,
+			"discrepancies_found":    discrepancies,
+			"last_updated":           lastUpdated,
 		})
 	}
 }
@@ -481,12 +482,12 @@ func makeGetShadowConfig(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"enabled":               enabled,
-			"shadow_percent":        shadowPercent,
-			"primary_provider":      primaryProvider,
-			"shadow_provider":       shadowProvider,
-			"quality_threshold":     qualityThreshold,
-			"auto_promote":          autoPromote,
+			"enabled":                enabled,
+			"shadow_percent":         shadowPercent,
+			"primary_provider":       primaryProvider,
+			"shadow_provider":        shadowProvider,
+			"quality_threshold":      qualityThreshold,
+			"auto_promote":           autoPromote,
 			"auto_promote_threshold": autoPromoteThreshold,
 		})
 	}
@@ -602,10 +603,10 @@ func makeGetShadowAnalytics(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"latency_comparison":  latency,
-			"cost_comparison":     cost,
-			"quality_comparison":  quality,
-			"discrepancy_rate":    discrepancy,
+			"latency_comparison": latency,
+			"cost_comparison":    cost,
+			"quality_comparison": quality,
+			"discrepancy_rate":   discrepancy,
 		})
 	}
 }
@@ -619,16 +620,16 @@ func makeGetShadowLogs(db *sql.DB) fiber.Handler {
 		}
 
 		type LogEntry struct {
-			RequestID       string   `json:"request_id"`
-			Timestamp       string   `json:"timestamp"`
-			PrimaryProvider string   `json:"primary_provider"`
-			ShadowProvider  string   `json:"shadow_provider"`
-			PrimaryLatency  float64  `json:"primary_latency"`
-			ShadowLatency   float64  `json:"shadow_latency"`
-			PrimaryCost     float64  `json:"primary_cost"`
-			ShadowCost      float64  `json:"shadow_cost"`
-			QualityMatch    bool     `json:"quality_match"`
-			Discrepancy     *string  `json:"discrepancy"`
+			RequestID       string  `json:"request_id"`
+			Timestamp       string  `json:"timestamp"`
+			PrimaryProvider string  `json:"primary_provider"`
+			ShadowProvider  string  `json:"shadow_provider"`
+			PrimaryLatency  float64 `json:"primary_latency"`
+			ShadowLatency   float64 `json:"shadow_latency"`
+			PrimaryCost     float64 `json:"primary_cost"`
+			ShadowCost      float64 `json:"shadow_cost"`
+			QualityMatch    bool    `json:"quality_match"`
+			Discrepancy     *string `json:"discrepancy"`
 		}
 
 		var entries []LogEntry
@@ -774,11 +775,11 @@ func makeGetCouncilStatus(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"enabled":                enabled,
-			"current_council_size":   councilSize,
+			"enabled":                 enabled,
+			"current_council_size":    councilSize,
 			"avg_quality_improvement": qualityImprovement,
-			"cost_overhead_24h":      costOverhead24h,
-			"last_run":               lastRun,
+			"cost_overhead_24h":       costOverhead24h,
+			"last_run":                lastRun,
 		})
 	}
 }
@@ -788,7 +789,7 @@ func makeGetCouncilConfig(db *sql.DB) fiber.Handler {
 		tenantID := getCurrentTenantID(c)
 
 		var numModels int
-		var votingStrategy, chairmanModel string
+		var votingStrategy, chairmanModel, modelsJSON string
 		var qualityThreshold, costLimit float64
 		var maxTokens int
 		var enabled bool
@@ -801,13 +802,19 @@ func makeGetCouncilConfig(db *sql.DB) fiber.Handler {
 				COALESCE((settings->>'council_max_tokens')::int, 2000),
 				COALESCE((settings->>'council_cost_limit')::float, 0.5),
 				COALESCE((settings->>'council_enabled')::boolean, false),
-				COALESCE(settings->>'council_chairman_model', '')
+				COALESCE(settings->>'council_chairman_model', ''),
+				COALESCE((settings->'council_models')::text, '[]')
 			FROM policy_settings
 			WHERE tenant_id = $1
 		`, tenantID).Scan(
 			&numModels, &votingStrategy, &qualityThreshold,
-			&maxTokens, &costLimit, &enabled, &chairmanModel,
+			&maxTokens, &costLimit, &enabled, &chairmanModel, &modelsJSON,
 		)
+
+		models := []string{}
+		if modelsJSON != "" {
+			_ = json.Unmarshal([]byte(modelsJSON), &models)
+		}
 
 		if numModels == 0 {
 			numModels = 3
@@ -828,7 +835,7 @@ func makeGetCouncilConfig(db *sql.DB) fiber.Handler {
 		resp := fiber.Map{
 			"enabled":           enabled,
 			"num_models":        numModels,
-			"models":            []string{"gpt-4", "claude-3-opus", "gemini-pro"},
+			"models":            models,
 			"voting_strategy":   votingStrategy,
 			"quality_threshold": qualityThreshold,
 			"max_tokens":        maxTokens,
@@ -945,10 +952,10 @@ func makeGetCouncilAnalytics(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"quality_delta":       qualityDelta,
-			"latency_overhead":    latencyOverheads,
+			"quality_delta":         qualityDelta,
+			"latency_overhead":      latencyOverheads,
 			"cost_quality_tradeoff": []fiber.Map{},
-			"model_win_rate":      modelWinRates,
+			"model_win_rate":        modelWinRates,
 		})
 	}
 }
@@ -1075,13 +1082,13 @@ func makeGetEscapeVectorStatus(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"cache_status":        cacheStatus,
+			"cache_status":         cacheStatus,
 			"time_remaining_hours": 58.0,
-			"last_refresh":        lastRefresh,
-			"hit_rate_24h":        hitRate24h,
-			"estimated_savings":   totalSavings,
-			"total_entries":       totalEntries,
-			"cache_size_mb":       0,
+			"last_refresh":         lastRefresh,
+			"hit_rate_24h":         hitRate24h,
+			"estimated_savings":    totalSavings,
+			"total_entries":        totalEntries,
+			"cache_size_mb":        0,
 		})
 	}
 }
@@ -1115,10 +1122,10 @@ func makeGetEscapeVectorConfig(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(fiber.Map{
-			"enabled":                 enabled,
-			"cache_ttl_hours":         ttlHours,
-			"min_quality_threshold":   minQualityThreshold,
-			"refresh_interval_hours":  refreshIntervalHours,
+			"enabled":                enabled,
+			"cache_ttl_hours":        ttlHours,
+			"min_quality_threshold":  minQualityThreshold,
+			"refresh_interval_hours": refreshIntervalHours,
 		})
 	}
 }
@@ -1161,11 +1168,11 @@ func makeGetEscapeVectorHistory(db *sql.DB) fiber.Handler {
 		tenantID := getCurrentTenantID(c)
 
 		type HistoryEntry struct {
-			Timestamp   string  `json:"timestamp"`
-			Trigger     string  `json:"trigger"`
-			SizeMB      float64 `json:"size_mb"`
-			TTLHours    int     `json:"ttl_hours"`
-			EntriesCount int64  `json:"entries_count"`
+			Timestamp    string  `json:"timestamp"`
+			Trigger      string  `json:"trigger"`
+			SizeMB       float64 `json:"size_mb"`
+			TTLHours     int     `json:"ttl_hours"`
+			EntriesCount int64   `json:"entries_count"`
 		}
 
 		var entries []HistoryEntry
@@ -1285,14 +1292,14 @@ func makeGetEscapeVectorAnalytics(db *sql.DB) fiber.Handler {
 		`, tenantID).Scan(&totalRequests, &totalCacheHits, &totalSavings)
 
 		return c.JSON(fiber.Map{
-			"cache_usage_timeline":      usage,
-			"cost_savings_timeline":     savings,
-			"provider_failover_events":  []failoverEvent{},
-			"total_requests_24h":        totalRequests,
-			"total_cache_hits_24h":      totalCacheHits,
-			"total_savings_24h":         totalSavings,
-			"avg_response_time_cache":   12,
-			"avg_response_time_direct":  156,
+			"cache_usage_timeline":     usage,
+			"cost_savings_timeline":    savings,
+			"provider_failover_events": []failoverEvent{},
+			"total_requests_24h":       totalRequests,
+			"total_cache_hits_24h":     totalCacheHits,
+			"total_savings_24h":        totalSavings,
+			"avg_response_time_cache":  12,
+			"avg_response_time_direct": 156,
 		})
 	}
 }
