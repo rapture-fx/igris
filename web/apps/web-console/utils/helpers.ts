@@ -18,22 +18,28 @@ export function formatNumber(num: number): string {
   return new Intl.NumberFormat('en-US').format(num);
 }
 
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }).format(new Date(date));
+  }).format(d);
 }
 
-export function formatDateTime(date: string | Date): string {
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
   return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(date));
+  }).format(d);
 }
 
 export function formatLatency(ms: number): string {
@@ -62,9 +68,11 @@ export function maskApiKey(key: string): string {
   return `${key.slice(0, 7)}...${key.slice(-4)}`;
 }
 
-export function getRelativeTime(date: string | Date): string {
+export function getRelativeTime(date: string | Date | null | undefined): string {
+  if (!date) return '—';
   const now = new Date();
   const past = new Date(date);
+  if (isNaN(past.getTime())) return '—';
   const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
 
   if (diffInSeconds < 60) return 'just now';
