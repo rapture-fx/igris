@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { downloadJSON } from '@/utils/helpers';
 
 interface JSONViewerProps {
@@ -14,29 +15,32 @@ export function JSONViewer({ data, filename = 'data', defaultOpen = false }: JSO
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-gray-200 rounded-md overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-      >
-        <span className="text-xs text-gray-600 flex items-center gap-1.5">
+    <div className="border border-gray-200 dark:border-border rounded-md overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-muted border-b border-gray-200 dark:border-border">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setOpen(!open)}
+          className="h-auto p-0 text-xs text-gray-600 dark:text-muted-foreground hover:bg-transparent gap-1.5 font-normal"
+        >
           {open
             ? <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
             : <ChevronRight className="h-3.5 w-3.5 text-gray-400" />}
           raw json
-        </span>
+        </Button>
         {open && (
-          <span
-            role="button"
-            onClick={(e) => { e.stopPropagation(); downloadJSON(data, filename); }}
-            className="text-[10px] text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors"
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => downloadJSON(data, filename)}
+            className="h-auto p-0 text-[10px] text-gray-400 hover:text-gray-700 hover:bg-transparent gap-1 font-normal"
           >
             <Download className="h-3 w-3" /> download
-          </span>
+          </Button>
         )}
-      </button>
+      </div>
       {open && (
-        <pre className="text-[11px] text-gray-600 bg-white p-3 overflow-auto max-h-72 leading-relaxed border-t border-gray-100">
+        <pre className="text-[11px] text-gray-600 dark:text-muted-foreground bg-white dark:bg-card p-3 overflow-auto max-h-72 leading-relaxed">
           {JSON.stringify(data, null, 2)}
         </pre>
       )}
