@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,14 +15,6 @@ import {
   SheetClose,
   SheetBody,
 } from '@/components/ui/sheet';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -677,209 +668,174 @@ export default function ExecutionAgentsPage() {
       <div className="space-y-5">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Agents</h1>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Runtime lifecycle and execution state.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-              <Input
-                placeholder="agent_id · namespace"
-                className="pl-8 h-8 text-xs w-52"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <Select value={stateFilter} onValueChange={setStateFilter}>
-              <SelectTrigger className="h-8 w-32 text-xs">
-                <SelectValue placeholder="State" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATE_OPTIONS.map((s) => (
-                  <SelectItem key={s} value={s} className="text-xs">
-                    {s === 'all' ? 'All states' : s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs gap-1.5"
-              onClick={() => refetch()}
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              Refresh
-            </Button>
-          </div>
+        <div>
+          <h1 className="text-base font-semibold text-gray-900">Agents</h1>
+          <p className="text-xs text-black mt-0.5">Runtime lifecycle and execution state.</p>
         </div>
 
         {/* ── Summary Cards ───────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {STAT_CARDS.map((c) => (
-            <Card key={c.label} className="border border-gray-200 shadow-none">
-              <CardHeader className="px-4 pt-3 pb-1">
-                <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                  <c.icon className={`h-3.5 w-3.5 ${c.iconColor}`} />
-                  {c.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-0">
+            <div key={c.label} className="border border-gray-200 shadow hover:border-gray-300 transition-colors rounded-3xl overflow-hidden bg-white">
+              <div className="px-4 pt-3 pb-2 flex items-center gap-1.5">
+                <c.icon className={`h-3.5 w-3.5 ${c.iconColor}`} />
+                <span className="text-xs font-medium text-gray-500">{c.label}</span>
+              </div>
+              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
                 {isLoading ? (
-                  <Skeleton className="h-5 w-10 mt-0.5" />
-                ) : c.isString ? (
-                  <span className={`text-sm font-semibold tabular-nums ${c.valueColor}`}>
-                    {c.value}
-                  </span>
+                  <Skeleton className="h-8 w-12" />
                 ) : (
-                  <span className={`text-xl font-semibold tabular-nums ${c.valueColor}`}>
+                  <div className={`${c.isString ? 'text-2xl' : 'text-4xl'} font-bold tabular-nums ${c.valueColor}`}>
                     {c.value}
-                  </span>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* ── Table ───────────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-200">
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Agent ID
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Namespace
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Goal / Envelope
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  State
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Last Trace
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Violations
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Device
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Mode
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  Containment
-                </TableHead>
-                <TableHead className="text-xs font-medium text-gray-500 h-9 px-3 whitespace-nowrap">
-                  BT Live
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 10 }).map((_, j) => (
-                      <TableCell key={j} className="px-3 py-2.5">
-                        <Skeleton className="h-3.5 w-16" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={10}
-                    className="text-center text-gray-400 text-xs py-16"
-                  >
-                    No agents found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((agent) => (
-                  <TableRow
-                    key={agent.id}
-                    className="cursor-pointer hover:bg-gray-50 border-b border-gray-100"
-                    onClick={() => setSelected(agent)}
-                  >
-                    <TableCell className="px-3 py-2.5">
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-gray-700">
-                          {truncateText(agent.id, 16)}
-                        </span>
-                        <CopyButton value={agent.id} />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-600">
-                        {agent.namespace ?? '—'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5 max-w-[160px]">
-                      <span className="text-xs text-gray-500 truncate block">
-                        {agent.current_goal ?? agent.envelope_summary ?? '—'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <ExecutionStatusBadge status={agent.state} />
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-500 tabular-nums">
-                        {(agent.last_trace_at ?? agent.last_run_at)
-                          ? getRelativeTime((agent.last_trace_at ?? agent.last_run_at)!)
-                          : '—'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <ViolationBadge count={agent.violation_count} />
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <span className="text-xs text-gray-500">
-                        {agent.device_id ? truncateText(agent.device_id, 12) : '—'}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      {agent.shadow_mode ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                          <Moon className="h-2.5 w-2.5" />
-                          Shadow
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-300">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      {agent.containment?.enabled ? (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
-                          <Shield className="h-2.5 w-2.5" />
-                          Contained
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-300">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => router.push(`/execution/agents/${agent.id}/live`)}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors"
+        {/* ── Agents Table Card ───────────────────────────────────────────── */}
+        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+          <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-sm font-medium text-gray-900">Agents</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <Input
+                  placeholder="agent_id · namespace"
+                  className="pl-8 h-8 text-xs w-52"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Select value={stateFilter} onValueChange={setStateFilter}>
+                <SelectTrigger className="h-8 w-32 text-xs">
+                  <SelectValue placeholder="State" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATE_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s} className="text-xs">
+                      {s === 'all' ? 'All states' : s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
+                <RefreshCw className="h-3.5 w-3.5" />
+                Refresh
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Agent ID</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Namespace</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Goal / Envelope</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">State</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Last Trace</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Violations</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Device</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Mode</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Containment</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">BT Live</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i} className="border-b border-gray-100">
+                        {Array.from({ length: 10 }).map((_, j) => (
+                          <td key={j} className="px-4 py-2.5">
+                            <Skeleton className="h-3.5 w-16" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="text-center text-gray-400 text-xs py-16">
+                        No agents found
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((agent) => (
+                      <tr
+                        key={agent.id}
+                        className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors cursor-pointer"
+                        onClick={() => setSelected(agent)}
                       >
-                        <Radio className="h-2.5 w-2.5" />
-                        Live
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-700">{truncateText(agent.id, 16)}</span>
+                            <CopyButton value={agent.id} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5 text-gray-600">{agent.namespace ?? '—'}</td>
+                        <td className="px-4 py-2.5 max-w-[160px]">
+                          <span className="text-gray-500 truncate block">
+                            {agent.current_goal ?? agent.envelope_summary ?? '—'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <ExecutionStatusBadge status={agent.state} />
+                        </td>
+                        <td className="px-4 py-2.5 text-gray-500 tabular-nums">
+                          {(agent.last_trace_at ?? agent.last_run_at)
+                            ? getRelativeTime((agent.last_trace_at ?? agent.last_run_at)!)
+                            : '—'}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <ViolationBadge count={agent.violation_count} />
+                        </td>
+                        <td className="px-4 py-2.5 text-gray-500">
+                          {agent.device_id ? truncateText(agent.device_id, 12) : '—'}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {agent.shadow_mode ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                              <Moon className="h-2.5 w-2.5" />
+                              Shadow
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {agent.containment?.enabled ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
+                              <Shield className="h-2.5 w-2.5" />
+                              Contained
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => router.push(`/execution/agents/${agent.id}/live`)}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-100 border border-transparent hover:border-gray-200 transition-colors"
+                          >
+                            <Radio className="h-2.5 w-2.5" />
+                            Live
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 py-3 border-t border-gray-200">
+              <span className="text-xs text-black">
+                {filtered.length} agent{filtered.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* ── Agent Detail Drawer ─────────────────────────────────────────────── */}
