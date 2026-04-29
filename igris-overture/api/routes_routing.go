@@ -9,10 +9,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/cmd/igris-overture/handlers"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/gofiber/fiber/v2"
 )
 
 // speculativeDB is the DB used for speculative router endpoints; may be nil.
@@ -93,13 +93,58 @@ func handleSpeculativeStatus(c *fiber.Ctx) error {
 
 // handleSpeculativeConfig handles GET /v1/routing/speculative/config.
 func handleSpeculativeConfig(c *fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"enabled":                    true,
-		"max_parallel_providers":     3,
-		"timeout_ms":                 5000,
-		"first_token_threshold_ms":   500,
-		"enabled_providers":          []string{"openai", "anthropic"},
-	})
+	type SpeculativeConfigResponse struct {
+		Enabled               bool     `json:"enabled"`
+		MaxParallelProviders  int      `json:"max_parallel_providers"`
+		TimeoutMs             int      `json:"timeout_ms"`
+		FirstTokenThresholdMs int      `json:"first_token_threshold_ms"`
+		EnabledProviders      []string `json:"enabled_providers"`
+	}
+
+	resp := SpeculativeConfigResponse{
+		Enabled:               true,
+		MaxParallelProviders:  3,
+		TimeoutMs:             5000,
+		FirstTokenThresholdMs: 500,
+		EnabledProviders:      []string{"openai", "anthropic"},
+	}
+
+	if speculativeDB == nil {
+		return c.JSON(resp)
+	}
+
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.JSON(resp)
+	}
+
+	var raw string
+	err := speculativeDB.QueryRowContext(c.Context(), `
+		SELECT config_json
+		FROM routing_config
+		WHERE tenant_id = $1 AND config_key = 'speculative'
+	`, tenantID).Scan(&raw)
+	if err != nil || raw == "" {
+		return c.JSON(resp)
+	}
+
+	if unmarshalErr := json.Unmarshal([]byte(raw), &resp); unmarshalErr != nil {
+		return c.JSON(resp)
+	}
+	if resp.MaxParallelProviders == 0 {
+		resp.MaxParallelProviders = 3
+	}
+	if resp.TimeoutMs == 0 {
+		resp.TimeoutMs = 5000
+	}
+	if resp.FirstTokenThresholdMs == 0 {
+		resp.FirstTokenThresholdMs = 500
+	}
+	if resp.EnabledProviders == nil {
+		resp.EnabledProviders = []string{"openai", "anthropic"}
+	}
+
+	return c.JSON(resp)
 }
 
 // handleSpeculativeAnalytics handles GET /v1/routing/speculative/analytics.
@@ -435,8 +480,8 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 	routing := v1.Group("/routing")
 	routing.Use(middleware.BetterAuth(config.DB))
 
-	routing.Get("/stats", chatRouter.GetRoutingStats)           // GET /v1/routing/stats
-	routing.Get("/recent", chatRouter.GetRecentRequests)        // GET /v1/routing/recent
+	routing.Get("/stats", chatRouter.GetRoutingStats)              // GET /v1/routing/stats
+	routing.Get("/recent", chatRouter.GetRecentRequests)           // GET /v1/routing/recent
 	routing.Get("/leaderboard", chatRouter.GetProviderLeaderboard) // GET /v1/routing/leaderboard
 
 	log.Println("[Routes] ✓ Registered 3 routing analytics endpoints")
@@ -475,12 +520,42 @@ func saveRoutingConfig(db *sql.DB, c *fiber.Ctx, key string) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"saved": true})
 }
 
+// loadRoutingConfig returns a persisted routing config blob or a default JSON payload.
+func loadRoutingConfig(db *sql.DB, c *fiber.Ctx, key string, defaultPayload string) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	if db == nil {
+		c.Type("json")
+		return c.SendString(defaultPayload)
+	}
+
+	var payload string
+	err := db.QueryRowContext(c.Context(), `
+		SELECT config_json
+		FROM routing_config
+		WHERE tenant_id = $1 AND config_key = $2
+	`, tenantID, key).Scan(&payload)
+	if err != nil || payload == "" || !json.Valid([]byte(payload)) {
+		c.Type("json")
+		return c.SendString(defaultPayload)
+	}
+
+	c.Type("json")
+	return c.SendString(payload)
+}
+
 // RegisterRoutingConfigRoutes registers the 5 POST endpoints that persist
 // routing configuration from the console. All endpoints require BetterAuth.
 // Upserts into routing_config; failures are silent so the console never breaks.
 func RegisterRoutingConfigRoutes(app *fiber.App, db *sql.DB) {
 	auth := middleware.BetterAuth(db)
 
+	app.Get("/v1/routing/strategy", auth, func(c *fiber.Ctx) error {
+		return loadRoutingConfig(db, c, "strategy", `{"mode":"thompson"}`)
+	})
 	app.Post("/v1/routing/strategy", auth, func(c *fiber.Ctx) error {
 		return saveRoutingConfig(db, c, "strategy")
 	})
@@ -497,6 +572,7 @@ func RegisterRoutingConfigRoutes(app *fiber.App, db *sql.DB) {
 		return saveRoutingConfig(db, c, "provider_weights")
 	})
 
+	log.Println("[Routes] Registered GET  /v1/routing/strategy")
 	log.Println("[Routes] Registered POST /v1/routing/strategy")
 	log.Println("[Routes] Registered POST /v1/routing/speculative")
 	log.Println("[Routes] Registered POST /v1/routing/council")
