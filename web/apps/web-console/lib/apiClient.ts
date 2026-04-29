@@ -62,11 +62,8 @@ export async function apiRequest<T = any>(
       credentials: 'include',
     });
 
-    // Handle 401 - Unauthorized
+    // Handle 401 - Unauthorized (redirect disabled for local dev)
     if (response.status === 401 && !skipAuth) {
-      if (typeof window !== 'undefined') {
-        window.location.href = ROUTES.LOGIN;
-      }
       throw new ApiError(401, 'Unauthorized');
     }
 
