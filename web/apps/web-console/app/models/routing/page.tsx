@@ -1,55 +1,104 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
-import { Slider } from '@/components/ui/slider';
-import {
-  RefreshCw, SlidersHorizontal, Zap, Users, Eye, ShieldCheck,
-  CheckCircle2, Cpu, AlertTriangle,
-} from 'lucide-react';
 import { useWasmEngine } from '@/hooks/useWasmEngine';
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
-
-interface StrategyConfig {
-  strategy: string;
-  circuit_breaker_enabled: boolean;
-  provider_health_monitor: boolean;
-}
+import {
+  Activity,
+  AlertTriangle,
+  Cpu,
+  Eye,
+  Gauge,
+  RefreshCw,
+  Route,
+  ShieldCheck,
+  Users,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface CircuitBreakerStatus {
-  state: 'closed' | 'open' | 'half_open';
+  enabled: boolean;
+  state: 'closed' | 'open' | 'half-open' | 'half_open';
   trip_count: number;
   last_tripped_at: string | null;
-  providers: Array<{ provider: string; state: 'closed' | 'open' | 'half_open'; failures: number }>;
+  providers: Array<{
+    provider: string;
+    state: 'closed' | 'open' | 'half-open' | 'half_open';
+    failure_count?: number;
+    failures?: number;
+    trip_count?: number;
+  }>;
+}
+
+interface SpeculativeStatus {
+  enabled: boolean;
+  success_rate: number;
+  latency_improvement_ms: number;
+  cost_delta_percent: number;
+  races_24h: number;
+  wins_by_provider: Array<{
+    provider: string;
+    win_rate: number;
+  }>;
 }
 
 interface SpeculativeConfig {
-  enable_speculative_execution: boolean;
-  max_parallel_requests: number;
-  speculative_timeout_ms: number;
+  enabled: boolean;
+  max_parallel_providers: number;
+  timeout_ms: number;
+  first_token_threshold_ms: number;
+  enabled_providers: string[];
+}
+
+interface SpeculativeRace {
+  id: string;
+  created_at: string;
+  winner?: string | null;
+  providers: string[];
+  latency_improvement_ms: number;
+  cost_delta_percent: number;
+}
+
+interface SpeculativeRacesResponse {
+  races: SpeculativeRace[];
+  count: number;
+}
+
+interface CouncilStatus {
+  enabled: boolean;
+  current_council_size: number;
+  avg_quality_improvement: number;
+  cost_overhead_24h: number;
+  last_run: {
+    timestamp: string;
+    summary: string;
+  };
 }
 
 interface CouncilConfig {
-  enable_council_mode: boolean;
-  council_models: string[];
-  aggregation_strategy: string;
-  min_consensus: number;
+  enabled: boolean;
+  num_models: number;
+  models: string[];
+  voting_strategy: string;
+  quality_threshold: number;
+  max_tokens: number;
+  cost_limit: number;
+  chairman_model?: string;
 }
 
 interface CouncilAnalytics {
@@ -67,97 +116,356 @@ interface CouncilAnalytics {
   }>;
 }
 
+interface ShadowStatus {
+  enabled: boolean;
+  shadow_traffic_percent: number;
+  requests_24h: number;
+  quality_delta: number;
+  discrepancies_found: number;
+  last_updated: string;
+}
+
 interface ShadowConfig {
-  enable_shadow_mode: boolean;
-  shadow_providers: string[];
-  shadow_sampling_rate: number;
-  capture_latency_metrics: boolean;
-  capture_cost_metrics: boolean;
-  capture_quality_metrics: boolean;
+  enabled: boolean;
+  shadow_percent: number;
+  primary_provider: string;
+  shadow_provider: string;
+  quality_threshold: number;
+  auto_promote: boolean;
+  auto_promote_threshold: number;
 }
 
-interface ProviderRow {
-  id: string;
+interface StrategyPreference {
+  mode: string;
+}
+
+interface RouterStatsEntry {
+  total_requests?: number;
+  average_latency?: number;
+  reliability_rate?: number;
+  last_updated?: string;
+  TotalRequests?: number;
+  AverageLatency?: number;
+  ReliabilityRate?: number;
+  LastUpdated?: string;
+}
+
+interface AggregatedInferenceMetrics {
   provider: string;
-  kind: string;
-  status: 'healthy' | 'degraded' | 'offline';
-  average_latency_ms: number | null;
-  success_rate_percent: number | null;
-  cost_per_token: number | null;
-  routing_weight: number;
-  priority: number;
+  model: string;
+  request_count: number;
+  success_count: number;
+  error_count: number;
+  total_cost_usd: number;
+  avg_latency_ms: number;
+  p95_latency_ms: number;
+  last_updated: string;
 }
 
-// ─── Static Options ─────────────────────────────────────────────────────────────
+interface ProviderStatsResponse {
+  router_stats: Record<string, RouterStatsEntry>;
+  aggregated: Record<string, Record<string, AggregatedInferenceMetrics>>;
+  timestamp: number;
+  trace_id: string;
+}
 
-const STRATEGY_OPTIONS = [
-  { value: 'thompson_sampling',  label: 'Thompson Sampling',  desc: 'Bayesian multi-armed bandit — balances exploration and exploitation.' },
-  { value: 'latency_optimized',  label: 'Latency Optimized',  desc: 'Always route to the provider with the lowest p95 latency.' },
-  { value: 'cost_optimized',     label: 'Cost Optimized',     desc: 'Always route to the lowest-cost provider within latency budget.' },
-  { value: 'quality_optimized',  label: 'Quality Optimized',  desc: 'Route to the highest quality-scored provider.' },
+interface ProviderTelemetryRow {
+  provider: string;
+  models_seen: number;
+  request_count: number;
+  success_rate_percent: number | null;
+  avg_latency_ms: number | null;
+  p95_latency_ms: number | null;
+  total_cost_usd: number;
+  last_updated: string | null;
+  activity: 'active' | 'watch' | 'idle';
+}
+
+const EXECUTION_MODES = [
+  {
+    label: 'thompson',
+    title: 'Thompson Sampling',
+    description: 'Learns provider preference over time for adaptive routing.',
+  },
+  {
+    label: 'speculative',
+    title: 'Speculative / Latency',
+    description: 'Races providers in parallel and returns the first valid answer.',
+  },
+  {
+    label: 'balanced',
+    title: 'Balanced',
+    description: 'Trades off quality, latency, and cost at request time.',
+  },
+  {
+    label: 'quality',
+    title: 'Quality',
+    description: 'Biases toward higher-quality providers for harder work.',
+  },
+  {
+    label: 'cost',
+    title: 'Cost',
+    description: 'Prefers cheaper providers when acceptable.',
+  },
+  {
+    label: 'council',
+    title: 'Council',
+    description: 'Runs multiple providers and synthesizes a final answer.',
+  },
 ];
 
-const AGGREGATION_OPTIONS = [
-  { value: 'majority_vote',       label: 'Majority Vote' },
-  { value: 'quality_score',       label: 'Quality Score' },
-  { value: 'weighted_consensus',  label: 'Weighted Consensus' },
-];
+function formatNumber(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '0';
+  return new Intl.NumberFormat('en-US').format(value);
+}
 
-const AVAILABLE_MODELS = [
-  { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6' },
-  { value: 'claude-opus-4-6',   label: 'Claude Opus 4.6' },
-  { value: 'gpt-4o',            label: 'GPT-4o' },
-  { value: 'gpt-4o-mini',       label: 'GPT-4o Mini' },
-  { value: 'deepseek-chat',     label: 'DeepSeek Chat' },
-  { value: 'gemini-1.5-pro',    label: 'Gemini 1.5 Pro' },
-  { value: 'grok-2',            label: 'Grok 2' },
-];
+function formatPercent(value: number | null | undefined, digits = 1) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '-';
+  return `${value.toFixed(digits)}%`;
+}
 
-const AVAILABLE_PROVIDERS = [
-  { value: 'anthropic', label: 'Anthropic' },
-  { value: 'openai',    label: 'OpenAI' },
-  { value: 'deepseek',  label: 'DeepSeek' },
-  { value: 'google',    label: 'Google Gemini' },
-  { value: 'xai',       label: 'xAI Grok' },
-];
+function formatMoney(value: number | null | undefined, digits = 3) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '-';
+  return `$${value.toFixed(digits)}`;
+}
 
-// ─── Sub-components ────────────────────────────────────────────────────────────
+function formatMs(value: number | null | undefined) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '-';
+  return `${Math.round(value)}ms`;
+}
 
-function HealthBadge({ status }: { status: 'healthy' | 'degraded' | 'offline' }) {
-  const map = {
-    healthy:  { cls: 'bg-green-50 text-green-700 border-green-200',   label: 'Healthy'  },
-    degraded: { cls: 'bg-yellow-50 text-yellow-700 border-yellow-200', label: 'Degraded' },
-    offline:  { cls: 'bg-red-50 text-red-600 border-red-200',         label: 'Offline'  },
-  } as const;
-  const { cls, label } = map[status];
+function formatTimestamp(value: string | null | undefined) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString();
+}
+
+function normalizeCircuitState(value: string | null | undefined) {
+  if (!value) return 'closed';
+  return value === 'half_open' ? 'half-open' : value;
+}
+
+function parseDelimitedList(value: string) {
+  return value
+    .split(/[\n,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function toggleListValue(values: string[], candidate: string) {
+  return values.includes(candidate)
+    ? values.filter((value) => value !== candidate)
+    : [...values, candidate];
+}
+
+function deriveProviderTelemetryRows(data?: ProviderStatsResponse): ProviderTelemetryRow[] {
+  if (!data) return [];
+
+  const aggregatedProviders = Object.entries(data.aggregated ?? {});
+  if (aggregatedProviders.length > 0) {
+    return aggregatedProviders
+      .map(([provider, modelsMap]) => {
+        const modelEntries = Object.values(modelsMap ?? {});
+        const requestCount = modelEntries.reduce((sum, entry) => sum + (entry.request_count ?? 0), 0);
+        const successCount = modelEntries.reduce((sum, entry) => sum + (entry.success_count ?? 0), 0);
+        const weightedLatency = modelEntries.reduce(
+          (sum, entry) => sum + ((entry.avg_latency_ms ?? 0) * (entry.request_count ?? 0)),
+          0
+        );
+        const totalCostUsd = modelEntries.reduce((sum, entry) => sum + (entry.total_cost_usd ?? 0), 0);
+        const p95Latency = modelEntries.reduce((max, entry) => Math.max(max, entry.p95_latency_ms ?? 0), 0);
+        const timestamps = modelEntries
+          .map((entry) => entry.last_updated)
+          .filter(Boolean)
+          .sort();
+        const lastUpdated = timestamps.length > 0 ? timestamps[timestamps.length - 1] : null;
+
+        const successRate = requestCount > 0 ? (successCount / requestCount) * 100 : null;
+        const avgLatency = requestCount > 0 ? weightedLatency / requestCount : null;
+        const activity: ProviderTelemetryRow['activity'] =
+          requestCount === 0
+            ? 'idle'
+            : (successRate !== null && successRate < 90) || (avgLatency !== null && avgLatency > 2000)
+            ? 'watch'
+            : 'active';
+
+        return {
+          provider,
+          models_seen: modelEntries.length,
+          request_count: requestCount,
+          success_rate_percent: successRate,
+          avg_latency_ms: avgLatency,
+          p95_latency_ms: p95Latency || null,
+          total_cost_usd: totalCostUsd,
+          last_updated: lastUpdated,
+          activity,
+        };
+      })
+      .sort((a, b) => b.request_count - a.request_count);
+  }
+
+  return Object.entries(data.router_stats ?? {})
+    .map(([provider, stats]) => {
+      const totalRequests = stats.total_requests ?? stats.TotalRequests ?? 0;
+      const averageLatency = stats.average_latency ?? stats.AverageLatency ?? 0;
+      const reliabilityRate = stats.reliability_rate ?? stats.ReliabilityRate ?? 0;
+      const lastUpdated = stats.last_updated ?? stats.LastUpdated ?? null;
+      const successRate = totalRequests > 0 ? reliabilityRate * 100 : null;
+      const activity: ProviderTelemetryRow['activity'] =
+        totalRequests === 0
+          ? 'idle'
+          : (successRate !== null && successRate < 90) || averageLatency > 2000
+          ? 'watch'
+          : 'active';
+
+      return {
+        provider,
+        models_seen: 0,
+        request_count: totalRequests,
+        success_rate_percent: successRate,
+        avg_latency_ms: averageLatency || null,
+        p95_latency_ms: null,
+        total_cost_usd: 0,
+        last_updated: lastUpdated,
+        activity,
+      };
+    })
+    .sort((a, b) => b.request_count - a.request_count);
+}
+
+function StateBadge({ state }: { state: string }) {
+  const normalized = normalizeCircuitState(state);
+  const styles = normalized === 'open'
+    ? 'bg-red-50 text-red-600 border-red-200'
+    : normalized === 'half-open'
+    ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+    : 'bg-green-50 text-green-700 border-green-200';
+
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${cls}`}>
-      {label}
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${styles}`}>
+      <span className={`h-1.5 w-1.5 rounded-full inline-block ${
+        normalized === 'open' ? 'bg-red-500' : normalized === 'half-open' ? 'bg-yellow-400' : 'bg-green-500'
+      }`} />
+      {normalized}
     </span>
   );
 }
 
-function WeightBar({ weight }: { weight: number }) {
+function ActivityBadge({ activity }: { activity: ProviderTelemetryRow['activity'] }) {
+  const styles = {
+    active: 'bg-green-50 text-green-700 border-green-200',
+    watch: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    idle: 'bg-gray-50 text-gray-600 border-gray-200',
+  } as const;
+  const labels = {
+    active: 'Active',
+    watch: 'Watch',
+    idle: 'No Traffic',
+  } as const;
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="w-14 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-        <div className="h-full bg-gray-900 rounded-full" style={{ width: `${Math.min(weight, 100)}%` }} />
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${styles[activity]}`}>
+      {labels[activity]}
+    </span>
+  );
+}
+
+function OverviewCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  loading,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  sub: string;
+  loading?: boolean;
+}) {
+  return (
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+        {label}
       </div>
-      <span className="text-xs tabular-nums text-gray-600">{weight}%</span>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+        {loading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+        )}
+        <p className="text-xs text-black mt-1">{sub}</p>
+      </div>
     </div>
   );
 }
 
-function LatencyCell({ ms }: { ms: number | null }) {
-  if (ms === null) return <span className="text-xs text-gray-300">—</span>;
-  const cls = ms < 300 ? 'text-green-700' : ms < 600 ? 'text-yellow-700' : 'text-red-600';
-  return <span className={`text-xs font-mono tabular-nums ${cls}`}>{ms}ms</span>;
+function SurfaceSection({
+  icon: Icon,
+  title,
+  description,
+  actions,
+  bodyClassName = 'px-4 py-4',
+  className = '',
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+  bodyClassName?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-black">{title}</p>
+          </div>
+          <p className="text-[11px] text-black mt-0.5">{description}</p>
+        </div>
+        {actions}
+      </div>
+      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
 }
 
-function SuccessRateCell({ rate }: { rate: number | null }) {
-  if (rate === null) return <span className="text-xs text-gray-300">—</span>;
-  const cls = rate >= 98 ? 'text-green-700' : rate >= 90 ? 'text-yellow-700' : 'text-red-600';
-  return <span className={`text-xs font-mono tabular-nums ${cls}`}>{rate.toFixed(1)}%</span>;
+function MiniStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+      <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-semibold text-gray-900 mt-1 tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function KeyValueCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+      <p className="text-[10px] text-gray-500 mb-1">{label}</p>
+      <div className="text-xs text-gray-900 break-words">{value}</div>
+    </div>
+  );
 }
 
 function SaveBar({
@@ -172,8 +480,9 @@ function SaveBar({
   onReset: () => void;
 }) {
   if (!dirty) return null;
+
   return (
-    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 mt-2">
+    <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200 mt-2">
       <Button variant="ghost" size="sm" className="h-7 text-[11px] text-gray-500" onClick={onReset} disabled={pending}>
         Reset
       </Button>
@@ -185,173 +494,327 @@ function SaveBar({
   );
 }
 
-function MultiSelectChips({
-  options,
-  value,
-  onChange,
-  disabled,
-}: {
-  options: { value: string; label: string }[];
-  value: string[];
-  onChange: (v: string[]) => void;
-  disabled?: boolean;
-}) {
-  const toggle = (v: string) => {
-    if (value.includes(v)) {
-      onChange(value.filter((x) => x !== v));
-    } else {
-      onChange([...value, v]);
-    }
-  };
-  return (
-    <div className="flex flex-wrap gap-1">
-      {options.map((opt) => {
-        const selected = value.includes(opt.value);
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            disabled={disabled}
-            onClick={() => toggle(opt.value)}
-            className={[
-              'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium border transition-colors',
-              selected
-                ? 'bg-gray-900 text-white border-gray-900'
-                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400',
-              disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-            ].join(' ')}
-          >
-            {selected && <CheckCircle2 className="h-2.5 w-2.5" />}
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Page ──────────────────────────────────────────────────────────────────────
-
 export default function ModelsRoutingPage() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   const { status: wasmStatus, benchmark, runBenchmark } = useWasmEngine();
 
-  // ── Routing Strategy state ───────────────────────────────────────────────────
-  const [strategyForm, setStrategyForm] = useState<StrategyConfig>({
-    strategy: 'thompson_sampling',
-    circuit_breaker_enabled: false,
-    provider_health_monitor: false,
-  });
-  const [strategyDirty, setStrategyDirty] = useState(false);
-
-  // ── Speculative Execution state ──────────────────────────────────────────────
-  const [speculativeForm, setSpeculativeForm] = useState<SpeculativeConfig>({
-    enable_speculative_execution: false,
-    max_parallel_requests: 2,
-    speculative_timeout_ms: 800,
-  });
-  const [speculativeDirty, setSpeculativeDirty] = useState(false);
-
-  // ── Council Mode state ───────────────────────────────────────────────────────
-  const [councilForm, setCouncilForm] = useState<CouncilConfig>({
-    enable_council_mode: false,
-    council_models: [],
-    aggregation_strategy: 'majority_vote',
-    min_consensus: 2,
-  });
-  const [councilDirty, setCouncilDirty] = useState(false);
-
-  // ── Shadow Mode state ────────────────────────────────────────────────────────
-  const [shadowForm, setShadowForm] = useState<ShadowConfig>({
-    enable_shadow_mode: false,
-    shadow_providers: [],
-    shadow_sampling_rate: 10,
-    capture_latency_metrics: false,
-    capture_cost_metrics: false,
-    capture_quality_metrics: false,
-  });
-  const [shadowDirty, setShadowDirty] = useState(false);
-
-  // ── Provider weights state ───────────────────────────────────────────────────
-  const [providerRows, setProviderRows] = useState<ProviderRow[]>([]);
-  const [providerDirty, setProviderDirty] = useState(false);
-
-  // ── Queries ──────────────────────────────────────────────────────────────────
-
-  const { isLoading: providersLoading, refetch } = useQuery<ProviderRow[]>({
-    queryKey: ['routing-providers'],
+  const { data: strategyConfig } = useQuery<StrategyPreference>({
+    queryKey: ['routing-strategy-config'],
     queryFn: async () => {
-      const data = await api.get<ProviderRow[]>('/v1/providers/stats');
-      setProviderRows(data);
-      return data;
+      try {
+        return await api.get('/v1/routing/strategy');
+      } catch {
+        return { mode: 'thompson' };
+      }
     },
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const {
+    data: providerStats,
+    isLoading: providersLoading,
+    refetch,
+  } = useQuery<ProviderStatsResponse>({
+    queryKey: ['routing-provider-stats'],
+    queryFn: () => api.get('/v1/providers/stats'),
     retry: false,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
   });
 
   const { data: cbStatus } = useQuery<CircuitBreakerStatus>({
-    queryKey: ['circuit-breaker-status'],
-    queryFn: () => api.get('/v1/routing/circuit-breaker/status'),
-    enabled: strategyForm.circuit_breaker_enabled,
+    queryKey: ['routing-circuit-breaker-status'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/routing/circuit-breaker/status');
+      } catch {
+        return {
+          enabled: true,
+          state: 'closed',
+          trip_count: 0,
+          last_tripped_at: null,
+          providers: [],
+        };
+      }
+    },
     retry: false,
-    refetchInterval: strategyForm.circuit_breaker_enabled ? 10_000 : false,
+    refetchInterval: 10_000,
+  });
+
+  const { data: speculativeStatus } = useQuery<SpeculativeStatus>({
+    queryKey: ['routing-speculative-status'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/routing/speculative/status');
+      } catch {
+        return {
+          enabled: false,
+          success_rate: 0,
+          latency_improvement_ms: 0,
+          cost_delta_percent: 0,
+          races_24h: 0,
+          wins_by_provider: [],
+        };
+      }
+    },
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const { data: speculativeConfig } = useQuery<SpeculativeConfig>({
+    queryKey: ['routing-speculative-config'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/routing/speculative/config');
+      } catch {
+        return {
+          enabled: false,
+          max_parallel_providers: 0,
+          timeout_ms: 0,
+          first_token_threshold_ms: 0,
+          enabled_providers: [],
+        };
+      }
+    },
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const { data: speculativeRaces } = useQuery<SpeculativeRacesResponse>({
+    queryKey: ['routing-speculative-races'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/routing/speculative/races?limit=6');
+      } catch {
+        return { races: [], count: 0 };
+      }
+    },
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const { data: councilStatus } = useQuery<CouncilStatus>({
+    queryKey: ['routing-council-status'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/council/status');
+      } catch {
+        return {
+          enabled: false,
+          current_council_size: 0,
+          avg_quality_improvement: 0,
+          cost_overhead_24h: 0,
+          last_run: {
+            timestamp: new Date().toISOString(),
+            summary: 'No council runs recorded yet',
+          },
+        };
+      }
+    },
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const { data: councilConfig } = useQuery<CouncilConfig>({
+    queryKey: ['routing-council-config'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/council/config');
+      } catch {
+        return {
+          enabled: false,
+          num_models: 3,
+          models: [],
+          voting_strategy: 'majority',
+          quality_threshold: 85,
+          max_tokens: 2000,
+          cost_limit: 0.5,
+          chairman_model: '',
+        };
+      }
+    },
+    retry: false,
+    staleTime: 60_000,
   });
 
   const { data: councilAnalytics } = useQuery<CouncilAnalytics>({
-    queryKey: ['council-analytics'],
-    queryFn: () => api.get('/v1/routing/council/analytics'),
+    queryKey: ['routing-council-analytics'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/routing/council/analytics');
+      } catch {
+        return {
+          total_invocations: 0,
+          last_24h: 0,
+          avg_latency_ms: 0,
+          avg_cost_usd: 0,
+          by_chairman: [],
+        };
+      }
+    },
     retry: false,
     staleTime: 60_000,
-    refetchOnWindowFocus: false,
   });
 
-  // ── Mutations ────────────────────────────────────────────────────────────────
+  const { data: shadowStatus } = useQuery<ShadowStatus>({
+    queryKey: ['routing-shadow-status'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/shadow/status');
+      } catch {
+        return {
+          enabled: false,
+          shadow_traffic_percent: 0,
+          requests_24h: 0,
+          quality_delta: 0,
+          discrepancies_found: 0,
+          last_updated: new Date().toISOString(),
+        };
+      }
+    },
+    retry: false,
+    staleTime: 30_000,
+  });
+
+  const { data: shadowConfig } = useQuery<ShadowConfig>({
+    queryKey: ['routing-shadow-config'],
+    queryFn: async () => {
+      try {
+        return await api.get('/v1/shadow/config');
+      } catch {
+        return {
+          enabled: false,
+          shadow_percent: 10,
+          primary_provider: 'openai',
+          shadow_provider: 'anthropic',
+          quality_threshold: 85,
+          auto_promote: false,
+          auto_promote_threshold: 95,
+        };
+      }
+    },
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const providerRows = deriveProviderTelemetryRows(providerStats);
+  const activeProviders = providerRows.filter((row) => row.activity === 'active').length;
+  const watchedProviders = providerRows.filter((row) => row.activity === 'watch').length;
+  const providerOptions = providerRows.length > 0
+    ? providerRows.map((row) => row.provider)
+    : ['openai', 'anthropic', 'google', 'deepseek', 'xai'];
+
+  const [strategyForm, setStrategyForm] = useState<StrategyPreference>({ mode: 'thompson' });
+  const [strategyDirty, setStrategyDirty] = useState(false);
+
+  const [speculativeForm, setSpeculativeForm] = useState<SpeculativeConfig>({
+    enabled: false,
+    max_parallel_providers: 0,
+    timeout_ms: 0,
+    first_token_threshold_ms: 0,
+    enabled_providers: [],
+  });
+  const [speculativeDirty, setSpeculativeDirty] = useState(false);
+
+  const [councilForm, setCouncilForm] = useState<CouncilConfig>({
+    enabled: false,
+    num_models: 3,
+    models: [],
+    voting_strategy: 'majority',
+    quality_threshold: 85,
+    max_tokens: 2000,
+    cost_limit: 0.5,
+    chairman_model: '',
+  });
+  const [councilDirty, setCouncilDirty] = useState(false);
+
+  const [shadowForm, setShadowForm] = useState<ShadowConfig>({
+    enabled: false,
+    shadow_percent: 10,
+    primary_provider: 'openai',
+    shadow_provider: 'anthropic',
+    quality_threshold: 85,
+    auto_promote: false,
+    auto_promote_threshold: 95,
+  });
+  const [shadowDirty, setShadowDirty] = useState(false);
+
+  useEffect(() => {
+    if (!strategyConfig || strategyDirty) return;
+    setStrategyForm({
+      mode: strategyConfig.mode || 'thompson',
+    });
+  }, [strategyConfig, strategyDirty]);
+
+  useEffect(() => {
+    if (!speculativeConfig || speculativeDirty) return;
+    setSpeculativeForm(speculativeConfig);
+  }, [speculativeConfig, speculativeDirty]);
+
+  useEffect(() => {
+    if (!councilConfig || councilDirty) return;
+    setCouncilForm({
+      ...councilConfig,
+      chairman_model: councilConfig.chairman_model ?? '',
+    });
+  }, [councilConfig, councilDirty]);
+
+  useEffect(() => {
+    if (!shadowConfig || shadowDirty) return;
+    setShadowForm({
+      ...shadowConfig,
+      primary_provider: shadowConfig.primary_provider || 'openai',
+      shadow_provider: shadowConfig.shadow_provider || 'anthropic',
+    });
+  }, [shadowConfig, shadowDirty]);
 
   const strategyMutation = useMutation({
-    mutationFn: (data: StrategyConfig) => api.post('/v1/routing/strategy', data),
-    onSuccess: () => { setStrategyDirty(false); qc.invalidateQueries({ queryKey: ['routing-providers'] }); },
+    mutationFn: (payload: StrategyPreference) => api.post('/v1/routing/strategy', payload),
+    onSuccess: async () => {
+      setStrategyDirty(false);
+      await queryClient.invalidateQueries({ queryKey: ['routing-strategy-config'] });
+    },
   });
 
   const speculativeMutation = useMutation({
-    mutationFn: (data: SpeculativeConfig) => api.post('/v1/routing/speculative', data),
-    onSuccess: () => setSpeculativeDirty(false),
+    mutationFn: (payload: SpeculativeConfig) => api.post('/v1/routing/speculative', payload),
+    onSuccess: async () => {
+      setSpeculativeDirty(false);
+      await queryClient.invalidateQueries({ queryKey: ['routing-speculative-config'] });
+    },
   });
 
   const councilMutation = useMutation({
-    mutationFn: (data: CouncilConfig) => api.post('/v1/routing/council', data),
-    onSuccess: () => setCouncilDirty(false),
+    mutationFn: (payload: CouncilConfig) => api.patch('/v1/council/config', payload),
+    onSuccess: async () => {
+      setCouncilDirty(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['routing-council-config'] }),
+        queryClient.invalidateQueries({ queryKey: ['routing-council-status'] }),
+      ]);
+    },
   });
 
   const shadowMutation = useMutation({
-    mutationFn: (data: ShadowConfig) => api.post('/v1/routing/shadow', data),
-    onSuccess: () => setShadowDirty(false),
+    mutationFn: (payload: ShadowConfig) => api.patch('/v1/shadow/config', payload),
+    onSuccess: async () => {
+      setShadowDirty(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['routing-shadow-config'] }),
+        queryClient.invalidateQueries({ queryKey: ['routing-shadow-status'] }),
+      ]);
+    },
   });
-
-  const providerWeightsMutation = useMutation({
-    mutationFn: (data: { providers: ProviderRow[] }) => api.post('/v1/routing/provider_weights', data),
-    onSuccess: () => setProviderDirty(false),
-  });
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  const updateProvider = (id: string, field: 'routing_weight' | 'priority', value: number) => {
-    setProviderRows((rows) => rows.map((r) => r.id === id ? { ...r, [field]: value } : r));
-    setProviderDirty(true);
-  };
-
-  const selectedStrategy = STRATEGY_OPTIONS.find((o) => o.value === strategyForm.strategy);
 
   return (
     <DashboardLayout>
       <div className="space-y-5">
-
-        {/* ── Header ──────────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-base font-semibold text-gray-900">Routing Engine</h1>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Control how Igris selects providers and models for inference.
+            <h1 className="text-base font-semibold text-gray-900">Routing Configuration</h1>
+            <p className="text-xs text-black mt-0.5">
+              Configure routing-related product surfaces first, then validate behavior with live telemetry below.
             </p>
           </div>
           <Button
@@ -365,28 +828,115 @@ export default function ModelsRoutingPage() {
           </Button>
         </div>
 
-        {/* ── 0. EscapeVector WASM Engine ─────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Cpu className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-                <p className="text-xs font-medium text-gray-900">EscapeVector WASM Engine</p>
+        <div className="border border-amber-200 bg-amber-50 rounded-3xl px-4 py-3 text-xs text-amber-800">
+          This page is configuration-first again. Some controls persist tenant preferences used by orchestration flows,
+          while live routing telemetry remains the source of truth for what Overture and Runtime are actually doing right now.
+        </div>
+
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <OverviewCard
+            icon={Route}
+            label="Providers Observed"
+            value={formatNumber(providerRows.length)}
+            sub={`${activeProviders} active, ${watchedProviders} watch`}
+            loading={providersLoading}
+          />
+          <OverviewCard
+            icon={Zap}
+            label="Speculative Races"
+            value={formatNumber(speculativeStatus?.races_24h ?? 0)}
+            sub="Recorded in the last 24 hours."
+          />
+          <OverviewCard
+            icon={Users}
+            label="Council Runs"
+            value={formatNumber(councilAnalytics?.last_24h ?? 0)}
+            sub="Council invocations in the last 24 hours."
+          />
+          <OverviewCard
+            icon={Eye}
+            label="Shadow Requests"
+            value={formatNumber(shadowStatus?.requests_24h ?? 0)}
+            sub="Shadow comparison volume in the last 24 hours."
+          />
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <SurfaceSection
+            icon={Route}
+            title="Routing Preference"
+            description="Persist the preferred request routing mode used by Runtime-facing execution flows."
+            className="h-full"
+          >
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Execution mode</Label>
+                <Select
+                  value={strategyForm.mode}
+                  onValueChange={(value) => {
+                    setStrategyForm({ mode: value });
+                    setStrategyDirty(true);
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs bg-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EXECUTION_MODES.map((mode) => (
+                      <SelectItem key={mode.label} value={mode.label} className="text-xs">
+                        {mode.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-gray-500">
+                  Supported values are `thompson`, `speculative`, `balanced`, `quality`, `cost`, and `council`.
+                </p>
               </div>
-              <div className="flex items-center gap-2">
+
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+                <p className="text-[10px] text-gray-500 mb-1">Persisted value</p>
+                <p className="text-xs text-gray-900">
+                  Current saved strategy: <span className="font-mono">{strategyConfig?.mode ?? 'thompson'}</span>
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-3 py-3">
+                <p className="text-xs font-medium text-gray-900">Scope</p>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  This saves a routing preference for orchestration surfaces. Adaptive-router internals and provider telemetry remain independent.
+                </p>
+              </div>
+
+              <SaveBar
+                dirty={strategyDirty}
+                pending={strategyMutation.isPending}
+                onSave={() => strategyMutation.mutate(strategyForm)}
+                onReset={() => {
+                  setStrategyForm({ mode: 'thompson' });
+                  setStrategyDirty(false);
+                }}
+              />
+              {strategyMutation.isError && (
+                <p className="text-xs text-red-600">Failed to save routing preference.</p>
+              )}
+            </div>
+          </SurfaceSection>
+
+          <SurfaceSection
+            icon={Cpu}
+            title="EscapeVector WASM Engine"
+            description="Rust-compiled Thompson Sampling and circuit-breaker support surfaced in-browser for observability and benchmarking."
+            className="xl:col-span-2"
+            actions={(
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                 {wasmStatus.bindingReady && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-purple-500 inline-block" />
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 inline-block" />
                     Live
                   </span>
                 )}
-                {wasmStatus.loaded && !wasmStatus.bindingReady && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
-                    Active
-                  </span>
-                )}
-                {wasmStatus.loading && (
+                {!wasmStatus.bindingReady && wasmStatus.loading && (
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
                     <RefreshCw className="h-2.5 w-2.5 animate-spin" />
                     Loading
@@ -402,671 +952,689 @@ export default function ModelsRoutingPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-6 text-[10px] px-2"
+                    className="h-7 text-[11px] px-2.5"
                     onClick={() => runBenchmark(500)}
                   >
                     Run Benchmark
                   </Button>
                 )}
               </div>
-            </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Rust-compiled Thompson Sampling and circuit-breaker logic running natively in-browser via WebAssembly.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-3">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-              <div>
-                <p className="text-[10px] text-gray-400 mb-0.5">Module size</p>
-                <p className="text-xs font-mono text-gray-900">
-                  {wasmStatus.moduleSize ? `${(wasmStatus.moduleSize / 1024).toFixed(1)} KB` : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 mb-0.5">Compile time</p>
-                <p className="text-xs font-mono text-gray-900">
-                  {wasmStatus.compileTimeMs != null ? `${wasmStatus.compileTimeMs}ms` : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 mb-0.5">Benchmark avg</p>
-                <p className="text-xs font-mono text-gray-900">
-                  {benchmark ? `${benchmark.avgPerIterationUs}µs` : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 mb-0.5">Exports</p>
-                <p className="text-xs font-mono text-gray-900">
-                  {wasmStatus.exports.length > 0 ? `${wasmStatus.exports.length} functions` : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-400 mb-0.5">Binding</p>
-                <p className={`text-xs font-mono ${wasmStatus.bindingReady ? 'text-purple-700' : 'text-gray-400'}`}>
-                  {wasmStatus.bindingReady ? 'wired' : wasmStatus.loaded ? 'pending' : '—'}
-                </p>
-              </div>
+            )}
+          >
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <KeyValueCard
+                label="Module size"
+                value={wasmStatus.moduleSize ? `${(wasmStatus.moduleSize / 1024).toFixed(1)} KB` : '-'}
+              />
+              <KeyValueCard
+                label="Compile time"
+                value={wasmStatus.compileTimeMs != null ? `${wasmStatus.compileTimeMs}ms` : '-'}
+              />
+              <KeyValueCard
+                label="Benchmark avg"
+                value={benchmark ? `${benchmark.avgPerIterationUs}us` : '-'}
+              />
+              <KeyValueCard
+                label="Exports"
+                value={wasmStatus.exports.length > 0 ? `${wasmStatus.exports.length} functions` : '-'}
+              />
+              <KeyValueCard
+                label="Binding"
+                value={wasmStatus.bindingReady ? 'wired' : wasmStatus.loaded ? 'pending' : '-'}
+              />
             </div>
             {wasmStatus.error && (
-              <p className="mt-2 text-[11px] text-red-500">{wasmStatus.error}</p>
+              <p className="mt-3 text-[11px] text-red-600">{wasmStatus.error}</p>
             )}
             {!wasmStatus.supported && (
-              <p className="mt-2 text-[11px] text-yellow-600">
-                WebAssembly is not supported in this browser. Routing falls back to server-side Thompson Sampling.
+              <p className="mt-3 text-[11px] text-yellow-700">
+                WebAssembly is not supported in this browser. Runtime execution still falls back to server-side routing.
               </p>
             )}
-          </CardContent>
-        </Card>
+          </SurfaceSection>
+        </div>
 
-        {/* ── 1. Routing Strategy ──────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-              <p className="text-xs font-medium text-gray-900">Routing Strategy</p>
-            </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Configure the core routing algorithm used by igris-overture.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4 space-y-4">
-
-            {/* Strategy Select */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-700">Routing Strategy</Label>
-              <Select
-                value={strategyForm.strategy}
-                onValueChange={(v) => {
-                  setStrategyForm((f) => ({ ...f, strategy: v }));
-                  setStrategyDirty(true);
-                }}
-              >
-                <SelectTrigger className="h-8 text-xs max-w-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STRATEGY_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value} className="text-xs">
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedStrategy && (
-                <p className="text-[11px] text-gray-400">{selectedStrategy.desc}</p>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Toggles */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <SurfaceSection
+            icon={Zap}
+            title="Speculative Configuration"
+            description="Configure parallel provider racing preferences and compare them against live backend status."
+            className="h-full"
+          >
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 flex items-center justify-between gap-4">
                 <div>
-                  <Label className="text-xs font-medium text-gray-700">Circuit Breaker</Label>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    Automatically remove unhealthy providers from the routing pool.
+                  <Label className="text-xs font-medium text-gray-700">Enable speculative preference</Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Persist a parallel-race preference for request flows that honor the routing config store.
                   </p>
                 </div>
                 <Switch
-                  checked={strategyForm.circuit_breaker_enabled}
-                  onCheckedChange={(v) => {
-                    setStrategyForm((f) => ({ ...f, circuit_breaker_enabled: v }));
-                    setStrategyDirty(true);
+                  checked={speculativeForm.enabled}
+                  onCheckedChange={(checked) => {
+                    setSpeculativeForm((current) => ({ ...current, enabled: checked }));
+                    setSpeculativeDirty(true);
                   }}
                 />
               </div>
 
-              {/* Circuit Breaker live status */}
-              {strategyForm.circuit_breaker_enabled && cbStatus && (
-                <div className="ml-0 mt-1 rounded-md border border-gray-100 bg-gray-50 px-3 py-2.5 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                      cbStatus.state === 'closed'
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : cbStatus.state === 'open'
-                        ? 'bg-red-50 text-red-600 border-red-200'
-                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                    }`}>
-                      <span className={`h-1.5 w-1.5 rounded-full inline-block ${
-                        cbStatus.state === 'closed' ? 'bg-green-500' : cbStatus.state === 'open' ? 'bg-red-500' : 'bg-yellow-400'
-                      }`} />
-                      {cbStatus.state === 'closed' ? 'Closed' : cbStatus.state === 'open' ? 'Open' : 'Half-Open'}
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {cbStatus.trip_count} trip{cbStatus.trip_count !== 1 ? 's' : ''}
-                      {cbStatus.last_tripped_at && ` · last ${new Date(cbStatus.last_tripped_at).toLocaleTimeString()}`}
-                    </span>
-                  </div>
-                  {cbStatus.providers.length > 0 && (
-                    <div className="space-y-1">
-                      {cbStatus.providers.map((p) => (
-                        <div key={p.provider} className="flex items-center justify-between">
-                          <span className="text-[10px] text-gray-600 font-mono">{p.provider}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-gray-400">{p.failures} failures</span>
-                            <span className={`text-[10px] font-medium ${
-                              p.state === 'closed' ? 'text-green-600' : p.state === 'open' ? 'text-red-500' : 'text-yellow-600'
-                            }`}>
-                              {p.state === 'closed' ? 'Closed' : p.state === 'open' ? 'Open' : 'Half-Open'}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Max parallel providers</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={8}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={speculativeForm.max_parallel_providers}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setSpeculativeForm((current) => ({ ...current, max_parallel_providers: value }));
+                        setSpeculativeDirty(true);
+                      }
+                    }}
+                  />
                 </div>
-              )}
 
-              <div className="flex items-center justify-between">
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Timeout (ms)</Label>
+                  <Input
+                    type="number"
+                    min={100}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={speculativeForm.timeout_ms}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setSpeculativeForm((current) => ({ ...current, timeout_ms: value }));
+                        setSpeculativeDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5 sm:col-span-2">
+                  <Label className="text-xs font-medium text-gray-700">First token threshold (ms)</Label>
+                  <Input
+                    type="number"
+                    min={50}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={speculativeForm.first_token_threshold_ms}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setSpeculativeForm((current) => ({ ...current, first_token_threshold_ms: value }));
+                        setSpeculativeDirty(true);
+                      }
+                    }}
+                  />
+                  <p className="text-[11px] text-gray-500">
+                    Backend-reported enabled providers: {speculativeConfig?.enabled_providers?.length ? speculativeConfig.enabled_providers.join(', ') : 'None reported'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-2">
                 <div>
-                  <Label className="text-xs font-medium text-gray-700">Provider Health Monitoring</Label>
-                  <p className="text-[11px] text-gray-400 mt-0.5">
-                    Continuously ping providers to track availability and latency.
+                  <Label className="text-xs font-medium text-gray-700">Enabled providers</Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Persist which providers are eligible for speculative races.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {providerOptions.map((provider) => {
+                    const selected = speculativeForm.enabled_providers.includes(provider);
+                    return (
+                      <button
+                        key={`speculative-provider-${provider}`}
+                        type="button"
+                        className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                          selected
+                            ? 'border-gray-900 bg-gray-900 text-white'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                        onClick={() => {
+                          setSpeculativeForm((current) => ({
+                            ...current,
+                            enabled_providers: toggleListValue(current.enabled_providers, provider),
+                          }));
+                          setSpeculativeDirty(true);
+                        }}
+                      >
+                        {provider}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <MiniStat label="Live enabled" value={speculativeStatus?.enabled ? 'Yes' : 'No'} />
+                <MiniStat label="Success rate" value={formatPercent(speculativeStatus?.success_rate ?? 0)} />
+                <MiniStat label="Latency gain" value={formatMs(speculativeStatus?.latency_improvement_ms ?? 0)} />
+                <MiniStat label="Recent races" value={formatNumber(speculativeRaces?.count ?? 0)} />
+              </div>
+
+              <SaveBar
+                dirty={speculativeDirty}
+                pending={speculativeMutation.isPending}
+                onSave={() => speculativeMutation.mutate(speculativeForm)}
+                onReset={() => {
+                  setSpeculativeForm(speculativeConfig ?? {
+                    enabled: false,
+                    max_parallel_providers: 0,
+                    timeout_ms: 0,
+                    first_token_threshold_ms: 0,
+                    enabled_providers: [],
+                  });
+                  setSpeculativeDirty(false);
+                }}
+              />
+              {speculativeMutation.isError && (
+                <p className="text-xs text-red-600">Failed to save speculative configuration.</p>
+              )}
+            </div>
+          </SurfaceSection>
+
+          <SurfaceSection
+            icon={Users}
+            title="Council Configuration"
+            description="Configure the council surface backed by `/v1/council/config` and validate it against live council analytics."
+            className="h-full"
+          >
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 flex items-center justify-between gap-4">
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">Enable council mode</Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Persist council evaluation preferences and chairman selection for council-capable flows.
                   </p>
                 </div>
                 <Switch
-                  checked={strategyForm.provider_health_monitor}
-                  onCheckedChange={(v) => {
-                    setStrategyForm((f) => ({ ...f, provider_health_monitor: v }));
-                    setStrategyDirty(true);
-                  }}
-                />
-              </div>
-            </div>
-
-            <SaveBar
-              dirty={strategyDirty}
-              pending={strategyMutation.isPending}
-              onSave={() => strategyMutation.mutate(strategyForm)}
-              onReset={() => { setStrategyForm({ strategy: 'thompson_sampling', circuit_breaker_enabled: false, provider_health_monitor: false }); setStrategyDirty(false); }}
-            />
-            {strategyMutation.isError && (
-              <p className="text-xs text-red-600">Failed to save strategy settings.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── 2. Speculative Execution ─────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Zap className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-              <p className="text-xs font-medium text-gray-900">Speculative Execution</p>
-            </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Send requests to multiple providers simultaneously and return the fastest valid response.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4 space-y-4">
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-medium text-gray-700">Enable Speculative Execution</Label>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Race N providers in parallel; fastest successful response wins, others are cancelled.
-                </p>
-              </div>
-              <Switch
-                checked={speculativeForm.enable_speculative_execution}
-                onCheckedChange={(v) => {
-                  setSpeculativeForm((f) => ({ ...f, enable_speculative_execution: v }));
-                  setSpeculativeDirty(true);
-                }}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-gray-700">Maximum Parallel Providers</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={5}
-                  className="h-8 text-xs font-mono"
-                  value={speculativeForm.max_parallel_requests}
-                  disabled={!speculativeForm.enable_speculative_execution}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) {
-                      setSpeculativeForm((f) => ({ ...f, max_parallel_requests: v }));
-                      setSpeculativeDirty(true);
-                    }
-                  }}
-                />
-                <p className="text-[11px] text-gray-400">Between 1 and 5 providers.</p>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-gray-700">Timeout Threshold (ms)</Label>
-                <Input
-                  type="number"
-                  min={100}
-                  className="h-8 text-xs font-mono"
-                  value={speculativeForm.speculative_timeout_ms}
-                  disabled={!speculativeForm.enable_speculative_execution}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) {
-                      setSpeculativeForm((f) => ({ ...f, speculative_timeout_ms: v }));
-                      setSpeculativeDirty(true);
-                    }
-                  }}
-                />
-                <p className="text-[11px] text-gray-400">Cancel slow providers after this threshold.</p>
-              </div>
-            </div>
-
-            {speculativeForm.enable_speculative_execution && (
-              <div className="flex items-start gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2.5">
-                <Zap className="h-3.5 w-3.5 text-yellow-600 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
-                <p className="text-xs text-yellow-700">
-                  Speculative execution increases token usage. Wasted tokens from cancelled providers are tracked and accounted toward your cost budget.
-                </p>
-              </div>
-            )}
-
-            <SaveBar
-              dirty={speculativeDirty}
-              pending={speculativeMutation.isPending}
-              onSave={() => speculativeMutation.mutate(speculativeForm)}
-              onReset={() => { setSpeculativeForm({ enable_speculative_execution: false, max_parallel_requests: 2, speculative_timeout_ms: 800 }); setSpeculativeDirty(false); }}
-            />
-            {speculativeMutation.isError && (
-              <p className="text-xs text-red-600">Failed to save speculative execution settings.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── 3. Council Mode ──────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-              <p className="text-xs font-medium text-gray-900">Council Mode</p>
-            </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Send requests to multiple models and aggregate the responses into a single answer.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4 space-y-4">
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-medium text-gray-700">Enable Council Mode</Label>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Multiple models generate responses; aggregation strategy produces the final answer.
-                </p>
-              </div>
-              <Switch
-                checked={councilForm.enable_council_mode}
-                onCheckedChange={(v) => {
-                  setCouncilForm((f) => ({ ...f, enable_council_mode: v }));
-                  setCouncilDirty(true);
-                }}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-700">Council Models</Label>
-              <MultiSelectChips
-                options={AVAILABLE_MODELS}
-                value={councilForm.council_models}
-                disabled={!councilForm.enable_council_mode}
-                onChange={(v) => {
-                  setCouncilForm((f) => ({ ...f, council_models: v }));
-                  setCouncilDirty(true);
-                }}
-              />
-              {councilForm.council_models.length > 0 && (
-                <p className="text-[11px] text-gray-400">
-                  {councilForm.council_models.length} model{councilForm.council_models.length > 1 ? 's' : ''} selected. More models improve quality but increase latency and cost.
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-gray-700">Aggregation Strategy</Label>
-                <Select
-                  value={councilForm.aggregation_strategy}
-                  disabled={!councilForm.enable_council_mode}
-                  onValueChange={(v) => {
-                    setCouncilForm((f) => ({ ...f, aggregation_strategy: v }));
+                  checked={councilForm.enabled}
+                  onCheckedChange={(checked) => {
+                    setCouncilForm((current) => ({ ...current, enabled: checked }));
                     setCouncilDirty(true);
                   }}
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AGGREGATION_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value} className="text-xs">
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                />
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium text-gray-700">Minimum Consensus</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  className="h-8 text-xs font-mono"
-                  value={councilForm.min_consensus}
-                  disabled={!councilForm.enable_council_mode}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) {
-                      setCouncilForm((f) => ({ ...f, min_consensus: v }));
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Council size</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={8}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={councilForm.num_models}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setCouncilForm((current) => ({ ...current, num_models: value }));
+                        setCouncilDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Voting strategy</Label>
+                  <Select
+                    value={councilForm.voting_strategy}
+                    onValueChange={(value) => {
+                      setCouncilForm((current) => ({ ...current, voting_strategy: value }));
                       setCouncilDirty(true);
-                    }
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {['majority', 'weighted', 'consensus'].map((value) => (
+                        <SelectItem key={value} value={value} className="text-xs">
+                          {value}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Chairman model</Label>
+                  <Input
+                    className="h-8 text-xs bg-white"
+                    value={councilForm.chairman_model ?? ''}
+                    onChange={(event) => {
+                      setCouncilForm((current) => ({ ...current, chairman_model: event.target.value }));
+                      setCouncilDirty(true);
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Quality threshold</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={councilForm.quality_threshold}
+                    onChange={(event) => {
+                      const value = parseFloat(event.target.value);
+                      if (!Number.isNaN(value)) {
+                        setCouncilForm((current) => ({ ...current, quality_threshold: value }));
+                        setCouncilDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Council models</Label>
+                <Textarea
+                  className="min-h-[96px] text-xs bg-white"
+                  placeholder="gpt-4o, claude-sonnet-4-5, gemini-2.5-pro"
+                  value={councilForm.models.join(', ')}
+                  onChange={(event) => {
+                    setCouncilForm((current) => ({
+                      ...current,
+                      models: parseDelimitedList(event.target.value),
+                    }));
+                    setCouncilDirty(true);
                   }}
                 />
-                <p className="text-[11px] text-gray-400">Min models agreeing to accept result.</p>
-              </div>
-            </div>
-
-            <SaveBar
-              dirty={councilDirty}
-              pending={councilMutation.isPending}
-              onSave={() => councilMutation.mutate(councilForm)}
-              onReset={() => { setCouncilForm({ enable_council_mode: false, council_models: [], aggregation_strategy: 'majority_vote', min_consensus: 2 }); setCouncilDirty(false); }}
-            />
-            {councilMutation.isError && (
-              <p className="text-xs text-red-600">Failed to save council mode settings.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── 4. Shadow Mode ───────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-              <p className="text-xs font-medium text-gray-900">Shadow Mode</p>
-            </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Evaluate alternative providers silently without affecting production responses.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4 space-y-4">
-
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-xs font-medium text-gray-700">Enable Shadow Mode</Label>
-                <p className="text-[11px] text-gray-400 mt-0.5">
-                  Primary provider response returned to user. Shadow providers execute in parallel for evaluation only.
+                <p className="text-[11px] text-gray-500">
+                  Enter model ids separated by commas or new lines. Saved count: {formatNumber(councilForm.models.length)}.
                 </p>
               </div>
-              <Switch
-                checked={shadowForm.enable_shadow_mode}
-                onCheckedChange={(v) => {
-                  setShadowForm((f) => ({ ...f, enable_shadow_mode: v }));
-                  setShadowDirty(true);
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Max tokens</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={councilForm.max_tokens}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setCouncilForm((current) => ({ ...current, max_tokens: value }));
+                        setCouncilDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Cost limit</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    className="h-8 text-xs font-mono bg-white"
+                    value={councilForm.cost_limit}
+                    onChange={(event) => {
+                      const value = parseFloat(event.target.value);
+                      if (!Number.isNaN(value)) {
+                        setCouncilForm((current) => ({ ...current, cost_limit: value }));
+                        setCouncilDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <MiniStat label="Live enabled" value={councilStatus?.enabled ? 'Yes' : 'No'} />
+                <MiniStat label="Observed size" value={formatNumber(councilStatus?.current_council_size ?? 0)} />
+                <MiniStat label="Quality lift" value={formatPercent(councilStatus?.avg_quality_improvement ?? 0, 2)} />
+                <MiniStat label="Last 24h runs" value={formatNumber(councilAnalytics?.last_24h ?? 0)} />
+              </div>
+
+              <SaveBar
+                dirty={councilDirty}
+                pending={councilMutation.isPending}
+                onSave={() => councilMutation.mutate(councilForm)}
+                onReset={() => {
+                  setCouncilForm(councilConfig ?? {
+                    enabled: false,
+                    num_models: 3,
+                    models: [],
+                    voting_strategy: 'majority',
+                    quality_threshold: 85,
+                    max_tokens: 2000,
+                    cost_limit: 0.5,
+                    chairman_model: '',
+                  });
+                  setCouncilDirty(false);
                 }}
               />
+              {councilMutation.isError && (
+                <p className="text-xs text-red-600">Failed to save council configuration.</p>
+              )}
             </div>
+          </SurfaceSection>
+        </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-700">Shadow Providers</Label>
-              <MultiSelectChips
-                options={AVAILABLE_PROVIDERS}
-                value={shadowForm.shadow_providers}
-                disabled={!shadowForm.enable_shadow_mode}
-                onChange={(v) => {
-                  setShadowForm((f) => ({ ...f, shadow_providers: v }));
-                  setShadowDirty(true);
-                }}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-700">
-                Traffic Sampling
-                <span className="ml-2 text-[11px] text-gray-400 font-normal">
-                  {shadowForm.shadow_sampling_rate}% of requests
-                </span>
-              </Label>
-              <div className="flex items-center gap-3">
-                <Slider
-                  min={1}
-                  max={100}
-                  step={1}
-                  value={[shadowForm.shadow_sampling_rate]}
-                  disabled={!shadowForm.enable_shadow_mode}
-                  onValueChange={([v]) => {
-                    setShadowForm((f) => ({ ...f, shadow_sampling_rate: v }));
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <SurfaceSection
+            icon={Eye}
+            title="Shadow Configuration"
+            description="Configure primary-vs-shadow comparison behavior backed by `/v1/shadow/config`."
+            className="h-full"
+          >
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 flex items-center justify-between gap-4">
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">Enable shadow evaluation</Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Compare a primary provider against a shadow provider without changing the returned user response.
+                  </p>
+                </div>
+                <Switch
+                  checked={shadowForm.enabled}
+                  onCheckedChange={(checked) => {
+                    setShadowForm((current) => ({ ...current, enabled: checked }));
                     setShadowDirty(true);
                   }}
-                  className="w-48"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Primary provider</Label>
+                  <Select
+                    value={shadowForm.primary_provider}
+                    onValueChange={(value) => {
+                      setShadowForm((current) => ({ ...current, primary_provider: value }));
+                      setShadowDirty(true);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {providerOptions.map((provider) => (
+                        <SelectItem key={`primary-${provider}`} value={provider} className="text-xs">
+                          {provider}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Shadow provider</Label>
+                  <Select
+                    value={shadowForm.shadow_provider}
+                    onValueChange={(value) => {
+                      setShadowForm((current) => ({ ...current, shadow_provider: value }));
+                      setShadowDirty(true);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {providerOptions.map((provider) => (
+                        <SelectItem key={`shadow-${provider}`} value={provider} className="text-xs">
+                          {provider}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Traffic sampled (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={shadowForm.shadow_percent}
+                    onChange={(event) => {
+                      const value = parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setShadowForm((current) => ({ ...current, shadow_percent: value }));
+                        setShadowDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-700">Quality threshold</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="h-8 text-xs font-mono bg-white"
+                    value={shadowForm.quality_threshold}
+                    onChange={(event) => {
+                      const value = parseFloat(event.target.value);
+                      if (!Number.isNaN(value)) {
+                        setShadowForm((current) => ({ ...current, quality_threshold: value }));
+                        setShadowDirty(true);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 flex items-center justify-between gap-4">
+                <div>
+                  <Label className="text-xs font-medium text-gray-700">Auto promote</Label>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    Automatically swap the shadow provider into the primary slot when comparisons meet the configured threshold.
+                  </p>
+                </div>
+                <Switch
+                  checked={shadowForm.auto_promote}
+                  onCheckedChange={(checked) => {
+                    setShadowForm((current) => ({ ...current, auto_promote: checked }));
+                    setShadowDirty(true);
+                  }}
+                />
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+                <Label className="text-xs font-medium text-gray-700">Auto promote threshold</Label>
                 <Input
                   type="number"
-                  min={1}
+                  min={0}
                   max={100}
-                  className="h-8 text-xs font-mono w-20"
-                  value={shadowForm.shadow_sampling_rate}
-                  disabled={!shadowForm.enable_shadow_mode}
-                  onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) {
-                      setShadowForm((f) => ({ ...f, shadow_sampling_rate: Math.min(100, Math.max(1, v)) }));
+                  className="h-8 text-xs font-mono bg-white"
+                  value={shadowForm.auto_promote_threshold}
+                  onChange={(event) => {
+                    const value = parseFloat(event.target.value);
+                    if (!Number.isNaN(value)) {
+                      setShadowForm((current) => ({ ...current, auto_promote_threshold: value }));
                       setShadowDirty(true);
                     }
                   }}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <MiniStat label="Live enabled" value={shadowStatus?.enabled ? 'Yes' : 'No'} />
+                <MiniStat label="Requests 24h" value={formatNumber(shadowStatus?.requests_24h ?? 0)} />
+                <MiniStat label="Quality delta" value={formatPercent(shadowStatus?.quality_delta ?? 0, 2)} />
+                <MiniStat label="Discrepancies" value={formatNumber(shadowStatus?.discrepancies_found ?? 0)} />
+              </div>
+
+              <SaveBar
+                dirty={shadowDirty}
+                pending={shadowMutation.isPending}
+                onSave={() => shadowMutation.mutate(shadowForm)}
+                onReset={() => {
+                  setShadowForm(shadowConfig ?? {
+                    enabled: false,
+                    shadow_percent: 10,
+                    primary_provider: 'openai',
+                    shadow_provider: 'anthropic',
+                    quality_threshold: 85,
+                    auto_promote: false,
+                    auto_promote_threshold: 95,
+                  });
+                  setShadowDirty(false);
+                }}
+              />
+              {shadowMutation.isError && (
+                <p className="text-xs text-red-600">Failed to save shadow configuration.</p>
+              )}
             </div>
+          </SurfaceSection>
 
-            <Separator />
+          <SurfaceSection
+            icon={ShieldCheck}
+            title="Validation Context"
+            description="Live telemetry to validate whether the current configuration is behaving as expected."
+            className="h-full"
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <MiniStat label="Breaker state" value={<StateBadge state={cbStatus?.state ?? 'closed'} />} />
+                <MiniStat label="Total trips" value={formatNumber(cbStatus?.trip_count ?? 0)} />
+                <MiniStat label="Active providers" value={formatNumber(activeProviders)} />
+                <MiniStat label="Providers on watch" value={formatNumber(watchedProviders)} />
+              </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-gray-700">Capture Metrics</Label>
-              <div className="space-y-2.5">
-                {[
-                  { key: 'capture_latency_metrics' as const, label: 'Capture Latency Metrics', desc: 'Record p50/p95/p99 response latency per shadow provider.' },
-                  { key: 'capture_cost_metrics' as const,   label: 'Capture Cost Metrics',   desc: 'Track token usage and estimated cost for shadow requests.' },
-                  { key: 'capture_quality_metrics' as const, label: 'Capture Quality Score',  desc: 'Score shadow responses for quality via domain heuristics.' },
-                ].map(({ key, label, desc }) => (
-                  <div key={key} className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700">{label}</p>
-                      <p className="text-[11px] text-gray-400">{desc}</p>
-                    </div>
-                    <Switch
-                      checked={shadowForm[key]}
-                      disabled={!shadowForm.enable_shadow_mode}
-                      onCheckedChange={(v) => {
-                        setShadowForm((f) => ({ ...f, [key]: v }));
-                        setShadowDirty(true);
-                      }}
-                    />
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+                <p className="text-[10px] text-gray-500 mb-1">Last breaker event</p>
+                <p className="text-xs text-gray-900">{formatTimestamp(cbStatus?.last_tripped_at)}</p>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+                {(cbStatus?.providers ?? []).length === 0 ? (
+                  <div className="px-4 py-8 text-center text-xs text-gray-500">No provider breaker events recorded yet.</div>
+                ) : (
+                  <div className="divide-y divide-gray-100">
+                    {(cbStatus?.providers ?? []).slice(0, 5).map((provider) => (
+                      <div key={provider.provider} className="px-4 py-3 flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-medium text-gray-900">{provider.provider}</p>
+                          <p className="text-[11px] text-gray-500">
+                            failures: {formatNumber(provider.failure_count ?? provider.failures ?? 0)}, trips: {formatNumber(provider.trip_count ?? 0)}
+                          </p>
+                        </div>
+                        <StateBadge state={provider.state} />
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
+          </SurfaceSection>
+        </div>
 
-            <SaveBar
-              dirty={shadowDirty}
-              pending={shadowMutation.isPending}
-              onSave={() => shadowMutation.mutate(shadowForm)}
-              onReset={() => { setShadowForm({ enable_shadow_mode: false, shadow_providers: [], shadow_sampling_rate: 10, capture_latency_metrics: false, capture_cost_metrics: false, capture_quality_metrics: false }); setShadowDirty(false); }}
-            />
-            {shadowMutation.isError && (
-              <p className="text-xs text-red-600">Failed to save shadow mode settings.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── 4b. Council Mode Analytics ─────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-gray-400" strokeWidth={1.5} />
-              <p className="text-xs font-medium text-gray-900">Council Mode Analytics</p>
-            </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
-              Live telemetry from council inference invocations.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4 space-y-4">
-            <div className="grid grid-cols-4 gap-3">
-              {[
-                { label: 'Total Invocations', value: councilAnalytics?.total_invocations ?? 0 },
-                { label: 'Last 24h', value: councilAnalytics?.last_24h ?? 0 },
-                { label: 'Avg Latency', value: councilAnalytics ? `${Math.round(councilAnalytics.avg_latency_ms)}ms` : '—' },
-                { label: 'Avg Cost', value: councilAnalytics ? `$${councilAnalytics.avg_cost_usd.toFixed(4)}` : '—' },
-              ].map(({ label, value }) => (
-                <div key={label} className="rounded border border-gray-100 bg-gray-50 px-3 py-2.5">
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</p>
-                  <p className="text-sm font-semibold text-gray-900 mt-0.5 tabular-nums">{value}</p>
-                </div>
-              ))}
-            </div>
-
-            {councilAnalytics && councilAnalytics.by_chairman.length > 0 ? (
+        <SurfaceSection
+          icon={Activity}
+          title="Provider Telemetry"
+          description="Observed request traffic derived from current provider stats APIs. This validates configuration impact but is not itself the configuration surface."
+          bodyClassName="px-4 py-4"
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    {['Chairman', 'Winner', 'Avg Latency', 'Ranking Latency', 'Avg Cost', 'Invocations'].map((col) => (
-                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-8 px-4 bg-gray-50">
+                    {['Provider', 'Activity', 'Models Seen', 'Requests', 'Success Rate', 'Avg Latency', 'P95 Latency', 'Total Cost', 'Last Seen'].map((col) => (
+                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
                         {col}
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {councilAnalytics.by_chairman.map((row, i) => (
-                    <TableRow key={i} className="border-b border-gray-100">
-                      <TableCell className="px-4 py-2 text-xs font-mono text-gray-700">{row.chairman_provider}</TableCell>
-                      <TableCell className="px-4 py-2 text-xs font-mono text-gray-700">{row.winner_provider}</TableCell>
-                      <TableCell className="px-4 py-2"><LatencyCell ms={Math.round(row.avg_total_latency_ms)} /></TableCell>
-                      <TableCell className="px-4 py-2"><LatencyCell ms={Math.round(row.avg_ranking_latency_ms)} /></TableCell>
-                      <TableCell className="px-4 py-2 text-xs font-mono tabular-nums text-gray-700">${row.avg_cost_usd.toFixed(5)}</TableCell>
-                      <TableCell className="px-4 py-2 text-xs tabular-nums text-gray-700">{row.invocation_count}</TableCell>
+                  {providersLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 9 }).map((_, j) => (
+                          <TableCell key={j} className="px-4 py-3">
+                            <Skeleton className="h-3.5 w-16" />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : providerRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="px-4 py-10 text-center text-xs text-gray-500">
+                        No provider telemetry available yet.
+                      </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    providerRows.map((row) => (
+                      <TableRow key={row.provider} className="border-b border-gray-100 hover:bg-gray-50">
+                        <TableCell className="px-4 py-2.5 text-xs font-medium text-gray-900">{row.provider}</TableCell>
+                        <TableCell className="px-4 py-2.5"><ActivityBadge activity={row.activity} /></TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{formatNumber(row.models_seen)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{formatNumber(row.request_count)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{formatPercent(row.success_rate_percent)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{formatMs(row.avg_latency_ms)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{formatMs(row.p95_latency_ms)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{formatMoney(row.total_cost_usd)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs text-gray-700">{formatTimestamp(row.last_updated)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
+            </div>
+          </div>
+        </SurfaceSection>
+
+        <SurfaceSection
+          icon={Users}
+          title="Council Outcomes"
+          description="Per-chairman council behavior from persisted analytics."
+          bodyClassName="px-4 py-4"
+        >
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <MiniStat label="Total invocations" value={formatNumber(councilAnalytics?.total_invocations ?? 0)} />
+            <MiniStat label="Last 24h" value={formatNumber(councilAnalytics?.last_24h ?? 0)} />
+            <MiniStat label="Avg latency" value={formatMs(councilAnalytics?.avg_latency_ms ?? 0)} />
+            <MiniStat label="Avg cost" value={formatMoney(councilAnalytics?.avg_cost_usd ?? 0, 4)} />
+          </div>
+
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+            {(councilAnalytics?.by_chairman ?? []).length === 0 ? (
+              <div className="px-4 py-10 text-center text-xs text-gray-500">
+                No council analytics available yet.
+              </div>
             ) : (
-              <p className="text-xs text-gray-400">No council invocations yet. Enable Council Mode above and send requests to see analytics.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* ── 5. Provider Selection Table ──────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-            <div>
-              <p className="text-xs font-medium text-gray-900">Provider Selection Logic</p>
-              <p className="text-[11px] text-gray-500 mt-0.5">
-                Edit routing weights and priority order. Changes take effect after saving.
-              </p>
-            </div>
-            {providerDirty && (
-              <Button
-                size="sm"
-                className="h-7 text-xs gap-1.5"
-                onClick={() => providerWeightsMutation.mutate({ providers: providerRows })}
-                disabled={providerWeightsMutation.isPending}
-              >
-                {providerWeightsMutation.isPending && <RefreshCw className="h-3 w-3 animate-spin" />}
-                Save Weights
-              </Button>
-            )}
-          </CardHeader>
-          <Separator />
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Provider', 'Status', 'Avg Latency', 'Success Rate', 'Cost / Token', 'Routing Weight', 'Priority'].map((col) => (
-                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                    {col}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {providersLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 7 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3">
-                        <Skeleton className="h-3.5 w-16" />
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      {['Chairman', 'Winner', 'Avg Latency', 'Ranking Latency', 'Avg Cost', 'Invocations'].map((col) => (
+                        <TableHead key={col} className="text-xs font-medium text-gray-500 h-8 px-4 bg-gray-50">
+                          {col}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(councilAnalytics?.by_chairman ?? []).map((row, index) => (
+                      <TableRow key={`${row.chairman_provider}-${row.winner_provider}-${index}`} className="border-b border-gray-100">
+                        <TableCell className="px-4 py-2 text-xs font-mono text-gray-700">{row.chairman_provider}</TableCell>
+                        <TableCell className="px-4 py-2 text-xs font-mono text-gray-700">{row.winner_provider}</TableCell>
+                        <TableCell className="px-4 py-2 text-xs tabular-nums text-gray-700">{formatMs(row.avg_total_latency_ms)}</TableCell>
+                        <TableCell className="px-4 py-2 text-xs tabular-nums text-gray-700">{formatMs(row.avg_ranking_latency_ms)}</TableCell>
+                        <TableCell className="px-4 py-2 text-xs tabular-nums text-gray-700">{formatMoney(row.avg_cost_usd, 5)}</TableCell>
+                        <TableCell className="px-4 py-2 text-xs tabular-nums text-gray-700">{formatNumber(row.invocation_count)}</TableCell>
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))
-              ) : (
-                providerRows.map((row) => (
-                  <TableRow key={row.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <TableCell className="px-4 py-2.5">
-                      <span className="text-xs font-medium text-gray-900">{row.provider}</span>
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <HealthBadge status={row.status} />
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <LatencyCell ms={row.average_latency_ms} />
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <SuccessRateCell rate={row.success_rate_percent} />
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      {row.cost_per_token === null
-                        ? <span className="text-xs text-gray-300">—</span>
-                        : <span className="text-xs font-mono tabular-nums text-gray-700">${row.cost_per_token.toFixed(7)}</span>
-                      }
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          className="h-7 w-16 text-xs font-mono text-center px-1"
-                          value={row.routing_weight}
-                          onChange={(e) => {
-                            const v = parseInt(e.target.value, 10);
-                            if (!isNaN(v)) updateProvider(row.id, 'routing_weight', v);
-                          }}
-                        />
-                        <WeightBar weight={row.routing_weight} />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-2.5">
-                      <Input
-                        type="number"
-                        min={1}
-                        className="h-7 w-14 text-xs font-mono text-center px-1"
-                        value={row.priority}
-                        onChange={(e) => {
-                          const v = parseInt(e.target.value, 10);
-                          if (!isNaN(v)) updateProvider(row.id, 'priority', v);
-                        }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          {providerWeightsMutation.isError && (
-            <div className="px-4 py-2">
-              <p className="text-xs text-red-600">Failed to save provider weights.</p>
-            </div>
-          )}
-        </Card>
-
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </SurfaceSection>
       </div>
     </DashboardLayout>
   );
