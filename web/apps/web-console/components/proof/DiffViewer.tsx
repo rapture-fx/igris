@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/utils/helpers';
 
 type DiffKind = 'added' | 'removed' | 'changed' | 'unchanged';
 
@@ -22,7 +25,6 @@ function computeDiff(
   for (const key of keys) {
     const inBefore = key in before;
     const inAfter  = key in after;
-
     if (!inBefore) {
       rows.push({ key, after: after[key], kind: 'added' });
     } else if (!inAfter) {
@@ -44,11 +46,11 @@ function fmt(v: unknown): string {
   return String(v);
 }
 
-const KIND_STYLES: Record<DiffKind, { row: string; before: string; after: string; pill: string; label: string }> = {
-  added:     { row: 'bg-green-50',  before: 'text-gray-300', after:  'text-green-700 font-medium', pill: 'bg-green-100 text-green-700',  label: '+' },
-  removed:   { row: 'bg-red-50',    before: 'text-red-700 line-through', after: 'text-gray-300',   pill: 'bg-red-100 text-red-700',     label: '−' },
-  changed:   { row: 'bg-amber-50',  before: 'text-red-600 line-through', after: 'text-green-700 font-medium', pill: 'bg-amber-100 text-amber-700', label: '~' },
-  unchanged: { row: '',             before: 'text-gray-500', after:  'text-gray-500',               pill: 'bg-gray-100 text-gray-400',   label: '=' },
+const KIND_STYLES: Record<DiffKind, { row: string; before: string; after: string; badge: string; label: string }> = {
+  added:     { row: 'bg-green-50 dark:bg-green-950/10',  before: 'text-gray-300', after: 'text-green-700 dark:text-green-400 font-medium', badge: 'border-green-200 bg-green-100 text-green-700',  label: '+' },
+  removed:   { row: 'bg-red-50 dark:bg-red-950/10',      before: 'text-red-700 dark:text-red-400 line-through', after: 'text-gray-300',   badge: 'border-red-200 bg-red-100 text-red-700',     label: '−' },
+  changed:   { row: 'bg-amber-50 dark:bg-amber-950/10',  before: 'text-red-600 dark:text-red-400 line-through', after: 'text-green-700 dark:text-green-400 font-medium', badge: 'border-amber-200 bg-amber-100 text-amber-700', label: '~' },
+  unchanged: { row: '',                                   before: 'text-gray-500', after: 'text-gray-500',       badge: 'border-gray-200 bg-gray-100 text-gray-400',   label: '=' },
 };
 
 interface DiffViewerProps {
@@ -56,7 +58,6 @@ interface DiffViewerProps {
   after:  Record<string, unknown> | null | undefined;
   beforeLabel?: string;
   afterLabel?:  string;
-  /** Hide rows where nothing changed. Default true. */
   hideUnchanged?: boolean;
 }
 
@@ -94,13 +95,12 @@ export function DiffViewer({
   }
 
   return (
-    <div className="border border-gray-200 rounded-md overflow-hidden text-[11px]">
-      {/* Column headers */}
-      <div className="grid grid-cols-[18px_1fr_1fr_1fr] bg-gray-50 border-b border-gray-200">
+    <div className="border border-gray-200 dark:border-border rounded-md overflow-hidden text-[11px]">
+      <div className="grid grid-cols-[18px_1fr_1fr_1fr] bg-gray-50 dark:bg-muted border-b border-gray-200 dark:border-border">
         <div className="px-2 py-1.5 text-gray-400" />
-        <div className="px-2 py-1.5 text-gray-500 font-medium">key</div>
-        <div className="px-2 py-1.5 text-gray-400">{beforeLabel}</div>
-        <div className="px-2 py-1.5 text-gray-400">{afterLabel}</div>
+        <div className="px-2 py-1.5 text-gray-500 dark:text-muted-foreground font-medium">key</div>
+        <div className="px-2 py-1.5 text-gray-400 dark:text-muted-foreground">{beforeLabel}</div>
+        <div className="px-2 py-1.5 text-gray-400 dark:text-muted-foreground">{afterLabel}</div>
       </div>
 
       {visible.map((row) => {
@@ -108,37 +108,34 @@ export function DiffViewer({
         return (
           <div
             key={row.key}
-            className={`grid grid-cols-[18px_1fr_1fr_1fr] border-b border-gray-100 last:border-0 ${s.row}`}
+            className={cn('grid grid-cols-[18px_1fr_1fr_1fr] border-b border-gray-100 dark:border-border last:border-0', s.row)}
           >
-            {/* Kind indicator */}
-            <div className="flex items-center justify-center py-1.5 text-[10px] select-none">
-              <span className={`px-0.5 rounded text-[9px] ${s.pill}`}>{s.label}</span>
+            <div className="flex items-center justify-center py-1.5">
+              <Badge variant="outline" className={cn('text-[9px] px-0.5 py-0 rounded h-auto font-medium', s.badge)}>
+                {s.label}
+              </Badge>
             </div>
-            {/* Key */}
-            <div className="px-2 py-1.5 text-gray-700 truncate">{row.key}</div>
-            {/* Before */}
-            <div className={`px-2 py-1.5 break-all leading-relaxed ${s.before}`}>
+            <div className="px-2 py-1.5 text-gray-700 dark:text-gray-300 truncate">{row.key}</div>
+            <div className={cn('px-2 py-1.5 break-all leading-relaxed', s.before)}>
               {row.kind === 'added' ? <span className="text-gray-300">—</span> : fmt(row.before)}
             </div>
-            {/* After */}
-            <div className={`px-2 py-1.5 break-all leading-relaxed ${s.after}`}>
+            <div className={cn('px-2 py-1.5 break-all leading-relaxed', s.after)}>
               {row.kind === 'removed' ? <span className="text-gray-300">—</span> : fmt(row.after)}
             </div>
           </div>
         );
       })}
 
-      {/* Toggle unchanged rows */}
       {hideUnchanged && unchangedCount > 0 && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setShowUnchanged((v) => !v)}
-          className="w-full flex items-center gap-1.5 px-3 py-2 text-[10px] text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors border-t border-gray-100"
+          className="w-full rounded-none h-auto px-3 py-2 text-[10px] text-gray-400 hover:text-gray-600 justify-start font-normal border-t border-gray-100 dark:border-border"
         >
-          {showUnchanged
-            ? <ChevronDown className="h-3 w-3" />
-            : <ChevronRight className="h-3 w-3" />}
+          {showUnchanged ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
           {showUnchanged ? 'hide' : 'show'} {unchangedCount} unchanged field{unchangedCount !== 1 ? 's' : ''}
-        </button>
+        </Button>
       )}
     </div>
   );
