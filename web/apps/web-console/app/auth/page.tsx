@@ -9,16 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function AuthPage() {
+  // AUTH DISABLED FOR LOCAL DEVELOPMENT
+  if (typeof window !== 'undefined') {
+    window.location.replace('/dashboard');
+  }
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-        </div>
-      }
-    >
-      <AuthContent />
-    </Suspense>
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+    </div>
   );
 }
 
