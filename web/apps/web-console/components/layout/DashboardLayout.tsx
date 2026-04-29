@@ -25,11 +25,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const showTrialBanner = isTrialActive && !bannerDismissed;
 
   return (
-    <HealthCheckGate>
+    <HealthCheckGate skipHealthCheck={true}>
       <ErrorBoundary>
         <div className="min-h-screen bg-[#f3f3f6] dark:bg-[#25231e] m-0 p-0">
           {/* Mobile top bar */}
-          <nav className="fixed top-0 left-0 md:left-56 right-0 z-40 h-2 bg-[#f3f3f6] dark:bg-[#25231e] md:pl-12 md:pr-2">
+          <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-2 bg-[#f3f3f6] dark:bg-[#25231e] md:pl-12 md:pr-2">
             <div className="h-full px-4 flex items-center">
               <Button
                 variant="ghost"
@@ -45,7 +45,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex m-0 p-0 pt-2 pb-2">
             <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <main className="flex-1 md:ml-56 md:pl-12 md:pr-2 px-4 sm:px-6 lg:px-8 overflow-x-hidden rounded-2xl bg-background h-[calc(100vh-16px)] border border-gray-200 dark:border-[#f6f6f4]/10">
+            <main className="flex-1 md:ml-64 md:pl-12 md:pr-2 px-4 sm:px-6 lg:px-8 overflow-x-hidden rounded-2xl bg-background h-[calc(100vh-16px)] border border-gray-200 dark:border-[#f6f6f4]/10">
               {/* Trial Banner */}
               {showTrialBanner && (
                 <div className="bg-blue-600 dark:bg-blue-700 text-white px-4 sm:px-6 lg:px-8 py-3 border-b border-border">
@@ -85,7 +85,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           {/* Bottom spacer */}
-          <footer className="fixed bottom-0 left-0 md:left-56 right-0 z-40 h-2 bg-[#f3f3f6] dark:bg-[#25231e]" />
+          <footer className="fixed bottom-0 left-0 md:left-64 right-0 z-40 h-2 bg-[#f3f3f6] dark:bg-[#25231e]" />
         </div>
       </ErrorBoundary>
     </HealthCheckGate>
