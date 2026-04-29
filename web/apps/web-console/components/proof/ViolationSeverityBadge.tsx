@@ -1,24 +1,25 @@
-const KIND_STYLES: Record<string, string> = {
-  CPU_LIMIT:        'text-orange-700 bg-orange-50 border-orange-200',
-  MEMORY_LIMIT:     'text-amber-700 bg-amber-50 border-amber-200',
-  QUOTA_EXCEEDED:   'text-red-700 bg-red-50 border-red-200',
-  TICK_TIMEOUT:     'text-violet-700 bg-violet-50 border-violet-200',
-  CAPABILITY_DENIED:'text-rose-700 bg-rose-50 border-rose-200',
-};
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/utils/helpers';
 
-interface ViolationSeverityBadgeProps {
-  kind: string;
-}
+const KIND_STYLES: Record<string, string> = {
+  CPU_LIMIT:         'border-orange-200 bg-orange-50 text-orange-700',
+  MEMORY_LIMIT:      'border-amber-200 bg-amber-50 text-amber-700',
+  QUOTA_EXCEEDED:    'border-red-200 bg-red-50 text-red-700',
+  TICK_TIMEOUT:      'border-violet-200 bg-violet-50 text-violet-700',
+  CAPABILITY_DENIED: 'border-rose-200 bg-rose-50 text-rose-700',
+};
 
 function formatKind(k: string) {
   return k.charAt(0).toUpperCase() + k.slice(1).replace(/_/g, ' ').toLowerCase();
 }
 
-export function ViolationSeverityBadge({ kind }: ViolationSeverityBadgeProps) {
-  const style = KIND_STYLES[kind] ?? 'text-gray-600 bg-gray-50 border-gray-200';
+export function ViolationSeverityBadge({ kind }: { kind: string }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${style}`}>
+    <Badge
+      variant="outline"
+      className={cn('text-[10px] px-1.5 py-0.5 rounded font-medium', KIND_STYLES[kind] ?? 'border-gray-200 bg-gray-50 text-gray-600')}
+    >
       {formatKind(kind)}
-    </span>
+    </Badge>
   );
 }
