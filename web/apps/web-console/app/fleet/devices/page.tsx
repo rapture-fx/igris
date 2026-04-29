@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,9 +15,6 @@ import { Label } from '@/components/ui/label';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetClose,
 } from '@/components/ui/sheet';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -425,7 +421,7 @@ function FleetDevicesContent() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Devices</h1>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-black mt-0.5">
               Distributed runtime nodes participating in governed execution.
             </p>
           </div>
@@ -454,201 +450,178 @@ function FleetDevicesContent() {
           )}
         </div>
 
-        {/* Summary Cards */}
+        {/* ── Summary Cards ───────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {STAT_CARDS.map((c) => (
-            <Card key={c.label} className="border border-gray-200 shadow-none">
-              <CardHeader className="px-4 pt-3 pb-0">
-                <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                  <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
-                  {c.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-1">
+            <div key={c.label} className="border border-gray-200 shadow hover:border-gray-300 transition-colors rounded-3xl overflow-hidden bg-white">
+              <div className="px-4 pt-3 pb-2 flex items-center gap-1.5">
+                <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
+                <span className="text-xs font-medium text-gray-500">{c.label}</span>
+              </div>
+              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
                 {c.pending ? (
-                  <Skeleton className="h-6 w-10" />
+                  <Skeleton className="h-8 w-12" />
                 ) : (
-                  <span className="text-base font-semibold text-gray-900 tabular-nums">
-                    {c.value}
-                  </span>
+                  <div className="text-4xl font-bold tabular-nums text-gray-900">{c.value}</div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
 
-        {/* Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative min-w-[200px] max-w-xs flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-            <Input
-              placeholder="Search device_id…"
-              className="pl-8 h-8 text-xs"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        {/* ── Devices Table Card ──────────────────────────────────────────── */}
+        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+          <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-sm font-medium text-gray-900">Devices</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <Input
+                  placeholder="Search device_id…"
+                  className="pl-8 h-8 text-xs w-48"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+                <SelectTrigger className="h-8 w-[110px] text-xs">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">All</SelectItem>
+                  <SelectItem value="online" className="text-xs">Online</SelectItem>
+                  <SelectItem value="offline" className="text-xs">Offline</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
+                <SelectTrigger className="h-8 w-[80px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="24h" className="text-xs">24h</SelectItem>
+                  <SelectItem value="7d" className="text-xs">7d</SelectItem>
+                  <SelectItem value="30d" className="text-xs">30d</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-1.5 border border-gray-200 rounded-md px-2.5 h-8">
+                <Switch
+                  id="ros-filter"
+                  checked={rosOnly}
+                  onCheckedChange={setRosOnly}
+                  className="scale-75"
+                />
+                <Label htmlFor="ros-filter" className="text-xs text-gray-600 cursor-pointer whitespace-nowrap">
+                  ROS 2 only
+                </Label>
+              </div>
+              <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
+                <RefreshCw className="h-3.5 w-3.5" />
+                Refresh
+              </Button>
+            </div>
           </div>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-            <SelectTrigger className="h-8 w-[110px] text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs">All</SelectItem>
-              <SelectItem value="online" className="text-xs">Online</SelectItem>
-              <SelectItem value="offline" className="text-xs">Offline</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
-            <SelectTrigger className="h-8 w-[80px] text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="24h" className="text-xs">24h</SelectItem>
-              <SelectItem value="7d" className="text-xs">7d</SelectItem>
-              <SelectItem value="30d" className="text-xs">30d</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs gap-1.5 ml-auto"
-            onClick={() => refetch()}
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            Refresh
-          </Button>
-          <div className="flex items-center gap-1.5 border border-gray-200 rounded-md px-2.5 h-8">
-            <Switch
-              id="ros-filter"
-              checked={rosOnly}
-              onCheckedChange={setRosOnly}
-              className="scale-75"
-            />
-            <Label htmlFor="ros-filter" className="text-xs text-gray-600 cursor-pointer whitespace-nowrap">
-              ROS 2 only
-            </Label>
+
+          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State', 'Containment', 'ROS CPU', 'ROS Memory', 'ROS Violations'].map((col) => (
+                      <th key={col} className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">{col}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {devicesLoading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <tr key={i} className="border-b border-gray-100">
+                        {Array.from({ length: 12 }).map((_, j) => (
+                          <td key={j} className="px-4 py-2.5">
+                            <Skeleton className="h-3.5 w-16" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={12} className="py-14">
+                        <div className="flex flex-col items-center gap-2.5 text-center">
+                          <Server className="h-9 w-9 text-gray-200" />
+                          <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
+                          {runtimeLimitReached ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" disabled>
+                                Runtime limit reached
+                              </Button>
+                              <Link href="/settings/billing" className="text-[11px] text-blue-600 hover:text-blue-700">
+                                Upgrade to add more runtimes
+                              </Link>
+                            </div>
+                          ) : (
+                            <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" asChild>
+                              <Link href="/downloads/runtime">Register Runtime Node</Link>
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((device) => (
+                      <tr
+                        key={device.device_id}
+                        className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors cursor-pointer"
+                        onClick={() => openDevice(device.device_id)}
+                      >
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-gray-700">{truncateText(device.device_id, 18)}</span>
+                            <CopyButton value={device.device_id} />
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <StatusBadge status={device.status.toUpperCase()} />
+                        </td>
+                        <td className="px-4 py-2.5 font-mono text-gray-600">{device.runtime_version}</td>
+                        <td className="px-4 py-2.5 text-gray-500">{getRelativeTime(device.last_seen)}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-gray-700">{device.executions_24h}</td>
+                        <td className="px-4 py-2.5">
+                          <ViolationCountBadge count={device.violations_24h} />
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <PolicySyncIndicator policyHash={device.policy_hash} globalPolicyHash={device.global_policy_hash} />
+                        </td>
+                        <td className="px-4 py-2.5">
+                          {device.ros_node ? (
+                            <RosLifecycleBadge state={device.ros_node.lifecycle_state} airGapped={device.ros_node.air_gapped} />
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <ContainmentBadge containment={device.containment} />
+                        </td>
+                        <td className="px-4 py-2.5 tabular-nums text-gray-600">
+                          {device.ros_node?.cpu_usage_percent != null ? `${device.ros_node.cpu_usage_percent.toFixed(1)}%` : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-2.5 tabular-nums text-gray-600">
+                          {device.ros_node?.memory_usage_mb != null ? `${device.ros_node.memory_usage_mb} MB` : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <ViolationCountBadge count={device.ros_node?.violation_count_24h ?? 0} />
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 py-3 border-t border-gray-200">
+              <span className="text-xs text-black">
+                {filtered.length} device{filtered.length !== 1 ? 's' : ''}
+              </span>
+            </div>
           </div>
         </div>
-
-        {/* Devices Table */}
-        <Card className="border border-gray-200 shadow-none">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State', 'Containment', 'ROS CPU', 'ROS Memory', 'ROS Violations'].map((col) => (
-                  <TableHead
-                    key={col}
-                    className="text-xs font-medium text-gray-500 h-9 px-3 bg-gray-50 hover:bg-gray-50"
-                  >
-                    {col}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {devicesLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 12 }).map((_, j) => (
-                      <TableCell key={j} className="px-3 py-2.5">
-                        <Skeleton className="h-3.5 w-16" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={12} className="py-14">
-                    <div className="flex flex-col items-center gap-2.5 text-center">
-                      <Server className="h-9 w-9 text-gray-200" />
-                      <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
-                      {runtimeLimitReached ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" disabled>
-                            Runtime limit reached
-                          </Button>
-                          <Link href="/settings/billing" className="text-[11px] text-blue-600 hover:text-blue-700">
-                            Upgrade to add more runtimes
-                          </Link>
-                        </div>
-                      ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" asChild>
-                          <Link href="/downloads/runtime">
-                            Register Runtime Node
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((device) => (
-                  <TableRow
-                    key={device.device_id}
-                    className="cursor-pointer hover:bg-gray-50 border-b border-gray-100 transition-colors"
-                    onClick={() => openDevice(device.device_id)}
-                  >
-                    <TableCell className="px-3 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-mono text-gray-700">
-                          {truncateText(device.device_id, 18)}
-                        </span>
-                        <CopyButton value={device.device_id} />
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <StatusBadge status={device.status.toUpperCase()} />
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5 text-xs font-mono text-gray-600">
-                      {device.runtime_version}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5 text-xs text-gray-500">
-                      {getRelativeTime(device.last_seen)}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5 text-xs tabular-nums text-gray-700">
-                      {device.executions_24h}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <ViolationCountBadge count={device.violations_24h} />
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <PolicySyncIndicator
-                        policyHash={device.policy_hash}
-                        globalPolicyHash={device.global_policy_hash}
-                      />
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      {device.ros_node ? (
-                        <RosLifecycleBadge
-                          state={device.ros_node.lifecycle_state}
-                          airGapped={device.ros_node.air_gapped}
-                        />
-                      ) : (
-                        <span className="text-xs text-gray-300">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <ContainmentBadge containment={device.containment} />
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5 text-xs tabular-nums text-gray-600">
-                      {device.ros_node?.cpu_usage_percent != null
-                        ? `${device.ros_node.cpu_usage_percent.toFixed(1)}%`
-                        : <span className="text-gray-300">—</span>}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5 text-xs tabular-nums text-gray-600">
-                      {device.ros_node?.memory_usage_mb != null
-                        ? `${device.ros_node.memory_usage_mb} MB`
-                        : <span className="text-gray-300">—</span>}
-                    </TableCell>
-                    <TableCell className="px-3 py-2.5">
-                      <ViolationCountBadge count={device.ros_node?.violation_count_24h ?? 0} />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
       </div>
 
       {/* ── Device Detail Drawer ──────────────────────────────────────────────── */}
