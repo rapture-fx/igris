@@ -3,16 +3,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Moon, RefreshCw, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Moon, RefreshCw, ArrowRight } from 'lucide-react';
 
 interface ShadowTrace {
   id: string;
@@ -63,7 +61,7 @@ function TraceColumn({ label, data, isReal }: {
   isReal: boolean;
 }) {
   return (
-    <div className={`flex-1 rounded-md border p-3 ${isReal ? 'border-gray-200 bg-white' : 'border-purple-100 bg-purple-50'}`}>
+    <div className={`flex-1 rounded-xl border p-3 ${isReal ? 'border-gray-200 bg-gray-50' : 'border-purple-100 bg-purple-50'}`}>
       <p className={`text-[10px] font-semibold uppercase tracking-wide mb-2 ${isReal ? 'text-gray-500' : 'text-purple-600'}`}>
         {label}
       </p>
@@ -134,109 +132,109 @@ export default function ShadowComparisonPage() {
     <DashboardLayout>
       <div className="space-y-5">
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-              <Moon className="h-4 w-4 text-purple-500" />
-              Shadow Mode Comparison
-            </h1>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Side-by-side comparison of shadow vs enforced traces for the same agent and time window.
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs gap-1.5"
-            onClick={() => refetch()}
-            disabled={isFetching}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <div>
+          <h1 className="text-base font-semibold text-gray-900">Shadow Mode Comparison</h1>
+          <p className="text-xs text-black mt-0.5">
+            Side-by-side comparison of shadow vs enforced traces for the same agent and time window.
+          </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-            <SelectTrigger className="h-8 w-48 text-xs">
-              <SelectValue placeholder="All agents" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs">All shadow agents</SelectItem>
-              {agents.map((a) => (
-                <SelectItem key={a.id} value={a.id} className="text-xs">
-                  {a.namespace ?? truncateText(a.id, 18)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
-            <SelectTrigger className="h-8 w-24 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1h" className="text-xs">Last 1h</SelectItem>
-              <SelectItem value="24h" className="text-xs">Last 24h</SelectItem>
-              <SelectItem value="7d" className="text-xs">Last 7d</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* ── Shadow Traces Card ──────────────────────────────────────────── */}
+        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+          <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
+            <span className="text-sm font-medium text-gray-900">Traces</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                <SelectTrigger className="h-8 w-48 text-xs">
+                  <SelectValue placeholder="All agents" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">All shadow agents</SelectItem>
+                  {agents.map((a) => (
+                    <SelectItem key={a.id} value={a.id} className="text-xs">
+                      {a.namespace ?? truncateText(a.id, 18)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={timeRange} onValueChange={(v) => setTimeRange(v as typeof timeRange)}>
+                <SelectTrigger className="h-8 w-24 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1h" className="text-xs">Last 1h</SelectItem>
+                  <SelectItem value="24h" className="text-xs">Last 24h</SelectItem>
+                  <SelectItem value="7d" className="text-xs">Last 7d</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs gap-1.5"
+                onClick={() => refetch()}
+                disabled={isFetching}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
 
-        {/* Traces */}
-        {isLoading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="border border-gray-200 shadow-none">
-                <CardContent className="p-4">
-                  <Skeleton className="h-32 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : traces.length === 0 ? (
-          <Card className="border border-gray-200 shadow-none">
-            <CardContent className="py-16 text-center">
-              <Moon className="h-10 w-10 text-purple-200 mx-auto mb-3" />
-              <p className="text-xs text-gray-400">No shadow traces found for the selected filters.</p>
-              <p className="text-[11px] text-gray-400 mt-1">
-                Enable Shadow Mode on an agent to start collecting comparison data.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {traces.map((trace) => (
-              <Card key={trace.id} className="border border-gray-200 shadow-none">
-                <CardHeader className="px-4 pt-3 pb-2">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-gray-500">{truncateText(trace.agent_id, 18)}</span>
-                      <span className="text-[10px] text-gray-400">{getRelativeTime(trace.timestamp)}</span>
+          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+            {isLoading ? (
+              <div className="p-4 space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4">
+                    <Skeleton className="h-32 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : traces.length === 0 ? (
+              <div className="py-16 text-center">
+                <Moon className="h-10 w-10 text-purple-200 mx-auto mb-3" />
+                <p className="text-xs text-gray-400">No shadow traces found for the selected filters.</p>
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Enable Shadow Mode on an agent to start collecting comparison data.
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 space-y-3">
+                {traces.map((trace) => (
+                  <div key={trace.id} className="bg-white rounded-2xl border border-gray-100 p-4">
+                    <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                      <div className="flex items-center gap-2">
+                        <Moon className="h-3 w-3 text-purple-400 flex-shrink-0" />
+                        <span className="text-xs font-mono text-gray-600">{truncateText(trace.agent_id, 18)}</span>
+                        <span className="text-[10px] text-gray-400">{getRelativeTime(trace.timestamp)}</span>
+                      </div>
+                      <DivergenceBadge score={trace.divergence_score} />
                     </div>
-                    <DivergenceBadge score={trace.divergence_score} />
-                  </div>
-                </CardHeader>
-                <Separator />
-                <CardContent className="px-4 py-3">
-                  <div className="flex items-stretch gap-3">
-                    <TraceColumn label="Real (Enforced)" data={trace.real} isReal={true} />
-                    <div className="flex items-center flex-shrink-0">
-                      <ArrowRight className="h-4 w-4 text-gray-300" />
+                    <div className="flex items-stretch gap-3">
+                      <TraceColumn label="Real (Enforced)" data={trace.real} isReal={true} />
+                      <div className="flex items-center flex-shrink-0">
+                        <ArrowRight className="h-4 w-4 text-gray-300" />
+                      </div>
+                      <TraceColumn label="Shadow (Observed)" data={trace.shadow} isReal={false} />
                     </div>
-                    <TraceColumn label="Shadow (Observed)" data={trace.shadow} isReal={false} />
+                    <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-400">
+                      <span className="font-mono">real: {truncateText(trace.real_execution_id, 14)}</span>
+                      <span>·</span>
+                      <span className="font-mono">shadow: {truncateText(trace.shadow_execution_id, 14)}</span>
+                    </div>
                   </div>
-                  <div className="mt-3 flex items-center gap-3 text-[10px] text-gray-400">
-                    <span className="font-mono">real: {truncateText(trace.real_execution_id, 14)}</span>
-                    <span>·</span>
-                    <span className="font-mono">shadow: {truncateText(trace.shadow_execution_id, 14)}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                ))}
+              </div>
+            )}
+            {!isLoading && (
+              <div className="px-4 py-3 border-t border-gray-200">
+                <span className="text-xs text-black">
+                  {traces.length} trace{traces.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </DashboardLayout>
   );
