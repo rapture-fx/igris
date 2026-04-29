@@ -6,4 +6,36 @@ export const authClient = createAuthClient({
   plugins: [adminClient()],
 });
 
-export const { signIn, signUp, signOut, useSession, getSession } = authClient;
+export const { signIn, signUp, signOut, getSession } = authClient;
+
+// AUTH DISABLED FOR LOCAL DEVELOPMENT — stable mock session stops polling loop
+const DEV_SESSION = {
+  data: {
+    user: {
+      id: 'dev-user',
+      name: 'Dev User',
+      email: 'dev@localhost',
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      image: null,
+    },
+    session: {
+      id: 'dev-session',
+      userId: 'dev-user',
+      expiresAt: new Date(Date.now() + 86_400_000),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      token: 'dev-token',
+      ipAddress: null,
+      userAgent: null,
+    },
+  },
+  isPending: false,
+  error: null,
+  refetch: () => Promise.resolve({ data: null, error: null }),
+} as const;
+
+export function useSession() {
+  return DEV_SESSION;
+}
