@@ -271,14 +271,14 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-screen w-56 transform transition-transform duration-200 ease-in-out md:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-64 transform transition-transform duration-200 ease-in-out md:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <div className="flex h-full flex-col bg-[#f3f3f6] dark:bg-[#25231e]">
 
           {/* Logo */}
-          <div className="h-12 flex items-center px-4 pt-4">
+          <div className="h-12 flex items-center px-5 pt-4">
             <Link href="/dashboard" className="flex items-center">
               <img src="/inertia.png" alt="Igris" className="h-8 w-auto rounded-lg" />
             </Link>
