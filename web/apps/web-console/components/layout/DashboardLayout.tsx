@@ -11,9 +11,10 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
+  fullWidth?: boolean;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, fullWidth = false }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const { data: tenant } = useTenant();
@@ -76,7 +77,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
               )}
 
-              <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-[1200px] mx-auto rounded-2xl">
+              <div className={`px-4 sm:px-6 lg:px-8 py-6 rounded-2xl ${fullWidth ? 'w-full' : 'max-w-[1200px] mx-auto'}`}>
                 {children}
               </div>
             </main>
