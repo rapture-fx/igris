@@ -1,10 +1,9 @@
 'use client';
 
+import { type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -14,9 +13,10 @@ import {
 } from 'recharts';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime } from '@/utils/helpers';
-import { Coins, Zap, CalendarDays, TrendingUp } from 'lucide-react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import {
+  Coins, Zap, CalendarDays, TrendingUp, BarChart3, Activity,
+  type LucideIcon,
+} from 'lucide-react';
 
 interface UsageSummary {
   tokens_24h: number;
@@ -62,18 +62,6 @@ interface CostEvent {
   cost: number;
 }
 
-// ─── Static Config ────────────────────────────────────────────────────────────
-
-const PROVIDER_AVATAR: Record<string, { bg: string; text: string; initial: string }> = {
-  openai:    { bg: 'bg-[#10a37f]',  text: 'text-white',      initial: 'O' },
-  anthropic: { bg: 'bg-orange-100', text: 'text-orange-700', initial: 'A' },
-  deepseek:  { bg: 'bg-blue-100',   text: 'text-blue-700',   initial: 'D' },
-  google:    { bg: 'bg-red-100',    text: 'text-red-700',    initial: 'G' },
-  xai:       { bg: 'bg-gray-900',   text: 'text-white',      initial: 'X' },
-};
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
-
 function fmtTokens(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
@@ -88,17 +76,6 @@ function fmtRequests(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toLocaleString();
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function ProviderAvatar({ kind }: { kind: string }) {
-  const meta = PROVIDER_AVATAR[kind] ?? { bg: 'bg-gray-100', text: 'text-gray-600', initial: kind[0]?.toUpperCase() ?? '?' };
-  return (
-    <span className={`inline-flex h-5 w-5 items-center justify-center rounded text-[9px] font-bold flex-shrink-0 ${meta.bg} ${meta.text}`}>
-      {meta.initial}
-    </span>
-  );
 }
 
 function UsageBar({ percent }: { percent: number }) {
@@ -126,7 +103,72 @@ function SpendTooltip({ active, payload, label }: {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+function OverviewCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  loading,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  sub: string;
+  loading?: boolean;
+}) {
+  return (
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+        {label}
+      </div>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+        {loading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+        )}
+        <p className="text-xs text-black mt-1">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function SurfaceSection({
+  icon: Icon,
+  title,
+  description,
+  actions,
+  bodyClassName = 'px-4 py-4',
+  className = '',
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+  bodyClassName?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-black">{title}</p>
+          </div>
+          <p className="text-[11px] text-black mt-0.5">{description}</p>
+        </div>
+        {actions}
+      </div>
+      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function ModelsCostPage() {
   const { data: summary, isLoading: summaryLoading } = useQuery<UsageSummary>({
@@ -187,104 +229,114 @@ export default function ModelsCostPage() {
     refetchOnWindowFocus: false,
   });
 
-  const STAT_CARDS = [
-    { label: 'Tokens (24h)',      value: summaryLoading ? null : fmtTokens(summary?.tokens_24h ?? 0),        icon: Zap,          color: 'text-blue-600'   },
-    { label: 'Cost (24h)',        value: summaryLoading ? null : fmtCost(summary?.cost_24h ?? 0),            icon: Coins,        color: 'text-green-600'  },
-    { label: 'Tokens (30d)',      value: summaryLoading ? null : fmtTokens(summary?.tokens_30d ?? 0),        icon: CalendarDays, color: 'text-gray-500'   },
-    { label: 'Est. Monthly Cost', value: summaryLoading ? null : fmtCost(summary?.estimated_monthly ?? 0),  icon: TrendingUp,   color: 'text-violet-600' },
-  ];
-
   return (
     <DashboardLayout>
       <div className="space-y-5">
-
-        {/* Header */}
         <div>
           <h1 className="text-base font-semibold text-gray-900">Usage & Cost</h1>
-          <p className="text-xs text-gray-500 mt-0.5">Token usage and provider spending across the system.</p>
+          <p className="text-xs text-black mt-0.5">Token usage and provider spending across the system.</p>
         </div>
 
-        {/* ── Stat Cards ────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {STAT_CARDS.map((c) => (
-            <Card key={c.label} className="border border-gray-200 shadow-none">
-              <CardHeader className="px-4 pt-3 pb-0">
-                <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                  <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
-                  {c.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-1">
-                {c.value === null
-                  ? <Skeleton className="h-6 w-20" />
-                  : <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
-                }
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <OverviewCard
+            icon={Zap}
+            label="Tokens (24h)"
+            value={fmtTokens(summary?.tokens_24h ?? 0)}
+            sub="Tokens consumed in the last 24 hours."
+            loading={summaryLoading}
+          />
+          <OverviewCard
+            icon={Coins}
+            label="Cost (24h)"
+            value={fmtCost(summary?.cost_24h ?? 0)}
+            sub="Spend across all providers today."
+            loading={summaryLoading}
+          />
+          <OverviewCard
+            icon={CalendarDays}
+            label="Tokens (30d)"
+            value={fmtTokens(summary?.tokens_30d ?? 0)}
+            sub="Rolling 30-day token volume."
+            loading={summaryLoading}
+          />
+          <OverviewCard
+            icon={TrendingUp}
+            label="Est. Monthly Cost"
+            value={fmtCost(summary?.estimated_monthly ?? 0)}
+            sub="Projected from current daily run rate."
+            loading={summaryLoading}
+          />
         </div>
 
-        {/* ── Provider Cost + Daily Spend ────────────────────────────────────── */}
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
-
-          {/* Provider Cost Breakdown */}
-          <Card className="xl:col-span-3 border border-gray-200 shadow-none">
-            <CardHeader className="px-4 pt-4 pb-3">
-              <CardTitle className="text-sm font-medium text-gray-900">Provider Cost Breakdown</CardTitle>
-            </CardHeader>
-            <Separator />
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  {['Provider', 'Requests', 'Tokens', 'Avg Latency', 'Cost', 'Usage %'].map((col) => (
-                    <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                      {col}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {providersLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
-                      {Array.from({ length: 6 }).map((_, j) => (
-                        <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+          <SurfaceSection
+            icon={BarChart3}
+            title="Provider Cost Breakdown"
+            description="Requests, tokens, and spend per provider over the current period."
+            className="xl:col-span-3"
+            bodyClassName="px-4 py-4"
+          >
+            <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      {['Provider', 'Requests', 'Tokens', 'Avg Latency', 'Cost', 'Usage %'].map((col) => (
+                        <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
+                          {col}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  providers.map((p) => (
-                    <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <TableCell className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-gray-900">{p.provider}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">{fmtRequests(p.requests)}</TableCell>
-                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">{fmtTokens(p.tokens)}</TableCell>
-                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">{p.avg_latency_ms}ms</TableCell>
-                      <TableCell className="px-4 py-3 text-xs font-medium tabular-nums text-gray-900">{fmtCost(p.cost)}</TableCell>
-                      <TableCell className="px-4 py-3"><UsageBar percent={p.usage_percent} /></TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {providersLoading ? (
+                      Array.from({ length: 3 }).map((_, i) => (
+                        <TableRow key={i}>
+                          {Array.from({ length: 6 }).map((_, j) => (
+                            <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : providers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="px-4 py-10 text-center text-xs text-gray-500">
+                          No provider cost data available yet.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      providers.map((p) => (
+                        <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell className="px-4 py-2.5 text-xs font-medium text-gray-900">{p.provider}</TableCell>
+                          <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{fmtRequests(p.requests)}</TableCell>
+                          <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{fmtTokens(p.tokens)}</TableCell>
+                          <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{p.avg_latency_ms}ms</TableCell>
+                          <TableCell className="px-4 py-2.5 text-xs font-medium tabular-nums text-gray-900">{fmtCost(p.cost)}</TableCell>
+                          <TableCell className="px-4 py-2.5"><UsageBar percent={p.usage_percent} /></TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </SurfaceSection>
 
-          {/* Daily Spend Chart */}
-          <Card className="xl:col-span-2 border border-gray-200 shadow-none">
-            <CardHeader className="px-4 pt-4 pb-3">
-              <CardTitle className="text-sm font-medium text-gray-900">Daily Spend</CardTitle>
-            </CardHeader>
-            <Separator />
-            <CardContent className="px-2 pt-4 pb-3">
-              {dailyLoading ? (
-                <div className="h-[188px] px-2">
-                  <Skeleton className="h-full w-full rounded-md" />
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height={188}>
+          <SurfaceSection
+            icon={TrendingUp}
+            title="Daily Spend"
+            description="Cost per day over the last 30 days."
+            className="xl:col-span-2"
+            bodyClassName="px-4 py-4"
+          >
+            {dailyLoading ? (
+              <Skeleton className="h-[196px] w-full rounded-2xl" />
+            ) : daily.length === 0 ? (
+              <div className="h-[196px] rounded-2xl border border-dashed border-gray-300 bg-white flex items-center justify-center">
+                <p className="text-xs text-gray-400">No daily spend data yet.</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+                <ResponsiveContainer width="100%" height={172}>
                   <LineChart data={daily} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                     <XAxis
@@ -311,115 +363,124 @@ export default function ModelsCostPage() {
                     />
                   </LineChart>
                 </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </SurfaceSection>
         </div>
 
-        {/* ── Model Usage Table ──────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <CardTitle className="text-sm font-medium text-gray-900">Model Usage</CardTitle>
-          </CardHeader>
-          <Separator />
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Model', 'Provider', 'Requests', 'Tokens', 'Avg Latency', 'Cost'].map((col) => (
-                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                    {col}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {modelsLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+        <SurfaceSection
+          icon={Activity}
+          title="Model Usage"
+          description="Token consumption and cost broken down by model."
+          bodyClassName="px-4 py-4"
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    {['Model', 'Provider', 'Requests', 'Tokens', 'Avg Latency', 'Cost'].map((col) => (
+                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
+                        {col}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                models.map((m) => (
-                  <TableRow key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <TableCell className="px-4 py-3">
-                      <span className="text-xs font-mono font-medium text-gray-900">{m.model}</span>
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-gray-600">{m.provider}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">{fmtRequests(m.requests)}</TableCell>
-                    <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">{fmtTokens(m.tokens)}</TableCell>
-                    <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">{m.avg_latency_ms}ms</TableCell>
-                    <TableCell className="px-4 py-3 text-xs font-medium tabular-nums text-gray-900">{fmtCost(m.cost)}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {modelsLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 6 }).map((_, j) => (
+                          <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : models.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="px-4 py-10 text-center text-xs text-gray-500">
+                        No model usage recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    models.map((m) => (
+                      <TableRow key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <TableCell className="px-4 py-2.5">
+                          <span className="text-xs font-mono font-medium text-gray-900">{m.model}</span>
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs text-gray-600">{m.provider}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{fmtRequests(m.requests)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{fmtTokens(m.tokens)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{m.avg_latency_ms}ms</TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs font-medium tabular-nums text-gray-900">{fmtCost(m.cost)}</TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </SurfaceSection>
 
-        {/* ── Recent Cost Events ─────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <CardTitle className="text-sm font-medium text-gray-900">Recent Cost Events</CardTitle>
-          </CardHeader>
-          <Separator />
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Timestamp', 'Request', 'Provider', 'Model', 'Tokens', 'Cost'].map((col) => (
-                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                    {col}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {eventsLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+        <SurfaceSection
+          icon={Coins}
+          title="Recent Cost Events"
+          description="Per-request cost log, refreshed every 30 seconds."
+          bodyClassName="px-4 py-4"
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    {['Timestamp', 'Request', 'Provider', 'Model', 'Tokens', 'Cost'].map((col) => (
+                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
+                        {col}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : events.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-xs text-gray-400">
-                    No cost events recorded.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                events.map((e) => (
-                  <TableRow key={e.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <TableCell className="px-4 py-3 text-xs text-gray-500 tabular-nums">
-                      {getRelativeTime(e.timestamp)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3">
-                      <span className="text-xs font-mono text-gray-700">{e.request_id}</span>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-xs text-gray-700">{e.provider}</TableCell>
-                    <TableCell className="px-4 py-3">
-                      <span className="text-xs font-mono text-gray-600">{e.model}</span>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
-                      {e.tokens.toLocaleString()}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-xs font-medium tabular-nums text-gray-900">
-                      {fmtCost(e.cost)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
-
+                </TableHeader>
+                <TableBody>
+                  {eventsLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 6 }).map((_, j) => (
+                          <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : events.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="px-4 py-10 text-center text-xs text-gray-500">
+                        No cost events recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    events.map((e) => (
+                      <TableRow key={e.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-500">
+                          {getRelativeTime(e.timestamp)}
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5">
+                          <span className="text-xs font-mono text-gray-700">{e.request_id}</span>
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs text-gray-700">{e.provider}</TableCell>
+                        <TableCell className="px-4 py-2.5">
+                          <span className="text-xs font-mono text-gray-600">{e.model}</span>
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">
+                          {e.tokens.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs font-medium tabular-nums text-gray-900">
+                          {fmtCost(e.cost)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </SurfaceSection>
       </div>
     </DashboardLayout>
   );
