@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -28,9 +27,8 @@ import { getRelativeTime } from '@/utils/helpers';
 import {
   CloudCog, CheckCircle, XCircle, Plus, MoreHorizontal, Pencil,
   Trash2, PowerOff, Power, RefreshCw, Activity,
+  type LucideIcon,
 } from 'lucide-react';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Provider {
   id: string;
@@ -53,8 +51,6 @@ interface ProviderForm {
   default_model: string;
 }
 
-// ─── Static Config ────────────────────────────────────────────────────────────
-
 const PROVIDER_OPTIONS = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'anthropic', label: 'Anthropic' },
@@ -66,8 +62,6 @@ const PROVIDER_OPTIONS = [
 ];
 
 const EMPTY_FORM: ProviderForm = { kind: '', key_id: '', endpoint: '', default_model: '' };
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function LatencyCell({ ms }: { ms: number | null }) {
   if (ms === null) return <span className="text-xs text-gray-300">—</span>;
@@ -81,7 +75,72 @@ function SuccessRateCell({ rate }: { rate: number | null }) {
   return <span className={`text-xs font-mono tabular-nums ${cls}`}>{rate.toFixed(1)}%</span>;
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+function OverviewCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  loading,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  sub: string;
+  loading?: boolean;
+}) {
+  return (
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+        {label}
+      </div>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+        {loading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+        )}
+        <p className="text-xs text-black mt-1">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function SurfaceSection({
+  icon: Icon,
+  title,
+  description,
+  actions,
+  bodyClassName = 'px-4 py-4',
+  className = '',
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+  bodyClassName?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-black">{title}</p>
+          </div>
+          <p className="text-[11px] text-black mt-0.5">{description}</p>
+        </div>
+        {actions}
+      </div>
+      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function ModelsProvidersPage() {
   const qc = useQueryClient();
@@ -159,29 +218,16 @@ export default function ModelsProvidersPage() {
     })(),
   }), [providers]);
 
-  const STAT_CARDS = [
-    { label: 'Active', value: counts.active, icon: CheckCircle, color: 'text-green-600' },
-    { label: 'Errors', value: counts.error, icon: XCircle, color: 'text-red-600' },
-    { label: 'Models Available', value: counts.totalModels, icon: CloudCog, color: 'text-blue-600' },
-    { label: 'Avg Latency', value: counts.avgLatency !== null ? `${counts.avgLatency}ms` : '—', icon: Activity, color: 'text-gray-500' },
-  ];
-
   const isPending = addMutation.isPending || editMutation.isPending;
-
-  // Keys filtered to match the selected provider kind for the form dropdown
-  const relevantKeys = form.kind
-    ? vaultKeys.filter((k) => k.provider === form.kind)
-    : vaultKeys;
+  const relevantKeys = form.kind ? vaultKeys.filter((k) => k.provider === form.kind) : vaultKeys;
 
   return (
     <DashboardLayout>
       <div className="space-y-5">
-
-        {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Model Providers</h1>
-            <p className="text-xs text-gray-500 mt-0.5">AI providers available for routing.</p>
+            <p className="text-xs text-black mt-0.5">AI providers available for routing.</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
@@ -193,123 +239,149 @@ export default function ModelsProvidersPage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {STAT_CARDS.map((c) => (
-            <div key={c.label} className="rounded-lg border border-gray-200 dark:border-gray-700 px-4 pt-3 pb-3">
-              <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
-                {c.label}
-              </p>
-              {isLoading
-                ? <Skeleton className="h-6 w-10 mt-1" />
-                : <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>}
-            </div>
-          ))}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <OverviewCard
+            icon={CheckCircle}
+            label="Active"
+            value={counts.active}
+            sub={`${providers.length} total configured.`}
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={XCircle}
+            label="Errors"
+            value={counts.error}
+            sub={counts.error > 0 ? 'Check provider configuration.' : 'All providers healthy.'}
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={CloudCog}
+            label="Models Available"
+            value={counts.totalModels}
+            sub="Across all configured providers."
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={Activity}
+            label="Avg Latency"
+            value={counts.avgLatency !== null ? `${counts.avgLatency}ms` : '—'}
+            sub="Average across active providers."
+            loading={isLoading}
+          />
         </div>
 
-        {/* Providers Table */}
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Provider', 'Status', 'Key Reference', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
-                  <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                    {col}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 8 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3">
-                        <Skeleton className="h-3.5 w-16" />
-                      </TableCell>
+        <SurfaceSection
+          icon={CloudCog}
+          title="Configured Providers"
+          description="AI providers wired for routing. Keys are managed in Settings → Keys."
+          actions={
+            providers.length > 0 ? (
+              <span className="text-[11px] text-gray-500">{providers.length} configured</span>
+            ) : undefined
+          }
+          bodyClassName="px-4 py-4"
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    {['Provider', 'Status', 'Key Reference', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
+                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
+                        {col}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : providers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="py-14">
-                    <div className="flex flex-col items-center gap-2.5">
-                      <CloudCog className="h-8 w-8 text-gray-200" />
-                      <p className="text-xs text-gray-400">No providers configured.</p>
-                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1 mt-0.5" onClick={openAdd}>
-                        <Plus className="h-3.5 w-3.5" /> Add Provider
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                providers.map((p) => {
-                  const linkedKey = vaultKeys.find((k) => k.id === p.key_id);
-                  return (
-                    <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <TableCell className="px-4 py-3">
-                        <p className="text-xs font-medium text-gray-900">{p.name}</p>
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <StatusBadge status={p.status === 'active' ? 'ACTIVE' : p.status === 'error' ? 'ERROR' : 'INACTIVE'} />
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        {linkedKey ? (
-                          <span className="text-xs text-gray-700 font-mono">
-                            {linkedKey.key_name} · <span className="text-gray-400">{linkedKey.masked_key}</span>
-                          </span>
-                        ) : (
-                          <span className="text-xs text-amber-600">No key linked</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
-                        {p.models_available}
-                      </TableCell>
-                      <TableCell className="px-4 py-3"><LatencyCell ms={p.latency_ms} /></TableCell>
-                      <TableCell className="px-4 py-3"><SuccessRateCell rate={p.success_rate} /></TableCell>
-                      <TableCell className="px-4 py-3 text-xs text-gray-400">{getRelativeTime(p.last_checked_at)}</TableCell>
-                      <TableCell className="px-4 py-3 text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-36">
-                            <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={() => openEdit(p)}>
-                              <Pencil className="h-3.5 w-3.5 text-gray-400" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-xs gap-2 cursor-pointer"
-                              onClick={() => toggleMutation.mutate({
-                                id: p.id,
-                                status: p.status === 'disabled' ? 'active' : 'disabled',
-                              })}
-                            >
-                              {p.status === 'disabled'
-                                ? <><Power className="h-3.5 w-3.5 text-gray-400" /> Enable</>
-                                : <><PowerOff className="h-3.5 w-3.5 text-gray-400" /> Disable</>}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-xs gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                              onClick={() => setDeleteTarget(p)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 8 }).map((_, j) => (
+                          <TableCell key={j} className="px-4 py-3">
+                            <Skeleton className="h-3.5 w-16" />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : providers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="px-4 py-10 text-center">
+                        <div className="flex flex-col items-center gap-2.5">
+                          <CloudCog className="h-7 w-7 text-gray-200" />
+                          <p className="text-xs text-gray-400">No providers configured.</p>
+                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1 mt-0.5" onClick={openAdd}>
+                            <Plus className="h-3.5 w-3.5" /> Add Provider
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  ) : (
+                    providers.map((p) => {
+                      const linkedKey = vaultKeys.find((k) => k.id === p.key_id);
+                      return (
+                        <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell className="px-4 py-2.5">
+                            <p className="text-xs font-medium text-gray-900">{p.name}</p>
+                          </TableCell>
+                          <TableCell className="px-4 py-2.5">
+                            <StatusBadge status={p.status === 'active' ? 'ACTIVE' : p.status === 'error' ? 'ERROR' : 'INACTIVE'} />
+                          </TableCell>
+                          <TableCell className="px-4 py-2.5">
+                            {linkedKey ? (
+                              <span className="text-xs text-gray-700 font-mono">
+                                {linkedKey.key_name} · <span className="text-gray-400">{linkedKey.masked_key}</span>
+                              </span>
+                            ) : (
+                              <span className="text-xs text-amber-600">No key linked</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{p.models_available}</TableCell>
+                          <TableCell className="px-4 py-2.5"><LatencyCell ms={p.latency_ms} /></TableCell>
+                          <TableCell className="px-4 py-2.5"><SuccessRateCell rate={p.success_rate} /></TableCell>
+                          <TableCell className="px-4 py-2.5 text-xs text-gray-400">{getRelativeTime(p.last_checked_at)}</TableCell>
+                          <TableCell className="px-4 py-2.5 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-36">
+                                <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={() => openEdit(p)}>
+                                  <Pencil className="h-3.5 w-3.5 text-gray-400" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-xs gap-2 cursor-pointer"
+                                  onClick={() => toggleMutation.mutate({
+                                    id: p.id,
+                                    status: p.status === 'disabled' ? 'active' : 'disabled',
+                                  })}
+                                >
+                                  {p.status === 'disabled'
+                                    ? <><Power className="h-3.5 w-3.5 text-gray-400" /> Enable</>
+                                    : <><PowerOff className="h-3.5 w-3.5 text-gray-400" /> Disable</>}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-xs gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                  onClick={() => setDeleteTarget(p)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </SurfaceSection>
       </div>
 
-      {/* ── Add / Edit Dialog ─────────────────────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -324,7 +396,6 @@ export default function ModelsProvidersPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-1">
-            {/* Provider type */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">Provider</Label>
               <Select
@@ -345,7 +416,6 @@ export default function ModelsProvidersPage() {
               </Select>
             </div>
 
-            {/* Key reference — vault dropdown */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">Key Reference</Label>
               <Select
@@ -377,7 +447,6 @@ export default function ModelsProvidersPage() {
               </p>
             </div>
 
-            {/* Endpoint */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">
                 Endpoint <span className="text-gray-400 font-normal">(optional)</span>
@@ -390,7 +459,6 @@ export default function ModelsProvidersPage() {
               />
             </div>
 
-            {/* Default Model */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-gray-700">
                 Default Model <span className="text-gray-400 font-normal">(optional)</span>
@@ -419,7 +487,6 @@ export default function ModelsProvidersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete Confirm ─────────────────────────────────────────────────────── */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
