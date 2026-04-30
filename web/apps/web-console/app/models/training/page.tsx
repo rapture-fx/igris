@@ -1,10 +1,10 @@
 'use client';
 
+import { type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 import { api } from '@/lib/apiClient';
 import { toast } from '@/components/ui/use-toast';
 import {
@@ -19,10 +19,8 @@ import {
   Activity,
   ChevronRight,
   Play,
+  type LucideIcon,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface LoRALastResult {
   status: string;
@@ -46,8 +44,6 @@ interface LoRAStatus {
   last_result?: LoRALastResult;
 }
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
 function formatUnixTs(ts: number | undefined): string {
   if (!ts) return '—';
   return new Date(ts * 1000).toLocaleString();
@@ -67,19 +63,17 @@ function formatDuration(secs: number): string {
   return `${m}m ${s}s`;
 }
 
-// ─── Sub-components ────────────────────────────────────────────────────────────
-
 function StatusBadge({ status }: { status: string | undefined }) {
   if (!status || status === 'Idle') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-inter font-medium border bg-gray-50 text-gray-500 border-gray-200">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border bg-gray-50 text-gray-600 border-gray-200">
         Idle
       </span>
     );
   }
   if (status === 'Training') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-inter font-medium border bg-blue-50 text-blue-700 border-blue-200">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border bg-blue-50 text-blue-700 border-blue-200">
         <span className="h-1.5 w-1.5 rounded-full bg-blue-500 inline-block animate-pulse" />
         Training
       </span>
@@ -87,32 +81,95 @@ function StatusBadge({ status }: { status: string | undefined }) {
   }
   if (status === 'Completed') {
     return (
-      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-inter font-medium border bg-green-50 text-green-700 border-green-200">
-        <CheckCircle2 className="h-3 w-3" />
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border bg-green-50 text-green-700 border-green-200">
+        <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
         Completed
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-inter font-medium border bg-red-50 text-red-600 border-red-200">
-      <AlertTriangle className="h-3 w-3" />
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border bg-red-50 text-red-600 border-red-200">
+      <AlertTriangle className="h-2.5 w-2.5" />
       {status}
     </span>
   );
 }
 
-function StatRow({ label, value }: { label: string; value: React.ReactNode }) {
+function OverviewCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  loading,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  sub: string;
+  loading?: boolean;
+}) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-      <span className="text-sm font-inter text-gray-500">{label}</span>
-      <span className="text-sm font-inter font-medium text-gray-900">
-        {value}
-      </span>
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+        {label}
+      </div>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+        {loading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+        )}
+        <p className="text-xs text-black mt-1">{sub}</p>
+      </div>
     </div>
   );
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────────
+function SurfaceSection({
+  icon: Icon,
+  title,
+  description,
+  actions,
+  bodyClassName = 'px-4 py-4',
+  className = '',
+  children,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  actions?: ReactNode;
+  bodyClassName?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-black">{title}</p>
+          </div>
+          <p className="text-[11px] text-black mt-0.5">{description}</p>
+        </div>
+        {actions}
+      </div>
+      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+      <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-semibold text-gray-900 mt-1 tabular-nums">{value}</p>
+    </div>
+  );
+}
 
 export default function QLoRATrainingPage() {
   const qc = useQueryClient();
@@ -138,273 +195,236 @@ export default function QLoRATrainingPage() {
       toast({ title: 'Training triggered', description: 'A training run has been queued.' });
     },
     onError: () => {
-      toast({ title: 'Trigger failed', description: 'Could not start training. Check the runtime is connected.', variant: 'destructive' });
+      toast({
+        title: 'Trigger failed',
+        description: 'Could not start training. Check the runtime is connected.',
+        variant: 'destructive',
+      });
     },
   });
 
   const enabled = loraStatus?.enabled !== false && !loraStatus?.runtime_error;
   const status = loraStatus?.status;
   const lastResult = loraStatus?.last_result;
-
   const triggerThresholdReached = loraStatus?.should_trigger;
-  const examplesUntilTrigger = loraStatus?.total_examples !== undefined
-    ? `${loraStatus.total_examples} collected`
-    : '—';
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-3xl font-inter">
-
-        {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div className="space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-inter font-semibold text-gray-900 flex items-center gap-2">
-              <Brain className="h-5 w-5 text-gray-400" />
-              On-Device QLoRA Training
-            </h1>
-            <p className="text-sm font-inter text-gray-500 mt-1">
-              The runtime automatically fine-tunes a LoRA adapter from inference history.
-              Adapters are AES-256-GCM encrypted at rest and hot-loaded without restart.
+            <h1 className="text-base font-semibold text-gray-900">On-Device QLoRA Training</h1>
+            <p className="text-xs text-black mt-0.5">
+              The runtime automatically fine-tunes a LoRA adapter from inference history. Adapters are AES-256-GCM encrypted at rest and hot-loaded without restart.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <Button
               size="sm"
-              className="h-9 text-sm font-inter gap-1.5"
+              className="h-8 text-xs gap-1.5"
               onClick={() => triggerMutation.mutate()}
               disabled={!enabled || status === 'Training' || triggerMutation.isPending}
               title={status === 'Training' ? 'Training already in progress' : 'Trigger a training run now'}
             >
-              {triggerMutation.isPending
-                ? <><RefreshCw className="h-4 w-4 animate-spin" /> Starting…</>
-                : <><Play className="h-4 w-4" /> Trigger Training</>}
+              {triggerMutation.isPending ? (
+                <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Starting…</>
+              ) : (
+                <><Play className="h-3.5 w-3.5" /> Trigger Training</>
+              )}
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-9 text-sm font-inter gap-1.5"
+              className="h-8 text-xs gap-1.5"
               onClick={() => refetch()}
               disabled={isFetching}
             >
-              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           </div>
         </div>
 
-        {/* ── Runtime unavailable banner ───────────────────────────────────── */}
         {loraStatus?.runtime_error && (
-          <div className="flex items-center gap-2 px-3 py-2.5 bg-yellow-50 border border-yellow-200 rounded-md">
-            <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
-            <span className="text-sm font-inter text-yellow-700">
-              Runtime unreachable — training status unavailable.{' '}
-              <span className="font-inter text-xs">{loraStatus.runtime_error}</span>
-            </span>
+          <div className="border border-amber-200 bg-amber-50 rounded-3xl px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
+            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+            Runtime unreachable — training status unavailable. {loraStatus.runtime_error}
           </div>
         )}
 
-        {/* ── Training Status Card ─────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Activity className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
-                <p className="text-sm font-inter font-medium text-gray-900">Training Status</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {isLoading ? (
-                  <Skeleton className="h-5 w-16" />
-                ) : (
-                  <>
-                    {enabled ? (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-inter font-medium border bg-green-50 text-green-700 border-green-200">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
-                        Enabled
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-inter font-medium border bg-gray-50 text-gray-400 border-gray-200">
-                        Disabled
-                      </span>
-                    )}
-                    <StatusBadge status={status} />
-                  </>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-3">
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-6 w-full" />
-                ))}
-              </div>
-            ) : !enabled ? (
-              <div className="py-4 text-center">
-                <p className="text-sm font-inter text-gray-400">
-                  QLoRA training is disabled on this runtime instance.
-                </p>
-                <p className="text-xs font-inter text-gray-400 mt-1">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          <OverviewCard
+            icon={Database}
+            label="Examples Collected"
+            value={loraStatus?.total_examples ?? 0}
+            sub="Training examples in local store."
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={Zap}
+            label="Requests Processed"
+            value={loraStatus?.request_counter ?? 0}
+            sub="Inference requests observed."
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={Brain}
+            label="Last Run Loss"
+            value={lastResult?.final_loss != null ? lastResult.final_loss.toFixed(4) : '—'}
+            sub={lastResult ? `${formatDuration(lastResult.training_time_secs)} duration` : 'No completed run yet.'}
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={Lock}
+            label="Adapter Size"
+            value={formatBytes(lastResult?.adapter_size_bytes)}
+            sub={lastResult?.encrypted_adapter_path ? 'Encrypted AES-256-GCM at rest.' : 'No adapter stored yet.'}
+            loading={isLoading}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <SurfaceSection
+            icon={Activity}
+            title="Training Status"
+            description="Live state reported by the connected runtime instance."
+            className="h-full"
+            actions={
+              isLoading ? <Skeleton className="h-5 w-16" /> : <StatusBadge status={status} />
+            }
+          >
+            {!enabled ? (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-6 text-center">
+                <p className="text-xs text-gray-500">QLoRA training is disabled on this runtime instance.</p>
+                <p className="text-[11px] text-gray-400 mt-1.5">
                   Enable it in the runtime config:{' '}
-                  <code className="font-inter bg-gray-100 px-1.5 py-0.5 rounded text-xs">lora_training.enabled = true</code>
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-[10px]">lora_training.enabled = true</code>
                 </p>
               </div>
             ) : (
-              <div>
-                <StatRow label="Status" value={<StatusBadge status={status} />} />
-                <StatRow
-                  label="Training examples collected"
-                  value={examplesUntilTrigger}
-                />
-                <StatRow
-                  label="Inference requests processed"
-                  value={loraStatus?.request_counter ?? '—'}
-                />
-                <StatRow
-                  label="Should trigger training"
-                  value={
-                    triggerThresholdReached ? (
-                      <span className="text-amber-600 flex items-center gap-1">
-                        <Zap className="h-3.5 w-3.5" />
-                        Threshold reached — will train on next inference
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <MiniStat
+                    label="Enabled"
+                    value={
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border bg-green-50 text-green-700 border-green-200">
+                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 inline-block" />
+                        Enabled
                       </span>
-                    ) : (
-                      <span className="text-gray-400">Waiting for threshold</span>
-                    )
-                  }
-                />
-                <StatRow
-                  label="Last training started"
-                  value={formatUnixTs(loraStatus?.last_started_at)}
-                />
-                <StatRow
-                  label="Last training finished"
-                  value={formatUnixTs(loraStatus?.last_finished_at)}
-                />
+                    }
+                  />
+                  <MiniStat label="Should trigger" value={triggerThresholdReached ? 'Yes' : 'No'} />
+                  <MiniStat label="Last started" value={formatUnixTs(loraStatus?.last_started_at)} />
+                  <MiniStat label="Last finished" value={formatUnixTs(loraStatus?.last_finished_at)} />
+                </div>
+
+                {triggerThresholdReached && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-700 flex items-center gap-1.5">
+                    <Zap className="h-3.5 w-3.5 flex-shrink-0" />
+                    Threshold reached — will train on next inference
+                  </div>
+                )}
+
                 {loraStatus?.last_error && (
-                  <div className="mt-2 px-2 py-1.5 bg-red-50 border border-red-100 rounded text-xs font-inter text-red-600">
+                  <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-600">
                     {loraStatus.last_error}
                   </div>
                 )}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </SurfaceSection>
 
-        {/* ── Last Training Result ─────────────────────────────────────────── */}
-        {lastResult && (
-          <Card className="border border-gray-200 shadow-none">
-            <CardHeader className="px-4 pt-4 pb-3">
-              <div className="flex items-center gap-1.5">
-                <CheckCircle2 className="h-4 w-4 text-green-500" strokeWidth={1.5} />
-                <p className="text-sm font-inter font-medium text-gray-900">Last Training Run</p>
+          <SurfaceSection
+            icon={CheckCircle2}
+            title="Last Training Run"
+            description="Results from the most recently completed adapter training cycle."
+            className="h-full"
+          >
+            {!lastResult ? (
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-6 text-center">
+                <p className="text-xs text-gray-500">No training runs completed yet.</p>
+                <p className="text-[11px] text-gray-400 mt-1">Trigger a run or wait for the threshold to be reached.</p>
               </div>
-            </CardHeader>
-            <Separator />
-            <CardContent className="px-4 py-3">
-              <StatRow
-                label="Training samples used"
-                value={lastResult.training_samples}
-              />
-              <StatRow
-                label="Training duration"
-                value={formatDuration(lastResult.training_time_secs)}
-              />
-              <StatRow
-                label="Final loss"
-                value={lastResult.final_loss != null ? lastResult.final_loss.toFixed(4) : '—'}
-              />
-              <StatRow
-                label="Adapter size"
-                value={formatBytes(lastResult.adapter_size_bytes)}
-              />
-              <StatRow
-                label="Encrypted at rest"
-                value={
-                  lastResult.encrypted_adapter_path ? (
-                    <span className="flex items-center gap-1 text-green-600">
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <MiniStat label="Samples used" value={lastResult.training_samples} />
+                  <MiniStat label="Duration" value={formatDuration(lastResult.training_time_secs)} />
+                  <MiniStat label="Final loss" value={lastResult.final_loss != null ? lastResult.final_loss.toFixed(4) : '—'} />
+                  <MiniStat label="Adapter size" value={formatBytes(lastResult.adapter_size_bytes)} />
+                </div>
+                <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1.5">Encrypted at rest</p>
+                  {lastResult.encrypted_adapter_path ? (
+                    <p className="text-xs text-green-700 flex items-center gap-1.5">
                       <Lock className="h-3.5 w-3.5" />
                       AES-256-GCM
-                    </span>
-                  ) : (
-                    <span className="text-gray-400">—</span>
-                  )
-                }
-              />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ── How it works ─────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Database className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
-              <p className="text-sm font-inter font-medium text-gray-900">How On-Device Training Works</p>
-            </div>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4">
-            <ol className="space-y-3">
-              {[
-                {
-                  icon: Activity,
-                  title: 'Inference collection',
-                  desc: 'Every inference call records a (prompt, completion) training example to a local SQLite store on the runtime device.',
-                },
-                {
-                  icon: Zap,
-                  title: 'Threshold trigger',
-                  desc: 'After N requests (configurable, default 100), the runtime spawns a background training job — one at a time, with a semaphore lock.',
-                },
-                {
-                  icon: Brain,
-                  title: 'QLoRA fine-tuning',
-                  desc: 'A LoRA adapter is trained on top of the base GGUF model using the collected examples. Backend: native Rust (Metal/CUDA) or llama.cpp — auto-detected.',
-                },
-                {
-                  icon: Lock,
-                  title: 'Encrypted adapter',
-                  desc: 'The trained adapter is encrypted with AES-256-GCM before being written to disk. Key is derived from the runtime\'s tenant identity.',
-                },
-                {
-                  icon: CheckCircle2,
-                  title: 'Hot-load',
-                  desc: 'The new adapter is loaded into the local LLM provider without restarting the runtime. All subsequent inferences use the fine-tuned model.',
-                },
-              ].map((step, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-xs font-inter font-semibold text-gray-500 mt-0.5">
-                    {i + 1}
-                  </div>
-                  <div>
-                    <p className="text-sm font-inter font-medium text-gray-800 flex items-center gap-1.5">
-                      <step.icon className="h-3.5 w-3.5 text-gray-400" />
-                      {step.title}
                     </p>
-                    <p className="text-sm font-inter text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
+                  ) : (
+                    <p className="text-xs text-gray-400">—</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </SurfaceSection>
+        </div>
 
-        {/* ── Config reference ─────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3">
-            <div className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4 text-gray-400" strokeWidth={1.5} />
-              <p className="text-sm font-inter font-medium text-gray-900">Runtime Configuration Reference</p>
-            </div>
-            <p className="text-sm font-inter text-gray-500 mt-1">
-              Set in your runtime <code className="font-inter bg-gray-100 px-1.5 py-0.5 rounded text-xs">igris.toml</code> config file.
-            </p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-3">
-            <pre className="text-sm font-inter text-gray-700 leading-relaxed bg-gray-50 rounded-md px-4 py-3 overflow-auto">
+        <SurfaceSection
+          icon={Database}
+          title="How On-Device Training Works"
+          description="The full pipeline from inference collection to hot-loaded adapter."
+        >
+          <ol className="space-y-3">
+            {[
+              {
+                icon: Activity,
+                title: 'Inference collection',
+                desc: 'Every inference call records a (prompt, completion) training example to a local SQLite store on the runtime device.',
+              },
+              {
+                icon: Zap,
+                title: 'Threshold trigger',
+                desc: 'After N requests (configurable, default 100), the runtime spawns a background training job — one at a time, with a semaphore lock.',
+              },
+              {
+                icon: Brain,
+                title: 'QLoRA fine-tuning',
+                desc: "A LoRA adapter is trained on top of the base GGUF model using the collected examples. Backend: native Rust (Metal/CUDA) or llama.cpp — auto-detected.",
+              },
+              {
+                icon: Lock,
+                title: 'Encrypted adapter',
+                desc: "The trained adapter is encrypted with AES-256-GCM before being written to disk. Key is derived from the runtime's tenant identity.",
+              },
+              {
+                icon: CheckCircle2,
+                title: 'Hot-load',
+                desc: 'The new adapter is loaded into the local LLM provider without restarting the runtime. All subsequent inferences use the fine-tuned model.',
+              },
+            ].map((step, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-gray-200 text-[10px] font-semibold text-gray-600 mt-0.5">
+                  {i + 1}
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-900 flex items-center gap-1.5">
+                    <step.icon className="h-3.5 w-3.5 text-gray-500" />
+                    {step.title}
+                  </p>
+                  <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{step.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </SurfaceSection>
+
+        <SurfaceSection
+          icon={Clock}
+          title="Runtime Configuration Reference"
+          description="Set in your igris.toml runtime config file."
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
+            <pre className="text-xs font-mono text-gray-700 px-4 py-4 overflow-auto leading-relaxed">
 {`[lora_training]
 enabled = true
 backend = "auto"          # auto | native_rust | llama_cpp
@@ -420,23 +440,21 @@ auto_load_adapter = true  # hot-load after training
 max_training_time_secs = 1800  # 30 min timeout
 training_threads = 4`}
             </pre>
-          </CardContent>
-        </Card>
+          </div>
+        </SurfaceSection>
 
-        {/* ── Federated link ───────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-1">
-          <p className="text-sm font-inter text-gray-400">
+          <p className="text-[11px] text-gray-400">
             Adapters from multiple fleet devices can be aggregated via Federated Learning.
           </p>
           <a
             href="/models/routing"
-            className="inline-flex items-center gap-1 text-sm font-inter text-gray-500 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-1 text-[11px] text-gray-500 hover:text-gray-900 transition-colors"
           >
             View Routing Engine
             <ChevronRight className="h-3.5 w-3.5" />
           </a>
         </div>
-
       </div>
     </DashboardLayout>
   );
