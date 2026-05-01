@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useState, useMemo, useEffect, Suspense, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -25,7 +24,7 @@ import { JSONViewer } from '@/components/proof/JSONViewer';
 import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
 import {
   Search, RefreshCw, Download, Copy, Check, X,
-  Radio, Activity, Link2,
+  Radio, Activity, Link2, type LucideIcon,
 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
@@ -151,6 +150,48 @@ function FilterChip({ label, onClear }: { label: string; onClear: () => void }) 
   );
 }
 
+// ─── Surface Section ─────────────────────────────────────────────────────────────
+
+function SurfaceSection({
+  icon: Icon,
+  title,
+  description,
+  actions,
+  children,
+  bodyClassName,
+  collapsed,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  children?: ReactNode;
+  bodyClassName?: string;
+  collapsed?: boolean;
+}) {
+  return (
+    <div className="rounded-3xl overflow-hidden bg-white shadow">
+      <div className="flex items-start justify-between gap-4 px-5 py-4">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-xl bg-gray-100">
+            <Icon className="h-4 w-4 text-gray-500" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{title}</p>
+            {description && <p className="text-xs text-black mt-0.5">{description}</p>}
+          </div>
+        </div>
+        {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
+      </div>
+      {!collapsed && (
+        <div className={cn('bg-gray-50 border-t border-gray-200', bodyClassName ?? 'px-5 py-4')}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Execution Timeline View ──────────────────────────────────────────────────────
 
 function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
@@ -174,57 +215,63 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
 
   if (grouped.length === 0) {
     return (
-      <div className="flex items-center justify-center py-16 text-xs text-gray-400">
-        No events for the selected filters.
+      <div className="py-8 font-mono text-[11px] text-gray-600">
+        — no events for the selected filters —
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 font-mono">
       {grouped.map(({ execId, events: evts, firstTs, lastTs, hasCritical, hasError }) => (
-        <Card key={execId} className="border border-gray-200 shadow-none overflow-hidden">
-          <CardHeader className="px-4 py-3 border-b border-gray-100 bg-gray-50/60">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                <Activity className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                {execId === '__device__' ? (
-                  <span className="text-xs text-gray-500 font-medium">Device events</span>
-                ) : (
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-xs font-mono text-blue-600 truncate">{execId}</span>
-                    <CopyBtn text={execId} />
-                  </div>
-                )}
-                {(hasCritical || hasError) && (
-                  <SeverityBadge severity={hasCritical ? 'critical' : 'error'} />
-                )}
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0 text-[10px] text-gray-400">
-                <span>{evts.length} events</span>
-                {firstTs && lastTs && firstTs !== lastTs && (
-                  <span>{getRelativeTime(firstTs)} → {getRelativeTime(lastTs)}</span>
-                )}
-              </div>
+        <div key={execId} className="rounded-xl border border-white/[0.08] overflow-hidden">
+          <div className="px-4 py-2.5 flex items-center justify-between gap-3 bg-white/[0.04] border-b border-white/[0.06]">
+            <div className="flex items-center gap-2 min-w-0">
+              <Activity className="h-3 w-3 text-gray-600 flex-shrink-0" />
+              {execId === '__device__' ? (
+                <span className="text-[10px] text-gray-500">device events</span>
+              ) : (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[10px] text-blue-400 truncate">{execId}</span>
+                  <CopyBtn text={execId} className="text-gray-700 hover:text-gray-400" />
+                </div>
+              )}
+              {hasCritical && <span className="text-[10px] text-red-400 font-bold">CRIT</span>}
+              {!hasCritical && hasError && <span className="text-[10px] text-orange-400 font-bold">ERR</span>}
             </div>
-          </CardHeader>
-          <div className="divide-y divide-gray-100">
+            <div className="flex items-center gap-3 flex-shrink-0 text-[10px] text-gray-600">
+              <span>{evts.length} events</span>
+              {firstTs && lastTs && firstTs !== lastTs && (
+                <span>{getRelativeTime(firstTs)} → {getRelativeTime(lastTs)}</span>
+              )}
+            </div>
+          </div>
+          <div className="divide-y divide-white/[0.04]">
             {evts.map((e) => (
-              <div key={e.id} className="flex items-start gap-3 px-4 py-2.5">
-                <span className="text-[10px] text-gray-400 tabular-nums whitespace-nowrap pt-0.5 w-[72px] flex-shrink-0">
+              <div key={e.id} className="flex items-baseline gap-0 px-4 py-[3px] hover:bg-white/[0.03] transition-colors">
+                <span className="text-[10px] text-gray-600 tabular-nums whitespace-nowrap pr-3 flex-shrink-0 select-none">
                   {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
-                <EventTypeChip type={e.event_type} />
-                <span className="text-xs text-gray-700 flex-1 min-w-0 break-words">{e.message}</span>
+                <span className={cn(
+                  'text-[10px] font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
+                  e.severity === 'critical' ? 'text-red-400'    :
+                  e.severity === 'error'    ? 'text-orange-400' :
+                  e.severity === 'warning'  ? 'text-yellow-400' :
+                                              'text-green-500',
+                )}>
+                  {e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()}
+                </span>
+                <span className="text-[10px] text-violet-400 pr-3 w-[160px] flex-shrink-0 truncate select-none">{e.event_type}</span>
+                <span className="text-[11px] text-gray-300 flex-1 min-w-0 break-words leading-[1.7]">{e.message}</span>
                 {e.payload.latency_ms != null && (
-                  <span className="text-[10px] text-gray-400 tabular-nums flex-shrink-0 pt-0.5">
+                  <span className="text-[10px] text-gray-600 tabular-nums flex-shrink-0 pl-3 select-none">
                     {e.payload.latency_ms}ms
                   </span>
                 )}
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       ))}
     </div>
   );
@@ -354,7 +401,7 @@ function LogsContent() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Runtime Events</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Structured event stream produced by the runtime and control plane.</p>
+            <p className="text-xs text-black mt-0.5">Structured event stream produced by the runtime and control plane.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md bg-white">
@@ -373,85 +420,81 @@ function LogsContent() {
         </div>
 
         {/* ── Filter bar ────────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardContent className="px-4 py-3">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Agent</span>
-                <Select value={agentFilter} onValueChange={setAgentFilter}>
-                  <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="all agents" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs">all agents</SelectItem>
-                    {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs font-mono">{a}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Device</span>
-                <Select value={deviceFilter} onValueChange={setDeviceFilter}>
-                  <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="all devices" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs">all devices</SelectItem>
-                    {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Exec ID</span>
-                <Input placeholder="exec_..." className="h-7 w-36 text-xs"
-                  value={execFilter} onChange={(e) => setExecFilter(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Type</span>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="h-7 w-44 text-xs"><SelectValue placeholder="all types" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs">all types</SelectItem>
-                    {EVENT_TYPES.map((t) => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Severity</span>
-                <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue placeholder="all" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs">all</SelectItem>
-                    {(['info', 'warning', 'error', 'critical'] as Severity[]).map((s) =>
-                      <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-gray-400 whitespace-nowrap">Range</span>
-                <Select value={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {[
-                      { label: 'Last 5m',  value: 'last_5m'  },
-                      { label: 'Last 15m', value: 'last_15m' },
-                      { label: 'Last 1h',  value: 'last_1h'  },
-                      { label: 'Last 6h',  value: 'last_6h'  },
-                      { label: 'Last 24h', value: 'last_24h' },
-                    ].map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="relative flex-1 min-w-[160px]">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
-                <Input placeholder="search messages..." className="h-7 text-xs pl-6"
-                  value={textSearch} onChange={(e) => setTextSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Escape' && setTextSearch('')} />
-              </div>
-            </div>
-            {activeFilters.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-gray-100">
-                {activeFilters.map((f) => <FilterChip key={f.key} label={f.label} onClear={f.clear} />)}
-                <button onClick={clearAll} className="text-xs text-gray-400 hover:text-gray-700 transition-colors">clear all</button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Agent</span>
+            <Select value={agentFilter} onValueChange={setAgentFilter}>
+              <SelectTrigger className="h-7 w-36 text-xs bg-white"><SelectValue placeholder="all agents" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs">all agents</SelectItem>
+                {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs font-mono">{a}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Device</span>
+            <Select value={deviceFilter} onValueChange={setDeviceFilter}>
+              <SelectTrigger className="h-7 w-36 text-xs bg-white"><SelectValue placeholder="all devices" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs">all devices</SelectItem>
+                {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Exec ID</span>
+            <Input placeholder="exec_..." className="h-7 w-36 text-xs"
+              value={execFilter} onChange={(e) => setExecFilter(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Type</span>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="h-7 w-44 text-xs bg-white"><SelectValue placeholder="all types" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs">all types</SelectItem>
+                {EVENT_TYPES.map((t) => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Severity</span>
+            <Select value={severityFilter} onValueChange={setSeverityFilter}>
+              <SelectTrigger className="h-7 w-28 text-xs bg-white"><SelectValue placeholder="all" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs">all</SelectItem>
+                {(['info', 'warning', 'error', 'critical'] as Severity[]).map((s) =>
+                  <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-400 whitespace-nowrap">Range</span>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="h-7 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {[
+                  { label: 'Last 5m',  value: 'last_5m'  },
+                  { label: 'Last 15m', value: 'last_15m' },
+                  { label: 'Last 1h',  value: 'last_1h'  },
+                  { label: 'Last 6h',  value: 'last_6h'  },
+                  { label: 'Last 24h', value: 'last_24h' },
+                ].map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="relative flex-1 min-w-[160px]">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+            <Input placeholder="search messages..." className="h-7 text-xs pl-6"
+              value={textSearch} onChange={(e) => setTextSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Escape' && setTextSearch('')} />
+          </div>
+        </div>
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-gray-100">
+            {activeFilters.map((f) => <FilterChip key={f.key} label={f.label} onClear={f.clear} />)}
+            <button onClick={clearAll} className="text-xs text-gray-400 hover:text-gray-700 transition-colors">clear all</button>
+          </div>
+        )}
 
         {/* ── Tabs + stats ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-4">
@@ -491,36 +534,41 @@ function LogsContent() {
           });
           return (
             <>
-              {/* Trace filter bar */}
-              <div className="flex items-center gap-2 flex-wrap mb-3">
-                <Select value={traceProviderFilter} onValueChange={setTraceProviderFilter}>
-                  <SelectTrigger className="h-7 w-36 text-xs"><SelectValue placeholder="All providers" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all" className="text-xs">All providers</SelectItem>
-                    {traceProviders.map((p) => (
-                      <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={traceStatusFilter} onValueChange={setTraceStatusFilter}>
-                  <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all"   className="text-xs">All statuses</SelectItem>
-                    <SelectItem value="200"   className="text-xs">Success (200)</SelectItem>
-                    <SelectItem value="error" className="text-xs">Errors</SelectItem>
-                  </SelectContent>
-                </Select>
-                <span className="text-xs text-gray-400 ml-auto tabular-nums">
-                  {tracesLoading ? '…' : filteredTraces.length} traces
-                  {liveMode && <span className="ml-2 text-green-600 flex items-center gap-1 inline-flex"><Radio className="h-2.5 w-2.5" /> live</span>}
-                </span>
-              </div>
-
+              <SurfaceSection
+                icon={Link2}
+                title="Request Traces"
+                description="Provider API traces with token and cost breakdown."
+                bodyClassName="px-0 py-0"
+                actions={
+                  <>
+                    <Select value={traceProviderFilter} onValueChange={setTraceProviderFilter}>
+                      <SelectTrigger className="h-7 w-36 text-xs bg-white"><SelectValue placeholder="All providers" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all" className="text-xs">All providers</SelectItem>
+                        {traceProviders.map((p) => (
+                          <SelectItem key={p} value={p} className="text-xs">{p}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={traceStatusFilter} onValueChange={setTraceStatusFilter}>
+                      <SelectTrigger className="h-7 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all"   className="text-xs">All statuses</SelectItem>
+                        <SelectItem value="200"   className="text-xs">Success (200)</SelectItem>
+                        <SelectItem value="error" className="text-xs">Errors</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-xs text-gray-400 tabular-nums">
+                      {tracesLoading ? '…' : filteredTraces.length} traces
+                    </span>
+                  </>
+                }
+              >
               {/* Traces table */}
-              <Card className="border border-gray-200 shadow-none overflow-hidden">
+              <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white mx-4 mb-4">
                 <div
                   className="overflow-y-auto"
-                  style={{ height: 'calc(100vh - 320px)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+                  style={{ height: 'calc(100vh - 380px)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
                 >
                   <Table className="w-full table-fixed">
                     <TableHeader className="sticky top-0 z-10">
@@ -612,7 +660,8 @@ function LogsContent() {
                     </TableBody>
                   </Table>
                 </div>
-              </Card>
+              </div>
+              </SurfaceSection>
 
               {/* Trace detail drawer */}
               <RightSideDrawer
@@ -705,142 +754,140 @@ function LogsContent() {
 
         {/* ── Execution Timeline ────────────────────────────────────────────── */}
         {viewMode === 'execution_timeline' ? (
-          <div
-            className="overflow-y-auto"
-            style={{ height: 'calc(100vh - 260px)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+          <SurfaceSection
+            icon={Activity}
+            title="Execution Timeline"
+            description="Runtime events grouped by execution run."
+            bodyClassName="px-0 py-0"
           >
-            <div className="space-y-3 pb-6">
-              <ExecutionTimeline events={events} />
+            <div className="bg-gray-950 rounded-b-3xl">
+              <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
+                <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
+                <div className="h-2.5 w-2.5 rounded-full bg-green-500/50" />
+                <span className="text-[10px] text-gray-600 font-mono ml-2 select-none">igris-runtime — execution timeline</span>
+              </div>
+              <div
+                className="overflow-y-auto px-4 py-4"
+                style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent' } as React.CSSProperties}
+              >
+                <div className="space-y-3 pb-6">
+                  <ExecutionTimeline events={events} />
+                </div>
+              </div>
             </div>
-          </div>
-        ) : (
+          </SurfaceSection>
+        ) : viewMode === 'event_stream' ? (
 
         /* ── Event Stream ────────────────────────────────────────────────── */
-        <Card className="border border-gray-200 shadow-none overflow-hidden">
-          <div
-            className="overflow-y-auto relative"
-            style={{ height: 'calc(100vh - 260px)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
-          >
-          <Table className="w-full table-fixed">
-            <TableHeader className="sticky top-0 z-10">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[88px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Timestamp</TableHead>
-                <TableHead className="w-[158px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Event Type</TableHead>
-                <TableHead className="w-[138px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Execution ID</TableHead>
-                <TableHead className="w-[108px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Agent</TableHead>
-                <TableHead className="w-[108px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Device</TableHead>
-                <TableHead className="w-[78px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Severity</TableHead>
-                <TableHead className="          text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Message</TableHead>
-                <TableHead className="w-[58px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200"></TableHead>
-              </TableRow>
-            </TableHeader>
-                  <TableBody>
-                    {isLoading ? (
-                      Array.from({ length: 10 }).map((_, i) => (
-                        <TableRow key={i}>
-                          {Array.from({ length: 8 }).map((_, j) => (
-                            <TableCell key={j} className="px-3 py-2">
-                              <div className="h-3 rounded bg-gray-100 animate-pulse" style={{ width: `${(i * 37 + j * 19) % 80 + 32}px` }} />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : events.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="py-16 text-center text-xs text-gray-400">
-                          {activeFilters.length > 0
-                            ? <span>No events match the current filters. <button onClick={clearAll} className="underline underline-offset-2 hover:text-gray-700">Clear all</button></span>
-                            : 'No events for the selected time range.'}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      events.map((e) => (
-                        <TableRow
-                          key={e.id}
-                          className={cn(
-                            'cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors',
-                            selectedId === e.id ? 'bg-blue-50/50' : '',
-                          )}
-                          onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
-                        >
-                          {/* Timestamp */}
-                          <TableCell
-                            className="px-3 py-2 text-[10px] text-gray-400 tabular-nums whitespace-nowrap font-mono"
-                            title={e.timestamp}
-                          >
-                            {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </TableCell>
+        <SurfaceSection
+          icon={Activity}
+          title="Event Stream"
+          description="Structured runtime events with severity and execution context."
+          bodyClassName="px-0 py-0"
+        >
+          <div className="bg-gray-950 rounded-b-3xl">
+            {/* Terminal window chrome */}
+            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
+              <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
+              <div className="h-2.5 w-2.5 rounded-full bg-green-500/50" />
+              <span className="text-[10px] text-gray-600 font-mono ml-2 select-none">igris-runtime — event stream</span>
+              {liveMode && (
+                <span className="ml-auto flex items-center gap-1 text-[10px] text-green-500 font-mono">
+                  <Radio className="h-2 w-2" /> live
+                </span>
+              )}
+              {dataUpdatedAt > 0 && !liveMode && (
+                <span className="ml-auto text-[10px] text-gray-600 font-mono">
+                  {new Date(dataUpdatedAt).toLocaleTimeString()}
+                </span>
+              )}
+            </div>
 
-                          {/* Event type */}
-                          <TableCell className="px-3 py-2 whitespace-nowrap">
-                            <EventTypeChip type={e.event_type} />
-                          </TableCell>
-
-                          {/* Execution ID */}
-                          <TableCell className="px-3 py-2">
-                            {e.execution_id ? (
-                              <div className="flex items-center gap-1 group">
-                                <span
-                                  className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 font-mono"
-                                  title={e.execution_id}
-                                  onClick={(ev) => { ev.stopPropagation(); router.push(`/execution/runs/${e.execution_id}`); }}
-                                >
-                                  {e.execution_id.slice(0, 14)}…
-                                </span>
-                                <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <CopyBtn text={e.execution_id} />
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-gray-200 text-xs">—</span>
-                            )}
-                          </TableCell>
-
-                          {/* Agent */}
-                          <TableCell
-                            className="px-3 py-2 text-xs text-teal-600 font-mono cursor-pointer hover:underline"
-                            title={e.agent_id || undefined}
-                            onClick={(ev) => { ev.stopPropagation(); if (e.agent_id) setAgentFilter(e.agent_id); }}
-                          >
-                            {e.agent_id ? `${e.agent_id.slice(0, 12)}` : <span className="text-gray-200">—</span>}
-                          </TableCell>
-
-                          {/* Device */}
-                          <TableCell
-                            className="px-3 py-2 text-xs text-violet-600 font-mono cursor-pointer hover:underline"
-                            title={e.device_id || undefined}
-                            onClick={(ev) => { ev.stopPropagation(); if (e.device_id) setDeviceFilter(e.device_id); }}
-                          >
-                            {e.device_id ? `${e.device_id.slice(0, 12)}` : <span className="text-gray-200">—</span>}
-                          </TableCell>
-
-                          {/* Severity */}
-                          <TableCell className="px-3 py-2">
-                            <SeverityBadge severity={e.severity} />
-                          </TableCell>
-
-                          {/* Message */}
-                          <TableCell className="px-3 py-2 text-xs text-gray-700 truncate" title={e.message}>
-                            {q ? highlightMatch(e.message, q) : e.message}
-                          </TableCell>
-
-                          {/* Actions */}
-                          <TableCell className="px-3 py-2" onClick={(ev) => ev.stopPropagation()}>
-                            <button
-                              className="text-[10px] text-gray-400 hover:text-gray-700 border border-gray-200 hover:border-gray-300 rounded px-1.5 py-0.5 transition-colors whitespace-nowrap"
-                              onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
-                            >
-                              View
-                            </button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+            {/* Log lines */}
+            <div
+              className="overflow-y-auto"
+              style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent' } as React.CSSProperties}
+            >
+              {isLoading ? (
+                <div className="px-4 py-6 font-mono">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 py-[3px] opacity-30 animate-pulse">
+                      <span className="text-[10px] text-gray-600 w-[58px] bg-gray-800 rounded h-2.5" />
+                      <span className="text-[10px] w-[36px] bg-gray-700 rounded h-2.5" />
+                      <span className="text-[10px] w-[120px] bg-gray-800 rounded h-2.5" />
+                      <span className="text-[10px] flex-1 bg-gray-800 rounded h-2.5" style={{ maxWidth: `${(i * 47 + 120) % 280 + 80}px` }} />
+                    </div>
+                  ))}
+                </div>
+              ) : events.length === 0 ? (
+                <div className="px-4 py-8 font-mono">
+                  <span className="text-[11px] text-gray-600">
+                    {activeFilters.length > 0
+                      ? <>— no events match filters — <button onClick={clearAll} className="text-gray-500 hover:text-gray-300 underline underline-offset-2 transition-colors">clear</button></>
+                      : '— no events in selected time range —'}
+                  </span>
+                </div>
+              ) : (
+                events.map((e) => (
+                  <div
+                    key={e.id}
+                    className={cn(
+                      'flex items-baseline gap-0 px-4 py-[3px] cursor-pointer group transition-colors',
+                      'border-l-[3px]',
+                      selectedId === e.id
+                        ? 'bg-white/[0.06]'
+                        : 'hover:bg-white/[0.03]',
+                      e.severity === 'critical' ? 'border-l-red-500'    :
+                      e.severity === 'error'    ? 'border-l-orange-500' :
+                      e.severity === 'warning'  ? 'border-l-yellow-500' :
+                                                  'border-l-transparent',
                     )}
-          </TableBody>
-          </Table>
+                    onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
+                  >
+                    {/* Timestamp */}
+                    <span className="text-[10px] text-gray-600 tabular-nums font-mono whitespace-nowrap pr-3 flex-shrink-0 select-none">
+                      {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+
+                    {/* Severity level */}
+                    <span className={cn(
+                      'text-[10px] font-mono font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
+                      e.severity === 'critical' ? 'text-red-400'    :
+                      e.severity === 'error'    ? 'text-orange-400' :
+                      e.severity === 'warning'  ? 'text-yellow-400' :
+                                                  'text-green-500',
+                    )}>
+                      {e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()}
+                    </span>
+
+                    {/* Event type */}
+                    <span className="text-[10px] text-violet-400 font-mono pr-3 w-[176px] flex-shrink-0 truncate select-none">
+                      {e.event_type}
+                    </span>
+
+                    {/* Message */}
+                    <span className="text-[11px] text-gray-300 font-mono flex-1 min-w-0 break-words leading-[1.7]">
+                      {q ? highlightMatch(e.message, q) : e.message}
+                    </span>
+
+                    {/* Exec ID — reveal on hover */}
+                    {e.execution_id && (
+                      <span
+                        className="text-[10px] text-blue-500/40 font-mono flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                        onClick={(ev) => { ev.stopPropagation(); router.push(`/execution/runs/${e.execution_id}`); }}
+                      >
+                        {e.execution_id.slice(0, 10)}
+                      </span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </Card>
-        )}
+        </SurfaceSection>
+        ) : null}
 
       </div>
 
