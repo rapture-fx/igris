@@ -1,15 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -24,6 +21,7 @@ import { CopyButton } from '@/components/execution/shared';
 import {
   Save, RefreshCw, CheckCircle, RotateCcw, Globe, Terminal, HardDrive,
   Zap, History, Plus, Trash2, Shield, ShieldCheck,
+  type LucideIcon,
 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -76,6 +74,52 @@ const VIOLATION_OPTIONS = [
   { value: 'log_only', label: 'Log Only' },
 ];
 
+// ─── Shared UI Primitives ─────────────────────────────────────────────────────
+
+function SurfaceSection({
+  icon: Icon, title, description, actions,
+  bodyClassName = 'px-4 py-4', className = '', children,
+}: {
+  icon: LucideIcon; title: string; description: string;
+  actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
+}) {
+  return (
+    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-black">{title}</p>
+          </div>
+          <p className="text-[11px] text-black mt-0.5">{description}</p>
+        </div>
+        {actions}
+      </div>
+      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+      <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-semibold text-gray-900 mt-1 tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function KeyValueCard({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
+      <p className="text-[10px] text-gray-500 mb-1">{label}</p>
+      <div className="text-xs text-gray-900 break-words">{value}</div>
+    </div>
+  );
+}
+
 // ─── Path List Sub-component ──────────────────────────────────────────────────
 
 function PathList({
@@ -104,12 +148,12 @@ function PathList({
 
   return (
     <div>
-      <p className="text-xs font-medium text-gray-700 mb-0.5">{title}</p>
-      <p className="text-xs text-gray-400 mb-2">{description}</p>
+      <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">{title}</p>
+      <p className="text-[11px] text-gray-500 mb-2">{description}</p>
       <div className="flex gap-2 mb-2">
         <Input
           placeholder={placeholder}
-          className="h-8 text-xs font-mono flex-1"
+          className="h-8 text-xs font-mono flex-1 bg-white"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -125,7 +169,7 @@ function PathList({
           {paths.map((path) => (
             <div
               key={path}
-              className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-gray-50 border border-gray-100 group"
+              className="flex items-center justify-between px-2.5 py-1.5 rounded-xl border border-gray-200 bg-white group"
             >
               <span className="text-xs font-mono text-gray-700">{path}</span>
               <button
@@ -240,13 +284,13 @@ export default function PolicyCapabilitiesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5 max-w-2xl">
+      <div className="space-y-5">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Agent Capabilities</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Permissions controlling what agents are allowed to do.</p>
+            <p className="text-xs text-black mt-0.5">Permissions controlling what agents are allowed to do.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {isDirty && (
@@ -274,18 +318,15 @@ export default function PolicyCapabilitiesPage() {
         </div>
 
         {/* ── Tool Permissions ───────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-5 pt-4 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-gray-400" /> Tool Permissions
-            </CardTitle>
-            <p className="text-xs text-gray-400 mt-1">Permissions granted to agents during execution.</p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-5 py-0 divide-y divide-gray-100">
+        <SurfaceSection
+          icon={ShieldCheck}
+          title="Tool Permissions"
+          description="Permissions granted to agents during execution."
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white divide-y divide-gray-100">
             {isLoading
               ? Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between py-3.5">
+                  <div key={i} className="flex items-center justify-between px-4 py-3.5">
                     <div className="space-y-1.5">
                       <Skeleton className="h-3 w-36" /><Skeleton className="h-3 w-52" />
                     </div>
@@ -293,12 +334,12 @@ export default function PolicyCapabilitiesPage() {
                   </div>
                 ))
               : TOOL_PERMISSIONS.map((ctrl) => (
-                  <div key={ctrl.key} className="flex items-center justify-between py-3.5">
+                  <div key={ctrl.key} className="flex items-center justify-between px-4 py-3.5">
                     <div className="flex items-center gap-3">
-                      <ctrl.icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <ctrl.icon className="h-3.5 w-3.5 text-gray-500 flex-shrink-0" strokeWidth={1.5} />
                       <div>
                         <p className="text-xs font-medium text-gray-800">{ctrl.label}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{ctrl.description}</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">{ctrl.description}</p>
                       </div>
                     </div>
                     <Switch
@@ -307,22 +348,19 @@ export default function PolicyCapabilitiesPage() {
                     />
                   </div>
                 ))}
-          </CardContent>
-        </Card>
+          </div>
+        </SurfaceSection>
 
         {/* ── Network Restrictions ───────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-5 pt-4 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <Globe className="h-4 w-4 text-gray-400" /> Network Restrictions
-            </CardTitle>
-            <p className="text-xs text-gray-400 mt-1">Control which domains agents may reach or are blocked from.</p>
-          </CardHeader>
-          <Separator />
-
+        <SurfaceSection
+          icon={Globe}
+          title="Network Restrictions"
+          description="Control which domains agents may reach or are blocked from."
+          bodyClassName="px-0 py-0"
+        >
           <Tabs defaultValue="allowlist">
             {/* Tab bar */}
-            <div className="px-5 border-b border-gray-100">
+            <div className="px-4 border-b border-gray-200">
               <TabsList className="h-9 bg-transparent rounded-none p-0 gap-0">
                 <TabsTrigger
                   value="allowlist"
@@ -351,14 +389,14 @@ export default function PolicyCapabilitiesPage() {
               <div className="flex gap-2 px-5 py-3 border-b border-gray-100">
                 <Input
                   placeholder="api.example.com"
-                  className="h-8 text-xs font-mono flex-1"
+                  className="h-8 text-xs font-mono flex-1 bg-white"
                   value={newAllowDomain}
                   onChange={(e) => setNewAllowDomain(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addAllowDomain()}
                 />
                 <Input
                   placeholder="Description"
-                  className="h-8 text-xs flex-1"
+                  className="h-8 text-xs flex-1 bg-white"
                   value={newAllowDesc}
                   onChange={(e) => setNewAllowDesc(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addAllowDomain()}
@@ -405,14 +443,14 @@ export default function PolicyCapabilitiesPage() {
               <div className="flex gap-2 px-5 py-3 border-b border-gray-100">
                 <Input
                   placeholder="*.blocked.com"
-                  className="h-8 text-xs font-mono flex-1"
+                  className="h-8 text-xs font-mono flex-1 bg-white"
                   value={newDenyDomain}
                   onChange={(e) => setNewDenyDomain(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addDenyDomain()}
                 />
                 <Input
                   placeholder="Reason"
-                  className="h-8 text-xs flex-1"
+                  className="h-8 text-xs flex-1 bg-white"
                   value={newDenyReason}
                   onChange={(e) => setNewDenyReason(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addDenyDomain()}
@@ -454,132 +492,125 @@ export default function PolicyCapabilitiesPage() {
               </Table>
             </TabsContent>
           </Tabs>
-        </Card>
+        </SurfaceSection>
 
         {/* ── Filesystem Restrictions ────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-5 pt-4 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <HardDrive className="h-4 w-4 text-gray-400" /> Filesystem Restrictions
-            </CardTitle>
-            <p className="text-xs text-gray-400 mt-1">Configure path-level read and write access for agents.</p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-5 py-5 space-y-5">
-            {isLoading ? (
-              <div className="space-y-5">
-                {[0, 1].map((i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-3 w-28" /><Skeleton className="h-3 w-44" />
-                    <Skeleton className="h-8 w-full mt-1" />
-                    <Skeleton className="h-7 w-full" /><Skeleton className="h-7 w-full" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                <PathList
-                  title="Writable Paths"
-                  description="Directories agents may write to during execution."
-                  paths={form.writable_paths}
-                  onAdd={(p) => set('writable_paths', [...form.writable_paths, p])}
-                  onRemove={(p) => set('writable_paths', form.writable_paths.filter((x) => x !== p))}
-                  placeholder="/tmp/agents"
-                />
-                <Separator />
-                <PathList
-                  title="Readable Paths"
-                  description="Directories agents may read from during execution."
-                  paths={form.readable_paths}
-                  onAdd={(p) => set('readable_paths', [...form.readable_paths, p])}
-                  onRemove={(p) => set('readable_paths', form.readable_paths.filter((x) => x !== p))}
-                  placeholder="/var/data/inputs"
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <SurfaceSection
+          icon={HardDrive}
+          title="Filesystem Restrictions"
+          description="Configure path-level read and write access for agents."
+        >
+          {isLoading ? (
+            <div className="space-y-5">
+              {[0, 1].map((i) => (
+                <div key={i} className="rounded-2xl border border-gray-200 bg-white px-4 py-4 space-y-2">
+                  <Skeleton className="h-3 w-28" /><Skeleton className="h-3 w-44" />
+                  <Skeleton className="h-8 w-full mt-1" />
+                  <Skeleton className="h-7 w-full" /><Skeleton className="h-7 w-full" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <PathList
+                title="Writable Paths"
+                description="Directories agents may write to during execution."
+                paths={form.writable_paths}
+                onAdd={(p) => set('writable_paths', [...form.writable_paths, p])}
+                onRemove={(p) => set('writable_paths', form.writable_paths.filter((x) => x !== p))}
+                placeholder="/tmp/agents"
+              />
+              <div className="border-t border-gray-200 my-1" />
+              <PathList
+                title="Readable Paths"
+                description="Directories agents may read from during execution."
+                paths={form.readable_paths}
+                onAdd={(p) => set('readable_paths', [...form.readable_paths, p])}
+                onRemove={(p) => set('readable_paths', form.readable_paths.filter((x) => x !== p))}
+                placeholder="/var/data/inputs"
+              />
+            </div>
+          )}
+        </SurfaceSection>
 
         {/* ── Capability Enforcement ─────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-5 pt-4 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <Shield className="h-4 w-4 text-gray-400" /> Capability Enforcement
-            </CardTitle>
-            <p className="text-xs text-gray-400 mt-1">Define runtime behavior when a capability violation occurs.</p>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-5 py-5">
-            {isLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-3 w-36" /><Skeleton className="h-3 w-52" /><Skeleton className="h-8 w-full mt-1" />
-              </div>
-            ) : (
-              <div>
-                <Label className="text-xs font-medium text-gray-700">Violation Behavior</Label>
-                <p className="text-xs text-gray-400 mt-0.5 mb-2">
-                  Action taken when an agent exceeds a permitted capability.
-                </p>
-                <Select
-                  value={form.violation_behavior}
-                  onValueChange={(v) => set('violation_behavior', v as Capabilities['violation_behavior'])}
-                >
-                  <SelectTrigger className="h-8 text-xs w-56">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VIOLATION_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SurfaceSection
+          icon={Shield}
+          title="Capability Enforcement"
+          description="Define runtime behavior when a capability violation occurs."
+        >
+          {isLoading ? (
+            <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 space-y-2">
+              <Skeleton className="h-3 w-36" /><Skeleton className="h-3 w-52" /><Skeleton className="h-8 w-full mt-1" />
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+              <Label className="text-xs font-medium text-gray-700">Violation Behavior</Label>
+              <p className="text-[11px] text-gray-500 mt-0.5 mb-2">
+                Action taken when an agent exceeds a permitted capability.
+              </p>
+              <Select
+                value={form.violation_behavior}
+                onValueChange={(v) => set('violation_behavior', v as Capabilities['violation_behavior'])}
+              >
+                <SelectTrigger className="h-8 text-xs w-56 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {VIOLATION_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </SurfaceSection>
 
         {/* ── Policy Version ─────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-5 pt-4 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-gray-400" /> Policy Version
-            </CardTitle>
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-5 py-4">
-            {isLoading ? (
-              <dl className="grid grid-cols-[140px_1fr] gap-x-6 gap-y-3">
-                <Skeleton className="h-3 w-20" /><Skeleton className="h-5 w-56" />
-                <Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-36" />
-              </dl>
-            ) : displayCaps.policy_hash ? (
-              <dl className="grid grid-cols-[140px_1fr] gap-x-6 gap-y-3">
-                <dt className="text-xs text-gray-500 flex items-start pt-0.5">Policy Hash</dt>
-                <dd className="flex items-center gap-1.5">
-                  <Badge variant="outline" className="font-mono text-xs px-2 py-0.5 tracking-tight border-gray-200">
-                    {truncateText(displayCaps.policy_hash, 26)}
-                  </Badge>
-                  <CopyButton value={displayCaps.policy_hash} />
-                </dd>
-                <dt className="text-xs text-gray-500 flex items-start pt-0.5">Last Updated</dt>
-                <dd className="text-xs text-gray-700">{formatDateTime(displayCaps.updated_at)}</dd>
-              </dl>
-            ) : (
-              <p className="text-xs text-gray-400">No policy saved yet. Configure capabilities above and save.</p>
-            )}
-          </CardContent>
-        </Card>
+        <SurfaceSection
+          icon={ShieldCheck}
+          title="Policy Version"
+          description="Current policy hash and the last time capabilities were committed."
+        >
+          {isLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 space-y-2">
+                <Skeleton className="h-3 w-20" /><Skeleton className="h-5 w-36" />
+              </div>
+              <div className="rounded-2xl border border-gray-200 bg-white px-4 py-4 space-y-2">
+                <Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-28" />
+              </div>
+            </div>
+          ) : displayCaps.policy_hash ? (
+            <div className="grid grid-cols-2 gap-3">
+              <KeyValueCard
+                label="Policy Hash"
+                value={
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono">{truncateText(displayCaps.policy_hash, 26)}</span>
+                    <CopyButton value={displayCaps.policy_hash} />
+                  </div>
+                }
+              />
+              <KeyValueCard
+                label="Last Updated"
+                value={formatDateTime(displayCaps.updated_at)}
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">No policy saved yet. Configure capabilities above and save.</p>
+          )}
+        </SurfaceSection>
 
         {/* ── Capability History ─────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-5 pt-4 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <History className="h-4 w-4 text-gray-400" /> Capability History
-            </CardTitle>
-          </CardHeader>
-          <Separator />
+        <SurfaceSection
+          icon={History}
+          title="Capability History"
+          description="A log of all policy changes applied to this tenant."
+          bodyClassName="px-0 py-0"
+        >
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -604,9 +635,7 @@ export default function PolicyCapabilitiesPage() {
                   </TableCell>
                   <TableCell className="px-5 py-3">
                     <div className="flex items-center gap-1.5">
-                      <Badge variant="outline" className="font-mono text-xs px-2 py-0 border-gray-200">
-                        {truncateText(entry.policy_hash, 14)}
-                      </Badge>
+                      <span className="font-mono text-xs text-gray-700">{truncateText(entry.policy_hash, 14)}</span>
                       <CopyButton value={entry.policy_hash} />
                     </div>
                   </TableCell>
@@ -620,7 +649,7 @@ export default function PolicyCapabilitiesPage() {
               ))}
             </TableBody>
           </Table>
-        </Card>
+        </SurfaceSection>
 
       </div>
     </DashboardLayout>
