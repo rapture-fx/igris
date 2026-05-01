@@ -11,8 +11,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/models"
@@ -289,7 +292,36 @@ func (c *RuntimeClient) verifySignedJSON(record map[string]interface{}, recordNa
 // When IGRIS_RUNTIME_PUBLIC_KEY is configured and verification fails, the
 // caller must treat this as ErrRuntimeSecurity (502).
 func (c *RuntimeClient) verifyReceipt(receipt map[string]interface{}) error {
-	return c.verifySignedJSON(receipt, "execution_receipt")
+	if len(c.publicKey) == 0 {
+		return nil
+	}
+
+	sigRaw, ok := receipt["signature"]
+	if !ok {
+		return fmt.Errorf("execution_receipt missing signature field")
+	}
+	sigStr, _ := sigRaw.(string)
+	if sigStr == "" {
+		return fmt.Errorf("execution_receipt has empty signature")
+	}
+	sigBytes, err := base64.StdEncoding.DecodeString(sigStr)
+	if err != nil {
+		return fmt.Errorf("execution_receipt signature base64 decode: %w", err)
+	}
+
+	canonBytes, err := canonicalReceiptBytes(receipt)
+	if err != nil {
+		return fmt.Errorf("execution_receipt canonical marshal: %w", err)
+	}
+	hash := sha256.Sum256(canonBytes)
+
+	if hashStr, _ := receipt["hash"].(string); hashStr != "" && hashStr != hex.EncodeToString(hash[:]) {
+		return fmt.Errorf("execution_receipt hash mismatch")
+	}
+	if !ed25519.Verify(c.publicKey, hash[:], sigBytes) {
+		return fmt.Errorf("execution_receipt signature verification failed")
+	}
+	return nil
 }
 
 // VerifyExecutionArtifactsRaw verifies raw Runtime execution artifacts before
@@ -376,12 +408,59 @@ type taskSubmitResponse struct {
 	TaskID            string                 `json:"task_id"`
 	StepsCompleted    uint32                 `json:"steps_completed"`
 	StepsTotal        uint32                 `json:"steps_total"`
-	Status            string                 `json:"status"`
+	Status            taskSubmitStatus       `json:"status"`
+	Checkpoint        map[string]interface{} `json:"checkpoint,omitempty"`
 	Reason            string                 `json:"reason,omitempty"`
 	FinalOutput       string                 `json:"final_output,omitempty"`
 	Usage             *executeUsage          `json:"usage,omitempty"`
+	FailureDetails    map[string]interface{} `json:"failure_details,omitempty"`
 	ExecutionEnvelope map[string]interface{} `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  map[string]interface{} `json:"execution_receipt,omitempty"`
+}
+
+type taskSubmitStatus struct {
+	Value       string
+	Reason      string
+	ResumeToken map[string]interface{}
+}
+
+func (s *taskSubmitStatus) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || bytes.Equal(bytes.TrimSpace(data), []byte("null")) {
+		*s = taskSubmitStatus{}
+		return nil
+	}
+
+	var legacy string
+	if err := json.Unmarshal(data, &legacy); err == nil {
+		s.Value = legacy
+		s.Reason = ""
+		s.ResumeToken = nil
+		return nil
+	}
+
+	var structured struct {
+		Status      string                 `json:"status"`
+		Reason      string                 `json:"reason,omitempty"`
+		ResumeToken map[string]interface{} `json:"resume_token,omitempty"`
+	}
+	if err := json.Unmarshal(data, &structured); err != nil {
+		return err
+	}
+	s.Value = structured.Status
+	s.Reason = structured.Reason
+	s.ResumeToken = structured.ResumeToken
+	return nil
+}
+
+func (s taskSubmitStatus) IsCompleted() bool {
+	return strings.EqualFold(s.Value, "completed")
+}
+
+func (s taskSubmitStatus) String() string {
+	if s.Value == "" {
+		return "unknown"
+	}
+	return s.Value
 }
 
 type executeUsage struct {
@@ -417,6 +496,94 @@ func extractProvider(taskResp taskSubmitResponse) string {
 		return value
 	}
 	return "runtime"
+}
+
+func canonicalReceiptBytes(receipt map[string]interface{}) ([]byte, error) {
+	canonical := map[string]string{
+		"agent_id":         receiptFieldString(receipt, "agent_id"),
+		"cpu_time_ms":      receiptFieldString(receipt, "cpu_time_ms"),
+		"execution_id":     receiptFieldString(receipt, "execution_id"),
+		"fs_bytes_written": receiptFieldString(receipt, "fs_bytes_written"),
+		"memory_peak_mb":   receiptFieldString(receipt, "memory_peak_mb"),
+		"previous_hash":    receiptFieldString(receipt, "previous_hash"),
+		"timestamp_utc":    receiptFieldString(receipt, "timestamp_utc"),
+		"tool_calls":       receiptFieldString(receipt, "tool_calls"),
+		"violation_occurred": receiptFieldString(
+			receipt,
+			"violation_occurred",
+		),
+		"wall_time_ms": receiptFieldString(receipt, "wall_time_ms"),
+	}
+	if txHash := receiptFieldString(receipt, "transaction_hash"); txHash != "" {
+		canonical["transaction_hash"] = txHash
+	}
+	if txID := receiptFieldString(receipt, "transaction_id"); txID != "" {
+		canonical["transaction_id"] = txID
+	}
+	return json.Marshal(canonical)
+}
+
+func receiptFieldString(receipt map[string]interface{}, key string) string {
+	value, ok := receipt[key]
+	if !ok || value == nil {
+		return ""
+	}
+	switch v := value.(type) {
+	case string:
+		return v
+	case bool:
+		return strconv.FormatBool(v)
+	case float64:
+		if v == math.Trunc(v) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case float32:
+		if v == float32(math.Trunc(float64(v))) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case int:
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case int32:
+		return strconv.FormatInt(int64(v), 10)
+	case uint64:
+		return strconv.FormatUint(v, 10)
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint:
+		return strconv.FormatUint(uint64(v), 10)
+	case json.Number:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func buildRuntimeTaskErrorPayload(body []byte) map[string]interface{} {
+	if len(bytes.TrimSpace(body)) == 0 {
+		return nil
+	}
+	var payload map[string]interface{}
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return nil
+	}
+	return payload
+}
+
+func buildRuntimeTaskReason(taskResp taskSubmitResponse) string {
+	if taskResp.Status.Reason != "" {
+		return taskResp.Status.Reason
+	}
+	if taskResp.Reason != "" {
+		return taskResp.Reason
+	}
+	if message, _ := taskResp.FailureDetails["message"].(string); message != "" {
+		return message
+	}
+	return fmt.Sprintf("runtime task ended with status %s", taskResp.Status)
 }
 
 func computeIdempotencyKey(
@@ -560,6 +727,11 @@ func (c *RuntimeClient) ForwardExecution(
 	}
 	defer httpResp.Body.Close()
 
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("runtime_client: read body: %w", err)
+	}
+
 	if httpResp.StatusCode == http.StatusUnauthorized || httpResp.StatusCode == http.StatusForbidden {
 		return nil, fmt.Errorf("%w: status %d", models.ErrRuntimeSecurity, httpResp.StatusCode)
 	}
@@ -568,15 +740,15 @@ func (c *RuntimeClient) ForwardExecution(
 	}
 
 	var taskResp taskSubmitResponse
-	if err := json.NewDecoder(httpResp.Body).Decode(&taskResp); err != nil {
+	if err := json.Unmarshal(body, &taskResp); err != nil {
 		return nil, fmt.Errorf("runtime_client: decode: %w", err)
 	}
-	if taskResp.Status != "completed" {
-		reason := taskResp.Reason
-		if reason == "" {
-			reason = fmt.Sprintf("runtime task ended with status %s", taskResp.Status)
+	if !taskResp.Status.IsCompleted() {
+		return nil, &models.RuntimeTaskError{
+			StatusCode: httpResp.StatusCode,
+			Payload:    buildRuntimeTaskErrorPayload(body),
+			Body:       buildRuntimeTaskReason(taskResp),
 		}
-		return nil, fmt.Errorf("runtime_client: %s", reason)
 	}
 	if !hasSignature(taskResp.ExecutionEnvelope) {
 		return nil, fmt.Errorf("%w: task response missing signed execution envelope", models.ErrRuntimeSecurity)
