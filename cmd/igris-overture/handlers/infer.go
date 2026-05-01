@@ -507,6 +507,11 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 					"failure": models.BuildSimpleFailureResponse("runtime", "infer", "runtime_security_rejected", "upstream security rejection", err.Error()),
 				})
 			}
+			var taskErr *models.RuntimeTaskError
+			if errors.As(err, &taskErr) {
+				log.Printf("[Infer] Runtime returned structured task response — not falling back: %v", err)
+				return c.Status(fiber.StatusBadGateway).JSON(buildRuntimeTaskErrorResponse(taskErr))
+			}
 			// Connectivity / timeout failure: fall back to direct routing.
 			log.Printf("[Infer] Runtime forward failed, falling back to direct routing: %v", err)
 			err = nil
@@ -1147,6 +1152,38 @@ func buildRuntimeStreamingErrorResponse(err *models.RuntimeStreamError) fiber.Ma
 		},
 		"failure":             models.BuildFailureResponse(err.Error(), details),
 		"stream":              runtimeUnavailableStreamContract().ToMap(),
+		"detail":              err.Error(),
+		"runtime_status_code": err.StatusCode,
+	}
+	if err.Payload != nil {
+		resp["runtime_payload"] = err.Payload
+	}
+	return resp
+}
+
+func buildRuntimeTaskErrorResponse(err *models.RuntimeTaskError) fiber.Map {
+	message := err.Reason()
+	if message == "" {
+		message = "runtime-backed execution did not complete"
+	}
+	errorType := err.Status()
+	if errorType == "" {
+		errorType = "runtime_task_incomplete"
+	}
+	details := map[string]interface{}{
+		"source":         "runtime",
+		"operation":      "infer",
+		"status_code":    err.StatusCode,
+		"rejection_type": errorType,
+		"message":        message,
+	}
+
+	resp := fiber.Map{
+		"error": fiber.Map{
+			"message": message,
+			"type":    errorType,
+		},
+		"failure":             models.BuildFailureResponse(err.Error(), details),
 		"detail":              err.Error(),
 		"runtime_status_code": err.StatusCode,
 	}
