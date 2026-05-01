@@ -7,7 +7,7 @@ const capabilities = [
   {
     name: 'Execute with Bounds',
     description: 'Every execution runs in an isolated worker. Memory, CPU, and time are enforced at the OS level. Exceed a limit and the worker is killed. Every violation is signed and hash-chained.',
-    imgDark: '/cr.png?v=2',
+    imgDark: '/cs.png',
     imgLight: '/exc.png?v=2',
     imgW: '140px',
     imgH: '140px',
@@ -17,7 +17,7 @@ const capabilities = [
   {
     name: 'Decide with Structure',
     description: 'Language models generate reasoning. The runtime governs execution through bounded control paths. Isolated, time-limited, and supervised. Intelligence remains flexible.',
-    imgDark: '/cs.png',
+    imgDark: '/cr.png?v=2',
     imgLight: '/tre.png',
     imgW: '280px',
     imgH: '280px',
@@ -60,7 +60,7 @@ export default function CoreCapabilities() {
               <Link
                 href="/core"
                 className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border shrink-0 md:ml-4"
-                style={{ backgroundColor: mounted && theme === 'dark' ? '#1b1912' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)', fontFamily }}
+                style={{ backgroundColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.12)' : 'rgba(20,18,10,0.1)', fontFamily }}
               >
                 Learn More
                 <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
@@ -93,7 +93,7 @@ export default function CoreCapabilities() {
                       borderRight: 'none',
                     }}
                   >
-                    <div className="bg-white/50 dark:bg-dark-bg/50 rounded-xl p-4 border border-[rgba(209,213,219,0.35)] flex flex-col items-center shadow-sm">
+                    <div className="bg-white/50 dark:bg-[rgba(246,246,244,0.05)] rounded-xl p-4 border border-[rgba(209,213,219,0.35)] dark:border-[rgba(246,246,244,0.08)] flex flex-col items-center shadow-sm">
                       <div style={{ width: cap.wrapW, height: cap.wrapH, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <div className="rounded-xl p-2" style={{ width: cap.imgW, height: cap.imgH }}>
                           <img
@@ -122,7 +122,7 @@ export default function CoreCapabilities() {
           <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)]">
             {capabilities.map((cap) => (
               <div key={cap.name} className="py-8">
-                <div className="bg-white/50 dark:bg-dark-bg/50 rounded-xl p-4 border border-[rgba(209,213,219,0.35)] flex flex-col items-center shadow-sm">
+                <div className="bg-white/50 dark:bg-[rgba(246,246,244,0.05)] rounded-xl p-4 border border-[rgba(209,213,219,0.35)] dark:border-[rgba(246,246,244,0.08)] flex flex-col items-center shadow-sm">
                   <div className="w-36 h-40 flex items-center justify-center">
                     <div className="rounded-xl p-2" style={{ width: '160px', height: '160px' }}>
                       <img
