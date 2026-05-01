@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useState, useMemo, useEffect, Suspense, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,7 +15,8 @@ import { api } from '@/lib/apiClient';
 import { downloadJSON, getRelativeTime } from '@/utils/helpers';
 import {
   Search, RefreshCw, Shield, ShieldCheck, AlertTriangle,
-  FileCheck, Copy, Check, Download, Link2, Eye, CheckCircle2, XCircle, Clock,
+  FileCheck, Copy, Check, Download, Eye, CheckCircle2, XCircle, Clock,
+  type LucideIcon,
 } from 'lucide-react';
 import { HashChainIndicator, type ChainStatus } from '@/components/proof/HashChainIndicator';
 import { ReceiptStatusBadge } from '@/components/proof/ReceiptStatusBadge';
@@ -88,6 +88,57 @@ function computeChainStatuses(receipts: Receipt[]): Map<string, ChainStatus> {
     }
   }
   return map;
+}
+
+// ─── Design primitives ────────────────────────────────────────────────────────
+
+function OverviewCard({
+  icon: Icon, label, value, sub, loading,
+}: {
+  icon: LucideIcon; label: string; value: ReactNode; sub: string; loading?: boolean;
+}) {
+  return (
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+        {label}
+      </div>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+        {loading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+        )}
+        <p className="text-xs text-black mt-1">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function SurfaceSection({
+  icon: Icon, title, description, actions,
+  bodyClassName = 'px-4 py-4', className = '', children,
+}: {
+  icon: LucideIcon; title: string; description: string;
+  actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
+}) {
+  return (
+    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-black">{title}</p>
+          </div>
+          <p className="text-[11px] text-black mt-0.5">{description}</p>
+        </div>
+        {actions}
+      </div>
+      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        {children}
+      </div>
+    </div>
+  );
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -231,33 +282,6 @@ function ReceiptsContent() {
     });
   };
 
-  const STAT_CARDS = [
-    {
-      label: `Receipts (${timeRange})`,
-      value: isLoading ? null : String(counts.total),
-      icon: FileCheck,
-      iconCls: 'text-gray-400',
-    },
-    {
-      label: 'Verified',
-      value: isLoading ? null : String(counts.verified),
-      icon: ShieldCheck,
-      iconCls: 'text-green-600',
-    },
-    {
-      label: 'Violations Recorded',
-      value: isLoading ? null : String(counts.violations),
-      icon: AlertTriangle,
-      iconCls: counts.violations > 0 ? 'text-orange-500' : 'text-gray-300',
-    },
-    {
-      label: 'Last Receipt',
-      value: isLoading ? null : (counts.last ? getRelativeTime(counts.last) : '—'),
-      icon: Clock,
-      iconCls: 'text-gray-400',
-    },
-  ];
-
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -266,7 +290,7 @@ function ReceiptsContent() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold text-gray-900">Execution Receipts</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Signed records of runtime execution.</p>
+            <p className="text-xs text-black mt-0.5">Signed records of runtime execution.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <TimeRangePicker value={timeRange} onChange={setTimeRange} />
@@ -278,22 +302,34 @@ function ReceiptsContent() {
 
         {/* ── Stat Cards ────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {STAT_CARDS.map((c) => (
-            <Card key={c.label} className="border border-gray-200 shadow-none">
-              <CardHeader className="px-4 pt-3 pb-0">
-                <CardTitle className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
-                  <c.icon className={`h-3.5 w-3.5 ${c.iconCls}`} />
-                  {c.label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-3 pt-1">
-                {c.value === null
-                  ? <Skeleton className="h-6 w-16" />
-                  : <span className="text-base font-semibold text-gray-900 tabular-nums">{c.value}</span>
-                }
-              </CardContent>
-            </Card>
-          ))}
+          <OverviewCard
+            icon={FileCheck}
+            label="Receipts"
+            value={counts.total}
+            sub={`In the last ${timeRange}`}
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={ShieldCheck}
+            label="Verified"
+            value={counts.verified}
+            sub="Signature-checked records"
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={AlertTriangle}
+            label="Violations"
+            value={counts.violations}
+            sub="Flagged executions"
+            loading={isLoading}
+          />
+          <OverviewCard
+            icon={Clock}
+            label="Last Receipt"
+            value={counts.last ? getRelativeTime(counts.last) : '—'}
+            sub="Most recent entry"
+            loading={isLoading}
+          />
         </div>
 
         {/* ── Action Bar ────────────────────────────────────────────────────── */}
@@ -322,177 +358,179 @@ function ReceiptsContent() {
         </div>
 
         {/* ── Receipts Table ────────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                {['Timestamp', 'Execution ID', 'Agent', 'Device', 'Status', 'Duration', 'Violations', ''].map((h) => (
-                  <TableHead key={h} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                    {h}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 8 }).map((_, j) => (
-                      <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="py-14 text-center text-xs text-gray-400">
-                    No receipts found.
-                  </TableCell>
+        <SurfaceSection
+          icon={FileCheck}
+          title="Receipt Log"
+          description="Signed execution records with hash-chain continuity tracking."
+          bodyClassName="px-0 py-0"
+        >
+          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white mx-4 mb-4">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  {['Timestamp', 'Execution ID', 'Agent', 'Device', 'Status', 'Duration', 'Violations', ''].map((h) => (
+                    <TableHead key={h} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
+                      {h}
+                    </TableHead>
+                  ))}
                 </TableRow>
-              ) : (
-                filtered.map((r) => (
-                  <TableRow
-                    key={r.id}
-                    className={`cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedId === r.id ? 'bg-blue-50/50' : ''}`}
-                    onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
-                  >
-                    {/* Timestamp */}
-                    <TableCell className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap tabular-nums">
-                      {getRelativeTime(r.timestamp)}
-                    </TableCell>
-
-                    {/* Execution ID */}
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 group">
-                        <span
-                          className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 font-mono"
-                          title={r.execution_id}
-                          onClick={(e) => { e.stopPropagation(); router.push(`/execution/runs/${r.execution_id}`); }}
-                        >
-                          {trunc(r.execution_id, 14)}
-                        </span>
-                        <span className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                          <CopyBtn text={r.execution_id} />
-                        </span>
-                      </div>
-                    </TableCell>
-
-                    {/* Agent */}
-                    <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={r.agent_id}>
-                      {trunc(r.agent_id, 12)}
-                    </TableCell>
-
-                    {/* Device */}
-                    <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={r.device_id}>
-                      {trunc(r.device_id, 12)}
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell className="px-4 py-3">
-                      <VerificationBadge status={r.status} />
-                    </TableCell>
-
-                    {/* Duration */}
-                    <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
-                      {r.duration_ms}ms
-                    </TableCell>
-
-                    {/* Violations */}
-                    <TableCell className="px-4 py-3">
-                      <ViolationCountCell count={r.violations?.length ?? 0} />
-                    </TableCell>
-
-                    {/* Actions */}
-                    <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
-                          onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
-                        >
-                          <Eye className="h-3 w-3" /> View
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
-                          onClick={() => handleVerify(r)}
-                          disabled={verifyMutation.isPending}
-                        >
-                          <Shield className="h-3 w-3" /> Verify
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 8 }).map((_, j) => (
+                        <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="py-14 text-center text-xs text-gray-400">
+                      No receipts found.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </Card>
+                ) : (
+                  filtered.map((r) => (
+                    <TableRow
+                      key={r.id}
+                      className={`cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedId === r.id ? 'bg-blue-50/50' : ''}`}
+                      onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
+                    >
+                      {/* Timestamp */}
+                      <TableCell className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap tabular-nums">
+                        {getRelativeTime(r.timestamp)}
+                      </TableCell>
+
+                      {/* Execution ID */}
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 group">
+                          <span
+                            className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 font-mono"
+                            title={r.execution_id}
+                            onClick={(e) => { e.stopPropagation(); router.push(`/execution/runs/${r.execution_id}`); }}
+                          >
+                            {trunc(r.execution_id, 14)}
+                          </span>
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                            <CopyBtn text={r.execution_id} />
+                          </span>
+                        </div>
+                      </TableCell>
+
+                      {/* Agent */}
+                      <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={r.agent_id}>
+                        {trunc(r.agent_id, 12)}
+                      </TableCell>
+
+                      {/* Device */}
+                      <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={r.device_id}>
+                        {trunc(r.device_id, 12)}
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell className="px-4 py-3">
+                        <VerificationBadge status={r.status} />
+                      </TableCell>
+
+                      {/* Duration */}
+                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
+                        {r.duration_ms}ms
+                      </TableCell>
+
+                      {/* Violations */}
+                      <TableCell className="px-4 py-3">
+                        <ViolationCountCell count={r.violations?.length ?? 0} />
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
+                            onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
+                          >
+                            <Eye className="h-3 w-3" /> View
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
+                            onClick={() => handleVerify(r)}
+                            disabled={verifyMutation.isPending}
+                          >
+                            <Shield className="h-3 w-3" /> Verify
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </SurfaceSection>
 
         {/* ── Verification Panel ────────────────────────────────────────────── */}
-        <Card className="border border-gray-200 shadow-none">
-          <CardHeader className="px-4 pt-4 pb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium text-gray-900 flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-gray-400" />
-              Receipt Verification
-            </CardTitle>
-            {selected && (
-              <div className="flex items-center gap-2">
-                {verifyResult === 'ok' && (
-                  <span className="text-xs text-green-700 flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Chain verified
-                  </span>
-                )}
-                {verifyResult === 'failed' && (
-                  <span className="text-xs text-red-600 flex items-center gap-1">
-                    <XCircle className="h-3.5 w-3.5" /> Verification failed
-                  </span>
-                )}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs gap-1.5"
-                  onClick={() => handleVerify(selected)}
-                  disabled={verifyMutation.isPending}
+        <SurfaceSection
+          icon={Shield}
+          title="Receipt Verification"
+          description="Inspect cryptographic proof for the selected receipt."
+          actions={selected ? (
+            <div className="flex items-center gap-2">
+              {verifyResult === 'ok' && (
+                <span className="text-xs text-green-700 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Chain verified
+                </span>
+              )}
+              {verifyResult === 'failed' && (
+                <span className="text-xs text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3.5 w-3.5" /> Verification failed
+                </span>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs gap-1.5"
+                onClick={() => handleVerify(selected)}
+                disabled={verifyMutation.isPending}
+              >
+                {verifyMutation.isPending
+                  ? <><RefreshCw className="h-3 w-3 animate-spin" /> Verifying…</>
+                  : <><ShieldCheck className="h-3 w-3" /> Verify Chain</>
+                }
+              </Button>
+            </div>
+          ) : undefined}
+        >
+          {!selected ? (
+            <p className="text-xs text-gray-400 text-center py-4">
+              Select a receipt from the table to inspect its cryptographic proof.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              <HashDisplay label="Signature" value={selected.signature} />
+              <HashDisplay label="Hash" value={selected.hash} />
+              <HashDisplay label="Previous Hash" value={selected.prev_hash || ''} />
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  onClick={() => selected.signature && navigator.clipboard.writeText(selected.signature)}
+                  className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
                 >
-                  {verifyMutation.isPending
-                    ? <><RefreshCw className="h-3 w-3 animate-spin" /> Verifying…</>
-                    : <><ShieldCheck className="h-3 w-3" /> Verify Chain</>
-                  }
-                </Button>
+                  <Copy className="h-3 w-3" /> Copy Signature
+                </button>
+                <button
+                  onClick={() => downloadJSON(selected, `receipt-${selected.execution_id}`)}
+                  className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
+                >
+                  <Download className="h-3 w-3" /> Download JSON
+                </button>
               </div>
-            )}
-          </CardHeader>
-          <Separator />
-          <CardContent className="px-4 py-4">
-            {!selected ? (
-              <p className="text-xs text-gray-400 text-center py-4">
-                Select a receipt from the table to inspect its cryptographic proof.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                <HashDisplay label="Signature" value={selected.signature} />
-                <HashDisplay label="Hash" value={selected.hash} />
-                <HashDisplay label="Previous Hash" value={selected.prev_hash || ''} />
-                <div className="flex items-center gap-2 pt-1">
-                  <button
-                    onClick={() => selected.signature && navigator.clipboard.writeText(selected.signature)}
-                    className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                  >
-                    <Copy className="h-3 w-3" /> Copy Signature
-                  </button>
-                  <button
-                    onClick={() => downloadJSON(selected, `receipt-${selected.execution_id}`)}
-                    className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                  >
-                    <Download className="h-3 w-3" /> Download JSON
-                  </button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          )}
+        </SurfaceSection>
       </div>
 
       {/* ── Receipt Detail Drawer ──────────────────────────────────────────────── */}
