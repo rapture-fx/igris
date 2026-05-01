@@ -153,7 +153,7 @@ export default function Header() {
                 <div className="flex">
                   <Link href="/" prefetch={false}>
                     <img
-                      src={isDark ? '/inertia.png' : '/inertia.png'}
+                      src={isDark ? '/inertiadm.png' : '/inertia.png'}
                       alt="Igris Inertial"
                       className="h-10 w-auto rounded-lg"
                     />
@@ -202,8 +202,8 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow rounded-md border"
-                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#ffffff', color: '#1b1912', borderColor: 'rgba(20, 18, 10, 0.1)' }}
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow rounded-md border bg-white dark:bg-[rgba(246,246,244,0.08)] text-[#1b1912] dark:text-[#f6f6f4] border-[rgba(20,18,10,0.1)] dark:border-[rgba(246,246,244,0.12)]"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                   >
                     Sign In
                   </a>
@@ -211,8 +211,8 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-md"
-                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-md bg-[#1b1912] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#1b1912]"
+                    style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}
                   >
                     Get Started
                   </a>
@@ -265,7 +265,7 @@ export default function Header() {
                       <div className="grid grid-cols-4">
                         {/* Col 1 - Routing & Optimization */}
                         <div className="p-6 ">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Routing & Optimization</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Routing & Optimization</span>
                           <div className="flex flex-col gap-1.5">
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Thompson Sampling</span>
                             <span onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Speculative Execution</span>
@@ -278,7 +278,7 @@ export default function Header() {
 
                         {/* Col 2 - Agents */}
                         <div className="p-6 ">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Agents</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Agents</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Planning Agents</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Reflection Agents</span>
@@ -292,7 +292,7 @@ export default function Header() {
 
                         {/* Col 3 - Infrastructure */}
                         <div className="p-6 ">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Infrastructure</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Infrastructure</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Local LLM Fallback</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>QLoRA On-Device Training</span>
@@ -307,7 +307,7 @@ export default function Header() {
 
                         {/* Col 4 - Security & Resilience */}
                         <div className="p-6">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Security & Resilience</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Security & Resilience</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Shadow Mode</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] cursor-default" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>EscapeVector</span>
@@ -338,7 +338,7 @@ export default function Header() {
                       <div className="grid grid-cols-3">
                         {/* Col 1 - Documentation */}
                         <div className="p-6 ">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Documentation</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Documentation</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Getting Started</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>API Reference</span>
@@ -348,7 +348,7 @@ export default function Header() {
 
                         {/* Col 2 - Use Cases */}
                         <div className="p-6 ">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Use Cases</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Use Cases</span>
                           <div className="flex flex-col gap-1.5">
                             <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Enterprise AI</span>
                             <span onClick={() => { setActiveDropdown(null); openUseCases(); }} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Multi-Agent Systems</span>
@@ -359,14 +359,14 @@ export default function Header() {
 
                         {/* Col 3 - Blog + Changelog */}
                         <div className="p-6">
-                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Blog</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Blog</span>
                           <div className="flex flex-col gap-1.5">
                             <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Latest Updates</Link>
                             <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Product Insights</Link>
                             <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Technical Deep Dives</Link>
                             <Link href="/blog" prefetch={false} onClick={() => setActiveDropdown(null)} className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Industry News</Link>
                           </div>
-                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', color: '#1b1912' }}>Changelog</span>
+                          <span className="text-xs font-medium uppercase tracking-wider mt-5 mb-3 block text-[#1b1912] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>Changelog</span>
                           <div className="flex flex-col gap-1.5">
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v2.0 Release</span>
                             <span className="text-xs text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors cursor-pointer" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>v1.9 Updates</span>
@@ -387,7 +387,7 @@ export default function Header() {
               <div className="flex items-center justify-between px-4 sm:px-6" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
                 <Link href="/" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
                   <img
-                    src={isDark ? '/inertia.png' : '/inertia.png'}
+                    src={isDark ? '/inertiadm.png' : '/inertia.png'}
                     alt="Igris Inertial"
                     className="h-10 w-auto rounded-lg"
                   />
