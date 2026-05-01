@@ -2,6 +2,21 @@
 
 :root {
   --font-geist-pixel-square: 'Geist Pixel Square', monospace;
+  --section-border: 0.5px solid rgba(209, 213, 219, 0.35);
+  --landing-surface: #f9f9fa;
+  --landing-surface-border: rgba(229, 231, 235, 1);
+  --landing-surface-border-strong: rgba(209, 213, 219, 0.9);
+  --landing-surface-text: #000000;
+  --landing-surface-muted-text: #4b5563;
+}
+
+html.dark {
+  --section-border: 0.5px solid rgba(246, 246, 244, 0.07);
+  --landing-surface: rgba(246, 246, 244, 0.05);
+  --landing-surface-border: rgba(246, 246, 244, 0.08);
+  --landing-surface-border-strong: rgba(246, 246, 244, 0.15);
+  --landing-surface-text: #f6f6f4;
+  --landing-surface-muted-text: #a8a898;
 }
 
 @tailwind base;
@@ -252,6 +267,29 @@ body.modal-open {
 .dark .pricing-slider::-webkit-slider-track {
   background: rgba(246, 246, 244, 0.05) !important;
   border: 0.5px solid rgba(246, 246, 244, 0.05) !important;
+}
+
+.landing-surface-card {
+  background: var(--landing-surface);
+  border-color: var(--landing-surface-border);
+}
+
+.landing-surface-card-interactive {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-surface-card-interactive:hover {
+  border-color: var(--landing-surface-border-strong);
+}
+
+.landing-surface-button {
+  background: var(--landing-surface);
+  border-color: var(--landing-surface-border);
+  color: var(--landing-surface-text);
+}
+
+.landing-surface-button:hover {
+  border-color: var(--landing-surface-border-strong);
 }
 
 .pricing-slider::-webkit-slider-thumb {

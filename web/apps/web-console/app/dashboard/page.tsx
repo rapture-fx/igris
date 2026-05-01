@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Separator } from '@/components/ui/separator';
+import { ClientChart } from '@/components/ui/client-chart';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime, formatDuration, truncateText } from '@/utils/helpers';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
   Terminal, AlertTriangle, Server, Cpu, Gauge, Bell, ArrowRight, Zap,
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   LineChart, Line,
 } from 'recharts';
 import Link from 'next/link';
@@ -107,6 +109,8 @@ function StatCard({
 }
 
 export default function DashboardPage() {
+  const chartTheme = useChartTheme();
+
   const { data: stats, isLoading: statsLoading } = useQuery<OverviewStats>({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.get('/v1/stats/overview'),
@@ -163,8 +167,8 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-base font-semibold text-gray-900">System Overview</h1>
-          <p className="text-xs text-black mt-0.5">Live state of governed execution across fleet.</p>
+          <h1 className="text-base font-semibold text-foreground">System Overview</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Live state of governed execution across fleet.</p>
         </div>
 
         {/* Summary Cards */}
@@ -203,8 +207,8 @@ export default function DashboardPage() {
             </div>
             <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 py-4">
               <div className="flex justify-between text-xs mb-2">
-                <span className="text-gray-500">Runtimes registered</span>
-                <span className="tabular-nums font-medium text-gray-900">
+                <span className="text-muted-foreground">Runtimes registered</span>
+                <span className="tabular-nums font-medium text-foreground">
                   {runtimeUsage.runtimes.used} / {runtimeUsage.runtimes.limit}
                 </span>
               </div>
@@ -324,7 +328,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-3 pb-4">
-                <ResponsiveContainer width="100%" height={160}>
+                <ClientChart height={160} fallbackClassName="h-40 w-full">
                   <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="requestsFill" x1="0" y1="0" x2="0" y2="1">
@@ -332,16 +336,17 @@ export default function DashboardPage() {
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="2 4" stroke="#e5e7eb" vertical={false} />
-                    <XAxis dataKey="hour" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                    <CartesianGrid strokeDasharray="2 4" stroke={chartTheme.grid} vertical={false} />
+                    <XAxis dataKey="hour" tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
                     <Tooltip
-                      contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
-                      itemStyle={{ color: '#374151' }}
+                      contentStyle={{ fontSize: 11, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, boxShadow: 'none', backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
+                      itemStyle={{ color: chartTheme.tooltip.text }}
+                      labelStyle={{ color: chartTheme.tooltip.text }}
                     />
                     <Area type="monotone" dataKey="requests" stroke="#3b82f6" strokeWidth={1} fill="url(#requestsFill)" dot={false} />
                   </AreaChart>
-                </ResponsiveContainer>
+                </ClientChart>
               </div>
             </div>
           </div>
@@ -359,18 +364,20 @@ export default function DashboardPage() {
                 {dailyLoading ? (
                   <Skeleton className="h-[160px] w-full" />
                 ) : (
-                  <ResponsiveContainer width="100%" height={160}>
+                  <ClientChart height={160} fallbackClassName="h-40 w-full">
                     <LineChart data={dailySpend.slice(-14)} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} interval={2} />
-                      <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: chartTheme.axis }} tickLine={false} axisLine={false} interval={2} />
+                      <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
                       <Tooltip
-                        contentStyle={{ fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none' }}
+                        contentStyle={{ fontSize: 11, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, boxShadow: 'none', backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
+                        itemStyle={{ color: chartTheme.tooltip.text }}
+                        labelStyle={{ color: chartTheme.tooltip.text }}
                         formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cost']}
                       />
-                      <Line type="monotone" dataKey="cost" stroke="#111827" strokeWidth={1.5} dot={false} activeDot={{ r: 3, fill: '#111827', strokeWidth: 0 }} />
+                      <Line type="monotone" dataKey="cost" stroke={chartTheme.line} strokeWidth={1.5} dot={false} activeDot={{ r: 3, fill: chartTheme.line, strokeWidth: 0 }} />
                     </LineChart>
-                  </ResponsiveContainer>
+                  </ClientChart>
                 )}
               </div>
             </div>

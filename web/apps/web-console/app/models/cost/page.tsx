@@ -3,16 +3,18 @@
 import { type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ClientChart } from '@/components/ui/client-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip,
 } from 'recharts';
 import { api } from '@/lib/apiClient';
 import { getRelativeTime } from '@/utils/helpers';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
   Coins, Zap, CalendarDays, TrendingUp, BarChart3, Activity,
   type LucideIcon,
@@ -94,11 +96,15 @@ function SpendTooltip({ active, payload, label }: {
   payload?: Array<{ value: number }>;
   label?: string;
 }) {
+  const chartTheme = useChartTheme();
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-      <p className="text-[10px] text-gray-500 mb-0.5">{label}</p>
-      <p className="text-xs font-semibold text-gray-900">${payload[0]?.value?.toFixed(2)}</p>
+    <div
+      className="rounded-lg px-3 py-2 shadow-sm"
+      style={{ backgroundColor: chartTheme.tooltip.bg, border: `1px solid ${chartTheme.tooltip.border}` }}
+    >
+      <p className="text-[10px] mb-0.5" style={{ color: chartTheme.axis }}>{label}</p>
+      <p className="text-xs font-semibold" style={{ color: chartTheme.tooltip.text }}>${payload[0]?.value?.toFixed(2)}</p>
     </div>
   );
 }
@@ -171,6 +177,7 @@ function SurfaceSection({
 }
 
 export default function ModelsCostPage() {
+  const chartTheme = useChartTheme();
   const { data: summary, isLoading: summaryLoading } = useQuery<UsageSummary>({
     queryKey: ['usage-summary'],
     queryFn: async () => {
@@ -336,33 +343,33 @@ export default function ModelsCostPage() {
               </div>
             ) : (
               <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
-                <ResponsiveContainer width="100%" height={172}>
+                <ClientChart height={172} fallbackClassName="h-[172px] w-full">
                   <LineChart data={daily} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
                     <XAxis
                       dataKey="date"
-                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      tick={{ fontSize: 10, fill: chartTheme.axis }}
                       tickLine={false}
                       axisLine={false}
                       interval={2}
                     />
                     <YAxis
-                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                      tick={{ fontSize: 10, fill: chartTheme.axis }}
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(v) => `$${v}`}
                     />
-                    <RechartsTooltip content={<SpendTooltip />} cursor={{ stroke: '#e5e7eb', strokeWidth: 1 }} />
+                    <RechartsTooltip content={<SpendTooltip />} cursor={{ stroke: chartTheme.grid, strokeWidth: 1 }} />
                     <Line
                       type="monotone"
                       dataKey="cost"
-                      stroke="#111827"
+                      stroke={chartTheme.line}
                       strokeWidth={1.5}
                       dot={false}
-                      activeDot={{ r: 3, fill: '#111827', strokeWidth: 0 }}
+                      activeDot={{ r: 3, fill: chartTheme.line, strokeWidth: 0 }}
                     />
                   </LineChart>
-                </ResponsiveContainer>
+                </ClientChart>
               </div>
             )}
           </SurfaceSection>

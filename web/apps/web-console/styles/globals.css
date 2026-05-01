@@ -10,7 +10,7 @@
   :root {
     --background: 255 255 255;
     --foreground: 31 31 31;
-    --card: 255 255 255;
+    --card: 249 249 250;
     --card-foreground: 31 31 31;
     --popover: 255 255 255;
     --popover-foreground: 31 31 31;
@@ -33,22 +33,22 @@
   .dark {
     --background: 27 25 18;
     --foreground: 246 246 244;
-    --card: 27 25 18;
+    --card: 38 36 29;
     --card-foreground: 246 246 244;
-    --popover: 27 25 18;
+    --popover: 38 36 29;
     --popover-foreground: 246 246 244;
     --primary: 59 130 246;
     --primary-foreground: 255 255 255;
     --secondary: 41 154 147;
     --secondary-foreground: 255 255 255;
-    --muted: 35 33 28;
+    --muted: 33 31 26;
     --muted-foreground: 156 163 175;
     --accent: 59 130 246;
     --accent-foreground: 255 255 255;
     --destructive: 220 38 38;
     --destructive-foreground: 255 255 255;
-    --border: 45 42 36;
-    --input: 45 42 36;
+    --border: 46 43 37;
+    --input: 46 43 37;
     --ring: 59 130 246;
   }
 }
@@ -109,19 +109,131 @@
     scrollbar-gutter: stable;
     background-color: #f3f3f6;
   }
-  .dark html {
-    background-color: #25231e;
+  html.dark {
+    background-color: #1b1912;
   }
   ::-webkit-scrollbar-corner {
     background-color: #f3f3f6;
   }
-  .dark ::-webkit-scrollbar-corner {
-    background-color: #25231e;
+  html.dark ::-webkit-scrollbar-corner {
+    background-color: #1b1912;
   }
   body {
     background-color: #f3f3f6;
   }
-  .dark body {
-    background-color: #25231e;
+  html.dark body {
+    background-color: #1b1912;
+  }
+
+  .console-surface {
+    background-color: rgb(var(--card) / 1);
+    border-color: rgb(var(--border) / 1);
+  }
+
+  .console-surface-muted {
+    background-color: rgb(var(--muted) / 0.78);
+    border-color: rgb(var(--border) / 1);
+  }
+
+  .console-shell .console-cardscope .bg-white {
+    background-color: rgb(var(--card) / 1) !important;
+  }
+
+  .console-shell .bg-gray-50 {
+    background-color: rgb(var(--muted) / 0.78) !important;
+  }
+
+  .console-shell .bg-gray-100,
+  .console-shell .bg-gray-200 {
+    background-color: rgb(var(--muted) / 1) !important;
+  }
+
+  .console-shell .border-gray-100,
+  .console-shell .border-gray-200,
+  .console-shell .border-gray-300,
+  .console-shell .border-dashed.border-gray-300 {
+    border-color: rgb(var(--border) / 1) !important;
+  }
+
+  .console-shell .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+  .console-shell .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgb(var(--border) / 0.72) !important;
+  }
+
+  .console-shell .text-gray-900,
+  .console-shell .text-gray-800,
+  .console-shell .text-gray-700 {
+    color: rgb(var(--foreground) / 1) !important;
+  }
+
+  .console-shell .text-black {
+    color: rgb(var(--foreground) / 1) !important;
+  }
+
+  .console-shell .text-gray-600,
+  .console-shell .text-gray-500 {
+    color: rgb(var(--muted-foreground) / 1) !important;
+  }
+
+  .console-shell .text-gray-400 {
+    color: rgb(var(--muted-foreground) / 0.82) !important;
+  }
+
+  .console-shell .text-gray-300 {
+    color: rgb(var(--muted-foreground) / 0.66) !important;
+  }
+
+  .console-shell .console-cardscope .hover\:bg-gray-50:hover,
+  .console-shell .console-cardscope .hover\:bg-gray-50\/60:hover,
+  .console-shell .console-cardscope .hover\:bg-gray-100:hover,
+  .console-shell .console-cardscope .hover\:bg-gray-100\/50:hover {
+    background-color: inherit !important;
+  }
+
+  .console-shell .hover\:bg-gray-50:hover {
+    background-color: rgb(var(--muted) / 0.92) !important;
+  }
+
+  .console-shell .hover\:bg-gray-100:hover {
+    background-color: rgb(var(--muted) / 1) !important;
+  }
+
+  .console-shell .hover\:text-gray-900:hover,
+  .console-shell .hover\:text-gray-800:hover,
+  .console-shell .hover\:text-gray-700:hover,
+  .console-shell .hover\:text-gray-600:hover {
+    color: rgb(var(--foreground) / 1) !important;
+  }
+
+  .console-shell .hover\:text-black:hover {
+    color: rgb(var(--foreground) / 1) !important;
+  }
+
+  .console-shell .console-cardscope .hover\:border-gray-300:hover,
+  .console-shell .console-cardscope .hover\:border-gray-400:hover {
+    border-color: rgb(var(--border) / 1) !important;
+  }
+
+  .console-shell .hover\:border-gray-300:hover {
+    border-color: rgb(var(--border) / 1) !important;
   }
 }
+
+/* Dark mode adaptive overrides — scoped to main content */
+html.dark main .bg-white { background-color: rgb(var(--card) / 1); }
+html.dark main .bg-gray-50 { background-color: rgb(var(--muted) / 1); }
+html.dark main .bg-gray-100 { background-color: rgb(var(--muted) / 1); }
+html.dark main .hover\:bg-gray-50:hover,
+html.dark main .hover\:bg-gray-50\/60:hover,
+html.dark main .hover\:bg-gray-100\/50:hover,
+html.dark main .hover\:bg-gray-100:hover { background-color: inherit; }
+html.dark main .text-black { color: rgb(var(--foreground) / 1); }
+html.dark main .text-gray-900 { color: rgb(var(--foreground) / 1); }
+html.dark main .text-gray-700 { color: rgb(var(--foreground) / 1); }
+html.dark main .text-gray-600 { color: rgb(var(--muted-foreground) / 1); }
+html.dark main .text-gray-500 { color: rgb(var(--muted-foreground) / 1); }
+html.dark main .border-gray-200 { border-color: rgb(var(--border) / 1); }
+html.dark main .border-gray-100 { border-color: rgb(var(--border) / 0.72); }
+html.dark main .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(var(--border) / 0.72); }
+html.dark main .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(var(--border) / 1); }
+html.dark main .shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3); }

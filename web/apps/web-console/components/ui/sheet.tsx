@@ -46,7 +46,7 @@ const SheetContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "h-full w-[520px] max-w-[calc(100vw-1rem)] border border-gray-200 dark:border-[#f6f6f4]/5 bg-card shadow-xl rounded-2xl",
+      "h-full w-[520px] max-w-[calc(100vw-1rem)] border border-border bg-card shadow-xl rounded-2xl",
       "flex flex-col overflow-hidden",
       className
     )}
@@ -69,7 +69,7 @@ const SheetHeader = ({
     {...props}
   >
     {props.children}
-    <div className="absolute left-4 right-4 bottom-0 border-b border-gray-200 dark:border-[#f6f6f4]/5" />
+    <div className="absolute left-4 right-4 bottom-0 border-b border-border" />
   </div>
 )
 SheetHeader.displayName = "SheetHeader"
@@ -79,7 +79,7 @@ const SheetTitle = ({
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) => (
   <h2
-    className={cn("text-lg font-medium font-inter text-[#000000] dark:text-[#f6f6f4]", className)}
+    className={cn("text-lg font-medium font-inter text-foreground", className)}
     {...props}
   />
 )
@@ -98,7 +98,7 @@ const SheetClose = ({
     onClick={onClick}
     {...props}
   >
-    <X className="h-5 w-5 text-gray-600 dark:text-[#a8a898]" />
+    <X className="h-5 w-5 text-muted-foreground" />
   </button>
 )
 SheetClose.displayName = "SheetClose"

@@ -17,7 +17,7 @@ export function ViolationSeverityBadge({ kind }: { kind: string }) {
   return (
     <Badge
       variant="outline"
-      className={cn('text-[10px] px-1.5 py-0.5 rounded font-medium', KIND_STYLES[kind] ?? 'border-gray-200 bg-gray-50 text-gray-600')}
+      className={cn('text-[10px] px-1.5 py-0.5 rounded font-medium', KIND_STYLES[kind] ?? 'border-border bg-muted/80 text-muted-foreground')}
     >
       {formatKind(kind)}
     </Badge>

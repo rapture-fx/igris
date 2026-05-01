@@ -25,7 +25,7 @@ export function CopyButton({ value, className }: { value: string; className?: st
     <button
       onClick={handleCopy}
       className={cn(
-        'inline-flex items-center text-gray-400 hover:text-gray-600 transition-colors',
+        'inline-flex items-center text-muted-foreground hover:text-foreground transition-colors',
         className,
       )}
     >
@@ -48,7 +48,7 @@ export function ViolationBadge({
   count?: number;
 }) {
   const show = hasViolation || (count !== undefined && count > 0);
-  if (!show) return <span className="text-xs text-gray-300">—</span>;
+  if (!show) return <span className="text-xs text-muted-foreground/60">—</span>;
 
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200">
@@ -72,12 +72,12 @@ export function KeyValueGrid({ rows }: { rows: KVRow[] }) {
     <dl className="grid grid-cols-[150px_1fr] gap-x-4 gap-y-2.5">
       {rows.map((row, i) => (
         <React.Fragment key={i}>
-          <dt className="text-xs text-gray-500 flex items-start pt-0.5 shrink-0">
+          <dt className="text-xs text-muted-foreground flex items-start pt-0.5 shrink-0">
             {row.label}
           </dt>
           <dd
             className={cn(
-              'text-xs text-gray-900 flex items-start gap-1',
+              'text-xs text-foreground flex items-start gap-1',
               row.mono && 'break-all',
             )}
           >
@@ -85,7 +85,7 @@ export function KeyValueGrid({ rows }: { rows: KVRow[] }) {
               {row.value !== undefined && row.value !== null && row.value !== '' ? (
                 row.value
               ) : (
-                <span className="text-gray-300">—</span>
+                <span className="text-muted-foreground/60">—</span>
               )}
             </span>
             {row.copyable && <CopyButton value={row.copyable} />}
@@ -112,7 +112,7 @@ export function JSONViewer({
     <div>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
       >
         {open ? (
           <ChevronDown className="h-3.5 w-3.5" />
@@ -122,7 +122,7 @@ export function JSONViewer({
         {open ? 'Collapse' : 'Show'} raw JSON
       </button>
       {open && (
-        <pre className="mt-2 text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-80 leading-normal">
+        <pre className="mt-2 text-xs text-foreground bg-muted/80 border border-border rounded-md p-3 overflow-auto max-h-80 leading-normal">
           {JSON.stringify(data, null, 2)}
         </pre>
       )}
@@ -140,7 +140,7 @@ export interface TimelineEvent {
 
 export function LifecycleTimeline({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) {
-    return <p className="text-xs text-gray-400">No lifecycle events recorded.</p>;
+    return <p className="text-xs text-muted-foreground">No lifecycle events recorded.</p>;
   }
 
   const dotColor = (state: string) => {
@@ -149,7 +149,7 @@ export function LifecycleTimeline({ events }: { events: TimelineEvent[] }) {
     if (s === 'ERROR' || s === 'VIOLATION') return 'bg-red-500 ring-red-200';
     if (s === 'RECOVERING') return 'bg-yellow-500 ring-yellow-200';
     if (s === 'SAFE_IDLE') return 'bg-blue-400 ring-blue-200';
-    return 'bg-gray-400 ring-gray-200';
+    return 'bg-muted-foreground/60 ring-border';
   };
 
   return (
@@ -165,17 +165,17 @@ export function LifecycleTimeline({ events }: { events: TimelineEvent[] }) {
               )}
             />
             {i < events.length - 1 && (
-              <div className="w-px bg-gray-200 flex-1 mt-1" />
+              <div className="w-px bg-border flex-1 mt-1" />
             )}
           </div>
           {/* Right column: content */}
           <div className={cn('flex flex-col gap-0.5', i < events.length - 1 ? 'pb-4' : '')}>
             <div className="flex items-center gap-2 flex-wrap">
               <StatusBadge status={event.state} />
-              <span className="text-xs text-gray-400">{getRelativeTime(event.timestamp)}</span>
+              <span className="text-xs text-muted-foreground">{getRelativeTime(event.timestamp)}</span>
             </div>
-            <span className="text-xs text-gray-400">{event.timestamp}</span>
-            {event.note && <p className="text-xs text-gray-500 mt-0.5">{event.note}</p>}
+            <span className="text-xs text-muted-foreground">{event.timestamp}</span>
+            {event.note && <p className="text-xs text-muted-foreground mt-0.5">{event.note}</p>}
           </div>
         </div>
       ))}

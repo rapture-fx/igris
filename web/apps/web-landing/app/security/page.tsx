@@ -63,9 +63,9 @@ export default function SecurityPage() {
       <Header />
       <main>
         <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               <div style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
                 <h1 className="text-sm md:text-base font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'var(--font-geist-pixel-square)', letterSpacing: '0.1em' }}>
                   Security
@@ -80,10 +80,10 @@ export default function SecurityPage() {
             </div>
           </div>
 
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
 
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12 pt-0 pb-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12 pt-0 pb-8" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               {features.map((feature) => (
                 <div key={feature.title} className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-auto py-6">
                   <div className="flex flex-col justify-start">

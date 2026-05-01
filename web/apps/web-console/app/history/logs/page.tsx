@@ -170,7 +170,7 @@ function SurfaceSection({
   collapsed?: boolean;
 }) {
   return (
-    <div className="rounded-3xl overflow-hidden bg-white shadow">
+    <div className="rounded-3xl overflow-hidden bg-white shadow border border-gray-200">
       <div className="flex items-start justify-between gap-4 px-5 py-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-xl bg-gray-100">
@@ -215,7 +215,7 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
 
   if (grouped.length === 0) {
     return (
-      <div className="py-8 font-mono text-[11px] text-gray-600">
+      <div className="py-8 font-mono text-[11px] text-gray-500">
         — no events for the selected filters —
       </div>
     );
@@ -224,32 +224,32 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
   return (
     <div className="space-y-3 font-mono">
       {grouped.map(({ execId, events: evts, firstTs, lastTs, hasCritical, hasError }) => (
-        <div key={execId} className="rounded-xl border border-white/[0.08] overflow-hidden">
-          <div className="px-4 py-2.5 flex items-center justify-between gap-3 bg-white/[0.04] border-b border-white/[0.06]">
+        <div key={execId} className="rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-4 py-2.5 flex items-center justify-between gap-3 bg-gray-50 border-b border-gray-100">
             <div className="flex items-center gap-2 min-w-0">
-              <Activity className="h-3 w-3 text-gray-600 flex-shrink-0" />
+              <Activity className="h-3 w-3 text-gray-400 flex-shrink-0" />
               {execId === '__device__' ? (
-                <span className="text-[10px] text-gray-500">device events</span>
+                <span className="text-[10px] text-gray-400">device events</span>
               ) : (
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[10px] text-blue-400 truncate">{execId}</span>
-                  <CopyBtn text={execId} className="text-gray-700 hover:text-gray-400" />
+                  <span className="text-[10px] text-blue-600 truncate">{execId}</span>
+                  <CopyBtn text={execId} className="text-gray-300 hover:text-gray-600" />
                 </div>
               )}
-              {hasCritical && <span className="text-[10px] text-red-400 font-bold">CRIT</span>}
-              {!hasCritical && hasError && <span className="text-[10px] text-orange-400 font-bold">ERR</span>}
+              {hasCritical && <span className="text-[10px] text-red-500 font-bold">CRIT</span>}
+              {!hasCritical && hasError && <span className="text-[10px] text-orange-600 font-bold">ERR</span>}
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0 text-[10px] text-gray-600">
+            <div className="flex items-center gap-3 flex-shrink-0 text-[10px] text-gray-400">
               <span>{evts.length} events</span>
               {firstTs && lastTs && firstTs !== lastTs && (
                 <span>{getRelativeTime(firstTs)} → {getRelativeTime(lastTs)}</span>
               )}
             </div>
           </div>
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-gray-100">
             {evts.map((e) => (
-              <div key={e.id} className="flex items-baseline gap-0 px-4 py-[3px] hover:bg-white/[0.03] transition-colors">
-                <span className="text-[10px] text-gray-600 tabular-nums whitespace-nowrap pr-3 flex-shrink-0 select-none">
+              <div key={e.id} className="flex items-baseline gap-0 px-4 py-[3px] hover:bg-gray-50 transition-colors">
+                <span className="text-[10px] text-gray-400 tabular-nums whitespace-nowrap pr-3 flex-shrink-0 select-none">
                   {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
                 <span className={cn(
@@ -261,10 +261,10 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
                 )}>
                   {e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()}
                 </span>
-                <span className="text-[10px] text-violet-400 pr-3 w-[160px] flex-shrink-0 truncate select-none">{e.event_type}</span>
-                <span className="text-[11px] text-gray-300 flex-1 min-w-0 break-words leading-[1.7]">{e.message}</span>
+                <span className="text-[10px] text-violet-600 pr-3 w-[160px] flex-shrink-0 truncate select-none">{e.event_type}</span>
+                <span className="text-[11px] text-gray-700 flex-1 min-w-0 break-words leading-[1.7]">{e.message}</span>
                 {e.payload.latency_ms != null && (
-                  <span className="text-[10px] text-gray-600 tabular-nums flex-shrink-0 pl-3 select-none">
+                  <span className="text-[10px] text-gray-400 tabular-nums flex-shrink-0 pl-3 select-none">
                     {e.payload.latency_ms}ms
                   </span>
                 )}
@@ -758,22 +758,14 @@ function LogsContent() {
             icon={Activity}
             title="Execution Timeline"
             description="Runtime events grouped by execution run."
-            bodyClassName="px-0 py-0"
+            bodyClassName="px-4 py-4"
           >
-            <div className="bg-gray-950 rounded-b-3xl">
-              <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
-                <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
-                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
-                <div className="h-2.5 w-2.5 rounded-full bg-green-500/50" />
-                <span className="text-[10px] text-gray-600 font-mono ml-2 select-none">igris-runtime — execution timeline</span>
-              </div>
-              <div
-                className="overflow-y-auto px-4 py-4"
-                style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent' } as React.CSSProperties}
-              >
-                <div className="space-y-3 pb-6">
-                  <ExecutionTimeline events={events} />
-                </div>
+            <div
+              className="overflow-y-auto"
+              style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
+            >
+              <div className="space-y-3 pb-6">
+                <ExecutionTimeline events={events} />
               </div>
             </div>
           </SurfaceSection>
@@ -785,106 +777,100 @@ function LogsContent() {
           title="Event Stream"
           description="Structured runtime events with severity and execution context."
           bodyClassName="px-0 py-0"
-        >
-          <div className="bg-gray-950 rounded-b-3xl">
-            {/* Terminal window chrome */}
-            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/[0.06]">
-              <div className="h-2.5 w-2.5 rounded-full bg-red-500/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/50" />
-              <div className="h-2.5 w-2.5 rounded-full bg-green-500/50" />
-              <span className="text-[10px] text-gray-600 font-mono ml-2 select-none">igris-runtime — event stream</span>
+          actions={
+            <div className="flex items-center gap-2">
               {liveMode && (
-                <span className="ml-auto flex items-center gap-1 text-[10px] text-green-500 font-mono">
-                  <Radio className="h-2 w-2" /> live
+                <span className="flex items-center gap-1 text-[10px] text-green-600">
+                  <Radio className="h-2.5 w-2.5" /> live
                 </span>
               )}
               {dataUpdatedAt > 0 && !liveMode && (
-                <span className="ml-auto text-[10px] text-gray-600 font-mono">
+                <span className="text-[10px] text-gray-400 font-mono">
                   {new Date(dataUpdatedAt).toLocaleTimeString()}
                 </span>
               )}
             </div>
-
-            {/* Log lines */}
-            <div
-              className="overflow-y-auto"
-              style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: '#1f2937 transparent' } as React.CSSProperties}
-            >
-              {isLoading ? (
-                <div className="px-4 py-6 font-mono">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 py-[3px] opacity-30 animate-pulse">
-                      <span className="text-[10px] text-gray-600 w-[58px] bg-gray-800 rounded h-2.5" />
-                      <span className="text-[10px] w-[36px] bg-gray-700 rounded h-2.5" />
-                      <span className="text-[10px] w-[120px] bg-gray-800 rounded h-2.5" />
-                      <span className="text-[10px] flex-1 bg-gray-800 rounded h-2.5" style={{ maxWidth: `${(i * 47 + 120) % 280 + 80}px` }} />
-                    </div>
-                  ))}
-                </div>
-              ) : events.length === 0 ? (
-                <div className="px-4 py-8 font-mono">
-                  <span className="text-[11px] text-gray-600">
-                    {activeFilters.length > 0
-                      ? <>— no events match filters — <button onClick={clearAll} className="text-gray-500 hover:text-gray-300 underline underline-offset-2 transition-colors">clear</button></>
-                      : '— no events in selected time range —'}
-                  </span>
-                </div>
-              ) : (
-                events.map((e) => (
-                  <div
-                    key={e.id}
-                    className={cn(
-                      'flex items-baseline gap-0 px-4 py-[3px] cursor-pointer group transition-colors',
-                      'border-l-[3px]',
-                      selectedId === e.id
-                        ? 'bg-white/[0.06]'
-                        : 'hover:bg-white/[0.03]',
-                      e.severity === 'critical' ? 'border-l-red-500'    :
-                      e.severity === 'error'    ? 'border-l-orange-500' :
-                      e.severity === 'warning'  ? 'border-l-yellow-500' :
-                                                  'border-l-transparent',
-                    )}
-                    onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
-                  >
-                    {/* Timestamp */}
-                    <span className="text-[10px] text-gray-600 tabular-nums font-mono whitespace-nowrap pr-3 flex-shrink-0 select-none">
-                      {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </span>
-
-                    {/* Severity level */}
-                    <span className={cn(
-                      'text-[10px] font-mono font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
-                      e.severity === 'critical' ? 'text-red-400'    :
-                      e.severity === 'error'    ? 'text-orange-400' :
-                      e.severity === 'warning'  ? 'text-yellow-400' :
-                                                  'text-green-500',
-                    )}>
-                      {e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()}
-                    </span>
-
-                    {/* Event type */}
-                    <span className="text-[10px] text-violet-400 font-mono pr-3 w-[176px] flex-shrink-0 truncate select-none">
-                      {e.event_type}
-                    </span>
-
-                    {/* Message */}
-                    <span className="text-[11px] text-gray-300 font-mono flex-1 min-w-0 break-words leading-[1.7]">
-                      {q ? highlightMatch(e.message, q) : e.message}
-                    </span>
-
-                    {/* Exec ID — reveal on hover */}
-                    {e.execution_id && (
-                      <span
-                        className="text-[10px] text-blue-500/40 font-mono flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
-                        onClick={(ev) => { ev.stopPropagation(); router.push(`/execution/runs/${e.execution_id}`); }}
-                      >
-                        {e.execution_id.slice(0, 10)}
-                      </span>
-                    )}
+          }
+        >
+          {/* Log lines */}
+          <div
+            className="overflow-y-auto"
+            style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
+          >
+            {isLoading ? (
+              <div className="px-4 py-6 font-mono">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 py-[3px] opacity-30 animate-pulse">
+                    <span className="text-[10px] text-gray-600 w-[58px] bg-gray-200 rounded h-2.5" />
+                    <span className="text-[10px] w-[36px] bg-gray-100 rounded h-2.5" />
+                    <span className="text-[10px] w-[120px] bg-gray-200 rounded h-2.5" />
+                    <span className="text-[10px] flex-1 bg-gray-200 rounded h-2.5" style={{ maxWidth: `${(i * 47 + 120) % 280 + 80}px` }} />
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            ) : events.length === 0 ? (
+              <div className="px-4 py-8 font-mono">
+                <span className="text-[11px] text-gray-600">
+                  {activeFilters.length > 0
+                    ? <>— no events match filters — <button onClick={clearAll} className="text-gray-500 hover:text-gray-300 underline underline-offset-2 transition-colors">clear</button></>
+                    : '— no events in selected time range —'}
+                </span>
+              </div>
+            ) : (
+              events.map((e) => (
+                <div
+                  key={e.id}
+                  className={cn(
+                    'flex items-baseline gap-0 px-4 py-[3px] cursor-pointer group transition-colors',
+                    'border-l-[3px]',
+                    selectedId === e.id
+                      ? 'bg-blue-50'
+                      : 'hover:bg-gray-50',
+                    e.severity === 'critical' ? 'border-l-red-500'    :
+                    e.severity === 'error'    ? 'border-l-orange-500' :
+                    e.severity === 'warning'  ? 'border-l-yellow-500' :
+                                                'border-l-transparent',
+                  )}
+                  onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
+                >
+                  {/* Timestamp */}
+                  <span className="text-[10px] text-gray-400 tabular-nums font-mono whitespace-nowrap pr-3 flex-shrink-0 select-none">
+                    {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
+
+                  {/* Severity level */}
+                  <span className={cn(
+                    'text-[10px] font-mono font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
+                    e.severity === 'critical' ? 'text-red-400'    :
+                    e.severity === 'error'    ? 'text-orange-400' :
+                    e.severity === 'warning'  ? 'text-yellow-400' :
+                                                'text-green-500',
+                  )}>
+                    {e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()}
+                  </span>
+
+                  {/* Event type */}
+                  <span className="text-[10px] text-violet-600 font-mono pr-3 w-[176px] flex-shrink-0 truncate select-none">
+                    {e.event_type}
+                  </span>
+
+                  {/* Message */}
+                  <span className="text-[11px] text-gray-700 font-mono flex-1 min-w-0 break-words leading-[1.7]">
+                    {q ? highlightMatch(e.message, q) : e.message}
+                  </span>
+
+                  {/* Exec ID — reveal on hover */}
+                  {e.execution_id && (
+                    <span
+                      className="text-[10px] text-blue-500/60 font-mono flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                      onClick={(ev) => { ev.stopPropagation(); router.push(`/execution/runs/${e.execution_id}`); }}
+                    >
+                      {e.execution_id.slice(0, 10)}
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </SurfaceSection>
         ) : null}

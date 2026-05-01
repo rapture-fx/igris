@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useTheme } from 'next-themes'
+import React, { useState } from 'react'
 
 type Language = 'javascript' | 'python' | 'go' | 'rust' | 'curl'
 
@@ -328,7 +327,7 @@ function CodeBlock({ code, language }: { code: string[]; language: Language }) {
       <div className="leading-relaxed overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {code.map((line, i) => (
           <div key={i} className="whitespace-pre">
-            {line === '' ? '\u00A0' : <SyntaxLine line={line} language={language} />}
+            {line === '' ? '\u00A0' : <SyntaxLine line={line} />}
           </div>
         ))}
       </div>
@@ -336,7 +335,7 @@ function CodeBlock({ code, language }: { code: string[]; language: Language }) {
   )
 }
 
-function SyntaxLine({ line, language }: { line: string; language: Language }) {
+function SyntaxLine({ line }: { line: string }) {
   const commentPatterns = ['//', '#', '--']
   const isComment = commentPatterns.some(p => line.trimStart().startsWith(p))
   if (isComment) return <span className="text-gray-400 dark:text-gray-500">{line}</span>
@@ -378,17 +377,11 @@ function SyntaxLine({ line, language }: { line: string; language: Language }) {
 }
 
 export default function SDKs() {
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const [selectedLang, setSelectedLang] = useState<Language>('javascript')
   const languages: Language[] = ['javascript', 'python', 'go', 'rust', 'curl']
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-  const borderStyle = '0.5px solid rgba(209, 213, 219, 0.35)'
+  const borderStyle = 'var(--section-border)'
 
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
@@ -412,7 +405,7 @@ export default function SDKs() {
           {/* Row 1 - Cloud + Runtime SDK */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
+            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
               <div className="max-w-md">
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
                   {languages.map((lang, i) => (
@@ -452,7 +445,7 @@ export default function SDKs() {
             </div>
             {/* Col 2 - Code */}
             <div className="relative min-h-[240px] md:min-h-0">
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[rgba(246,246,244,0.08)] bg-[#f9f9fa] dark:bg-[rgba(246,246,244,0.05)] px-8 py-6 overflow-hidden shadow-sm">
+              <div className="landing-surface-card absolute top-2 bottom-2 left-2 right-0 rounded-2xl border px-8 py-6 overflow-hidden shadow-sm">
                 <CopyButton code={codeExamples[selectedLang]} />
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
@@ -471,7 +464,7 @@ export default function SDKs() {
           {/* Row 2 - Behavior Trees */}
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
             {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)]">
+            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
               <div className="max-w-md">
                 <h4 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
                   Behavior Trees
@@ -495,7 +488,7 @@ export default function SDKs() {
             </div>
             {/* Col 2 - Code */}
             <div className="relative min-h-[240px] md:min-h-0">
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-2xl border border-gray-200 dark:border-[rgba(246,246,244,0.08)] bg-[#f9f9fa] dark:bg-[rgba(246,246,244,0.05)] px-8 py-6 overflow-hidden shadow-sm">
+              <div className="landing-surface-card absolute top-2 bottom-2 left-2 right-0 rounded-2xl border px-8 py-6 overflow-hidden shadow-sm">
                 <CopyButton code={btreeExamples[selectedLang]} />
                 <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />

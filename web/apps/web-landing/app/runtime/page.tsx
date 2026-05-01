@@ -172,9 +172,9 @@ export default function RuntimePage() {
       <main>
         {/* Runtime Section */}
         <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               <div className="mx-auto w-full" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
                 <div className="text-left">
                   <h1 className="text-sm md:text-base font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'var(--font-geist-pixel-square)', letterSpacing: '0.1em' }}>
@@ -191,20 +191,20 @@ export default function RuntimePage() {
             </div>
           </div>
 
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
 
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12 pt-0 pb-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12 pt-0 pb-8" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               {runtimeCapabilities.map((capability) => (
                 <CapabilityItem key={capability.title} capability={capability} />
               ))}
             </div>
           </div>
 
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
 
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12 py-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12 py-8" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               <h4 className="text-sm md:text-base font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-geist-sans">
                 Get Started with Runtime
               </h4>
@@ -223,9 +223,9 @@ export default function RuntimePage() {
 
         {/* Fleet Dashboard Section */}
         <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               <div className="mx-auto w-full" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
                 <div className="text-left">
                   <h1 className="text-sm md:text-base font-medium text-[#c5b0cd] leading-[1.2] uppercase" style={{ fontFamily: 'var(--font-geist-pixel-square)', letterSpacing: '0.1em' }}>
@@ -242,20 +242,20 @@ export default function RuntimePage() {
             </div>
           </div>
 
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
 
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12 pt-0 pb-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12 pt-0 pb-8" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               {fleetCapabilities.map((capability) => (
                 <CapabilityItem key={capability.title} capability={capability} />
               ))}
             </div>
           </div>
 
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
 
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12 py-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12 py-8" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               <h4 className="text-sm md:text-base font-medium text-[#111111] dark:text-[#f6f6f4] mb-3 font-geist-sans">
                 The view unlocks when you scale
               </h4>

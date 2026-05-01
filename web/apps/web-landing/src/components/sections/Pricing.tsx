@@ -111,11 +111,7 @@ export default function Pricing() {
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md lg:min-h-[480px] ${
-                    tier.recommended
-                      ? 'border-gray-300 dark:border-[#f6f6f4]/10'
-                      : 'border-gray-300 dark:border-[#f6f6f4]/10'
-                  } bg-[#f9f9fa] dark:bg-[rgba(246,246,244,0.05)]`}
+                  className="landing-surface-card landing-surface-card-interactive group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md lg:min-h-[480px]"
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
