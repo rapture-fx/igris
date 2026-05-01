@@ -17,7 +17,7 @@ function CopyButton() {
   return (
     <button
       onClick={copy}
-      className="absolute top-3 right-3 z-10 p-1.5 rounded transition-colors"
+      className="absolute top-1/2 -translate-y-1/2 right-3 z-10 p-1.5 rounded transition-colors"
       title={copied ? 'Copied' : 'Copy'}
     >
       {copied ? (
@@ -144,8 +144,8 @@ export default function Products() {
                   Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
                 </p>
                 <div className="relative mt-2">
-                  <CopyButton />
-                  <div className="landing-surface-card rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block" style={{ minWidth: '280px' }}>
+                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block" style={{ minWidth: '280px' }}>
+                    <CopyButton />
                     <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
                       {INSTALL_CMD}
                     </span>
