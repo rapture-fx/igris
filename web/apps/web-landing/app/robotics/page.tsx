@@ -41,11 +41,11 @@ export default function RoboticsPage() {
       <Header />
       <main>
         <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
           
           {/* Hero */}
           <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+            <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
               <div style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
                 <h1 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] dark:text-[#f6f6f4] leading-[1.2]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                   Deterministic execution for physical autonomous systems.
@@ -57,13 +57,13 @@ export default function RoboticsPage() {
             </div>
           </div>
 
-          <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+          <div style={{ borderTop: 'var(--section-border)' }} />
 
           {/* Sections */}
           {sections.map((section, index) => (
             <React.Fragment key={section.title}>
               <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-                <div className="px-4 md:px-8 lg:px-12 py-8" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+                <div className="px-4 md:px-8 lg:px-12 py-8" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
                   <h2 className="text-base md:text-lg mb-4 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-sans)' }}>
                     {section.title}
                   </h2>
@@ -77,7 +77,7 @@ export default function RoboticsPage() {
                 </div>
               </div>
               {index < sections.length - 1 && (
-                <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+                <div style={{ borderTop: 'var(--section-border)' }} />
               )}
             </React.Fragment>
           ))}

@@ -4,14 +4,16 @@ import { type ReactNode, useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { ClientChart } from '@/components/ui/client-chart';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
+import { useChartTheme } from '@/utils/chartTheme';
 import { type LucideIcon, RefreshCw, Activity, Zap, CheckCircle2, ShieldAlert, Users, Cpu } from 'lucide-react';
 import {
   LineChart, Line, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from 'recharts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -62,12 +64,6 @@ const DEVICES = ['All Devices'];
 const PROVIDERS = ['All Providers'];
 
 const PROVIDER_COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#3b82f6', '#ef4444', '#06b6d4'];
-
-const CHART_TOOLTIP_STYLE = {
-  contentStyle: { fontSize: 11, border: '1px solid #e5e7eb', borderRadius: 6, boxShadow: 'none', padding: '6px 10px' },
-  itemStyle: { color: '#374151' },
-  labelStyle: { color: '#6b7280', marginBottom: 2 },
-};
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -140,6 +136,7 @@ function MetricNameBadge({ name }: { name: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HistoryMetricsPage() {
+  const chartTheme = useChartTheme();
   const [timeRange, setTimeRange] = useState<TimeRange>('1h');
   const [agent, setAgent] = useState('All Agents');
   const [device, setDevice] = useState('All Devices');
@@ -187,6 +184,12 @@ export default function HistoryMetricsPage() {
   }, [metrics]);
 
   const s = metrics?.summary;
+
+  const chartTooltipStyle = {
+    contentStyle: { fontSize: 11, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, boxShadow: 'none', padding: '6px 10px', backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text },
+    itemStyle: { color: chartTheme.tooltip.text },
+    labelStyle: { color: chartTheme.tooltip.text, marginBottom: 2 },
+  };
 
   return (
     <DashboardLayout>
@@ -267,7 +270,7 @@ export default function HistoryMetricsPage() {
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
-              <ResponsiveContainer width="100%" height={148}>
+              <ClientChart height={148} fallbackClassName="h-[148px] w-full">
                 <AreaChart data={metrics?.throughput ?? []} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="tpFill" x1="0" y1="0" x2="0" y2="1">
@@ -275,13 +278,13 @@ export default function HistoryMetricsPage() {
                       <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
-                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                  <Tooltip {...CHART_TOOLTIP_STYLE} />
+                  <CartesianGrid strokeDasharray="2 4" stroke={chartTheme.grid} vertical={false} />
+                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
+                  <Tooltip {...chartTooltipStyle} />
                   <Area type="monotone" dataKey="executions" stroke="#3b82f6" strokeWidth={1.5} fill="url(#tpFill)" dot={false} name="exec/min" />
                 </AreaChart>
-              </ResponsiveContainer>
+              </ClientChart>
             )}
           </SurfaceSection>
 
@@ -293,18 +296,18 @@ export default function HistoryMetricsPage() {
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
-              <ResponsiveContainer width="100%" height={148}>
+              <ClientChart height={148} fallbackClassName="h-[148px] w-full">
                 <LineChart data={metrics?.provider_latency ?? []} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
-                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                  <Tooltip {...CHART_TOOLTIP_STYLE} />
+                  <CartesianGrid strokeDasharray="2 4" stroke={chartTheme.grid} vertical={false} />
+                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
+                  <Tooltip {...chartTooltipStyle} />
                   {providerKeys.length > 0 && <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />}
                   {providerKeys.map((key, i) => (
                     <Line key={key} type="monotone" dataKey={key} stroke={PROVIDER_COLORS[i % PROVIDER_COLORS.length]} strokeWidth={1.5} dot={false} name={key} />
                   ))}
                 </LineChart>
-              </ResponsiveContainer>
+              </ClientChart>
             )}
           </SurfaceSection>
 
@@ -316,17 +319,17 @@ export default function HistoryMetricsPage() {
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
-              <ResponsiveContainer width="100%" height={148}>
+              <ClientChart height={148} fallbackClassName="h-[148px] w-full">
                 <LineChart data={metrics?.resource_usage ?? []} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
-                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} domain={[0, 100]} />
-                  <Tooltip {...CHART_TOOLTIP_STYLE} />
+                  <CartesianGrid strokeDasharray="2 4" stroke={chartTheme.grid} vertical={false} />
+                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                  <Tooltip {...chartTooltipStyle} />
                   <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />
                   <Line type="monotone" dataKey="cpu" stroke="#ef4444" strokeWidth={1.5} dot={false} name="CPU %" />
                   <Line type="monotone" dataKey="memory" stroke="#06b6d4" strokeWidth={1.5} dot={false} name="Memory %" />
                 </LineChart>
-              </ResponsiveContainer>
+              </ClientChart>
             )}
           </SurfaceSection>
 
@@ -338,17 +341,17 @@ export default function HistoryMetricsPage() {
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
-              <ResponsiveContainer width="100%" height={148}>
+              <ClientChart height={148} fallbackClassName="h-[148px] w-full">
                 <LineChart data={metrics?.fleet_activity ?? []} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="2 4" stroke="#efefef" vertical={false} />
-                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-                  <Tooltip {...CHART_TOOLTIP_STYLE} />
+                  <CartesianGrid strokeDasharray="2 4" stroke={chartTheme.grid} vertical={false} />
+                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
+                  <Tooltip {...chartTooltipStyle} />
                   <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />
                   <Line type="monotone" dataKey="active_devices" stroke="#8b5cf6" strokeWidth={1.5} dot={false} name="Active Devices" />
                   <Line type="monotone" dataKey="active_executions" stroke="#f97316" strokeWidth={1.5} dot={false} name="Active Executions" />
                 </LineChart>
-              </ResponsiveContainer>
+              </ClientChart>
             )}
           </SurfaceSection>
         </div>

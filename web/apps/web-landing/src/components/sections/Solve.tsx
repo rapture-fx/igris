@@ -41,9 +41,9 @@ export default function Solve() {
   return (
     <section className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       {/* Full-width top border */}
-      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+      <div style={{ borderTop: 'var(--section-border)' }} />
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', borderBottom: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 bg-[#f6f6f4] dark:bg-[#1b1912]" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)', borderBottom: 'var(--section-border)' }}>
 
           {/* Title area */}
           <div className="text-left" style={{ paddingTop: '4rem', paddingBottom: '2.5rem' }}>
@@ -63,7 +63,7 @@ export default function Solve() {
             {items.map((item, index) => (
               <div
                 key={index}
-                className="border border-gray-200 dark:border-[#f6f6f4]/8 rounded-2xl p-6 flex flex-col gap-3 hover:border-gray-300 dark:hover:border-[#f6f6f4]/15 transition-colors duration-200 bg-[#edece9] dark:bg-[#1b1912]/60 min-h-[140px]"
+                className="landing-surface-card landing-surface-card-interactive border rounded-2xl p-6 flex flex-col gap-3 min-h-[140px]"
               >
                 <span
                   className="text-sm text-[#000000] dark:text-[#f6f6f4]"

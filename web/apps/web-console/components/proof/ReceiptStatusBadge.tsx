@@ -9,10 +9,10 @@ export function ReceiptStatusBadge({ signed }: { signed: boolean }) {
         'text-[10px] px-1.5 py-0.5 rounded font-medium gap-1',
         signed
           ? 'border-green-200 bg-green-50 text-green-700'
-          : 'border-gray-200 bg-gray-50 text-gray-500',
+          : 'border-border bg-muted/80 text-muted-foreground',
       )}
     >
-      <span className={cn('w-1 h-1 rounded-full flex-shrink-0', signed ? 'bg-green-500' : 'bg-gray-400')} />
+      <span className={cn('w-1 h-1 rounded-full flex-shrink-0', signed ? 'bg-green-500' : 'bg-muted-foreground/60')} />
       {signed ? 'signed' : 'unsigned'}
     </Badge>
   );

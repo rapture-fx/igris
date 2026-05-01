@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { ClientChart } from '@/components/ui/client-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/apiClient';
 import { toast } from '@/components/ui/use-toast';
 import { getRelativeTime } from '@/utils/helpers';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import {
   RefreshCw, Users, Activity, Terminal, Lock,
@@ -146,6 +148,7 @@ function BlackboardView({ agentId }: { agentId: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FleetSwarmPage() {
+  const chartTheme = useChartTheme();
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [broadcastCmd, setBroadcastCmd] = useState('');
 
@@ -400,25 +403,27 @@ export default function FleetSwarmPage() {
             {timelineLoading ? (
               <Skeleton className="h-32 w-full" />
             ) : (
-              <ResponsiveContainer width="100%" height={128}>
+              <ClientChart height={128} fallbackClassName="h-32 w-full">
                 <AreaChart data={timelineData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
                   <XAxis
                     dataKey="time"
-                    tick={{ fontSize: 9, fill: '#9ca3af' }}
+                    tick={{ fontSize: 9, fill: chartTheme.axis }}
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(v) => `${v}m`}
                     interval={9}
                   />
                   <YAxis
-                    tick={{ fontSize: 9, fill: '#9ca3af' }}
+                    tick={{ fontSize: 9, fill: chartTheme.axis }}
                     tickLine={false}
                     axisLine={false}
                     allowDecimals={false}
                   />
                   <Tooltip
-                    contentStyle={{ fontSize: 11, padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: 6 }}
+                    contentStyle={{ fontSize: 11, padding: '4px 8px', border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
+                    itemStyle={{ color: chartTheme.tooltip.text }}
+                    labelStyle={{ color: chartTheme.tooltip.text }}
                     formatter={(v: number) => [v, 'Active Agents']}
                     labelFormatter={(l) => `${l}m ago`}
                   />
@@ -431,7 +436,7 @@ export default function FleetSwarmPage() {
                     dot={false}
                   />
                 </AreaChart>
-              </ResponsiveContainer>
+              </ClientChart>
             )}
           </div>
         </div>

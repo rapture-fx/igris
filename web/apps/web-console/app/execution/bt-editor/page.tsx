@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -304,7 +305,7 @@ function NodeBox({
 
 // ─── SVG Edges ────────────────────────────────────────────────────────────────
 
-function EdgeLayer({ nodes, edges }: { nodes: BTNode[]; edges: BTEdge[] }) {
+function EdgeLayer({ nodes, edges, stroke = '#94a3b8' }: { nodes: BTNode[]; edges: BTEdge[]; stroke?: string }) {
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   return (
     <svg style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible' }}>
@@ -319,7 +320,7 @@ function EdgeLayer({ nodes, edges }: { nodes: BTNode[]; edges: BTEdge[] }) {
         const cy = (y1 + y2) / 2;
         const d = `M ${x1} ${y1} C ${x1} ${cy}, ${x2} ${cy}, ${x2} ${y2}`;
         return (
-          <path key={e.id} d={d} fill="none" stroke="#94a3b8" strokeWidth={1.5} strokeDasharray="none" />
+          <path key={e.id} d={d} fill="none" stroke={stroke} strokeWidth={1.5} strokeDasharray="none" />
         );
       })}
     </svg>
@@ -345,9 +346,15 @@ export default function BTEditorPage() {
   const [connectSource, setConnectSource] = useState<string | null>(null);
   const [btName, setBtName] = useState('Untitled BT');
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [validationOpen, setValidationOpen] = useState(true);
 
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const canvasRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   const dragging = useRef<{ id: string; startX: number; startY: number; nodeX: number; nodeY: number } | null>(null);
 
   const selectedNode = nodes.find((n) => n.id === selectedId) ?? null;
@@ -376,6 +383,27 @@ export default function BTEditorPage() {
     window.addEventListener('mouseup', onUp);
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
   }, [zoom]);
+
+  // ── Scroll-wheel zoom towards cursor ──
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      setZoom(prevZoom => {
+        const next = Math.min(2, Math.max(0.4, prevZoom * factor));
+        const ratio = next / prevZoom;
+        setPan(p => ({ x: mx - ratio * (mx - p.x), y: my - ratio * (my - p.y) }));
+        return next;
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
 
   // ── Double-click canvas to add node ──
   const handleCanvasDblClick = useCallback((e: React.MouseEvent) => {
@@ -530,19 +558,19 @@ export default function BTEditorPage() {
         </div>
 
         {/* ── Editor Card ─────────────────────────────────────────────────── */}
-        <div className="flex-1 min-h-0 border border-gray-200 shadow rounded-3xl overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 border border-gray-200 dark:border-[rgba(246,246,244,0.08)] shadow rounded-3xl overflow-hidden flex flex-col">
 
         {/* Toolbar */}
-        <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 dark:border-[rgba(246,246,244,0.08)] bg-white dark:bg-[#201e16] flex-shrink-0">
           <input
             value={btName}
             onChange={(e) => setBtName(e.target.value)}
-            className="h-8 text-xs border border-gray-200 rounded-md px-2 w-48 outline-none focus:border-gray-400"
+            className="h-8 text-xs border border-gray-200 dark:border-[rgba(246,246,244,0.08)] dark:bg-[rgba(246,246,244,0.04)] dark:text-[#f6f6f4] rounded-md px-2 w-48 outline-none focus:border-gray-400"
             placeholder="BT name…"
           />
           {definitions.length > 0 && (
             <select
-              className="h-8 text-xs border border-gray-200 rounded-md px-2 outline-none focus:border-gray-400 bg-white"
+              className="h-8 text-xs border border-gray-200 dark:border-[rgba(246,246,244,0.08)] dark:bg-[rgba(246,246,244,0.04)] dark:text-[#f6f6f4] rounded-md px-2 outline-none focus:border-gray-400"
               defaultValue=""
               onChange={(e) => { if (e.target.value) loadDefinition(e.target.value); }}
             >
@@ -590,7 +618,7 @@ export default function BTEditorPage() {
         <div className="flex flex-1 min-h-0">
 
           {/* Left panel */}
-          <div className="w-60 flex-shrink-0 border-r border-gray-200 bg-white flex flex-col overflow-y-auto">
+          <div className="w-60 flex-shrink-0 border-r border-gray-200 dark:border-[rgba(246,246,244,0.08)] bg-white dark:bg-[#201e16] flex flex-col overflow-y-auto">
             <div className="px-3 py-3 border-b border-gray-200">
               <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Node Palette</p>
               <div className="space-y-1">
@@ -681,25 +709,24 @@ export default function BTEditorPage() {
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 relative bg-gray-50 overflow-hidden" style={{ cursor: connecting ? 'crosshair' : 'default' }}>
+          <div className="flex-1 p-2 bg-white dark:bg-[#201e16] overflow-hidden">
+            <div
+              ref={frameRef}
+              className="relative overflow-hidden h-full rounded-xl border border-gray-200 dark:border-[rgba(246,246,244,0.08)]"
+              style={{
+                cursor: connecting ? 'crosshair' : 'default',
+                backgroundColor: mounted && theme === 'dark' ? '#181710' : '#f9fafb',
+                backgroundImage: `radial-gradient(circle, ${mounted && theme === 'dark' ? 'rgba(246,246,244,0.09)' : '#d1d5db'} 0.8px, transparent 0.8px)`,
+                backgroundSize: `${14 * zoom}px ${14 * zoom}px`,
+                backgroundPosition: `${pan.x % (14 * zoom)}px ${pan.y % (14 * zoom)}px`,
+              }}
+            >
             <div
               ref={canvasRef}
-              style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', position: 'relative', width: '100%', height: '100%', minHeight: 600 }}
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: '0 0', position: 'relative', width: '100%', height: '100%', minHeight: 600 }}
               onDoubleClick={handleCanvasDblClick}
             >
-              {/* Dot grid background */}
-              <svg
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-              >
-                <defs>
-                  <pattern id="dotgrid" width="24" height="24" patternUnits="userSpaceOnUse">
-                    <circle cx="0.5" cy="0.5" r="1" fill="#d1d5db" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#dotgrid)" />
-              </svg>
-
-              <EdgeLayer nodes={nodes} edges={edges} />
+              <EdgeLayer nodes={nodes} edges={edges} stroke={mounted && theme === 'dark' ? 'rgba(246,246,244,0.25)' : '#94a3b8'} />
 
               {nodes.map((node) => (
                 <div
@@ -722,10 +749,11 @@ export default function BTEditorPage() {
                 </div>
               )}
             </div>
+            </div>
           </div>
 
           {/* Right panel */}
-          <div className="w-[280px] flex-shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-y-auto">
+          <div className="w-[280px] flex-shrink-0 border-l border-gray-200 dark:border-[rgba(246,246,244,0.08)] bg-white dark:bg-[#201e16] flex flex-col overflow-y-auto">
             {selectedNode ? (
               <div className="p-4 space-y-4">
                 <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Node Properties</p>
@@ -882,7 +910,7 @@ export default function BTEditorPage() {
         </div>
 
         {/* Validation panel */}
-        <div className="flex-shrink-0 border-t border-gray-200 bg-white">
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-[rgba(246,246,244,0.08)] bg-white dark:bg-[#201e16]">
           <button
             onClick={() => setValidationOpen((v) => !v)}
             className="w-full flex items-center justify-between px-4 py-2 text-xs text-gray-600 hover:bg-gray-50 transition-colors"

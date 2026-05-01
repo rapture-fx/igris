@@ -4,6 +4,7 @@ import { type ReactNode, useState, useMemo, useEffect, useRef, Suspense } from '
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { ClientChart } from '@/components/ui/client-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -17,8 +18,9 @@ import { api } from '@/lib/apiClient';
 import { API_BASE_URL } from '@/utils/constants';
 import { toast } from '@/components/ui/use-toast';
 import { getRelativeTime } from '@/utils/helpers';
+import { useChartTheme } from '@/utils/chartTheme';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import {
   type LucideIcon,
@@ -167,6 +169,7 @@ function exportCSV(rows: PolicyAlert[]) {
 // ─── Page content ─────────────────────────────────────────────────────────────
 
 function ViolationsContent() {
+  const chartTheme = useChartTheme();
   const qc = useQueryClient();
 
   const [timeRange, setTimeRange] = useState('last_24h');
@@ -483,29 +486,31 @@ function ViolationsContent() {
           {isLoading ? (
             <Skeleton className="h-40 w-full" />
           ) : (
-            <ResponsiveContainer width="100%" height={160}>
+            <ClientChart height={160} fallbackClassName="h-40 w-full">
               <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
                 <XAxis
                   dataKey="hour"
-                  tick={{ fontSize: 9, fill: '#9ca3af' }}
+                  tick={{ fontSize: 9, fill: chartTheme.axis }}
                   tickLine={false}
                   axisLine={false}
                   interval={3}
                 />
                 <YAxis
-                  tick={{ fontSize: 9, fill: '#9ca3af' }}
+                  tick={{ fontSize: 9, fill: chartTheme.axis }}
                   tickLine={false}
                   axisLine={false}
                   allowDecimals={false}
                 />
                 <Tooltip
-                  contentStyle={{ fontSize: 11, padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: 6 }}
-                  cursor={{ fill: '#f9fafb' }}
+                  contentStyle={{ fontSize: 11, padding: '4px 8px', border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
+                  itemStyle={{ color: chartTheme.tooltip.text }}
+                  labelStyle={{ color: chartTheme.tooltip.text }}
+                  cursor={{ fill: chartTheme.tooltip.bg }}
                 />
                 <Bar dataKey="count" fill="#ef4444" radius={[2, 2, 0, 0]} maxBarSize={20} />
               </BarChart>
-            </ResponsiveContainer>
+            </ClientChart>
           )}
         </SurfaceSection>
 

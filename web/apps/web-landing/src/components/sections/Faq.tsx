@@ -182,10 +182,10 @@ export default function Faq() {
   return (
     <>
       {/* Full-width top border */}
-      <div style={{ borderTop: '0.5px solid rgba(209, 213, 219, 0.35)' }} />
+      <div style={{ borderTop: 'var(--section-border)' }} />
       <section id="faq" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 min-h-0 flex flex-col" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)' }}>
+          <div className="relative px-4 md:px-8 lg:px-12 min-h-0 flex flex-col" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
 
             <div className="flex flex-col items-center" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
               {/* Title */}
@@ -199,11 +199,11 @@ export default function Faq() {
                 {faqSections.map((section, sectionIndex) => (
                   <div
                     key={sectionIndex}
-                    className={`rounded-xl border transition-all duration-300 ${
+                    className={`landing-surface-card rounded-xl border transition-all duration-300 ${
                       openSectionIndex === sectionIndex
-                        ? 'border-gray-300 dark:border-[#f6f6f4]/10 shadow-sm'
-                        : 'border-gray-200 dark:border-[#f6f6f4]/5 hover:shadow-sm'
-                    } bg-[#f9f9fa] dark:bg-[rgba(246,246,244,0.05)]`}
+                        ? 'shadow-sm'
+                        : 'landing-surface-card-interactive hover:shadow-sm'
+                    }`}
                   >
                     {/* Section Title */}
                     <button
