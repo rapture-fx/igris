@@ -6,7 +6,7 @@ export default function WhyItExists() {
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 mobile-auto-height" style={{ borderLeft: '0.5px solid rgba(209, 213, 219, 0.35)', borderRight: '0.5px solid rgba(209, 213, 219, 0.35)', paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <div className="relative px-4 md:px-8 lg:px-12 mobile-auto-height" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)', paddingTop: '2rem', paddingBottom: '2rem' }}>
           <div className="flex flex-col gap-8">
             <div>
               <div className="rounded-lg overflow-hidden relative p-4" style={{ height: 'clamp(280px, 40vw, 500px)' }}>
