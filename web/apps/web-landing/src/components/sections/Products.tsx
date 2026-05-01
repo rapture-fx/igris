@@ -70,7 +70,7 @@ export default function Products() {
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)', paddingBottom: 0 }}>
           <div style={{ position: 'relative' }} className="py-10 sm:py-60">
             <div className="hidden sm:flex items-center justify-end" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%' }}>
-              <img 
+<img 
                 src={mounted && theme === 'dark' ? '/sfat.png' : '/salt.png'} 
                 alt="Product"
                 style={{ 
@@ -79,7 +79,7 @@ export default function Products() {
                   height: 'auto', 
                   objectFit: 'contain',
                   objectPosition: 'right',
-                  opacity: 1
+                  opacity: mounted && theme === 'dark' ? 0.7 : 1
                 }} 
               />
             </div>
@@ -105,10 +105,10 @@ export default function Products() {
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                   Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
                 </p>
-                <div className="relative mt-2">
-                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block" style={{ minWidth: '280px' }}>
+                <div className="mt-6">
+                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block pt-6" style={{ minWidth: '280px' }}>
                     <CopyButton />
-                    <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
+                    <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap mr-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
                       {INSTALL_CMD}
                     </span>
                   </div>
@@ -120,7 +120,7 @@ export default function Products() {
                 src={mounted && theme === 'dark' ? '/sfat.png' : '/salt.png'}
                 alt="Product"
                 className="w-full rounded-xl"
-                style={{ maxHeight: '260px', objectFit: 'contain', objectPosition: 'center' }}
+                style={{ maxHeight: '260px', objectFit: 'contain', objectPosition: 'center', opacity: mounted && theme === 'dark' ? 0.7 : 1 }}
               />
               <div className="max-w-full">
                 <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
@@ -143,10 +143,10 @@ export default function Products() {
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
                   Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
                 </p>
-                <div className="relative mt-2">
-                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block" style={{ minWidth: '280px' }}>
+                <div className="mt-6">
+                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block pt-6" style={{ minWidth: '280px' }}>
                     <CopyButton />
-                    <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
+                    <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap mr-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
                       {INSTALL_CMD}
                     </span>
                   </div>
