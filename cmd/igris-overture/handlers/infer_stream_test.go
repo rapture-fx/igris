@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -148,6 +149,61 @@ func TestHandleStreamingInferPropagatesRuntimeDurabilityHeaders(t *testing.T) {
 	}
 	if !strings.Contains(body, `"replay_condition":"completed-final-output"`) {
 		t.Fatalf("body missing completed-output replay condition: %q", body)
+	}
+}
+
+func TestHandleInferDoesNotFallbackAfterStructuredRuntimeTaskError(t *testing.T) {
+	t.Parallel()
+
+	handler, err := NewInferHandler(nil)
+	if err != nil {
+		t.Fatalf("NewInferHandler() error = %v", err)
+	}
+	handler.runtimeExecutor = &stubRuntimeExecutor{
+		forwardErr: &models.RuntimeTaskError{
+			StatusCode: http.StatusOK,
+			Payload: map[string]interface{}{
+				"task_id": "runtime-task-1",
+				"status": map[string]interface{}{
+					"status": "failed",
+					"reason": "provider stream failed",
+				},
+			},
+			Body: "provider stream failed",
+		},
+	}
+
+	app := fiber.New()
+	app.Post("/v1/infer", handler.HandleInfer)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", bytes.NewBufferString(`{
+		"model":"mock-model",
+		"messages":[{"role":"user","content":"hello"}]
+	}`))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != fiber.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, fiber.StatusBadGateway)
+	}
+
+	var payload map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("Decode response error = %v", err)
+	}
+	runtimePayload, ok := payload["runtime_payload"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("runtime_payload type = %T, want map[string]interface{}", payload["runtime_payload"])
+	}
+	statusBody, ok := runtimePayload["status"].(map[string]interface{})
+	if !ok {
+		t.Fatalf("runtime_payload.status type = %T, want map[string]interface{}", runtimePayload["status"])
+	}
+	if got := statusBody["status"]; got != "failed" {
+		t.Fatalf("runtime_payload.status.status = %v, want failed", got)
 	}
 }
 
