@@ -76,8 +76,10 @@ func newHealthyRuntimeServer(t *testing.T) *httptest.Server {
 			"task_id":         "exec-test",
 			"steps_completed": 1,
 			"steps_total":     1,
-			"status":          "completed",
-			"final_output":    "hello",
+			"status": map[string]interface{}{
+				"status": "completed",
+			},
+			"final_output": "hello",
 			"usage": map[string]interface{}{
 				"prompt_tokens":     1,
 				"completion_tokens": 1,
