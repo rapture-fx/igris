@@ -29,20 +29,20 @@ export default function Hero() {
             
             {/* Title row — on desktop: title left + description right */}
             <div className="flex items-start justify-between gap-4 mb-4 md:mb-10">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl leading-tight" style={{ color: '#000000', fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl leading-tight text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
                 Run AI that survives failure<br />
                 <span className="mt-1 md:mt-2 block">and proves what it did.</span>
               </h1>
               {/* Description — desktop only (shown beside title) */}
               <div className="hidden md:block text-right shrink-0 max-w-[250px]">
-                <p className="text-lg" style={{ color: '#000000', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                <p className="text-lg text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
                 </p>
               </div>
             </div>
 
             {/* Image with frame */}
-            <div className="rounded-xl overflow-hidden relative border min-h-[200px] md:min-h-[400px]" style={{ height: 'auto', maxHeight: '1000px', borderColor: 'rgba(209,213,219,0.35)', padding: '16px' }}>
+            <div className="rounded-xl overflow-hidden relative border min-h-[200px] md:min-h-[400px]" style={{ height: 'auto', maxHeight: '1000px', borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : 'rgba(209,213,219,0.35)', padding: '16px' }}>
               <img src="/lhjk.png" alt="Hero" className="h-full w-full object-cover rounded-xl min-h-[200px] md:min-h-[400px]" style={{ maxHeight: '1000px' }} />
             </div>
 
@@ -78,7 +78,7 @@ export default function Hero() {
             </div>
 
             {/* Description — mobile only (shown below install command) */}
-            <p className="md:hidden mt-4 text-xs text-center" style={{ color: '#6b7280', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+            <p className="md:hidden mt-4 text-xs text-center text-gray-500 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
               Deterministic runtime. Cloud + local fallback. OS-level containment with signed violation logs. Deploy anywhere.
             </p>
 
