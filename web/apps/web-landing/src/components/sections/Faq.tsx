@@ -203,7 +203,7 @@ export default function Faq() {
                       openSectionIndex === sectionIndex
                         ? 'border-gray-300 dark:border-[#f6f6f4]/10 shadow-sm'
                         : 'border-gray-200 dark:border-[#f6f6f4]/5 hover:shadow-sm'
-                    } bg-[#f9f9fa] dark:bg-[#1b1912]`}
+                    } bg-[#f9f9fa] dark:bg-[rgba(246,246,244,0.05)]`}
                   >
                     {/* Section Title */}
                     <button
