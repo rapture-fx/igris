@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-23T10:35:56.227Z",
+  "generated_at": "2026-05-01T08:43:29.455Z",
   "summary": {
     "total": 929,
     "by_status": {
@@ -5406,6 +5406,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -7352,6 +7358,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -7490,6 +7502,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -7627,6 +7645,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -7778,6 +7802,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -7928,6 +7958,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -8060,6 +8096,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -8216,6 +8258,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -8353,6 +8401,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -8504,6 +8558,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -8653,6 +8713,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -8810,6 +8876,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -8954,6 +9026,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -9029,6 +9107,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -9045,6 +9129,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -9150,6 +9240,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -9229,6 +9325,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -9368,6 +9470,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -9505,6 +9613,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -9644,6 +9758,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -9781,6 +9901,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -9920,6 +10046,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -10057,6 +10189,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -10196,6 +10334,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -10333,6 +10477,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -10549,6 +10699,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -10668,6 +10824,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -10807,6 +10969,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -10944,6 +11112,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -11083,6 +11257,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -11220,6 +11400,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -11359,6 +11545,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -11496,6 +11688,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -11635,6 +11833,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -11772,6 +11976,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -11922,6 +12132,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -12079,6 +12295,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -12235,6 +12457,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -12379,6 +12607,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -12517,6 +12751,12 @@
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -12654,6 +12894,12 @@
           "method": "GET",
           "path": "/v1/runtime/profile",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/profile",
+          "file": "igris-runtime/crates/igris-server/src/middleware/security_tests.rs",
           "surface": "local-runtime"
         }
       ]
