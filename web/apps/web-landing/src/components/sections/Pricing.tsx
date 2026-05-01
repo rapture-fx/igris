@@ -104,7 +104,7 @@ export default function Pricing() {
   return (
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#1b1912] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-4 md:px-8 lg:px-12 py-8 bg-white dark:bg-[#1b1912] z-10">
+        <div className="relative px-4 md:px-8 lg:px-12 py-8 bg-white dark:bg-dark-bg z-10">
           <div className="max-w-[1000px] mx-auto px-0 md:px-8 lg:px-0">
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[1100px] mx-auto">
@@ -115,7 +115,7 @@ export default function Pricing() {
                     tier.recommended
                       ? 'border-gray-300 dark:border-[#f6f6f4]/10'
                       : 'border-gray-300 dark:border-[#f6f6f4]/10'
-                  } bg-[#f9f9fa] dark:bg-[#1b1912]`}
+                  } bg-[#f9f9fa] dark:bg-[rgba(246,246,244,0.05)]`}
                 >
                   <div className="p-6 flex flex-col h-full">
                     <div className="flex-grow">
@@ -158,7 +158,7 @@ export default function Pricing() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md mt-5 md:mt-8 opacity-100 self-start"
-                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: '#1b1912', color: '#f6f6f4' }}
+                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: isDark ? '#f6f6f4' : '#1b1912', color: isDark ? '#1b1912' : '#f6f6f4' }}
                     >
                       {tier.cta}
                       <ChevronRight className="ml-1 h-4 w-4" />
