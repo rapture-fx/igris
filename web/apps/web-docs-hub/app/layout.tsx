@@ -28,8 +28,8 @@ export default function RootLayout({
           theme={{
             enabled: true,
             attribute: 'class',
-            defaultTheme: 'system',
-            enableSystem: true,
+            defaultTheme: 'dark',
+            enableSystem: false,
             disableTransitionOnChange: true,
           }}
           search={docsSearch}
