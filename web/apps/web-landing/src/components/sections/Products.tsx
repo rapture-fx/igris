@@ -68,22 +68,24 @@ export default function Products() {
 
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)', paddingBottom: 0 }}>
-          <div style={{ position: 'relative' }} className="py-10 sm:py-60">
-            <div className="hidden sm:flex items-center justify-end" style={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: '50%' }}>
+          <div className="py-10 sm:py-16">
+            <div className="hidden sm:flex flex-row items-center gap-10">
+              <div className="flex-shrink-0">
 <img 
-                src={mounted && theme === 'dark' ? '/sfat.png' : '/salt.png'} 
+                src={'/pkrllol.png'} 
                 alt="Product"
+                className="rounded-lg"
                 style={{ 
-                  maxWidth: '350px',
-                  width: '100%',
-                  height: 'auto', 
+                  height: 'auto',
+                  maxHeight: '600px',
+                  width: '100%', 
+                  maxWidth: '480px',
                   objectFit: 'contain',
-                  objectPosition: 'right',
-                  opacity: mounted && theme === 'dark' ? 0.7 : 1
+                  opacity: 1
                 }} 
               />
-            </div>
-            <div className="hidden sm:flex flex-col justify-center" style={{ position: 'relative', zIndex: 1, top: 0, bottom: 0, marginLeft: '50%', paddingLeft: '2rem' }}>
+              </div>
+            <div className="flex flex-col justify-center">
               <div style={{ maxWidth: '320px' }}>
                 <p className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
                   Models decide. Igris executes.
@@ -96,30 +98,40 @@ export default function Products() {
                 </p>
               </div>
               <div className="mt-6" style={{ maxWidth: '320px' }}>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Governed runs
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Apply limits, permission checks, and execution boundaries before AI output becomes action.
-                </p>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Failure paths
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Keep tasks moving across cloud, edge, and local environments when part of the system fails.
-                </p>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Signed records
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Produce verifiable execution records for critical runs, decisions, and actions.
-                </p>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Deploy anywhere
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Run the same execution model across servers, devices, and edge environments.
-                </p>
+                <ul className="list-disc list-inside space-y-3">
+                  <li>
+                    <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                      Governed runs
+                    </span>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      Apply limits, permission checks, and execution boundaries before AI output becomes action.
+                    </p>
+                  </li>
+                  <li>
+                    <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                      Failure paths
+                    </span>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      Keep tasks moving across cloud, edge, and local environments when part of the system fails.
+                    </p>
+                  </li>
+                  <li>
+                    <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                      Signed records
+                    </span>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      Produce verifiable execution records for critical runs, decisions, and actions.
+                    </p>
+                  </li>
+                  <li>
+                    <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                      Deploy anywhere
+                    </span>
+                    <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      Run the same execution model across servers, devices, and edge environments.
+                    </p>
+                  </li>
+                </ul>
                 <div className="mt-6">
                   <div className="landing-surface-card relative rounded-2xl border px-3 py-2 md:px-4 md:py-2 inline-block pt-4" style={{ minWidth: '280px' }}>
                     <CopyButton />
@@ -130,12 +142,13 @@ export default function Products() {
                 </div>
               </div>
             </div>
+            </div>
             <div className="sm:hidden flex flex-col gap-6">
               <img
-                src={mounted && theme === 'dark' ? '/sfat.png' : '/salt.png'}
+                src={'/pkrllol.png'}
                 alt="Product"
                 className="w-full rounded-xl"
-                style={{ maxHeight: '260px', objectFit: 'contain', objectPosition: 'center', opacity: mounted && theme === 'dark' ? 0.7 : 1 }}
+                style={{ maxHeight: '350px', objectFit: 'contain', objectPosition: 'center', opacity: 1 }}
               />
               <div className="max-w-full">
                 <p className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
