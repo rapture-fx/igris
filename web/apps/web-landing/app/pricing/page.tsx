@@ -9,7 +9,7 @@ import ScrollReveal from '../../src/components/ui/ScrollReveal'
 
 export default function PricingPage() {
   return (
-    <div className="relative min-h-screen bg-white dark:bg-[#1b1912]">
+    <div className="relative min-h-screen bg-white dark:bg-[#110f0f]">
       <div className="relative z-10">
         <Header />
         <main>

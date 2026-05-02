@@ -48,7 +48,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`} style={{ backgroundColor: '#ffffff' }}>
       <head>
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#1b1912" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#110f0f" media="(prefers-color-scheme: dark)" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -56,7 +56,7 @@ export default function RootLayout({
                 try {
                   var theme = localStorage.getItem('igris-theme') || 'light';
                   document.documentElement.classList.add(theme);
-                  document.documentElement.style.backgroundColor = theme === 'dark' ? '#1b1912' : '#ffffff';
+                  document.documentElement.style.backgroundColor = theme === 'dark' ? '#110f0f' : '#ffffff';
                 } catch (e) {}
               })();
             `,

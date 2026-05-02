@@ -195,8 +195,8 @@ export default function Header() {
         <div
           className={`absolute inset-0 transition-all duration-300 ${
             isScrolled
-              ? 'backdrop-blur-md bg-[rgba(255,255,255,0.85)] dark:bg-[rgba(27,25,18,0.85)]'
-              : 'bg-white dark:bg-[#1b1912]'
+              ? 'backdrop-blur-md bg-[rgba(255,255,255,0.85)] dark:bg-[rgba(17,15,15,0.85)]'
+              : 'bg-white dark:bg-[#110f0f]'
           }`}
           style={{ borderBottom: 'none' }}
         />
@@ -312,7 +312,7 @@ export default function Header() {
                   }`}
                   style={{
                     overflow: 'hidden',
-                    backgroundColor: isDark ? '#26241d' : '#f9f9fa',
+                    backgroundColor: isDark ? '#161515' : '#f9f9fa',
                     borderColor: isDark ? 'rgba(246, 246, 244, 0.08)' : 'rgba(229, 231, 235, 1)',
                   }}
                 >
@@ -327,7 +327,7 @@ export default function Header() {
 
           {/* Mobile menu overlay */}
           {mobileMenuOpen && (
-            <div className="md:hidden fixed inset-0 top-0 z-50 bg-white dark:bg-[#1b1912] overflow-y-auto overscroll-contain">
+            <div className="md:hidden fixed inset-0 top-0 z-50 bg-white dark:bg-[#110f0f] overflow-y-auto overscroll-contain">
               {/* Mobile header */}
               <div className="flex items-center justify-between px-4 sm:px-6" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
                 <Link href="/" prefetch={false} onClick={closeMobileAll}>
