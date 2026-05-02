@@ -2,16 +2,14 @@
 
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
-import InstallSection from '../src/components/sections/InstallSection'
-import ClosingPosition from '../src/components/sections/ClosingPosition'
-import WhyItExists from '../src/components/sections/WhyItExists'
-import Footer from '../src/components/sections/Footer'
-
+import Products from '../src/components/sections/Products'
+import AutonomousSystems from '../src/components/sections/AutonomousSystems'
+import SDKs from '../src/components/sections/SDKs'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
-import Products from '../src/components/sections/Products'
-import SDKs from '../src/components/sections/SDKs'
-import AutonomousSystems from '../src/components/sections/AutonomousSystems'
+import ClosingPosition from '../src/components/sections/ClosingPosition'
+import Footer from '../src/components/sections/Footer'
+import WhyItExists from '../src/components/sections/WhyItExists'
 
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 

@@ -66,8 +66,8 @@ export default function AutonomousSystems() {
               <div 
                 className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
-                  backgroundImage: 'url(/sft.png)',
-                  opacity: 0.9,
+                  backgroundImage: `url(${mounted && theme === 'dark' ? '/Agent.jpg' : '/sft.png'})`,
+                  opacity: 0.35,
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}
               />
@@ -117,7 +117,7 @@ export default function AutonomousSystems() {
             <div className="relative flex flex-col justify-end items-end rounded-r-2xl overflow-visible min-h-[220px] md:min-h-0">
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                 <Image
-                  src="/rozf.png"
+                  src={mounted && theme === 'dark' ? '/rozf.png' : '/rfoz.png'}
                   alt="Robotics"
                   fill
                   className="object-cover"

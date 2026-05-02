@@ -1,9 +1,16 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTheme } from 'next-themes'
 
 export default function HeroInertial() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <div
@@ -16,7 +23,7 @@ export default function HeroInertial() {
       }}
     >
       <img 
-        src="/sat.png" 
+        src={mounted && theme === 'dark' ? '/dm.png' : '/sat.png'} 
         alt="Saturn"
         className="object-contain"
         style={{

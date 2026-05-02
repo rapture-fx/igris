@@ -338,7 +338,7 @@ function CodeBlock({ code, language }: { code: string[]; language: Language }) {
 function SyntaxLine({ line }: { line: string }) {
   const commentPatterns = ['//', '#', '--']
   const isComment = commentPatterns.some(p => line.trimStart().startsWith(p))
-  if (isComment) return <span className="text-gray-400 dark:text-gray-500">{line}</span>
+  if (isComment) return <span className="text-[#6a737d] dark:text-[#6a737d]">{line}</span>
 
   const parts: React.ReactNode[] = []
   let remaining = line
@@ -347,8 +347,8 @@ function SyntaxLine({ line }: { line: string }) {
   while (remaining.length > 0) {
     const match = remaining.match(/^(.*?)(["'])(.*?)\2(.*)$/)
     if (match) {
-      if (match[1]) parts.push(<span key={key++} className="text-gray-700 dark:text-gray-300">{match[1]}</span>)
-      parts.push(<span key={key++} className="text-orange-700 dark:text-orange-500">{match[2]}{match[3]}{match[2]}</span>)
+      if (match[1]) parts.push(<span key={key++} className="text-[#24292e] dark:text-[#e1e4e8]">{match[1]}</span>)
+      parts.push(<span key={key++} className="text-[#032f62] dark:text-[#9ecbff]">{match[2]}{match[3]}{match[2]}</span>)
       remaining = match[4]
     } else {
       const highlighted = remaining
@@ -364,9 +364,9 @@ function SyntaxLine({ line }: { line: string }) {
         if (token === '___LIT___') { inLit = true; continue }
         if (token === '___/LIT___') { inLit = false; continue }
         if (token) {
-          if (inKw) parts.push(<span key={key++} className="text-blue-800 dark:text-blue-500">{token}</span>)
-          else if (inLit) parts.push(<span key={key++} className="text-orange-700 dark:text-orange-500">{token}</span>)
-          else parts.push(<span key={key++} className="text-gray-700 dark:text-gray-300">{token}</span>)
+          if (inKw) parts.push(<span key={key++} className="text-[#d73a49] dark:text-[#f97583]">{token}</span>)
+          else if (inLit) parts.push(<span key={key++} className="text-[#005cc5] dark:text-[#79b8ff]">{token}</span>)
+          else parts.push(<span key={key++} className="text-[#24292e] dark:text-[#e1e4e8]">{token}</span>)
         }
       }
       break

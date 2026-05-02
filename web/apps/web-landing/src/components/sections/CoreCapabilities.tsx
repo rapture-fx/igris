@@ -107,7 +107,7 @@ export default function CoreCapabilities() {
                         <h4 className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
                           {cap.name}
                         </h4>
-                        <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 leading-relaxed" style={{ fontWeight: 400, fontFamily }}>
+                        <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily }}>
                           {cap.description}
                         </p>
                       </div>
