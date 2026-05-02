@@ -35,7 +35,7 @@ export function Providers({ children }: { children: any }) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="dark"
       enableSystem={false}
       disableTransitionOnChange
       storageKey="igris-console-theme"
