@@ -26,11 +26,11 @@ export default function AutonomousSystems() {
           {/* Title */}
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8 pt-12 pb-6 md:pb-12">
             <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-              One System.<br className="hidden md:block" />
-              Two Environments.
+              Built for AI agents.<br className="hidden md:block" />
+              Designed for the edge.
             </h2>
             <p className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4] max-w-md md:text-right" style={{ fontFamily }}>
-              The same nervous system governs AI execution—whether your system thinks in code or moves in space.
+              Igris gives AI systems a governed execution layer across cloud, edge, and local environments — from software agents today to physical systems tomorrow.
             </p>
           </div>
         </div>
@@ -51,10 +51,13 @@ export default function AutonomousSystems() {
                   For AI Agents
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Run on servers or edge. Every execution is isolated and time-bounded. Exceed limits and the task terminates — not retried silently.
+                  Run AI tasks with boundaries, fallback paths, and verifiable records.
                 </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  Signed envelopes provide verifiable audit trails. Survive outages with local fallback. No runaway loops. No undefined state.
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Igris helps agentic systems execute work in a controlled environment instead of running unchecked model output. Define limits, inspect task outcomes, and generate signed records of what happened.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Use it for: production AI workflows, tool-calling agents, internal automation, edge-connected AI systems, workloads that need execution history and review
                 </p>
               </div>
             </div>
@@ -97,13 +100,16 @@ export default function AutonomousSystems() {
             <div className="flex flex-col pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
               <div className="max-w-md">
                 <h3 className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                  For Robots
+                  For Edge and Robotics Systems
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Behavior Trees govern motion. Safety logic is deterministic and LLM-independent — violations trigger immediate halt regardless of network state.
+                  Bring the same execution model closer to devices and physical environments.
                 </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily }}>
-                  ROS 2 integration bridges reasoning to actuation. Signed violations include execution context. Offline by default. Sync when available.
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Igris is being built for systems where AI reasoning needs to connect with constrained execution, safety boundaries, and offline operation. The goal is to support edge and robotics workflows without making the model the final authority over critical actions.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
+                  Use it for: edge AI workloads, device-side execution, robotics research and prototypes, safety-gated action flows, environments where network failure cannot break the execution model
                 </p>
               </div>
             </div>
