@@ -4,20 +4,20 @@ import { ChevronRight } from 'lucide-react'
 
 const features = [
   {
-    title: 'Signed execution',
-    description: 'Every decision cryptographically signed. Verify independently—without our control plane.',
+    title: 'Signed execution records',
+    description: 'Critical runs can produce signed records that capture execution metadata, route decisions, and verification material.',
   },
   {
-    title: 'Fail-Safe Execution',
-    description: 'An independent supervisor enforces hard limits. No in-process corruption. No silent fallback. If execution breaks its contract, it stops. The system survives.',
+    title: 'Failure-aware execution',
+    description: 'Design tasks with explicit stop conditions, fallback paths, and verification records so failures are visible instead of silent.',
   },
   {
-    title: 'Air-gapped operation',
-    description: 'Runs indefinitely without network. Survives outages. Syncs when possible.',
+    title: 'Local-first operation',
+    description: 'Run closer to the environment where execution happens. Keep local records available even when cloud connectivity is limited.',
   },
   {
-    title: 'Verified updates',
-    description: 'Cryptographic signatures required. Unsigned artifacts rejected. Compromised devices excluded automatically.',
+    title: 'Verified artifacts',
+    description: 'Use signed artifacts and verification checks to reduce trust in unverified updates, outputs, and execution records.',
   },
 ]
 

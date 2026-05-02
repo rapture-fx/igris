@@ -427,10 +427,13 @@ export default function SDKs() {
                 </p>
 
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  One API. Drop the SDK into your existing codebase. Your app becomes deterministic, provable, survivable—without rewrite.
+                  One API for governed AI execution.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
+                  Send AI tasks from your existing codebase and receive structured responses with execution metadata, signed records, and verification-ready artifacts.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  Local runtime with automatic cloud fallback. Test on your laptop. Deploy to servers, robots, or edge devices.
+                  Start locally. Connect your provider. Run through Igris.
                 </p>
                 <div>
                   <a
@@ -467,13 +470,16 @@ export default function SDKs() {
             <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
               <div className="max-w-md">
                 <h4 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
-                  Behavior Trees
+                  Structured execution
                 </h4>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  Define, validate, and execute behavior trees programmatically. Compose sequences, selectors, and actions into autonomous workflows that run locally on the runtime.
+                  Define how AI output becomes action.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
+                  Use structured paths to coordinate multi-step tasks, approvals, tool calls, and recovery logic. Keep model reasoning flexible while execution stays bounded, inspectable, and reviewable.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  Deploy trees to devices. Validate client-side and server-side. Get signed execution traces for every run.
+                  For teams building long-running agents, edge workflows, and robotics prototypes.
                 </p>
                 <div>
                   <a
@@ -481,7 +487,7 @@ export default function SDKs() {
                     className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     style={{ fontFamily }}
                   >
-                    BTree
+                    View execution model
                   </a>
                 </div>
               </div>
