@@ -5,8 +5,8 @@ import { useTheme } from 'next-themes'
 
 const capabilities = [
   {
-    name: 'Execute with Bounds',
-    description: 'Every execution runs in an isolated worker. Memory, CPU, and time are enforced at the OS level. Exceed a limit and the worker is killed. Every violation is signed and hash-chained.',
+    name: 'Controlled runs',
+    description: 'Define boundaries before an AI task executes. Apply limits, permission checks, and failure conditions so tasks do not continue unchecked.',
     imgDark: '/excd.png',
     imgLight: '/exdc.png',
     imgW: '140px',
@@ -15,8 +15,8 @@ const capabilities = [
     wrapH: '260px',
   },
   {
-    name: 'Decide with Structure',
-    description: 'Language models generate reasoning. The runtime governs execution through bounded control paths. Isolated, time-limited, and supervised. Intelligence remains flexible.',
+    name: 'Structured paths',
+    description: 'Let models reason, but keep execution on explicit paths. Use defined steps, conditions, and approvals to make long-running tasks easier to inspect and control.',
     imgDark: '/cr.png?v=2',
     imgLight: '/tre.png',
     imgW: '240px',
@@ -25,8 +25,8 @@ const capabilities = [
     wrapH: '350px',
   },
   {
-    name: 'Remember with Proof',
-    description: 'Every execution produces a signed envelope. Violations are hash-chained and tamper-evident. Verify independently — without our control plane. You verify the system.',
+    name: 'Verifiable records',
+    description: 'Generate signed execution records for critical runs, so teams can inspect what happened and verify the result independently.',
     imgDark: '/cc.png',
     imgLight: '/one.png',
     imgW: '140px',
@@ -55,7 +55,7 @@ export default function CoreCapabilities() {
           <div className="py-6 md:py-12 lg:py-16">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-6">
               <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                The Guarantees
+                Execution guarantees
               </h3>
               <Link
                 href="/core"
