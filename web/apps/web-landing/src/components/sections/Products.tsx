@@ -50,7 +50,7 @@ export default function Products() {
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
             <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              The execution layer<br className="hidden md:inline" /> beneath intelligence.
+              The execution layer for AI tasks.
             </h2>
             <Link
               href="https://docs.igrisinertial.com/"
@@ -85,28 +85,43 @@ export default function Products() {
             </div>
             <div className="hidden sm:flex flex-col justify-center" style={{ position: 'relative', zIndex: 1, top: 0, bottom: 0, marginLeft: '50%', paddingLeft: '2rem' }}>
               <div style={{ maxWidth: '320px' }}>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Hybrid behavior trees meet LLM reasoning.
+                <p className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Models decide. Igris executes.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
+                  Igris gives AI systems a governed path for turning model output into controlled action. Define boundaries, handle failure paths, and generate signed records of what happened during execution.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
+                  Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
                 </p>
               </div>
               <div className="mt-6" style={{ maxWidth: '320px' }}>
                 <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  One system, everywhere
+                  Governed runs
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
+                  Apply limits, permission checks, and execution boundaries before AI output becomes action.
                 </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Failure paths
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Keep tasks moving across cloud, edge, and local environments when part of the system fails.
+                </p>
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Signed records
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Produce verifiable execution records for critical runs, decisions, and actions.
+                </p>
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Deploy anywhere
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Run the same execution model across servers, devices, and edge environments.
                 </p>
                 <div className="mt-6">
-                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block pt-6" style={{ minWidth: '280px' }}>
+                  <div className="landing-surface-card relative rounded-2xl border px-3 py-2 md:px-4 md:py-2 inline-block pt-4" style={{ minWidth: '280px' }}>
                     <CopyButton />
                     <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap mr-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
                       {INSTALL_CMD}
@@ -123,28 +138,43 @@ export default function Products() {
                 style={{ maxHeight: '260px', objectFit: 'contain', objectPosition: 'center', opacity: mounted && theme === 'dark' ? 0.7 : 1 }}
               />
               <div className="max-w-full">
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  Hybrid behavior trees meet LLM reasoning.
+                <p className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Models decide. Igris executes.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
+                  Igris gives AI systems a governed path for turning model output into controlled action. Define boundaries, handle failure paths, and generate signed records of what happened during execution.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
+                  Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
                 </p>
               </div>
               <div className="mt-4 max-w-full md:max-w-[320px]">
                 <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                  One system, everywhere
+                  Governed runs
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  One binary runs on servers, robots, and edge devices. Same guarantees anywhere.
+                  Apply limits, permission checks, and execution boundaries before AI output becomes action.
                 </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Failure paths
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Keep tasks moving across cloud, edge, and local environments when part of the system fails.
+                </p>
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Signed records
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Produce verifiable execution records for critical runs, decisions, and actions.
+                </p>
+                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                  Deploy anywhere
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                  Run the same execution model across servers, devices, and edge environments.
                 </p>
                 <div className="mt-6">
-                  <div className="landing-surface-card relative rounded-2xl border px-4 py-3 md:px-8 md:py-4 inline-block pt-6" style={{ minWidth: '280px' }}>
+                  <div className="landing-surface-card relative rounded-2xl border px-3 py-2 md:px-4 md:py-2 inline-block pt-4" style={{ minWidth: '280px' }}>
                     <CopyButton />
                     <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap mr-8" style={{ color: mounted && theme === 'dark' ? '#c8c8b8' : '#374151' }}>
                       {INSTALL_CMD}
