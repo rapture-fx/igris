@@ -4,38 +4,39 @@ import React from 'react'
 
 const steps = [
   {
-    name: 'Deploy',
-    description: 'Install a single binary on any supported device. Execution, decision routing, memory, and proof are included from the start. The runtime operates independently of containers or external services.',
+    name: 'Send an AI task',
+    description: 'Call Igris from your application using the API or SDK.',
   },
   {
-    name: 'Verify',
-    description: 'Execution follows defined constraints. Behavior trees execute predictably. Each decision is recorded and cryptographically signed. Verification does not depend on network access.',
+    name: 'Govern execution',
+    description: 'Igris applies execution boundaries, routing rules, permission checks, and failure handling before the task becomes action.',
   },
   {
-    name: 'Optimize',
-    description: 'As deployments expand, visibility increases. The dashboard provides insight into execution health, decision routing, and verification status across the fleet.',
+    name: 'Run across environments',
+    description: 'Execute through configured cloud, edge, or local paths without changing your application flow.',
+  },
+  {
+    name: 'Verify what happened',
+    description: 'Receive execution metadata and signed records that can be inspected after the run.',
   },
 ]
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-[#f6f6f4] dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
+    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 overflow-hidden">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
-          {/* Title */}
           <div className="text-left" style={{ paddingTop: '3rem', paddingBottom: '2rem' }}>
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              Deploy. Verify. Optimize.
+              Send a task. Govern the run. Verify the result.
             </h3>
           </div>
 
-          {/* Full-width border below title */}
           <div style={{ borderTop: 'var(--section-border)', width: '100vw', marginLeft: '50%', transform: 'translateX(-50%)' }} />
 
-          {/* 3-column seamless table */}
-          <div className="grid grid-cols-1 md:grid-cols-3" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
             {steps.map((step, index) => (
-              <div key={step.name} className={`pb-0 pt-6 pr-6 ${index === 0 ? 'pl-0' : 'pl-6'}`}>
+              <div key={step.name} className="pb-0 pt-6 pr-4">
                 <span className="text-xs text-[#85612c] dark:text-[#c5b0cd] mb-3 block" style={{ fontFamily: 'var(--font-geist-mono, "Geist Mono", monospace)' }}>
                   0{index + 1}
                 </span>
