@@ -303,14 +303,18 @@ export default function Header() {
             {renderedDropdown && (
               <div
                 className="hidden md:block overflow-hidden absolute left-1/2 -translate-x-1/2"
-                style={{ maxWidth: '600px', width: '100%', zIndex: 50 }}
+                style={{ maxWidth: '600px', width: '100%', zIndex: 50, paddingTop: '8px' }}
                 onMouseEnter={cancelClose}
               >
                 <div
-                  className={`bg-[#f9f9fa] dark:bg-[#1b1912] border shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-xl transition-all duration-300 ease-out ${
+                  className={`border shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-xl transition-all duration-300 ease-out ${
                     isDropdownVisible ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0'
                   }`}
-                  style={{ overflow: 'hidden', borderColor: 'var(--landing-surface-border)' }}
+                  style={{
+                    overflow: 'hidden',
+                    backgroundColor: isDark ? '#26241d' : '#f9f9fa',
+                    borderColor: isDark ? 'rgba(246, 246, 244, 0.08)' : 'rgba(229, 231, 235, 1)',
+                  }}
                 >
                   {renderedDropdown === 'product' && renderGrid(productItems)}
                   {renderedDropdown === 'docs' && renderGrid(docsItems)}
