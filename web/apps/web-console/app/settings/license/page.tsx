@@ -14,7 +14,6 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { useTenant } from '@/hooks/useTenant';
 import { api } from '@/lib/apiClient';
 import { formatDate } from '@/utils/helpers';
-import Link from 'next/link';
 import { FileKey, TrendingUp, RefreshCw, CheckCircle, AlertCircle, Zap } from 'lucide-react';
 
 interface LicenseInfo {
@@ -110,10 +109,7 @@ export default function SettingsLicensePage() {
               </div>
             ) : !license && !tenant ? (
               <div className="py-4 space-y-2">
-                <p className="text-sm text-gray-600">No active license. Choose a plan to get started.</p>
-                <Link href="/settings/billing" className="text-xs text-blue-500 hover:text-blue-600">
-                  Go to Billing →
-                </Link>
+                <p className="text-sm text-gray-600">No active license. Activate a license key to unlock verified execution controls.</p>
               </div>
             ) : (
               <div className="space-y-4">

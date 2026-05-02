@@ -1,387 +1,315 @@
 'use client';
 
+import Link from 'next/link';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Separator } from '@/components/ui/separator';
-import { ClientChart } from '@/components/ui/client-chart';
+import { fetchExecutionReceipts, fetchExecutionRuns, fetchExecutionViolations, type ExecutionReceipt, type ExecutionRun, type ExecutionViolation } from '@/lib/executionRuns';
 import { api } from '@/lib/apiClient';
-import { getRelativeTime, formatDuration, truncateText } from '@/utils/helpers';
-import { useChartTheme } from '@/utils/chartTheme';
+import { getRelativeTime, truncateText } from '@/utils/helpers';
 import {
-  Terminal, AlertTriangle, Server, Cpu, Gauge, Bell, ArrowRight, Zap,
+  AlertTriangle,
+  ArrowRight,
+  Cpu,
+  Hash,
+  PlayCircle,
+  Shield,
+  XCircle,
 } from 'lucide-react';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  LineChart, Line,
-} from 'recharts';
-import Link from 'next/link';
-import { Progress } from '@/components/ui/progress';
-import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 
 interface OverviewStats {
-  active_executions: number;
-  violations_24h: number;
   online_devices: number;
-  model_requests_24h: number;
-  quota_usage_percent: number;
-  active_alerts: number;
 }
 
-interface Execution {
-  id: string;
-  agent_id: string;
-  model: string;
-  device_id: string;
-  started_at: string;
-  duration_ms: number;
-  status: string;
-  has_violation: boolean;
+function countFallbackSignals(runs: ExecutionRun[]): number {
+  return runs.reduce((total, run) => {
+    const text = run.logs?.join(' ').toLowerCase() ?? '';
+    if (!text) return total;
+    const matches = text.match(/fallback|failover|retry/g);
+    return total + (matches?.length ?? 0);
+  }, 0);
 }
 
-interface Violation {
-  id: string;
-  kind: string;
-  agent_id: string;
-  device_id: string;
-  created_at: string;
-}
-
-interface ModelUsagePoint {
-  hour: string;
-  requests: number;
-}
-
-interface RuntimeUsage {
-  tier: string;
-  tier_name: string;
-  monthly_price_cents: number;
-  runtimes: {
-    used: number;
-    limit: number;
-    percent: number;
-  };
-  upgrade_tier: string;
-}
-
-interface UsageSummary {
-  cost_24h: number;
-}
-
-interface DailySpend {
-  date: string;
-  cost: number;
-}
-
-
-const SUMMARY_CARDS = [
-  { key: 'active_executions', label: 'Active Executions', sub: 'Currently running', link: '/execution/runs' },
-  { key: 'online_devices', label: 'Online Devices', sub: 'Fleet status', link: '/fleet/devices' },
-  { key: 'model_requests_24h', label: 'Model Requests', sub: 'Last 24 hours', link: '/models/routing' },
-  { key: 'quota_usage_percent', label: 'Quota Usage', sub: '% of limit used', link: '/settings/license', suffix: '%' },
-];
-
-function StatCard({
-  label, sub, link, value, suffix = '', loading,
+function SummaryCard({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  loading,
 }: {
-  label: string; sub: string; link: string;
-  value?: number; suffix?: string; loading: boolean;
+  label: string;
+  value: string | number;
+  sub: string;
+  icon: typeof PlayCircle;
+  loading: boolean;
 }) {
   return (
-    <Link href={link}>
-      <div className="border border-gray-200 shadow hover:border-gray-300 transition-colors cursor-pointer rounded-3xl overflow-hidden bg-white">
-        <div className="px-4 pt-4 pb-2 text-xs font-medium text-black">{label}</div>
-        <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-5 pb-6">
-          {loading ? (
-            <Skeleton className="h-9 w-20" />
-          ) : (
-            <div className="text-4xl font-bold text-gray-900 tabular-nums">
-              {value ?? '—'}{suffix}
-            </div>
-          )}
-          <p className="text-xs text-black mt-1 text-right">{sub}</p>
-        </div>
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-gray-700" />
+        {label}
       </div>
-    </Link>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-5 pb-6">
+        {loading ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>}
+        <p className="text-xs text-black mt-1">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
+function Surface({
+  title,
+  link,
+  children,
+}: {
+  title: string;
+  link?: { href: string; label: string };
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <span className="text-xs font-medium text-black">{title}</span>
+        {link && (
+          <Link href={link.href} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
+            {link.label}
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        )}
+      </div>
+      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl">{children}</div>
+    </div>
   );
 }
 
 export default function DashboardPage() {
-  const chartTheme = useChartTheme();
-
   const { data: stats, isLoading: statsLoading } = useQuery<OverviewStats>({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => api.get('/v1/stats/overview'),
-    retry: false,
-  });
-
-  const { data: executions, isLoading: execLoading } = useQuery<Execution[]>({
-    queryKey: ['recent-executions'],
-    queryFn: () => api.get('/v1/execution/runs?limit=20&sort=created_at:desc'),
-    retry: false,
-  });
-
-  const { data: violations, isLoading: violLoading } = useQuery<Violation[]>({
-    queryKey: ['recent-violations'],
-    queryFn: () => api.get('/v1/proof/violations?limit=8'),
-    retry: false,
-  });
-
-  const { data: modelUsage } = useQuery<ModelUsagePoint[]>({
-    queryKey: ['model-usage-24h'],
-    queryFn: () => api.get('/v1/stats/model-usage?period=24h'),
-    retry: false,
-  });
-
-  const { data: runtimeUsage } = useQuery<RuntimeUsage>({
-    queryKey: ['subscription-status'],
-    queryFn: () => api.get('/api/subscription/status'),
-    retry: false,
-  });
-
-  const { data: usageSummary, isLoading: summaryLoading } = useQuery<UsageSummary>({
-    queryKey: ['usage-summary'],
-    queryFn: () => api.get('/v1/usage/summary'),
-    retry: false,
-  });
-
-  const { data: dailySpend = [], isLoading: dailyLoading } = useQuery<DailySpend[]>({
-    queryKey: ['usage-daily'],
+    queryKey: ['dashboard-overview'],
     queryFn: async () => {
-      try { return await api.get<DailySpend[]>('/models/usage/daily'); }
-      catch { return []; }
+      try {
+        return await api.get<OverviewStats>('/v1/stats/overview');
+      } catch {
+        return { online_devices: 0 };
+      }
     },
     retry: false,
   });
 
-  const chartData = modelUsage ?? Array.from({ length: 12 }, (_, i) => ({
-    hour: `${i * 2}h`,
-    requests: 0,
-  }));
+  const { data: runs = [], isLoading: runsLoading } = useQuery<ExecutionRun[]>({
+    queryKey: ['dashboard-runs'],
+    queryFn: async () => {
+      try {
+        return await fetchExecutionRuns({ limit: 20, sort: 'created_at:desc', range: '24h' });
+      } catch {
+        return [];
+      }
+    },
+    retry: false,
+  });
+
+  const { data: receipts = [], isLoading: receiptsLoading } = useQuery<ExecutionReceipt[]>({
+    queryKey: ['dashboard-receipts'],
+    queryFn: () => fetchExecutionReceipts(40),
+    retry: false,
+  });
+
+  const { data: violations = [], isLoading: violationsLoading } = useQuery<ExecutionViolation[]>({
+    queryKey: ['dashboard-violations'],
+    queryFn: () => fetchExecutionViolations(),
+    retry: false,
+  });
+
+  const digest = useMemo(() => {
+    const verifiedReceipts = receipts.filter((receipt) => {
+      const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
+      return status === 'verified';
+    }).length;
+    const failedOrStopped = runs.filter((run) => ['ERROR', 'CANCELLED', 'VIOLATION', 'PAUSED'].includes(run.status)).length;
+    const fallbackSignals = countFallbackSignals(runs);
+    return {
+      runs: runs.length,
+      verifiedReceipts,
+      failedOrStopped,
+      fallbackSignals,
+      policyViolations: violations.length,
+      connectedDevices: stats?.online_devices ?? 0,
+    };
+  }, [receipts, runs, violations, stats]);
+
+  const verificationCoverage = useMemo(() => {
+    if (!receipts.length) return 0;
+    const verified = receipts.filter((receipt) => {
+      const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
+      return status === 'verified';
+    }).length;
+    return Math.round((verified / receipts.length) * 100);
+  }, [receipts]);
 
   return (
     <DashboardLayout>
       <OnboardingModal />
       <div className="space-y-6">
-        {/* Page Header */}
         <div>
-          <h1 className="text-base font-semibold text-foreground">System Overview</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Live state of governed execution across fleet.</p>
+          <h1 className="text-base font-semibold text-foreground">Verified execution overview</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Current run records, receipt verification state, policy violations, and operator-visible execution signals.
+          </p>
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {SUMMARY_CARDS.map((card) => (
-            <StatCard
-              key={card.key}
-              label={card.label}
-              sub={card.sub}
-              link={card.link}
-              value={(stats as any)?.[card.key]}
-              suffix={card.suffix}
-              loading={statsLoading}
-            />
-          ))}
+        <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
+          <SummaryCard label="Runs" value={digest.runs} sub="current query window" icon={PlayCircle} loading={runsLoading} />
+          <SummaryCard label="Verified receipts" value={digest.verifiedReceipts} sub="receipts passing verification" icon={Hash} loading={receiptsLoading} />
+          <SummaryCard label="Failed or stopped" value={digest.failedOrStopped} sub="error, cancel, pause, violation" icon={XCircle} loading={runsLoading} />
+          <SummaryCard label="Fallback signals" value={digest.fallbackSignals} sub="retry or failover markers in logs" icon={Shield} loading={runsLoading} />
+          <SummaryCard label="Policy violations" value={digest.policyViolations} sub="violation records loaded" icon={AlertTriangle} loading={violationsLoading} />
+          <SummaryCard label="Connected devices" value={digest.connectedDevices} sub="online runtime nodes" icon={Cpu} loading={statsLoading} />
         </div>
 
-        {/* Runtime Usage Card */}
-        {runtimeUsage && (
-          <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-            <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-              <span className="text-xs font-medium text-black flex items-center gap-1.5">
-                <Zap className="h-3.5 w-3.5 text-gray-700" />
-                Runtime Usage
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] text-gray-500 capitalize">
-                  {runtimeUsage.tier_name} · ${Math.round(runtimeUsage.monthly_price_cents / 100)}/mo
-                </span>
-                {runtimeUsage.runtimes.percent >= 80 && (
-                  <Link href="/settings/billing" className="text-[11px] text-blue-600 hover:text-blue-700 font-medium">
-                    Upgrade
-                  </Link>
-                )}
-              </div>
-            </div>
-            <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 py-4">
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-muted-foreground">Runtimes registered</span>
-                <span className="tabular-nums font-medium text-foreground">
-                  {runtimeUsage.runtimes.used} / {runtimeUsage.runtimes.limit}
-                </span>
-              </div>
-              <Progress value={runtimeUsage.runtimes.percent} className="h-1.5" />
-              {runtimeUsage.runtimes.percent >= 100 && (
-                <p className="text-[11px] text-red-600 mt-2">
-                  Runtime limit reached.{' '}
-                  <Link href="/settings/billing" className="underline">Upgrade to add more.</Link>
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Main + Side */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          {/* Recent Executions */}
-          <div className="xl:col-span-2">
-            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-black">Recent Executions</span>
-                <Link href="/execution/runs" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
-                  View all <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-auto max-h-96 scrollbar-hide">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2.5 text-left font-medium text-black">ID</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black">Agent</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black">Model</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black">Started</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {execLoading ? (
-                      Array.from({ length: 6 }).map((_, i) => (
-                        <tr key={i} className="border-b border-gray-100">
-                          {Array.from({ length: 5 }).map((_, j) => (
-                            <td key={j} className="px-4 py-2.5">
-                              <Skeleton className="h-4 w-20" />
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    ) : (executions ?? []).length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-black">No executions found</td>
+        <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.75fr] gap-4">
+          <Surface title="Recent runs" link={{ href: '/execution/runs', label: 'All runs' }}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-2.5 text-left font-medium text-black">Run</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black">Agent</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black">Started</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black">Status</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-black">Record</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {runsLoading ? (
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <tr key={index} className="border-b border-gray-100">
+                        {Array.from({ length: 5 }).map((_, cell) => (
+                          <td key={cell} className="px-4 py-2.5"><Skeleton className="h-4 w-20" /></td>
+                        ))}
                       </tr>
-                    ) : (
-                      (executions ?? []).map((ex) => (
-                        <tr key={ex.id} className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors">
-                          <td className="px-4 py-2.5 text-black">{truncateText(ex.id, 12)}</td>
-                          <td className="px-4 py-2.5 text-gray-700">{truncateText(ex.agent_id, 14)}</td>
-                          <td className="px-4 py-2.5 text-black">{ex.model ?? '—'}</td>
-                          <td className="px-4 py-2.5 text-black">{getRelativeTime(ex.started_at)}</td>
-                          <td className="px-4 py-2.5">
-                            <StatusBadge status={ex.has_violation ? 'VIOLATION' : ex.status} />
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  ) : runs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-10 text-center text-black">No run records were returned.</td>
+                    </tr>
+                  ) : (
+                    runs.map((run) => (
+                      <tr key={run.id} className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors">
+                        <td className="px-4 py-2.5 text-black">{truncateText(run.id, 16)}</td>
+                        <td className="px-4 py-2.5 text-gray-700">{truncateText(run.agent_id, 16)}</td>
+                        <td className="px-4 py-2.5 text-black">{getRelativeTime(run.started_at)}</td>
+                        <td className="px-4 py-2.5">
+                          <StatusBadge status={run.has_violation ? 'VIOLATION' : run.status} />
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <Link href={`/execution/runs/${run.id}`} className="text-blue-600 hover:text-blue-700">
+                            Open
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          </div>
+          </Surface>
 
-          {/* Recent Violations */}
-          <div>
-            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-black">Recent Violations</span>
-                <Link href="/proof/violations" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
-                  View all <ArrowRight className="h-3 w-3" />
-                </Link>
+          <Surface title="Verification coverage" link={{ href: '/proof/receipts', label: 'Receipts' }}>
+            <div className="px-4 py-4 space-y-4">
+              <div>
+                <div className="flex items-center justify-between text-xs text-gray-700 mb-2">
+                  <span>Receipts verified</span>
+                  <span className="font-medium tabular-nums">{verificationCoverage}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                  <div className="h-full bg-green-500" style={{ width: `${verificationCoverage}%` }} />
+                </div>
               </div>
-              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl divide-y divide-gray-100 min-h-96 max-h-[480px] overflow-y-auto scrollbar-hide">
-                {violLoading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="px-4 py-3">
-                      <Skeleton className="h-3 w-24 mb-1.5" />
+              <div className="space-y-3">
+                {receiptsLoading ? (
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="space-y-1">
+                      <Skeleton className="h-3 w-24" />
                       <Skeleton className="h-3 w-32" />
                     </div>
                   ))
-                ) : (violations ?? []).length === 0 ? (
-                  <div className="px-4 py-8 text-center text-xs text-black">No violations</div>
+                ) : receipts.length === 0 ? (
+                  <p className="text-xs text-gray-500">No receipt records were returned.</p>
                 ) : (
-                  (violations ?? []).map((v) => (
-                    <div key={v.id} className="px-4 py-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-gray-700">{v.kind}</span>
-                        <span className="text-[11px] text-black">{getRelativeTime(v.created_at)}</span>
+                  receipts.slice(0, 4).map((receipt) => {
+                    const status = String(receipt.status ?? receipt.verification_status ?? 'pending');
+                    return (
+                      <div key={receipt.id} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs font-medium text-gray-800">{status}</span>
+                          <span className="text-[11px] text-gray-500">{getRelativeTime(receipt.timestamp)}</span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-gray-600">
+                          {truncateText(receipt.execution_id, 18)} · {truncateText(receipt.agent_id, 14)}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-black mt-0.5">
-                        {truncateText(v.agent_id, 16)} · {truncateText(v.device_id, 12)}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
-          </div>
+          </Surface>
         </div>
 
-        {/* Model Usage Chart + Daily Spend */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-          {/* Model Requests Chart */}
-          <div className="xl:col-span-2">
-            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-black">Model Requests (24h)</span>
-                <Link href="/models/routing" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
-                  Routing <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-3 pb-4">
-                <ClientChart height={160} fallbackClassName="h-40 w-full">
-                  <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="requestsFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="2 4" stroke={chartTheme.grid} vertical={false} />
-                    <XAxis dataKey="hour" tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ fontSize: 11, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, boxShadow: 'none', backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
-                      itemStyle={{ color: chartTheme.tooltip.text }}
-                      labelStyle={{ color: chartTheme.tooltip.text }}
-                    />
-                    <Area type="monotone" dataKey="requests" stroke="#3b82f6" strokeWidth={1} fill="url(#requestsFill)" dot={false} />
-                  </AreaChart>
-                </ClientChart>
-              </div>
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-4">
+          <Surface title="Policy violations" link={{ href: '/proof/violations', label: 'Violations' }}>
+            <div className="divide-y divide-gray-100 min-h-[280px]">
+              {violationsLoading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="px-4 py-3">
+                    <Skeleton className="h-3 w-24 mb-1.5" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                ))
+              ) : violations.length === 0 ? (
+                <div className="px-4 py-10 text-center text-xs text-black">No policy violation records were returned.</div>
+              ) : (
+                violations.slice(0, 6).map((violation) => (
+                  <div key={violation.id} className="px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-medium text-gray-700">{violation.kind}</span>
+                      <span className="text-[11px] text-black">{getRelativeTime(violation.timestamp)}</span>
+                    </div>
+                    <p className="text-[11px] text-black mt-0.5">
+                      {truncateText(violation.agent_id, 16)} · {truncateText(violation.device_id, 14)}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
-          </div>
+          </Surface>
 
-          {/* Daily Spend */}
-          <div>
-            <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white h-full">
-              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                <span className="text-xs font-medium text-black">Daily Spend</span>
-                <Link href="/models/cost" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-0.5">
-                  See more <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-2 pt-4 pb-3">
-                {dailyLoading ? (
-                  <Skeleton className="h-[160px] w-full" />
-                ) : (
-                  <ClientChart height={160} fallbackClassName="h-40 w-full">
-                    <LineChart data={dailySpend.slice(-14)} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
-                      <XAxis dataKey="date" tick={{ fontSize: 10, fill: chartTheme.axis }} tickLine={false} axisLine={false} interval={2} />
-                      <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v}`} />
-                      <Tooltip
-                        contentStyle={{ fontSize: 11, border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, boxShadow: 'none', backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
-                        itemStyle={{ color: chartTheme.tooltip.text }}
-                        labelStyle={{ color: chartTheme.tooltip.text }}
-                        formatter={(value: number) => [`$${value.toFixed(2)}`, 'Cost']}
-                      />
-                      <Line type="monotone" dataKey="cost" stroke={chartTheme.line} strokeWidth={1.5} dot={false} activeDot={{ r: 3, fill: chartTheme.line, strokeWidth: 0 }} />
-                    </LineChart>
-                  </ClientChart>
-                )}
-              </div>
+          <Surface title="Execution signals" link={{ href: '/history/logs', label: 'Logs' }}>
+            <div className="px-4 py-4 space-y-3 min-h-[280px]">
+              {runsLoading ? (
+                Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="space-y-1">
+                    <Skeleton className="h-3 w-28" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                ))
+              ) : runs.length === 0 ? (
+                <p className="text-xs text-gray-500">No execution signals were returned.</p>
+              ) : (
+                runs
+                  .flatMap((run) => (run.logs ?? []).slice(-2).map((line) => ({ runId: run.id, line })))
+                  .slice(0, 8)
+                  .map((entry, index) => (
+                    <div key={`${entry.runId}-${index}`} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                      <p className="text-[11px] font-medium text-gray-800">{truncateText(entry.runId, 18)}</p>
+                      <p className="mt-1 text-[11px] text-gray-600 leading-relaxed">{entry.line}</p>
+                    </div>
+                  ))
+              )}
             </div>
-          </div>
+          </Surface>
         </div>
       </div>
     </DashboardLayout>

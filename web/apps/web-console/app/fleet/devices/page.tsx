@@ -10,8 +10,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Progress } from '@/components/ui/progress';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetBody, SheetClose,
 } from '@/components/ui/sheet';
@@ -255,7 +253,6 @@ function FleetDevicesContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
-  const [rosOnly, setRosOnly] = useState(false);
   const [lifecycleConfirm, setLifecycleConfirm] = useState<{ deviceId: string; action: RosAction } | null>(null);
 
   // ── Devices list ──
@@ -393,10 +390,9 @@ function FleetDevicesContent() {
     return devices.filter((d) => {
       if (search && !d.device_id.toLowerCase().includes(search.toLowerCase())) return false;
       if (statusFilter !== 'all' && d.status !== statusFilter) return false;
-      if (rosOnly && !d.ros_node) return false;
       return true;
     });
-  }, [devices, search, statusFilter, rosOnly]);
+  }, [devices, search, statusFilter]);
 
   const counts = useMemo(
     () => ({
@@ -440,9 +436,9 @@ function FleetDevicesContent() {
               <Progress value={runtimeQuota.runtimes.percent} className="h-1.5" />
               {runtimeLimitReached && (
                 <p className="text-[11px] text-red-600 mt-1.5">
-                  Limit reached.{' '}
-                  <Link href="/settings/billing" className="underline">
-                    Upgrade to add more runtimes.
+                  Runtime limit reached.{' '}
+                  <Link href="/settings/license" className="underline">
+                    Review license capacity.
                   </Link>
                 </p>
               )}
@@ -503,17 +499,6 @@ function FleetDevicesContent() {
                   <SelectItem value="30d" className="text-xs">30d</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="flex items-center gap-1.5 border border-gray-200 rounded-md px-2.5 h-8">
-                <Switch
-                  id="ros-filter"
-                  checked={rosOnly}
-                  onCheckedChange={setRosOnly}
-                  className="scale-75"
-                />
-                <Label htmlFor="ros-filter" className="text-xs text-gray-600 cursor-pointer whitespace-nowrap">
-                  ROS 2 only
-                </Label>
-              </div>
               <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
                 <RefreshCw className="h-3.5 w-3.5" />
                 Refresh
@@ -526,7 +511,7 @@ function FleetDevicesContent() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Exec (24h)', 'Violations', 'Policy Sync', 'ROS 2 State', 'Containment', 'ROS CPU', 'ROS Memory', 'ROS Violations'].map((col) => (
+                    {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Active Exec', 'Runs (24h)', 'Violations', 'Policy Sync', 'Containment'].map((col) => (
                       <th key={col} className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">{col}</th>
                     ))}
                   </tr>
@@ -535,7 +520,7 @@ function FleetDevicesContent() {
                   {devicesLoading ? (
                     Array.from({ length: 6 }).map((_, i) => (
                       <tr key={i} className="border-b border-gray-100">
-                        {Array.from({ length: 12 }).map((_, j) => (
+                        {Array.from({ length: 9 }).map((_, j) => (
                           <td key={j} className="px-4 py-2.5">
                             <Skeleton className="h-3.5 w-16" />
                           </td>
@@ -544,7 +529,7 @@ function FleetDevicesContent() {
                     ))
                   ) : filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="py-14">
+                      <td colSpan={9} className="py-14">
                         <div className="flex flex-col items-center gap-2.5 text-center">
                           <Server className="h-9 w-9 text-gray-200" />
                           <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
@@ -553,8 +538,8 @@ function FleetDevicesContent() {
                               <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" disabled>
                                 Runtime limit reached
                               </Button>
-                              <Link href="/settings/billing" className="text-[11px] text-blue-600 hover:text-blue-700">
-                                Upgrade to add more runtimes
+                              <Link href="/settings/license" className="text-[11px] text-blue-600 hover:text-blue-700">
+                                Review license capacity
                               </Link>
                             </div>
                           ) : (
@@ -583,6 +568,7 @@ function FleetDevicesContent() {
                         </td>
                         <td className="px-4 py-2.5 font-mono text-gray-600">{device.runtime_version}</td>
                         <td className="px-4 py-2.5 text-gray-500">{getRelativeTime(device.last_seen)}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-gray-700">{device.active_executions}</td>
                         <td className="px-4 py-2.5 tabular-nums text-gray-700">{device.executions_24h}</td>
                         <td className="px-4 py-2.5">
                           <ViolationCountBadge count={device.violations_24h} />
@@ -591,23 +577,7 @@ function FleetDevicesContent() {
                           <PolicySyncIndicator policyHash={device.policy_hash} globalPolicyHash={device.global_policy_hash} />
                         </td>
                         <td className="px-4 py-2.5">
-                          {device.ros_node ? (
-                            <RosLifecycleBadge state={device.ros_node.lifecycle_state} airGapped={device.ros_node.air_gapped} />
-                          ) : (
-                            <span className="text-gray-300">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-2.5">
                           <ContainmentBadge containment={device.containment} />
-                        </td>
-                        <td className="px-4 py-2.5 tabular-nums text-gray-600">
-                          {device.ros_node?.cpu_usage_percent != null ? `${device.ros_node.cpu_usage_percent.toFixed(1)}%` : <span className="text-gray-300">—</span>}
-                        </td>
-                        <td className="px-4 py-2.5 tabular-nums text-gray-600">
-                          {device.ros_node?.memory_usage_mb != null ? `${device.ros_node.memory_usage_mb} MB` : <span className="text-gray-300">—</span>}
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <ViolationCountBadge count={device.ros_node?.violation_count_24h ?? 0} />
                         </td>
                       </tr>
                     ))

@@ -12,10 +12,27 @@ import {
 
 const routeNames: Record<string, string> = {
   dashboard: 'Dashboard',
-  observability: 'Observability',
-  providers: 'Providers & Keys',
-  policy: 'Routing Policies',
+  execution: 'Execution',
+  runs: 'Runs',
+  tasks: 'Tasks',
+  approvals: 'Approvals',
+  proof: 'Proof',
+  receipts: 'Receipts',
+  violations: 'Violations',
+  policy: 'Policy',
+  bounds: 'Bounds',
+  capabilities: 'Capabilities',
+  fleet: 'Infrastructure',
+  devices: 'Devices',
+  models: 'Infrastructure',
+  providers: 'Providers',
+  history: 'History',
+  logs: 'Logs',
+  metrics: 'Metrics',
   settings: 'Settings',
+  license: 'License',
+  keys: 'API Keys',
+  general: 'General',
 };
 
 export function Breadcrumbs() {

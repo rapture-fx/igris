@@ -1,8 +1,16 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 
 export default function WhyItExists() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
@@ -11,7 +19,7 @@ export default function WhyItExists() {
             <div>
               <div className="rounded-lg overflow-hidden relative p-4" style={{ height: 'clamp(280px, 40vw, 500px)' }}>
                 <img
-                  src="/rockz.png"
+                  src={mounted && theme === 'dark' ? '/SF.png' : '/rockz.png'}
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover rounded-lg"
                   style={{ opacity: 1 }}
