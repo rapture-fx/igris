@@ -15,7 +15,7 @@ export default function ClosingPosition() {
         }}>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 py-6 md:py-8">
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
-              Complete control from edge to cloud.
+              Run AI across edge and cloud — with execution you can verify.
             </h3>
             <Link href="https://console.igrisinertial.com/auth?mode=signup">
               <button
