@@ -9,7 +9,7 @@ export default function ViewModeToggle() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div className="flex items-center gap-2 bg-white/80 dark:bg-[#1b1912]/80 backdrop-blur-sm px-3 py-2 rounded-md shadow-lg border border-gray-200 dark:border-[#f6f6f4]/10">
+      <div className="flex items-center gap-2 bg-white/80 dark:bg-[#110f0f]/80 backdrop-blur-sm px-3 py-2 rounded-md shadow-lg border border-gray-200 dark:border-[#f6f6f4]/10">
           <button
             onClick={() => setViewMode('human')}
             className={`px-3 py-1.5 transition-all duration-200 text-xs font-inter ${

@@ -22,7 +22,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="min-h-screen bg-white dark:bg-[#1b1912] transition-colors duration-200">
+      <div className="min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200">
         <Header />
         <main>
           <ScrollReveal><Hero /></ScrollReveal>

@@ -31,24 +31,24 @@
   }
 
   .dark {
-    --background: 27 25 18;
+    --background: 17 15 15;
     --foreground: 246 246 244;
-    --card: 38 36 29;
+    --card: 22 21 21;
     --card-foreground: 246 246 244;
-    --popover: 38 36 29;
+    --popover: 22 21 21;
     --popover-foreground: 246 246 244;
     --primary: 59 130 246;
     --primary-foreground: 255 255 255;
     --secondary: 41 154 147;
     --secondary-foreground: 255 255 255;
-    --muted: 33 31 26;
+    --muted: 30 29 29;
     --muted-foreground: 156 163 175;
     --accent: 59 130 246;
     --accent-foreground: 255 255 255;
     --destructive: 220 38 38;
     --destructive-foreground: 255 255 255;
-    --border: 46 43 37;
-    --input: 46 43 37;
+    --border: 40 38 38;
+    --input: 40 38 38;
     --ring: 59 130 246;
   }
 }
@@ -110,19 +110,19 @@
     background-color: #f3f3f6;
   }
   html.dark {
-    background-color: #1b1912;
+    background-color: #110f0f;
   }
   ::-webkit-scrollbar-corner {
     background-color: #f3f3f6;
   }
   html.dark ::-webkit-scrollbar-corner {
-    background-color: #1b1912;
+    background-color: #110f0f;
   }
   body {
     background-color: #f3f3f6;
   }
   html.dark body {
-    background-color: #1b1912;
+    background-color: #110f0f;
   }
 
   .console-surface {
