@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useModal } from '../../contexts/ModalContext';
 import { useProductPopup } from '../../contexts/ProductPopupContext';
@@ -22,7 +22,7 @@ export default function Header() {
   const [renderedDropdown, setRenderedDropdown] = useState<DropdownKey>(null);
   const [slideFrom, setSlideFrom] = useState<'left' | 'right' | 'none'>('none');
   const { openEarlyAccessModal } = useModal();
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { openUseCases } = useProductPopup();
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevDropdownRef = useRef<DropdownKey>(null);
@@ -199,6 +199,19 @@ export default function Header() {
                 </div>
 
                 <div className="hidden md:flex items-center space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                    className="p-2 rounded-md hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors duration-200"
+                    aria-label="Toggle theme"
+                  >
+                    {isDark ? (
+                      <Sun className="h-4 w-4 text-[#f6f6f4]" />
+                    ) : (
+                      <Moon className="h-4 w-4 text-[#1b1912]" />
+                    )}
+                  </button>
+
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}

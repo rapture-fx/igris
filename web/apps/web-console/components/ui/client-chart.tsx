@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { ResponsiveContainer } from 'recharts';
 
 interface ClientChartProps {
-  children: ReactNode;
+  children: ReactElement;
   width?: string | number;
   height: string | number;
   fallbackClassName?: string;

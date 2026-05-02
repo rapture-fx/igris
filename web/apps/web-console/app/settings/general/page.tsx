@@ -603,9 +603,6 @@ export default function SettingsGeneralPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 pt-1">
-                  <Button size="sm" className="h-8 text-xs gap-1.5" asChild>
-                    <a href="/settings/billing">Go to Billing</a>
-                  </Button>
                   <Button variant="outline" size="sm" className="h-8 text-xs" asChild>
                     <a href="/settings/license">View Full License →</a>
                   </Button>

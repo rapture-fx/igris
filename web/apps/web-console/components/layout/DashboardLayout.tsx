@@ -62,9 +62,9 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
                         variant="outline"
                         size="sm"
                         className="bg-white text-blue-600 hover:bg-blue-50 border-0 text-xs font-medium"
-                        onClick={() => window.location.href = '/settings/billing'}
+                        onClick={() => window.location.href = '/settings/license'}
                       >
-                        Upgrade Now
+                        View License
                       </Button>
                       <button
                         onClick={() => setBannerDismissed(true)}

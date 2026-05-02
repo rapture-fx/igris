@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -113,6 +113,14 @@ function ProofBadge({ task }: { task: Task }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ExecutionTasksPage() {
+  return (
+    <Suspense fallback={null}>
+      <ExecutionTasksContent />
+    </Suspense>
+  );
+}
+
+function ExecutionTasksContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') ?? '');

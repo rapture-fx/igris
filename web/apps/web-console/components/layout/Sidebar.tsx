@@ -6,10 +6,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
   ChevronDown, Search, FileText,
-  LayoutDashboard, PlayCircle, Network, Sparkles,
+  LayoutDashboard, PlayCircle, Network,
   ScrollText, BadgeCheck, CalendarClock, SlidersHorizontal,
-  CreditCard, KeyRound, Settings, LogOut,
-  BookOpen, ExternalLink, Mail, Activity, BrainCircuit,
+  KeyRound, Settings, LogOut,
+  BookOpen, ExternalLink, Mail, Activity,
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTenant } from '@/hooks/useTenant';
 import { useSession } from '@/lib/auth-client';
-import { useAlertBadge } from '@/hooks/useAlertBadge';
 import { getInitials } from '@/utils/helpers';
 import { cn } from '@/utils/helpers';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
@@ -50,38 +49,7 @@ const navigation: NavigationItem[] = [
     children: [
       { name: 'Runs', href: '/execution/runs' },
       { name: 'Tasks', href: '/execution/tasks' },
-      { name: 'Agents', href: '/execution/agents' },
       { name: 'Approvals', href: '/execution/approvals' },
-      { name: 'Shadow Mode', href: '/execution/shadow' },
-      { name: 'BT Editor', href: '/execution/bt-editor' },
-    ],
-  },
-  {
-    name: 'Fleet',
-    icon: Network,
-    children: [
-      { name: 'Devices', href: '/fleet/devices' },
-      { name: 'ROS 2', href: '/fleet/ros' },
-      { name: 'Swarm', href: '/fleet/swarm' },
-    ],
-  },
-  {
-    name: 'Models',
-    icon: Sparkles,
-    children: [
-      { name: 'Routing', href: '/models/routing' },
-      { name: 'Training', href: '/models/training' },
-      { name: 'Federated', href: '/models/federated' },
-      { name: 'Providers', href: '/models/providers' },
-      { name: 'Cost', href: '/models/cost' },
-    ],
-  },
-  {
-    name: 'Policy',
-    icon: ScrollText,
-    children: [
-      { name: 'Bounds', href: '/policy/bounds' },
-      { name: 'Capabilities', href: '/policy/capabilities' },
     ],
   },
   {
@@ -93,12 +61,27 @@ const navigation: NavigationItem[] = [
     ],
   },
   {
+    name: 'Policy',
+    icon: ScrollText,
+    children: [
+      { name: 'Bounds', href: '/policy/bounds' },
+      { name: 'Capabilities', href: '/policy/capabilities' },
+    ],
+  },
+  {
+    name: 'Infrastructure',
+    icon: Network,
+    children: [
+      { name: 'Providers', href: '/models/providers' },
+      { name: 'Devices', href: '/fleet/devices' },
+    ],
+  },
+  {
     name: 'History',
     icon: CalendarClock,
     children: [
       { name: 'Logs', href: '/history/logs' },
       { name: 'Metrics', href: '/history/metrics' },
-      { name: 'Alerts', href: '/history/alerts' },
     ],
   },
   {
@@ -107,7 +90,6 @@ const navigation: NavigationItem[] = [
     children: [
       { name: 'General', href: '/settings/general' },
       { name: 'API Keys', href: '/settings/keys' },
-      { name: 'Billing', href: '/settings/billing' },
       { name: 'License', href: '/settings/license' },
     ],
   },
@@ -115,10 +97,9 @@ const navigation: NavigationItem[] = [
 
 const DEFAULT_EXPANDED: Record<string, boolean> = {
   Execution: false,
-  Fleet: false,
-  Models: false,
-  Policy: false,
   Proof: false,
+  Policy: false,
+  Infrastructure: false,
   History: false,
   Settings: false,
 };
@@ -128,7 +109,6 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const router = useRouter();
   const { data: tenant } = useTenant();
   const { data: session } = useSession();
-  const alertCount = useAlertBadge();
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   // Prefer tenant name from API; fall back to Better Auth session name (always present for OAuth)
@@ -184,31 +164,20 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   // Build flat search index with rich keywords
   const searchIndex = [
     { title: 'Dashboard', path: '/dashboard', keywords: 'dashboard overview system stats home' },
-    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution runs history jobs receipts' },
-    { title: 'Execution › Tasks', path: '/execution/tasks', keywords: 'execution durable tasks runtime checkpoints wal receipts graph strategy' },
-    { title: 'Execution › Agents', path: '/execution/agents', keywords: 'execution agents lifecycle bt behavior tree' },
-    { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals hitl human loop review pause' },
-    { title: 'Execution › Shadow Mode', path: '/execution/shadow', keywords: 'execution shadow comparison divergence test' },
-    { title: 'Execution › BT Editor', path: '/execution/bt-editor', keywords: 'execution bt editor behavior tree visual builder ros' },
-    { title: 'Fleet › Devices', path: '/fleet/devices', keywords: 'fleet devices nodes runtime ros online offline' },
-    { title: 'Fleet › ROS 2', path: '/fleet/ros', keywords: 'fleet ros ros2 topics lifecycle mappings bridge' },
-    { title: 'Fleet › Swarm', path: '/fleet/swarm', keywords: 'fleet swarm coordination multi-agent broadcast' },
-    { title: 'Models › Routing', path: '/models/routing', keywords: 'models routing thompson sampling circuit breaker speculative council shadow' },
-    { title: 'Models › Training', path: '/models/training', keywords: 'models training qlora fine-tune adapter lora' },
-    { title: 'Models › Federated', path: '/models/federated', keywords: 'models federated learning aggregation privacy differential' },
-    { title: 'Models › Providers', path: '/models/providers', keywords: 'models providers openai anthropic google gemini deepseek' },
-    { title: 'Models › Cost', path: '/models/cost', keywords: 'models cost usage tokens spend billing analytics' },
+    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution runs receipts verification logs policy violations' },
+    { title: 'Execution › Tasks', path: '/execution/tasks', keywords: 'execution durable tasks wal checkpoints signed envelope receipt' },
+    { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals human review pause resume reject' },
+    { title: 'Proof › Receipts', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain' },
+    { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof policy violations enforcement bounds alerts' },
     { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
     { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
-    { title: 'Proof › Receipts', path: '/proof/receipts', keywords: 'proof receipts cryptographic hash chain verification signature' },
-    { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof violations policy alerts critical warning' },
+    { title: 'Infrastructure › Providers', path: '/models/providers', keywords: 'infrastructure providers endpoints keys models health' },
+    { title: 'Infrastructure › Devices', path: '/fleet/devices', keywords: 'infrastructure devices runtime nodes online policy sync' },
     { title: 'History › Logs', path: '/history/logs', keywords: 'history logs events runtime stream traces' },
     { title: 'History › Metrics', path: '/history/metrics', keywords: 'history metrics performance charts throughput latency' },
-    { title: 'History › Alerts', path: '/history/alerts', keywords: 'history alerts notifications incidents critical warning' },
     { title: 'Settings › General', path: '/settings/general', keywords: 'settings general configuration security api keys roles' },
-    { title: 'Settings › License', path: '/settings/license', keywords: 'settings license plan quota activation key' },
-    { title: 'Settings › Billing', path: '/settings/billing', keywords: 'settings billing subscription plan upgrade payment' },
     { title: 'Settings › API Keys', path: '/settings/keys', keywords: 'settings keys vault api provider authentication' },
+    { title: 'Settings › License', path: '/settings/license', keywords: 'settings license plan quota activation key' },
   ];
 
   useEffect(() => {
@@ -276,7 +245,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-card border-r border-border">
+        <div className="flex h-full flex-col bg-card">
 
           {/* Logo */}
           <div className="h-12 flex items-center px-5 pt-4">
@@ -327,13 +296,11 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       </button>
 
                       {isExpanded && (
-                        <ul className="mt-0.5 ml-5 space-y-0.5 border-l border-border pl-2">
+                        <ul className="mt-0.5 ml-5 space-y-0.5 pl-2">
                           {item.children.map((child) => {
                             const isActive =
                               pathname === child.href ||
                               pathname?.startsWith(child.href + '/');
-                            const isAlerts = child.href === '/history/alerts';
-                            const showBadge = isAlerts && alertCount > 0;
                             return (
                               <li key={child.name}>
                                 <Link
@@ -347,11 +314,6 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   )}
                                 >
                                   {child.name}
-                                  {showBadge && (
-                                    <span className="ml-auto flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold leading-none animate-pulse">
-                                      {alertCount > 99 ? '99+' : alertCount}
-                                    </span>
-                                  )}
                                 </Link>
                               </li>
                             );
@@ -425,12 +387,12 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 <div className="p-1">
                   <DropdownMenuItem
                     className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
-                    onSelect={() => { router.push('/settings/billing'); onClose?.(); }}
+                    onSelect={() => { router.push('/settings/license'); onClose?.(); }}
                   >
-                    <CreditCard className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <div>
-                      <p className="font-medium text-foreground">Billing</p>
-                      <p className="text-[10px] text-muted-foreground">Plan and usage</p>
+                      <p className="font-medium text-foreground">License</p>
+                      <p className="text-[10px] text-muted-foreground">Plan and quota</p>
                     </div>
                   </DropdownMenuItem>
 

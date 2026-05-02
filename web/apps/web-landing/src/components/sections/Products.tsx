@@ -186,8 +186,6 @@ export default function Products() {
           </div>
         </div>
       </div>
-
-      <div style={{ borderTop: 'var(--section-border)' }} />
     </section>
   )
 }
