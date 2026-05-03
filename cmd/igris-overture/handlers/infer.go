@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/config"
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/database"
 	"github.com/Igris-inertial/system/igris-overture/inference/optimizer"
 	ffi "github.com/Igris-inertial/system/igris-overture/inference/optimizer/ffi"
@@ -78,6 +80,7 @@ type InferHandler struct {
 	activationMetrics *optimizer.ActivationMetricsRecorder
 	safetyController  *safety.SafetyController
 	rand              *rand.Rand
+	executionStore    *coordinator.CheckpointStore
 	// runtimeExecutor forwards execution to igris-server when IGRIS_RUNTIME_URL is set.
 	// When nil, Overture routes directly to cloud providers (legacy path).
 	runtimeExecutor RuntimeExecutor
@@ -378,7 +381,7 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 		}
 	}
 
-	return &InferHandler{
+	handler := &InferHandler{
 		router:            inferenceRouter,
 		speculativeRouter: speculativeRouter,
 		shadowRunner:      shadowRunner,
@@ -387,7 +390,11 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 		activationMetrics: activationMetrics,
 		safetyController:  safetyController,
 		rand:              rand.New(rand.NewSource(time.Now().UnixNano())),
-	}, nil
+	}
+	if db != nil && db.IsEnabled() {
+		handler.executionStore = coordinator.NewCheckpointStore(db.DB)
+	}
+	return handler, nil
 }
 
 // SetRuntimeExecutor attaches a RuntimeExecutor to the handler.  When set,
@@ -654,10 +661,245 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	log.Printf("[Infer] Success: provider=%s, model=%s, latency=%dms, tokens=%d, cost=$%.6f, source=%s",
 		provider, model, latencyMs, totalTokens, costUSD, decisionSource)
 
+	if err := h.persistExecutionContext(tenantID, resp); err != nil {
+		log.Printf("[Infer] WARNING: Failed to persist execution context for tenant %s: %v", tenantID, err)
+	}
+
 	// Return response with trace ID header
 	c.Set("Content-Type", "application/json")
 	c.Set("X-Trace-ID", traceID)
 	return c.JSON(resp)
+}
+
+func (h *InferHandler) persistExecutionContext(tenantID string, resp *models.InferResponse) error {
+	if h.executionStore == nil || resp == nil {
+		return nil
+	}
+
+	envelopeRaw, err := marshalOptionalJSON(resp.ExecutionEnvelope)
+	if err != nil {
+		return err
+	}
+	receiptRaw, err := marshalOptionalJSON(resp.ExecutionReceipt)
+	if err != nil {
+		return err
+	}
+	refs, ok := coordinatorExecutionRefs(envelopeRaw, receiptRaw)
+	if !ok {
+		return nil
+	}
+
+	provider := refs.Provider
+	if provider == "" && resp.Metadata != nil {
+		provider = strings.TrimSpace(resp.Metadata.Provider)
+	}
+	routeDecision := refs.RouteDecision
+	if routeDecision == "" && resp.Metadata != nil {
+		routeDecision = strings.TrimSpace(resp.Metadata.RouteDecision)
+	}
+	executionPath := refs.ExecutionPath
+	if executionPath == "" {
+		executionPath = "runtime_task"
+	}
+	fallbackUsed := false
+	fallbackReason := ""
+	if resp.Metadata != nil {
+		fallbackUsed = resp.Metadata.Fallback
+		fallbackReason = strings.TrimSpace(resp.Metadata.FallbackReason)
+	}
+
+	record := &coordinator.ExecutionContextRecord{
+		ExecutionID:        refs.ExecutionID,
+		TenantID:           firstNonEmptyString(tenantID, refs.TenantID),
+		RuntimeLabel:       runtimeBaseLabel(h.runtimeExecutor),
+		Provider:           provider,
+		RouteDecision:      routeDecision,
+		ExecutionPath:      executionPath,
+		FallbackUsed:       fallbackUsed,
+		FallbackReason:     fallbackReason,
+		PolicySnapshot:     refs.PolicySnapshot,
+		CapabilitySnapshot: nil,
+		Events:             inferExecutionEvents(resp, routeDecision),
+		Logs:               inferExecutionLogs(resp, routeDecision),
+		VerificationStatus: refs.VerificationStatus,
+		ReceiptHash:        refs.ReceiptHash,
+	}
+	return h.executionStore.SaveExecutionContext(record)
+}
+
+type inferExecutionContextRefs struct {
+	ExecutionID        string
+	TenantID           string
+	Provider           string
+	RouteDecision      string
+	ExecutionPath      string
+	PolicySnapshot     json.RawMessage
+	VerificationStatus string
+	ReceiptHash        string
+}
+
+func coordinatorExecutionRefs(executionEnvelope, executionReceipt json.RawMessage) (*inferExecutionContextRefs, bool) {
+	if len(executionEnvelope) == 0 {
+		return nil, false
+	}
+
+	var envelope struct {
+		ExecutionID        string         `json:"execution_id"`
+		TenantID           *string        `json:"tenant_id"`
+		Provider           string         `json:"provider"`
+		Model              string         `json:"model"`
+		RoutingDecision    string         `json:"routing_decision"`
+		BoundsApplied      map[string]any `json:"bounds_applied"`
+		PolicyDecisionID   string         `json:"policy_decision_id"`
+		PolicyDecisionHash string         `json:"policy_decision_hash"`
+		GovernedActionHash string         `json:"governed_action_hash"`
+		Violation          string         `json:"violation"`
+	}
+	if err := json.Unmarshal(executionEnvelope, &envelope); err != nil {
+		return nil, false
+	}
+	if envelope.ExecutionID == "" {
+		return nil, false
+	}
+
+	var receipt struct {
+		ExecutionID string `json:"execution_id"`
+		ReceiptHash string `json:"receipt_hash"`
+		Hash        string `json:"hash"`
+	}
+	if len(executionReceipt) > 0 && string(executionReceipt) != "null" && string(executionReceipt) != "{}" {
+		if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
+			return nil, false
+		}
+		if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
+			return nil, false
+		}
+	}
+
+	policySnapshot := make(map[string]any)
+	if len(envelope.BoundsApplied) > 0 {
+		policySnapshot["bounds_applied"] = envelope.BoundsApplied
+	}
+	if envelope.PolicyDecisionID != "" {
+		policySnapshot["policy_decision_id"] = envelope.PolicyDecisionID
+	}
+	if envelope.PolicyDecisionHash != "" {
+		policySnapshot["policy_decision_hash"] = envelope.PolicyDecisionHash
+	}
+	if envelope.GovernedActionHash != "" {
+		policySnapshot["governed_action_hash"] = envelope.GovernedActionHash
+	}
+	if envelope.Violation != "" {
+		policySnapshot["violation"] = envelope.Violation
+	}
+
+	var policySnapshotRaw json.RawMessage
+	if len(policySnapshot) > 0 {
+		policySnapshotRaw, _ = json.Marshal(policySnapshot)
+	}
+
+	receiptHash := strings.TrimSpace(firstNonEmptyString(receipt.ReceiptHash, receipt.Hash))
+	tenantID := ""
+	if envelope.TenantID != nil {
+		tenantID = *envelope.TenantID
+	}
+
+	return &inferExecutionContextRefs{
+		ExecutionID:        envelope.ExecutionID,
+		TenantID:           tenantID,
+		Provider:           firstNonEmptyString(envelope.Provider, envelope.Model),
+		RouteDecision:      strings.TrimSpace(envelope.RoutingDecision),
+		ExecutionPath:      "runtime_task",
+		PolicySnapshot:     policySnapshotRaw,
+		VerificationStatus: inferVerificationStatus(receiptHash),
+		ReceiptHash:        receiptHash,
+	}, true
+}
+
+func inferExecutionEvents(resp *models.InferResponse, routeDecision string) json.RawMessage {
+	if resp == nil || resp.Metadata == nil {
+		return json.RawMessage("[]")
+	}
+	timestamp := resp.Metadata.Timestamp
+	if timestamp.IsZero() {
+		timestamp = time.Now().UTC()
+	}
+
+	events := []map[string]any{{
+		"timestamp": timestamp.UTC().Format(time.RFC3339),
+		"kind":      "runtime_execution",
+		"message":   firstNonEmptyString("Runtime execution completed", routeDecisionMessage(routeDecision)),
+	}}
+	if routeDecision != "" {
+		events = append(events, map[string]any{
+			"timestamp": timestamp.UTC().Format(time.RFC3339),
+			"kind":      "route_decision",
+			"message":   routeDecisionMessage(routeDecision),
+		})
+	}
+	raw, _ := json.Marshal(events)
+	return raw
+}
+
+func inferExecutionLogs(resp *models.InferResponse, routeDecision string) json.RawMessage {
+	if resp == nil || resp.Metadata == nil {
+		return json.RawMessage("[]")
+	}
+	timestamp := resp.Metadata.Timestamp
+	if timestamp.IsZero() {
+		timestamp = time.Now().UTC()
+	}
+
+	lines := []string{
+		fmt.Sprintf("%s runtime_execution: Runtime execution completed", timestamp.UTC().Format(time.RFC3339)),
+	}
+	if routeDecision != "" {
+		lines = append(lines, fmt.Sprintf("%s route_decision: %s", timestamp.UTC().Format(time.RFC3339), routeDecision))
+	}
+	raw, _ := json.Marshal(lines)
+	return raw
+}
+
+func marshalOptionalJSON(value map[string]interface{}) (json.RawMessage, error) {
+	if len(value) == 0 {
+		return nil, nil
+	}
+	raw, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	return raw, nil
+}
+
+func runtimeBaseLabel(executor RuntimeExecutor) string {
+	if executor == nil {
+		return ""
+	}
+	return strings.TrimSpace(executor.BaseURL())
+}
+
+func inferVerificationStatus(receiptHash string) string {
+	if strings.TrimSpace(receiptHash) == "" {
+		return ""
+	}
+	return "present"
+}
+
+func routeDecisionMessage(routeDecision string) string {
+	routeDecision = strings.TrimSpace(routeDecision)
+	if routeDecision == "" {
+		return "Runtime execution completed"
+	}
+	return fmt.Sprintf("Runtime route decision recorded: %s", routeDecision)
+}
+
+func firstNonEmptyString(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }
 
 // routeWithRustOptimizer routes inference using the Rust optimizer
