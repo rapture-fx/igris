@@ -188,6 +188,9 @@ type ExecutionRunDetail struct {
 	RouteDecision      *string                       `json:"route_decision"`
 	Provider           *string                       `json:"provider"`
 	ProviderPath       *string                       `json:"provider_path"`
+	RuntimeLabel       *string                       `json:"runtime_label"`
+	FallbackUsed       bool                          `json:"fallback_used"`
+	FallbackReason     *string                       `json:"fallback_reason"`
 	Receipt            *ExecutionRunReceiptReference `json:"receipt"`
 	Violations         []PolicyViolation             `json:"violations"`
 	Events             []ExecutionRunEvent           `json:"events"`
@@ -212,6 +215,24 @@ type executionRunRecord struct {
 	ReceiptSignature    string
 	ProofStatus         string
 	ViolationDetails    []byte
+	ContextProvider     string
+	ContextRouteDecision string
+	ContextExecutionPath string
+	ContextRuntimeLabel string
+	ContextFallbackUsed bool
+	ContextFallbackReason string
+	ContextPolicySnapshot []byte
+	ContextCapabilitySnapshot []byte
+	ContextEvents []byte
+	ContextLogs []byte
+	TaskExecutionEnvelope []byte
+	TaskPermissionEnvelope []byte
+	TaskFailureReason string
+	TaskFailureDetails []byte
+	TaskCreatedAt sql.NullTime
+	TaskDispatchedAt sql.NullTime
+	TaskCompletedAt sql.NullTime
+	TaskCanceledAt sql.NullTime
 }
 
 // ListRuns handles GET /v1/execution/runs?limit=20&sort=created_at:desc&status=PAUSED
@@ -365,10 +386,46 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 			COALESCE(previous_hash, '') AS previous_hash,
 			COALESCE(signature, '') AS signature,
 			COALESCE(tp.proof_status, '') AS proof_status,
-			violation_details
+			violation_details,
+			COALESCE(ec.provider, '') AS context_provider,
+			COALESCE(ec.route_decision, '') AS context_route_decision,
+			COALESCE(ec.execution_path, '') AS context_execution_path,
+			COALESCE(ec.runtime_label, '') AS context_runtime_label,
+			COALESCE(ec.fallback_used, false) AS context_fallback_used,
+			COALESCE(ec.fallback_reason, '') AS context_fallback_reason,
+			ec.policy_snapshot,
+			ec.capability_snapshot,
+			ec.events,
+			ec.logs,
+			tr.execution_envelope,
+			tr.permission_envelope,
+			COALESCE(tr.failure_reason, '') AS task_failure_reason,
+			tr.failure_details,
+			tr.created_at,
+			tr.dispatched_at,
+			tr.completed_at,
+			tr.canceled_at
 		FROM execution_lineage
+		LEFT JOIN execution_context ec
+		       ON ec.execution_id = execution_lineage.execution_id
+		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
 		LEFT JOIN LATERAL (
-			SELECT proof_status
+			SELECT
+				proof_status,
+				execution_envelope,
+				failure_reason,
+				failure_details,
+				created_at,
+				dispatched_at,
+				completed_at,
+				canceled_at,
+				COALESCE((
+					SELECT permission_envelope
+					FROM ai_task_permission_audit
+					WHERE task_id = task_records.task_id
+					ORDER BY persisted_at DESC
+					LIMIT 1
+				), '{}'::jsonb) AS permission_envelope
 			FROM task_records
 			WHERE tenant_id = execution_lineage.tenant_id
 			  AND proof_execution_id = execution_lineage.execution_id
@@ -393,6 +450,24 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 		&record.ReceiptSignature,
 		&record.ProofStatus,
 		&record.ViolationDetails,
+		&record.ContextProvider,
+		&record.ContextRouteDecision,
+		&record.ContextExecutionPath,
+		&record.ContextRuntimeLabel,
+		&record.ContextFallbackUsed,
+		&record.ContextFallbackReason,
+		&record.ContextPolicySnapshot,
+		&record.ContextCapabilitySnapshot,
+		&record.ContextEvents,
+		&record.ContextLogs,
+		&record.TaskExecutionEnvelope,
+		&record.TaskPermissionEnvelope,
+		&record.TaskFailureReason,
+		&record.TaskFailureDetails,
+		&record.TaskCreatedAt,
+		&record.TaskDispatchedAt,
+		&record.TaskCompletedAt,
+		&record.TaskCanceledAt,
 	)
 	if err == sql.ErrNoRows {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
