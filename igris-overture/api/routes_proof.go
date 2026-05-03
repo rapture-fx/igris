@@ -110,9 +110,12 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			tool_calls,
 			wall_time_ms,
 			violation_occurred,
-			COALESCE(tp.proof_status, '') AS proof_status,
+			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status,
 			violation_details
 		FROM execution_lineage
+		LEFT JOIN execution_context ec
+		       ON ec.execution_id = execution_lineage.execution_id
+		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
 		LEFT JOIN LATERAL (
 			SELECT proof_status
 			FROM task_records
@@ -236,8 +239,12 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 	var receiptID, storedHash, signature string
 	var proofStatus sql.NullString
 	err := h.db.QueryRow(`
-		SELECT el.id::text, el.receipt_hash, el.signature, tp.proof_status
+		SELECT el.id::text, el.receipt_hash, el.signature,
+		       COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '')
 		FROM execution_lineage
+		LEFT JOIN execution_context ec
+		       ON ec.execution_id = el.execution_id
+		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
 		LEFT JOIN LATERAL (
 			SELECT proof_status
 			FROM task_records
