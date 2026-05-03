@@ -18,7 +18,7 @@ const stages = [
   },
   {
     number: '03',
-    title: 'Prove',
+    title: 'Verify',
     body: 'Receive execution metadata and signed records that can be inspected after the run.',
     supporting: ['metadata', 'receipt', 'verification'],
   },
