@@ -21,10 +21,23 @@ const features = [
   },
 ]
 
+function NestedCard({ title, description, className = '' }: { title: string; description: string; className?: string }) {
+  const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+  return (
+    <div className={`rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col ${className}`}>
+      <div className="px-4 pt-3 pb-2.5" style={{ fontFamily }}>
+        <span className="text-xs font-medium text-black dark:text-[#f6f6f4]">{title}</span>
+      </div>
+      <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-4 pt-5 pb-6 flex-1 flex flex-col justify-end" style={{ minHeight: '180px' }}>
+        <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[220px]" style={{ fontFamily, fontWeight: 400 }}>
+          {description}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function MultiTenancy() {
-  const cardClass = "landing-surface-card landing-surface-card-interactive border rounded-2xl p-6 flex flex-col"
-  const titleClass = "text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]"
-  const descClass = "text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[280px]"
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
   return (
@@ -55,52 +68,10 @@ export default function MultiTenancy() {
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-8">
-            {/* Row 1: Signed execution (2 cols) | Fail-safe (1 col, spans 2 rows) */}
-            <div className={cardClass + " md:col-span-2"} style={{ minHeight: '160px', fontFamily }}>
-              <div className="mt-auto">
-                <h4 className={titleClass} style={{ fontFamily }}>
-                  {features[0].title}
-                </h4>
-                <p className={descClass} style={{ fontFamily }}>
-                  {features[0].description}
-                </p>
-              </div>
-            </div>
-
-            {/* Tall card spanning 2 rows */}
-            <div className={cardClass + " md:row-span-2"} style={{ minHeight: '160px', fontFamily }}>
-              <div className="mt-auto">
-                <h4 className={titleClass} style={{ fontFamily }}>
-                  {features[1].title}
-                </h4>
-                <p className={descClass} style={{ fontFamily }}>
-                  {features[1].description}
-                </p>
-              </div>
-            </div>
-
-            {/* Row 2: Air-gapped (1 col) | Verified (1 col) */}
-            <div className={cardClass} style={{ minHeight: '160px', fontFamily }}>
-              <div className="mt-auto">
-                <h4 className={titleClass} style={{ fontFamily }}>
-                  {features[2].title}
-                </h4>
-                <p className={descClass} style={{ fontFamily }}>
-                  {features[2].description}
-                </p>
-              </div>
-            </div>
-
-            <div className={cardClass} style={{ minHeight: '160px', fontFamily }}>
-              <div className="mt-auto">
-                <h4 className={titleClass} style={{ fontFamily }}>
-                  {features[3].title}
-                </h4>
-                <p className={descClass} style={{ fontFamily }}>
-                  {features[3].description}
-                </p>
-              </div>
-            </div>
+            <NestedCard title={features[0].title} description={features[0].description} className="md:col-span-2" />
+            <NestedCard title={features[1].title} description={features[1].description} className="md:row-span-2" />
+            <NestedCard title={features[2].title} description={features[2].description} />
+            <NestedCard title={features[3].title} description={features[3].description} />
           </div>
         </div>
       </div>

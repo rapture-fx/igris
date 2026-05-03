@@ -76,70 +76,34 @@ export default function CoreCapabilities() {
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
-          {/* Desktop table — 3 columns */}
-          <table className="w-full hidden md:table" style={{ borderCollapse: 'collapse' }}>
-            <tbody>
-              <tr>
-{capabilities.map((cap, index) => (
-                  <td
-                    key={cap.name}
-                    style={{
-                      width: '33.333%',
-                      paddingTop: '3rem',
-                      paddingBottom: '3rem',
-                      paddingLeft: index === 0 ? 0 : '0.75rem',
-                      paddingRight: index === capabilities.length - 1 ? 0 : '0.75rem',
-                      verticalAlign: index === 1 ? 'top' : 'middle',
-                      borderRight: 'none',
-                    }}
-                  >
-                    <div className="landing-surface-card rounded-xl p-4 border flex flex-col items-center shadow-sm">
-                      <div style={{ width: cap.wrapW, height: cap.wrapH, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
-                        <div className="rounded-xl p-2" style={{ width: cap.imgW, height: cap.imgH, backgroundColor: 'transparent', border: 'none' }}>
-                          <img
-                            src={mounted && theme === 'dark' ? cap.imgDark : cap.imgLight}
-                            alt={cap.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: index === 1 || index === 2 ? (mounted && theme === 'dark' ? 1 : 0.5) : 1, background: 'transparent' }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-full text-left px-4 py-4">
-                        <h4 className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                          {cap.name}
-                        </h4>
-                        <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontWeight: 400, fontFamily }}>
-                          {cap.description}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-
-          {/* Mobile stacked */}
-          <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)] dark:divide-[rgba(246,246,244,0.06)]">
+          {/* Cards grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-8 md:py-12 md:items-start">
             {capabilities.map((cap, index) => (
-              <div key={cap.name} className="py-8">
-                <div className="landing-surface-card rounded-xl p-4 border flex flex-col items-center shadow-sm">
-                  <div className="w-36 h-40 flex items-center justify-center" style={{ background: 'transparent' }}>
-                    <div className="p-2" style={{ width: '160px', height: '160px', backgroundColor: 'transparent', border: 'none' }}>
-                      <img
-                        src={mounted && theme === 'dark' ? cap.imgDark : cap.imgLight}
-                        alt={cap.name}
-                        style={{ width: cap.name.includes('Decide') ? '140px' : '120px', height: cap.name.includes('Decide') ? '140px' : '120px', objectFit: 'contain', opacity: index === 1 || index === 2 ? (mounted && theme === 'dark' ? 1 : 0.5) : 1, background: 'transparent' }}
-                      />
-                    </div>
+              <div
+                key={cap.name}
+                className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col"
+              >
+                {/* Header */}
+                <div className="px-4 pt-3 pb-2.5" style={{ fontFamily }}>
+                  <span className="text-xs font-medium text-black dark:text-[#f6f6f4]">{cap.name}</span>
+                </div>
+                {/* Nested inner panel */}
+                <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl flex flex-col px-6 pt-6 pb-6 flex-1">
+                  <div style={{ width: cap.wrapW, height: cap.wrapH, display: 'flex', alignItems: 'center', justifyContent: 'center', alignSelf: 'center' }}>
+                    <img
+                      src={mounted && theme === 'dark' ? cap.imgDark : cap.imgLight}
+                      alt={cap.name}
+                      style={{
+                        width: cap.imgW,
+                        height: cap.imgH,
+                        objectFit: 'contain',
+                        opacity: index === 1 || index === 2 ? (mounted && theme === 'dark' ? 1 : 0.5) : 1,
+                      }}
+                    />
                   </div>
-                  <div className="w-full text-left px-4 py-4">
-                    <h4 className="text-sm mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                      {cap.name}
-                    </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed" style={{ fontWeight: 400, fontFamily }}>
-                      {cap.description}
-                    </p>
-                  </div>
+                  <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[200px] mt-4" style={{ fontFamily, fontWeight: 400 }}>
+                    {cap.description}
+                  </p>
                 </div>
               </div>
             ))}

@@ -3,6 +3,7 @@
 import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
 import Products from '../src/components/sections/Products'
+import HowItWorks from '../src/components/sections/HowItWorks'
 import AutonomousSystems from '../src/components/sections/AutonomousSystems'
 import SDKs from '../src/components/sections/SDKs'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
@@ -27,6 +28,7 @@ export default function HomePage() {
         <main>
           <ScrollReveal><Hero /></ScrollReveal>
           <ScrollReveal delay={0.1}><Products /></ScrollReveal>
+          <ScrollReveal delay={0.1}><HowItWorks /></ScrollReveal>
           <ScrollReveal delay={0.1}><AutonomousSystems /></ScrollReveal>
           <ScrollReveal delay={0.1}><SDKs /></ScrollReveal>
           <ScrollReveal delay={0.1}><CoreCapabilities /></ScrollReveal>
