@@ -153,6 +153,7 @@ type ExecutionRun struct {
 	AgentID             string     `json:"agent_id"`
 	Model               string     `json:"model"`
 	DeviceID            string     `json:"device_id"`
+	RuntimeID           string     `json:"runtime_id,omitempty"`
 	StartedAt           time.Time  `json:"started_at"`
 	EndedAt             *time.Time `json:"ended_at,omitempty"`
 	DurationMs          int64      `json:"duration_ms"`
@@ -495,6 +496,7 @@ func buildExecutionRunSummary(record executionRunRecord) ExecutionRun {
 		AgentID:             record.AgentID,
 		Model:               "",
 		DeviceID:            record.DeviceID,
+		RuntimeID:           record.DeviceID,
 		StartedAt:           record.StartedAt,
 		EndedAt:             deriveExecutionEndedAt(record.StartedAt, record.DurationMs, record.Status),
 		DurationMs:          record.DurationMs,
