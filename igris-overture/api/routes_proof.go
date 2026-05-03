@@ -3,6 +3,7 @@ package api
 
 import (
 	"database/sql"
+	"encoding/json"
 	"strconv"
 	"strings"
 	"time"
@@ -47,25 +48,26 @@ func RegisterProofRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAuth) {
 
 // ProofReceipt is the response shape for a single receipt row.
 type ProofReceipt struct {
-	ID           string    `json:"id"`
-	ExecutionID  string    `json:"execution_id"`
-	AgentID      string    `json:"agent_id"`
-	DeviceID     string    `json:"device_id"`
-	Timestamp    time.Time `json:"timestamp"`
-	StartTime    time.Time `json:"start_time"`
-	EndTime      time.Time `json:"end_time"`
-	Status       string    `json:"status"`
-	Signature    string    `json:"signature"`
-	Hash         string    `json:"hash"`
-	PrevHash     string    `json:"prev_hash"`
-	HasViolation bool      `json:"has_violation"`
-	Signed       bool      `json:"signed"`
-	CpuMs        int64     `json:"cpu_ms"`
-	MemoryMb     int64     `json:"memory_mb"`
-	TokensUsed   int       `json:"tokens_used"`
-	ToolCalls    int       `json:"tool_calls"`
-	DurationMs   int64     `json:"duration_ms"`
-	Violations   []string  `json:"violations"`
+	ID                 string                   `json:"id"`
+	ExecutionID        string                   `json:"execution_id"`
+	AgentID            string                   `json:"agent_id"`
+	DeviceID           string                   `json:"device_id"`
+	Timestamp          time.Time                `json:"timestamp"`
+	StartTime          time.Time                `json:"start_time"`
+	EndTime            time.Time                `json:"end_time"`
+	Status             string                   `json:"status"`
+	VerificationStatus string                   `json:"verification_status"`
+	Signature          string                   `json:"signature"`
+	Hash               string                   `json:"hash"`
+	PrevHash           string                   `json:"prev_hash"`
+	HasViolation       bool                     `json:"has_violation"`
+	Signed             bool                     `json:"signed"`
+	CpuMs              int64                    `json:"cpu_ms"`
+	MemoryMb           int64                    `json:"memory_mb"`
+	TokensUsed         int                      `json:"tokens_used"`
+	ToolCalls          int                      `json:"tool_calls"`
+	DurationMs         int64                    `json:"duration_ms"`
+	Violations         []ReceiptViolationRecord `json:"violations"`
 }
 
 // ListReceipts handles GET /proof/receipts?limit=500&sort=timestamp:desc
@@ -107,8 +109,18 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			memory_peak_mb,
 			tool_calls,
 			wall_time_ms,
-			violation_occurred
+			violation_occurred,
+			COALESCE(tp.proof_status, '') AS proof_status,
+			violation_details
 		FROM execution_lineage
+		LEFT JOIN LATERAL (
+			SELECT proof_status
+			FROM task_records
+			WHERE tenant_id = execution_lineage.tenant_id
+			  AND proof_execution_id = execution_lineage.execution_id
+			ORDER BY created_at DESC
+			LIMIT 1
+		) tp ON TRUE
 		WHERE tenant_id = $1
 		ORDER BY timestamp_utc ` + sortDir + `
 		LIMIT $2
@@ -128,6 +140,8 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 	for rows.Next() {
 		var r ProofReceipt
 		var violOccurred bool
+		var proofStatus string
+		var violationDetails []byte
 
 		if err := rows.Scan(
 			&r.ID,
@@ -143,6 +157,8 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			&r.ToolCalls,
 			&r.DurationMs,
 			&violOccurred,
+			&proofStatus,
+			&violationDetails,
 		); err != nil {
 			log.Error().Err(err).Msg("[Proof] Scan error")
 			continue
@@ -152,12 +168,14 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 		r.Signed = r.Signature != ""
 		r.StartTime = r.Timestamp
 		r.EndTime = r.Timestamp.Add(time.Duration(r.DurationMs) * time.Millisecond)
+		r.VerificationStatus = receiptVerificationStatus(proofStatus, r.Hash)
+		r.Status = receiptVerificationBadgeStatus(r.VerificationStatus)
 		if violOccurred {
-			r.Status = "violation"
-			r.Violations = []string{"policy_violation"}
+			r.Violations = []ReceiptViolationRecord{
+				buildReceiptViolationRecord(r.Timestamp, violationDetails),
+			}
 		} else {
-			r.Status = "verified"
-			r.Violations = []string{}
+			r.Violations = []ReceiptViolationRecord{}
 		}
 		// TokensUsed is not stored in execution_lineage; default to 0.
 		r.TokensUsed = 0
@@ -172,14 +190,23 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 type VerifyReceiptRequest struct {
 	ExecutionID  string `json:"execution_id"`
 	ExpectedHash string `json:"expected_hash"`
+	Hash         string `json:"hash"`
+	Signature    string `json:"signature"`
 }
 
 // VerifyReceiptResponse is the response for POST /proof/receipts/verify.
 type VerifyReceiptResponse struct {
-	Valid       bool   `json:"valid"`
-	ExecutionID string `json:"execution_id"`
-	Hash        string `json:"hash"`
-	Signature   string `json:"signature"`
+	Verified           bool   `json:"verified"`
+	Valid              bool   `json:"valid"`
+	ExecutionID        string `json:"execution_id"`
+	ReceiptID          string `json:"receipt_id"`
+	Hash               string `json:"hash"`
+	Signature          string `json:"signature"`
+	VerificationStatus string `json:"verification_status"`
+	HashValid          *bool  `json:"hash_valid,omitempty"`
+	SignatureMatches   *bool  `json:"signature_matches,omitempty"`
+	ChainValid         *bool  `json:"chain_valid,omitempty"`
+	Message            string `json:"message"`
 }
 
 // VerifyReceipt handles POST /proof/receipts/verify.
@@ -204,13 +231,24 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		})
 	}
 
-	var storedHash, signature string
+	comparisonHash := expectedHashFromVerifyRequest(req)
+
+	var receiptID, storedHash, signature string
+	var proofStatus sql.NullString
 	err := h.db.QueryRow(`
-		SELECT receipt_hash, signature
+		SELECT el.id::text, el.receipt_hash, el.signature, tp.proof_status
 		FROM execution_lineage
-		WHERE execution_id = $1
-		  AND (tenant_id = $2 OR tenant_id IS NULL)
-	`, req.ExecutionID, tenantID).Scan(&storedHash, &signature)
+		LEFT JOIN LATERAL (
+			SELECT proof_status
+			FROM task_records
+			WHERE tenant_id = el.tenant_id
+			  AND proof_execution_id = el.execution_id
+			ORDER BY created_at DESC
+			LIMIT 1
+		) tp ON TRUE
+		WHERE el.execution_id = $1
+		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
+	`, req.ExecutionID, tenantID).Scan(&receiptID, &storedHash, &signature, &proofStatus)
 
 	if err == sql.ErrNoRows {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -226,43 +264,88 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		})
 	}
 
-	valid := true
-	if req.ExpectedHash != "" {
-		valid = storedHash == req.ExpectedHash
+	var (
+		hashValid        *bool
+		signatureMatches *bool
+		verified         bool
+	)
+
+	checksPerformed := 0
+	if comparisonHash != "" {
+		match := storedHash == comparisonHash
+		hashValid = &match
+		checksPerformed++
+		verified = match
+	}
+	if req.Signature != "" {
+		match := signature == req.Signature
+		signatureMatches = &match
+		checksPerformed++
+		if checksPerformed == 1 {
+			verified = match
+		} else {
+			verified = verified && match
+		}
+	}
+	if checksPerformed == 0 {
+		verified = false
 	}
 
-	if err := coordinator.NewCheckpointStore(h.db).UpdateTaskProofStateByExecutionID(tenantID, req.ExecutionID, req.ExpectedHash, storedHash, signature); err != nil {
+	verificationStatus := receiptVerificationStatus(proofStatus.String, storedHash)
+
+	if err := coordinator.NewCheckpointStore(h.db).UpdateTaskProofStateByExecutionID(tenantID, req.ExecutionID, comparisonHash, storedHash, signature); err != nil {
 		log.Warn().Err(err).Str("execution_id", req.ExecutionID).Msg("[Proof] Failed to sync task proof state")
 	}
 
 	return c.JSON(VerifyReceiptResponse{
-		Valid:       valid,
-		ExecutionID: req.ExecutionID,
-		Hash:        storedHash,
-		Signature:   signature,
+		Verified:           verified,
+		Valid:              verified,
+		ExecutionID:        req.ExecutionID,
+		ReceiptID:          receiptID,
+		Hash:               storedHash,
+		Signature:          signature,
+		VerificationStatus: verificationStatus,
+		HashValid:          hashValid,
+		SignatureMatches:   signatureMatches,
+		ChainValid:         nil,
+		Message:            buildReceiptVerificationMessage(hashValid, signatureMatches),
 	})
+}
+
+type ReceiptViolationRecord struct {
+	Timestamp     string   `json:"timestamp"`
+	ViolationType string   `json:"violation_type"`
+	PolicyRule    string   `json:"policy_rule,omitempty"`
+	ActionTaken   string   `json:"action_taken,omitempty"`
+	Severity      string   `json:"severity,omitempty"`
+	LimitValue    *float64 `json:"limit_value,omitempty"`
+	ObservedValue *float64 `json:"observed_value,omitempty"`
 }
 
 // PolicyViolation is the response shape for a single violation entry.
 type PolicyViolation struct {
-	ID                string `json:"id"`
-	Timestamp         string `json:"timestamp"`
-	ExecutionID       string `json:"execution_id"`
-	AgentID           string `json:"agent_id"`
-	DeviceID          string `json:"device_id"`
-	ViolationType     string `json:"violation_type"`
-	Severity          string `json:"severity"`
-	PolicyRule        string `json:"policy_rule"`
-	PolicyHash        string `json:"policy_hash"`
-	CapabilityRule    string `json:"capability_rule"`
-	BoundsRule        string `json:"bounds_rule"`
-	ActionTaken       string `json:"action_taken"`
-	ExecutionState    string `json:"execution_state"`
-	SupervisorAction  string `json:"supervisor_action"`
-	ContainmentResult string `json:"containment_result"`
-	Signature         string `json:"signature"`
-	Hash              string `json:"hash"`
-	PreviousHash      string `json:"previous_hash"`
+	ID                string         `json:"id"`
+	Timestamp         string         `json:"timestamp"`
+	ExecutionID       string         `json:"execution_id"`
+	AgentID           string         `json:"agent_id"`
+	DeviceID          string         `json:"device_id"`
+	Status            string         `json:"status"`
+	ViolationType     string         `json:"violation_type,omitempty"`
+	Severity          string         `json:"severity,omitempty"`
+	PolicyRule        string         `json:"policy_rule,omitempty"`
+	PolicyHash        string         `json:"policy_hash,omitempty"`
+	CapabilityRule    string         `json:"capability_rule,omitempty"`
+	BoundsRule        string         `json:"bounds_rule,omitempty"`
+	ActionTaken       string         `json:"action_taken,omitempty"`
+	ExecutionState    string         `json:"execution_state,omitempty"`
+	SupervisorAction  string         `json:"supervisor_action,omitempty"`
+	ContainmentResult string         `json:"containment_result,omitempty"`
+	Signature         string         `json:"signature"`
+	Hash              string         `json:"hash"`
+	PreviousHash      string         `json:"previous_hash"`
+	LimitValue        *float64       `json:"limit_value,omitempty"`
+	ObservedValue     *float64       `json:"observed_value,omitempty"`
+	Details           map[string]any `json:"details,omitempty"`
 }
 
 // ListViolations handles GET /v1/proof/violations?limit=500&sort=timestamp:desc
@@ -290,6 +373,12 @@ func (h *ProofHandler) ListViolations(c *fiber.Ctx) error {
 		}
 	}
 
+	rangeParam := c.Query("range", "")
+	intervalFilter := ""
+	if rangeParam != "" {
+		intervalFilter = " AND timestamp_utc >= NOW() - INTERVAL '" + rangeToInterval(rangeParam) + "'"
+	}
+
 	query := `
 		SELECT
 			id,
@@ -299,10 +388,13 @@ func (h *ProofHandler) ListViolations(c *fiber.Ctx) error {
 			timestamp_utc,
 			receipt_hash,
 			previous_hash,
-			signature
+			signature,
+			COALESCE(status, CASE WHEN violation_occurred THEN 'VIOLATION' ELSE 'COMPLETED' END) AS status,
+			violation_details
 		FROM execution_lineage
 		WHERE tenant_id = $1
 		  AND violation_occurred = TRUE
+		  ` + intervalFilter + `
 		ORDER BY timestamp_utc ` + sortDir + `
 		LIMIT $2
 	`
@@ -321,27 +413,194 @@ func (h *ProofHandler) ListViolations(c *fiber.Ctx) error {
 	for rows.Next() {
 		var v PolicyViolation
 		var ts time.Time
+		var status string
+		var violationDetails []byte
 
 		if err := rows.Scan(
 			&v.ID, &v.ExecutionID, &v.AgentID, &v.DeviceID,
-			&ts, &v.Hash, &v.PreviousHash, &v.Signature,
+			&ts, &v.Hash, &v.PreviousHash, &v.Signature, &status, &violationDetails,
 		); err != nil {
 			log.Error().Err(err).Msg("[Proof] Violation scan error")
 			continue
 		}
-		v.Timestamp = ts.UTC().Format(time.RFC3339)
-		v.ViolationType = "POLICY_VIOLATION"
-		v.Severity = "high"
-		v.PolicyRule = "execution_policy"
-		v.PolicyHash = v.Hash
-		v.CapabilityRule = "capability.deny_list"
-		v.BoundsRule = "bounds.enforcement"
-		v.ActionTaken = "terminated"
-		v.ExecutionState = "TERMINATED"
-		v.SupervisorAction = "KILL_EXECUTION"
-		v.ContainmentResult = "CONTAINED"
-		violations = append(violations, v)
+		violations = append(violations, buildPolicyViolation(v, ts, status, violationDetails))
 	}
 
 	return c.JSON(violations)
+}
+
+type policyViolationMetadata struct {
+	ViolationType     string
+	Severity          string
+	PolicyRule        string
+	CapabilityRule    string
+	BoundsRule        string
+	ActionTaken       string
+	ExecutionState    string
+	SupervisorAction  string
+	ContainmentResult string
+	LimitValue        *float64
+	ObservedValue     *float64
+	Details           map[string]any
+}
+
+func expectedHashFromVerifyRequest(req VerifyReceiptRequest) string {
+	if req.ExpectedHash != "" {
+		return req.ExpectedHash
+	}
+	return req.Hash
+}
+
+func buildReceiptVerificationMessage(hashValid *bool, signatureMatches *bool) string {
+	switch {
+	case hashValid != nil && signatureMatches != nil:
+		if *hashValid && *signatureMatches {
+			return "Stored receipt hash and signature matched the submitted values. This endpoint does not perform cryptographic signature validation."
+		}
+		return "Stored receipt values did not match the submitted hash or signature."
+	case hashValid != nil:
+		if *hashValid {
+			return "Stored receipt hash matched the submitted expected hash."
+		}
+		return "Stored receipt hash did not match the submitted expected hash."
+	case signatureMatches != nil:
+		if *signatureMatches {
+			return "Stored receipt signature matched the submitted signature value. This endpoint does not perform cryptographic signature validation."
+		}
+		return "Stored receipt signature did not match the submitted signature value."
+	default:
+		return "Receipt record was found, but no comparison fields were supplied, so no verification checks were performed."
+	}
+}
+
+func receiptVerificationStatus(proofStatus, receiptHash string) string {
+	normalized := strings.ToLower(strings.TrimSpace(proofStatus))
+	if normalized != "" {
+		return normalized
+	}
+	if receiptHash == "" {
+		return "missing"
+	}
+	return "present"
+}
+
+func receiptVerificationBadgeStatus(verificationStatus string) string {
+	switch strings.ToLower(strings.TrimSpace(verificationStatus)) {
+	case "verified":
+		return "verified"
+	case "mismatch":
+		return "failed"
+	default:
+		return "unverified"
+	}
+}
+
+func buildReceiptViolationRecord(ts time.Time, rawDetails []byte) ReceiptViolationRecord {
+	meta := parsePolicyViolationDetails(rawDetails)
+	record := ReceiptViolationRecord{
+		Timestamp:     ts.UTC().Format(time.RFC3339),
+		ViolationType: meta.ViolationType,
+		PolicyRule:    meta.PolicyRule,
+		ActionTaken:   meta.ActionTaken,
+		Severity:      meta.Severity,
+		LimitValue:    meta.LimitValue,
+		ObservedValue: meta.ObservedValue,
+	}
+	if record.ViolationType == "" {
+		record.ViolationType = "violation_recorded"
+	}
+	return record
+}
+
+func buildPolicyViolation(v PolicyViolation, ts time.Time, status string, rawDetails []byte) PolicyViolation {
+	meta := parsePolicyViolationDetails(rawDetails)
+	v.Timestamp = ts.UTC().Format(time.RFC3339)
+	v.Status = strings.ToUpper(strings.TrimSpace(status))
+	v.PolicyHash = v.Hash
+	v.ViolationType = meta.ViolationType
+	v.Severity = meta.Severity
+	v.PolicyRule = meta.PolicyRule
+	v.CapabilityRule = meta.CapabilityRule
+	v.BoundsRule = meta.BoundsRule
+	v.ActionTaken = meta.ActionTaken
+	if meta.ExecutionState != "" {
+		v.ExecutionState = meta.ExecutionState
+	} else {
+		v.ExecutionState = v.Status
+	}
+	v.SupervisorAction = meta.SupervisorAction
+	v.ContainmentResult = meta.ContainmentResult
+	v.LimitValue = meta.LimitValue
+	v.ObservedValue = meta.ObservedValue
+	v.Details = meta.Details
+	return v
+}
+
+func parsePolicyViolationDetails(raw []byte) policyViolationMetadata {
+	meta := policyViolationMetadata{}
+	if len(raw) == 0 || string(raw) == "null" {
+		return meta
+	}
+
+	var details map[string]any
+	if err := json.Unmarshal(raw, &details); err != nil {
+		return meta
+	}
+
+	meta.Details = details
+	meta.ViolationType = firstDetailString(details, "violation_type", "type", "kind")
+	meta.Severity = firstDetailString(details, "severity")
+	meta.PolicyRule = firstDetailString(details, "policy_rule")
+	meta.CapabilityRule = firstDetailString(details, "capability_rule")
+	meta.BoundsRule = firstDetailString(details, "bounds_rule", "bound_violated")
+	meta.ActionTaken = firstDetailString(details, "action_taken")
+	meta.ExecutionState = firstDetailString(details, "execution_state")
+	meta.SupervisorAction = firstDetailString(details, "supervisor_action")
+	meta.ContainmentResult = firstDetailString(details, "containment_result")
+	meta.LimitValue = firstDetailNumber(details, "limit_value", "expected", "threshold")
+	meta.ObservedValue = firstDetailNumber(details, "observed_value", "actual", "measured")
+	return meta
+}
+
+func firstDetailString(details map[string]any, keys ...string) string {
+	for _, key := range keys {
+		value, ok := details[key]
+		if !ok {
+			continue
+		}
+		if str, ok := value.(string); ok {
+			trimmed := strings.TrimSpace(str)
+			if trimmed != "" {
+				return trimmed
+			}
+		}
+	}
+	return ""
+}
+
+func firstDetailNumber(details map[string]any, keys ...string) *float64 {
+	for _, key := range keys {
+		value, ok := details[key]
+		if !ok {
+			continue
+		}
+		switch n := value.(type) {
+		case float64:
+			return &n
+		case float32:
+			converted := float64(n)
+			return &converted
+		case int:
+			converted := float64(n)
+			return &converted
+		case int64:
+			converted := float64(n)
+			return &converted
+		case json.Number:
+			if parsed, err := n.Float64(); err == nil {
+				return &parsed
+			}
+		}
+	}
+	return nil
 }

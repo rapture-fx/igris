@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
+import { ErrorState } from '@/components/states/ErrorState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { fetchExecutionReceipts, fetchExecutionRuns, fetchExecutionViolations, type ExecutionReceipt, type ExecutionRun, type ExecutionViolation } from '@/lib/executionRuns';
@@ -22,15 +23,6 @@ import {
 
 interface OverviewStats {
   online_devices: number;
-}
-
-function countFallbackSignals(runs: ExecutionRun[]): number {
-  return runs.reduce((total, run) => {
-    const text = run.logs?.join(' ').toLowerCase() ?? '';
-    if (!text) return total;
-    const matches = text.match(/fallback|failover|retry/g);
-    return total + (matches?.length ?? 0);
-  }, 0);
 }
 
 function SummaryCard({
@@ -86,39 +78,27 @@ function Surface({
 }
 
 export default function DashboardPage() {
-  const { data: stats, isLoading: statsLoading } = useQuery<OverviewStats>({
+  const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useQuery<OverviewStats>({
     queryKey: ['dashboard-overview'],
-    queryFn: async () => {
-      try {
-        return await api.get<OverviewStats>('/v1/stats/overview');
-      } catch {
-        return { online_devices: 0 };
-      }
-    },
+    queryFn: () => api.get<OverviewStats>('/v1/stats/overview', { allowMockFallback: false }),
     retry: false,
   });
 
-  const { data: runs = [], isLoading: runsLoading } = useQuery<ExecutionRun[]>({
+  const { data: runs = [], isLoading: runsLoading, error: runsError, refetch: refetchRuns } = useQuery<ExecutionRun[]>({
     queryKey: ['dashboard-runs'],
-    queryFn: async () => {
-      try {
-        return await fetchExecutionRuns({ limit: 20, sort: 'created_at:desc', range: '24h' });
-      } catch {
-        return [];
-      }
-    },
+    queryFn: () => fetchExecutionRuns({ limit: 20, sort: 'created_at:desc', range: '24h' }, { strict: true }),
     retry: false,
   });
 
-  const { data: receipts = [], isLoading: receiptsLoading } = useQuery<ExecutionReceipt[]>({
+  const { data: receipts = [], isLoading: receiptsLoading, error: receiptsError, refetch: refetchReceipts } = useQuery<ExecutionReceipt[]>({
     queryKey: ['dashboard-receipts'],
-    queryFn: () => fetchExecutionReceipts(40),
+    queryFn: () => fetchExecutionReceipts(40, { strict: true }),
     retry: false,
   });
 
-  const { data: violations = [], isLoading: violationsLoading } = useQuery<ExecutionViolation[]>({
+  const { data: violations = [], isLoading: violationsLoading, error: violationsError, refetch: refetchViolations } = useQuery<ExecutionViolation[]>({
     queryKey: ['dashboard-violations'],
-    queryFn: () => fetchExecutionViolations(),
+    queryFn: () => fetchExecutionViolations('last_24h', 500, { strict: true }),
     retry: false,
   });
 
@@ -127,13 +107,16 @@ export default function DashboardPage() {
       const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
       return status === 'verified';
     }).length;
+    const unverifiedReceipts = receipts.filter((receipt) => {
+      const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
+      return status !== 'verified';
+    }).length;
     const failedOrStopped = runs.filter((run) => ['ERROR', 'CANCELLED', 'VIOLATION', 'PAUSED'].includes(run.status)).length;
-    const fallbackSignals = countFallbackSignals(runs);
     return {
       runs: runs.length,
       verifiedReceipts,
+      unverifiedReceipts,
       failedOrStopped,
-      fallbackSignals,
       policyViolations: violations.length,
       connectedDevices: stats?.online_devices ?? 0,
     };
@@ -148,6 +131,26 @@ export default function DashboardPage() {
     return Math.round((verified / receipts.length) * 100);
   }, [receipts]);
 
+  const pageError = statsError ?? runsError ?? receiptsError ?? violationsError;
+
+  if (pageError) {
+    return (
+      <DashboardLayout>
+        <ErrorState
+          error={pageError}
+          title="Verified execution data is unavailable"
+          description="Dashboard metrics are shown only from live backend data on this page."
+          onRetry={() => {
+            void refetchStats();
+            void refetchRuns();
+            void refetchReceipts();
+            void refetchViolations();
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <OnboardingModal />
@@ -155,15 +158,15 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-base font-semibold text-foreground">Verified execution overview</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Current run records, receipt verification state, policy violations, and operator-visible execution signals.
+            Live run records, receipt verification state, policy violations, and execution outcomes.
           </p>
         </div>
 
         <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
           <SummaryCard label="Runs" value={digest.runs} sub="current query window" icon={PlayCircle} loading={runsLoading} />
-          <SummaryCard label="Verified receipts" value={digest.verifiedReceipts} sub="receipts passing verification" icon={Hash} loading={receiptsLoading} />
+          <SummaryCard label="Verified receipts" value={digest.verifiedReceipts} sub="expected hash matched stored receipt" icon={Hash} loading={receiptsLoading} />
           <SummaryCard label="Failed or stopped" value={digest.failedOrStopped} sub="error, cancel, pause, violation" icon={XCircle} loading={runsLoading} />
-          <SummaryCard label="Fallback signals" value={digest.fallbackSignals} sub="retry or failover markers in logs" icon={Shield} loading={runsLoading} />
+          <SummaryCard label="Unverified receipts" value={digest.unverifiedReceipts} sub="receipt recorded without a verified match" icon={Shield} loading={receiptsLoading} />
           <SummaryCard label="Policy violations" value={digest.policyViolations} sub="violation records loaded" icon={AlertTriangle} loading={violationsLoading} />
           <SummaryCard label="Connected devices" value={digest.connectedDevices} sub="online runtime nodes" icon={Cpu} loading={statsLoading} />
         </div>
@@ -274,7 +277,9 @@ export default function DashboardPage() {
                 violations.slice(0, 6).map((violation) => (
                   <div key={violation.id} className="px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs font-medium text-gray-700">{violation.kind}</span>
+                      <span className="text-xs font-medium text-gray-700">
+                        {violation.violation_type || violation.policy_rule || 'Violation recorded'}
+                      </span>
                       <span className="text-[11px] text-black">{getRelativeTime(violation.timestamp)}</span>
                     </div>
                     <p className="text-[11px] text-black mt-0.5">
@@ -286,7 +291,7 @@ export default function DashboardPage() {
             </div>
           </Surface>
 
-          <Surface title="Execution signals" link={{ href: '/history/logs', label: 'Logs' }}>
+          <Surface title="Recent execution outcomes" link={{ href: '/execution/runs', label: 'Runs' }}>
             <div className="px-4 py-4 space-y-3 min-h-[280px]">
               {runsLoading ? (
                 Array.from({ length: 5 }).map((_, index) => (
@@ -296,15 +301,19 @@ export default function DashboardPage() {
                   </div>
                 ))
               ) : runs.length === 0 ? (
-                <p className="text-xs text-gray-500">No execution signals were returned.</p>
+                <p className="text-xs text-gray-500">No execution outcomes were returned.</p>
               ) : (
                 runs
-                  .flatMap((run) => (run.logs ?? []).slice(-2).map((line) => ({ runId: run.id, line })))
                   .slice(0, 8)
-                  .map((entry, index) => (
-                    <div key={`${entry.runId}-${index}`} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
-                      <p className="text-[11px] font-medium text-gray-800">{truncateText(entry.runId, 18)}</p>
-                      <p className="mt-1 text-[11px] text-gray-600 leading-relaxed">{entry.line}</p>
+                  .map((run) => (
+                    <div key={run.id} className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[11px] font-medium text-gray-800">{truncateText(run.id, 18)}</p>
+                        <StatusBadge status={run.has_violation ? 'VIOLATION' : run.status} />
+                      </div>
+                      <p className="mt-1 text-[11px] text-gray-600 leading-relaxed">
+                        {truncateText(run.agent_id, 16)} · {run.verification_status || 'verification not recorded'}
+                      </p>
                     </div>
                   ))
               )}
