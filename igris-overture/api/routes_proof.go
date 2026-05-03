@@ -52,6 +52,8 @@ type ProofReceipt struct {
 	ExecutionID        string                   `json:"execution_id"`
 	AgentID            string                   `json:"agent_id"`
 	DeviceID           string                   `json:"device_id"`
+	RuntimeID          string                   `json:"runtime_id,omitempty"`
+	RuntimeLabel       string                   `json:"runtime_label,omitempty"`
 	Timestamp          time.Time                `json:"timestamp"`
 	StartTime          time.Time                `json:"start_time"`
 	EndTime            time.Time                `json:"end_time"`
@@ -100,7 +102,8 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			id,
 			execution_id,
 			agent_id,
-			COALESCE(runtime_id, '')   AS device_id,
+			COALESCE(NULLIF(execution_lineage.runtime_id, ''), NULLIF(ec.runtime_id, ''), '') AS runtime_id,
+			COALESCE(ec.runtime_label, '') AS runtime_label,
 			timestamp_utc,
 			receipt_hash,
 			previous_hash,
@@ -150,7 +153,8 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			&r.ID,
 			&r.ExecutionID,
 			&r.AgentID,
-			&r.DeviceID,
+			&r.RuntimeID,
+			&r.RuntimeLabel,
 			&r.Timestamp,
 			&r.Hash,
 			&r.PrevHash,
@@ -168,6 +172,7 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 		}
 
 		r.HasViolation = violOccurred
+		r.DeviceID = r.RuntimeID
 		r.Signed = r.Signature != ""
 		r.StartTime = r.Timestamp
 		r.EndTime = r.Timestamp.Add(time.Duration(r.DurationMs) * time.Millisecond)
@@ -203,6 +208,8 @@ type VerifyReceiptResponse struct {
 	Valid              bool   `json:"valid"`
 	ExecutionID        string `json:"execution_id"`
 	ReceiptID          string `json:"receipt_id"`
+	RuntimeID          string `json:"runtime_id,omitempty"`
+	RuntimeLabel       string `json:"runtime_label,omitempty"`
 	Hash               string `json:"hash"`
 	Signature          string `json:"signature"`
 	VerificationStatus string `json:"verification_status"`
@@ -236,12 +243,16 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 
 	comparisonHash := expectedHashFromVerifyRequest(req)
 
-	var receiptID, storedHash, signature string
+	var receiptID, runtimeID, runtimeLabel, storedHash, signature string
 	var proofStatus sql.NullString
 	err := h.db.QueryRow(`
-		SELECT el.id::text, el.receipt_hash, el.signature,
+		SELECT el.id::text,
+		       COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), ''),
+		       COALESCE(ec.runtime_label, ''),
+		       el.receipt_hash,
+		       el.signature,
 		       COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '')
-		FROM execution_lineage
+		FROM execution_lineage el
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = el.execution_id
 		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
@@ -255,7 +266,7 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		) tp ON TRUE
 		WHERE el.execution_id = $1
 		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
-	`, req.ExecutionID, tenantID).Scan(&receiptID, &storedHash, &signature, &proofStatus)
+	`, req.ExecutionID, tenantID).Scan(&receiptID, &runtimeID, &runtimeLabel, &storedHash, &signature, &proofStatus)
 
 	if err == sql.ErrNoRows {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
@@ -309,6 +320,8 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		Valid:              verified,
 		ExecutionID:        req.ExecutionID,
 		ReceiptID:          receiptID,
+		RuntimeID:          runtimeID,
+		RuntimeLabel:       runtimeLabel,
 		Hash:               storedHash,
 		Signature:          signature,
 		VerificationStatus: verificationStatus,
