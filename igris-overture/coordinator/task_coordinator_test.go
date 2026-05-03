@@ -1264,6 +1264,69 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestSaveExecutionArtifactsPersistsExecutionContext(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	createdAt := time.Date(2026, 5, 3, 12, 0, 0, 0, time.UTC)
+	dispatchedAt := createdAt.Add(5 * time.Second)
+	completedAt := createdAt.Add(45 * time.Second)
+
+	envelope := json.RawMessage(`{
+		"execution_id":"exec-context-1",
+		"tenant_id":"tenant-context",
+		"provider":"openai",
+		"routing_decision":"runtime:test",
+		"bounds_applied":{"max_tick_ms":1000}
+	}`)
+	receipt := json.RawMessage(`{
+		"execution_id":"exec-context-1",
+		"receipt_hash":"receipt-hash-context-1",
+		"signature":"receipt-sig-context-1"
+	}`)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{
+			values: []driver.Value{
+				"tenant-context",
+				"runtime-context",
+				"http://runtime-context",
+				"verified",
+				"",
+				nil,
+				[]byte(`{"envelope_id":"env-1","required_capabilities":["tools.github.issues.write"],"decisions":[{"capability":"tools.github.issues.write","permit":true,"reason":"allowed","policy_version":"capabilities.v1"}],"credential_refs":[],"issued_at_unix_ms":1800000000000,"expires_at_unix_ms":1800000030000,"signature":"env-sig"}`),
+				createdAt,
+				dispatchedAt,
+				completedAt,
+				nil,
+			},
+		}},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "INSERT INTO execution_context")
+				require.Equal(t, "exec-context-1", args[0].Value)
+				require.Equal(t, "tenant-context", args[1].Value)
+				require.Equal(t, taskID.String(), args[2].Value)
+				require.Equal(t, "runtime-context", args[3].Value)
+				require.Equal(t, "http://runtime-context", args[4].Value)
+				require.Equal(t, "openai", args[5].Value)
+				require.Equal(t, "runtime:test", args[6].Value)
+				require.Equal(t, "runtime_task", args[7].Value)
+				require.Equal(t, false, args[8].Value)
+				require.Equal(t, "verified", args[14].Value)
+				require.Equal(t, "receipt-hash-context-1", args[16].Value)
+			},
+		},
+	)
+	store := NewCheckpointStore(db)
+
+	require.NoError(t, store.SaveExecutionArtifacts(taskID, envelope, receipt))
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func signedRuntimeArtifactJSON(t *testing.T, privateKey ed25519.PrivateKey, fields map[string]any) json.RawMessage {
 	t.Helper()
 	canonical, err := json.Marshal(fields)
