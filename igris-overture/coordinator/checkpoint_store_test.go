@@ -1038,6 +1038,7 @@ func TestBuildExecutionLineageRecordFromReceipt(t *testing.T) {
 			"transaction_id":"tx-1",
 			"transaction_hash":"tx-hash-1",
 			"agent_id":"tenant-infer",
+			"runtime_id":"runtime-infer-1",
 			"cpu_time_ms":12,
 			"wall_time_ms":36,
 			"memory_peak_mb":48,
@@ -1065,6 +1066,9 @@ func TestBuildExecutionLineageRecordFromReceipt(t *testing.T) {
 	}
 	if record.ReceiptHash != "receipt-hash-1" {
 		t.Fatalf("ReceiptHash = %q, want receipt-hash-1", record.ReceiptHash)
+	}
+	if record.RuntimeID != "runtime-infer-1" {
+		t.Fatalf("RuntimeID = %q, want runtime-infer-1", record.RuntimeID)
 	}
 	if record.Status != "COMPLETED" {
 		t.Fatalf("Status = %q, want COMPLETED", record.Status)
