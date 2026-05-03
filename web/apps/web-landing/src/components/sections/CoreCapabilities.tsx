@@ -80,7 +80,7 @@ export default function CoreCapabilities() {
           <table className="w-full hidden md:table" style={{ borderCollapse: 'collapse' }}>
             <tbody>
               <tr>
-                {capabilities.map((cap, index) => (
+{capabilities.map((cap, index) => (
                   <td
                     key={cap.name}
                     style={{
@@ -99,7 +99,7 @@ export default function CoreCapabilities() {
                           <img
                             src={mounted && theme === 'dark' ? cap.imgDark : cap.imgLight}
                             alt={cap.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1, background: 'transparent' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: index === 1 || index === 2 ? (mounted && theme === 'dark' ? 1 : 0.5) : 1, background: 'transparent' }}
                           />
                         </div>
                       </div>
@@ -120,7 +120,7 @@ export default function CoreCapabilities() {
 
           {/* Mobile stacked */}
           <div className="flex flex-col md:hidden divide-y divide-[rgba(209,213,219,0.35)] dark:divide-[rgba(246,246,244,0.06)]">
-            {capabilities.map((cap) => (
+            {capabilities.map((cap, index) => (
               <div key={cap.name} className="py-8">
                 <div className="landing-surface-card rounded-xl p-4 border flex flex-col items-center shadow-sm">
                   <div className="w-36 h-40 flex items-center justify-center" style={{ background: 'transparent' }}>
@@ -128,7 +128,7 @@ export default function CoreCapabilities() {
                       <img
                         src={mounted && theme === 'dark' ? cap.imgDark : cap.imgLight}
                         alt={cap.name}
-                        style={{ width: cap.name.includes('Decide') ? '140px' : '120px', height: cap.name.includes('Decide') ? '140px' : '120px', objectFit: 'contain', opacity: 1, background: 'transparent' }}
+                        style={{ width: cap.name.includes('Decide') ? '140px' : '120px', height: cap.name.includes('Decide') ? '140px' : '120px', objectFit: 'contain', opacity: index === 1 || index === 2 ? (mounted && theme === 'dark' ? 1 : 0.5) : 1, background: 'transparent' }}
                       />
                     </div>
                   </div>
