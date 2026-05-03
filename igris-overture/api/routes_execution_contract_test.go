@@ -1,8 +1,14 @@
 package api
 
 import (
+	"database/sql/driver"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func TestBuildExecutionRunSummary(t *testing.T) {
@@ -114,5 +120,159 @@ func TestBuildExecutionRunDetailIncludesPersistedContext(t *testing.T) {
 	}
 	if len(detail.Logs) != 1 {
 		t.Fatalf("Logs length = %d, want 1", len(detail.Logs))
+	}
+}
+
+func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *testing.T) {
+	t.Parallel()
+
+	startedAt := time.Date(2026, 5, 3, 13, 0, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
+			"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
+			"receipt_hash", "previous_hash", "signature", "proof_status",
+		},
+		rows: [][]driver.Value{{
+			"exec-infer-1",
+			"tenant-infer",
+			"",
+			startedAt,
+			int64(36),
+			false,
+			"completed",
+			"",
+			"hello runtime",
+			"row-infer-1",
+			"receipt-hash-infer-1",
+			"receipt-hash-prev-0",
+			"receipt-sig-infer-1",
+			"verified",
+		}},
+	}})
+
+	handler := NewExecutionHandler(db)
+	app := fiber.New()
+	app.Get("/v1/execution/runs", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-infer")
+		return handler.ListRuns(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/runs?limit=20&range=24h", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var runs []ExecutionRun
+	if err := json.NewDecoder(resp.Body).Decode(&runs); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if len(runs) != 1 {
+		t.Fatalf("len(runs) = %d, want 1", len(runs))
+	}
+	if runs[0].VerificationStatus != "verified" {
+		t.Fatalf("VerificationStatus = %q, want verified", runs[0].VerificationStatus)
+	}
+	if runs[0].ReceiptHash != "receipt-hash-infer-1" {
+		t.Fatalf("ReceiptHash = %q, want receipt-hash-infer-1", runs[0].ReceiptHash)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
+func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
+	t.Parallel()
+
+	startedAt := time.Date(2026, 5, 3, 13, 0, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
+			"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
+			"receipt_hash", "previous_hash", "signature", "proof_status", "violation_details",
+			"context_provider", "context_route_decision", "context_execution_path", "context_runtime_label",
+			"context_fallback_used", "context_fallback_reason", "context_policy_snapshot",
+			"context_capability_snapshot", "context_events", "context_logs",
+			"execution_envelope", "permission_envelope", "task_failure_reason", "task_failure_details",
+			"created_at", "dispatched_at", "completed_at", "canceled_at",
+		},
+		rows: [][]driver.Value{{
+			"exec-infer-1",
+			"tenant-infer",
+			"",
+			startedAt,
+			int64(36),
+			false,
+			"completed",
+			"",
+			"hello runtime",
+			"row-infer-1",
+			"receipt-hash-infer-1",
+			"receipt-hash-prev-0",
+			"receipt-sig-infer-1",
+			"verified",
+			nil,
+			"local-mock-cloud",
+			"forwarded_to_runtime_task",
+			"runtime_task",
+			"http://runtime.test",
+			false,
+			"",
+			[]byte(`{"bounds_applied":{"max_tick_ms":1000}}`),
+			nil,
+			[]byte(`[{"timestamp":"2026-05-03T13:00:00Z","kind":"runtime_execution","message":"Runtime execution completed"}]`),
+			[]byte(`["2026-05-03T13:00:00Z runtime_execution: Runtime execution completed"]`),
+			nil,
+			nil,
+			"",
+			nil,
+			nil,
+			nil,
+			nil,
+			nil,
+		}},
+	}})
+
+	handler := NewExecutionHandler(db)
+	app := fiber.New()
+	app.Get("/v1/execution/runs/:id", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-infer")
+		return handler.GetRunDetail(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/runs/exec-infer-1", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var detail ExecutionRunDetail
+	if err := json.NewDecoder(resp.Body).Decode(&detail); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if detail.Provider == nil || *detail.Provider != "local-mock-cloud" {
+		t.Fatalf("Provider = %v, want local-mock-cloud", detail.Provider)
+	}
+	if detail.ProviderPath == nil || *detail.ProviderPath != "runtime_task" {
+		t.Fatalf("ProviderPath = %v, want runtime_task", detail.ProviderPath)
+	}
+	if detail.RuntimeLabel == nil || *detail.RuntimeLabel != "http://runtime.test" {
+		t.Fatalf("RuntimeLabel = %v, want http://runtime.test", detail.RuntimeLabel)
+	}
+	if detail.VerificationStatus != "verified" {
+		t.Fatalf("VerificationStatus = %q, want verified", detail.VerificationStatus)
+	}
+	if len(detail.Events) != 1 {
+		t.Fatalf("len(Events) = %d, want 1", len(detail.Events))
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
 	}
 }
