@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, Suspense, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ErrorState } from '@/components/states/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -213,14 +214,11 @@ function ReceiptsContent() {
   const [violationsOnly, setViolationsOnly] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('receipt'));
-  const [verifyResult, setVerifyResult] = useState<'ok' | 'failed' | null>(null);
+  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
 
-  const { data: allReceipts = [], isLoading, refetch } = useQuery<Receipt[]>({
+  const { data: allReceipts = [], isLoading, error, refetch } = useQuery<Receipt[]>({
     queryKey: ['proof-receipts'],
-    queryFn: async () => {
-      try { return await api.get<Receipt[]>('/proof/receipts?limit=500&sort=timestamp:desc'); }
-      catch { return [] as Receipt[]; }
-    },
+    queryFn: () => api.get<Receipt[]>('/proof/receipts?limit=500&sort=timestamp:desc', { allowMockFallback: false }),
     retry: false,
     staleTime: 30_000,
     refetchInterval: 30_000,
@@ -228,10 +226,12 @@ function ReceiptsContent() {
   });
 
   const verifyMutation = useMutation({
-    mutationFn: (payload: { execution_id: string; hash: string; signature: string }) =>
+    mutationFn: (payload: { execution_id: string; expected_hash: string; signature: string }) =>
       api.post('/proof/receipts/verify', payload),
-    onSuccess: () => setVerifyResult('ok'),
-    onError: () => setVerifyResult('failed'),
+    onSuccess: (result: { verified: boolean; message: string }) => {
+      setVerifyResult({ ok: result.verified, message: result.message });
+    },
+    onError: (err: Error) => setVerifyResult({ ok: false, message: err.message }),
   });
 
   // Sync drawer state to URL
@@ -277,10 +277,25 @@ function ReceiptsContent() {
     setVerifyResult(null);
     verifyMutation.mutate({
       execution_id: r.execution_id,
-      hash: r.hash,
+      expected_hash: r.hash,
       signature: r.signature,
     });
   };
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <ErrorState
+          error={error}
+          title="Receipt records are unavailable"
+          description="This page uses live proof receipts only and does not fall back to mock data."
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -313,7 +328,7 @@ function ReceiptsContent() {
             icon={ShieldCheck}
             label="Verified"
             value={counts.verified}
-            sub="Signature-checked records"
+            sub="expected hash matched stored receipt"
             loading={isLoading}
           />
           <OverviewCard
@@ -477,17 +492,17 @@ function ReceiptsContent() {
         <SurfaceSection
           icon={Shield}
           title="Receipt Verification"
-          description="Inspect cryptographic proof for the selected receipt."
+          description="Inspect the stored receipt hash, signature, and chain link for the selected receipt."
           actions={selected ? (
             <div className="flex items-center gap-2">
-              {verifyResult === 'ok' && (
+              {verifyResult?.ok && (
                 <span className="text-xs text-green-700 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Chain verified
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Receipt check passed
                 </span>
               )}
-              {verifyResult === 'failed' && (
+              {verifyResult && !verifyResult.ok && (
                 <span className="text-xs text-red-600 flex items-center gap-1">
-                  <XCircle className="h-3.5 w-3.5" /> Verification failed
+                  <XCircle className="h-3.5 w-3.5" /> Receipt check failed
                 </span>
               )}
               <Button
@@ -499,7 +514,7 @@ function ReceiptsContent() {
               >
                 {verifyMutation.isPending
                   ? <><RefreshCw className="h-3 w-3 animate-spin" /> Verifying…</>
-                  : <><ShieldCheck className="h-3 w-3" /> Verify Chain</>
+                  : <><ShieldCheck className="h-3 w-3" /> Check Receipt</>
                 }
               </Button>
             </div>
@@ -511,6 +526,11 @@ function ReceiptsContent() {
             </p>
           ) : (
             <div className="space-y-4">
+              {verifyResult && (
+                <div className={`rounded-md border px-3 py-2 text-xs ${verifyResult.ok ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                  {verifyResult.message}
+                </div>
+              )}
               <HashDisplay label="Signature" value={selected.signature} />
               <HashDisplay label="Hash" value={selected.hash} />
               <HashDisplay label="Previous Hash" value={selected.prev_hash || ''} />

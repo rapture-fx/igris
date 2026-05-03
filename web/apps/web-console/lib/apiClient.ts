@@ -11,6 +11,7 @@ export class ApiError extends Error {
 
 interface ApiRequestOptions extends RequestInit {
   skipAuth?: boolean;
+  allowMockFallback?: boolean;
 }
 
 // CSRF token management
@@ -37,7 +38,7 @@ export async function apiRequest<T = any>(
   path: string,
   options: ApiRequestOptions = {}
 ): Promise<T> {
-  const { skipAuth = false, ...fetchOptions } = options;
+  const { skipAuth = false, allowMockFallback = true, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -86,14 +87,14 @@ export async function apiRequest<T = any>(
   } catch (error) {
     if (error instanceof ApiError) {
       // In development, fall back to mock data for non-auth errors
-      if (FEATURE_FLAGS.enableMockData && error.status !== 401) {
+      if (allowMockFallback && FEATURE_FLAGS.enableMockData && error.status !== 401) {
         const mock = getMockForPath(path);
         if (mock !== undefined) return mock as T;
       }
       throw error;
     }
     // Network error - fall back to mock data in development
-    if (FEATURE_FLAGS.enableMockData) {
+    if (allowMockFallback && FEATURE_FLAGS.enableMockData) {
       const mock = getMockForPath(path);
       if (mock !== undefined) return mock as T;
     }

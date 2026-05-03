@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ErrorState } from '@/components/states/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -70,23 +71,32 @@ export default function ExecutionRunsPage() {
   const [page, setPage] = useState(0);
   const pageSize = 50;
 
-  const { data: runs = [], isLoading, refetch } = useQuery<ExecutionRun[]>({
+  const { data: runs = [], isLoading, error, refetch } = useQuery<ExecutionRun[]>({
     queryKey: ['execution-runs', page, statusFilter, timeRange],
-    queryFn: async () => {
-      try {
-        return await fetchExecutionRuns({
-          limit: pageSize,
-          offset: page * pageSize,
-          sort: 'created_at:desc',
-          range: timeRange,
-          status: statusFilter === 'all' ? undefined : statusFilter,
-        });
-      } catch {
-        return [];
-      }
-    },
+    queryFn: () => fetchExecutionRuns({
+      limit: pageSize,
+      offset: page * pageSize,
+      sort: 'created_at:desc',
+      range: timeRange,
+      status: statusFilter === 'all' ? undefined : statusFilter,
+    }, { strict: true }),
     retry: false,
   });
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <ErrorState
+          error={error}
+          title="Run records are unavailable"
+          description="This page uses live execution records only and does not fall back to mock data."
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
 
   const filteredRuns = useMemo(() => {
     const query = search.trim().toLowerCase();

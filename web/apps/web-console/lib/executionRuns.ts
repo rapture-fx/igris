@@ -2,6 +2,10 @@
 
 import { api } from '@/lib/apiClient';
 
+interface FetchOptions {
+  strict?: boolean;
+}
+
 export interface ExecutionRun {
   id: string;
   agent_id: string;
@@ -21,6 +25,7 @@ export interface ExecutionRun {
   logs?: string[];
   llm_proposal?: string;
   enforced_output?: string;
+  verification_status?: string;
 }
 
 export interface ReceiptViolationRecord {
@@ -28,6 +33,9 @@ export interface ReceiptViolationRecord {
   violation_type: string;
   policy_rule?: string;
   action_taken?: string;
+  severity?: string;
+  limit_value?: number | null;
+  observed_value?: number | null;
 }
 
 export interface ExecutionReceipt {
@@ -59,23 +67,51 @@ export interface ExecutionReceipt {
 
 export interface ExecutionViolation {
   id: string;
-  kind: string;
   agent_id: string;
   device_id: string;
   timestamp: string;
-  created_at?: string;
   execution_id: string;
+  status?: string;
+  violation_type?: string;
+  severity?: string;
+  policy_rule?: string;
+  capability_rule?: string;
+  bounds_rule?: string;
+  action_taken?: string;
+  execution_state?: string;
+  supervisor_action?: string;
+  containment_result?: string;
+  hash?: string;
+  previous_hash?: string;
+  signature?: string;
+  details?: Record<string, unknown> | null;
   limit_value?: number | null;
   observed_value?: number | null;
-  execution?: {
-    id: string;
-    status: string;
-    model: string;
-    agent_id: string;
-    device_id: string;
-    started_at: string;
-    duration_ms: number;
-  };
+}
+
+export interface ExecutionRunReceiptReference {
+  id: string;
+  hash?: string;
+  previous_hash?: string;
+  signature?: string;
+  signed: boolean;
+  verification_status?: string;
+}
+
+export interface ExecutionRunEvent {
+  timestamp: string;
+  kind: string;
+  message: string;
+}
+
+export interface ExecutionRunDetail extends ExecutionRun {
+  route_decision?: string | null;
+  provider?: string | null;
+  provider_path?: string | null;
+  receipt?: ExecutionRunReceiptReference | null;
+  violations?: ExecutionViolation[];
+  events?: ExecutionRunEvent[];
+  logs?: string[];
 }
 
 export function formatDurationMs(ms: number): string {
@@ -93,7 +129,7 @@ export async function fetchExecutionRuns(params: {
   sort?: string;
   range?: string;
   status?: string;
-} = {}): Promise<ExecutionRun[]> {
+} = {}, options: FetchOptions = {}): Promise<ExecutionRun[]> {
   const query = new URLSearchParams();
   if (params.limit !== undefined) query.set('limit', String(params.limit));
   if (params.offset !== undefined) query.set('offset', String(params.offset));
@@ -102,26 +138,26 @@ export async function fetchExecutionRuns(params: {
   if (params.status) query.set('status', params.status);
 
   const suffix = query.toString();
-  return api.get<ExecutionRun[]>(`/v1/execution/runs${suffix ? `?${suffix}` : ''}`);
+  return api.get<ExecutionRun[]>(`/v1/execution/runs${suffix ? `?${suffix}` : ''}`, {
+    allowMockFallback: !options.strict,
+  });
 }
 
-export async function fetchExecutionRun(id: string): Promise<ExecutionRun | null> {
+export async function fetchExecutionRun(id: string, options: FetchOptions = {}): Promise<ExecutionRunDetail | null> {
+  return api.get<ExecutionRunDetail>(`/v1/execution/runs/${encodeURIComponent(id)}`, {
+    allowMockFallback: !options.strict,
+  });
+}
+
+export async function fetchExecutionReceipts(limit = 500, options: FetchOptions = {}): Promise<ExecutionReceipt[]> {
   try {
-    return await api.get<ExecutionRun>(`/v1/execution/runs/${encodeURIComponent(id)}`);
+    return await api.get<ExecutionReceipt[]>(`/proof/receipts?limit=${limit}&sort=timestamp:desc`, {
+      allowMockFallback: !options.strict,
+    });
   } catch {
-    try {
-      const runs = await fetchExecutionRuns({ limit: 500, sort: 'created_at:desc' });
-      return runs.find((run) => run.id === id) ?? null;
-    } catch {
-      return null;
+    if (options.strict) {
+      throw new Error('Failed to load execution receipts from /proof/receipts');
     }
-  }
-}
-
-export async function fetchExecutionReceipts(limit = 500): Promise<ExecutionReceipt[]> {
-  try {
-    return await api.get<ExecutionReceipt[]>(`/proof/receipts?limit=${limit}&sort=timestamp:desc`);
-  } catch {
     try {
       return await api.get<ExecutionReceipt[]>(`/v1/proof/receipts?limit=${limit}&sort=timestamp:desc`);
     } catch {
@@ -130,10 +166,12 @@ export async function fetchExecutionReceipts(limit = 500): Promise<ExecutionRece
   }
 }
 
-export async function fetchExecutionViolations(range = 'last_24h', limit = 500): Promise<ExecutionViolation[]> {
-  try {
-    return await api.get<ExecutionViolation[]>(`/v1/proof/violations?range=${range}&limit=${limit}`);
-  } catch {
-    return [];
-  }
+export async function fetchExecutionViolations(
+  range = 'last_24h',
+  limit = 500,
+  options: FetchOptions = {},
+): Promise<ExecutionViolation[]> {
+  return api.get<ExecutionViolation[]>(`/v1/proof/violations?range=${range}&limit=${limit}`, {
+    allowMockFallback: !options.strict,
+  });
 }

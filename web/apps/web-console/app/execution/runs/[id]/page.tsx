@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ErrorState } from '@/components/states/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,12 +18,9 @@ import {
   ReceiptVerificationPanel,
 } from '@/components/execution/shared';
 import {
-  fetchExecutionReceipts,
   fetchExecutionRun,
-  fetchExecutionViolations,
   formatDurationMs,
-  type ExecutionReceipt,
-  type ExecutionRun,
+  type ExecutionRunDetail,
   type ExecutionViolation,
 } from '@/lib/executionRuns';
 import { api } from '@/lib/apiClient';
@@ -42,41 +40,15 @@ import {
   XCircle,
 } from 'lucide-react';
 
-function guessProvider(model?: string, endpoint?: string): string | null {
-  const source = `${model ?? ''} ${endpoint ?? ''}`.toLowerCase();
-  if (!source) return null;
-  if (source.includes('openai') || source.includes('gpt-') || source.includes('o1') || source.includes('o3')) return 'OpenAI';
-  if (source.includes('claude') || source.includes('anthropic')) return 'Anthropic';
-  if (source.includes('gemini') || source.includes('google')) return 'Google';
-  if (source.includes('deepseek')) return 'DeepSeek';
-  if (source.includes('xai') || source.includes('grok')) return 'xAI';
-  return null;
-}
-
-function extractObservedEndpoint(logs?: string[]): string | null {
-  if (!logs?.length) return null;
-  for (const line of logs) {
-    const match = line.match(/https?:\/\/([^/\s")]+)/i);
-    if (match?.[1]) return match[1];
-  }
-  return null;
-}
-
-function summarizeFallback(logs?: string[]): string {
-  const text = logs?.join(' ').toLowerCase() ?? '';
-  if (!text) return 'Not recorded in the current execution record.';
-  if (text.includes('fallback') || text.includes('failover')) return 'Fallback or failover activity was recorded in execution logs.';
-  if (text.includes('retry')) return 'Retry attempts were recorded, but no provider fallback was explicitly logged.';
-  return 'No fallback event was recorded in the execution logs.';
-}
-
-function verificationLabel(receipt?: ExecutionReceipt | null): string {
-  const status = receipt?.status ?? receipt?.verification_status;
+function verificationLabel(status?: string | null): string {
   if (!status) return 'Pending';
   const normalized = String(status).toLowerCase();
   if (normalized === 'verified') return 'Verified';
   if (normalized === 'failed') return 'Failed';
   if (normalized === 'unverified') return 'Unverified';
+  if (normalized === 'mismatch') return 'Mismatch';
+  if (normalized === 'present') return 'Recorded';
+  if (normalized === 'missing') return 'Missing';
   return String(status);
 }
 
@@ -92,33 +64,23 @@ function runStatusAllowsCancel(status: string): boolean {
   return status === 'RUNNING';
 }
 
-function violationRows(run: ExecutionRun, receipt: ExecutionReceipt | null, violations: ExecutionViolation[]) {
+function violationRows(run: ExecutionRunDetail, violations: ExecutionViolation[]) {
   if (violations.length > 0) {
     return violations.map((violation) => ({
       id: violation.id,
-      label: violation.kind,
+      label: violation.violation_type || violation.policy_rule || 'Violation recorded',
       observed: violation.observed_value ?? '—',
       limit: violation.limit_value ?? '—',
       timestamp: violation.timestamp,
     }));
   }
 
-  if (receipt?.violation_type) {
-    return [{
-      id: receipt.id,
-      label: receipt.violation_type,
-      observed: receipt.observed_value ?? '—',
-      limit: receipt.limit_value ?? '—',
-      timestamp: receipt.timestamp,
-    }];
-  }
-
   if (run.has_violation) {
     return [{
       id: `${run.id}-violation`,
       label: 'Violation recorded',
-      observed: 'See execution logs',
-      limit: 'See policy bounds',
+      observed: 'Not recorded',
+      limit: 'Not recorded',
       timestamp: run.ended_at ?? run.started_at,
     }];
   }
@@ -155,51 +117,20 @@ export default function ExecutionRunDetailPage() {
   const queryClient = useQueryClient();
   const [verifyResult, setVerifyResult] = useState<null | boolean>(null);
 
-  const { data: run, isLoading: runLoading, refetch: refetchRun } = useQuery<ExecutionRun | null>({
+  const { data: run, isLoading: runLoading, error: runError, refetch: refetchRun } = useQuery<ExecutionRunDetail | null>({
     queryKey: ['execution-run-detail', runId],
-    queryFn: () => fetchExecutionRun(runId),
+    queryFn: () => fetchExecutionRun(runId, { strict: true }),
     enabled: !!runId,
     retry: false,
   });
 
-  const { data: receipts = [] } = useQuery<ExecutionReceipt[]>({
-    queryKey: ['execution-run-receipts', runId],
-    queryFn: () => fetchExecutionReceipts(),
-    enabled: !!runId,
-    retry: false,
-    staleTime: 30_000,
-  });
-
-  const { data: allViolations = [] } = useQuery<ExecutionViolation[]>({
-    queryKey: ['execution-run-violations', runId],
-    queryFn: () => fetchExecutionViolations(),
-    enabled: !!runId,
-    retry: false,
-    staleTime: 30_000,
-  });
-
-  const receipt = useMemo(
-    () => receipts.find((entry) => entry.execution_id === runId) ?? null,
-    [receipts, runId],
-  );
-  const violations = useMemo(
-    () => allViolations.filter((entry) => entry.execution_id === runId),
-    [allViolations, runId],
-  );
-
-  const endpoint = extractObservedEndpoint(run?.logs);
-  const provider = guessProvider(run?.model, endpoint ?? undefined);
-  const routeDecision = provider
-    ? `Observed provider-selected path via ${provider}.`
-    : 'Structured routing metadata is not returned for this run.';
-  const providerPath = endpoint
-    ? `Observed endpoint: ${endpoint}`
-    : provider
-      ? `${provider} path inferred from the run model.`
-      : 'Provider endpoint not recorded in the execution record.';
-  const fallbackStatus = summarizeFallback(run?.logs);
-  const receiptStatus = verificationLabel(receipt);
-  const violationList = useMemo(() => run ? violationRows(run, receipt, violations) : [], [run, receipt, violations]);
+  const receipt = run?.receipt ?? null;
+  const violations = run?.violations ?? [];
+  const routeDecision = run?.route_decision ?? 'Route decision was not recorded for this run.';
+  const providerDisplay = run?.provider ?? 'Not recorded';
+  const providerPath = run?.provider_path ?? 'Provider path was not recorded for this run.';
+  const receiptStatus = verificationLabel(receipt?.verification_status ?? run?.verification_status);
+  const violationList = useMemo(() => run ? violationRows(run, violations) : [], [run, violations]);
 
   const refreshExecutionQueries = async () => {
     await refetchRun();
@@ -235,20 +166,39 @@ export default function ExecutionRunDetailPage() {
 
   const verifyMutation = useMutation({
     mutationFn: () =>
-      api.post('/proof/receipts/verify', {
+      api.post<{ verified: boolean; message: string }>('/proof/receipts/verify', {
         execution_id: runId,
-        hash: receipt?.hash ?? run?.receipt_hash,
+        expected_hash: receipt?.hash ?? run?.receipt_hash,
         signature: receipt?.signature ?? run?.receipt_signature,
       }),
-    onSuccess: () => {
-      setVerifyResult(true);
-      toast({ title: 'Receipt verified' });
+    onSuccess: (result) => {
+      setVerifyResult(result.verified);
+      toast({
+        title: result.verified ? 'Receipt check passed' : 'Receipt check failed',
+        description: result.message,
+        variant: result.verified ? 'default' : 'destructive',
+      });
     },
     onError: () => {
       setVerifyResult(false);
       toast({ title: 'Receipt verification failed', variant: 'destructive' });
     },
   });
+
+  if (runError) {
+    return (
+      <DashboardLayout>
+        <ErrorState
+          error={runError}
+          title="Run detail is unavailable"
+          description="This page requires the live run-detail endpoint and does not fall back to mock records."
+          onRetry={() => {
+            void refetchRun();
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -286,9 +236,6 @@ export default function ExecutionRunDetailPage() {
           <Card className="border-gray-200 shadow-none">
             <CardContent className="py-10">
               <p className="text-sm text-gray-700">No execution record was found for this run id.</p>
-              <p className="mt-1 text-xs text-gray-500">
-                The backend may not expose direct run lookup yet, and the record was not present in the current run list window.
-              </p>
             </CardContent>
           </Card>
         ) : (
@@ -303,7 +250,7 @@ export default function ExecutionRunDetailPage() {
               <Surface title="Receipt" icon={Hash}>
                 <p className="text-lg font-semibold text-gray-900">{receiptStatus}</p>
                 <p className="mt-1 text-xs text-gray-500">
-                  {receipt?.signed || run.receipt_signature ? 'Signed execution receipt present.' : 'Receipt not signed yet.'}
+                  {receipt?.signed || run.receipt_signature ? 'Signed execution receipt present.' : 'No signed receipt was returned.'}
                 </p>
               </Surface>
               <Surface title="Violations" icon={AlertTriangle}>
@@ -363,16 +310,11 @@ export default function ExecutionRunDetailPage() {
               </Surface>
 
               <Surface title="Execution path" icon={Shield}>
-                <div className="mb-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
-                  <p className="text-[11px] text-gray-500">
-                    Derived from the execution record and logs when structured route metadata is unavailable.
-                  </p>
-                </div>
                 <KeyValueGrid
                   rows={[
                     { label: 'Route decision', value: routeDecision },
-                    { label: 'Provider / path', value: providerPath },
-                    { label: 'Fallback status', value: fallbackStatus },
+                    { label: 'Provider', value: providerDisplay },
+                    { label: 'Provider path', value: providerPath },
                     { label: 'Verification status', value: receiptStatus },
                   ]}
                 />
@@ -438,14 +380,13 @@ export default function ExecutionRunDetailPage() {
                     { label: 'Receipt ID', value: receipt?.id ?? run.receipt_id ?? '—', mono: !!(receipt?.id || run.receipt_id), copyable: receipt?.id ?? run.receipt_id },
                     { label: 'Verification', value: receiptStatus },
                     { label: 'Signed', value: receipt?.signed || run.receipt_signature ? 'Yes' : 'No' },
-                    { label: 'Public key', value: receipt?.public_key ?? '—', mono: !!receipt?.public_key, copyable: receipt?.public_key },
                   ]}
                 />
                 <div className="mt-4 space-y-3">
                   <ReceiptVerificationPanel
                     signature={receipt?.signature ?? run.receipt_signature}
                     hash={receipt?.hash ?? run.receipt_hash}
-                    previousHash={receipt?.prev_hash ?? run.receipt_previous_hash}
+                    previousHash={receipt?.previous_hash ?? run.receipt_previous_hash}
                     receiptData={receipt ? receipt as unknown as Record<string, unknown> : undefined}
                   />
                   {(receipt?.signature || run.receipt_signature) && (receipt?.hash || run.receipt_hash) && (
@@ -466,7 +407,7 @@ export default function ExecutionRunDetailPage() {
                       {verifyResult === true && (
                         <span className="inline-flex items-center gap-1 text-xs text-green-700">
                           <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                          Verification passed
+                          Stored receipt matched the submitted check
                         </span>
                       )}
                       {verifyResult === false && (

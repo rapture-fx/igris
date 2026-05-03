@@ -128,6 +128,7 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 
 	auth := middleware.BetterAuth(db)
 	app.Get("/v1/execution/runs", auth, h.ListRuns)
+	app.Get("/v1/execution/runs/:id", auth, h.GetRunDetail)
 	app.Post("/v1/execution/runs/:id/pause", auth, h.PauseRun)
 	app.Post("/v1/execution/runs/:id/resume", auth, h.ResumeRun)
 	app.Post("/v1/execution/runs/:id/cancel", auth, h.CancelRun)
@@ -143,22 +144,74 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	app.Get("/v1/execution/shadow", auth, h.ListShadowTraces)
 	app.Get("/v1/alerts/stream", auth, h.StreamAlerts)
 
-	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/runs/:id/approve, /v1/execution/runs/:id/reject, /v1/execution/agents, /v1/agents/:id, /v1/policies, /v1/policies/assign, /v1/execution/shadow, /v1/alerts/stream, /v1/agents/:id/bt-state/stream)")
+	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/runs/:id, /v1/execution/runs/:id/approve, /v1/execution/runs/:id/reject, /v1/execution/agents, /v1/agents/:id, /v1/policies, /v1/policies/assign, /v1/execution/shadow, /v1/alerts/stream, /v1/agents/:id/bt-state/stream)")
 }
 
 // ExecutionRun is the response shape for a single execution row.
 type ExecutionRun struct {
-	ID            string    `json:"id"`
-	AgentID       string    `json:"agent_id"`
-	Model         string    `json:"model"`
-	DeviceID      string    `json:"device_id"`
-	StartedAt     time.Time `json:"started_at"`
-	DurationMs    int64     `json:"duration_ms"`
-	Status        string    `json:"status"`
-	HasViolation  bool      `json:"has_violation"`
-	PauseReason   string    `json:"pause_reason,omitempty"`
-	Namespace     string    `json:"namespace,omitempty"`
-	PromptPreview string    `json:"prompt_preview,omitempty"`
+	ID                  string     `json:"id"`
+	AgentID             string     `json:"agent_id"`
+	Model               string     `json:"model"`
+	DeviceID            string     `json:"device_id"`
+	StartedAt           time.Time  `json:"started_at"`
+	EndedAt             *time.Time `json:"ended_at,omitempty"`
+	DurationMs          int64      `json:"duration_ms"`
+	Status              string     `json:"status"`
+	HasViolation        bool       `json:"has_violation"`
+	PauseReason         string     `json:"pause_reason,omitempty"`
+	Namespace           string     `json:"namespace,omitempty"`
+	PromptPreview       string     `json:"prompt_preview,omitempty"`
+	ReceiptID           string     `json:"receipt_id,omitempty"`
+	ReceiptSignature    string     `json:"receipt_signature,omitempty"`
+	ReceiptHash         string     `json:"receipt_hash,omitempty"`
+	ReceiptPreviousHash string     `json:"receipt_previous_hash,omitempty"`
+	VerificationStatus  string     `json:"verification_status,omitempty"`
+}
+
+type ExecutionRunReceiptReference struct {
+	ID                 string `json:"id"`
+	Hash               string `json:"hash"`
+	PreviousHash       string `json:"previous_hash"`
+	Signature          string `json:"signature"`
+	Signed             bool   `json:"signed"`
+	VerificationStatus string `json:"verification_status"`
+}
+
+type ExecutionRunEvent struct {
+	Timestamp string `json:"timestamp"`
+	Kind      string `json:"kind"`
+	Message   string `json:"message"`
+}
+
+type ExecutionRunDetail struct {
+	ExecutionRun
+	RouteDecision      *string                       `json:"route_decision"`
+	Provider           *string                       `json:"provider"`
+	ProviderPath       *string                       `json:"provider_path"`
+	Receipt            *ExecutionRunReceiptReference `json:"receipt"`
+	Violations         []PolicyViolation             `json:"violations"`
+	Events             []ExecutionRunEvent           `json:"events"`
+	Logs               []string                      `json:"logs"`
+	PolicySnapshot     map[string]any                `json:"policy_snapshot"`
+	CapabilitySnapshot map[string]any                `json:"capability_snapshot"`
+}
+
+type executionRunRecord struct {
+	ID                  string
+	AgentID             string
+	DeviceID            string
+	StartedAt           time.Time
+	DurationMs          int64
+	HasViolation        bool
+	Status              string
+	PauseReason         string
+	PromptPreview       string
+	ReceiptID           string
+	ReceiptHash         string
+	ReceiptPreviousHash string
+	ReceiptSignature    string
+	ProofStatus         string
+	ViolationDetails    []byte
 }
 
 // ListRuns handles GET /v1/execution/runs?limit=20&sort=created_at:desc&status=PAUSED
@@ -179,6 +232,13 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 		limit = 200
 	}
 
+	offset := 0
+	if raw := c.Query("offset", ""); raw != "" {
+		if parsed, err := strconv.Atoi(raw); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
 	// Parse sort param — currently we only support timestamp_utc asc/desc
 	sortDir := "DESC"
 	if raw := c.Query("sort", ""); raw != "" {
@@ -195,11 +255,15 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 	var args []interface{}
 	args = append(args, tenantID)
 	whereClause := "WHERE tenant_id = $1"
+	if rangeParam := c.Query("range", ""); rangeParam != "" {
+		whereClause += " AND timestamp_utc >= NOW() - INTERVAL '" + rangeToInterval(rangeParam) + "'"
+	}
 	if statusFilter != "" {
 		args = append(args, statusFilter)
-		whereClause += fmt.Sprintf(" AND COALESCE(status,'') = $%d", len(args))
+		whereClause += fmt.Sprintf(" AND UPPER(COALESCE(status, CASE WHEN violation_occurred THEN 'VIOLATION' ELSE 'COMPLETED' END)) = $%d", len(args))
 	}
 	args = append(args, limit)
+	args = append(args, offset)
 
 	query := `
 		SELECT
@@ -211,11 +275,25 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 			violation_occurred,
 			COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
 			COALESCE(pause_reason, '') AS pause_reason,
-			COALESCE(prompt_preview, '') AS prompt_preview
+			COALESCE(prompt_preview, '') AS prompt_preview,
+			id::text,
+			COALESCE(receipt_hash, '') AS receipt_hash,
+			COALESCE(previous_hash, '') AS previous_hash,
+			COALESCE(signature, '') AS signature,
+			COALESCE(tp.proof_status, '') AS proof_status
 		FROM execution_lineage
+		LEFT JOIN LATERAL (
+			SELECT proof_status
+			FROM task_records
+			WHERE tenant_id = execution_lineage.tenant_id
+			  AND proof_execution_id = execution_lineage.execution_id
+			ORDER BY created_at DESC
+			LIMIT 1
+		) tp ON TRUE
 		` + whereClause + `
 		ORDER BY timestamp_utc ` + sortDir + `
-		LIMIT $` + fmt.Sprintf("%d", len(args))
+		LIMIT $` + fmt.Sprintf("%d", len(args)-1) + `
+		OFFSET $` + fmt.Sprintf("%d", len(args))
 
 	rows, err := h.db.QueryContext(c.Context(), query, args...)
 	if err != nil {
@@ -229,31 +307,204 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 
 	runs := make([]ExecutionRun, 0, limit)
 	for rows.Next() {
-		var r ExecutionRun
-		var violOccurred bool
+		record := executionRunRecord{}
 
 		if err := rows.Scan(
-			&r.ID,
-			&r.AgentID,
-			&r.DeviceID,
-			&r.StartedAt,
-			&r.DurationMs,
-			&violOccurred,
-			&r.Status,
-			&r.PauseReason,
-			&r.PromptPreview,
+			&record.ID,
+			&record.AgentID,
+			&record.DeviceID,
+			&record.StartedAt,
+			&record.DurationMs,
+			&record.HasViolation,
+			&record.Status,
+			&record.PauseReason,
+			&record.PromptPreview,
+			&record.ReceiptID,
+			&record.ReceiptHash,
+			&record.ReceiptPreviousHash,
+			&record.ReceiptSignature,
+			&record.ProofStatus,
 		); err != nil {
 			log.Error().Err(err).Msg("[Execution] Scan error")
 			continue
 		}
-		r.HasViolation = violOccurred
-		// Model is not stored in execution_lineage; emit empty string so the
-		// console renders '—' rather than crashing on a missing field.
-		r.Model = ""
-		runs = append(runs, r)
+		runs = append(runs, buildExecutionRunSummary(record))
 	}
 
 	return c.JSON(runs)
+}
+
+func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
+	tenantID := middleware.GetClerkUserID(c)
+	if tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+
+	runID := strings.TrimSpace(c.Params("id"))
+	if runID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "missing_run_id",
+			"message": "Run id is required",
+		})
+	}
+
+	record := executionRunRecord{}
+	err := h.db.QueryRowContext(c.Context(), `
+		SELECT
+			execution_id,
+			agent_id,
+			COALESCE(runtime_id, '') AS device_id,
+			timestamp_utc,
+			COALESCE(wall_time_ms, 0) AS wall_time_ms,
+			COALESCE(violation_occurred, false) AS violation_occurred,
+			COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
+			COALESCE(pause_reason, '') AS pause_reason,
+			COALESCE(prompt_preview, '') AS prompt_preview,
+			id::text,
+			COALESCE(receipt_hash, '') AS receipt_hash,
+			COALESCE(previous_hash, '') AS previous_hash,
+			COALESCE(signature, '') AS signature,
+			COALESCE(tp.proof_status, '') AS proof_status,
+			violation_details
+		FROM execution_lineage
+		LEFT JOIN LATERAL (
+			SELECT proof_status
+			FROM task_records
+			WHERE tenant_id = execution_lineage.tenant_id
+			  AND proof_execution_id = execution_lineage.execution_id
+			ORDER BY created_at DESC
+			LIMIT 1
+		) tp ON TRUE
+		WHERE execution_id = $1
+		  AND tenant_id = $2
+	`, runID, tenantID).Scan(
+		&record.ID,
+		&record.AgentID,
+		&record.DeviceID,
+		&record.StartedAt,
+		&record.DurationMs,
+		&record.HasViolation,
+		&record.Status,
+		&record.PauseReason,
+		&record.PromptPreview,
+		&record.ReceiptID,
+		&record.ReceiptHash,
+		&record.ReceiptPreviousHash,
+		&record.ReceiptSignature,
+		&record.ProofStatus,
+		&record.ViolationDetails,
+	)
+	if err == sql.ErrNoRows {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error":   "not_found",
+			"message": "Run record not found",
+		})
+	}
+	if err != nil {
+		log.Error().Err(err).Str("execution_id", runID).Str("tenant_id", tenantID).Msg("[Execution] Failed to load run detail")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to retrieve execution run",
+		})
+	}
+
+	return c.JSON(buildExecutionRunDetail(record))
+}
+
+func buildExecutionRunSummary(record executionRunRecord) ExecutionRun {
+	run := ExecutionRun{
+		ID:                  record.ID,
+		AgentID:             record.AgentID,
+		Model:               "",
+		DeviceID:            record.DeviceID,
+		StartedAt:           record.StartedAt,
+		EndedAt:             deriveExecutionEndedAt(record.StartedAt, record.DurationMs, record.Status),
+		DurationMs:          record.DurationMs,
+		Status:              normalizeExecutionStatus(record.Status, record.HasViolation),
+		HasViolation:        record.HasViolation,
+		PauseReason:         record.PauseReason,
+		PromptPreview:       record.PromptPreview,
+		ReceiptID:           record.ReceiptID,
+		ReceiptSignature:    record.ReceiptSignature,
+		ReceiptHash:         record.ReceiptHash,
+		ReceiptPreviousHash: record.ReceiptPreviousHash,
+		VerificationStatus:  receiptVerificationStatus(record.ProofStatus, record.ReceiptHash),
+	}
+	return run
+}
+
+func buildExecutionRunDetail(record executionRunRecord) ExecutionRunDetail {
+	run := buildExecutionRunSummary(record)
+	detail := ExecutionRunDetail{
+		ExecutionRun:       run,
+		RouteDecision:      nil,
+		Provider:           nil,
+		ProviderPath:       nil,
+		Receipt:            buildExecutionRunReceipt(record),
+		Violations:         []PolicyViolation{},
+		Events:             []ExecutionRunEvent{},
+		Logs:               []string{},
+		PolicySnapshot:     nil,
+		CapabilitySnapshot: nil,
+	}
+
+	if record.HasViolation {
+		detail.Violations = []PolicyViolation{
+			buildPolicyViolation(PolicyViolation{
+				ID:           record.ReceiptID,
+				ExecutionID:  record.ID,
+				AgentID:      record.AgentID,
+				DeviceID:     record.DeviceID,
+				Signature:    record.ReceiptSignature,
+				Hash:         record.ReceiptHash,
+				PreviousHash: record.ReceiptPreviousHash,
+			}, record.StartedAt, run.Status, record.ViolationDetails),
+		}
+	}
+
+	return detail
+}
+
+func buildExecutionRunReceipt(record executionRunRecord) *ExecutionRunReceiptReference {
+	if record.ReceiptHash == "" && record.ReceiptSignature == "" && record.ReceiptID == "" {
+		return nil
+	}
+	return &ExecutionRunReceiptReference{
+		ID:                 record.ReceiptID,
+		Hash:               record.ReceiptHash,
+		PreviousHash:       record.ReceiptPreviousHash,
+		Signature:          record.ReceiptSignature,
+		Signed:             record.ReceiptSignature != "",
+		VerificationStatus: receiptVerificationStatus(record.ProofStatus, record.ReceiptHash),
+	}
+}
+
+func deriveExecutionEndedAt(startedAt time.Time, durationMs int64, status string) *time.Time {
+	if durationMs <= 0 {
+		return nil
+	}
+
+	normalizedStatus := normalizeExecutionStatus(status, false)
+	if normalizedStatus == "RUNNING" {
+		return nil
+	}
+
+	endedAt := startedAt.Add(time.Duration(durationMs) * time.Millisecond)
+	return &endedAt
+}
+
+func normalizeExecutionStatus(status string, hasViolation bool) string {
+	normalized := strings.ToUpper(strings.TrimSpace(status))
+	if normalized == "" {
+		if hasViolation {
+			return "VIOLATION"
+		}
+		return "COMPLETED"
+	}
+	if hasViolation && normalized == "COMPLETED" {
+		return "VIOLATION"
+	}
+	return normalized
 }
 
 // RecentExec is a lightweight execution summary embedded in Agent responses.
@@ -266,19 +517,19 @@ type RecentExec struct {
 
 // Agent is the response shape for a single agent derived from execution history.
 type Agent struct {
-	ID                     string       `json:"id"`
-	Namespace              string       `json:"namespace"`
-	State                  string       `json:"state"`
-	LastRunAt              *string      `json:"last_run_at,omitempty"`
-	DeviceID               *string      `json:"device_id,omitempty"`
-	ViolationCount         int64        `json:"violation_count"`
-	Capabilities           []string     `json:"capabilities"`
-	ShadowMode             bool         `json:"shadow_mode"`
-	ReflectionMode         bool         `json:"reflection_mode"`
-	CouncilMode            bool         `json:"council_mode"`
-	CognitiveAdvisorEnabled bool        `json:"cognitive_advisor_enabled"`
-	PolicyHash             *string      `json:"policy_hash,omitempty"`
-	RecentExecutions       []RecentExec `json:"recent_executions,omitempty"`
+	ID                      string       `json:"id"`
+	Namespace               string       `json:"namespace"`
+	State                   string       `json:"state"`
+	LastRunAt               *string      `json:"last_run_at,omitempty"`
+	DeviceID                *string      `json:"device_id,omitempty"`
+	ViolationCount          int64        `json:"violation_count"`
+	Capabilities            []string     `json:"capabilities"`
+	ShadowMode              bool         `json:"shadow_mode"`
+	ReflectionMode          bool         `json:"reflection_mode"`
+	CouncilMode             bool         `json:"council_mode"`
+	CognitiveAdvisorEnabled bool         `json:"cognitive_advisor_enabled"`
+	PolicyHash              *string      `json:"policy_hash,omitempty"`
+	RecentExecutions        []RecentExec `json:"recent_executions,omitempty"`
 }
 
 // ListAgents handles GET /v1/execution/agents
