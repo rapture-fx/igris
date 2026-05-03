@@ -4797,6 +4797,7 @@ async fn build_execution_artifacts_with_violation(
         .signing_key
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("runtime has no signing key"))?;
+    let governed_runtime_id = crate::governed_runtime_id(state).to_string();
 
     let execution_id = format!("exec-{}", Uuid::new_v4());
     let timestamp = iso8601_now();
@@ -4826,6 +4827,7 @@ async fn build_execution_artifacts_with_violation(
         step.model_name(),
         &request_hash,
         &response_hash,
+        Some(governed_runtime_id.as_str()),
         &result.provider_name,
         req.containment.as_ref(),
         &finish_reason,
@@ -4846,6 +4848,7 @@ async fn build_execution_artifacts_with_violation(
         policy_decision_id: governance.policy_decision_id,
         request_hash,
         response_hash,
+        runtime_id: Some(governed_runtime_id.clone()),
         routing_decision: result.provider_name.clone(),
         signature: base64::engine::general_purpose::STANDARD.encode(sig.to_bytes()),
         tenant_id: tenant_id.clone(),
@@ -4864,6 +4867,7 @@ async fn build_execution_artifacts_with_violation(
         Some(
             log.append(
                 tenant_id.as_deref().unwrap_or("anonymous"),
+                Some(governed_runtime_id.as_str()),
                 &tx.transaction_id,
                 &tx.hash,
                 0,
@@ -4878,6 +4882,7 @@ async fn build_execution_artifacts_with_violation(
     } else {
         Some(ExecutionReceipt::new(
             tenant_id.as_deref().unwrap_or("anonymous"),
+            Some(governed_runtime_id.as_str()),
             &tx.transaction_id,
             &tx.hash,
             0,
