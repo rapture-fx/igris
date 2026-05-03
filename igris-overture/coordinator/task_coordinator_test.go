@@ -1231,7 +1231,26 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 		"signature":"receipt-sig",
 		"violation_occurred":false
 	}`)
-	db, queued := newQueuedExecDB(t,
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{
+			columns: []string{
+				"tenant_id", "runtime_id", "runtime_endpoint", "proof_status", "failure_reason",
+				"failure_details", "permission_envelope", "created_at", "dispatched_at", "completed_at", "canceled_at",
+			},
+			values: []driver.Value{
+				tenantID,
+				"runtime-robotics",
+				"http://runtime-robotics",
+				"pending",
+				"",
+				nil,
+				[]byte(`{}`),
+				time.Date(2026, 5, 3, 12, 0, 0, 0, time.UTC),
+				time.Date(2026, 5, 3, 12, 0, 5, 0, time.UTC),
+				time.Date(2026, 5, 3, 12, 0, 45, 0, time.UTC),
+				nil,
+			},
+		}},
 		queuedExecExpectation{
 			rowsAffected: 1,
 			check: func(query string, args []driver.NamedValue) {
@@ -1257,6 +1276,7 @@ func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 				require.Equal(t, []byte(receipt), args[14].Value)
 			},
 		},
+		queuedExecExpectation{rowsAffected: 1},
 	)
 	store := NewCheckpointStore(db)
 
@@ -1287,6 +1307,10 @@ func TestSaveExecutionArtifactsPersistsExecutionContext(t *testing.T) {
 
 	db, queued := newQueuedCheckpointDB(t,
 		[]queuedQueryExpectation{{
+			columns: []string{
+				"tenant_id", "runtime_id", "runtime_endpoint", "proof_status", "failure_reason",
+				"failure_details", "permission_envelope", "created_at", "dispatched_at", "completed_at", "canceled_at",
+			},
 			values: []driver.Value{
 				"tenant-context",
 				"runtime-context",
