@@ -1029,6 +1029,51 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 	}
 }
 
+func TestBuildExecutionLineageRecordFromReceipt(t *testing.T) {
+	t.Parallel()
+
+	record, err := BuildExecutionLineageRecordFromReceipt(
+		json.RawMessage(`{
+			"execution_id":"exec-infer-1",
+			"transaction_id":"tx-1",
+			"transaction_hash":"tx-hash-1",
+			"agent_id":"tenant-infer",
+			"cpu_time_ms":12,
+			"wall_time_ms":36,
+			"memory_peak_mb":48,
+			"fs_bytes_written":0,
+			"tool_calls":1,
+			"violation_occurred":false,
+			"hash":"receipt-hash-1",
+			"previous_hash":"receipt-hash-0",
+			"signature":"receipt-sig-1",
+			"timestamp_utc":"2026-05-03T13:00:00Z"
+		}`),
+		"tenant-infer",
+		"",
+		"COMPLETED",
+		"hello runtime",
+	)
+	if err != nil {
+		t.Fatalf("BuildExecutionLineageRecordFromReceipt() error = %v", err)
+	}
+	if record == nil {
+		t.Fatal("record = nil, want value")
+	}
+	if record.ExecutionID != "exec-infer-1" {
+		t.Fatalf("ExecutionID = %q, want exec-infer-1", record.ExecutionID)
+	}
+	if record.ReceiptHash != "receipt-hash-1" {
+		t.Fatalf("ReceiptHash = %q, want receipt-hash-1", record.ReceiptHash)
+	}
+	if record.Status != "COMPLETED" {
+		t.Fatalf("Status = %q, want COMPLETED", record.Status)
+	}
+	if record.PromptPreview != "hello runtime" {
+		t.Fatalf("PromptPreview = %q, want hello runtime", record.PromptPreview)
+	}
+}
+
 func TestAIToolAuditRefsExtractsSignedToolReceipt(t *testing.T) {
 	t.Parallel()
 
