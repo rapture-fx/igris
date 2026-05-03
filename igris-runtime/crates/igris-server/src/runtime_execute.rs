@@ -193,6 +193,8 @@ pub struct ExecutionEnvelope {
     pub policy_decision_id: Option<String>,
     pub request_hash: String,
     pub response_hash: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub runtime_id: Option<String>,
     pub routing_decision: String,
     /// Ed25519 signature (base64) over SHA-256 of the canonical JSON form of
     /// all other fields in this envelope (keys sorted alphabetically).
@@ -408,6 +410,7 @@ pub async fn handle_execute(
             let resp_id = format!("exec-{}", Uuid::new_v4());
             let finish_reason = "stop".to_string();
             let ts = iso8601_now();
+            let governed_runtime_id = crate::governed_runtime_id(&state).to_string();
 
             // Compute hashes before content/req are moved into structs.
             let request_hash = {
@@ -425,6 +428,7 @@ pub async fn handle_execute(
                     &req.model,
                     &request_hash,
                     &response_hash,
+                    Some(governed_runtime_id.as_str()),
                     &provider_name,
                     bounds.as_ref(),
                     &finish_reason,
@@ -446,6 +450,7 @@ pub async fn handle_execute(
                     policy_decision_id: None,
                     request_hash,
                     response_hash,
+                    runtime_id: Some(governed_runtime_id.clone()),
                     routing_decision: provider_name.clone(),
                     signature: sig_b64,
                     tenant_id: tenant_id.clone(),
@@ -468,7 +473,18 @@ pub async fn handle_execute(
                 let tx_id = tx.transaction_id.clone();
                 let tx_hash = tx.hash.clone();
                 let _ = rl
-                    .append(agent_id_str, &tx_id, &tx_hash, 0, wall_ms, 0, 0, 0, false)
+                    .append(
+                        agent_id_str,
+                        Some(governed_runtime_id.as_str()),
+                        &tx_id,
+                        &tx_hash,
+                        0,
+                        wall_ms,
+                        0,
+                        0,
+                        0,
+                        false,
+                    )
                     .await;
             }
 
@@ -491,7 +507,7 @@ pub async fn handle_execute(
                     total_tokens: pt + ct,
                 },
                 metadata: Some(ExecuteMetadata {
-                    runtime_id: state.swarm_peer_id.clone(),
+                    runtime_id: governed_runtime_id,
                     provider: provider_name,
                     tenant_id,
                     bounds_applied: bounds,
@@ -535,6 +551,7 @@ pub async fn handle_execute(
             // Emit violation receipt with aborted transaction boundary.
             let wall_ms = wall_start.elapsed().as_millis() as u64;
             let agent_id_str = tenant_id.as_deref().unwrap_or("anonymous");
+            let governed_runtime_id = crate::governed_runtime_id(&state).to_string();
             if let Some(rl) = &state.receipt_log {
                 let tx = crate::transaction::ExecutionTransaction::begin(
                     agent_id_str,
@@ -545,7 +562,18 @@ pub async fn handle_execute(
                 let tx_id = tx.transaction_id.clone();
                 let tx_hash = tx.hash.clone();
                 let _ = rl
-                    .append(agent_id_str, &tx_id, &tx_hash, 0, wall_ms, 0, 0, 0, true)
+                    .append(
+                        agent_id_str,
+                        Some(governed_runtime_id.as_str()),
+                        &tx_id,
+                        &tx_hash,
+                        0,
+                        wall_ms,
+                        0,
+                        0,
+                        0,
+                        true,
+                    )
                     .await;
             }
             let status_code = match violation_kind {
@@ -1115,6 +1143,7 @@ pub(crate) fn canonical_envelope_bytes(
     model: &str,
     request_hash: &str,
     response_hash: &str,
+    runtime_id: Option<&str>,
     routing_decision: &str,
     bounds: Option<&Bounds>,
     finish_reason: &str,
@@ -1160,6 +1189,9 @@ pub(crate) fn canonical_envelope_bytes(
     }
     canon.insert("request_hash", serde_json::json!(request_hash));
     canon.insert("response_hash", serde_json::json!(response_hash));
+    if let Some(value) = runtime_id {
+        canon.insert("runtime_id", serde_json::json!(value));
+    }
     canon.insert("routing_decision", serde_json::json!(routing_decision));
     if let Some(tid) = tenant_id {
         canon.insert("tenant_id", serde_json::json!(tid));
@@ -1195,6 +1227,7 @@ mod tests {
             "gpt-4o",
             "aabbccdd",
             "eeff0011",
+            Some("runtime-abc"),
             "openai",
             Some(&bounds),
             "stop",
@@ -1225,6 +1258,7 @@ mod tests {
             "claude-3-5-sonnet",
             "aabbccdd",
             "eeff0011",
+            Some("runtime-def"),
             "anthropic",
             None,
             "stop",
@@ -1244,6 +1278,7 @@ mod tests {
             "gpt-4o", // tampered field
             "aabbccdd",
             "eeff0011",
+            Some("runtime-def"),
             "anthropic",
             None,
             "stop",
