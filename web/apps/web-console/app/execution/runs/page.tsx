@@ -105,6 +105,7 @@ export default function ExecutionRunsPage() {
         !query ||
         run.id.toLowerCase().includes(query) ||
         run.agent_id?.toLowerCase().includes(query) ||
+        run.runtime_id?.toLowerCase().includes(query) ||
         run.device_id?.toLowerCase().includes(query);
       const matchesStatus =
         statusFilter === 'all' ||
