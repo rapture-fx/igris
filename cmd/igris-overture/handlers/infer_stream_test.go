@@ -329,6 +329,9 @@ func TestHandleInferPersistsVerifiedRuntimeExecutionArtifacts(t *testing.T) {
 				if got := args[10].Value; got != "receipt-hash-runtime-1" {
 					t.Fatalf("receipt_hash = %v, want receipt-hash-runtime-1", got)
 				}
+				if got := args[13].Value; got != "runtime-infer-1" {
+					t.Fatalf("runtime_id = %v, want runtime-infer-1", got)
+				}
 			},
 		},
 		queuedInferExecExpectation{
@@ -339,6 +342,9 @@ func TestHandleInferPersistsVerifiedRuntimeExecutionArtifacts(t *testing.T) {
 				}
 				if got := args[0].Value; got != "exec-runtime-1" {
 					t.Fatalf("execution_context.execution_id = %v, want exec-runtime-1", got)
+				}
+				if got := args[3].Value; got != "runtime-infer-1" {
+					t.Fatalf("execution_context.runtime_id = %v, want runtime-infer-1", got)
 				}
 				if got := args[14].Value; got != "verified" {
 					t.Fatalf("verification_status = %v, want verified", got)
@@ -357,6 +363,7 @@ func TestHandleInferPersistsVerifiedRuntimeExecutionArtifacts(t *testing.T) {
 	response.SetUsage(4, 7)
 	response.ExecutionEnvelope = map[string]interface{}{
 		"execution_id":     "exec-runtime-1",
+		"runtime_id":       "runtime-infer-1",
 		"routing_decision": "runtime:test",
 		"provider":         "local-mock-cloud",
 		"tenant_id":        "tenant-runtime",
@@ -370,6 +377,7 @@ func TestHandleInferPersistsVerifiedRuntimeExecutionArtifacts(t *testing.T) {
 		"fs_bytes_written":   0,
 		"tool_calls":         0,
 		"previous_hash":      "prev-hash-runtime-0",
+		"runtime_id":         "runtime-infer-1",
 		"timestamp_utc":      "2026-05-03T13:00:00Z",
 		"transaction_id":     "tx-runtime-1",
 		"transaction_hash":   "tx-hash-runtime-1",
