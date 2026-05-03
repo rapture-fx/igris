@@ -58,7 +58,7 @@ export default function HowItWorks() {
               />
               
               {/* Three stages floating over image */}
-              <div className="absolute inset-0 z-10 p-4 md:p-8 flex flex-col justify-end">
+              <div className="absolute inset-0 z-10 p-4 md:p-8 flex flex-col justify-center">
                 {/* Desktop: horizontal row */}
                 <div className="hidden md:flex gap-4">
                   {stages.map((stage) => (

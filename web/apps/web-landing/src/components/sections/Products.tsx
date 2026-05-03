@@ -196,7 +196,7 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
         }
       `}</style>
 
-      <div style={{ background: isDark ? '#1a1a1a' : '#ffffff', border: `1px solid ${border}`, borderRadius: '24px', overflow: 'hidden', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', boxShadow: isDark ? 'none' : '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', boxShadow: isDark ? 'none' : '0 4px 24px rgba(0,0,0,0.08)' }}>
 
         {/* ── Tabs + Refresh row ── */}
         <div style={{ padding: '7px 12px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -214,7 +214,7 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
         </div>
 
         {/* ── Tab content ── */}
-        <div style={{ flex: 1, overflow: 'hidden', padding: '10px 14px', background: isDark ? '#111111' : '#f9fafb', borderTop: `1px solid ${border}`, borderRadius: '24px 24px 0 0' }}>
+        <div style={{ flex: 1, overflow: 'hidden', padding: '10px 14px' }}>
 
           {/* Event Stream */}
           {activeTab === 'stream' && (
