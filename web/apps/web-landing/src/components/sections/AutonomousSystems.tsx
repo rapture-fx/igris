@@ -66,7 +66,7 @@ export default function AutonomousSystems() {
               <div 
                 className="absolute top-2 bottom-2 left-2 right-0 bg-cover bg-center rounded-xl"
                 style={{ 
-                  backgroundImage: `url(${mounted && theme === 'dark' ? '/Agent.jpg' : '/sft.png'})`,
+                  backgroundImage: `url(${mounted && theme === 'dark' ? '/agent.jpeg' : '/sft.png'})`,
                   opacity: 0.35,
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                 }}

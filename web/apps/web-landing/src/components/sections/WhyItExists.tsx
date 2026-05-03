@@ -19,7 +19,7 @@ export default function WhyItExists() {
             <div>
               <div className="rounded-lg overflow-hidden relative p-4" style={{ height: 'clamp(280px, 40vw, 500px)' }}>
                 <img
-                  src={mounted && theme === 'dark' ? '/SF.png' : '/rockz.png'}
+                  src={'/SF.jpeg'}
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover rounded-lg"
                   style={{ opacity: 1 }}
