@@ -45,6 +45,7 @@ export interface ExecutionReceipt {
   agent_id: string;
   device_id: string;
   runtime_id?: string;
+  runtime_label?: string;
   timestamp: string;
   start_time?: string;
   end_time?: string;
