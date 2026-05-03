@@ -337,8 +337,6 @@ func TestRuntimeClientForwardExecutionAcceptsStructuredCompletedStatus(t *testin
 }
 
 func TestVerifyExecutionArtifactsRawRejectsRuntimeIDMismatch(t *testing.T) {
-	t.Parallel()
-
 	publicKey, privateKey, err := ed25519.GenerateKey(strings.NewReader(strings.Repeat("\x03", ed25519.SeedSize)))
 	if err != nil {
 		t.Fatalf("GenerateKey() error = %v", err)
