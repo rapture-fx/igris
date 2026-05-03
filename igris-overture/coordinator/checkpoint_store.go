@@ -356,6 +356,13 @@ func (s *CheckpointStore) SaveExecutionArtifacts(taskID uuid.UUID, executionEnve
 	if err := saveAIToolReceiptAudit(tx, taskID, executionEnvelope, executionReceipt); err != nil {
 		return err
 	}
+	contextRecord, err := buildTaskExecutionContextRecord(tx, taskID, executionEnvelope, executionReceipt)
+	if err != nil {
+		return err
+	}
+	if err := saveExecutionContext(tx, contextRecord); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
 
