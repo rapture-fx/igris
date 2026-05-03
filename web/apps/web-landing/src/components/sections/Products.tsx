@@ -96,7 +96,7 @@ function CopyButton() {
   return (
     <button
       onClick={copy}
-      className="absolute top-1/2 -translate-y-1/2 right-3 z-10 p-1.5 rounded transition-colors"
+      className="flex-shrink-0 p-1 rounded transition-colors"
       title={copied ? 'Copied' : 'Copy'}
     >
       {copied ? (
@@ -223,8 +223,8 @@ export default function Products() {
                     </li>
                   </ul>
                   <div className="mt-4">
-                    <div className="landing-surface-card relative rounded-md border px-2.5 py-1.5 flex items-center" style={{ maxWidth: '100%' }}>
-                      <span className="font-mono select-all break-all pr-6" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151' }}>
+                    <div className="landing-surface-card rounded-md border px-3 py-1.5 flex items-center gap-2" style={{ maxWidth: '100%' }}>
+                      <span className="font-mono select-all break-all" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151' }}>
                         {INSTALL_CMD}
                       </span>
                       <CopyButton />
