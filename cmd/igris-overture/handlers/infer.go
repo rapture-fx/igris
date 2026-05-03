@@ -692,7 +692,7 @@ func (h *InferHandler) persistVerifiedExecutionArtifacts(tenantID string, req *m
 	lineageRecord, err := coordinator.BuildExecutionLineageRecordFromReceipt(
 		receiptRaw,
 		firstNonEmptyString(tenantID, refs.TenantID),
-		"",
+		refs.RuntimeID,
 		"COMPLETED",
 		inferPromptPreview(req),
 	)
@@ -727,6 +727,7 @@ func (h *InferHandler) persistVerifiedExecutionArtifacts(tenantID string, req *m
 	record := &coordinator.ExecutionContextRecord{
 		ExecutionID:        refs.ExecutionID,
 		TenantID:           firstNonEmptyString(tenantID, refs.TenantID),
+		RuntimeID:          refs.RuntimeID,
 		RuntimeLabel:       runtimeBaseLabel(h.runtimeExecutor),
 		Provider:           provider,
 		RouteDecision:      routeDecision,
@@ -746,6 +747,7 @@ func (h *InferHandler) persistVerifiedExecutionArtifacts(tenantID string, req *m
 type inferExecutionContextRefs struct {
 	ExecutionID        string
 	TenantID           string
+	RuntimeID          string
 	Provider           string
 	RouteDecision      string
 	ExecutionPath      string
@@ -762,6 +764,7 @@ func coordinatorExecutionRefs(executionEnvelope, executionReceipt json.RawMessag
 	var envelope struct {
 		ExecutionID        string         `json:"execution_id"`
 		TenantID           *string        `json:"tenant_id"`
+		RuntimeID          string         `json:"runtime_id"`
 		Provider           string         `json:"provider"`
 		Model              string         `json:"model"`
 		RoutingDecision    string         `json:"routing_decision"`
@@ -782,12 +785,16 @@ func coordinatorExecutionRefs(executionEnvelope, executionReceipt json.RawMessag
 		ExecutionID string `json:"execution_id"`
 		ReceiptHash string `json:"receipt_hash"`
 		Hash        string `json:"hash"`
+		RuntimeID   string `json:"runtime_id"`
 	}
 	if len(executionReceipt) > 0 && string(executionReceipt) != "null" && string(executionReceipt) != "{}" {
 		if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
 			return nil, false
 		}
 		if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
+			return nil, false
+		}
+		if strings.TrimSpace(receipt.RuntimeID) != "" && strings.TrimSpace(envelope.RuntimeID) != "" && strings.TrimSpace(receipt.RuntimeID) != strings.TrimSpace(envelope.RuntimeID) {
 			return nil, false
 		}
 	}
@@ -823,6 +830,7 @@ func coordinatorExecutionRefs(executionEnvelope, executionReceipt json.RawMessag
 	return &inferExecutionContextRefs{
 		ExecutionID:        envelope.ExecutionID,
 		TenantID:           tenantID,
+		RuntimeID:          firstNonEmptyString(receipt.RuntimeID, envelope.RuntimeID),
 		Provider:           firstNonEmptyString(envelope.Provider, envelope.Model),
 		RouteDecision:      strings.TrimSpace(envelope.RoutingDecision),
 		ExecutionPath:      "runtime_task",
