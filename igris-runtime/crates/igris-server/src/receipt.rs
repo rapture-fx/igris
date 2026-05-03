@@ -46,6 +46,9 @@ pub struct ExecutionReceipt {
     pub execution_id: String,
     /// Logical agent identifier.
     pub agent_id: String,
+    /// Stable runtime/device identity for the execution authority.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub runtime_id: Option<String>,
     /// UUIDv7 of the `ExecutionTransaction` that bounded this execution.
     /// Empty if no transaction was associated.
     #[serde(skip_serializing_if = "String::is_empty", default)]
@@ -88,6 +91,7 @@ impl ExecutionReceipt {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         agent_id: &str,
+        runtime_id: Option<&str>,
         transaction_id: &str,
         transaction_hash: &str,
         cpu_time_ms: u64,
@@ -106,6 +110,9 @@ impl ExecutionReceipt {
         let mut map = BTreeMap::new();
         map.insert("execution_id", execution_id.clone());
         map.insert("agent_id", agent_id.to_string());
+        if let Some(runtime_id) = runtime_id.filter(|value| !value.is_empty()) {
+            map.insert("runtime_id", runtime_id.to_string());
+        }
         if !transaction_id.is_empty() {
             map.insert("transaction_id", transaction_id.to_string());
         }
@@ -135,6 +142,10 @@ impl ExecutionReceipt {
         Self {
             execution_id,
             agent_id: agent_id.to_string(),
+            runtime_id: runtime_id
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(ToOwned::to_owned),
             transaction_id: transaction_id.to_string(),
             transaction_hash: transaction_hash.to_string(),
             cpu_time_ms,
@@ -165,6 +176,9 @@ impl ExecutionReceipt {
         let mut map = BTreeMap::new();
         map.insert("execution_id", self.execution_id.clone());
         map.insert("agent_id", self.agent_id.clone());
+        if let Some(runtime_id) = self.runtime_id.as_deref().filter(|value| !value.is_empty()) {
+            map.insert("runtime_id", runtime_id.to_string());
+        }
         if !self.transaction_id.is_empty() {
             map.insert("transaction_id", self.transaction_id.clone());
         }
@@ -243,6 +257,7 @@ impl ReceiptLog {
     pub async fn append(
         &self,
         agent_id: &str,
+        runtime_id: Option<&str>,
         transaction_id: &str,
         transaction_hash: &str,
         cpu_time_ms: u64,
@@ -256,6 +271,7 @@ impl ReceiptLog {
 
         let receipt = ExecutionReceipt::new(
             agent_id,
+            runtime_id,
             transaction_id,
             transaction_hash,
             cpu_time_ms,
@@ -318,6 +334,7 @@ mod tests {
         let sk = make_signing_key();
         let r1 = ExecutionReceipt::new(
             "a1",
+            Some("runtime-a"),
             "tx-1",
             "tx-hash-1",
             10,
@@ -331,6 +348,7 @@ mod tests {
         );
         let r2 = ExecutionReceipt::new(
             "a1",
+            Some("runtime-a"),
             "tx-2",
             "tx-hash-2",
             15,
@@ -352,6 +370,7 @@ mod tests {
     fn receipt_transaction_fields_preserved() {
         let r = ExecutionReceipt::new(
             "ag",
+            Some("runtime-test"),
             "txid-123",
             "txhash-456",
             0,
@@ -365,13 +384,27 @@ mod tests {
         );
         assert_eq!(r.transaction_id, "txid-123");
         assert_eq!(r.transaction_hash, "txhash-456");
+        assert_eq!(r.runtime_id.as_deref(), Some("runtime-test"));
     }
 
     #[test]
     fn receipt_signature_valid() {
         let sk = make_signing_key();
         let vk = sk.verifying_key();
-        let receipt = ExecutionReceipt::new("ag", "", "", 5, 10, 2, 0, 1, false, "", Some(&sk));
+        let receipt = ExecutionReceipt::new(
+            "ag",
+            Some("runtime-sign"),
+            "",
+            "",
+            5,
+            10,
+            2,
+            0,
+            1,
+            false,
+            "",
+            Some(&sk),
+        );
 
         assert!(receipt.verify_signature(&vk).is_ok());
     }
@@ -380,7 +413,20 @@ mod tests {
     fn receipt_signature_tamper_detected() {
         let sk = make_signing_key();
         let vk = sk.verifying_key();
-        let mut receipt = ExecutionReceipt::new("ag", "", "", 5, 10, 2, 0, 1, false, "", Some(&sk));
+        let mut receipt = ExecutionReceipt::new(
+            "ag",
+            Some("runtime-sign"),
+            "",
+            "",
+            5,
+            10,
+            2,
+            0,
+            1,
+            false,
+            "",
+            Some(&sk),
+        );
 
         // Tamper with a field.
         receipt.tool_calls = 99;
@@ -390,7 +436,7 @@ mod tests {
 
     #[test]
     fn receipt_no_signature_when_no_key() {
-        let r = ExecutionReceipt::new("ag", "", "", 0, 0, 0, 0, 0, false, "", None);
+        let r = ExecutionReceipt::new("ag", None, "", "", 0, 0, 0, 0, 0, false, "", None);
         assert!(r.signature.is_empty());
     }
 
@@ -404,11 +450,22 @@ mod tests {
         let log = ReceiptLog::open(&path, Some(sk.clone())).await.unwrap();
 
         let r1 = log
-            .append("ag", "", "", 10, 20, 4, 0, 2, false)
+            .append("ag", Some("runtime-log"), "", "", 10, 20, 4, 0, 2, false)
             .await
             .unwrap();
         let r2 = log
-            .append("ag", "txid-1", "txhash-1", 15, 30, 5, 0, 3, false)
+            .append(
+                "ag",
+                Some("runtime-log"),
+                "txid-1",
+                "txhash-1",
+                15,
+                30,
+                5,
+                0,
+                3,
+                false,
+            )
             .await
             .unwrap();
 
@@ -416,6 +473,7 @@ mod tests {
         assert!(r1.verify_signature(&vk).is_ok());
         assert!(r2.verify_signature(&vk).is_ok());
         assert_eq!(r2.transaction_id, "txid-1");
+        assert_eq!(r2.runtime_id.as_deref(), Some("runtime-log"));
 
         // Re-open and verify chain recovery.
         let log2 = ReceiptLog::open(&path, Some(sk)).await.unwrap();
