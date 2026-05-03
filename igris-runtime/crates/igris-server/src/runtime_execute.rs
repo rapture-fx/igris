@@ -1295,4 +1295,27 @@ mod tests {
             "tampered envelope must fail verification"
         );
     }
+
+    #[test]
+    fn test_envelope_canonical_bytes_include_runtime_id() {
+        let canon = canonical_envelope_bytes(
+            "exec-003",
+            "2026-02-20T12:00:00Z",
+            Some("tenant-abc"),
+            "gpt-4o-mini",
+            "req-hash-3",
+            "resp-hash-3",
+            Some("runtime-canonical-3"),
+            "forwarded_to_runtime_task",
+            None,
+            "stop",
+            None,
+            None,
+            None,
+            None,
+        );
+
+        let value: serde_json::Value = serde_json::from_slice(&canon).unwrap();
+        assert_eq!(value["runtime_id"], "runtime-canonical-3");
+    }
 }
