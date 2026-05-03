@@ -221,7 +221,7 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
               <div style={cardHeaderStyle}>
                 <div>
                   <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Event Stream</p>
-                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Structured runtime events with severity and execution context.</p>
+                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Structured execution events with severity and execution context.</p>
                 </div>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontFamily: SANS, fontSize: '9px', color: accentGreen, flexShrink: 0 }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: accentGreen, display: 'inline-block' }} /> live
@@ -503,7 +503,7 @@ Design tasks with explicit failure paths across cloud, edge, and local environme
                   </ul>
                   <div className="mt-4">
                     <div className="landing-surface-card rounded-md border px-3 py-1.5 flex items-center gap-2" style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                      <span className="font-mono select-all" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span className="font-mono select-all" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151', whiteSpace: 'nowrap', flex: 1, minWidth: 0, overflow: 'hidden' }}>
                         {INSTALL_CMD}
                       </span>
                       <CopyButton />
