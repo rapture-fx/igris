@@ -37,6 +37,7 @@ func TestBuildReceiptReferenceUsesStableFields(t *testing.T) {
 	got := BuildReceiptReference(map[string]interface{}{
 		"execution_id":     "exec-1",
 		"hash":             "receipt-hash-1",
+		"runtime_id":       "runtime-1",
 		"transaction_id":   "tx-1",
 		"transaction_hash": "tx-hash-1",
 		"previous_hash":    "prev-hash",
@@ -51,6 +52,9 @@ func TestBuildReceiptReferenceUsesStableFields(t *testing.T) {
 	}
 	if got["receipt_hash"] != "receipt-hash-1" {
 		t.Fatalf("receipt_hash = %v, want receipt-hash-1", got["receipt_hash"])
+	}
+	if got["runtime_id"] != "runtime-1" {
+		t.Fatalf("runtime_id = %v, want runtime-1", got["runtime_id"])
 	}
 	if got["transaction_id"] != "tx-1" {
 		t.Fatalf("transaction_id = %v, want tx-1", got["transaction_id"])
