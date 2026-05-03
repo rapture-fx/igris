@@ -99,36 +99,36 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 
 	query := `
 		SELECT
-			id,
-			execution_id,
-			agent_id,
-			COALESCE(NULLIF(execution_lineage.runtime_id, ''), NULLIF(ec.runtime_id, ''), '') AS runtime_id,
+			el.id,
+			el.execution_id,
+			el.agent_id,
+			COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), '') AS runtime_id,
 			COALESCE(ec.runtime_label, '') AS runtime_label,
-			timestamp_utc,
-			receipt_hash,
-			previous_hash,
-			signature,
-			cpu_time_ms,
-			memory_peak_mb,
-			tool_calls,
-			wall_time_ms,
-			violation_occurred,
+			el.timestamp_utc,
+			el.receipt_hash,
+			el.previous_hash,
+			el.signature,
+			el.cpu_time_ms,
+			el.memory_peak_mb,
+			el.tool_calls,
+			el.wall_time_ms,
+			el.violation_occurred,
 			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status,
-			violation_details
-		FROM execution_lineage
+			el.violation_details
+		FROM execution_lineage el
 		LEFT JOIN execution_context ec
-		       ON ec.execution_id = execution_lineage.execution_id
-		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
+		       ON ec.execution_id = el.execution_id
+		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
 		LEFT JOIN LATERAL (
 			SELECT proof_status
 			FROM task_records
-			WHERE tenant_id = execution_lineage.tenant_id
-			  AND proof_execution_id = execution_lineage.execution_id
+			WHERE tenant_id = el.tenant_id
+			  AND proof_execution_id = el.execution_id
 			ORDER BY created_at DESC
 			LIMIT 1
 		) tp ON TRUE
-		WHERE tenant_id = $1
-		ORDER BY timestamp_utc ` + sortDir + `
+		WHERE el.tenant_id = $1
+		ORDER BY el.timestamp_utc ` + sortDir + `
 		LIMIT $2
 	`
 
