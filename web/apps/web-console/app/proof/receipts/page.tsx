@@ -42,6 +42,8 @@ interface Receipt {
   execution_id: string;
   agent_id: string;
   device_id: string;
+  runtime_id?: string;
+  runtime_label?: string;
   timestamp: string;
   start_time: string;
   end_time: string;
@@ -261,6 +263,7 @@ function ReceiptsContent() {
       const hit = !q
         || r.execution_id.toLowerCase().includes(q)
         || r.agent_id.toLowerCase().includes(q)
+        || r.runtime_id?.toLowerCase().includes(q)
         || r.device_id.toLowerCase().includes(q);
       return hit && (!violationsOnly || r.has_violation);
     }),
@@ -353,6 +356,7 @@ function ReceiptsContent() {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
             <Input
               placeholder="execution_id / agent_id / device_id"
+              placeholder="execution_id / agent_id / runtime_id"
               className="pl-8 h-8 text-xs"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -383,7 +387,7 @@ function ReceiptsContent() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  {['Timestamp', 'Execution ID', 'Agent', 'Device', 'Status', 'Duration', 'Violations', ''].map((h) => (
+                  {['Timestamp', 'Execution ID', 'Agent', 'Runtime', 'Status', 'Duration', 'Violations', ''].map((h) => (
                     <TableHead key={h} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
                       {h}
                     </TableHead>
@@ -438,9 +442,12 @@ function ReceiptsContent() {
                         {trunc(r.agent_id, 12)}
                       </TableCell>
 
-                      {/* Device */}
-                      <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={r.device_id}>
-                        {trunc(r.device_id, 12)}
+                      {/* Runtime */}
+                      <TableCell
+                        className="px-4 py-3 text-xs text-gray-600 font-mono"
+                        title={r.runtime_id || 'Not recorded'}
+                      >
+                        {r.runtime_id ? trunc(r.runtime_id, 12) : 'Not recorded'}
                       </TableCell>
 
                       {/* Status */}
@@ -583,7 +590,13 @@ function ReceiptsContent() {
                   href: `/execution/runs/${selected.execution_id}`,
                 },
                 { label: 'agent_id',   value: selected.agent_id,  copyable: true, copyValue: selected.agent_id },
-                { label: 'device_id',  value: selected.device_id, copyable: true, copyValue: selected.device_id },
+                {
+                  label: 'runtime_id',
+                  value: selected.runtime_id || 'Not recorded',
+                  copyable: !!selected.runtime_id,
+                  copyValue: selected.runtime_id,
+                },
+                { label: 'runtime_label', value: selected.runtime_label || 'Not recorded' },
                 { label: 'start_time', value: new Date(selected.start_time).toISOString() },
                 { label: 'end_time',   value: new Date(selected.end_time).toISOString() },
                 { label: 'status',     value: <VerificationBadge status={selected.status} /> },
