@@ -40,6 +40,23 @@ import {
   XCircle,
 } from 'lucide-react';
 
+function formatSnapshotValue(value: unknown): string {
+  if (value == null) return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'string' || typeof value === 'number') return String(value);
+  if (Array.isArray(value)) return value.length ? value.map((item) => String(item)).join(', ') : '—';
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '—';
+  }
+}
+
+function unixMsToDisplay(value: unknown): string {
+  if (typeof value !== 'number' || Number.isNaN(value) || value <= 0) return '—';
+  return formatDateTime(new Date(value).toISOString());
+}
+
 function verificationLabel(status?: string | null): string {
   if (!status) return 'Pending';
   const normalized = String(status).toLowerCase();
@@ -129,8 +146,12 @@ export default function ExecutionRunDetailPage() {
   const routeDecision = run?.route_decision ?? 'Route decision was not recorded for this run.';
   const providerDisplay = run?.provider ?? 'Not recorded';
   const providerPath = run?.provider_path ?? 'Provider path was not recorded for this run.';
+  const runtimeLabel = run?.runtime_label ?? 'Not recorded';
   const receiptStatus = verificationLabel(receipt?.verification_status ?? run?.verification_status);
   const violationList = useMemo(() => run ? violationRows(run, violations) : [], [run, violations]);
+  const policySnapshot = run?.policy_snapshot ?? null;
+  const capabilitySnapshot = run?.capability_snapshot ?? null;
+  const events = run?.events ?? [];
 
   const refreshExecutionQueries = async () => {
     await refetchRun();
@@ -315,6 +336,9 @@ export default function ExecutionRunDetailPage() {
                     { label: 'Route decision', value: routeDecision },
                     { label: 'Provider', value: providerDisplay },
                     { label: 'Provider path', value: providerPath },
+                    { label: 'Runtime label', value: runtimeLabel },
+                    { label: 'Fallback used', value: run.fallback_used ? 'Yes' : 'No' },
+                    { label: 'Fallback reason', value: run.fallback_reason ?? '—' },
                     { label: 'Verification status', value: receiptStatus },
                   ]}
                 />
@@ -323,50 +347,39 @@ export default function ExecutionRunDetailPage() {
 
             <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
               <Surface title="Policy bounds" icon={Shield}>
-                {run.policy_snapshot ? (
-                  <KeyValueGrid
-                    rows={[
-                      {
-                        label: 'CPU limit',
-                        value: run.policy_snapshot.cpu_limit_percent != null ? `${String(run.policy_snapshot.cpu_limit_percent)}%` : '—',
-                      },
-                      {
-                        label: 'Memory limit',
-                        value: run.policy_snapshot.memory_limit_mb != null ? `${String(run.policy_snapshot.memory_limit_mb)} MB` : '—',
-                      },
-                      {
-                        label: 'Max tick',
-                        value: run.policy_snapshot.max_tick_ms != null ? `${String(run.policy_snapshot.max_tick_ms)} ms` : '—',
-                      },
-                      { label: 'Quota limit', value: run.policy_snapshot.quota_limit != null ? String(run.policy_snapshot.quota_limit) : '—' },
-                    ]}
-                  />
+                {policySnapshot ? (
+                  <div className="space-y-4">
+                    <KeyValueGrid
+                      rows={[
+                        { label: 'Bounds applied', value: formatSnapshotValue(policySnapshot.bounds_applied) },
+                        { label: 'Policy decision ID', value: formatSnapshotValue(policySnapshot.policy_decision_id), mono: typeof policySnapshot.policy_decision_id === 'string' },
+                        { label: 'Policy decision hash', value: formatSnapshotValue(policySnapshot.policy_decision_hash), mono: typeof policySnapshot.policy_decision_hash === 'string' },
+                        { label: 'Governed action hash', value: formatSnapshotValue(policySnapshot.governed_action_hash), mono: typeof policySnapshot.governed_action_hash === 'string' },
+                        { label: 'Violation marker', value: formatSnapshotValue(policySnapshot.violation) },
+                      ]}
+                    />
+                    <JSONViewer data={policySnapshot} defaultOpen={false} />
+                  </div>
                 ) : (
                   <p className="text-xs text-gray-500">No policy snapshot was returned for this run.</p>
                 )}
               </Surface>
 
               <Surface title="Capabilities" icon={Cpu}>
-                {run.capability_snapshot ? (
-                  <KeyValueGrid
-                    rows={[
-                      { label: 'HTTP', value: run.capability_snapshot.allow_http ? 'Allowed' : 'Denied' },
-                      { label: 'Shell', value: run.capability_snapshot.allow_shell ? 'Allowed' : 'Denied' },
-                      { label: 'Filesystem', value: run.capability_snapshot.allow_filesystem ? 'Allowed' : 'Denied' },
-                      {
-                        label: 'Allowed domains',
-                        value: Array.isArray(run.capability_snapshot.allowed_domains)
-                          ? (run.capability_snapshot.allowed_domains as string[]).join(', ') || '—'
-                          : '—',
-                      },
-                      {
-                        label: 'Max file write',
-                        value: run.capability_snapshot.max_file_write_bytes != null
-                          ? `${String(run.capability_snapshot.max_file_write_bytes)} bytes`
-                          : '—',
-                      },
-                    ]}
-                  />
+                {capabilitySnapshot ? (
+                  <div className="space-y-4">
+                    <KeyValueGrid
+                      rows={[
+                        { label: 'Required capabilities', value: formatSnapshotValue(capabilitySnapshot.required_capabilities) },
+                        { label: 'Granted capabilities', value: formatSnapshotValue(capabilitySnapshot.granted_capability_count) },
+                        { label: 'Denied capabilities', value: formatSnapshotValue(capabilitySnapshot.denied_capability_count) },
+                        { label: 'Permission signed', value: formatSnapshotValue(capabilitySnapshot.permission_signed) },
+                        { label: 'Issued at', value: unixMsToDisplay(capabilitySnapshot.issued_at_unix_ms) },
+                        { label: 'Expires at', value: unixMsToDisplay(capabilitySnapshot.expires_at_unix_ms) },
+                      ]}
+                    />
+                    <JSONViewer data={capabilitySnapshot} defaultOpen={false} />
+                  </div>
                 ) : (
                   <p className="text-xs text-gray-500">No capability snapshot was returned for this run.</p>
                 )}
@@ -443,6 +456,24 @@ export default function ExecutionRunDetailPage() {
                 )}
               </Surface>
             </div>
+
+            <Surface title="Execution events" icon={Clock3}>
+              {events.length === 0 ? (
+                <p className="text-xs text-gray-500">No structured execution events were returned for this run.</p>
+              ) : (
+                <div className="space-y-3">
+                  {events.map((event, index) => (
+                    <div key={`${event.timestamp}-${event.kind}-${index}`} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold text-gray-900">{event.kind || 'event'}</p>
+                        <span className="text-[11px] text-gray-500">{event.timestamp ? getRelativeTime(event.timestamp) : '—'}</span>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-700">{event.message || 'No message recorded.'}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Surface>
 
             <Surface title="Execution logs" icon={Terminal}>
               <div className="rounded-md bg-gray-950 p-3 max-h-80 overflow-auto">
