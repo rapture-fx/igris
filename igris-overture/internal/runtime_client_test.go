@@ -238,6 +238,7 @@ func TestRuntimeClientForwardExecutionAcceptsStructuredCompletedStatus(t *testin
 
 	envelope := signEnvelopeForTest(t, privateKey, map[string]interface{}{
 		"execution_id":     "exec-1",
+		"runtime_id":       "runtime-structured-1",
 		"routing_decision": "local-mock-cloud",
 		"finish_reason":    "stop",
 		"model":            "mock-model",
@@ -253,6 +254,7 @@ func TestRuntimeClientForwardExecutionAcceptsStructuredCompletedStatus(t *testin
 		"fs_bytes_written":   0,
 		"memory_peak_mb":     0,
 		"previous_hash":      "prev-1",
+		"runtime_id":         "runtime-structured-1",
 		"timestamp_utc":      "2026-05-01T10:32:21Z",
 		"tool_calls":         0,
 		"transaction_hash":   "tx-hash-1",
@@ -328,6 +330,48 @@ func TestRuntimeClientForwardExecutionAcceptsStructuredCompletedStatus(t *testin
 	}
 	if got := resp.Receipt["receipt_hash"]; got != receipt["hash"] {
 		t.Fatalf("receipt.receipt_hash = %v, want %v", got, receipt["hash"])
+	}
+	if got := resp.Receipt["runtime_id"]; got != "runtime-structured-1" {
+		t.Fatalf("receipt.runtime_id = %v, want runtime-structured-1", got)
+	}
+}
+
+func TestVerifyExecutionArtifactsRawRejectsRuntimeIDMismatch(t *testing.T) {
+	t.Parallel()
+
+	publicKey, privateKey, err := ed25519.GenerateKey(strings.NewReader(strings.Repeat("\x03", ed25519.SeedSize)))
+	if err != nil {
+		t.Fatalf("GenerateKey() error = %v", err)
+	}
+	t.Setenv("IGRIS_RUNTIME_PUBLIC_KEY", hex.EncodeToString(publicKey))
+
+	envelopeRaw, _ := json.Marshal(signEnvelopeForTest(t, privateKey, map[string]interface{}{
+		"execution_id":     "exec-runtime-mismatch",
+		"runtime_id":       "runtime-a",
+		"routing_decision": "forwarded_to_runtime_task",
+		"finish_reason":    "stop",
+		"model":            "mock-model",
+		"request_hash":     "req-hash",
+		"response_hash":    "resp-hash",
+		"timestamp":        "2026-05-03T10:32:21Z",
+	}))
+	receiptRaw, _ := json.Marshal(signReceiptForTest(t, privateKey, map[string]interface{}{
+		"agent_id":           "tenant-structured",
+		"cpu_time_ms":        0,
+		"execution_id":       "exec-runtime-mismatch",
+		"fs_bytes_written":   0,
+		"memory_peak_mb":     0,
+		"previous_hash":      "prev-1",
+		"runtime_id":         "runtime-b",
+		"timestamp_utc":      "2026-05-03T10:32:21Z",
+		"tool_calls":         0,
+		"violation_occurred": false,
+		"wall_time_ms":       36,
+	}))
+
+	err = VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw)
+	if err == nil || !strings.Contains(err.Error(), "runtime_id mismatch") {
+		t.Fatalf("VerifyExecutionArtifactsRaw() error = %v, want runtime_id mismatch", err)
 	}
 }
 
