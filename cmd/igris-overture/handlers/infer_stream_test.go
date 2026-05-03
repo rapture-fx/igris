@@ -3,6 +3,8 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"io"
@@ -10,9 +12,12 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	infrarouter "github.com/Igris-inertial/system/igris-overture/inference/router"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/Igris-inertial/system/igris-overture/providers"
@@ -40,6 +45,107 @@ func (s *stubRuntimeExecutor) Health(context.Context) error {
 
 func (s *stubRuntimeExecutor) BaseURL() string {
 	return "http://runtime.test"
+}
+
+type queuedInferExecExpectation struct {
+	rowsAffected int64
+	err          error
+	check        func(query string, args []driver.NamedValue)
+}
+
+type queuedInferExecDriver struct {
+	execs []queuedInferExecExpectation
+}
+
+type queuedInferExecConn struct {
+	driver *queuedInferExecDriver
+}
+
+type queuedInferExecTx struct {
+	driver *queuedInferExecDriver
+}
+
+func newQueuedInferExecDB(t *testing.T, expectations ...queuedInferExecExpectation) (*sql.DB, *queuedInferExecDriver) {
+	t.Helper()
+
+	name := "queued-infer-" + uuid.NewString()
+	driverImpl := &queuedInferExecDriver{execs: append([]queuedInferExecExpectation(nil), expectations...)}
+	sql.Register(name, driverImpl)
+
+	db, err := sql.Open(name, "")
+	if err != nil {
+		t.Fatalf("sql.Open() error = %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	return db, driverImpl
+}
+
+func (d *queuedInferExecDriver) Open(string) (driver.Conn, error) {
+	return &queuedInferExecConn{driver: d}, nil
+}
+
+func (d *queuedInferExecDriver) nextExec(query string, args []driver.NamedValue) (driver.Result, error) {
+	if len(d.execs) == 0 {
+		return nil, errors.New("unexpected exec")
+	}
+	next := d.execs[0]
+	d.execs = d.execs[1:]
+	if next.check != nil {
+		next.check(query, args)
+	}
+	if next.err != nil {
+		return nil, next.err
+	}
+	return driver.RowsAffected(next.rowsAffected), nil
+}
+
+func (d *queuedInferExecDriver) remainingExecs() int {
+	return len(d.execs)
+}
+
+func (c *queuedInferExecConn) Prepare(string) (driver.Stmt, error) {
+	return nil, errors.New("prepare not implemented")
+}
+
+func (c *queuedInferExecConn) Close() error {
+	return nil
+}
+
+func (c *queuedInferExecConn) Begin() (driver.Tx, error) {
+	return queuedInferExecTx{driver: c.driver}, nil
+}
+
+func (c *queuedInferExecConn) BeginTx(context.Context, driver.TxOptions) (driver.Tx, error) {
+	return queuedInferExecTx{driver: c.driver}, nil
+}
+
+func (c *queuedInferExecConn) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return c.driver.nextExec(query, args)
+}
+
+func (c *queuedInferExecConn) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
+	return nil, errors.New("unexpected query")
+}
+
+func (tx queuedInferExecTx) Commit() error {
+	return nil
+}
+
+func (tx queuedInferExecTx) Rollback() error {
+	return nil
+}
+
+func (tx queuedInferExecTx) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return tx.driver.nextExec(query, args)
+}
+
+func (tx queuedInferExecTx) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
+	return nil, errors.New("unexpected query")
 }
 
 type failingStreamProvider struct{}
@@ -204,6 +310,131 @@ func TestHandleInferDoesNotFallbackAfterStructuredRuntimeTaskError(t *testing.T)
 	}
 	if got := statusBody["status"]; got != "failed" {
 		t.Fatalf("runtime_payload.status.status = %v, want failed", got)
+	}
+}
+
+func TestHandleInferPersistsVerifiedRuntimeExecutionArtifacts(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedInferExecDB(t,
+		queuedInferExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				if !strings.Contains(query, "INSERT INTO execution_lineage") {
+					t.Fatalf("expected execution_lineage insert query, got %q", query)
+				}
+				if got := args[0].Value; got != "exec-runtime-1" {
+					t.Fatalf("execution_id = %v, want exec-runtime-1", got)
+				}
+				if got := args[10].Value; got != "receipt-hash-runtime-1" {
+					t.Fatalf("receipt_hash = %v, want receipt-hash-runtime-1", got)
+				}
+			},
+		},
+		queuedInferExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				if !strings.Contains(query, "INSERT INTO execution_context") {
+					t.Fatalf("expected execution_context insert query, got %q", query)
+				}
+				if got := args[0].Value; got != "exec-runtime-1" {
+					t.Fatalf("execution_context.execution_id = %v, want exec-runtime-1", got)
+				}
+				if got := args[14].Value; got != "verified" {
+					t.Fatalf("verification_status = %v, want verified", got)
+				}
+			},
+		},
+	)
+
+	handler, err := NewInferHandler(nil)
+	if err != nil {
+		t.Fatalf("NewInferHandler() error = %v", err)
+	}
+	handler.executionStore = coordinator.NewCheckpointStore(db)
+	response := models.NewInferResponse("runtime-task-1", "mock-model")
+	response.AddChoice(0, &models.Message{Role: "assistant", Content: "hello unified path"}, "stop")
+	response.SetUsage(4, 7)
+	response.ExecutionEnvelope = map[string]interface{}{
+		"execution_id":     "exec-runtime-1",
+		"routing_decision": "runtime:test",
+		"provider":         "local-mock-cloud",
+		"tenant_id":        "tenant-runtime",
+	}
+	response.ExecutionReceipt = map[string]interface{}{
+		"execution_id":       "exec-runtime-1",
+		"agent_id":           "tenant-runtime",
+		"cpu_time_ms":        0,
+		"wall_time_ms":       36,
+		"memory_peak_mb":     0,
+		"fs_bytes_written":   0,
+		"tool_calls":         0,
+		"previous_hash":      "prev-hash-runtime-0",
+		"timestamp_utc":      "2026-05-03T13:00:00Z",
+		"transaction_id":     "tx-runtime-1",
+		"transaction_hash":   "tx-hash-runtime-1",
+		"violation_occurred": false,
+		"hash":               "receipt-hash-runtime-1",
+		"signature":          "receipt-sig-runtime-1",
+	}
+	response.Metadata = &models.ResponseMetadata{
+		Provider:      "local-mock-cloud",
+		RouteDecision: "forwarded_to_runtime_task",
+		Timestamp:     time.Date(2026, 5, 3, 13, 0, 0, 0, time.UTC),
+	}
+	handler.runtimeExecutor = &stubRuntimeExecutor{forwardResp: response}
+
+	app := fiber.New()
+	app.Post("/v1/infer", handler.HandleInfer)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", bytes.NewBufferString(`{
+		"model":"mock-model",
+		"messages":[{"role":"user","content":"hello runtime"}]
+	}`))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+	if queued.remainingExecs() != 0 {
+		t.Fatalf("remaining exec expectations = %d, want 0", queued.remainingExecs())
+	}
+}
+
+func TestHandleInferFallbackWithoutRuntimeProofDoesNotPersistExecutionArtifacts(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedInferExecDB(t)
+
+	handler, err := NewInferHandler(nil)
+	if err != nil {
+		t.Fatalf("NewInferHandler() error = %v", err)
+	}
+	handler.executionStore = coordinator.NewCheckpointStore(db)
+	handler.runtimeExecutor = &stubRuntimeExecutor{forwardErr: errors.New("runtime unavailable")}
+
+	app := fiber.New()
+	app.Post("/v1/infer", handler.HandleInfer)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/infer", bytes.NewBufferString(`{
+		"model":"mock-model",
+		"messages":[{"role":"user","content":"hello fallback"}]
+	}`))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+	if queued.remainingExecs() != 0 {
+		t.Fatalf("remaining exec expectations = %d, want 0", queued.remainingExecs())
 	}
 }
 
