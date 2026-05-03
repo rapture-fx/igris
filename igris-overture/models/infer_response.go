@@ -143,7 +143,7 @@ func BuildReceiptReference(receipt map[string]interface{}) map[string]interface{
 	}
 
 	ref := map[string]interface{}{"available": true}
-	for _, field := range []string{"execution_id", "transaction_id", "transaction_hash", "previous_hash"} {
+	for _, field := range []string{"execution_id", "transaction_id", "transaction_hash", "previous_hash", "runtime_id"} {
 		if value, ok := receipt[field].(string); ok && value != "" {
 			ref[field] = value
 		}
