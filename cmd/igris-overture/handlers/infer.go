@@ -828,7 +828,7 @@ func inferExecutionEvents(resp *models.InferResponse, routeDecision string) json
 	events := []map[string]any{{
 		"timestamp": timestamp.UTC().Format(time.RFC3339),
 		"kind":      "runtime_execution",
-		"message":   firstNonEmptyString("Runtime execution completed", routeDecisionMessage(routeDecision)),
+		"message":   "Runtime execution completed",
 	}}
 	if routeDecision != "" {
 		events = append(events, map[string]any{
