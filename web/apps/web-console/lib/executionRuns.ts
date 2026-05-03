@@ -108,6 +108,9 @@ export interface ExecutionRunDetail extends ExecutionRun {
   route_decision?: string | null;
   provider?: string | null;
   provider_path?: string | null;
+  runtime_label?: string | null;
+  fallback_used?: boolean;
+  fallback_reason?: string | null;
   receipt?: ExecutionRunReceiptReference | null;
   violations?: ExecutionViolation[];
   events?: ExecutionRunEvent[];
