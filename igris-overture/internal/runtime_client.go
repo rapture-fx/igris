@@ -369,6 +369,15 @@ func (c *RuntimeClient) VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json
 		if err := c.verifyReceipt(receipt); err != nil {
 			return err
 		}
+		var envelope map[string]interface{}
+		if len(envelopeRaw) > 0 {
+			if err := json.Unmarshal(envelopeRaw, &envelope); err != nil {
+				return fmt.Errorf("execution_envelope decode: %w", err)
+			}
+		}
+		if err := verifyArtifactRuntimeID(envelope, receipt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -514,6 +523,9 @@ func canonicalReceiptBytes(receipt map[string]interface{}) ([]byte, error) {
 		),
 		"wall_time_ms": receiptFieldString(receipt, "wall_time_ms"),
 	}
+	if runtimeID := receiptFieldString(receipt, "runtime_id"); runtimeID != "" {
+		canonical["runtime_id"] = runtimeID
+	}
 	if txHash := receiptFieldString(receipt, "transaction_hash"); txHash != "" {
 		canonical["transaction_hash"] = txHash
 	}
@@ -521,6 +533,18 @@ func canonicalReceiptBytes(receipt map[string]interface{}) ([]byte, error) {
 		canonical["transaction_id"] = txID
 	}
 	return json.Marshal(canonical)
+}
+
+func verifyArtifactRuntimeID(envelope, receipt map[string]interface{}) error {
+	envelopeRuntimeID := strings.TrimSpace(receiptFieldString(envelope, "runtime_id"))
+	receiptRuntimeID := strings.TrimSpace(receiptFieldString(receipt, "runtime_id"))
+	if envelopeRuntimeID == "" || receiptRuntimeID == "" {
+		return nil
+	}
+	if envelopeRuntimeID != receiptRuntimeID {
+		return fmt.Errorf("execution artifact runtime_id mismatch")
+	}
+	return nil
 }
 
 func receiptFieldString(receipt map[string]interface{}, key string) string {
@@ -764,6 +788,9 @@ func (c *RuntimeClient) ForwardExecution(
 		if err := c.verifyReceipt(taskResp.ExecutionReceipt); err != nil {
 			return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
 		}
+	}
+	if err := verifyArtifactRuntimeID(taskResp.ExecutionEnvelope, taskResp.ExecutionReceipt); err != nil {
+		return nil, fmt.Errorf("%w: %v", models.ErrRuntimeSecurity, err)
 	}
 
 	// Convert to the Overture InferResponse type.
