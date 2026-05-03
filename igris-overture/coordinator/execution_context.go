@@ -30,6 +30,28 @@ type ExecutionContextRecord struct {
 	ReceiptHash        string
 }
 
+type ExecutionLineageRecord struct {
+	ExecutionID       string
+	TransactionID     string
+	TransactionHash   string
+	AgentID           string
+	CPUTimeMs         int64
+	WallTimeMs        int64
+	MemoryPeakMB      int64
+	FSBytesWritten    int64
+	ToolCalls         int
+	ViolationOccurred bool
+	ReceiptHash       string
+	PreviousHash      string
+	Signature         string
+	RuntimeID         string
+	TenantID          string
+	TimestampUTC      time.Time
+	Status            string
+	PromptPreview     string
+	ViolationDetails  json.RawMessage
+}
+
 type executionContextExecer interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }
@@ -64,6 +86,10 @@ type executionContextTaskSource struct {
 
 func (s *CheckpointStore) SaveExecutionContext(record *ExecutionContextRecord) error {
 	return saveExecutionContext(s.db, record)
+}
+
+func (s *CheckpointStore) SaveExecutionLineage(record *ExecutionLineageRecord) error {
+	return saveExecutionLineage(s.db, record)
 }
 
 func buildTaskExecutionContextRecord(queryer queryRower, taskID uuid.UUID, executionEnvelope, executionReceipt json.RawMessage) (*ExecutionContextRecord, error) {
@@ -158,6 +184,71 @@ func saveExecutionContext(execer executionContextExecer, record *ExecutionContex
 		record.VerificationStatus,
 		record.ReceiptID,
 		record.ReceiptHash,
+	)
+	return err
+}
+
+func saveExecutionLineage(execer executionContextExecer, record *ExecutionLineageRecord) error {
+	if record == nil || strings.TrimSpace(record.ExecutionID) == "" || strings.TrimSpace(record.ReceiptHash) == "" {
+		return nil
+	}
+	timestamp := record.TimestampUTC
+	if timestamp.IsZero() {
+		timestamp = time.Now().UTC()
+	}
+
+	_, err := execer.Exec(`
+		INSERT INTO execution_lineage (
+			execution_id, transaction_id, transaction_hash, agent_id,
+			cpu_time_ms, wall_time_ms, memory_peak_mb, fs_bytes_written, tool_calls,
+			violation_occurred, receipt_hash, previous_hash, signature,
+			runtime_id, tenant_id, timestamp_utc, status, prompt_preview, violation_details, persisted_at
+		)
+		VALUES (
+			$1, COALESCE($2, ''), COALESCE($3, ''), $4,
+			$5, $6, $7, $8, $9,
+			$10, $11, COALESCE($12, ''), COALESCE($13, ''),
+			NULLIF($14, ''), NULLIF($15, ''), $16, NULLIF($17, ''), NULLIF($18, ''), $19, NOW()
+		)
+		ON CONFLICT (execution_id) DO UPDATE
+		SET transaction_id = COALESCE(NULLIF(EXCLUDED.transaction_id, ''), execution_lineage.transaction_id),
+		    transaction_hash = COALESCE(NULLIF(EXCLUDED.transaction_hash, ''), execution_lineage.transaction_hash),
+		    agent_id = COALESCE(NULLIF(EXCLUDED.agent_id, ''), execution_lineage.agent_id),
+		    cpu_time_ms = EXCLUDED.cpu_time_ms,
+		    wall_time_ms = EXCLUDED.wall_time_ms,
+		    memory_peak_mb = EXCLUDED.memory_peak_mb,
+		    fs_bytes_written = EXCLUDED.fs_bytes_written,
+		    tool_calls = EXCLUDED.tool_calls,
+		    violation_occurred = EXCLUDED.violation_occurred,
+		    receipt_hash = EXCLUDED.receipt_hash,
+		    previous_hash = EXCLUDED.previous_hash,
+		    signature = EXCLUDED.signature,
+		    runtime_id = COALESCE(EXCLUDED.runtime_id, execution_lineage.runtime_id),
+		    tenant_id = COALESCE(EXCLUDED.tenant_id, execution_lineage.tenant_id),
+		    timestamp_utc = EXCLUDED.timestamp_utc,
+		    status = COALESCE(EXCLUDED.status, execution_lineage.status),
+		    prompt_preview = COALESCE(EXCLUDED.prompt_preview, execution_lineage.prompt_preview),
+		    violation_details = COALESCE(EXCLUDED.violation_details, execution_lineage.violation_details),
+		    persisted_at = NOW()`,
+		record.ExecutionID,
+		nullString(record.TransactionID),
+		nullString(record.TransactionHash),
+		record.AgentID,
+		record.CPUTimeMs,
+		record.WallTimeMs,
+		record.MemoryPeakMB,
+		record.FSBytesWritten,
+		record.ToolCalls,
+		record.ViolationOccurred,
+		record.ReceiptHash,
+		nullString(record.PreviousHash),
+		nullString(record.Signature),
+		record.RuntimeID,
+		record.TenantID,
+		timestamp,
+		record.Status,
+		record.PromptPreview,
+		nullRawJSON(record.ViolationDetails),
 	)
 	return err
 }
@@ -381,6 +472,98 @@ func capabilitySnapshotFromPermissionEnvelope(raw json.RawMessage) json.RawMessa
 
 	encoded, _ := json.Marshal(snapshot)
 	return encoded
+}
+
+func BuildExecutionLineageRecordFromReceipt(
+	executionReceipt json.RawMessage,
+	tenantID string,
+	runtimeID string,
+	status string,
+	promptPreview string,
+) (*ExecutionLineageRecord, error) {
+	if len(executionReceipt) == 0 || string(executionReceipt) == "null" || string(executionReceipt) == "{}" {
+		return nil, nil
+	}
+
+	var receipt struct {
+		ExecutionID       string `json:"execution_id"`
+		TransactionID     string `json:"transaction_id"`
+		TransactionHash   string `json:"transaction_hash"`
+		AgentID           string `json:"agent_id"`
+		CPUTimeMs         int64  `json:"cpu_time_ms"`
+		WallTimeMs        int64  `json:"wall_time_ms"`
+		MemoryPeakMB      int64  `json:"memory_peak_mb"`
+		FSBytesWritten    int64  `json:"fs_bytes_written"`
+		ToolCalls         int    `json:"tool_calls"`
+		ViolationOccurred bool   `json:"violation_occurred"`
+		ReceiptHash       string `json:"receipt_hash"`
+		Hash              string `json:"hash"`
+		PreviousHash      string `json:"previous_hash"`
+		Signature         string `json:"signature"`
+		TimestampUTC      string `json:"timestamp_utc"`
+		Violation         string `json:"violation"`
+	}
+	if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
+		return nil, err
+	}
+	if receipt.ExecutionID == "" {
+		return nil, nil
+	}
+
+	receiptHash := firstNonEmpty(receipt.ReceiptHash, receipt.Hash)
+	if receiptHash == "" {
+		return nil, nil
+	}
+
+	timestamp := time.Now().UTC()
+	if strings.TrimSpace(receipt.TimestampUTC) != "" {
+		if parsed, err := time.Parse(time.RFC3339, receipt.TimestampUTC); err == nil {
+			timestamp = parsed.UTC()
+		}
+	}
+
+	record := &ExecutionLineageRecord{
+		ExecutionID:       receipt.ExecutionID,
+		TransactionID:     receipt.TransactionID,
+		TransactionHash:   receipt.TransactionHash,
+		AgentID:           firstNonEmpty(receipt.AgentID, tenantID),
+		CPUTimeMs:         receipt.CPUTimeMs,
+		WallTimeMs:        receipt.WallTimeMs,
+		MemoryPeakMB:      receipt.MemoryPeakMB,
+		FSBytesWritten:    receipt.FSBytesWritten,
+		ToolCalls:         receipt.ToolCalls,
+		ViolationOccurred: receipt.ViolationOccurred,
+		ReceiptHash:       receiptHash,
+		PreviousHash:      receipt.PreviousHash,
+		Signature:         receipt.Signature,
+		RuntimeID:         runtimeID,
+		TenantID:          tenantID,
+		TimestampUTC:      timestamp,
+		Status:            normalizeExecutionLineageStatus(status, receipt.ViolationOccurred),
+		PromptPreview:     promptPreview,
+	}
+
+	if receipt.ViolationOccurred || strings.TrimSpace(receipt.Violation) != "" {
+		violationDetails, _ := json.Marshal(map[string]any{
+			"violation_type": firstNonEmpty(receipt.Violation, "violation_recorded"),
+		})
+		record.ViolationDetails = violationDetails
+	}
+	return record, nil
+}
+
+func normalizeExecutionLineageStatus(status string, violationOccurred bool) string {
+	normalized := strings.ToUpper(strings.TrimSpace(status))
+	switch {
+	case violationOccurred && normalized == "COMPLETED":
+		return "VIOLATION"
+	case normalized != "":
+		return normalized
+	case violationOccurred:
+		return "VIOLATION"
+	default:
+		return "COMPLETED"
+	}
 }
 
 func ensureJSONArray(raw json.RawMessage) json.RawMessage {
