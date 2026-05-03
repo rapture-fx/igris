@@ -455,61 +455,15 @@ export default function Products() {
 
               {/* Right: descriptive content — 40% */}
               <div className="flex flex-col justify-center">
-                <div>
-                  <p className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                    Models decide. Igris executes.
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                    Igris gives AI systems a governed path for turning model output into controlled action. Define boundaries, handle failure paths, and generate signed records of what happened during execution.
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: SANS }}>
-                    Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
-                  </p>
-                </div>
-                <div className="mt-6" style={{ maxWidth: '320px' }}>
-                  <ul className="list-disc list-inside space-y-3">
-                    <li>
-                      <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                        Governed runs
-                      </span>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: SANS }}>
-                        Apply limits, permission checks, and execution boundaries before AI output becomes action.
-                      </p>
-                    </li>
-                    <li>
-                      <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                        Failure paths
-                      </span>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: SANS }}>
-Design tasks with explicit failure paths across cloud, edge, and local environments.
-                      </p>
-                    </li>
-                    <li>
-                      <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                        Signed records
-                      </span>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: SANS }}>
-                        Produce verifiable execution records for critical runs, decisions, and actions.
-                      </p>
-                    </li>
-                    <li>
-                      <span className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                        Deploy anywhere
-                      </span>
-                      <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: SANS }}>
-                        Run the same execution model across servers, devices, and edge environments.
-                      </p>
-                    </li>
-                  </ul>
-                  <div className="mt-4">
-                    <div className="landing-surface-card rounded-md border px-3 py-1.5 flex items-center gap-2" style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                      <span className="font-mono select-all" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151', whiteSpace: 'nowrap', flex: 1, minWidth: 0, overflow: 'hidden' }}>
-                        {INSTALL_CMD}
-                      </span>
-                      <CopyButton />
-                    </div>
-                  </div>
-                </div>
+                <p className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
+                  Models decide. Igris executes.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
+                  Igris gives AI systems a governed path for turning model output into controlled action. Define boundaries, handle failure paths, and generate signed records of what happened during execution.
+                </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: SANS }}>
+                  Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
+                </p>
               </div>
             </div>
 
@@ -544,40 +498,6 @@ Design tasks with explicit failure paths across cloud, edge, and local environme
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: SANS }}>
                   Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
                 </p>
-              </div>
-              <div className="mt-4 max-w-full md:max-w-[320px]">
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                  Governed runs
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                  Apply limits, permission checks, and execution boundaries before AI output becomes action.
-                </p>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                  Failure paths
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                  Keep tasks moving across cloud, edge, and local environments when part of the system fails.
-                </p>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                  Signed records
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                  Produce verifiable execution records for critical runs, decisions, and actions.
-                </p>
-                <p className="text-sm md:text-base mb-3 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS, fontWeight: 400 }}>
-                  Deploy anywhere
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                  Run the same execution model across servers, devices, and edge environments.
-                </p>
-                <div className="mt-6">
-                  <div className="landing-surface-card relative rounded-2xl border px-3 py-2 md:px-4 md:py-2 inline-block pt-4" style={{ minWidth: '280px' }}>
-                    <CopyButton />
-                    <span className="font-mono text-xs md:text-sm select-all whitespace-nowrap mr-8" style={{ color: isDark ? '#c8c8b8' : '#374151' }}>
-                      {INSTALL_CMD}
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
 
