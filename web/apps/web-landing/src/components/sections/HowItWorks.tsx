@@ -74,7 +74,7 @@ export default function HowItWorks() {
                           {stage.title}
                         </span>
                       </div>
-                      <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-4 pt-5 pb-6" style={{ minHeight: '110px' }}>
+                      <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-4 pt-6 pb-8" style={{ minHeight: '160px' }}>
                         <p
                           className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed"
                           style={{ fontFamily: SANS }}
