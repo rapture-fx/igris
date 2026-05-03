@@ -8,78 +8,71 @@ const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
 const MONO = '"SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", Menlo, Courier, monospace'
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
-const SUMMARY_ROWS = [
-  { label: 'task_id',  value: 'task_019de343',       accent: false },
-  { label: 'status',   value: 'completed',            accent: true  },
-  { label: 'route',    value: 'governed_execution',   accent: false },
-  { label: 'provider', value: 'configured-provider',  accent: false },
-  { label: 'receipt',  value: 'verified',             accent: true  },
+const LOG_EVENTS = [
+  { time: '12:01:02', sev: 'INFO', type: 'ExecutionStarted',    msg: 'task_019de343 received · agent igris-worker-01' },
+  { time: '12:01:02', sev: 'INFO', type: 'ProviderSelected',    msg: 'routed → anthropic / claude-3-5-sonnet' },
+  { time: '12:01:03', sev: 'INFO', type: 'ToolCall',            msg: 'tool file_read called · path /data/config.json' },
+  { time: '12:01:03', sev: 'INFO', type: 'ToolCall',            msg: 'tool http_post called · url api.internal/submit' },
+  { time: '12:01:04', sev: 'WARN', type: 'PolicyViolation',     msg: 'rate limit threshold reached · action deferred' },
+  { time: '12:01:04', sev: 'ERR',  type: 'ExecutionTerminated', msg: 'retry limit exceeded · fallback triggered' },
+  { time: '12:01:05', sev: 'INFO', type: 'ProviderSelected',    msg: 'failover → openai / gpt-4o' },
+  { time: '12:01:06', sev: 'INFO', type: 'ReceiptSigned',       msg: 'receipt verified · execution complete' },
 ]
 
-const EVENT_STREAM = [
-  '[12:01:03] task received',
-  '[12:01:03] permission checks passed',
-  '[12:01:04] execution started',
-  '[12:01:05] signed record generated',
-  '[12:01:05] receipt verified',
-]
+const SEV_COLOR: Record<string, string> = {
+  INFO: '#22c55e',
+  WARN: '#eab308',
+  ERR:  '#f97316',
+  CRIT: '#ef4444',
+}
 
 function ExecutionPreview({ isDark }: { isDark: boolean }) {
-  const muted  = isDark ? '#a8a898' : '#6b7280'
-  const strong = isDark ? '#f6f6f4' : '#111827'
-  const code   = isDark ? '#c8c8b8' : '#374151'
-  const accent = isDark ? '#86efac' : '#15803d'
+  const bg        = isDark ? '#16160f' : '#ffffff'
+  const headerBg  = isDark ? '#111108' : '#f9fafb'
+  const border    = isDark ? 'rgba(246,246,244,0.1)' : '#e5e7eb'
+  const timeColor = isDark ? '#6b7280' : '#9ca3af'
+  const msgColor  = isDark ? '#c8c8b8' : '#374151'
+  const typeColor = isDark ? '#a78bfa' : '#7c3aed'
 
   return (
-    <div
-      className="landing-surface-card rounded-xl border"
-      style={{ position: 'relative', zIndex: 10, padding: '13px 16px', width: '100%' }}
-    >
+    <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '10px', overflow: 'hidden', width: '100%' }}>
       {/* Header */}
-      <div style={{ borderBottom: 'var(--section-border)', paddingBottom: '9px', marginBottom: '9px' }}>
-        <p style={{ fontFamily: SANS, fontSize: '9px', letterSpacing: '0.08em', textTransform: 'uppercase', color: muted, fontWeight: 500 }}>
-          Execution Preview
-        </p>
-        <p style={{ fontFamily: SANS, fontSize: '10px', marginTop: '2px', color: muted }}>
-          Structured execution events for a governed task run.
-        </p>
-      </div>
-
-      {/* Summary rows */}
-      <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        {SUMMARY_ROWS.map(row => (
-          <div key={row.label} style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-            <span style={{ fontFamily: MONO, fontSize: '10px', color: muted, minWidth: '110px', flexShrink: 0 }}>
-              {row.label}
-            </span>
-            <span style={{ fontFamily: MONO, fontSize: '10px', color: row.accent ? accent : strong }}>
-              {row.value}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Event stream */}
-      <div style={{ borderTop: 'var(--section-border)', paddingTop: '9px', marginBottom: '9px' }}>
-        <p style={{ fontFamily: SANS, fontSize: '9px', letterSpacing: '0.08em', textTransform: 'uppercase', color: muted, marginBottom: '6px', fontWeight: 500 }}>
-          Event Stream
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          {EVENT_STREAM.map((event, i) => (
-            <span key={i} style={{ fontFamily: MONO, fontSize: '10px', color: code }}>
-              {event}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div style={{ borderTop: 'var(--section-border)', paddingTop: '7px' }}>
-        <span style={{ fontFamily: MONO, fontSize: '10px', color: muted }}>
-          verification:{' '}
-          <span style={{ color: accent }}>valid</span>
+      <div style={{ background: headerBg, borderBottom: `1px solid ${border}`, padding: '7px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: isDark ? '#f6f6f4' : '#111827' }}>
+          Runtime Events
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: SANS, fontSize: '10px', color: '#22c55e' }}>
+          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+          live
         </span>
       </div>
+
+      {/* Rows */}
+      {LOG_EVENTS.map((e, i) => (
+        <div
+          key={i}
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            padding: '4px 10px 4px 9px',
+            borderBottom: i < LOG_EVENTS.length - 1 ? `1px solid ${border}` : undefined,
+            borderLeft: `3px solid ${e.sev === 'INFO' ? 'transparent' : SEV_COLOR[e.sev]}`,
+          }}
+        >
+          <span style={{ fontFamily: MONO, fontSize: '10px', color: timeColor, width: '48px', flexShrink: 0, userSelect: 'none' }}>
+            {e.time}
+          </span>
+          <span style={{ fontFamily: MONO, fontSize: '10px', fontWeight: 700, width: '34px', flexShrink: 0, color: SEV_COLOR[e.sev] }}>
+            {e.sev}
+          </span>
+          <span style={{ fontFamily: MONO, fontSize: '10px', color: typeColor, width: '155px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {e.type}
+          </span>
+          <span style={{ fontFamily: MONO, fontSize: '10px', color: msgColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {e.msg}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -168,7 +161,7 @@ export default function Products() {
                   }}
                 />
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 10 }}>
-                  <div style={{ width: '60%' }}>
+                  <div style={{ width: '90%' }}>
                     <ExecutionPreview isDark={isDark} />
                   </div>
                 </div>
@@ -202,7 +195,7 @@ export default function Products() {
                         Failure paths
                       </span>
                       <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed ml-4" style={{ fontFamily: SANS }}>
-                        Keep tasks moving across cloud, edge, and local environments when part of the system fails.
+Design tasks with explicit failure paths across cloud, edge, and local environments.
                       </p>
                     </li>
                     <li>
@@ -223,8 +216,8 @@ export default function Products() {
                     </li>
                   </ul>
                   <div className="mt-4">
-                    <div className="landing-surface-card rounded-md border px-3 py-1.5 flex items-center gap-2" style={{ maxWidth: '100%' }}>
-                      <span className="font-mono select-all break-all" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151' }}>
+                    <div className="landing-surface-card rounded-md border px-3 py-1.5 flex items-center gap-2" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                      <span className="font-mono select-all" style={{ fontSize: '10px', color: isDark ? '#c8c8b8' : '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {INSTALL_CMD}
                       </span>
                       <CopyButton />
