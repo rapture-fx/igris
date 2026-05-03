@@ -146,6 +146,7 @@ export default function ExecutionRunDetailPage() {
   const routeDecision = run?.route_decision ?? 'Route decision was not recorded for this run.';
   const providerDisplay = run?.provider ?? 'Not recorded';
   const providerPath = run?.provider_path ?? 'Provider path was not recorded for this run.';
+  const runtimeId = run?.runtime_id ?? run?.device_id ?? '';
   const runtimeLabel = run?.runtime_label ?? 'Not recorded';
   const receiptStatus = verificationLabel(receipt?.verification_status ?? run?.verification_status);
   const violationList = useMemo(() => run ? violationRows(run, violations) : [], [run, violations]);
@@ -317,7 +318,7 @@ export default function ExecutionRunDetailPage() {
                   rows={[
                     { label: 'Run ID', value: run.id, mono: true, copyable: run.id },
                     { label: 'Agent ID', value: run.agent_id, mono: true, copyable: run.agent_id },
-                    { label: 'Device ID', value: run.device_id ?? '—', mono: true, copyable: run.device_id },
+                    { label: 'Runtime ID', value: runtimeId || 'Not recorded', mono: true, copyable: runtimeId || undefined },
                     { label: 'Model', value: run.model ?? '—' },
                     { label: 'Status', value: <ExecutionStatusBadge status={run.status} /> },
                     { label: 'Started', value: formatDateTime(run.started_at) },
