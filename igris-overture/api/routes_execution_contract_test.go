@@ -42,6 +42,9 @@ func TestBuildExecutionRunSummary(t *testing.T) {
 	if run.VerificationStatus != "verified" {
 		t.Fatalf("VerificationStatus = %q, want %q", run.VerificationStatus, "verified")
 	}
+	if run.RuntimeID != "runtime-1" {
+		t.Fatalf("RuntimeID = %q, want runtime-1", run.RuntimeID)
+	}
 }
 
 func TestBuildExecutionRunDetailUsesEmptyCollections(t *testing.T) {
@@ -109,6 +112,9 @@ func TestBuildExecutionRunDetailIncludesPersistedContext(t *testing.T) {
 	if detail.RuntimeLabel == nil || *detail.RuntimeLabel != "http://runtime.internal" {
 		t.Fatalf("RuntimeLabel = %v, want http://runtime.internal", detail.RuntimeLabel)
 	}
+	if detail.RuntimeID != "runtime-9" {
+		t.Fatalf("RuntimeID = %q, want runtime-9", detail.RuntimeID)
+	}
 	if detail.PolicySnapshot == nil {
 		t.Fatal("PolicySnapshot = nil, want value")
 	}
@@ -136,7 +142,7 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 		rows: [][]driver.Value{{
 			"exec-infer-1",
 			"tenant-infer",
-			"",
+			"runtime-infer-1",
 			startedAt,
 			int64(36),
 			false,
@@ -177,6 +183,9 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 	if runs[0].VerificationStatus != "verified" {
 		t.Fatalf("VerificationStatus = %q, want verified", runs[0].VerificationStatus)
 	}
+	if runs[0].RuntimeID != "runtime-infer-1" {
+		t.Fatalf("RuntimeID = %q, want runtime-infer-1", runs[0].RuntimeID)
+	}
 	if runs[0].ReceiptHash != "receipt-hash-infer-1" {
 		t.Fatalf("ReceiptHash = %q, want receipt-hash-infer-1", runs[0].ReceiptHash)
 	}
@@ -203,7 +212,7 @@ func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
 		rows: [][]driver.Value{{
 			"exec-infer-1",
 			"tenant-infer",
-			"",
+			"runtime-infer-1",
 			startedAt,
 			int64(36),
 			false,
@@ -265,6 +274,9 @@ func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
 	}
 	if detail.RuntimeLabel == nil || *detail.RuntimeLabel != "http://runtime.test" {
 		t.Fatalf("RuntimeLabel = %v, want http://runtime.test", detail.RuntimeLabel)
+	}
+	if detail.RuntimeID != "runtime-infer-1" {
+		t.Fatalf("RuntimeID = %q, want runtime-infer-1", detail.RuntimeID)
 	}
 	if detail.VerificationStatus != "verified" {
 		t.Fatalf("VerificationStatus = %q, want verified", detail.VerificationStatus)
