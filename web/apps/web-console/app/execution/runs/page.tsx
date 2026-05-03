@@ -242,7 +242,7 @@ export default function ExecutionRunsPage() {
                           </div>
                         </td>
                         <td className="px-4 py-2.5 text-gray-600">
-                          {run.device_id ? truncateText(run.device_id, 14) : '—'}
+                          {run.runtime_id || run.device_id ? truncateText(run.runtime_id ?? run.device_id, 14) : '—'}
                         </td>
                         <td className="px-4 py-2.5 text-gray-600">{run.model ?? '—'}</td>
                         <td className="px-4 py-2.5 text-gray-500 tabular-nums">{getRelativeTime(run.started_at)}</td>

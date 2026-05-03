@@ -14,7 +14,7 @@ const POLAR_CHECKOUT: Record<string, string> = {
 const pricingTiers = [
   {
     name: 'Seed',
-    price: '$9',
+    price: '$19',
     period: '/ month',
     description: 'For builders validating verified AI execution.',
     features: [
@@ -33,7 +33,7 @@ const pricingTiers = [
   },
   {
     name: 'Horizon',
-    price: '$49',
+    price: '$79',
     period: '/ month',
     description: 'For teams running governed AI tasks.',
     features: [
