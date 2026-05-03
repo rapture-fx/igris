@@ -200,39 +200,39 @@ type ExecutionRunDetail struct {
 }
 
 type executionRunRecord struct {
-	ID                  string
-	AgentID             string
-	DeviceID            string
-	StartedAt           time.Time
-	DurationMs          int64
-	HasViolation        bool
-	Status              string
-	PauseReason         string
-	PromptPreview       string
-	ReceiptID           string
-	ReceiptHash         string
-	ReceiptPreviousHash string
-	ReceiptSignature    string
-	ProofStatus         string
-	ViolationDetails    []byte
-	ContextProvider     string
-	ContextRouteDecision string
-	ContextExecutionPath string
-	ContextRuntimeLabel string
-	ContextFallbackUsed bool
-	ContextFallbackReason string
-	ContextPolicySnapshot []byte
+	ID                        string
+	AgentID                   string
+	DeviceID                  string
+	StartedAt                 time.Time
+	DurationMs                int64
+	HasViolation              bool
+	Status                    string
+	PauseReason               string
+	PromptPreview             string
+	ReceiptID                 string
+	ReceiptHash               string
+	ReceiptPreviousHash       string
+	ReceiptSignature          string
+	ProofStatus               string
+	ViolationDetails          []byte
+	ContextProvider           string
+	ContextRouteDecision      string
+	ContextExecutionPath      string
+	ContextRuntimeLabel       string
+	ContextFallbackUsed       bool
+	ContextFallbackReason     string
+	ContextPolicySnapshot     []byte
 	ContextCapabilitySnapshot []byte
-	ContextEvents []byte
-	ContextLogs []byte
-	TaskExecutionEnvelope []byte
-	TaskPermissionEnvelope []byte
-	TaskFailureReason string
-	TaskFailureDetails []byte
-	TaskCreatedAt sql.NullTime
-	TaskDispatchedAt sql.NullTime
-	TaskCompletedAt sql.NullTime
-	TaskCanceledAt sql.NullTime
+	ContextEvents             []byte
+	ContextLogs               []byte
+	TaskExecutionEnvelope     []byte
+	TaskPermissionEnvelope    []byte
+	TaskFailureReason         string
+	TaskFailureDetails        []byte
+	TaskCreatedAt             sql.NullTime
+	TaskDispatchedAt          sql.NullTime
+	TaskCompletedAt           sql.NullTime
+	TaskCanceledAt            sql.NullTime
 }
 
 // ListRuns handles GET /v1/execution/runs?limit=20&sort=created_at:desc&status=PAUSED
@@ -738,7 +738,7 @@ func capabilitySnapshotFromPermissionEnvelopeForAPI(raw []byte) map[string]any {
 		return nil
 	}
 	var envelope struct {
-		EnvelopeID           string `json:"envelope_id"`
+		EnvelopeID           string   `json:"envelope_id"`
 		RequiredCapabilities []string `json:"required_capabilities"`
 		Decisions            []struct {
 			Capability    string `json:"capability"`
@@ -746,10 +746,10 @@ func capabilitySnapshotFromPermissionEnvelopeForAPI(raw []byte) map[string]any {
 			Reason        string `json:"reason"`
 			PolicyVersion string `json:"policy_version"`
 		} `json:"decisions"`
-		CredentialRefs   []map[string]any `json:"credential_refs"`
-		IssuedAtUnixMs   int64            `json:"issued_at_unix_ms"`
-		ExpiresAtUnixMs  int64            `json:"expires_at_unix_ms"`
-		Signature        string           `json:"signature"`
+		CredentialRefs  []map[string]any `json:"credential_refs"`
+		IssuedAtUnixMs  int64            `json:"issued_at_unix_ms"`
+		ExpiresAtUnixMs int64            `json:"expires_at_unix_ms"`
+		Signature       string           `json:"signature"`
 	}
 	if err := json.Unmarshal(raw, &envelope); err != nil {
 		return nil
@@ -766,15 +766,15 @@ func capabilitySnapshotFromPermissionEnvelopeForAPI(raw []byte) map[string]any {
 	}
 
 	return map[string]any{
-		"envelope_id":               envelope.EnvelopeID,
-		"required_capabilities":     envelope.RequiredCapabilities,
-		"decisions":                 envelope.Decisions,
-		"credential_refs":           envelope.CredentialRefs,
-		"permission_signed":         envelope.Signature != "",
-		"issued_at_unix_ms":         envelope.IssuedAtUnixMs,
-		"expires_at_unix_ms":        envelope.ExpiresAtUnixMs,
-		"granted_capability_count":  granted,
-		"denied_capability_count":   denied,
+		"envelope_id":              envelope.EnvelopeID,
+		"required_capabilities":    envelope.RequiredCapabilities,
+		"decisions":                envelope.Decisions,
+		"credential_refs":          envelope.CredentialRefs,
+		"permission_signed":        envelope.Signature != "",
+		"issued_at_unix_ms":        envelope.IssuedAtUnixMs,
+		"expires_at_unix_ms":       envelope.ExpiresAtUnixMs,
+		"granted_capability_count": granted,
+		"denied_capability_count":  denied,
 	}
 }
 
