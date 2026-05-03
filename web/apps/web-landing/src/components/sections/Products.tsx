@@ -5,75 +5,363 @@ import { useTheme } from 'next-themes'
 
 const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
 
-const MONO = '"SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", Menlo, Courier, monospace'
+const MONO = 'var(--font-geist-mono), "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", Menlo, Courier, monospace'
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
 const LOG_EVENTS = [
-  { time: '12:01:02', sev: 'INFO', type: 'ExecutionStarted',    msg: 'task_019de343 received · agent igris-worker-01' },
-  { time: '12:01:02', sev: 'INFO', type: 'ProviderSelected',    msg: 'routed → anthropic / claude-3-5-sonnet' },
-  { time: '12:01:03', sev: 'INFO', type: 'ToolCall',            msg: 'tool file_read called · path /data/config.json' },
-  { time: '12:01:03', sev: 'INFO', type: 'ToolCall',            msg: 'tool http_post called · url api.internal/submit' },
-  { time: '12:01:04', sev: 'WARN', type: 'PolicyViolation',     msg: 'rate limit threshold reached · action deferred' },
-  { time: '12:01:04', sev: 'ERR',  type: 'ExecutionTerminated', msg: 'retry limit exceeded · fallback triggered' },
-  { time: '12:01:05', sev: 'INFO', type: 'ProviderSelected',    msg: 'failover → openai / gpt-4o' },
-  { time: '12:01:06', sev: 'INFO', type: 'ReceiptSigned',       msg: 'receipt verified · execution complete' },
+  { time: '12:01:02', sev: 'INFO', type: 'ExecutionStarted',   msg: 'task_019de343 received' },
+  { time: '12:01:02', sev: 'INFO', type: 'ProviderSelected',   msg: 'routed to configured provider' },
+  { time: '12:01:03', sev: 'INFO', type: 'ToolCall',           msg: 'file_read called' },
+  { time: '12:01:03', sev: 'INFO', type: 'BoundaryChecked',    msg: 'limits and permissions passed' },
+  { time: '12:01:04', sev: 'WARN', type: 'FallbackTriggered',  msg: 'primary path unavailable' },
+  { time: '12:01:05', sev: 'INFO', type: 'ProviderSelected',   msg: 'fallback path selected' },
+  { time: '12:01:06', sev: 'INFO', type: 'ReceiptSigned',      msg: 'signed record generated' },
+  { time: '12:01:06', sev: 'INFO', type: 'VerificationPassed', msg: 'receipt verified' },
 ]
 
-const SEV_COLOR: Record<string, string> = {
-  INFO: '#22c55e',
-  WARN: '#eab308',
-  ERR:  '#f97316',
-  CRIT: '#ef4444',
+const TIMELINE_STEPS = [
+  { name: 'Task received',      time: '12:01:02', desc: 'The task was accepted into the governed execution flow.',  style: 'normal' },
+  { name: 'Provider selected',  time: '12:01:02', desc: 'The initial execution path was chosen.',                  style: 'normal' },
+  { name: 'Tool call executed', time: '12:01:03', desc: 'The task called a tool under execution boundaries.',      style: 'normal' },
+  { name: 'Boundaries checked', time: '12:01:03', desc: 'Limits and permissions were evaluated.',                  style: 'normal' },
+  { name: 'Fallback triggered', time: '12:01:04', desc: 'Primary path unavailable, fallback path selected.',       style: 'warn'   },
+  { name: 'Receipt signed',     time: '12:01:06', desc: 'A signed execution record was generated.',                style: 'normal' },
+  { name: 'Verification passed',time: '12:01:06', desc: 'The execution record was verified successfully.',         style: 'success'},
+]
+
+const FILTER_CHIPS = [
+  { label: 'Agent',    value: 'all agents'   },
+  { label: 'Device',   value: 'all devices'  },
+  { label: 'Exec ID',  value: 'exec_019de343'},
+  { label: 'Type',     value: 'all types'    },
+  { label: 'Severity', value: 'all'          },
+  { label: 'Range',    value: 'Last 1h'      },
+]
+
+const SUMMARY_PAIRS = [
+  { k: 'task_id', v: 'task_019de343', accent: false },
+  { k: 'status',  v: 'completed',     accent: true  },
+  { k: 'route',   v: 'fallback_selected', accent: false },
+  { k: 'receipt', v: 'verified',      accent: true  },
+]
+
+type TabId = 'stream' | 'timeline' | 'verification'
+
+const SEV_LIGHT: Record<string, string> = {
+  INFO: '#166534',
+  WARN: '#d97706',
+  ERR:  '#d73a49',
+  CRIT: '#d73a49',
 }
+const SEV_DARK: Record<string, string> = {
+  INFO: '#16a34a',
+  WARN: '#f59e0b',
+  ERR:  '#f97583',
+  CRIT: '#f97583',
+}
+const DARK_GREEN_LIGHT = '#166534'
+const DARK_GREEN_DARK  = '#16a34a'
 
 function ExecutionPreview({ isDark }: { isDark: boolean }) {
-  const bg        = isDark ? '#16160f' : '#ffffff'
-  const headerBg  = isDark ? '#111108' : '#f9fafb'
-  const border    = isDark ? 'rgba(246,246,244,0.1)' : '#e5e7eb'
-  const timeColor = isDark ? '#6b7280' : '#9ca3af'
-  const msgColor  = isDark ? '#c8c8b8' : '#374151'
-  const typeColor = isDark ? '#a78bfa' : '#7c3aed'
+  const bg         = isDark ? '#16160f' : '#ffffff'
+  const headerBg   = isDark ? '#111108' : '#f9fafb'
+  const border     = isDark ? 'rgba(246,246,244,0.1)' : '#e5e7eb'
+  const timeColor  = '#6a737d'
+  const msgColor   = isDark ? '#a8a898' : '#4b5563'
+  const typeColor  = isDark ? '#9ecbff' : '#032f62'
+  const mutedColor = isDark ? '#6b7280' : '#9ca3af'
+  const labelColor = isDark ? '#4b5563' : '#b0b8c4'
+  const titleColor = isDark ? '#f6f6f4' : '#111827'
+  const SEV_COLOR  = isDark ? SEV_DARK : SEV_LIGHT
+  const skeletonBg = isDark ? 'rgba(246,246,244,0.06)' : '#e5e7eb'
+
+  const [activeTab, setActiveTab] = useState<TabId>('stream')
+  const [visibleCount, setVisibleCount] = useState(0)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [timelineAnimKey, setTimelineAnimKey] = useState(0)
+
+  const accentGreen = isDark ? DARK_GREEN_DARK : DARK_GREEN_LIGHT
+
+  useEffect(() => {
+    if (activeTab !== 'stream') return
+
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (prefersReduced) {
+      setVisibleCount(LOG_EVENTS.length)
+      return
+    }
+
+    let active = true
+    setVisibleCount(0)
+
+    function step(count: number) {
+      if (!active) return
+      if (count <= LOG_EVENTS.length) {
+        setVisibleCount(count)
+        setTimeout(() => step(count + 1), 700)
+      } else {
+        setTimeout(() => {
+          if (!active) return
+          setVisibleCount(0)
+          setTimeout(() => step(1), 400)
+        }, 1800)
+      }
+    }
+
+    setTimeout(() => step(1), 400)
+
+    return () => { active = false }
+  }, [activeTab, refreshKey])
+
+  const visibleEvents = LOG_EVENTS.slice(0, visibleCount)
+
+  const TABS: { id: TabId; label: string }[] = [
+    { id: 'stream',       label: 'Event Stream'        },
+    { id: 'timeline',     label: 'Execution Timeline'  },
+    { id: 'verification', label: 'Verification'        },
+  ]
+
+  function tabStyle(id: TabId): React.CSSProperties {
+    const active = id === activeTab
+    return {
+      fontFamily: SANS,
+      fontSize: '10px',
+      fontWeight: 400,
+      color: titleColor,
+      background: active ? (isDark ? 'rgba(0,0,0,0.45)' : '#ffffff') : 'transparent',
+      border: 'none',
+      borderRadius: '4px',
+      padding: '2px 7px',
+      cursor: 'pointer',
+      transition: 'background 120ms',
+      userSelect: 'none' as const,
+      lineHeight: '1.6',
+      outline: 'none',
+      boxShadow: active && !isDark ? '0 1px 3px rgba(0,0,0,0.08)' : undefined,
+    }
+  }
+
+  function handleTabClick(id: TabId) {
+    if (id === 'timeline') setTimelineAnimKey(k => k + 1)
+    setActiveTab(id)
+  }
+
+  const cardStyle: React.CSSProperties = {
+    height: '100%',
+    borderRadius: '16px',
+    overflow: 'hidden',
+    background: bg,
+    border: `1px solid ${border}`,
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.06)',
+  }
+
+  const cardHeaderStyle: React.CSSProperties = {
+    padding: '8px 14px',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: '8px',
+    flexShrink: 0,
+  }
+
+  const cardBodyStyle: React.CSSProperties = {
+    flex: 1,
+    overflow: 'hidden',
+    background: isDark ? 'rgba(246,246,244,0.02)' : '#f9fafb',
+    borderTop: `1px solid ${border}`,
+    display: 'flex',
+    flexDirection: 'column',
+  }
 
   return (
-    <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '10px', overflow: 'hidden', width: '100%' }}>
-      {/* Header */}
-      <div style={{ background: headerBg, borderBottom: `1px solid ${border}`, padding: '7px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: isDark ? '#f6f6f4' : '#111827' }}>
-          Runtime Events
-        </span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: SANS, fontSize: '10px', color: '#22c55e' }}>
-          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-          live
-        </span>
-      </div>
+    <>
+      <style>{`
+        @keyframes igris-log-in {
+          from { opacity: 0; transform: translateY(3px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes igris-skeleton {
+          0%, 100% { opacity: 0.25; }
+          50%       { opacity: 0.5;  }
+        }
+        @keyframes igris-timeline-in {
+          from { opacity: 0; transform: translateX(-6px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
 
-      {/* Rows */}
-      {LOG_EVENTS.map((e, i) => (
-        <div
-          key={i}
-          style={{
-            display: 'flex',
-            alignItems: 'baseline',
-            padding: '4px 10px 4px 9px',
-            borderBottom: i < LOG_EVENTS.length - 1 ? `1px solid ${border}` : undefined,
-            borderLeft: `3px solid ${e.sev === 'INFO' ? 'transparent' : SEV_COLOR[e.sev]}`,
-          }}
-        >
-          <span style={{ fontFamily: MONO, fontSize: '10px', color: timeColor, width: '48px', flexShrink: 0, userSelect: 'none' }}>
-            {e.time}
-          </span>
-          <span style={{ fontFamily: MONO, fontSize: '10px', fontWeight: 700, width: '34px', flexShrink: 0, color: SEV_COLOR[e.sev] }}>
-            {e.sev}
-          </span>
-          <span style={{ fontFamily: MONO, fontSize: '10px', color: typeColor, width: '155px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {e.type}
-          </span>
-          <span style={{ fontFamily: MONO, fontSize: '10px', color: msgColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {e.msg}
-          </span>
+      <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden', width: '100%', height: '480px', display: 'flex', flexDirection: 'column', boxShadow: isDark ? 'none' : '0 4px 24px rgba(0,0,0,0.08)' }}>
+
+        {/* ── Tabs + Refresh row ── */}
+        <div style={{ padding: '7px 12px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1px', background: isDark ? 'rgba(246,246,244,0.06)' : '#f3f4f6', borderRadius: '6px', padding: '2px' }}>
+            {([
+              { id: 'stream',       label: 'Event Stream'       },
+              { id: 'timeline',     label: 'Execution Timeline' },
+              { id: 'verification', label: 'Verification'       },
+            ] as { id: TabId; label: string }[]).map((tab) => (
+              <button key={tab.id} onClick={() => handleTabClick(tab.id)} style={tabStyle(tab.id)}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
+
+        {/* ── Tab content ── */}
+        <div style={{ flex: 1, overflow: 'hidden', padding: '10px 14px' }}>
+
+          {/* Event Stream */}
+          {activeTab === 'stream' && (
+            <div style={cardStyle}>
+              <div style={cardHeaderStyle}>
+                <div>
+                  <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Event Stream</p>
+                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Structured runtime events with severity and execution context.</p>
+                </div>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontFamily: SANS, fontSize: '9px', color: accentGreen, flexShrink: 0 }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: accentGreen, display: 'inline-block' }} /> live
+                </span>
+              </div>
+              <div style={cardBodyStyle}>
+                {/* Summary strip */}
+                <div style={{ padding: '4px 14px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', borderBottom: `1px solid ${border}`, flexShrink: 0 }}>
+                  {SUMMARY_PAIRS.map((p) => (
+                    <span key={p.k} style={{ display: 'inline-flex', alignItems: 'baseline', gap: '3px' }}>
+                      <span style={{ fontFamily: MONO, fontSize: '9px', color: labelColor }}>{p.k}:</span>
+                      <span style={{ fontFamily: MONO, fontSize: '9px', color: p.accent ? accentGreen : msgColor }}>{p.v}</span>
+                    </span>
+                  ))}
+                </div>
+                {/* Log rows */}
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  {LOG_EVENTS.map((e, i) => {
+                    const loaded = i < visibleCount
+                    return loaded ? (
+                      <div
+                        key={i}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          padding: '3px 12px 3px 11px',
+                          borderLeft: `1px solid ${e.sev === 'INFO' ? 'transparent' : SEV_COLOR[e.sev]}`,
+                          animation: 'igris-log-in 200ms ease forwards',
+                        }}
+                      >
+                        <span style={{ fontFamily: MONO, fontSize: '9px', color: timeColor, width: '50px', flexShrink: 0, userSelect: 'none' }}>{e.time}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '9px', fontWeight: 500, width: '38px', flexShrink: 0, color: SEV_COLOR[e.sev] }}>{e.sev.toLowerCase()}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '9px', color: typeColor, width: '148px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.type}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '9px', color: msgColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.7 }}>{e.msg}</span>
+                      </div>
+                    ) : (
+                      <div
+                        key={i}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '5px 12px 5px 14px',
+                          gap: '8px',
+                        }}
+                      >
+                        <div style={{ width: '40px', height: '7px', borderRadius: '3px', background: skeletonBg, animation: 'igris-skeleton 1.4s ease infinite', animationDelay: `${i * 80}ms`, flexShrink: 0 }} />
+                        <div style={{ width: '28px', height: '7px', borderRadius: '3px', background: skeletonBg, animation: 'igris-skeleton 1.4s ease infinite', animationDelay: `${i * 80 + 60}ms`, flexShrink: 0 }} />
+                        <div style={{ width: '90px', height: '7px', borderRadius: '3px', background: skeletonBg, animation: 'igris-skeleton 1.4s ease infinite', animationDelay: `${i * 80 + 120}ms`, flexShrink: 0 }} />
+                        <div style={{ flex: 1, height: '7px', borderRadius: '3px', background: skeletonBg, animation: 'igris-skeleton 1.4s ease infinite', animationDelay: `${i * 80 + 180}ms`, maxWidth: `${55 + ((i * 47) % 35)}%` }} />
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Execution Timeline */}
+          {activeTab === 'timeline' && (
+            <div style={cardStyle}>
+              <div style={cardHeaderStyle}>
+                <div>
+                  <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Execution Timeline</p>
+                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Step-by-step view of the task lifecycle.</p>
+                </div>
+              </div>
+              <div key={timelineAnimKey} style={{ ...cardBodyStyle, padding: '10px 14px', overflow: 'hidden' }}>
+                {TIMELINE_STEPS.map((step, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      opacity: 0,
+                      animation: 'igris-timeline-in 280ms ease forwards',
+                      animationDelay: `${i * 70}ms`,
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '8px' }}>
+                      <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: step.style === 'warn' ? '#d97706' : step.style === 'success' ? accentGreen : (isDark ? 'rgba(246,246,244,0.3)' : '#d1d5db'), flexShrink: 0, marginTop: '2px' }} />
+                      {i < TIMELINE_STEPS.length - 1 && <div style={{ width: '1px', flex: 1, background: isDark ? 'rgba(246,246,244,0.08)' : '#e5e7eb', minHeight: '8px' }} />}
+                    </div>
+                    <div style={{ paddingBottom: i < TIMELINE_STEPS.length - 1 ? '7px' : 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span style={{ fontFamily: SANS, fontSize: '10px', fontWeight: 400, color: step.style === 'warn' ? '#d97706' : step.style === 'success' ? accentGreen : titleColor }}>{step.name}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '9px', color: timeColor }}>{step.time}</span>
+                      </div>
+                      <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: 0, lineHeight: 1.4 }}>{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Verification */}
+          {activeTab === 'verification' && (
+            <div style={cardStyle}>
+              <div style={cardHeaderStyle}>
+                <div>
+                  <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Verification</p>
+                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Execution proof and verification material for the completed run.</p>
+                </div>
+              </div>
+              <div style={{ ...cardBodyStyle, overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: MONO, fontSize: '10px' }}>
+                  <thead>
+                    <tr style={{ background: isDark ? 'rgba(246,246,244,0.04)' : '#f3f4f6' }}>
+                      <th style={{ padding: '5px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '9px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}`, width: '30%' }}>field</th>
+                      <th style={{ padding: '5px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '9px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}` }}>value</th>
+                      <th style={{ padding: '5px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '9px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}`, width: '22%' }}>group</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { k: 'status',       v: 'verified',          group: 'receipt',   accent: true  },
+                      { k: 'execution_id', v: 'exec_019de343',     group: 'receipt',   accent: false },
+                      { k: 'task_id',      v: 'task_019de343',     group: 'receipt',   accent: false },
+                      { k: 'hash',         v: '42cbd8e558…',       group: 'integrity', accent: false },
+                      { k: 'signature',    v: 'valid',             group: 'integrity', accent: true  },
+                      { k: 'chain',        v: 'linked',            group: 'integrity', accent: false },
+                      { k: 'route',        v: 'fallback_selected', group: 'result',    accent: false },
+                      { k: 'outcome',      v: 'completed',         group: 'result',    accent: true  },
+                      { k: 'verification', v: 'passed',            group: 'result',    accent: true  },
+                    ].map((row) => (
+                      <tr key={row.k} style={{ borderBottom: `1px solid ${isDark ? 'rgba(246,246,244,0.04)' : '#f3f4f6'}` }}>
+                        <td style={{ padding: '5px 14px', color: labelColor }}>{row.k}</td>
+                        <td style={{ padding: '5px 14px', color: row.accent ? accentGreen : msgColor }}>{row.v}</td>
+                        <td style={{ padding: '5px 14px', color: mutedColor, fontFamily: SANS, fontSize: '9px' }}>{row.group}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -120,7 +408,7 @@ export default function Products() {
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: 'var(--section-border)' }} />
 
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-3 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ paddingTop: '1.5rem', paddingBottom: '1.5rem' }}>
             <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS }}>
@@ -140,14 +428,14 @@ export default function Products() {
 
       <div style={{ borderTop: 'var(--section-border)' }} />
 
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)', paddingBottom: 0 }}>
           <div className="py-10 sm:py-16">
 
             {/* Desktop layout */}
             <div className="hidden sm:grid gap-10" style={{ gridTemplateColumns: '3fr 2fr' }}>
               {/* Left: image background, panel floats over it — 60% */}
-              <div style={{ position: 'relative', minHeight: 'clamp(320px, 36vw, 460px)' }}>
+              <div style={{ position: 'relative', minHeight: 'clamp(480px, 52vw, 640px)' }}>
                 <img
                   src={'/pkrllol.png'}
                   alt="Product"
@@ -160,8 +448,8 @@ export default function Products() {
                     borderRadius: '1rem',
                   }}
                 />
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 10 }}>
-                  <div style={{ width: '90%' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '16px', right: '16px', transform: 'translateY(-50%)', zIndex: 10 }}>
+                  <div style={{ width: '90%', margin: '0 auto' }}>
                     <ExecutionPreview isDark={isDark} />
                   </div>
                 </div>

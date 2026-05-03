@@ -8,7 +8,7 @@ export default function ClosingPosition() {
       {/* Full-width top border */}
       <div style={{ borderTop: 'var(--section-border)' }} />
 
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12 bg-white dark:bg-[#110f0f]" style={{
           borderLeft: 'var(--section-border)',
           borderRight: 'var(--section-border)'
