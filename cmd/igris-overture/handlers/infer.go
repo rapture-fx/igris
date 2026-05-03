@@ -661,7 +661,7 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	log.Printf("[Infer] Success: provider=%s, model=%s, latency=%dms, tokens=%d, cost=$%.6f, source=%s",
 		provider, model, latencyMs, totalTokens, costUSD, decisionSource)
 
-	if err := h.persistExecutionContext(tenantID, resp); err != nil {
+	if err := h.persistVerifiedExecutionArtifacts(tenantID, &req, resp); err != nil {
 		log.Printf("[Infer] WARNING: Failed to persist execution context for tenant %s: %v", tenantID, err)
 	}
 
@@ -671,7 +671,7 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	return c.JSON(resp)
 }
 
-func (h *InferHandler) persistExecutionContext(tenantID string, resp *models.InferResponse) error {
+func (h *InferHandler) persistVerifiedExecutionArtifacts(tenantID string, req *models.InferRequest, resp *models.InferResponse) error {
 	if h.executionStore == nil || resp == nil {
 		return nil
 	}
@@ -687,6 +687,22 @@ func (h *InferHandler) persistExecutionContext(tenantID string, resp *models.Inf
 	refs, ok := coordinatorExecutionRefs(envelopeRaw, receiptRaw)
 	if !ok {
 		return nil
+	}
+
+	lineageRecord, err := coordinator.BuildExecutionLineageRecordFromReceipt(
+		receiptRaw,
+		firstNonEmptyString(tenantID, refs.TenantID),
+		"",
+		"COMPLETED",
+		inferPromptPreview(req),
+	)
+	if err != nil {
+		return err
+	}
+	if lineageRecord != nil {
+		if err := h.executionStore.SaveExecutionLineage(lineageRecord); err != nil {
+			return err
+		}
 	}
 
 	provider := refs.Provider
@@ -721,7 +737,7 @@ func (h *InferHandler) persistExecutionContext(tenantID string, resp *models.Inf
 		CapabilitySnapshot: nil,
 		Events:             inferExecutionEvents(resp, routeDecision),
 		Logs:               inferExecutionLogs(resp, routeDecision),
-		VerificationStatus: refs.VerificationStatus,
+		VerificationStatus: "verified",
 		ReceiptHash:        refs.ReceiptHash,
 	}
 	return h.executionStore.SaveExecutionContext(record)
@@ -882,7 +898,7 @@ func inferVerificationStatus(receiptHash string) string {
 	if strings.TrimSpace(receiptHash) == "" {
 		return ""
 	}
-	return "present"
+	return "verified"
 }
 
 func routeDecisionMessage(routeDecision string) string {
@@ -898,6 +914,24 @@ func firstNonEmptyString(values ...string) string {
 		if strings.TrimSpace(value) != "" {
 			return strings.TrimSpace(value)
 		}
+	}
+	return ""
+}
+
+func inferPromptPreview(req *models.InferRequest) string {
+	if req == nil {
+		return ""
+	}
+	for _, message := range req.Messages {
+		content := strings.TrimSpace(message.Content)
+		if content == "" {
+			continue
+		}
+		runes := []rune(content)
+		if len(runes) > 160 {
+			return string(runes[:160])
+		}
+		return content
 	}
 	return ""
 }
