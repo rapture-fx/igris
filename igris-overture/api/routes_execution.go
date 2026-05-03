@@ -512,12 +512,12 @@ func buildExecutionRunDetail(record executionRunRecord) ExecutionRunDetail {
 	run := buildExecutionRunSummary(record)
 	detail := ExecutionRunDetail{
 		ExecutionRun:       run,
-		RouteDecision:      optionalString(record.ContextRouteDecision),
-		Provider:           optionalString(record.ContextProvider),
-		ProviderPath:       optionalString(record.ContextExecutionPath),
-		RuntimeLabel:       optionalString(record.ContextRuntimeLabel),
+		RouteDecision:      optionalExecutionString(record.ContextRouteDecision),
+		Provider:           optionalExecutionString(record.ContextProvider),
+		ProviderPath:       optionalExecutionString(record.ContextExecutionPath),
+		RuntimeLabel:       optionalExecutionString(record.ContextRuntimeLabel),
 		FallbackUsed:       record.ContextFallbackUsed,
-		FallbackReason:     optionalString(record.ContextFallbackReason),
+		FallbackReason:     optionalExecutionString(record.ContextFallbackReason),
 		Receipt:            buildExecutionRunReceipt(record),
 		Violations:         []PolicyViolation{},
 		Events:             []ExecutionRunEvent{},
@@ -585,13 +585,13 @@ func backfillFromTaskArtifacts(detail *ExecutionRunDetail, record executionRunRe
 		}
 		if err := json.Unmarshal(record.TaskExecutionEnvelope, &envelope); err == nil {
 			if detail.Provider == nil {
-				detail.Provider = optionalString(firstNonEmptyExecutionString(envelope.Provider, envelope.Model))
+				detail.Provider = optionalExecutionString(firstNonEmptyExecutionString(envelope.Provider, envelope.Model))
 			}
 			if detail.RouteDecision == nil {
-				detail.RouteDecision = optionalString(envelope.RoutingDecision)
+				detail.RouteDecision = optionalExecutionString(envelope.RoutingDecision)
 			}
 			if detail.ProviderPath == nil {
-				detail.ProviderPath = optionalString(executionPathFromRouteDecisionForAPI(envelope.RoutingDecision, record.DeviceID != ""))
+				detail.ProviderPath = optionalExecutionString(executionPathFromRouteDecisionForAPI(envelope.RoutingDecision, record.DeviceID != ""))
 			}
 			if detail.PolicySnapshot == nil {
 				snapshot := map[string]any{}
@@ -621,7 +621,7 @@ func backfillFromTaskArtifacts(detail *ExecutionRunDetail, record executionRunRe
 		detail.CapabilitySnapshot = capabilitySnapshotFromPermissionEnvelopeForAPI(record.TaskPermissionEnvelope)
 	}
 	if detail.ProviderPath == nil && record.DeviceID != "" {
-		detail.ProviderPath = optionalString("runtime_task")
+		detail.ProviderPath = optionalExecutionString("runtime_task")
 	}
 }
 
@@ -673,7 +673,7 @@ func eventTimeOrStart(value sql.NullTime, fallback time.Time) time.Time {
 	return fallback
 }
 
-func optionalString(value string) *string {
+func optionalExecutionString(value string) *string {
 	value = strings.TrimSpace(value)
 	if value == "" {
 		return nil
