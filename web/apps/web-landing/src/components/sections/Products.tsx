@@ -195,7 +195,7 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
         }
       `}</style>
 
-      <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden', width: '100%', height: '480px', display: 'flex', flexDirection: 'column', boxShadow: isDark ? 'none' : '0 4px 24px rgba(0,0,0,0.08)' }}>
+      <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: '12px', overflow: 'hidden', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', boxShadow: isDark ? 'none' : '0 4px 24px rgba(0,0,0,0.08)' }}>
 
         {/* ── Tabs + Refresh row ── */}
         <div style={{ padding: '7px 12px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -435,7 +435,7 @@ export default function Products() {
             {/* Desktop layout */}
             <div className="hidden sm:grid gap-10" style={{ gridTemplateColumns: '3fr 2fr' }}>
               {/* Left: image background, panel floats over it — 60% */}
-              <div style={{ position: 'relative', minHeight: 'clamp(480px, 52vw, 640px)' }}>
+              <div style={{ position: 'relative', minHeight: 'clamp(512px, 54vw, 660px)' }}>
                 <img
                   src={'/pkrllol.png'}
                   alt="Product"
@@ -445,13 +445,11 @@ export default function Products() {
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    borderRadius: '1rem',
+                    borderRadius: '0.5rem',
                   }}
                 />
-                <div style={{ position: 'absolute', top: '50%', left: '16px', right: '16px', transform: 'translateY(-50%)', zIndex: 10 }}>
-                  <div style={{ width: '90%', margin: '0 auto' }}>
-                    <ExecutionPreview isDark={isDark} />
-                  </div>
+                <div style={{ position: 'absolute', inset: '40px', zIndex: 10 }}>
+                  <ExecutionPreview isDark={isDark} />
                 </div>
               </div>
 
