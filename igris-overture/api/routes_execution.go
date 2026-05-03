@@ -512,15 +512,32 @@ func buildExecutionRunDetail(record executionRunRecord) ExecutionRunDetail {
 	run := buildExecutionRunSummary(record)
 	detail := ExecutionRunDetail{
 		ExecutionRun:       run,
-		RouteDecision:      nil,
-		Provider:           nil,
-		ProviderPath:       nil,
+		RouteDecision:      optionalString(record.ContextRouteDecision),
+		Provider:           optionalString(record.ContextProvider),
+		ProviderPath:       optionalString(record.ContextExecutionPath),
+		RuntimeLabel:       optionalString(record.ContextRuntimeLabel),
+		FallbackUsed:       record.ContextFallbackUsed,
+		FallbackReason:     optionalString(record.ContextFallbackReason),
 		Receipt:            buildExecutionRunReceipt(record),
 		Violations:         []PolicyViolation{},
 		Events:             []ExecutionRunEvent{},
 		Logs:               []string{},
-		PolicySnapshot:     nil,
-		CapabilitySnapshot: nil,
+		PolicySnapshot:     decodeJSONMap(record.ContextPolicySnapshot),
+		CapabilitySnapshot: decodeJSONMap(record.ContextCapabilitySnapshot),
+	}
+
+	if detail.RouteDecision == nil || detail.Provider == nil || detail.ProviderPath == nil || detail.PolicySnapshot == nil {
+		backfillFromTaskArtifacts(&detail, record)
+	}
+
+	if len(record.ContextEvents) > 0 {
+		detail.Events = decodeExecutionRunEvents(record.ContextEvents)
+	}
+	if len(record.ContextLogs) > 0 {
+		detail.Logs = decodeStringArray(record.ContextLogs)
+	}
+	if len(detail.Events) == 0 && record.TaskCreatedAt.Valid {
+		detail.Events, detail.Logs = buildTaskFallbackEvents(record)
 	}
 
 	if record.HasViolation {
@@ -552,6 +569,239 @@ func buildExecutionRunReceipt(record executionRunRecord) *ExecutionRunReceiptRef
 		Signed:             record.ReceiptSignature != "",
 		VerificationStatus: receiptVerificationStatus(record.ProofStatus, record.ReceiptHash),
 	}
+}
+
+func backfillFromTaskArtifacts(detail *ExecutionRunDetail, record executionRunRecord) {
+	if len(record.TaskExecutionEnvelope) > 0 {
+		var envelope struct {
+			Provider           string         `json:"provider"`
+			Model              string         `json:"model"`
+			RoutingDecision    string         `json:"routing_decision"`
+			BoundsApplied      map[string]any `json:"bounds_applied"`
+			PolicyDecisionID   string         `json:"policy_decision_id"`
+			PolicyDecisionHash string         `json:"policy_decision_hash"`
+			GovernedActionHash string         `json:"governed_action_hash"`
+			Violation          string         `json:"violation"`
+		}
+		if err := json.Unmarshal(record.TaskExecutionEnvelope, &envelope); err == nil {
+			if detail.Provider == nil {
+				detail.Provider = optionalString(firstNonEmptyExecutionString(envelope.Provider, envelope.Model))
+			}
+			if detail.RouteDecision == nil {
+				detail.RouteDecision = optionalString(envelope.RoutingDecision)
+			}
+			if detail.ProviderPath == nil {
+				detail.ProviderPath = optionalString(executionPathFromRouteDecisionForAPI(envelope.RoutingDecision, record.DeviceID != ""))
+			}
+			if detail.PolicySnapshot == nil {
+				snapshot := map[string]any{}
+				if len(envelope.BoundsApplied) > 0 {
+					snapshot["bounds_applied"] = envelope.BoundsApplied
+				}
+				if envelope.PolicyDecisionID != "" {
+					snapshot["policy_decision_id"] = envelope.PolicyDecisionID
+				}
+				if envelope.PolicyDecisionHash != "" {
+					snapshot["policy_decision_hash"] = envelope.PolicyDecisionHash
+				}
+				if envelope.GovernedActionHash != "" {
+					snapshot["governed_action_hash"] = envelope.GovernedActionHash
+				}
+				if envelope.Violation != "" {
+					snapshot["violation"] = envelope.Violation
+				}
+				if len(snapshot) > 0 {
+					detail.PolicySnapshot = snapshot
+				}
+			}
+		}
+	}
+
+	if detail.CapabilitySnapshot == nil {
+		detail.CapabilitySnapshot = capabilitySnapshotFromPermissionEnvelopeForAPI(record.TaskPermissionEnvelope)
+	}
+	if detail.ProviderPath == nil && record.DeviceID != "" {
+		detail.ProviderPath = optionalString("runtime_task")
+	}
+}
+
+func buildTaskFallbackEvents(record executionRunRecord) ([]ExecutionRunEvent, []string) {
+	events := make([]ExecutionRunEvent, 0, 8)
+	appendEvent := func(ts time.Time, kind, message string) {
+		events = append(events, ExecutionRunEvent{
+			Timestamp: ts.UTC().Format(time.RFC3339),
+			Kind:      kind,
+			Message:   message,
+		})
+	}
+
+	appendEvent(record.TaskCreatedAt.Time, "task_created", "Task accepted by Overture")
+	if record.TaskDispatchedAt.Valid {
+		message := "Task dispatched to runtime"
+		if record.DeviceID != "" {
+			message = fmt.Sprintf("Task dispatched to runtime %s", record.DeviceID)
+		}
+		appendEvent(record.TaskDispatchedAt.Time, "task_dispatched", message)
+	}
+	if routeDecision := strings.TrimSpace(record.ContextRouteDecision); routeDecision != "" {
+		appendEvent(eventTimeOrStart(record.TaskDispatchedAt, record.StartedAt), "route_decision", fmt.Sprintf("Runtime route decision recorded: %s", routeDecision))
+	}
+	if record.ReceiptHash != "" {
+		appendEvent(eventTimeOrStart(record.TaskCompletedAt, record.StartedAt), "receipt_recorded", "Execution receipt recorded")
+	}
+	if record.TaskCompletedAt.Valid {
+		appendEvent(record.TaskCompletedAt.Time, "task_completed", "Runtime reported task completion")
+	}
+	if record.TaskCanceledAt.Valid {
+		appendEvent(record.TaskCanceledAt.Time, "task_canceled", "Task was canceled")
+	}
+	if strings.TrimSpace(record.TaskFailureReason) != "" {
+		appendEvent(eventTimeOrStart(record.TaskCompletedAt, record.StartedAt), "task_failed", fmt.Sprintf("Task failed: %s", record.TaskFailureReason))
+	}
+
+	logs := make([]string, 0, len(events))
+	for _, event := range events {
+		logs = append(logs, fmt.Sprintf("%s %s: %s", event.Timestamp, event.Kind, event.Message))
+	}
+	return events, logs
+}
+
+func eventTimeOrStart(value sql.NullTime, fallback time.Time) time.Time {
+	if value.Valid {
+		return value.Time
+	}
+	return fallback
+}
+
+func optionalString(value string) *string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func decodeJSONMap(raw []byte) map[string]any {
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "{}" {
+		return nil
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(raw, &decoded); err != nil || len(decoded) == 0 {
+		return nil
+	}
+	return decoded
+}
+
+func decodeStringArray(raw []byte) []string {
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		return []string{}
+	}
+	var values []string
+	if err := json.Unmarshal(raw, &values); err != nil {
+		return []string{}
+	}
+	return values
+}
+
+func decodeExecutionRunEvents(raw []byte) []ExecutionRunEvent {
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		return []ExecutionRunEvent{}
+	}
+	var events []ExecutionRunEvent
+	if err := json.Unmarshal(raw, &events); err == nil {
+		return events
+	}
+
+	var generic []map[string]any
+	if err := json.Unmarshal(raw, &generic); err != nil {
+		return []ExecutionRunEvent{}
+	}
+	events = make([]ExecutionRunEvent, 0, len(generic))
+	for _, item := range generic {
+		timestamp, _ := item["timestamp"].(string)
+		kind, _ := item["kind"].(string)
+		message, _ := item["message"].(string)
+		if timestamp == "" && kind == "" && message == "" {
+			continue
+		}
+		events = append(events, ExecutionRunEvent{
+			Timestamp: timestamp,
+			Kind:      kind,
+			Message:   message,
+		})
+	}
+	return events
+}
+
+func capabilitySnapshotFromPermissionEnvelopeForAPI(raw []byte) map[string]any {
+	if len(raw) == 0 || string(raw) == "{}" || string(raw) == "null" {
+		return nil
+	}
+	var envelope struct {
+		EnvelopeID           string `json:"envelope_id"`
+		RequiredCapabilities []string `json:"required_capabilities"`
+		Decisions            []struct {
+			Capability    string `json:"capability"`
+			Permit        bool   `json:"permit"`
+			Reason        string `json:"reason"`
+			PolicyVersion string `json:"policy_version"`
+		} `json:"decisions"`
+		CredentialRefs   []map[string]any `json:"credential_refs"`
+		IssuedAtUnixMs   int64            `json:"issued_at_unix_ms"`
+		ExpiresAtUnixMs  int64            `json:"expires_at_unix_ms"`
+		Signature        string           `json:"signature"`
+	}
+	if err := json.Unmarshal(raw, &envelope); err != nil {
+		return nil
+	}
+
+	granted := 0
+	denied := 0
+	for _, decision := range envelope.Decisions {
+		if decision.Permit {
+			granted++
+		} else {
+			denied++
+		}
+	}
+
+	return map[string]any{
+		"envelope_id":               envelope.EnvelopeID,
+		"required_capabilities":     envelope.RequiredCapabilities,
+		"decisions":                 envelope.Decisions,
+		"credential_refs":           envelope.CredentialRefs,
+		"permission_signed":         envelope.Signature != "",
+		"issued_at_unix_ms":         envelope.IssuedAtUnixMs,
+		"expires_at_unix_ms":        envelope.ExpiresAtUnixMs,
+		"granted_capability_count":  granted,
+		"denied_capability_count":   denied,
+	}
+}
+
+func executionPathFromRouteDecisionForAPI(routeDecision string, runtimeBacked bool) string {
+	normalized := strings.ToLower(strings.TrimSpace(routeDecision))
+	switch {
+	case strings.HasPrefix(normalized, "tool:") || strings.HasPrefix(normalized, "runtime:tool:"):
+		return "runtime_tool"
+	case strings.HasPrefix(normalized, "ros2:") || strings.HasPrefix(normalized, "runtime:robotics:"):
+		return "runtime_robotics"
+	case runtimeBacked || strings.Contains(normalized, "runtime"):
+		return "runtime_task"
+	case normalized != "":
+		return "direct_provider"
+	default:
+		return ""
+	}
+}
+
+func firstNonEmptyExecutionString(values ...string) string {
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func deriveExecutionEndedAt(startedAt time.Time, durationMs int64, status string) *time.Time {
