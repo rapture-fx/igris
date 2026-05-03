@@ -301,8 +301,11 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 			COALESCE(receipt_hash, '') AS receipt_hash,
 			COALESCE(previous_hash, '') AS previous_hash,
 			COALESCE(signature, '') AS signature,
-			COALESCE(tp.proof_status, '') AS proof_status
+			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status
 		FROM execution_lineage
+		LEFT JOIN execution_context ec
+		       ON ec.execution_id = execution_lineage.execution_id
+		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
 		LEFT JOIN LATERAL (
 			SELECT proof_status
 			FROM task_records
@@ -385,7 +388,7 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 			COALESCE(receipt_hash, '') AS receipt_hash,
 			COALESCE(previous_hash, '') AS previous_hash,
 			COALESCE(signature, '') AS signature,
-			COALESCE(tp.proof_status, '') AS proof_status,
+			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status,
 			violation_details,
 			COALESCE(ec.provider, '') AS context_provider,
 			COALESCE(ec.route_decision, '') AS context_route_decision,
