@@ -270,3 +270,56 @@ func TestVerifyReceiptResponseIncludesRuntimeIdentityWhenAvailable(t *testing.T)
 		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
 	}
 }
+
+func TestVerifyReceiptResponseRemainsBackwardCompatibleWithoutRuntimeIdentity(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
+		rows: [][]driver.Value{{
+			"receipt-row-4",
+			"",
+			"",
+			"receipt-hash-4",
+			"receipt-signature-4",
+			"present",
+		}},
+	}}, queuedRouteExecExpectation{rowsAffected: 1})
+
+	handler := NewProofHandler(db)
+	app := fiber.New()
+	app.Post("/proof/receipts/verify", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-verify")
+		return handler.VerifyReceipt(c)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/proof/receipts/verify", bytes.NewBufferString(`{
+		"execution_id":"exec-verify-4",
+		"expected_hash":"receipt-hash-4"
+	}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var result VerifyReceiptResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if !result.Verified {
+		t.Fatalf("Verified = false, want true")
+	}
+	if result.RuntimeID != "" {
+		t.Fatalf("RuntimeID = %q, want empty string", result.RuntimeID)
+	}
+	if result.RuntimeLabel != "" {
+		t.Fatalf("RuntimeLabel = %q, want empty string", result.RuntimeLabel)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
