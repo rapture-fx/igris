@@ -1,93 +1,75 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Check, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
-interface PricingTier {
-  name: string;
-  tagline: string;
-  price: string;
-  limits: string;
-  features: string[];
-  cta: string;
-  checkoutKey: string;
-  isContactUs?: boolean;
-  recommended?: boolean;
-}
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 const POLAR_CHECKOUT: Record<string, string> = {
-  seed:     "https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl",
-  horizon:  "https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O",
-  infinite: "https://buy.polar.sh/polar_cl_kNQXNs1Nqy4C86LGHHJD0rCBcYRWniGxPX38W4NM3ss",
+  seed:     'https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl',
+  horizon:  'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
+  infinite: 'mailto:sales@igrisinertial.com',
 };
 
-const pricingTiers: PricingTier[] = [
+const pricingTiers = [
   {
-    name: "Seed",
-    tagline: "For developers shipping to production.",
-    price: "$29 / month",
-    limits: "3 runtime instances",
+    name: 'Seed',
+    price: '$9',
+    period: '/ month',
+    description: 'For builders validating verified AI execution.',
     features: [
-      "3 runtime instances",
-      "Edge or server deployment",
-      "Behavior Trees + hybrid LLM execution",
-      "Agent Memory (shared blackboard)",
-      "Safety Containment + EscapeVector",
-      "Cryptographic execution receipts",
-      "Tamper-evident audit logs",
-      "Offline survival mode",
-      "Local + cloud routing",
-      "Fleet dashboard",
-      "OTA verified updates",
-      "MCP Integration",
-      "Council routing",
-      "30-day log retention",
-      "Email support (48h)",
+      '1 project',
+      '1 execution environment',
+      '2,500 verified runs / month',
+      'Signed execution records',
+      'Execution events',
+      'Basic receipt verification',
+      'API + SDK access',
+      '7-day retention',
     ],
-    cta: "Start free trial",
-    checkoutKey: "seed",
+    cta: 'Start with Seed',
+    checkoutKey: 'seed',
+    recommended: false,
   },
   {
-    name: "Horizon",
-    tagline: "For teams scaling autonomous agent fleets.",
-    price: "$149 / month",
-    limits: "Up to 50 runtime instances",
+    name: 'Horizon',
+    price: '$49',
+    period: '/ month',
+    description: 'For teams running governed AI tasks.',
     features: [
-      "50 runtime instances",
-      "Everything in Seed",
-      "Shadow mode",
-      "Speculative execution",
-      "Human-in-the-Loop approvals",
-      "Multi-Agent Swarms",
-      "Reflection Mode",
-      "SLO enforcement",
-      "Prometheus metrics",
-      "Advanced policy engine",
-      "90-day log retention",
-      "Email support (24h)",
+      '5 projects',
+      '10 execution environments',
+      '50,000 verified runs / month',
+      'Everything in Seed',
+      'Failure-path configuration',
+      'Tool and permission controls',
+      'Team access',
+      'Advanced event search',
+      '60-day retention',
+      'Priority email support',
     ],
-    cta: "Get Horizon",
-    checkoutKey: "horizon",
+    cta: 'Get Horizon',
+    checkoutKey: 'horizon',
     recommended: true,
   },
   {
-    name: "Infinite",
-    tagline: "For large-scale autonomous system fleets.",
-    price: "$699 / month",
-    limits: "Up to 500 runtime instances",
+    name: 'Infinite',
+    price: 'Custom',
+    period: '',
+    description: 'For private deployment and advanced governance.',
     features: [
-      "500 runtime instances",
-      "Everything in Horizon",
-      "On-premise deployment",
-      "Federated model aggregation",
-      "Multimodal inference",
-      "Custom retention policy",
-      "Dedicated onboarding",
-      "Priority support (8h)",
+      'Custom execution volume',
+      'Custom execution environments',
+      'Everything in Horizon',
+      'Private deployment options',
+      'Custom retention policy',
+      'Advanced audit exports',
+      'Dedicated onboarding',
+      'Security review support',
     ],
-    cta: "Get Infinite",
-    checkoutKey: "infinite",
+    cta: 'Contact sales',
+    checkoutKey: 'infinite',
+    recommended: false,
   },
 ];
 
@@ -95,9 +77,7 @@ export default function Pricing() {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const isDark = mounted && theme === 'dark';
 
@@ -111,58 +91,103 @@ export default function Pricing() {
               {pricingTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className="landing-surface-card landing-surface-card-interactive group relative transition-all duration-500 w-full border rounded-xl shadow-sm hover:shadow-md lg:min-h-[480px]"
+                  className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col"
                 >
-                  <div className="p-6 flex flex-col h-full">
-                    <div className="flex-grow">
-                      <div className="mb-3">
-                        <h3 className="text-lg font-bold text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                          {tier.name}
-                        </h3>
-                      </div>
+                  {/* Header strip */}
+                  <div className="px-5 pt-4 pb-3 flex items-center justify-between" style={{ fontFamily: SANS }}>
+                    <span className="text-base font-semibold text-black dark:text-[#f6f6f4]">{tier.name}</span>
+                    {tier.recommended && (
+                      <span
+                        className="text-[10px] px-2 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: isDark ? '#f6f6f4' : '#1b1912',
+                          color: isDark ? '#1b1912' : '#f6f6f4',
+                          fontFamily: SANS,
+                        }}
+                      >
+                        Recommended
+                      </span>
+                    )}
+                  </div>
 
-                      <div className="mb-6">
-                        {tier.isContactUs ? (
-                          <div className="flex flex-col">
-                            <span className="text-4xl md:text-5xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
-                              Custom
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col">
-                            <span className="text-[#000000] dark:text-[#f6f6f4] transition-all duration-300">
-                              <span className="text-3xl md:text-5xl" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>{tier.price.split(' / ')[0]}</span>
-                              {tier.price.includes(' / ') && (
-                                <span className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898]"> / {tier.price.split(' / ')[1]}</span>
-                              )}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <ul className="space-y-2">
-                        {tier.features.map((feature, featureIndex) => (
-                          <li key={featureIndex} className="flex items-start">
-                            <Check className="h-3 w-3 mr-3 flex-shrink-0 mt-0.5 text-green-500" />
-                             <span className="text-sm text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
+                  {/* Inner nested panel */}
+                  <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-5 pb-6 flex flex-col flex-1">
+                    {/* Price */}
+                    <div className="mb-3">
+                      <span
+                        className="text-3xl text-black dark:text-[#f6f6f4]"
+                        style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}
+                      >
+                        {tier.price}
+                      </span>
+                      {tier.period && (
+                        <span className="text-xs text-gray-500 dark:text-[#a8a898] ml-1.5" style={{ fontFamily: SANS }}>
+                          {tier.period}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-5 leading-relaxed" style={{ fontFamily: SANS }}>
+                      {tier.description}
+                    </p>
+
+                    {/* Features */}
+                    <ul className="space-y-2 flex-1 mb-6">
+                      {tier.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-gray-400 dark:text-[#555] text-xs mt-0.5 select-none">–</span>
+                          <span className="text-sm text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: SANS }}>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA */}
                     <a
-                      href={tier.checkoutKey ? POLAR_CHECKOUT[tier.checkoutKey] : '/auth?mode=signup'}
+                      href={POLAR_CHECKOUT[tier.checkoutKey]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md mt-5 md:mt-8 opacity-100 self-start"
-                      style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: isDark ? '#f6f6f4' : '#1b1912', color: isDark ? '#1b1912' : '#f6f6f4' }}
+                      className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 self-start"
+                      style={{
+                        fontFamily: SANS,
+                        backgroundColor: isDark ? '#f6f6f4' : '#1b1912',
+                        color: isDark ? '#1b1912' : '#f6f6f4',
+                      }}
                     >
                       {tier.cta}
-                      <ChevronRight className="ml-1 h-4 w-4" />
                     </a>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* Private preview CTA */}
+            <div
+              className="mt-6 rounded-2xl border border-gray-200 dark:border-[#2a2a2a] px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+              style={{ backgroundColor: isDark ? '#1a1a1a' : '#f9fafb' }}
+            >
+              <div>
+                <p className="text-sm font-medium text-black dark:text-[#f6f6f4]" style={{ fontFamily: SANS }}>
+                  Evaluating Igris for your team?
+                </p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-0.5" style={{ fontFamily: SANS }}>
+                  Request private preview access for a guided technical demo and validation support.
+                </p>
+              </div>
+              <a
+                href="mailto:sales@igrisinertial.com"
+                className="shrink-0 inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80"
+                style={{
+                  fontFamily: SANS,
+                  borderColor: isDark ? 'rgba(246,246,244,0.12)' : 'rgba(0,0,0,0.1)',
+                  color: isDark ? '#f6f6f4' : '#1b1912',
+                  backgroundColor: isDark ? 'rgba(246,246,244,0.06)' : '#ffffff',
+                }}
+              >
+                Request private preview
+              </a>
+            </div>
+
           </div>
         </div>
       </div>
