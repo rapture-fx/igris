@@ -30,7 +30,7 @@ export default function MultiTenancy() {
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       {/* Title */}
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 py-6 md:py-8">
             <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
@@ -52,7 +52,7 @@ export default function MultiTenancy() {
       <div style={{ borderTop: 'var(--section-border)' }} />
 
       {/* Bento grid */}
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-6 md:py-8">
             {/* Row 1: Signed execution (2 cols) | Fail-safe (1 col, spans 2 rows) */}

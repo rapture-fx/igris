@@ -21,7 +21,7 @@ export default function AutonomousSystems() {
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: 'var(--section-border)' }} />
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8 pt-12 pb-6 md:pb-12">
@@ -39,7 +39,7 @@ export default function AutonomousSystems() {
       {/* Full-width border below title */}
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
           {/* Row 1 - AI Agents */}
@@ -93,7 +93,7 @@ export default function AutonomousSystems() {
       <div style={{ borderTop: borderStyle }} />
 
       {/* Row 2 - Robots */}
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:300px]">
             {/* Col 1 - Text */}
