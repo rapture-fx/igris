@@ -49,17 +49,17 @@ type executionContextArtifactRefs struct {
 }
 
 type executionContextTaskSource struct {
-	TenantID          string
-	RuntimeID         string
-	RuntimeEndpoint   string
-	ProofStatus       string
-	FailureReason     string
-	FailureDetails    []byte
+	TenantID           string
+	RuntimeID          string
+	RuntimeEndpoint    string
+	ProofStatus        string
+	FailureReason      string
+	FailureDetails     []byte
 	PermissionEnvelope []byte
-	CreatedAt         time.Time
-	DispatchedAt      sql.NullTime
-	CompletedAt       sql.NullTime
-	CanceledAt        sql.NullTime
+	CreatedAt          time.Time
+	DispatchedAt       sql.NullTime
+	CompletedAt        sql.NullTime
+	CanceledAt         sql.NullTime
 }
 
 func (s *CheckpointStore) SaveExecutionContext(record *ExecutionContextRecord) error {
@@ -368,13 +368,13 @@ func capabilitySnapshotFromPermissionEnvelope(raw json.RawMessage) json.RawMessa
 	}
 
 	snapshot := map[string]any{
-		"envelope_id":            envelope.EnvelopeID,
-		"required_capabilities":  envelope.RequiredCapabilities,
-		"decisions":              envelope.Decisions,
-		"credential_refs":        envelope.CredentialRefs,
-		"permission_signed":      envelope.Signature != "",
-		"issued_at_unix_ms":      envelope.IssuedAtUnixMs,
-		"expires_at_unix_ms":     envelope.ExpiresAtUnixMs,
+		"envelope_id":              envelope.EnvelopeID,
+		"required_capabilities":    envelope.RequiredCapabilities,
+		"decisions":                envelope.Decisions,
+		"credential_refs":          envelope.CredentialRefs,
+		"permission_signed":        envelope.Signature != "",
+		"issued_at_unix_ms":        envelope.IssuedAtUnixMs,
+		"expires_at_unix_ms":       envelope.ExpiresAtUnixMs,
 		"granted_capability_count": permitCount,
 		"denied_capability_count":  denyCount,
 	}
