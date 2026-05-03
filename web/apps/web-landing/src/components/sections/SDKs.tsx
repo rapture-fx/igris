@@ -304,15 +304,15 @@ function CopyButton({ code }: { code: string[] }) {
   return (
     <button
       onClick={copy}
-      className="absolute top-3 right-3 z-10 p-1.5 rounded transition-colors hover:bg-gray-200 dark:hover:bg-gray-700"
+      className="p-1.5 rounded transition-opacity hover:opacity-60"
       title={copied ? 'Copied' : 'Copy'}
     >
       {copied ? (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-400">
           <polyline points="20 6 9 17 4 12" />
         </svg>
       ) : (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 dark:text-gray-500">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 dark:text-gray-500">
           <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
         </svg>
@@ -447,10 +447,13 @@ export default function SDKs() {
               </div>
             </div>
             {/* Col 2 - Code */}
-            <div className="relative min-h-[240px] md:min-h-0">
-              <div className="landing-surface-card absolute top-2 bottom-2 left-2 right-0 rounded-2xl border px-8 py-6 overflow-hidden shadow-sm">
-                <CopyButton code={codeExamples[selectedLang]} />
-                <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="relative min-h-[320px] md:min-h-0">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col">
+                <div className="px-4 pt-2.5 pb-2 flex items-center justify-between shrink-0" style={{ fontFamily }}>
+                  <span className="text-xs font-medium text-black dark:text-[#f6f6f4]">{languageLabels[selectedLang]}</span>
+                  <CopyButton code={codeExamples[selectedLang]} />
+                </div>
+                <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-6 py-4 flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
                 </div>
               </div>
@@ -493,10 +496,13 @@ export default function SDKs() {
               </div>
             </div>
             {/* Col 2 - Code */}
-            <div className="relative min-h-[240px] md:min-h-0">
-              <div className="landing-surface-card absolute top-2 bottom-2 left-2 right-0 rounded-2xl border px-8 py-6 overflow-hidden shadow-sm">
-                <CopyButton code={btreeExamples[selectedLang]} />
-                <div className="h-full overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="relative min-h-[320px] md:min-h-0">
+              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col">
+                <div className="px-4 pt-2.5 pb-2 flex items-center justify-between shrink-0" style={{ fontFamily }}>
+                  <span className="text-xs font-medium text-black dark:text-[#f6f6f4]">{languageLabels[selectedLang]}</span>
+                  <CopyButton code={btreeExamples[selectedLang]} />
+                </div>
+                <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-6 py-4 flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
                 </div>
               </div>
