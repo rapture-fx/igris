@@ -11,6 +11,7 @@ export interface ExecutionRun {
   agent_id: string;
   model: string;
   device_id: string;
+  runtime_id?: string;
   started_at: string;
   ended_at?: string;
   duration_ms?: number;
@@ -43,6 +44,7 @@ export interface ExecutionReceipt {
   execution_id: string;
   agent_id: string;
   device_id: string;
+  runtime_id?: string;
   timestamp: string;
   start_time?: string;
   end_time?: string;
@@ -91,6 +93,7 @@ export interface ExecutionViolation {
 
 export interface ExecutionRunReceiptReference {
   id: string;
+  runtime_id?: string;
   hash?: string;
   previous_hash?: string;
   signature?: string;
