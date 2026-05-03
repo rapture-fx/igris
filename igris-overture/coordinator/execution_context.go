@@ -59,6 +59,7 @@ type executionContextExecer interface {
 type executionContextArtifactRefs struct {
 	ExecutionID        string
 	TenantID           string
+	RuntimeID          string
 	Provider           string
 	RouteDecision      string
 	ExecutionPath      string
@@ -107,11 +108,11 @@ func buildTaskExecutionContextRecord(queryer queryRower, taskID uuid.UUID, execu
 		ExecutionID:        refs.ExecutionID,
 		TenantID:           firstNonEmpty(refs.TenantID, source.TenantID),
 		TaskID:             &taskID,
-		RuntimeID:          source.RuntimeID,
+		RuntimeID:          firstNonEmpty(refs.RuntimeID, source.RuntimeID),
 		RuntimeLabel:       source.RuntimeEndpoint,
 		Provider:           refs.Provider,
 		RouteDecision:      refs.RouteDecision,
-		ExecutionPath:      firstNonEmpty(refs.ExecutionPath, executionPathFromRouteDecision(refs.RouteDecision, source.RuntimeID != "")),
+		ExecutionPath:      firstNonEmpty(refs.ExecutionPath, executionPathFromRouteDecision(refs.RouteDecision, firstNonEmpty(refs.RuntimeID, source.RuntimeID) != "")),
 		PolicySnapshot:     refs.PolicySnapshot,
 		CapabilitySnapshot: firstNonEmptyJSON(refs.CapabilitySnapshot, capabilitySnapshotFromPermissionEnvelope(source.PermissionEnvelope)),
 		VerificationStatus: firstNonEmpty(source.ProofStatus, refs.VerificationStatus),
@@ -261,6 +262,7 @@ func executionContextRefsFromArtifacts(executionEnvelope, executionReceipt json.
 	var envelope struct {
 		ExecutionID        string         `json:"execution_id"`
 		TenantID           *string        `json:"tenant_id"`
+		RuntimeID          string         `json:"runtime_id"`
 		Provider           string         `json:"provider"`
 		Model              string         `json:"model"`
 		RoutingDecision    string         `json:"routing_decision"`
@@ -282,12 +284,16 @@ func executionContextRefsFromArtifacts(executionEnvelope, executionReceipt json.
 		ExecutionID string `json:"execution_id"`
 		ReceiptHash string `json:"receipt_hash"`
 		Hash        string `json:"hash"`
+		RuntimeID   string `json:"runtime_id"`
 	}
 	if len(executionReceipt) > 0 && string(executionReceipt) != "null" && string(executionReceipt) != "{}" {
 		if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
 			return nil, false
 		}
 		if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
+			return nil, false
+		}
+		if strings.TrimSpace(receipt.RuntimeID) != "" && strings.TrimSpace(envelope.RuntimeID) != "" && strings.TrimSpace(receipt.RuntimeID) != strings.TrimSpace(envelope.RuntimeID) {
 			return nil, false
 		}
 	}
@@ -323,6 +329,7 @@ func executionContextRefsFromArtifacts(executionEnvelope, executionReceipt json.
 	return &executionContextArtifactRefs{
 		ExecutionID:        envelope.ExecutionID,
 		TenantID:           tenantID,
+		RuntimeID:          firstNonEmpty(receipt.RuntimeID, envelope.RuntimeID),
 		Provider:           firstNonEmpty(envelope.Provider, providerFromRouteDecision(envelope.RoutingDecision), envelope.Model),
 		RouteDecision:      envelope.RoutingDecision,
 		ExecutionPath:      executionPathFromRouteDecision(envelope.RoutingDecision, true),
@@ -490,6 +497,7 @@ func BuildExecutionLineageRecordFromReceipt(
 		TransactionID     string `json:"transaction_id"`
 		TransactionHash   string `json:"transaction_hash"`
 		AgentID           string `json:"agent_id"`
+		RuntimeID         string `json:"runtime_id"`
 		CPUTimeMs         int64  `json:"cpu_time_ms"`
 		WallTimeMs        int64  `json:"wall_time_ms"`
 		MemoryPeakMB      int64  `json:"memory_peak_mb"`
@@ -536,7 +544,7 @@ func BuildExecutionLineageRecordFromReceipt(
 		ReceiptHash:       receiptHash,
 		PreviousHash:      receipt.PreviousHash,
 		Signature:         receipt.Signature,
-		RuntimeID:         runtimeID,
+		RuntimeID:         firstNonEmpty(receipt.RuntimeID, runtimeID),
 		TenantID:          tenantID,
 		TimestampUTC:      timestamp,
 		Status:            normalizeExecutionLineageStatus(status, receipt.ViolationOccurred),
