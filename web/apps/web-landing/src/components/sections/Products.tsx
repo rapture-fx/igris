@@ -434,9 +434,9 @@ export default function Products() {
           <div className="py-10 sm:py-16">
 
             {/* Desktop layout */}
-            <div className="hidden sm:grid gap-10" style={{ gridTemplateColumns: '3fr 2fr' }}>
+            <div className="hidden sm:grid gap-10" style={{ gridTemplateColumns: '65fr 35fr' }}>
               {/* Left: image background, panel floats over it — 60% */}
-              <div style={{ position: 'relative', minHeight: 'clamp(512px, 54vw, 660px)' }}>
+              <div style={{ position: 'relative', minHeight: 'clamp(580px, 60vw, 720px)' }}>
                 <img
                   src={'/pkrllol.png'}
                   alt="Product"
@@ -449,7 +449,7 @@ export default function Products() {
                     borderRadius: '0.5rem',
                   }}
                 />
-                <div style={{ position: 'absolute', inset: '40px', zIndex: 10 }}>
+                <div style={{ position: 'absolute', inset: '50px', zIndex: 10 }}>
                   <ExecutionPreview isDark={isDark} />
                 </div>
               </div>
