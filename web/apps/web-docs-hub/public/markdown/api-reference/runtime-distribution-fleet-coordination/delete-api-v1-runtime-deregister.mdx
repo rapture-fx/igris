@@ -41,12 +41,16 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `machine_id` | `string` | Yes | Stable runtime machine identifier used during registration. |
+| `timestamp_unix_ms` | `integer` | Yes | Millisecond Unix timestamp used for replay-window validation. |
+| `signature` | `string` | Yes | Runtime signature over the deregistration payload. |
 
 ## Request Example
 
 ```json
 {
-  "machine_id": "dev_0f4c3f1a2d9b45cf"
+  "machine_id": "dev_0f4c3f1a2d9b45cf",
+  "timestamp_unix_ms": 1775283780000,
+  "signature": "MEQCIB3exampleRuntimeDeregisterSignature=="
 }
 ```
 
@@ -59,7 +63,9 @@ curl -X DELETE https://overture.igrisinertial.com/api/v1/runtime/deregister \
   -H "X-API-Key: $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-  "machine_id": "dev_0f4c3f1a2d9b45cf"
+  "machine_id": "dev_0f4c3f1a2d9b45cf",
+  "timestamp_unix_ms": 1775283780000,
+  "signature": "MEQCIB3exampleRuntimeDeregisterSignature=="
 }'
 ```
 
@@ -73,7 +79,9 @@ const response = await fetch('https://overture.igrisinertial.com/api/v1/runtime/
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-  "machine_id": "dev_0f4c3f1a2d9b45cf"
+  "machine_id": "dev_0f4c3f1a2d9b45cf",
+  "timestamp_unix_ms": 1775283780000,
+  "signature": "MEQCIB3exampleRuntimeDeregisterSignature=="
 }),
 });
 
@@ -85,7 +93,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"machine_id\": \"dev_0f4c3f1a2d9b45cf\"\n}")
+body := strings.NewReader("{\n  \"machine_id\": \"dev_0f4c3f1a2d9b45cf\",\n  \"timestamp_unix_ms\": 1775283780000,\n  \"signature\": \"MEQCIB3exampleRuntimeDeregisterSignature==\"\n}")
 
 req, err := http.NewRequest("DELETE", "https://overture.igrisinertial.com/api/v1/runtime/deregister", body)
 if err != nil {
@@ -112,7 +120,9 @@ let response = client
         .request(reqwest::Method::DELETE, "https://overture.igrisinertial.com/api/v1/runtime/deregister")
         .header("X-API-Key", std::env::var("IGRIS_API_KEY")?)
         .json(&serde_json::json!({
-  "machine_id": "dev_0f4c3f1a2d9b45cf"
+  "machine_id": "dev_0f4c3f1a2d9b45cf",
+  "timestamp_unix_ms": 1775283780000,
+  "signature": "MEQCIB3exampleRuntimeDeregisterSignature=="
 }))
         .send()
         .await?;
