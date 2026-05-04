@@ -128,13 +128,13 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
     const active = id === activeTab
     return {
       fontFamily: SANS,
-      fontSize: '10px',
+      fontSize: '12px',
       fontWeight: 400,
       color: titleColor,
       background: active ? (isDark ? 'rgba(0,0,0,0.45)' : '#ffffff') : 'transparent',
       border: 'none',
       borderRadius: '4px',
-      padding: '2px 7px',
+      padding: '4px 10px',
       cursor: 'pointer',
       transition: 'background 120ms',
       userSelect: 'none' as const,
@@ -221,10 +221,10 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
             <div style={cardStyle}>
               <div style={cardHeaderStyle}>
                 <div>
-                  <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Event Stream</p>
-                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Structured execution events with severity and execution context.</p>
+                  <p style={{ fontFamily: SANS, fontSize: '14px', fontWeight: 600, color: titleColor, margin: 0 }}>Event Stream</p>
+                  <p style={{ fontFamily: SANS, fontSize: '11px', color: mutedColor, margin: '2px 0 0' }}>Structured execution events with severity and execution context.</p>
                 </div>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontFamily: SANS, fontSize: '9px', color: accentGreen, flexShrink: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '3px', fontFamily: SANS, fontSize: '11px', color: accentGreen, flexShrink: 0 }}>
                   <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: accentGreen, display: 'inline-block' }} /> live
                 </span>
               </div>
@@ -233,8 +233,8 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
                 <div style={{ padding: '4px 14px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', borderBottom: `1px solid ${border}`, flexShrink: 0 }}>
                   {SUMMARY_PAIRS.map((p) => (
                     <span key={p.k} style={{ display: 'inline-flex', alignItems: 'baseline', gap: '3px' }}>
-                      <span style={{ fontFamily: MONO, fontSize: '9px', color: labelColor }}>{p.k}:</span>
-                      <span style={{ fontFamily: MONO, fontSize: '9px', color: p.accent ? accentGreen : msgColor }}>{p.v}</span>
+                      <span style={{ fontFamily: MONO, fontSize: '11px', color: labelColor }}>{p.k}:</span>
+                      <span style={{ fontFamily: MONO, fontSize: '11px', color: p.accent ? accentGreen : msgColor }}>{p.v}</span>
                     </span>
                   ))}
                 </div>
@@ -253,10 +253,10 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
                           animation: 'igris-log-in 200ms ease forwards',
                         }}
                       >
-                        <span style={{ fontFamily: MONO, fontSize: '9px', color: timeColor, width: '50px', flexShrink: 0, userSelect: 'none' }}>{e.time}</span>
-                        <span style={{ fontFamily: MONO, fontSize: '9px', fontWeight: 500, width: '38px', flexShrink: 0, color: SEV_COLOR[e.sev] }}>{e.sev.toLowerCase()}</span>
-                        <span style={{ fontFamily: MONO, fontSize: '9px', color: typeColor, width: '148px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.type}</span>
-                        <span style={{ fontFamily: MONO, fontSize: '9px', color: msgColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.7 }}>{e.msg}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '11px', color: timeColor, width: '60px', flexShrink: 0, userSelect: 'none' }}>{e.time}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '11px', fontWeight: 500, width: '45px', flexShrink: 0, color: SEV_COLOR[e.sev] }}>{e.sev.toLowerCase()}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '11px', color: typeColor, width: '180px', flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.type}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '11px', color: msgColor, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.7 }}>{e.msg}</span>
                       </div>
                     ) : (
                       <div
@@ -307,10 +307,10 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
                     </div>
                     <div style={{ paddingBottom: i < TIMELINE_STEPS.length - 1 ? '7px' : 0, flex: 1 }}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-                        <span style={{ fontFamily: SANS, fontSize: '10px', fontWeight: 400, color: step.style === 'warn' ? '#d97706' : step.style === 'success' ? accentGreen : titleColor }}>{step.name}</span>
-                        <span style={{ fontFamily: MONO, fontSize: '9px', color: timeColor }}>{step.time}</span>
+                        <span style={{ fontFamily: SANS, fontSize: '12px', fontWeight: 500, color: step.style === 'warn' ? '#d97706' : step.style === 'success' ? accentGreen : titleColor }}>{step.name}</span>
+                        <span style={{ fontFamily: MONO, fontSize: '11px', color: timeColor }}>{step.time}</span>
                       </div>
-                      <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: 0, lineHeight: 1.4 }}>{step.desc}</p>
+                      <p style={{ fontFamily: SANS, fontSize: '11px', color: mutedColor, margin: 0, lineHeight: 1.4 }}>{step.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -323,17 +323,17 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
             <div style={cardStyle}>
               <div style={cardHeaderStyle}>
                 <div>
-                  <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Verification</p>
-                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Execution proof and verification material for the completed run.</p>
+                  <p style={{ fontFamily: SANS, fontSize: '14px', fontWeight: 600, color: titleColor, margin: 0 }}>Verification</p>
+                  <p style={{ fontFamily: SANS, fontSize: '11px', color: mutedColor, margin: '2px 0 0' }}>Execution proof and verification material for the completed run.</p>
                 </div>
               </div>
               <div style={{ ...cardBodyStyle, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: MONO, fontSize: '10px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: MONO, fontSize: '12px' }}>
                   <thead>
                     <tr style={{ background: isDark ? 'rgba(246,246,244,0.04)' : '#f3f4f6' }}>
-                      <th style={{ padding: '5px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '9px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}`, width: '30%' }}>field</th>
-                      <th style={{ padding: '5px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '9px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}` }}>value</th>
-                      <th style={{ padding: '5px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '9px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}`, width: '22%' }}>group</th>
+                      <th style={{ padding: '8px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '11px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}`, width: '30%' }}>field</th>
+                      <th style={{ padding: '8px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '11px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}` }}>value</th>
+                      <th style={{ padding: '8px 14px', textAlign: 'left', fontFamily: SANS, fontSize: '11px', fontWeight: 500, color: mutedColor, borderBottom: `1px solid ${border}`, width: '22%' }}>group</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -349,9 +349,9 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
                       { k: 'verification', v: 'passed',            group: 'result',    accent: true  },
                     ].map((row) => (
                       <tr key={row.k} style={{ borderBottom: `1px solid ${isDark ? 'rgba(246,246,244,0.04)' : '#f3f4f6'}` }}>
-                        <td style={{ padding: '5px 14px', color: labelColor }}>{row.k}</td>
-                        <td style={{ padding: '5px 14px', color: row.accent ? accentGreen : msgColor }}>{row.v}</td>
-                        <td style={{ padding: '5px 14px', color: mutedColor, fontFamily: SANS, fontSize: '9px' }}>{row.group}</td>
+                        <td style={{ padding: '8px 14px', color: labelColor }}>{row.k}</td>
+                        <td style={{ padding: '8px 14px', color: row.accent ? accentGreen : msgColor }}>{row.v}</td>
+                        <td style={{ padding: '8px 14px', color: mutedColor, fontFamily: SANS, fontSize: '11px' }}>{row.group}</td>
                       </tr>
                     ))}
                   </tbody>
