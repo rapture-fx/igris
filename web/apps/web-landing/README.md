@@ -1,94 +1,53 @@
-# Igris Overture Landing Page
+# Igris Landing Site
 
-A modern, elegant landing page built with Next.js 15, featuring Apple-inspired design with soft blue accents and smooth animations.
+This app contains the public marketing site for Igris Inertial.
 
-## 🚀 Deployment
+The landing narrative should stay aligned with the core product story:
 
-This project is configured for deployment to **Cloudflare Pages**.
+- Igris is one execution system for AI tasks you can verify
+- the product model is Request -> Execute -> Verify
+- hosted, local, and hybrid are deployment modes or execution surfaces
+- preview-heavy areas such as robotics, ROS2, and multimodal must stay clearly caveated
 
-**📖 [Complete Deployment Guide](./CLOUDFLARE_PAGES_DEPLOYMENT.md)**
+## Purpose
 
-### Quick Deploy to Cloudflare Pages
+The landing site introduces:
+
+- why direct model calls are insufficient once AI starts doing work
+- how Igris governs execution, captures events, and returns signed records
+- where operators inspect runs, environments, and verification status
+- how teams choose hosted, local, or hybrid deployment modes
+
+## Stack
+
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+
+## Development
+
 ```bash
-# Build locally to test
+pnpm install
+pnpm dev
+```
+
+## Build
+
+```bash
 pnpm build
-
-# Push to main branch - Cloudflare Pages will auto-deploy
-git push origin main
+pnpm start
 ```
 
-### Build Configuration
-- **Framework**: Next.js 15.5.9
-- **Node.js**: 20.19.5 (auto-detected from .node-version)
-- **Package Manager**: pnpm 8.15.0
+## Deployment
 
-## Features
+This app is configured for Cloudflare Pages. See [CLOUDFLARE_PAGES_DEPLOYMENT.md](./CLOUDFLARE_PAGES_DEPLOYMENT.md) for deployment details.
 
-- **Modern Design**: Clean, elegant design inspired by Apple's aesthetic
-- **Responsive**: Fully responsive design that works on all devices
-- **Performance**: Built with Next.js 14 for optimal performance
-- **Animations**: Smooth animations using Framer Motion
-- **Apple-Style Typography**: SF Pro font family for consistent Apple-like appearance
-- **Soft Blue Accents**: Carefully chosen color palette with accessibility in mind
+## Copy Guidance
 
-## Tech Stack
+When updating this app:
 
-- **Next.js 14**: React framework with App Router
-- **TypeScript**: Type-safe development
-- **Tailwind CSS**: Utility-first CSS framework
-- **Framer Motion**: Animation library
-- **Lucide React**: Beautiful icons
-
-## Getting Started
-
-1. **Install dependencies:**
-```bash
-npm install
-```
-
-2. **Run the development server:**
-```bash
-npm run dev
-```
-
-3. **Open [http://localhost:3000](http://localhost:3000) in your browser**
-
-## Build for Production
-
-```bash
-npm run build
-npm start
-```
-
-## Sections
-
-- **Hero**: Compelling headline with animated code example
-- **Features**: Six key features with icons and descriptions
-- **How It Works**: Three-step process with code examples
-
-- **Pricing**: Three pricing tiers with feature comparison
-- **Footer**: Complete footer with links and contact info
-
-## Design Principles
-
-- **Apple-Inspired**: Clean, minimal design with attention to detail
-- **Accessibility**: High contrast ratios and semantic HTML
-- **Performance**: Optimized images and efficient animations
-- **Mobile-First**: Responsive design for all screen sizes
-
-## Color Palette
-
-- **Primary Blue**: #007AFF (Apple's signature blue)
-- **Secondary Blue**: #0056CC
-- **Soft Gray**: #F2F2F7
-- **Text**: #000000 and #6B7280
-
-## Typography
-
-- **Headlines**: SF Pro Display
-- **Body Text**: SF Pro Text
-- **Code**: SF Mono
-
-## License
-
-This project is licensed under the MIT License.
+- lead with governed, verifiable execution
+- keep routing details as supporting implementation detail
+- do not sell unproven advanced surfaces as default capabilities
+- link preview-heavy areas back to proof-status language in the docs when needed
