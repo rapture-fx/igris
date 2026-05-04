@@ -38,13 +38,13 @@ That combination matters because Igris needs to support both:
 - cross-service span propagation
 - external tracing systems used by platform teams
 
-Current tracing metadata includes things like:
+Current tracing metadata can include things like:
 
 - HTTP method and path
 - provider and model
 - token counts
 - latency and cost
-- speculative-execution winner and switch metadata
+- advanced path-selection metadata when those features are enabled
 
 This makes tracing useful for routing analysis, not just generic HTTP timing.
 
@@ -57,7 +57,7 @@ Tracing should answer these questions quickly:
 - Did the request stay in cloud or move to runtime?
 - Which provider was selected and why?
 - Where did latency accumulate?
-- Was speculative execution involved?
+- Was an advanced path-selection feature involved?
 - Is a slow request caused by routing, provider latency, or local runtime work?
 
 That is the difference between basic logging and a usable production observability model.
