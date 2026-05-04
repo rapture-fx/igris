@@ -141,7 +141,7 @@ export default function Header() {
     { label: 'AI Agents', description: 'Control, inspect, and verify tool-calling agents.', href: '/ai-agents' },
     { label: 'Internal Automation', description: 'Add execution records to AI-powered business workflows.', href: '/use-cases' },
     { label: 'Edge AI', description: 'Run AI closer to devices and local environments.', href: '/machine' },
-    { label: 'Robotics Research', description: 'Explore governed execution paths for physical systems.', href: '/robotics' },
+    { label: 'Specialized Environments', description: 'Preview-oriented execution paths for edge and physical systems.', href: '/robotics' },
     { label: 'Regulated Workflows', description: 'Create auditable records for sensitive AI runs.', href: '/use-cases' },
   ];
 
