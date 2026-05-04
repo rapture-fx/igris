@@ -87,31 +87,37 @@ func TestListReceiptsIncludesRuntimeIdentity(t *testing.T) {
 	t.Parallel()
 
 	timestamp := time.Date(2026, 5, 4, 10, 0, 0, 0, time.UTC)
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{
-			"id", "execution_id", "agent_id", "runtime_id", "runtime_label", "timestamp_utc",
-			"receipt_hash", "previous_hash", "signature", "cpu_time_ms", "memory_peak_mb",
-			"tool_calls", "wall_time_ms", "violation_occurred", "proof_status", "violation_details",
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
 		},
-		rows: [][]driver.Value{{
-			"receipt-row-1",
-			"exec-runtime-1",
-			"tenant-runtime",
-			"runtime-backed-1",
-			"http://runtime.test",
-			timestamp,
-			"receipt-hash-1",
-			"receipt-hash-0",
-			"receipt-signature-1",
-			int64(12),
-			int64(48),
-			int64(1),
-			int64(36),
-			false,
-			"verified",
-			nil,
-		}},
-	}})
+		{
+			columns: []string{
+				"id", "execution_id", "agent_id", "runtime_id", "runtime_label", "timestamp_utc",
+				"receipt_hash", "previous_hash", "signature", "cpu_time_ms", "memory_peak_mb",
+				"tool_calls", "wall_time_ms", "violation_occurred", "proof_status", "violation_details",
+			},
+			rows: [][]driver.Value{{
+				"receipt-row-1",
+				"exec-runtime-1",
+				"tenant-runtime",
+				"runtime-backed-1",
+				"http://runtime.test",
+				timestamp,
+				"receipt-hash-1",
+				"receipt-hash-0",
+				"receipt-signature-1",
+				int64(12),
+				int64(48),
+				int64(1),
+				int64(36),
+				false,
+				"verified",
+				nil,
+			}},
+		},
+	})
 
 	handler := NewProofHandler(db)
 	app := fiber.New()
@@ -154,31 +160,37 @@ func TestListReceiptsHistoricalRowWithoutRuntimeIdentityRemainsValid(t *testing.
 	t.Parallel()
 
 	timestamp := time.Date(2026, 5, 4, 11, 0, 0, 0, time.UTC)
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{
-			"id", "execution_id", "agent_id", "runtime_id", "runtime_label", "timestamp_utc",
-			"receipt_hash", "previous_hash", "signature", "cpu_time_ms", "memory_peak_mb",
-			"tool_calls", "wall_time_ms", "violation_occurred", "proof_status", "violation_details",
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
 		},
-		rows: [][]driver.Value{{
-			"receipt-row-2",
-			"exec-legacy-2",
-			"tenant-legacy",
-			"",
-			"",
-			timestamp,
-			"receipt-hash-2",
-			"",
-			"receipt-signature-2",
-			int64(0),
-			int64(0),
-			int64(0),
-			int64(14),
-			false,
-			"present",
-			nil,
-		}},
-	}})
+		{
+			columns: []string{
+				"id", "execution_id", "agent_id", "runtime_id", "runtime_label", "timestamp_utc",
+				"receipt_hash", "previous_hash", "signature", "cpu_time_ms", "memory_peak_mb",
+				"tool_calls", "wall_time_ms", "violation_occurred", "proof_status", "violation_details",
+			},
+			rows: [][]driver.Value{{
+				"receipt-row-2",
+				"exec-legacy-2",
+				"tenant-legacy",
+				"",
+				"",
+				timestamp,
+				"receipt-hash-2",
+				"",
+				"receipt-signature-2",
+				int64(0),
+				int64(0),
+				int64(0),
+				int64(14),
+				false,
+				"present",
+				nil,
+			}},
+		},
+	})
 
 	handler := NewProofHandler(db)
 	app := fiber.New()
@@ -220,17 +232,23 @@ func TestListReceiptsHistoricalRowWithoutRuntimeIdentityRemainsValid(t *testing.
 func TestVerifyReceiptResponseIncludesRuntimeIdentityWhenAvailable(t *testing.T) {
 	t.Parallel()
 
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
-		rows: [][]driver.Value{{
-			"receipt-row-3",
-			"runtime-verify-3",
-			"http://runtime.verify",
-			"receipt-hash-3",
-			"receipt-signature-3",
-			"verified",
-		}},
-	}}, queuedRouteExecExpectation{rowsAffected: 1})
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
+		},
+		{
+			columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
+			rows: [][]driver.Value{{
+				"receipt-row-3",
+				"runtime-verify-3",
+				"http://runtime.verify",
+				"receipt-hash-3",
+				"receipt-signature-3",
+				"verified",
+			}},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
 
 	handler := NewProofHandler(db)
 	app := fiber.New()
@@ -274,17 +292,23 @@ func TestVerifyReceiptResponseIncludesRuntimeIdentityWhenAvailable(t *testing.T)
 func TestVerifyReceiptResponseRemainsBackwardCompatibleWithoutRuntimeIdentity(t *testing.T) {
 	t.Parallel()
 
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
-		rows: [][]driver.Value{{
-			"receipt-row-4",
-			"",
-			"",
-			"receipt-hash-4",
-			"receipt-signature-4",
-			"present",
-		}},
-	}}, queuedRouteExecExpectation{rowsAffected: 1})
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
+		},
+		{
+			columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
+			rows: [][]driver.Value{{
+				"receipt-row-4",
+				"",
+				"",
+				"receipt-hash-4",
+				"receipt-signature-4",
+				"present",
+			}},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
 
 	handler := NewProofHandler(db)
 	app := fiber.New()
