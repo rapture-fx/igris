@@ -27,10 +27,10 @@ export default function AutonomousSystems() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-8 pt-12 pb-6 md:pb-12">
             <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
               Built for AI agents.<br className="hidden md:block" />
-              Designed for the edge.
+              Extendable to local environments.
             </h2>
             <p className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4] max-w-md md:text-right" style={{ fontFamily }}>
-              Igris gives AI systems a governed execution layer across cloud, edge, and local environments — from software agents today to physical systems tomorrow.
+              Igris gives AI systems one governed execution model across hosted, local, and hybrid environments, with specialized surfaces available where teams need them.
             </p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function AutonomousSystems() {
       {/* Full-width middle border */}
       <div style={{ borderTop: borderStyle }} />
 
-      {/* Row 2 - Robots */}
+      {/* Row 2 - Specialized Environments */}
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:300px]">
@@ -100,16 +100,16 @@ export default function AutonomousSystems() {
             <div className="flex flex-col pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
               <div className="max-w-md">
                 <h3 className="text-lg md:text-xl lg:text-2xl mb-2 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-                  For Edge and Robotics Systems
+                  For Specialized Local Environments
                 </h3>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Bring the same execution model closer to devices and physical environments.
+                  Bring the same execution model closer to devices and constrained operating environments.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Igris is being built for systems where AI reasoning needs to connect with constrained execution, safety boundaries, and offline operation. The goal is to support edge and robotics workflows without making the model the final authority over critical actions.
+                  Igris can extend into local and hardware-adjacent environments where AI reasoning needs constrained execution, safety boundaries, and operator review. Specialized physical-system workflows should still be treated as technical preview.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily }}>
-                  Use it for: edge AI workloads, device-side execution, robotics research and prototypes, safety-gated action flows, environments where network failure cannot break the execution model
+                  Use it for: edge AI workloads, device-side execution, safety-gated action flows, and preview-oriented physical-system experiments that still need governed execution.
                 </p>
               </div>
             </div>
@@ -118,7 +118,7 @@ export default function AutonomousSystems() {
               <div className="absolute top-2 bottom-2 left-2 right-0 rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                 <Image
                   src={mounted && theme === 'dark' ? '/rozf.png' : '/rfoz.png'}
-                  alt="Robotics"
+                  alt="Specialized local environment"
                   fill
                   className="object-cover"
                   style={{ opacity: 0.9 }}
@@ -129,7 +129,7 @@ export default function AutonomousSystems() {
                 className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border ml-2 mr-2 mb-6 md:ml-4 md:mr-4 md:mb-8"
                 style={{ backgroundColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.12)' : 'rgba(20,18,10,0.1)', fontFamily }}
               >
-                Robotics
+                Technical Preview
                 <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
               </Link>
             </div>
