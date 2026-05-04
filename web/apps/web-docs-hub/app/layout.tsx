@@ -6,7 +6,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Igris Inertial Documentation',
-  description: 'Documentation for Igris products - Overture and Runtime',
+  description: 'Documentation for Igris Inertial, the execution layer for governed and verifiable AI tasks.',
   icons: {
     icon: [
       { url: '/favicon.png', type: 'image/png', sizes: '32x32' }
