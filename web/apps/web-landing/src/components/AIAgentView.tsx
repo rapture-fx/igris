@@ -134,10 +134,10 @@ export default function AIAgentView() {
                   Where AI models meet real-world execution. Your systems need more than raw intelligence. They need execution that survives failure and proves every decision.
                 </p>
                 <p className="text-sm mb-3 text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  The Nervous System governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Cryptographic signatures prove what happened.
+                  Igris governs how language model reasoning becomes action. Structured paths keep behavior bounded. Hard limits prevent runaway processes. Signed records help prove what happened.
                 </p>
                 <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                  One binary runs on servers, robots, and edge devices. Same guarantees anywhere. Observe decisions in real time. Inspect actions. Verify outcomes. Trust what happened.
+                  One execution system runs across hosted, local, and hybrid environments. Observe decisions in real time. Inspect actions. Verify outcomes after the run.
                 </p>
               </div>
             )}
@@ -150,9 +150,9 @@ export default function AIAgentView() {
                   <p>This is the execution layer beneath intelligence.</p>
                   <p>It doesn&apos;t decide what AI thinks.</p>
                   <p>It enforces how AI runs.</p>
-                  <p>Behavior is bounded, repeatable, and verifiable by design.</p>
-                  <p>For systems where AI must survive failure, operate offline, and prove every decision.</p>
-                  <p>If AI is the brain, this is the nervous system.</p>
+                  <p>Behavior is bounded, reviewable, and verifiable by design.</p>
+                  <p>For systems where AI must respect boundaries, expose failure paths, and prove what happened.</p>
+                  <p>It is the execution system that sits between model output and real work.</p>
                 </div>
               </div>
             )}
@@ -167,19 +167,19 @@ export default function AIAgentView() {
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Execution</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Execute AI with deterministic precision and sandboxed safety. Monitor in real time, deploy models instantly, and push configurations fleet-wide. From one agent to thousands, execution remains predictable and bounded.
+                      Execute AI with bounded execution and sandboxed safety. Monitor events in real time and inspect runs across configured environments. From one agent to many environments, execution stays governed and reviewable.
                     </p>
                   </div>
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Intelligence</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Route decisions across multiple LLM providers. Balance cost and performance. Test in shadow mode before production. The decision layer adapts while execution stays controlled.
+                      Choose between configured providers or execution paths when needed. Advanced path selection and shadow workflows stay subordinate to governed execution rather than becoming the product identity.
                     </p>
                   </div>
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Memory & Proof</p>
                     <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">
-                      Track behavior across the fleet. Detect anomalies automatically. Inspect historical decisions end-to-end. Every action is cryptographically signed, creating an immutable audit trail.
+                      Track runs across configured environments. Inspect historical decisions end-to-end. Signed records and receipts create an auditable trail after the run.
                     </p>
                   </div>
                 </div>
@@ -209,7 +209,7 @@ export default function AIAgentView() {
                   </div>
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Verified updates</p>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">Model updates and configuration changes require cryptographic signatures. Only approved updates execute across the fleet.</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">When coordinated update workflows are enabled, operators can require cryptographic signatures before approved changes are applied.</p>
                   </div>
                 </div>
               </div>
@@ -221,20 +221,20 @@ export default function AIAgentView() {
                 <p className="text-[#4c1d95] dark:text-[#a78bfa] mb-3 text-sm">## 04. DEPLOYMENT</p>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Deploy. Verify. Optimize.</p>
                 <p className="text-sm mb-6 text-gray-600 dark:text-[#a8a898]">
-                  From initial installation to fleet-level operation without changing how execution works.
+                  From initial installation to multi-environment operation without changing how execution works.
                 </p>
                 <div className="space-y-4">
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Deploy</p>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">Install a single binary on any supported system. Execution, decision routing, memory, and proof included from the start.</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">Install a runtime where work needs to happen. Execution, event capture, and proof-oriented surfaces stay consistent from the start.</p>
                   </div>
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Verify</p>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">Execution follows defined constraints. Each decision recorded and cryptographically signed. Verification does not depend on network access.</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">Execution follows defined constraints. Each run returns reviewable metadata, and verification follows the signed-record and receipt path you configure.</p>
                   </div>
                   <div>
                     <p className="text-[#000000] dark:text-[#f6f6f4] mb-2 font-medium">#### Optimize</p>
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">As deployments expand, visibility increases. Insight into execution health, decision routing, and verification status across the fleet.</p>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed">As deployments expand, visibility increases. Inspect execution health, path selection, and verification status across configured environments.</p>
                   </div>
                 </div>
               </div>
@@ -247,8 +247,8 @@ export default function AIAgentView() {
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Infrastructure for the autonomous era.</p>
                 <div className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed space-y-2">
                   <p>AI is becoming autonomous. The systems that run it must be trustworthy.</p>
-                  <p>We believe every AI—whether software agent or physical robot—should run on a deterministic execution layer.</p>
-                  <p>One that proves every decision. One that works when networks don&apos;t.</p>
+                  <p>We believe AI systems that do work need a governed execution layer.</p>
+                  <p>One that records what happened, surfaces failure paths, and supports verification after the run.</p>
                   <p>This is that layer. Built for the next era of computing.</p>
                 </div>
               </div>
@@ -257,8 +257,8 @@ export default function AIAgentView() {
             {/* Closing */}
             {visibleSections >= 9 && (
               <div className="animate-fadeInUp border-l border-gray-300 dark:border-[#f6f6f4]/10 pl-4">
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium text-base">### Complete control from edge to cloud.</p>
-                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/runtime/docs/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/runtime/docs/</a></p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium text-base">### Governed execution across hosted and local environments.</p>
+                <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">Documentation: <a href="https://docs.igrisinertial.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">docs.igrisinertial.com/</a></p>
                 <p className="text-sm mb-2 text-gray-600 dark:text-[#a8a898]">GitHub: <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">github.com/igrisinertial</a></p>
               </div>
             )}
