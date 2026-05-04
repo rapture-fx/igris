@@ -1,214 +1,86 @@
 ---
 title: "Audit"
-description: "Igris produces a tamper-evident audit record for every execution. This page covers the implemented cloud receipt and proof APIs used to access, query, export, and verify audit data."
+description: "How Igris exposes signed records, receipt queries, export workflows, and verification-related audit surfaces."
 audience: "public"
 ---
 
 # Audit
 
-Igris produces a tamper-evident audit record for every execution. This page covers how to access, query, and export audit data.
+Audit in Igris starts from signed records and verification-ready receipts.
+
+This page explains what operators can inspect after a run, how receipt data is queried and exported, and where verification semantics are stronger or weaker today.
 
 ---
 
-## Execution Receipts
+## Primary Audit Artifact
 
-Every execution produces a signed execution receipt. The receipt is the primary audit artifact.
+The primary audit artifact is the execution receipt.
 
-A receipt contains:
-- **Request identity**: request ID, tenant ID, timestamp
-- **Inputs**: full prompt, system message, and parameters
-- **Outputs**: full model response
-- **Resource usage**: tokens consumed, wall time, tool calls
-- **Capability grants**: what the execution was permitted to do
-- **Capability violations**: any operations that were blocked
-- **Tool calls**: parameters, responses, and latency for each tool invocation
-- **Signature**: cryptographic seal over the canonical envelope
+A receipt can include:
 
-The signature is computed over a deterministic serialization of all fields. An altered receipt will have an invalid signature.
+- request and run identity
+- execution metadata
+- status and timing
+- capability or policy outcomes
+- tool activity where applicable
+- signed or hash-linked record material
 
-[Execution Receipts →](/docs/execution-receipts)
+Use [Execution Receipts](/docs/execution-receipts) for the receipt-oriented explanation and [Verification](/docs/verification) for the verification model.
 
 ---
 
 ## Lineage
 
-Each receipt includes a `request_id` that traces back to the originating API call. For executions that went through the cloud coordination layer, the `request_id` links the routing decision to the execution record:
+Igris keeps lineage between request submission, execution activity, and post-run inspection surfaces.
 
-```
-API call → routing decision (request_id: abc123)
-                │
-                ▼
-Execution receipt (request_id: abc123, provider: anthropic)
-                │
-                ▼
-Signed envelope (canonical hash: sha256:...)
-```
+That lets operators answer questions such as:
 
-Full lineage is queryable end-to-end by request ID.
+- which request created this run
+- which execution path was taken
+- what events were emitted
+- which receipt corresponds to the final outcome
 
 ---
 
-## Querying Receipts
+## Query And Export
 
-Receipts are queryable through the cloud audit surfaces:
+Hosted audit surfaces can expose receipt listings, receipt retrieval, export workflows, and violation review. Use them to retain evidence outside the runtime when your retention or audit requirements demand it.
 
-- **Cloud receipt API** (`overture.igrisinertial.com`) — the central execution ledger
-- **Proof API** (`overture.igrisinertial.com/proof`) — verification and policy violation review
+Typical workflows are:
 
-The current runtime build returns execution receipt data from local execution responses, but it does not expose a public local receipt listing endpoint.
-
-```bash
-# List receipts from the cloud ledger
-curl https://overture.igrisinertial.com/v1/receipts \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Get a specific receipt by execution ID
-curl https://overture.igrisinertial.com/v1/receipts/exec-01HXYZ \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Filter by time range
-curl "https://overture.igrisinertial.com/v1/receipts?from=2026-03-01T00:00:00Z&to=2026-03-02T00:00:00Z" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
+1. list recent receipts
+2. retrieve a specific run record
+3. export receipts for external audit or retention
+4. inspect recorded violations or review events
 
 ---
 
-## Export
+## Verification Semantics
 
-Export receipts in bulk for external audit workflows:
+Two verification paths matter here:
 
-```bash
-# Export as JSONL
-curl "https://overture.igrisinertial.com/v1/receipts/export?format=jsonl&from=2026-03-01T00:00:00Z" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -o receipts-2026-03-01.jsonl
+- the local proof-backed path, where signed record and receipt verification are demonstrated
+- the hosted proof route, which confirms stored receipt values and proof status for a run
 
-# Export as CSV
-curl "https://overture.igrisinertial.com/v1/receipts/export?format=csv&from=2026-03-01T00:00:00Z" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -o receipts-2026-03-01.csv
-```
-
-Supported export formats: `jsonl` (default), `csv`
+Use the hosted proof route for hosted receipt review workflows, and use the local proof-backed path when you need the stronger demonstrated cryptographic verification story.
 
 ---
 
 ## Retention
 
-Receipts are retained for the duration configured by your tier:
+Receipt and audit retention depends on the environment and plan you operate with.
 
-| Tier | Retention |
-|---|---|
-| Seed | 7 days |
-| Horizon | 30 days |
-| Infinite | 90 days |
+For stronger retention requirements:
 
-After the retention period, receipts are deleted from local storage. If you require longer retention, export receipts before the deadline and store them externally.
+- export hosted records before retention windows expire
+- keep your own storage for local-only deployments
+- treat receipts and tracing as complementary, not interchangeable
 
 ---
 
-## Proof API
+## Related Pages
 
-The Proof API lets you list, verify, and query execution receipts and policy violations. All endpoints require authentication.
-
-### GET /proof/receipts
-
-List execution receipts for your tenant, ordered by timestamp.
-
-```bash
-curl "https://overture.igrisinertial.com/proof/receipts?limit=100&sort=timestamp:desc" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-| Query param | Description |
-|---|---|
-| `limit` | Max results (default 500, max 1000) |
-| `sort` | `timestamp:asc` or `timestamp:desc` (default: desc) |
-
-Response:
-```json
-[
-  {
-    "id": "exec-01HXYZ",
-    "execution_id": "exec-01HXYZ",
-    "agent_id": "agent-abc",
-    "device_id": "runtime-01",
-    "timestamp": "2026-03-01T12:00:00Z",
-    "status": "completed",
-    "signature": "base64:...",
-    "hash": "sha256:a3f9...",
-    "prev_hash": "sha256:b2e8...",
-    "has_violation": false,
-    "signed": true,
-    "cpu_ms": 287,
-    "memory_mb": 48,
-    "tokens_used": 312,
-    "tool_calls": 1,
-    "duration_ms": 312,
-    "violations": []
-  }
-]
-```
-
----
-
-### POST /proof/receipts/verify
-
-Verify the cryptographic signature on a receipt. Returns whether the signature is valid and the receipt is unaltered.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"execution_id": "exec-01HXYZ"}'
-# → {"valid": true, "execution_id": "exec-01HXYZ"}
-```
-
-If the receipt has been altered or the signature is invalid:
-```json
-{"valid": false, "execution_id": "exec-01HXYZ", "reason": "signature_mismatch"}
-```
-
----
-
-### GET /v1/proof/violations
-
-List all policy violation events for your tenant.
-
-```bash
-curl "https://overture.igrisinertial.com/v1/proof/violations?limit=50" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-| Query param | Description |
-|---|---|
-| `limit` | Max results |
-| `from` | ISO 8601 start time |
-| `agent_id` | Filter by agent |
-
-Response:
-```json
-[
-  {
-    "execution_id": "exec-01HABC",
-    "agent_id": "agent-abc",
-    "timestamp": "2026-03-01T11:45:00Z",
-    "violation_type": "capability_exceeded",
-    "detail": "tool_shell not in capability grant"
-  }
-]
-```
-
----
-
-## Compliance Use Cases
-
-**Data residency.** Local executions do not send data off-device. Receipts are stored locally unless explicitly exported.
-
-**Tamper evidence.** Signed receipts cannot be altered without invalidating the signature. A valid signature proves the receipt was produced by the engine and has not been modified since signing.
-
-**Human-in-the-loop audit.** Approval gate events are recorded in the receipt: what was held, what approval was received, the approver identity, and the timestamp.
-
-**Violation tracking.** Capability violations are recorded in the receipt and cannot be suppressed. Compliance auditors can verify that policy enforcement was applied.
-
-[Observability & Tracing →](/docs/observability-tracing) · [Governance →](/docs/governance) · [Execution Model →](/docs/execution-model)
+- [Execution Receipts →](/docs/execution-receipts)
+- [Verification →](/docs/verification)
+- [Proof Status →](/docs/proof-status)
+- [Observability & Tracing →](/docs/observability-tracing)
