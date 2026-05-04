@@ -438,7 +438,7 @@ export default function Products() {
               {/* Left: image background, panel floats over it — 60% */}
               <div style={{ position: 'relative', minHeight: 'clamp(580px, 60vw, 720px)' }}>
                 <img
-                  src={'/pkrllol.png'}
+                  src={isDark ? '/execution.jpeg' : '/pkrllol.png'}
                   alt="Product"
                   style={{
                     position: 'absolute',
@@ -472,7 +472,7 @@ export default function Products() {
             <div className="sm:hidden flex flex-col gap-6">
               <div style={{ position: 'relative', width: '100%' }}>
                 <img
-                  src={'/pkrllol.png'}
+                  src={isDark ? '/execution.jpeg' : '/pkrllol.png'}
                   alt="Product"
                   className="rounded-xl"
                   style={{

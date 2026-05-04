@@ -1,158 +1,113 @@
 ---
 title: "Governance"
-description: "Igris's governance model gives you verifiable, auditable records of every AI decision. Governance applies to every execution, whether running on cloud or local hardware."
+description: "Governance in Igris means applying boundaries, permissions, execution events, and signed records around the Request -> Execute -> Verify lifecycle."
 audience: "public"
 ---
 
 # Governance
 
-Igris's governance model gives you verifiable, auditable records of every AI decision. Governance applies to every execution, whether running on cloud or local hardware.
+Governance in Igris starts with the Request -> Execute -> Verify model.
+
+- **Request** defines what work is being asked for and under which context.
+- **Execute** applies permissions, boundaries, and runtime checks while the work runs.
+- **Verify** makes the resulting events and signed records available for inspection later.
+
+This page is about the practical controls around execution, not about broad unsupported governance claims.
 
 ---
 
 ## What Governance Covers
 
-Governance answers three questions:
+Governance answers four operator questions:
 
-1. **What happened?** Every execution produces a signed receipt with inputs, outputs, timing, and resource use.
-2. **Was it within bounds?** Capability gates enforce declared limits before and during execution.
-3. **Can it be verified?** Receipts are cryptographically signed and tamper-evident.
+1. what was requested
+2. what the run was allowed to do
+3. what happened during execution
+4. what record is available afterward
 
----
+That maps directly to:
 
-## Execution Receipts
+- permissions and capability checks
+- execution boundaries
+- execution events and outcome state
+- signed records and receipt-oriented inspection
 
-Every execution produces a receipt: a structured, signed record of the full execution.
+## Before Execution: Permissions And Scope
 
-Receipts contain:
-- The original request (inputs)
-- The response (outputs)
-- Resource usage: tokens consumed, time elapsed, tool calls made
-- Which capability gates were active
-- A cryptographic signature over the canonical envelope
+Before the main work runs, Igris can apply controls such as:
 
-Receipts are stored locally on the execution engine. They can be queried via API and exported for audit workflows.
+- tenant or deployment scope
+- capability grants
+- allowed tools or access paths
+- duration or resource expectations
 
-[Execution Receipts →](/docs/execution-receipts)
+This is the part of governance that decides whether the request is allowed to become execution at all.
 
----
+## During Execution: Boundaries And Events
 
-## Capability Model
+While the run is active, governance is about keeping execution inside its declared boundaries and making the outcome inspectable.
 
-Igris enforces a capability model: every execution declares what it is permitted to do, and the engine rejects operations outside that scope before they complete.
+Examples include:
 
-Capability grants control what an execution is permitted to do:
+- capability checks during tool or action attempts
+- resource boundaries such as duration or token limits
+- recording violations or rejected actions
+- surfacing execution events that help operators understand what happened
 
-| Capability | What it controls |
+That is why governance belongs to execution itself, not just to a static policy document.
+
+## After Execution: Signed Records
+
+Governance is only useful if the result can be checked later.
+
+Depending on the path, Igris can return or persist:
+
+- execution metadata
+- signed execution envelopes
+- signed execution receipts
+- receipt-oriented audit records
+
+Use these pages for the public-facing workflow:
+
+- [Verification →](/docs/verification)
+- [Execution Receipts →](/docs/execution-receipts)
+- [Proof Status →](/docs/proof-status)
+
+## Capability Boundaries
+
+Governance often starts with capability scope.
+
+Typical controls include:
+
+| Control | What it governs |
 |---|---|
-| `allow_http` | Whether the agent can make outbound HTTP calls |
-| `allowed_http_domains` | Allowlist of domains for HTTP calls |
-| `allow_shell` | Whether the agent can execute shell commands |
-| `allow_filesystem` | Whether the agent can read or write files |
-| `max_file_write_bytes` | Maximum bytes the execution may write |
+| Tool permissions | Which external actions are allowed |
+| Domain or path limits | Where an execution may reach |
+| Resource limits | How much work the execution may consume |
+| Review points | Which actions should require operator attention |
 
-Execution resource limits (max tokens, max steps, max wall time) are set separately in your containment policy and apply regardless of capability grants.
+The important point is not the label of the control. The important point is that the run is bounded and the result is inspectable afterward.
 
-A request that exceeds its capability grant is rejected before the operation executes. The rejection is recorded in the execution receipt.
+## Review And Follow-Up
 
-[Capability Model →](/docs/capability-model)
+After a run, governance becomes an operator review workflow:
 
----
+- inspect history or execution events
+- retrieve receipt-oriented records
+- verify what the available proof surfaces can actually confirm
+- adjust policy or permissions if the run exceeded the intended scope
 
-## Agent Lifecycle
+## What To Avoid Claiming
 
-Igris tracks the lifecycle of agent executions: creation, active execution, completion, and termination. Lifecycle events are recorded in the execution envelope and available via the observability API.
+This page should not be read as a claim that Igris is already a full generalized compliance platform. Keep the scope precise:
 
-For long-running agents, Igris enforces:
-- Heartbeat requirements
-- Maximum active duration
-- Graceful shutdown on deadline
+- governance around execution boundaries is real
+- signed records and verification-ready receipts are part of the product story
+- proof language should still follow [Proof Status](/docs/proof-status) for stronger claims
 
-[Agent Lifecycle →](/docs/agent-lifecycle)
+## Related Guides
 
----
-
-## Transaction Boundary
-
-Igris uses transaction boundaries to ensure that multi-step agent executions are atomic from a receipt perspective: either the full execution is recorded, or none of it is. Partial receipts do not exist.
-
-[Execution Model →](/docs/execution-model)
-
----
-
-## Routing Policy
-
-Igris enforces routing policies at the coordination layer. Policies control:
-
-- Which cloud providers a tenant may use
-- Budget limits (soft warning, hard block)
-- Routing rules (cost-optimized, latency-optimized, provider pinning)
-- Fallback behavior when primary providers fail
-
-Policies are version-controlled, hot-reloadable, and tenant-scoped.
-
-[Policy →](/docs/policy)
-
----
-
-## Trust Chain
-
-The trust chain connects the routing decision to the execution record:
-
-```
-Routing decision (request ID, tenant, provider selected)
-         │
-         ▼
-Execution envelope (inputs, outputs, capabilities, timing)
-         │
-         ▼
-Signed receipt (cryptographic seal over canonical envelope)
-         │
-         ▼
-Audit log (queryable record, exportable for compliance)
-```
-
-A request's full lineage — from the application call to the signed execution — can be traced through both systems using the request ID.
-
-[Architecture →](/docs/architecture)
-
----
-
-## Compliance Use Cases
-
-**Data residency.** Local execution keeps data on device. Data does not leave the device during inference. Receipts are stored locally unless explicitly exported.
-
-**Audit trails.** Every execution has a signed, tamper-evident record. Receipts can be retained for configurable periods (7 days on Seed, 30 days on Horizon, 90 days on Infinite).
-
-**Policy enforcement.** Capability gates, budget limits, and routing policies are all enforced at the engine level — not at the application layer, where they could be bypassed.
-
----
-
-## Setting Up Governance for Your Fleet
-
-### Step 1 — Define your capability policy
-
-Decide what tools each agent class needs. Start restrictive and expand as needed:
-
-| Agent type | Recommended capabilities |
-|---|---|
-| Read-only analyst | No tools |
-| API integration agent | `allow_http: true`, restricted domain list |
-| Automation agent | `allow_http: true`, `allow_filesystem: true` (scoped path) |
-| DevOps agent | All tools, reviewed regularly |
-
-### Step 2 — Assign policies to agents
-
-`POST /v1/policies/assign` with the policy hash and agent IDs. Policies are versioned — reassigning a policy creates an audit entry.
-
-### Step 3 — Monitor violations
-
-Check the **Proof → Violations** page in the console daily. A spike in violations indicates an agent is attempting operations outside its declared scope.
-
-### Step 4 — Review receipts for compliance
-
-Export receipts on a schedule using `GET /v1/receipts/export`. Feed into your SIEM or compliance toolchain.
-
-### Step 5 — Adjust and iterate
-
-Use violation data to tighten or expand policies. Every policy change is recorded.
+- [Policy →](/docs/policy)
+- [History & Alerts →](/docs/history)
+- [Verification →](/docs/verification)
+- [Proof Status →](/docs/proof-status)
