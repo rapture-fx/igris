@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-05-04T11:53:58.331Z
+Generated: 2026-05-04T12:31:10.495Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 930
-- Implemented on expected surface: 930
+- Route claims audited: 903
+- Implemented on expected surface: 903
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 204
-- Implemented on expected surface: 204
+- Guide route claims audited: 177
+- Implemented on expected surface: 177
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -36,21 +36,18 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/deployment.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 12 | 12 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/governance.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/history.mdx` | 7 | 7 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/history.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/key-management.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/memory.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/model-aggregation.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/multimodal.mdx` | 4 | 4 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/policy.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
@@ -190,21 +187,18 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/deployment.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 12 | 12 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/governance.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/history.mdx` | 7 | 7 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/history.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/key-management.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/memory.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/model-aggregation.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/multimodal.mdx` | 4 | 4 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/policy.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |

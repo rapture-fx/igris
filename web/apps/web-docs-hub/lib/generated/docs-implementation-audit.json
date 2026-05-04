@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-04T11:53:58.316Z",
+  "generated_at": "2026-05-04T12:31:10.476Z",
   "summary": {
-    "total": 930,
+    "total": 903,
     "by_status": {
-      "implemented": 930
+      "implemented": 903
     }
   },
   "guide_summary": {
-    "total": 204,
+    "total": 177,
     "by_status": {
-      "implemented": 204
+      "implemented": 177
     }
   },
   "pages": [
@@ -942,20 +942,12 @@
       "total_route_claims": 1
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/deployment.mdx",
-      "implemented": 1,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 1
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "implemented": 12,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 12
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
@@ -983,27 +975,19 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "implemented": 8,
+      "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 8
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/governance.mdx",
-      "implemented": 2,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "implemented": 7,
+      "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 7
+      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/key-management.mdx",
@@ -1052,14 +1036,6 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 4
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "implemented": 11,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 11
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
@@ -1272,20 +1248,12 @@
       "total_route_claims": 1
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/deployment.mdx",
-      "implemented": 1,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 1
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "implemented": 12,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 12
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
@@ -1313,27 +1281,19 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "implemented": 8,
+      "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 8
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/governance.mdx",
-      "implemented": 2,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "implemented": 7,
+      "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 7
+      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/key-management.mdx",
@@ -1382,14 +1342,6 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 4
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "implemented": 11,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 11
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/provider-health.mdx",
@@ -17872,31 +17824,8 @@
       ]
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/deployment.mdx",
-      "line": 202,
-      "method": "POST",
-      "path": "/api/v1/runtime/register",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/api/v1/runtime/register",
-          "file": "igris-overture/api/routes_runtime.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/api/v1/runtime/register",
-          "file": "igris-overture/api/routes_telemetry.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 30,
+      "line": 44,
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
@@ -17913,204 +17842,16 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 162,
+      "line": 81,
       "method": "GET",
-      "path": "/v1/tasks/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+      "path": "/v1/tasks/TASK_ID",
       "expected_surface": null,
-      "source": "GET /v1/tasks/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+      "source": "GET /v1/tasks/TASK_ID",
       "status": "implemented",
       "evidence": [
         {
           "method": "GET",
           "path": "/v1/tasks/:id",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 206,
-      "method": "GET",
-      "path": "/v1/tasks",
-      "expected_surface": null,
-      "source": "GET /v1/tasks?limit=20",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/tasks",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 328,
-      "method": null,
-      "path": "/v1/tasks/submit",
-      "expected_surface": null,
-      "source": "Submit a `behavior_tree` task via `/v1/tasks/submit` to get full WAL-backed, crash-recoverable BT execution. Use this `task_definition` shape:",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/tasks/submit",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/tasks/:id",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 345,
-      "method": null,
-      "path": "/v1/btree/run",
-      "expected_surface": null,
-      "source": "The `/v1/btree/run` HTTP endpoint runs trees without durable checkpointing; use `behavior_tree` task type when recovery matters.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/btree/run",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 368,
-      "method": null,
-      "path": "/v1/tasks/submit",
-      "expected_surface": null,
-      "source": "| `POST` | `/v1/tasks/submit` | Submit a new durable task |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/tasks/submit",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/tasks/:id",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 369,
-      "method": null,
-      "path": "/v1/tasks/:id",
-      "expected_surface": null,
-      "source": "| `GET` | `/v1/tasks/:id` | Get task status and last checkpoint |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/tasks/submit",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/tasks/:id",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 370,
-      "method": null,
-      "path": "/v1/tasks",
-      "expected_surface": null,
-      "source": "| `GET` | `/v1/tasks` | List tasks for your tenant |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/tasks",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 371,
-      "method": null,
-      "path": "/v1/tasks/:id/steps",
-      "expected_surface": null,
-      "source": "| `GET` | `/v1/tasks/:id/steps` | Inspect execution-graph steps and graph slots when available |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/tasks/:id/steps",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 372,
-      "method": null,
-      "path": "/v1/tasks/:id/cancel",
-      "expected_surface": null,
-      "source": "| `POST` | `/v1/tasks/:id/cancel` | Request cancellation for a non-terminal task |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/tasks/:id/cancel",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 373,
-      "method": null,
-      "path": "/v1/tasks/proof/readiness",
-      "expected_surface": null,
-      "source": "| `GET` | `/v1/tasks/proof/readiness` | Check whether trigger-backed proof synchronization is active |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/tasks/proof/readiness",
-          "file": "igris-overture/api/routes_tasks.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 374,
-      "method": null,
-      "path": "/v1/tasks/:id/proof/verify",
-      "expected_surface": null,
-      "source": "| `POST` | `/v1/tasks/:id/proof/verify` | Synchronize and verify persisted task proof state |",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/tasks/:id/proof/verify",
           "file": "igris-overture/api/routes_tasks.go",
           "surface": "cloud-api"
         }
@@ -18301,7 +18042,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 18,
+      "line": 27,
       "method": "POST",
       "path": "/api/v1/runtime/register",
       "expected_surface": "cloud-api",
@@ -18324,7 +18065,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 47,
+      "line": 48,
       "method": "POST",
       "path": "/api/v1/runtime/heartbeat",
       "expected_surface": null,
@@ -18347,7 +18088,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 48,
+      "line": 49,
       "method": "DELETE",
       "path": "/api/v1/runtime/deregister",
       "expected_surface": null,
@@ -18364,7 +18105,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 49,
+      "line": 50,
       "method": "GET",
       "path": "/api/v1/runtime/commands",
       "expected_surface": null,
@@ -18381,24 +18122,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 87,
-      "method": "POST",
-      "path": "/api/v1/runtime/config/push",
-      "expected_surface": null,
-      "source": "### POST /api/v1/runtime/config/push",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/api/v1/runtime/config/push",
-          "file": "igris-overture/api/routes_fleet_push.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 90,
+      "line": 76,
       "method": "POST",
       "path": "/api/v1/runtime/config/push",
       "expected_surface": "cloud-api",
@@ -18415,24 +18139,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 110,
-      "method": "POST",
-      "path": "/api/v1/runtime/update",
-      "expected_surface": null,
-      "source": "### POST /api/v1/runtime/update",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/api/v1/runtime/update",
-          "file": "igris-overture/api/routes_fleet_push.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 113,
+      "line": 101,
       "method": "POST",
       "path": "/api/v1/runtime/update",
       "expected_surface": "cloud-api",
@@ -18448,48 +18155,8 @@
       ]
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/governance.mdx",
-      "line": 146,
-      "method": "POST",
-      "path": "/v1/policies/assign",
-      "expected_surface": null,
-      "source": "`POST /v1/policies/assign` with the policy hash and agent IDs. Policies are versioned — reassigning a policy creates an audit entry.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/policies/assign",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/governance.mdx",
-      "line": 154,
-      "method": "GET",
-      "path": "/v1/receipts/export",
-      "expected_surface": null,
-      "source": "Export receipts on a schedule using `GET /v1/receipts/export`. Feed into your SIEM or compliance toolchain.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/receipts/export",
-          "file": "igris-overture/api/routes_receipts.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/receipts/:id",
-          "file": "igris-overture/api/routes_receipts.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 15,
+      "line": 31,
       "method": "GET",
       "path": "/v1/history/events",
       "expected_surface": null,
@@ -18506,7 +18173,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 55,
+      "line": 71,
       "method": "GET",
       "path": "/v1/history/metrics",
       "expected_surface": null,
@@ -18523,7 +18190,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 97,
+      "line": 84,
       "method": "GET",
       "path": "/v1/history/alerts",
       "expected_surface": null,
@@ -18540,7 +18207,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 133,
+      "line": 102,
       "method": "POST",
       "path": "/v1/history/alerts/:id/acknowledge",
       "expected_surface": null,
@@ -18557,7 +18224,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 134,
+      "line": 103,
       "method": "POST",
       "path": "/v1/history/alerts/:id/resolve",
       "expected_surface": null,
@@ -18574,7 +18241,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 135,
+      "line": 104,
       "method": "POST",
       "path": "/v1/history/alerts/:id/escalate",
       "expected_surface": null,
@@ -18584,23 +18251,6 @@
         {
           "method": "POST",
           "path": "/v1/history/alerts/:id/escalate",
-          "file": "igris-overture/api/routes_history.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/history.mdx",
-      "line": 137,
-      "method": "GET",
-      "path": "/v1/history/alerts",
-      "expected_surface": null,
-      "source": "Each action operates on the alert row ID returned by `GET /v1/history/alerts`.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/history/alerts",
           "file": "igris-overture/api/routes_history.go",
           "surface": "cloud-api"
         }
@@ -19131,193 +18781,6 @@
           "method": "GET",
           "path": "/v1/infer/multimodal/stats",
           "file": "igris-overture/api/routes_multimodal.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 29,
-      "method": "POST",
-      "path": "/v1/routing/strategy",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/routing/strategy",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 55,
-      "method": null,
-      "path": "/v1/routing/provider_weights",
-      "expected_surface": null,
-      "source": "Override routing for specific models by posting to `/v1/routing/provider_weights`:",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/routing/provider_weights",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 73,
-      "method": "POST",
-      "path": "/v1/routing/strategy",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/routing/strategy",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 85,
-      "method": "GET",
-      "path": "/v1/policies",
-      "expected_surface": null,
-      "source": "### GET /v1/policies",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/policies",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 90,
-      "method": "GET",
-      "path": "/v1/policies",
-      "expected_surface": "cloud-api",
-      "source": "curl https://overture.igrisinertial.com/v1/policies \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/policies",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 115,
-      "method": "POST",
-      "path": "/v1/policies/assign",
-      "expected_surface": null,
-      "source": "### POST /v1/policies/assign",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/policies/assign",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 120,
-      "method": "POST",
-      "path": "/v1/policies/assign",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/policies/assign \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/policies/assign",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 130,
-      "method": "GET",
-      "path": "/v1/execution/agents",
-      "expected_surface": null,
-      "source": "The assigned `policy_hash` appears on the agent object returned by `GET /v1/execution/agents`.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/execution/agents",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 136,
-      "method": "PATCH",
-      "path": "/v1/agents/:id",
-      "expected_surface": null,
-      "source": "Council mode and shadow mode are per-agent routing policies set via `PATCH /v1/agents/:id`:",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "PATCH",
-          "path": "/v1/agents/:id",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 139,
-      "method": "PATCH",
-      "path": "/v1/agents/agent-abc",
-      "expected_surface": "cloud-api",
-      "source": "curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "PATCH",
-          "path": "/v1/agents/:id",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/policy.mdx",
-      "line": 146,
-      "method": "GET",
-      "path": "/v1/execution/shadow",
-      "expected_surface": null,
-      "source": "- **Shadow mode** — a shadow execution runs in parallel with every real execution for comparison; see `GET /v1/execution/shadow`",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/execution/shadow",
-          "file": "igris-overture/api/routes_execution.go",
           "surface": "cloud-api"
         }
       ]

@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { useTheme } from 'next-themes'
 
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const borderStyle = 'var(--section-border)'
@@ -25,6 +26,15 @@ const stages = [
 ]
 
 export default function HowItWorks() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted && theme === 'dark'
+
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: borderStyle }} />
@@ -43,9 +53,9 @@ export default function HowItWorks() {
             </div>
 
             {/* Image with cards floating over */}
-            <div style={{ position: 'relative', minHeight: 'clamp(400px, 52vw, 580px)' }}>
+            <div style={{ position: 'relative', minHeight: 'clamp(480px, 60vw, 680px)' }}>
               <img
-                src="/hit.png"
+                src={isDark ? '/howitworks.png' : '/hit.png'}
                 alt="How it works"
                 style={{
                   position: 'absolute',
@@ -74,7 +84,7 @@ export default function HowItWorks() {
                           {stage.title}
                         </span>
                       </div>
-                      <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-4 pt-6 pb-8" style={{ minHeight: '160px' }}>
+                      <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-4 pt-6 pb-8" style={{ minHeight: '220px' }}>
                         <p
                           className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed"
                           style={{ fontFamily: SANS }}

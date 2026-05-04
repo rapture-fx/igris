@@ -1,18 +1,27 @@
 ---
 title: "Fleet Management"
-description: "Fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and OTA updates."
+description: "Use fleet management to register, inspect, and coordinate execution environments that participate in Igris workflows."
 audience: "public"
 ---
 
 # Fleet Management
 
-Fleet management in the current product is the control-plane contract for runtime registration, heartbeat, queued commands, config push, and OTA updates.
+Use fleet management when you need visibility into the execution environments that participate in Igris workflows.
+
+This page is about operating registered runtime environments. The reliable, practical use cases today are:
+
+- registering execution environments
+- monitoring whether they remain visible and healthy enough to participate
+- inspecting runtime coordination surfaces
+- using queued command and rollout features carefully
 
 ---
 
-## Registration
+## 1. Register Execution Environments
 
-The stock runtime attempts registration automatically when both `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY` are present at startup. If you need to integrate a custom launcher, use the current registration contract:
+The stock runtime attempts registration automatically when both `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY` are present at startup.
+
+If you are integrating a custom launcher, use the runtime registration contract:
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
@@ -23,68 +32,45 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
     "hostname": "edge-gateway-01",
     "platform": "linux-amd64",
     "runtime_version": "1.6.0",
-    "endpoint": "http://192.168.1.100:8080"
+    "endpoint": "http://192.168.1.100:8080",
+    "public_key_ed25519": "YOUR_RUNTIME_PUBLIC_KEY",
+    "timestamp_unix_ms": 1775283660000,
+    "signature": "YOUR_RUNTIME_SIGNATURE"
   }'
 ```
 
-Current response shape:
+Registration is the first operator check: if the environment cannot register, it should not be treated as a participating execution surface yet.
 
-```json
-{
-  "runtime_id": "runtime-01HXYZ",
-  "tier": "horizon",
-  "runtime_limit": 50,
-  "registered_at": "2026-03-01T12:00:00Z"
-}
-```
+## 2. Track Heartbeats And Coordination Surfaces
 
----
-
-## Heartbeats And Commands
-
-Runtime coordination routes:
+The main runtime coordination routes are:
 
 - `POST /api/v1/runtime/heartbeat`
 - `DELETE /api/v1/runtime/deregister`
 - `GET /api/v1/runtime/commands`
 
-Use these as runtime-to-control-plane endpoints rather than customer UI endpoints.
+These are runtime-to-hosted coordination surfaces. They are useful for operator workflows and automation, not as general application endpoints.
 
----
+## 3. Inspect Registered Environments
 
-## Listing Registered Runtimes
-
-Use the current fleet listing route:
+Use the runtime listing route when you want inventory and visibility:
 
 ```bash
 curl "https://overture.igrisinertial.com/api/v1/runtime/list?tenant_id=YOUR_TENANT_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Current response shape:
+Use this surface to answer:
 
-```json
-{
-  "runtimes": [
-    {
-      "runtime_id": "runtime-01HXYZ",
-      "tenant_id": "tenant-123",
-      "registered_at": 1711900800,
-      "last_heartbeat": 1711900860,
-      "stats": {}
-    }
-  ],
-  "count": 1
-}
-```
+- which environments are registered
+- which ones are still sending heartbeats
+- which environments are actually visible to the control plane
 
-When a tenant-authenticated console context exists, the tenant ID can be derived from auth instead of a query parameter.
+That is the operator-safe meaning of fleet management in these docs.
 
----
+## 4. Treat Config Push Carefully
 
-## Configuration Push
-
-### POST /api/v1/runtime/config/push
+Configuration push exists as an operator surface:
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
@@ -101,13 +87,15 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
   }'
 ```
 
-This queues a `config_push` command into runtime pending-command state.
+Be precise about status:
 
----
+- config-push surfaces are present
+- command queuing is real
+- full end-to-end config rollout should still be treated according to [Proof Status](/docs/proof-status) unless you have a reproducible proof for your environment
 
-## OTA Updates
+## 5. Treat OTA-Style Updates Carefully
 
-### POST /api/v1/runtime/update
+The update surface exists:
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
@@ -120,13 +108,31 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
   }'
 ```
 
-The current API accepts:
+Use careful language here as well:
 
-- `version`
-- `strategy`
-- `max_unavailable`
-- optional `selector`
+- the operator route exists
+- staged update intent is part of the surface
+- broader OTA behavior and multi-runtime failover claims should follow [Proof Status](/docs/proof-status)
 
----
+## What Fleet Management Means In Practice
 
-[Cloud Coordination →](/docs/cloud-coordination) · [API Reference →](/docs/api-reference) · [Quick Start →](/docs/quickstart)
+For most operators, fleet management currently means:
+
+- register the right environments
+- keep heartbeat visibility healthy
+- inspect runtime presence before routing work toward those environments
+- roll changes gradually and verify behavior after each stage
+
+## Common Mistakes
+
+- Treating registration surfaces like proof of fully automated fleet behavior
+- Assuming queued command routes imply proven OTA or config execution in every environment
+- Promoting multi-runtime failover as proven without a corresponding proof artifact
+- Expanding the environment set before verifying that the first slice is healthy and inspectable
+
+## Related Guides
+
+- [Fleet Rollout Workflow →](/docs/fleet-rollout-workflow)
+- [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow)
+- [Proof Status →](/docs/proof-status)
+- [API Reference →](/docs/api-reference)

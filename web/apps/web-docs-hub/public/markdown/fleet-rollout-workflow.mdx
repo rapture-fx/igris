@@ -1,67 +1,89 @@
 ---
 title: "Fleet Rollout Workflow"
-description: "Use this workflow when you need to manage many runtimes as one operational fleet."
+description: "Use this workflow when you want to introduce Igris execution environments gradually and verify behavior before expanding rollout."
 audience: "public"
 ---
 
 # Fleet Rollout Workflow
 
-Use this workflow when you need to manage many runtimes as one operational fleet.
+Use this workflow when you want to introduce runtime-backed execution environments in stages instead of turning on broad rollout all at once.
 
-This is the customer workflow for:
+The goal is simple:
 
-- seeing registered runtimes
-- pushing configuration
-- coordinating updates
+1. start small
+2. observe execution behavior
+3. verify the records that matter
+4. expand only after the first slice is stable
+
+This page is about staged rollout of execution environments.
 
 ---
 
-## 1. Confirm runtimes are eligible to participate
+## 1. Start With A Small Environment Set
 
-Before rollout, make sure each runtime can:
+Before expanding rollout, make sure each target environment can:
 
 - start cleanly
-- reach the hosted product
 - register successfully
-- report health consistently
+- remain visible through heartbeat reporting
+- execute the workload shape you care about
 
-If registration is not healthy, rollout is the wrong next step. Fix runtime readiness first, then come back to rollout.
+If those basics are not healthy, rollout is the wrong next step.
 
-## 2. Inspect current fleet state
+## 2. Observe Execution Before Expanding
 
-Use the fleet inventory surface before making changes. That gives you the real target set, not the target set you assume exists.
+Do not treat rollout as a blind infrastructure action. Use the first slice to inspect:
 
-## 3. Push configuration deliberately
+- whether environments stay registered
+- whether requests route the way you expect
+- whether execution events and receipts remain available
+- whether customer-facing traffic is unaffected
 
-Use config push for settings changes such as runtime behavior, local model paths, or fallback configuration. Roll configuration changes separately from binary upgrades whenever possible so failures are easier to isolate and rollback decisions are easier to make.
+This is the practical operator version of Request -> Execute -> Verify.
 
-## 4. Roll runtime updates in stages
+## 3. Roll Configuration Deliberately
 
-Use OTA update controls in stages:
+If you use config-push surfaces, separate configuration changes from binary updates whenever possible.
 
-1. canary a small set of runtimes
-2. watch health and task behavior
-3. expand the rollout only after the first slice is stable
+That makes it easier to answer:
 
-Avoid all-at-once rollout unless the fleet is extremely small and the blast radius is acceptable.
+- did the environment change break execution behavior
+- did the binary change introduce the issue
+- which step should be rolled back first
 
-## 5. Verify post-rollout health
+Config-push surfaces exist, but broad rollout success should still be described carefully unless you have reproducible evidence for the exact pattern you are using.
 
-After configuration or update rollout, confirm:
+## 4. Expand In Stages
 
-- runtimes remain visible
-- heartbeats continue
-- local task execution still succeeds
-- customer-facing traffic is unaffected
+A safe rollout sequence looks like:
+
+1. one environment or a small canary group
+2. inspect runtime visibility and execution behavior
+3. check receipts or proof-oriented inspection where the workflow depends on them
+4. expand to the next slice only after the first slice is stable
+
+Avoid language that implies failover or recovery is already proven across the whole environment set.
+
+## 5. Keep Rollback Simple
+
+Plan rollback before expansion:
+
+- keep the previous known-good runtime version available
+- avoid mixing config changes and binary changes in the same rollout stage
+- use staged expansion so rollback scope stays small
+
+Rollback should be an explicit operator action, not an assumption hidden behind marketing language.
 
 ## Common Mistakes
 
-- Rolling out configuration and binary updates at the same time without a reason
-- Skipping canary stages
-- Treating runtime download and update operations like ordinary application traffic
+- Expanding rollout before checking the first slice for stable registration and execution behavior
+- Rolling config and binary changes together without a reason
+- Assuming visible environments imply proven failover or broad recovery behavior
+- Treating update surfaces as proof of end-to-end OTA readiness
 
 ## Related Guides
 
 - [Fleet Management →](/docs/fleet-management)
-- [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow)
-- [Troubleshooting →](/docs/troubleshooting)
+- [History & Alerts →](/docs/history)
+- [Verification →](/docs/verification)
+- [Proof Status →](/docs/proof-status)

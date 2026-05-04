@@ -1,148 +1,92 @@
 ---
 title: "Policy"
-description: "Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped and take effect on the next request — no redeployment required."
+description: "Policy in Igris controls what AI tasks are allowed to do by applying boundaries, permission checks, and review-oriented outcomes around execution."
 audience: "public"
 ---
 
 # Policy
 
-Igris enforces routing and capability policies at the coordination layer. Policies are tenant-scoped and take effect on the next request — no redeployment required.
+Policy in Igris is the mechanism for controlling what AI tasks are allowed to do.
+
+In Request -> Execute -> Verify terms:
+
+- **Request** carries intent and scope
+- **Execute** applies policy checks and boundaries
+- **Verify** exposes the resulting events and records for review
+
+This page is about execution control, not about presenting policy as a broad platform claim detached from execution behavior.
 
 ---
 
-## What Policies Control
+## What Policy Controls
 
-Policies configure two areas:
+Policy helps determine:
 
-| Area | What it covers |
+- which tools or actions are allowed
+- which boundaries apply to the run
+- what should happen when the run exceeds those boundaries
+- what review signals should be available afterward
+
+That makes policy a live part of execution, not just static configuration.
+
+## Tool And Permission Boundaries
+
+Policy can express boundaries such as:
+
+| Area | What it controls |
 |---|---|
-| **Routing strategy** | Which providers to use, cost vs latency preference, fallback chains |
-| **Execution envelope** | BT node limits, depth limits, tool call caps, max duration |
+| Tool access | Which tools or external actions are allowed |
+| Domain or target restrictions | Where HTTP or similar actions may reach |
+| Resource limits | Duration, step, or token limits |
+| Review expectations | Which outcomes should trigger operator follow-up |
 
----
+When a run exceeds these boundaries, that result should appear in the execution record and follow-up surfaces.
 
-## Routing Strategy
+## Execution-Time Effects
 
-Set the active routing strategy:
+Policy matters during execution because it shapes what the task is allowed to do in practice.
 
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "strategy": "thompson-sampling",
-    "fallback_chain": ["anthropic", "openai", "local"]
-  }'
-# → {"saved": true}
-```
+Examples:
 
-**Available strategies:**
+- rejecting disallowed actions
+- constraining tool scope
+- limiting resource use
+- surfacing violations for later inspection
 
-**`thompson-sampling` (default)**
+This is why policy belongs next to governance and verification in the docs.
 
-Adaptive routing. Automatically balances load across configured providers based on latency and success rates in real time.
+## Policy And Records
 
-**`cost-optimized`**
+Policy is most useful when its effect can be inspected afterward.
 
-Always selects the cheapest provider for the requested model.
+After a run, operators should be able to move into:
 
-**`latency-optimized`**
+- execution events and history
+- receipt-oriented records
+- verification surfaces that show what was actually recorded
 
-Always selects the provider with the lowest observed p50 latency.
+Use:
 
-**Provider pinning**
+- [Governance →](/docs/governance)
+- [History & Alerts →](/docs/history)
+- [Verification →](/docs/verification)
 
-Override routing for specific models by posting to `/v1/routing/provider_weights`:
+## Routing Policy Should Stay Secondary Here
 
-```json
-{
-  "pins": {
-    "gpt-4": "openai",
-    "claude-3-haiku": "anthropic"
-  }
-}
-```
+There are routing-related policy surfaces in the broader product, but this page should not lead with routing sophistication. The primary mental model is still controlling what execution is allowed to do.
 
----
+If you need routing-specific depth, use the more specialized routing pages rather than turning policy into a routing-first introduction.
 
-## Fallback Chains
+## Common Mistakes
 
-Configure the order in which providers are tried when the primary fails:
+- Treating policy as only a preflight configuration layer instead of an execution control
+- Describing policy as a full generalized compliance platform without tying it to execution behavior
+- Explaining policy in routing terms before explaining boundaries and permission checks
+- Skipping the follow-up step of checking history, receipts, or verification surfaces after a policy-sensitive run
 
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"fallback_chain": ["anthropic", "openai", "google", "local"]}'
-```
+## Related Guides
 
-`local` in the fallback chain routes to a registered runtime instance. This enables full offline fallback with no code changes.
-
----
-
-## Execution Envelope Limits
-
-### GET /v1/policies
-
-Returns the active BT execution limits for your tenant. These are enforced at runtime — trees that violate them are rejected before execution.
-
-```bash
-curl https://overture.igrisinertial.com/v1/policies \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-{
-  "allowed_node_types": [
-    "Sequence", "Selector", "Parallel", "Decorator",
-    "Action", "Condition",
-    "RosTopicPublish", "RosTopicSubscribe", "RosServiceCall"
-  ],
-  "max_action_nodes": 50,
-  "max_depth": 10,
-  "max_tool_calls": 20,
-  "max_duration_secs": 300
-}
-```
-
-Fields not present in the response have no custom limit set (defaults apply).
-
----
-
-## Assigning a Policy to Agents
-
-### POST /v1/policies/assign
-
-Assign a policy (identified by its hash) to one or more agents. The policy hash links to a specific set of envelope limits stored in your tenant configuration.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/policies/assign \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agent_ids": ["agent-abc", "agent-def"],
-    "policy_hash": "sha256:a3f9..."
-  }'
-# → {"status": "assigned", "agent_count": 2}
-```
-
-The assigned `policy_hash` appears on the agent object returned by `GET /v1/execution/agents`.
-
----
-
-## Council & Shadow Mode
-
-Council mode and shadow mode are per-agent routing policies set via `PATCH /v1/agents/:id`:
-
-```bash
-curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"council_mode": true}'
-```
-
-- **Council mode** — multi-provider consensus; every inference goes to N providers and a chairman model synthesizes the result
-- **Shadow mode** — a shadow execution runs in parallel with every real execution for comparison; see `GET /v1/execution/shadow`
-
-[Cloud Coordination →](/docs/cloud-coordination) · [Audit →](/docs/audit) · [Governance →](/docs/governance)
+- [Governance →](/docs/governance)
+- [Capability Model →](/docs/capability-model)
+- [History & Alerts →](/docs/history)
+- [Verification →](/docs/verification)
