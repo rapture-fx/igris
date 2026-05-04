@@ -5,7 +5,7 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'Igris Inertial Developer Console',
-  description: 'Manage your AI inference infrastructure with Overture and Runtime',
+  description: 'Operator console for Igris execution runs, events, signed records, and environment visibility.',
   icons: { icon: '/inertia.png' },
 };
 
