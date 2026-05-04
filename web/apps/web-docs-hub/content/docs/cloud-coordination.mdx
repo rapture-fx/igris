@@ -1,39 +1,51 @@
 ---
 title: "Cloud Coordination"
-description: "Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy."
+description: "Hosted coordination is the part of Igris that manages provider-backed execution, runtime lifecycle surfaces, and customer-facing receipt workflows."
 audience: "public"
 ---
 
 # Cloud Coordination
 
-Overture is the cloud control plane for routing, fleet registration, receipts, and account-scoped policy.
+Cloud coordination is the hosted part of the Igris execution system.
+
+Its job is to coordinate provider-backed execution, expose customer-facing management surfaces, and connect runtimes into the broader execution model when hybrid workflows are enabled.
+
+That is useful when you want:
+
+- a stable hosted entry path for applications
+- provider-backed execution without custom client-side routing logic
+- runtime lifecycle and fleet-oriented operator surfaces
+- customer-facing receipt and audit workflows
 
 ---
 
-## Routing
+## What Hosted Coordination Does
 
-At request time, Overture can route inference across the configured providers and maintain provider statistics such as latency and recent request outcomes.
+Hosted coordination can cover:
 
-Customer-visible routing endpoints in the current build include:
+- application-facing request entry
+- provider-backed execution setup
+- runtime registration and lifecycle surfaces
+- receipt and proof-oriented query surfaces
+- account, policy, and key-management workflows
 
-- `GET /v1/routing/stats`
-- `GET /v1/routing/recent`
-- `GET /v1/routing/leaderboard`
-- `POST /v1/routing/strategy`
+This is part of one execution system. It should not be read as a separate product introduction.
 
-Preview routing endpoints also exist for speculative routing and advisor configuration. See [API Reference](/docs/api-reference) for the exact current contract.
+## Hosted Request Entry
 
----
+For many teams, the first hosted path is the OpenAI-compatible surface:
 
-## BYOK Vault
+```text
+https://overture.igrisinertial.com/v1
+```
 
-The current public vault API accepts these provider identifiers:
+That keeps the application contract simple while letting Igris own the execution path behind it.
 
-- `openai`
-- `anthropic`
-- `benchmark`
+## Provider Configuration
 
-For customer traffic, use `openai` or `anthropic`.
+Hosted execution depends on provider credentials stored through the vault API.
+
+For customer traffic today, use `openai` or `anthropic`.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
@@ -46,44 +58,24 @@ curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
   }'
 ```
 
----
+Provider-backed execution is configurable and supported. Proof claims about specific real-provider flows should still follow [Proof Status](/docs/proof-status).
 
-## Fleet Registration
+## Runtime Lifecycle Surfaces
 
-Runtime instances coordinate with Overture through the `/api/v1/runtime/*` contract.
+When hybrid workflows matter, runtimes coordinate with the hosted layer through the runtime lifecycle routes.
 
-The stock runtime attempts registration on startup only when:
+Use the endpoint pages for the exact request contracts:
 
-- `IGRIS_LICENSE_KEY` is present and validates
-- `IGRIS_API_KEY` is present
+- [POST /api/v1/runtime/register](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register)
+- [POST /api/v1/runtime/heartbeat](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat)
+- [DELETE /api/v1/runtime/deregister](/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister)
+- [GET /api/v1/runtime/commands](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-commands)
 
-If you are implementing your own runtime launcher, the registration payload must match the current API:
+These routes matter for operations and hybrid deployment. They are not the first concept to teach when introducing the product.
 
-```bash
-curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
-  -H "X-API-Key: YOUR_IGRIS_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "machine_id": "edge-gateway-01",
-    "hostname": "edge-gateway-01",
-    "platform": "linux-amd64",
-    "runtime_version": "1.6.0",
-    "endpoint": "http://192.168.1.100:8080"
-  }'
-```
+## Receipt And Audit Surfaces
 
-Related endpoints:
-
-- `POST /api/v1/runtime/heartbeat`
-- `DELETE /api/v1/runtime/deregister`
-- `GET /api/v1/runtime/commands`
-- `GET /api/v1/runtime/list`
-
----
-
-## Receipts And Audit
-
-The coordination layer is where customer-facing receipt queries currently live:
+The hosted layer also exposes the customer-facing receipt and proof-oriented query routes:
 
 - `GET /v1/receipts`
 - `GET /v1/receipts/:id`
@@ -91,8 +83,20 @@ The coordination layer is where customer-facing receipt queries currently live:
 - `GET /proof/receipts`
 - `POST /proof/receipts/verify`
 
-Use these endpoints for customer audit workflows rather than assuming a separate local receipts listing API exists on the runtime.
+Use those routes for hosted audit workflows, while keeping the verification semantics precise. The hosted proof-verify route is useful for stored-value comparison and proof-status sync, not as a blanket claim of full public cryptographic verification.
 
----
+## Routing Details Belong Lower In The Stack
 
-[Semantic Routing →](/docs/semantic-routing) · [Licensing & Activation →](/docs/licensing-activation) · [Fleet Management →](/docs/fleet-management) · [Execution Receipts →](/docs/execution-receipts)
+Hosted coordination includes routing behavior, but routing sophistication should not be the primary mental model for this page. If you need that depth, move into the more specialized docs:
+
+- [Policy](/docs/policy)
+- [Provider Health](/docs/provider-health)
+- [Circuit Breaker](/docs/circuit-breaker)
+- [Semantic Routing](/docs/semantic-routing)
+
+## Related Guides
+
+- [First Hosted Integration →](/docs/first-cloud-integration)
+- [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow)
+- [Execution Receipts →](/docs/execution-receipts)
+- [API Reference →](/docs/api-reference)
