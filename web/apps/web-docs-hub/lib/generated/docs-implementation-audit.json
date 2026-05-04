@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-04T11:20:53.297Z",
+  "generated_at": "2026-05-04T11:53:58.316Z",
   "summary": {
-    "total": 934,
+    "total": 930,
     "by_status": {
-      "implemented": 934
+      "implemented": 930
     }
   },
   "guide_summary": {
-    "total": 208,
+    "total": 204,
     "by_status": {
-      "implemented": 208
+      "implemented": 204
     }
   },
   "pages": [
@@ -919,11 +919,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "implemented": 15,
+      "implemented": 10,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 15
+      "total_route_claims": 10
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx",
@@ -1087,11 +1087,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx",
-      "implemented": 1,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/ros2-integration.mdx",
@@ -1249,11 +1249,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "implemented": 15,
+      "implemented": 10,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 15
+      "total_route_claims": 10
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx",
@@ -1417,11 +1417,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx",
-      "implemented": 1,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/ros2-integration.mdx",
@@ -17503,93 +17503,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 19,
-      "method": "GET",
-      "path": "/v1/routing/stats",
-      "expected_surface": null,
-      "source": "- `GET /v1/routing/stats`",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/routing/stats",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/routing/stats",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 20,
-      "method": "GET",
-      "path": "/v1/routing/recent",
-      "expected_surface": null,
-      "source": "- `GET /v1/routing/recent`",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/routing/recent",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/routing/recent",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 21,
-      "method": "GET",
-      "path": "/v1/routing/leaderboard",
-      "expected_surface": null,
-      "source": "- `GET /v1/routing/leaderboard`",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/routing/leaderboard",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/routing/leaderboard",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 22,
-      "method": "POST",
-      "path": "/v1/routing/strategy",
-      "expected_surface": null,
-      "source": "- `POST /v1/routing/strategy`",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/routing/strategy",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 39,
+      "line": 51,
       "method": "POST",
       "path": "/v1/vault/keys",
       "expected_surface": "cloud-api",
@@ -17606,11 +17520,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 63,
+      "line": 69,
       "method": "POST",
       "path": "/api/v1/runtime/register",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \\",
+      "expected_surface": null,
+      "source": "- [POST /api/v1/runtime/register](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register)",
       "status": "implemented",
       "evidence": [
         {
@@ -17629,11 +17543,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 77,
+      "line": 70,
       "method": "POST",
       "path": "/api/v1/runtime/heartbeat",
       "expected_surface": null,
-      "source": "- `POST /api/v1/runtime/heartbeat`",
+      "source": "- [POST /api/v1/runtime/heartbeat](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat)",
       "status": "implemented",
       "evidence": [
         {
@@ -17652,11 +17566,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 78,
+      "line": 71,
       "method": "DELETE",
       "path": "/api/v1/runtime/deregister",
       "expected_surface": null,
-      "source": "- `DELETE /api/v1/runtime/deregister`",
+      "source": "- [DELETE /api/v1/runtime/deregister](/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister)",
       "status": "implemented",
       "evidence": [
         {
@@ -17669,11 +17583,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 79,
+      "line": 72,
       "method": "GET",
       "path": "/api/v1/runtime/commands",
       "expected_surface": null,
-      "source": "- `GET /api/v1/runtime/commands`",
+      "source": "- [GET /api/v1/runtime/commands](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-commands)",
       "status": "implemented",
       "evidence": [
         {
@@ -17687,23 +17601,6 @@
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
       "line": 80,
-      "method": "GET",
-      "path": "/api/v1/runtime/list",
-      "expected_surface": null,
-      "source": "- `GET /api/v1/runtime/list`",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/api/v1/runtime/list",
-          "file": "igris-overture/api/routes_telemetry.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 88,
       "method": "GET",
       "path": "/v1/receipts",
       "expected_surface": null,
@@ -17720,7 +17617,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 89,
+      "line": 81,
       "method": "GET",
       "path": "/v1/receipts/:id",
       "expected_surface": null,
@@ -17749,7 +17646,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 90,
+      "line": 82,
       "method": "GET",
       "path": "/v1/receipts/export",
       "expected_surface": null,
@@ -17772,7 +17669,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 91,
+      "line": 83,
       "method": "GET",
       "path": "/proof/receipts",
       "expected_surface": null,
@@ -17789,7 +17686,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "line": 92,
+      "line": 84,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": null,
@@ -17959,7 +17856,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx",
-      "line": 75,
+      "line": 79,
       "method": "GET",
       "path": "/v1/health",
       "expected_surface": "local-runtime",
@@ -19570,11 +19467,28 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx",
-      "line": 41,
+      "line": 55,
+      "method": "POST",
+      "path": "/proof/receipts/verify",
+      "expected_surface": null,
+      "source": "- `POST /proof/receipts/verify` compares submitted receipt values against the stored record and returns proof-status information",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/proof/receipts/verify",
+          "file": "igris-overture/api/routes_proof.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx",
+      "line": 62,
       "method": "GET",
       "path": "/v1/receipts/export",
       "expected_surface": null,
-      "source": "Use `GET /v1/receipts/export` when you need to move receipt data into BI, compliance, or external archive systems. Choose NDJSON for machine pipelines and CSV for spreadsheet-oriented workflows.",
+      "source": "Use `GET /v1/receipts/export` when another system, reviewer, or audit process needs the record outside the immediate execution flow.",
       "status": "implemented",
       "evidence": [
         {
