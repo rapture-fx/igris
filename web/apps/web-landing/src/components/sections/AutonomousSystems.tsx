@@ -77,7 +77,7 @@ export default function AutonomousSystems() {
               <div className="absolute top-4 right-4 z-10">
                 <Link
                   href="https://docs.igrisinertial.com/docs/agents/"
-                  className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border ml-2 md:ml-4"
+                  className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-xl border ml-2 md:ml-4"
                   style={{ backgroundColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.12)' : 'rgba(20,18,10,0.1)', fontFamily }}
                 >
                   AI Agents
@@ -126,7 +126,7 @@ export default function AutonomousSystems() {
               </div>
               <Link
                 href="https://docs.igrisinertial.com/docs/robotics/"
-                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-md border ml-2 mr-2 mb-6 md:ml-4 md:mr-4 md:mb-8"
+                className="relative z-10 inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-xl border ml-2 mr-2 mb-6 md:ml-4 md:mr-4 md:mb-8"
                 style={{ backgroundColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.08)' : '#f9f9fa', color: mounted && theme === 'dark' ? '#f6f6f4' : '#1b1912', borderColor: mounted && theme === 'dark' ? 'rgba(246,246,244,0.12)' : 'rgba(20,18,10,0.1)', fontFamily }}
               >
                 Technical Preview
