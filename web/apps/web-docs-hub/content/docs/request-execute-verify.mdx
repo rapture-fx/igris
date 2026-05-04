@@ -1,0 +1,74 @@
+---
+title: "Request -> Execute -> Verify"
+description: "The core Igris mental model: send one request, govern execution, and inspect the records that come back."
+audience: "public"
+---
+
+# Request -> Execute -> Verify
+
+Igris is easiest to understand as one execution system for AI tasks.
+
+Instead of thinking in terms of "hosted product versus local product," start with the lifecycle of the work:
+
+1. **Request**
+2. **Execute**
+3. **Verify**
+
+---
+
+## Request
+
+Request means you submit work through an Igris API surface.
+
+That can be:
+
+- an OpenAI-compatible chat request
+- a task or tool-oriented execution request
+- a runtime or operator workflow that still produces execution records
+
+The point is consistency. Your application should not need a different mental model every time the execution path changes.
+
+## Execute
+
+Execution is where Igris earns its keep.
+
+During execution, Igris can:
+
+- route work to the configured hosted or runtime path
+- apply capability and policy boundaries
+- capture execution metadata and events
+- surface failure paths instead of hiding them
+- return signed execution material alongside the result
+
+Execution is not just "a provider responded." It is the governed run that happened between the request and the final response.
+
+## Verify
+
+Verification means you can inspect what happened after the run.
+
+Depending on the path, that can include:
+
+- route-decision metadata
+- execution metadata
+- signed execution envelopes
+- signed execution receipts
+- receipt hashes and chain-linked log material
+
+This is what makes Igris useful for production work that needs review, audit, or post-run debugging.
+
+## Why This Model Matters
+
+Direct provider calls are fine when all you need is a text response. Igris is for the point where the output starts doing real work and you care about:
+
+- governance
+- visible failure handling
+- post-run inspection
+- records that can be checked later
+
+## What This Page Does Not Assume
+
+This model does **not** assume that every advanced feature is already proven in your environment. Real-provider execution, local GGUF fallback, checkpoint recovery, fleet failover, robotics, and multimodal flows all have their own proof status and should be evaluated explicitly.
+
+---
+
+[Quick Start →](/docs/quickstart) · [Verification →](/docs/verification) · [Architecture →](/docs/architecture)
