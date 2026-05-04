@@ -1,224 +1,107 @@
 ---
 title: "Quick Start"
-description: "Choose the simplest path that matches how you plan to run Igris."
+description: "Run the first verified Igris execution flow, then branch into hosted or hybrid deployment paths."
 audience: "public"
 ---
 
 # Quick Start
 
-Choose the simplest path that matches how you plan to run Igris.
+Start here if you want to understand what Igris actually proves today.
 
-If you are unsure where to begin, start with the hosted OpenAI-compatible API. It is the shortest path to a working production integration and the easiest path to validate product fit. Move to a native SDK when you need Igris-specific product features, and move to local runtime or hybrid deployment only when the workload truly needs on-device execution, fleet participation, or offline behavior.
+This quickstart is intentionally not a generic hosted-inference tutorial. Direct model calls are fine for simple chat. Igris is for the point where AI output starts doing work and you need governed execution, visible failure paths, and records you can inspect after the run.
+
+---
+
+## What You Will Do
+
+1. Start a local proof-backed Igris flow.
+2. Send one request through the public execution surface.
+3. Confirm that execution was routed through Runtime.
+4. Verify the signed execution envelope, signed execution receipt, and receipt-log chain.
+
+This is the narrowest honest path that is proven locally today.
 
 ---
 
 ## Prerequisites
 
-- An Igris account at [console.igrisinertial.com](https://console.igrisinertial.com)
-- One tenant API key (`igris_...`) from **Settings → API Keys**
-- For cloud routing today, provider keys for the currently supported public vault identifiers: `openai` or `anthropic`
-- For local runtime, a GGUF model file if you want on-device inference
+- A checkout of this repository
+- `node`, `go`, `cargo`, `curl`, and `lsof`
+- Free local ports `8080` and `8081`
+- Free local port `18090` if you run the default mock-provider mode
 
----
+You do not need sanctioned provider credentials for the default proof path. The default mode uses a local mock upstream so the proof stays reproducible.
 
-## Option A: Cloud API
+## 1. Run The First Verified Flow
 
-This is the recommended starting path for most customers. It gives you the fastest route from account setup to a live integration, while still keeping the door open to native SDKs and hybrid deployment later.
-
-<CopyAgentPrompt
-  title="Copy This Prompt"
-  description="Give this to your coding agent to implement the hosted Igris integration in your app."
-/>
-
-### 1. Add a provider key
-
-For customer traffic, add an `openai` or `anthropic` provider key.
+From the repo root:
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
-  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "provider": "openai",
-    "key_name": "production",
-    "api_key": "YOUR_OPENAI_KEY"
-  }'
+./scripts/unified_execution_proof_demo.sh
 ```
 
-### 2. Point your client at Igris
+The script prepares local proof artifacts, builds or reuses the Runtime binary, builds Overture, starts a local mock upstream, starts Runtime on `127.0.0.1:8080`, starts Overture on `127.0.0.1:8081`, submits one `/v1/infer` request, and fails if Overture falls back away from Runtime.
 
-```typescript
-import OpenAI from 'openai';
+Expected output shape:
 
-const client = new OpenAI({
-  baseURL: 'https://overture.igrisinertial.com/v1',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-
-const response = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
-  messages: [{ role: 'user', content: 'Hello' }],
-});
-
-console.log(response.choices[0].message.content);
+```text
+Unified execution proof succeeded.
+Mode: mock
+Provider: local-mock-cloud
+Route decision: forwarded_to_runtime_task
+Receipt execution_id: ...
+Receipt hash: ...
+Artifacts: /tmp/igris-unified-proof.XXXXXX
 ```
 
-That is enough for a production-grade first integration. Stay on this path if your main goal is hosted inference with the least amount of integration overhead. Move to a native SDK when you need receipt helpers, fleet APIs, vault operations, or richer routing metadata.
+## 2. Inspect What Was Verified
 
----
+The proof demonstrates the Request -> Execute -> Verify path:
 
-## Option B: Local Runtime
+- **Request**: the script sends one request through Overture's `/v1/infer` surface.
+- **Execute**: Overture forwards the work to Runtime instead of silently answering from its own direct fallback path.
+- **Verify**: the script checks the returned `execution_envelope`, `execution_receipt`, receipt hash, and receipt-log chain.
 
-Use `igris-runtime` when the workload should execute on the machine itself: local inference, local policy enforcement, behavior-tree execution, or offline operation. If you do not need those properties, the hosted API is usually the better place to start.
+If the script succeeds, you have a local proof that:
 
-### 1. Download the runtime archive
+- Runtime handled the execution authority for the request
+- execution metadata captured the route decision
+- the signed execution envelope verified
+- the signed execution receipt verified
+- the receipt hash matched the recomputed digest
+- the receipt was present in the local receipt log with a valid chain link
 
-Pick your platform:
+## 3. Know What This Does And Does Not Prove
 
-- `linux-amd64`
-- `linux-arm64`
-- `linux-armv7`
-- `macos-arm64`
-- `macos-x64`
-
-Example:
-
-```bash
-export IGRIS_PLATFORM="linux-amd64"
-
-curl -fL "https://overture.igrisinertial.com/v1/runtime/install?platform=${IGRIS_PLATFORM}" \
-  -o /tmp/igris-runtime.tar.gz
-
-curl -fL "https://overture.igrisinertial.com/v1/runtime/checksum?platform=${IGRIS_PLATFORM}"
-```
-
-The checksum endpoint returns the expected SHA-256 value for the archive. Verify it before installation using your platform checksum tool.
-
-### 2. Extract and install
-
-```bash
-tar -xzf /tmp/igris-runtime.tar.gz -C /tmp
-mkdir -p "$HOME/.local/bin"
-mv /tmp/igris-runtime "$HOME/.local/bin/igris-runtime"
-chmod +x "$HOME/.local/bin/igris-runtime"
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-### 3. Verify the binary
-
-```bash
-igris-runtime --version
-```
-
-### 4. Configure the runtime
-
-Create `~/.config/igris/config.json5`:
-
-```json5
-{
-  server: {
-    host: "0.0.0.0",
-    port: 8080
-  },
-  auth: {
-    enabled: true,
-    api_key: "YOUR_IGRIS_API_KEY"
-  },
-  local_fallback: {
-    enabled: true,
-    model_path: "/models/phi-3-mini-4k-instruct-q4.gguf",
-    context_size: 4096,
-    threads: 4,
-    n_gpu_layers: 0
-  }
-}
-```
-
-### 5. Start the runtime
-
-```bash
-igris-runtime serve
-```
-
-At this point the runtime serves a local API on `http://localhost:8080`. That alone does **not** make the runtime part of Fleet. Fleet visibility only happens when runtime registration succeeds.
-
-### 6. Point your application at the local runtime
-
-```typescript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  baseURL: 'http://localhost:8080/v1',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-
-const response = await client.chat.completions.create({
-  model: 'phi3',
-  messages: [{ role: 'user', content: 'Hello' }],
-});
-```
-
----
-
-## Option C: Hybrid Cloud + Local Runtime
-
-Use this when you want the hosted product to remain the main application-facing API, but you also want runtimes to participate in fleet operations, failover, or device-local execution. This is the right model when the customer should experience one product while the execution topology spans cloud and runtime.
-
-### 1. Start the runtime with registration credentials
-
-`igris-runtime` only attempts fleet registration when both of these are present:
-
-- `IGRIS_LICENSE_KEY`
-- `IGRIS_API_KEY`
-
-Example:
-
-```bash
-export IGRIS_LICENSE_KEY="YOUR_LICENSE_KEY"
-export IGRIS_API_KEY="YOUR_IGRIS_API_KEY"
-igris-runtime serve
-```
-
-If license validation succeeds and the control plane is reachable, the runtime will attempt registration on startup.
-
-### 2. Use the cloud API from your application
-
-Your app continues to call Overture:
-
-```typescript
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  baseURL: 'https://overture.igrisinertial.com/v1',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-```
-
-Keep the runtime healthy and reachable if you expect it to participate in fleet workflows, device-local execution, or failover behavior.
-
----
-
-## What To Do Next
-
-Follow the main customer path:
-
-1. [SDKs →](/docs/sdk) to choose OpenAI-compatible clients or a first-class native SDK.
-2. [First Cloud Integration →](/docs/first-cloud-integration) to turn the first request into production-ready hosted traffic.
-3. [Deploy Local Runtime →](/docs/deploy-local-runtime) when the workload needs on-device execution.
-4. [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow) when hosted coordination and runtime execution both matter.
-5. [Receipts and Audit Workflow →](/docs/receipts-audit-workflow) when you need exportable and verifiable execution records.
-6. [API Reference →](/docs/api-reference) when you need endpoint-level contracts.
-
----
-
-## Troubleshooting
-
-| Problem | What to check |
+| Claim | Current status |
 |---|---|
-| `igris-runtime: command not found` | Ensure `$HOME/.local/bin` is on `PATH` or install to a directory already on `PATH`. |
-| Local runtime does not answer | Check `http://localhost:8080/v1/health` after `igris-runtime serve`. |
-| Fleet device never appears | Confirm `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY` are both set before startup, and that the runtime can reach Overture. |
-| Cloud routing returns auth errors | Verify you are using a current tenant API key with the `igris_` prefix. |
-| Provider key creation fails | Use the currently supported provider identifiers in the public vault API: `openai` or `anthropic`. |
+| Unified local Request -> Execute -> Verify flow | Proven locally |
+| Signed records and receipt-chain verification on the local proof path | Proven locally |
+| Capability-gated task execution | Proven locally in the proof artifacts and audits |
+| Real provider-backed Runtime execution | Wired and configurable, but not proven in the prior environment |
+| Local GGUF fallback | Source-confirmed, not proven in this quickstart |
+| Checkpoint recovery | Source-confirmed, not proven in this quickstart |
+| Fleet failover, OTA/config push, ROS2, multimodal | Advanced or preview areas, not part of this quickstart |
 
-[Troubleshooting →](/docs/troubleshooting)
+## 4. Real Provider Mode Is Deliberately Separate
+
+The proof demo also supports a real-provider mode, but it should only be used with sanctioned credentials and it was not proven in the prior environment.
+
+Example shape:
+
+```bash
+export IGRIS_UNIFIED_PROVIDER_MODE=real
+export IGRIS_REAL_PROVIDER=openai
+export OPENAI_API_KEY=...
+./scripts/unified_execution_proof_demo.sh
+```
+
+Use this only when you are intentionally proving a sanctioned provider path. Do not treat it as part of the default onboarding path.
+
+## 5. Choose The Next Path
+
+1. [First Verified Run](/docs/first-verified-run) for a deeper walkthrough of the proof demo and its artifacts.
+2. [Request -> Execute -> Verify](/docs/request-execute-verify) for the core mental model.
+3. [Verification](/docs/verification) for receipt hashes, signatures, and current proof-route semantics.
+4. [Architecture](/docs/architecture) for how the unified product maps to hosted and runtime execution.
+5. [API Reference](/docs/api-reference) when you are ready to integrate against specific routes.
