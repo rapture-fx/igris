@@ -111,19 +111,46 @@ export function downloadJSON(data: any, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+function normalizeCSVValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (Array.isArray(value) || typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+function escapeCSVCell(value: unknown): string {
+  const normalized = normalizeCSVValue(value);
+  const escaped = normalized.replace(/"/g, '""');
+
+  if (/[",\r\n]/.test(normalized)) {
+    return `"${escaped}"`;
+  }
+
+  return escaped;
+}
+
 export function downloadCSV(data: any[], filename: string) {
   if (data.length === 0) return;
 
   const headers = Object.keys(data[0]);
   const csvContent = [
-    headers.join(','),
+    headers.map((header) => escapeCSVCell(header)).join(','),
     ...data.map((row) =>
-      headers.map((header) => {
-        const value = row[header];
-        return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
-      }).join(',')
+      headers.map((header) => escapeCSVCell(row[header])).join(',')
     ),
-  ].join('\n');
+  ].join('\r\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
