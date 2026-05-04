@@ -1,6 +1,6 @@
 # API Contract Validation
 
-Generated: 2026-05-03T23:40:02.885Z
+Generated: 2026-05-04T10:48:06.731Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
@@ -17,10 +17,10 @@ This report validates API reference request/response examples and compares docum
 | `GET /v1/runtime/checksum` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/runtime/download` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /api/v1/runtime/download` | 0 | not discovered | not-required | not required | 0 | verified |
-| `POST /api/v1/runtime/register` | 5 | `runtimeInstanceRegisterRequest (go, igris-overture/api/routes_runtime.go)` | source-backed | not required | 0 | verified |
-| `POST /api/v1/runtime/heartbeat` | 2 | `runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)` | source-backed | not required | 0 | verified |
+| `POST /api/v1/runtime/register` | 8 | `runtimeInstanceRegisterRequest (go, igris-overture/api/routes_runtime.go)` | source-backed | not required | 0 | verified |
+| `POST /api/v1/runtime/heartbeat` | 4 | `runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)` | source-backed | not required | 0 | verified |
 | `GET /api/v1/runtime/commands` | 0 | not discovered | not-required | not required | 0 | verified |
-| `DELETE /api/v1/runtime/deregister` | 1 | `runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)` | not-required | not required | 0 | verified |
+| `DELETE /api/v1/runtime/deregister` | 3 | `runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)` | not-required | not required | 0 | verified |
 | `GET /api/v1/runtime/list` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /api/v1/runtime/config/push` | 2 | not discovered | example-only: Configuration push is an operational control-plane route whose request body is example-backed until a public source schema is promoted. | not required | 0 | example-validated |
 | `POST /api/v1/runtime/update` | 4 | not discovered | example-only: Runtime update orchestration is validated procedurally and remains example-backed in the public docs. | not required | 0 | example-validated |
@@ -42,7 +42,7 @@ This report validates API reference request/response examples and compares docum
 | `GET /v1/receipts` | 0 | not discovered | not-required | `igris-overture/api/routes_receipts.go` | 14 | verified |
 | `GET /v1/receipts/:id` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/receipts/export` | 0 | not discovered | not-required | not required | 0 | verified |
-| `POST /proof/receipts/verify` | 2 | `VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)` | source-backed | `igris-overture/api/routes_proof.go` | 8 | verified |
+| `POST /proof/receipts/verify` | 4 | `VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)` | source-backed | `igris-overture/api/routes_proof.go` | 8 | verified |
 | `GET /v1/routing/stats` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/routing/recent` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/routing/leaderboard` | 0 | not discovered | not-required | not required | 0 | verified |
