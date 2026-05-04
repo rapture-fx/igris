@@ -270,7 +270,7 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow rounded-md border bg-white dark:bg-[rgba(246,246,244,0.08)] text-[#1b1912] dark:text-[#f6f6f4] border-[rgba(20,18,10,0.1)] dark:border-[rgba(246,246,244,0.12)]"
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow rounded-xl border bg-white dark:bg-[rgba(246,246,244,0.08)] text-[#1b1912] dark:text-[#f6f6f4] border-[rgba(20,18,10,0.1)] dark:border-[rgba(246,246,244,0.12)]"
                     style={{ fontFamily: NAV_FONT }}
                   >
                     Sign In
@@ -279,7 +279,7 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-md bg-[#1b1912] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#1b1912]"
+                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-xl bg-[#1b1912] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#1b1912]"
                     style={{ fontFamily: NAV_FONT }}
                   >
                     Get Started
@@ -434,7 +434,7 @@ export default function Header() {
 
                 <Link href="/pricing" prefetch={false} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: NAV_FONT }} onClick={closeMobileAll}>Pricing</Link>
                 <a href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'} className="text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: NAV_FONT }} onClick={closeMobileAll}>Sign In</a>
-                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={closeMobileAll} className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-md" style={{ fontFamily: NAV_FONT, backgroundColor: '#14120a', color: '#f6f6f4' }}>Get Started</a>
+                <a href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'} onClick={closeMobileAll} className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-xl" style={{ fontFamily: NAV_FONT, backgroundColor: '#14120a', color: '#f6f6f4' }}>Get Started</a>
               </nav>
             </div>
           )}
