@@ -417,7 +417,7 @@ export default function Products() {
             </h2>
             <Link
               href="https://docs.igrisinertial.com/"
-              className="group inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-xl border shrink-0 md:ml-4"
+              className="group inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-xl border shrink-0 md:ml-4"
               style={{ backgroundColor: isDark ? 'rgba(246,246,244,0.08)' : '#f9f9fa', color: isDark ? '#f6f6f4' : '#1b1912', borderColor: isDark ? 'rgba(246,246,244,0.12)' : 'rgba(20,18,10,0.1)', fontFamily: SANS }}
             >
               Explore Platform
