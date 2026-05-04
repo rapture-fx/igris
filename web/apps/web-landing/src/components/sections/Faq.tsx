@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useTheme } from 'next-themes';
+
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
 interface FaqEntry {
   question: string;
@@ -128,7 +131,13 @@ const faqSections: FaqSection[] = [
 ];
 
 export default function Faq() {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [openSectionIndex, setOpenSectionIndex] = useState<number | null>(null);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const isDark = mounted && theme === 'dark';
 
   const toggleSection = (index: number) => {
     setOpenSectionIndex(openSectionIndex === index ? null : index);
@@ -136,69 +145,85 @@ export default function Faq() {
 
   return (
     <>
-      {/* Full-width top border */}
       <div style={{ borderTop: 'var(--section-border)' }} />
-      <section id="faq" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <section id="faq" className="bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 min-h-0 flex flex-col" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
-
             <div className="flex flex-col items-center" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+
               {/* Title */}
               <div className="w-full max-w-[700px] text-left mb-8">
-                <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                <h2
+                  className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]"
+                  style={{ fontFamily: SANS }}
+                >
                   Questions and answers
                 </h2>
               </div>
 
-              <div className="space-y-4 w-full max-w-[700px]">
+              {/* Vertical stack */}
+              <div className="w-full max-w-[700px] px-0 space-y-4">
                 {faqSections.map((section, sectionIndex) => (
                   <div
                     key={sectionIndex}
-                    className={`landing-surface-card rounded-xl border transition-all duration-300 ${
-                      openSectionIndex === sectionIndex
-                        ? 'shadow-sm'
-                        : 'landing-surface-card-interactive hover:shadow-sm'
-                    }`}
+                    className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col"
                   >
-                    {/* Section Title */}
+                    {/* Header strip — matches pricing card tier name row */}
                     <button
                       onClick={() => toggleSection(sectionIndex)}
-                      className="w-full text-left px-6 py-4 flex items-center justify-between gap-2 transition-colors"
+                      className="w-full text-left px-5 py-6 flex items-center justify-between gap-2 transition-colors"
+                      style={{ fontFamily: SANS }}
                     >
-                      <h3 className="text-sm font-medium text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                      <span className="text-sm font-semibold text-black dark:text-[#f6f6f4]">
                         {section.title}
-                      </h3>
+                      </span>
                       <ChevronDown
                         className={`flex-shrink-0 transition-transform duration-200 ${
                           openSectionIndex === sectionIndex ? 'rotate-180' : ''
                         }`}
                         style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                        size={16}
+                        size={14}
                       />
                     </button>
 
-                    {/* Collapsible content */}
+                    {/* Expandable inner panel — matches pricing card nested gray panel */}
                     <div
                       className={`overflow-hidden transition-all duration-300 ${
                         openSectionIndex === sectionIndex ? 'max-h-[3000px]' : 'max-h-0'
                       }`}
                     >
-                      <div className="px-6 pb-5 space-y-4">
+                      <div
+                        className="border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-5 pb-6 space-y-4"
+                        style={{ backgroundColor: isDark ? '#111' : '#f9fafb' }}
+                      >
                         {section.entries.map((faq, entryIndex) => (
-                          <div key={entryIndex} className="border-t border-gray-200 dark:border-[#f6f6f4]/5 pt-4">
-                            <p className="text-sm font-medium mb-1.5 text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                          <div
+                            key={entryIndex}
+                            className={entryIndex > 0 ? 'border-t border-gray-200 dark:border-[#f6f6f4]/5 pt-4' : ''}
+                          >
+                            <p
+                              className="text-xs font-semibold mb-1.5 text-black dark:text-[#f6f6f4]"
+                              style={{ fontFamily: SANS }}
+                            >
                               {faq.question}
                             </p>
-                            {faq.type === 'text' ? (
-                              <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                            {faq.type === 'text' && (
+                              <p
+                                className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed"
+                                style={{ fontFamily: SANS }}
+                              >
                                 {faq.answer}
                               </p>
-                            ) : faq.type === 'code' ? (
+                            )}
+                            {faq.type === 'code' && (
                               <div className="space-y-3">
-                                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                                <p
+                                  className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed"
+                                  style={{ fontFamily: SANS }}
+                                >
                                   {faq.answerText}
                                 </p>
-                                <div className="rounded-lg p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
+                                <div className="rounded-xl p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03]">
                                   <div className="mb-2">
                                     <span className="text-gray-500 dark:text-[#a8a898]"># Old</span>
                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.old}</div>
@@ -208,11 +233,14 @@ export default function Faq() {
                                     <div className="text-gray-900 dark:text-[#c8c8b8] mt-1 break-all">{faq.codeExample?.new}</div>
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
+                                <p
+                                  className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed"
+                                  style={{ fontFamily: SANS }}
+                                >
                                   {faq.answerFooter}
                                 </p>
                               </div>
-                            ) : null}
+                            )}
                           </div>
                         ))}
                       </div>
@@ -220,8 +248,8 @@ export default function Faq() {
                   </div>
                 ))}
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
       </section>
