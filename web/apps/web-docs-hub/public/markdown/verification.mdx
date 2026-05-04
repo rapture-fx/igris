@@ -1,0 +1,95 @@
+---
+title: "Verification"
+description: "How to inspect execution metadata, signed records, receipt hashes, and current proof-route behavior in Igris."
+audience: "public"
+---
+
+# Verification
+
+Verification is the part of Igris that answers: what happened, what record came back, and what can actually be checked?
+
+The short version is:
+
+- some verification behavior is proven locally today
+- some proof-oriented routes are useful record-comparison surfaces
+- not every verification surface is equally strong
+
+---
+
+## Verification Inputs
+
+Depending on the route, Igris can return or persist:
+
+- execution metadata such as route decisions and provider labels
+- a signed `execution_envelope`
+- a signed `execution_receipt`
+- receipt hashes
+- receipt-log entries and previous-hash linkage
+
+These are not interchangeable. Execution history is not the same thing as a signed receipt, and a proof-status lookup is not the same thing as cryptographic verification.
+
+## Proven Local Verification Path
+
+The strongest demonstrated verification path today is the local unified proof:
+
+```bash
+./scripts/unified_execution_proof_demo.sh
+```
+
+That flow verifies:
+
+- the returned execution envelope signature
+- the returned execution receipt signature
+- the returned execution receipt hash
+- receipt presence in the local receipt log
+- receipt-chain linkage
+
+This is the current **proven locally** path.
+
+## Cloud Proof Route Semantics
+
+The hosted proof route is:
+
+```text
+POST /proof/receipts/verify
+```
+
+Its current handler compares submitted values against the stored receipt record and returns the current verification state. It is useful when you want to check whether a stored receipt matches a supplied hash or signature value.
+
+Important caveat:
+
+- The current handler does **not** perform full cryptographic signature verification by itself.
+- It compares stored versus submitted values and returns fields such as `verified`, `verification_status`, `hash_valid`, and `signature_matches`.
+
+That means you should not describe this route as a full public cryptographic verifier in first-contact docs.
+
+## What To Check After A Run
+
+When a run matters, inspect at least these layers:
+
+1. **Execution metadata** for route decision and provider context
+2. **Signed records** for the returned envelope or receipt material
+3. **Proof status** for what the current route can confirm
+4. **Receipt export or storage path** if another system will depend on the record later
+
+## Choosing The Right Verification Surface
+
+| Need | Best current path |
+|---|---|
+| Prove the repo's local execution flow end to end | [First Verified Run](/docs/first-verified-run) |
+| Inspect receipt-oriented records from the hosted surface | [Execution Receipts](/docs/execution-receipts) |
+| Check the current maturity of a claim before documenting it | [Proof Status](/docs/proof-status) |
+| Integrate against the hosted proof route | [POST /proof/receipts/verify](/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify) |
+
+## Verification Language To Use Carefully
+
+Use precise language:
+
+- Say **signed records** when the product returns signed material.
+- Say **verified locally** when referring to the current proof-backed demo.
+- Say **value comparison** or **proof-status check** for the current hosted proof route.
+- Do not imply full public signature verification when the route is only comparing stored values.
+
+---
+
+[Execution Receipts →](/docs/execution-receipts) · [Proof Status →](/docs/proof-status) · [API Reference →](/docs/api-reference)
