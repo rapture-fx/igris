@@ -8,6 +8,8 @@ audience: "public"
 
 Release notes for Igris. Breaking changes are marked explicitly.
 
+Older entries may use historical terminology from before the docs reset. Where a note conflicts with current proof language, prefer the current [Proof Status](/docs/proof-status) and current product docs.
+
 ---
 
 ## docs — API contract and workflow documentation — April 2026
@@ -19,7 +21,7 @@ Release notes for Igris. Breaking changes are marked explicitly.
 
 ### Changed
 
-- Quick Start now presents the OpenAI-compatible API as the recommended onboarding path
+- Quick Start now presents the first verified run as the primary onboarding path
 - SDK guidance now states clearly that JavaScript/TypeScript, Go, Rust, and Python are the current first-class native SDKs
 - The public API reference no longer publishes runtime-to-control-plane callback routes as customer-facing endpoints
 
@@ -78,16 +80,15 @@ No action required for Linux deployments. macOS Intel users should continue usin
 
 ---
 
-## v1.2.1-speculative — Speculative execution — November 2025
+## v1.2.1-speculative — Experimental speculative execution notes — November 2025
 
 ### Added
 
-- **Speculative execution** — produces a **60% reduction in time-to-first-token (TTFT)** for streaming requests; enabled by default for all streaming inference
-- **Production deployment** — speculative execution is live across all regions
+- **Speculative execution experiments** — early release notes recorded internal experimentation around parallel path selection for streaming workloads
 
 ### Changed
 
-- **Default behavior** — speculative execution is now enabled by default for all streaming requests
+- **Historical note** — these draft notes should not be read as a current proof-backed guarantee for deployment status, default enablement, or measured latency gains
 
 ---
 
