@@ -1,12 +1,20 @@
 ---
 title: "Architecture"
-description: "Igris is a governed execution system built from two production components: the Coordination Layer (cloud API gateway) and the Runtime (edge engine). Both share the same governance "
+description: "Igris is one execution system for AI tasks. This page maps the Request -> Execute -> Verify model onto the hosted and runtime components that implement it."
 audience: "public"
 ---
 
 # Architecture
 
-Igris is a governed execution system built from two production components: the **Coordination Layer** (cloud API gateway) and the **Runtime** (edge engine). Both share the same governance model, trust chain, and OpenAI-compatible API surface.
+Igris is one execution system for AI tasks. The best way to read the architecture is not "which product do I buy?" but "how does a request move through Request -> Execute -> Verify?"
+
+At a high level:
+
+- **Request** enters through an Igris API surface.
+- **Execute** happens on the configured hosted or runtime path, with policy, capability, and routing decisions applied along the way.
+- **Verify** happens through execution metadata, signed records, and receipt-oriented audit material after the run.
+
+The hosted control plane and the runtime are implementation components inside that unified model. They matter for deployment and operations, but they should not be your first mental model.
 
 ---
 
@@ -15,21 +23,20 @@ Igris is a governed execution system built from two production components: the *
 <Tabs items={['Operational view', 'Mermaid source']}>
   <Tab>
     <Callout title="How to read this system" type="info">
-      Igris is one product with two execution surfaces. Applications usually call the hosted control
-      plane first. That layer decides whether work stays on cloud providers or is handed off to a
-      local runtime.
+      Start from the execution flow, then map it to components. A request enters Igris, execution
+      happens on the configured path, and verification data comes back with the result. Hosted and
+      runtime surfaces are deployment choices, not separate product identities.
     </Callout>
 
     | Layer | Responsibility |
     |---|---|
-    | **Application** | Calls the OpenAI-compatible API exposed by Igris |
-    | **Coordination Layer** | Handles routing, provider policy, circuit breaking, SLO enforcement, billing, and fleet control |
-    | **Cloud Providers** | Execute hosted inference when the policy chooses a cloud path |
-    | **Runtime** | Executes local inference, tools, behavior trees, receipts, and MCP-aware work on edge or robotics hardware |
+    | **Application** | Sends requests through an Igris API surface |
+    | **Execution Control** | Applies routing, policy, runtime selection, and failure-path handling |
+    | **Hosted Providers** | Execute hosted model work when the configured path stays in cloud infrastructure |
+    | **Runtime** | Executes governed local or hybrid work, returns execution artifacts, and emits signed receipt material |
 
-    The coordination layer and the runtime stay connected through registration, heartbeat, config
-    distribution, and hybrid fallback paths. That gives you one operational contract even when work
-    moves between cloud and local execution.
+    Registration, heartbeat, receipt sync, and task handoff connect the hosted and runtime layers
+    when you run Igris in hybrid mode.
   </Tab>
   <Tab>
 ```mermaid
@@ -76,19 +83,18 @@ graph TD
 
 ## Coordination Layer (Cloud Gateway)
 
-The coordination layer runs as a managed cloud service or can be self-hosted in your infrastructure (Infinite tier). It serves as the central API gateway, routing engine, and control plane.
+The coordination layer is the hosted control plane. It accepts requests, applies routing and policy decisions, and coordinates runtimes when hybrid execution is enabled.
 
 ### Core Capabilities
 
 | Capability | Purpose |
 |---|---|
-| **Adaptive Router** | Adaptive provider selection, speculative execution, council mode, cost-aware routing, quality scoring, stream merging |
+| **Routing and selection** | Chooses where work should run based on configured providers, runtime availability, and policy context |
 | **Circuit Breaker** | Per-provider failure detection with open/closed/half-open states |
-| **Routing Advisor** | Periodic analysis of routing performance with optimization proposals |
-| **SLO Enforcer** | Automated monitoring and enforcement for latency, cost, and quality targets |
+| **Policy and SLO controls** | Applies operational limits, health signals, and enforcement rules |
 | **Key Vault** | Encrypted API key storage with rotation support |
 | **Billing Integration** | Subscription management, trial handling, tier enforcement |
-| **Provider Interface** | Pluggable provider adapters for OpenAI, Anthropic, Google, and OpenAI-compatible endpoints |
+| **Provider Interface** | Connects to hosted providers and runtime-backed execution paths |
 
 ### Data Layer
 
@@ -98,41 +104,38 @@ The coordination layer runs as a managed cloud service or can be self-hosted in 
 ### API Surface
 
 The coordination layer exposes:
-- **Inference API** — OpenAI-compatible `/v1/chat/completions` with automatic multi-provider routing
-- **Management API** — Fleet, policies, receipts, vault keys, routing configuration
+- **Inference API** — Request entry points such as `/v1/infer` and `/v1/chat/completions`
+- **Management API** — Runtime lifecycle, policy, receipts, vault keys, and operator workflows
 - **Webhooks** — Subscription events, alert notifications, human-in-the-loop escalations
 
 ---
 
 ## Igris Runtime (Edge Engine)
 
-The Runtime is a single binary that provides a local OpenAI-compatible API with full governance. It runs on your infrastructure — servers, edge devices, or robotics hardware.
+The Runtime is the execution engine for governed local or hybrid work. It runs on your infrastructure and can return signed execution artifacts as part of the run.
 
 ### Core Capabilities
 
 | Capability | Purpose |
 |---|---|
-| **Local Inference** | GGUF model inference with GPU offloading (Metal/CUDA) |
-| **Routing Engine** | Adaptive provider selection, speculative execution, council mode |
+| **Task execution** | Runs governed task flows and returns execution-state artifacts |
+| **Local inference** | Supports on-device model execution paths where configured |
+| **Runtime routing** | Supports optional routing strategies inside the runtime execution stack |
 | **Behavior Trees** | Structured agent execution with live SSE streaming |
 | **Tool Sandbox** | HTTP, shell, filesystem tools with resource limits and whitelists |
-| **Agent Patterns** | Reflection, planning, tool-use, and swarm coordination |
-| **Memory** | Vector store, KV cache, cross-instance context sharing |
-| **Federated Learning** | Privacy-preserving model aggregation across fleet devices |
-| **On-Device Training** | LoRA fine-tuning with encrypted adapter storage |
 | **Human-in-the-Loop** | Approval gates with confidence thresholds |
 | **Safety Containment** | Resource limits, capability enforcement, watchdog timers |
 | **MCP Integration** | Model Context Protocol with peer discovery |
-| **ROS2 Integration** | Native ROS2 node with topic/service/action support |
-| **Multimodal** | Vision and audio input processing |
+| **ROS2 Integration** | Technical-preview robotics surface, not part of the default proof-backed path |
+| **Multimodal** | Preview or stub-heavy surface, not part of the default proof-backed path |
 
 **Key capabilities:**
 - Ed25519-signed, hash-chained execution receipts
-- Cloud provider routing with automatic fallback to local GGUF models
 - Behavior Tree execution with live SSE streaming
-- Swarm coordination across multiple runtime instances
-- Federated learning with privacy-preserving aggregation
-- ROS2 topic/service integration for robotics
+- Capability-gated task execution and bounded runtime policies
+- Local or hybrid execution paths that can feed back verification-ready records
+
+Advanced capabilities such as local GGUF fallback, fleet failover, ROS2 execution, and multimodal flows should be treated according to their proof-status labels, not assumed from this overview alone.
 
 ---
 
@@ -166,13 +169,13 @@ Each receipt links to the previous via hash chain. Signatures use device-bound k
 
 ## Deployment Topologies
 
-**Cloud-only.** Application routes to the coordination layer, which routes to cloud providers. No Runtime deployed. Use for intelligent routing without on-premise infrastructure.
+**Cloud-only.** Application routes to the hosted control plane and stays on hosted execution paths. This is a deployment surface, not the default proof-backed path in these docs.
 
-**Hybrid.** The coordination layer handles most requests via cloud providers. When providers fail or policy requires it, traffic routes to a registered Runtime instance. The Runtime registers automatically on startup and sends periodic heartbeats.
+**Hybrid.** The control plane and one or more runtimes work together. The local proof demo shows this model with a mock upstream and a verified runtime-backed execution path. Real-provider hybrid proof requires sanctioned credentials.
 
-**Edge / offline.** The Runtime runs directly on device with local GGUF models. No coordination layer connection required. Full governance (bounded execution, signed receipts, tool sandbox) works offline.
+**Edge / offline.** The Runtime runs directly on device. Local execution is real, but local GGUF fallback should be treated as source-confirmed until a reproducible proof path is documented.
 
-**Fleet.** Multiple Runtime instances coordinated from the coordination layer. Used for robotics, edge deployments, and multi-site production. Config distribution, OTA updates, and health monitoring are managed centrally.
+**Fleet.** Multiple runtimes are coordinated from the hosted layer. Registration and heartbeat are implemented, but broader fleet failover, config push, and OTA workflows should be treated as advanced and not yet part of the default onboarding story.
 
 ---
 
