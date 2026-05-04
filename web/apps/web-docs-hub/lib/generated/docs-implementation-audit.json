@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-03T23:40:16.215Z",
+  "generated_at": "2026-05-04T11:20:53.297Z",
   "summary": {
-    "total": 929,
+    "total": 934,
     "by_status": {
-      "implemented": 929
+      "implemented": 934
     }
   },
   "guide_summary": {
-    "total": 203,
+    "total": 208,
     "by_status": {
-      "implemented": 203
+      "implemented": 208
     }
   },
   "pages": [
@@ -871,11 +871,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "implemented": 2,
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx",
@@ -974,6 +974,14 @@
       "total_route_claims": 1
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/first-verified-run.mdx",
+      "implemented": 1,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 1
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
       "implemented": 8,
       "missing": 0,
@@ -1063,11 +1071,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "implemented": 1,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/rate-limiting.mdx",
@@ -1156,6 +1164,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 1
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/verification.mdx",
+      "implemented": 2,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 2
     }
   ],
   "guide_pages": [
@@ -1185,11 +1201,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "implemented": 2,
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx",
@@ -1288,6 +1304,14 @@
       "total_route_claims": 1
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/first-verified-run.mdx",
+      "implemented": 1,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 1
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
       "implemented": 8,
       "missing": 0,
@@ -1377,11 +1401,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "implemented": 1,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/rate-limiting.mdx",
@@ -1470,6 +1494,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 1
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/verification.mdx",
+      "implemented": 2,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 2
     }
   ],
   "claims": [
@@ -4053,7 +4085,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify.mdx",
-      "line": 59,
+      "line": 62,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
@@ -14949,7 +14981,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister.mdx",
-      "line": 58,
+      "line": 62,
       "method": "DELETE",
       "path": "/api/v1/runtime/deregister",
       "expected_surface": "cloud-api",
@@ -15794,7 +15826,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat.mdx",
-      "line": 63,
+      "line": 67,
       "method": "POST",
       "path": "/api/v1/runtime/heartbeat",
       "expected_surface": "cloud-api",
@@ -15914,7 +15946,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register.mdx",
-      "line": 66,
+      "line": 72,
       "method": "POST",
       "path": "/api/v1/runtime/register",
       "expected_surface": "cloud-api",
@@ -17008,7 +17040,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "line": 38,
+      "line": 45,
       "method": "POST",
       "path": "/v1/chat/completions",
       "expected_surface": null,
@@ -17049,11 +17081,40 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "line": 101,
+      "line": 107,
+      "method": null,
+      "path": "/v1/infer",
+      "expected_surface": null,
+      "source": "- **Inference API** — Request entry points such as `/v1/infer` and `/v1/chat/completions`",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
+      "line": 107,
       "method": null,
       "path": "/v1/chat/completions",
       "expected_surface": null,
-      "source": "- **Inference API** — OpenAI-compatible `/v1/chat/completions` with automatic multi-provider routing",
+      "source": "- **Inference API** — Request entry points such as `/v1/infer` and `/v1/chat/completions`",
       "status": "implemented",
       "evidence": [
         {
@@ -18313,6 +18374,35 @@
       ]
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/first-verified-run.mdx",
+      "line": 63,
+      "method": null,
+      "path": "/v1/infer",
+      "expected_surface": null,
+      "source": "7. Sends one `/v1/infer` request through Overture.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
       "line": 18,
       "method": "POST",
@@ -19405,17 +19495,58 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 38,
-      "method": "POST",
-      "path": "/v1/vault/keys",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/vault/keys \\",
+      "line": 45,
+      "method": null,
+      "path": "/v1/infer",
+      "expected_surface": null,
+      "source": "The script prepares local proof artifacts, builds or reuses the Runtime binary, builds Overture, starts a local mock upstream, starts Runtime on `127.0.0.1:8080`, starts Overture on `127.0.0.1:8081`, submits one `/v1/infer` request, and fails if Overture falls back away from Runtime.",
       "status": "implemented",
       "evidence": [
         {
           "method": "POST",
-          "path": "/v1/vault/keys",
-          "file": "igris-overture/api/routes_tenancy.go",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
+      "line": 63,
+      "method": null,
+      "path": "/v1/infer",
+      "expected_surface": null,
+      "source": "- **Request**: the script sends one request through Overture's `/v1/infer` surface.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
         }
       ]
@@ -20592,6 +20723,40 @@
           "method": "GET",
           "path": "/v1/runtime/checksum",
           "file": "igris-overture/api/runtime_download.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/verification.mdx",
+      "line": 54,
+      "method": "POST",
+      "path": "/proof/receipts/verify",
+      "expected_surface": null,
+      "source": "POST /proof/receipts/verify",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/proof/receipts/verify",
+          "file": "igris-overture/api/routes_proof.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/verification.mdx",
+      "line": 82,
+      "method": "POST",
+      "path": "/proof/receipts/verify",
+      "expected_surface": null,
+      "source": "| Integrate against the hosted proof route | [POST /proof/receipts/verify](/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify) |",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/proof/receipts/verify",
+          "file": "igris-overture/api/routes_proof.go",
           "surface": "cloud-api"
         }
       ]
