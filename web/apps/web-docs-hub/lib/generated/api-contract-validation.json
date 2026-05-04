@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T23:40:02.871Z",
+  "generated_at": "2026-05-04T10:48:06.729Z",
   "endpoints": [
     {
       "endpoint": "POST /v1/infer",
@@ -103,7 +103,7 @@
     {
       "endpoint": "POST /api/v1/runtime/register",
       "source_schema": "runtimeInstanceRegisterRequest (go, igris-overture/api/routes_runtime.go)",
-      "request_fields": 5,
+      "request_fields": 8,
       "response_contract": null,
       "response_fields": 0,
       "schema_policy": "source-backed",
@@ -112,7 +112,7 @@
     {
       "endpoint": "POST /api/v1/runtime/heartbeat",
       "source_schema": "runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)",
-      "request_fields": 2,
+      "request_fields": 4,
       "response_contract": null,
       "response_fields": 0,
       "schema_policy": "source-backed",
@@ -130,7 +130,7 @@
     {
       "endpoint": "DELETE /api/v1/runtime/deregister",
       "source_schema": "runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)",
-      "request_fields": 1,
+      "request_fields": 3,
       "response_contract": null,
       "response_fields": 0,
       "schema_policy": "not-required",
@@ -328,7 +328,7 @@
     {
       "endpoint": "POST /proof/receipts/verify",
       "source_schema": "VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)",
-      "request_fields": 2,
+      "request_fields": 4,
       "response_contract": "igris-overture/api/routes_proof.go",
       "response_fields": 8,
       "schema_policy": "source-backed",
