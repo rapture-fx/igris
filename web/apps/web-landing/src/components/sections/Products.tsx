@@ -285,8 +285,8 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
             <div style={cardStyle}>
               <div style={cardHeaderStyle}>
                 <div>
-                  <p style={{ fontFamily: SANS, fontSize: '11px', fontWeight: 600, color: titleColor, margin: 0 }}>Execution Timeline</p>
-                  <p style={{ fontFamily: SANS, fontSize: '9px', color: mutedColor, margin: '1px 0 0' }}>Step-by-step view of the task lifecycle.</p>
+                  <p style={{ fontFamily: SANS, fontSize: '14px', fontWeight: 600, color: titleColor, margin: 0 }}>Execution Timeline</p>
+                  <p style={{ fontFamily: SANS, fontSize: '11px', color: mutedColor, margin: '2px 0 0' }}>Step-by-step view of the task lifecycle.</p>
                 </div>
               </div>
               <div key={timelineAnimKey} style={{ ...cardBodyStyle, padding: '10px 14px', overflow: 'hidden' }}>
