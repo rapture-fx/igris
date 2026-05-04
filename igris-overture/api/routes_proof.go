@@ -4,6 +4,7 @@ package api
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -79,6 +80,15 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
+	schemaCaps, err := detectExecutionSchemaCapabilities(c.Context(), h.db)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Proof] Failed to inspect schema capabilities")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to retrieve receipts",
+		})
+	}
+
 	limit := 500
 	if raw := c.Query("limit", ""); raw != "" {
 		if parsed, err := strconv.Atoi(raw); err == nil && parsed > 0 {
@@ -114,23 +124,22 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			el.wall_time_ms,
 			el.violation_occurred,
 			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status,
-			el.violation_details
+			%s
 		FROM execution_lineage el
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = el.execution_id
 		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
-		LEFT JOIN LATERAL (
-			SELECT proof_status
-			FROM task_records
-			WHERE tenant_id = el.tenant_id
-			  AND proof_execution_id = el.execution_id
-			ORDER BY created_at DESC
-			LIMIT 1
-		) tp ON TRUE
+		%s
 		WHERE el.tenant_id = $1
 		ORDER BY el.timestamp_utc ` + sortDir + `
 		LIMIT $2
 	`
+
+	query = fmt.Sprintf(
+		query,
+		executionLineageViolationDetailsSQL(schemaCaps.lineageViolationDetail, "el"),
+		executionTaskProofLookupJoinSQL(schemaCaps.taskProofLookup, "el"),
+	)
 
 	rows, err := h.db.Query(query, tenantID, limit)
 	if err != nil {
@@ -226,6 +235,15 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
+	schemaCaps, err := detectExecutionSchemaCapabilities(c.Context(), h.db)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Proof] Failed to inspect schema capabilities")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to verify receipt",
+		})
+	}
+
 	var req VerifyReceiptRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -245,7 +263,7 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 
 	var receiptID, runtimeID, runtimeLabel, storedHash, signature string
 	var proofStatus sql.NullString
-	err := h.db.QueryRow(`
+	query := `
 		SELECT el.id::text,
 		       COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), ''),
 		       COALESCE(ec.runtime_label, ''),
@@ -256,17 +274,13 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = el.execution_id
 		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
-		LEFT JOIN LATERAL (
-			SELECT proof_status
-			FROM task_records
-			WHERE tenant_id = el.tenant_id
-			  AND proof_execution_id = el.execution_id
-			ORDER BY created_at DESC
-			LIMIT 1
-		) tp ON TRUE
+		%s
 		WHERE el.execution_id = $1
 		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
-	`, req.ExecutionID, tenantID).Scan(&receiptID, &runtimeID, &runtimeLabel, &storedHash, &signature, &proofStatus)
+	`
+	query = fmt.Sprintf(query, executionTaskProofLookupJoinSQL(schemaCaps.taskProofLookup, "el"))
+
+	err = h.db.QueryRow(query, req.ExecutionID, tenantID).Scan(&receiptID, &runtimeID, &runtimeLabel, &storedHash, &signature, &proofStatus)
 
 	if err == sql.ErrNoRows {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
