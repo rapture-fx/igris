@@ -55,7 +55,7 @@ export default function HowItWorks() {
             {/* Image with cards floating over */}
             <div style={{ position: 'relative', minHeight: 'clamp(480px, 60vw, 680px)' }}>
               <img
-                src={isDark ? '/howitworks.png' : '/hit.png'}
+                src={isDark ? '/howitworks.png' : '/hit.jpeg'}
                 alt="How it works"
                 style={{
                   position: 'absolute',
