@@ -1,12 +1,12 @@
 ---
 title: "POST /proof/receipts/verify"
-description: "Verifies a receipt hash and signature for a known execution. Use this to confirm the proof chain before presenting a receipt externally."
+description: "Compares submitted receipt values against the stored record for a known execution and returns the current proof status. The current handler compares stored values; it does not perform full cryptographic signature verification by itself."
 audience: "public"
 ---
 
 # POST /proof/receipts/verify
 
-Verifies a receipt hash and signature for a known execution. Use this to confirm the proof chain before presenting a receipt externally.
+Compares submitted receipt values against the stored record for a known execution and returns the current proof status. The current handler compares stored values; it does not perform full cryptographic signature verification by itself.
 
 <div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/proof/receipts/verify</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-proof-api">Proof API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
 
@@ -40,14 +40,17 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `execution_id` | `string` | Yes | Execution identifier to verify. |
-| `expected_hash` | `string` | No | Optional expected receipt hash for direct comparison. |
+| `expected_hash` | `string` | No | Compatibility alias for the comparison hash accepted by the current handler. |
+| `hash` | `string` | Yes | Receipt hash value to compare against the stored record. |
+| `signature` | `string` | Yes | Receipt signature value to compare against the stored record. |
 
 ## Request Example
 
 ```json
 {
   "execution_id": "exec_01HV95R5Y3TVVJ7R3",
-  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+  "hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2",
+  "signature": "MEUCIDexampleReceiptSignature=="
 }
 ```
 
@@ -61,7 +64,8 @@ curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
   -H "Content-Type: application/json" \
   -d '{
   "execution_id": "exec_01HV95R5Y3TVVJ7R3",
-  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+  "hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2",
+  "signature": "MEUCIDexampleReceiptSignature=="
 }'
 ```
 
@@ -76,7 +80,8 @@ const response = await fetch('https://overture.igrisinertial.com/proof/receipts/
   },
   body: JSON.stringify({
   "execution_id": "exec_01HV95R5Y3TVVJ7R3",
-  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+  "hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2",
+  "signature": "MEUCIDexampleReceiptSignature=="
 }),
 });
 
@@ -88,7 +93,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"execution_id\": \"exec_01HV95R5Y3TVVJ7R3\",\n  \"expected_hash\": \"6f16f4bc4d6627240ca4c7d66ea2d7d2\"\n}")
+body := strings.NewReader("{\n  \"execution_id\": \"exec_01HV95R5Y3TVVJ7R3\",\n  \"hash\": \"6f16f4bc4d6627240ca4c7d66ea2d7d2\",\n  \"signature\": \"MEUCIDexampleReceiptSignature==\"\n}")
 
 req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/proof/receipts/verify", body)
 if err != nil {
@@ -116,7 +121,8 @@ let response = client
         .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
         .json(&serde_json::json!({
   "execution_id": "exec_01HV95R5Y3TVVJ7R3",
-  "expected_hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2"
+  "hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2",
+  "signature": "MEUCIDexampleReceiptSignature=="
 }))
         .send()
         .await?;
@@ -129,10 +135,19 @@ println!("{}", payload);
 
 ```json
 {
+  "verified": true,
   "valid": true,
   "execution_id": "exec_01HV95R5Y3TVVJ7R3",
+  "receipt_id": "7f8a6c71-6a4b-4d9c-9b74-437f2ea0b761",
+  "runtime_id": "rt_01HV94AS6G98PZ2YH",
+  "runtime_label": "edge-node-01",
   "hash": "6f16f4bc4d6627240ca4c7d66ea2d7d2",
-  "signature": "MEUCID...=="
+  "signature": "MEUCIDexampleReceiptSignature==",
+  "verification_status": "verified",
+  "hash_valid": true,
+  "signature_matches": true,
+  "chain_valid": null,
+  "message": "Stored receipt hash and signature matched the submitted values. This endpoint does not perform cryptographic signature validation."
 }
 ```
 
