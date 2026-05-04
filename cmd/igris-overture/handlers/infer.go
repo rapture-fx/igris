@@ -706,12 +706,16 @@ func (h *InferHandler) persistVerifiedExecutionArtifacts(tenantID string, req *m
 	}
 
 	provider := refs.Provider
-	if provider == "" && resp.Metadata != nil {
-		provider = strings.TrimSpace(resp.Metadata.Provider)
+	if resp.Metadata != nil {
+		if metadataProvider := strings.TrimSpace(resp.Metadata.Provider); metadataProvider != "" {
+			provider = metadataProvider
+		}
 	}
 	routeDecision := refs.RouteDecision
-	if routeDecision == "" && resp.Metadata != nil {
-		routeDecision = strings.TrimSpace(resp.Metadata.RouteDecision)
+	if resp.Metadata != nil {
+		if metadataRouteDecision := strings.TrimSpace(resp.Metadata.RouteDecision); metadataRouteDecision != "" {
+			routeDecision = metadataRouteDecision
+		}
 	}
 	executionPath := refs.ExecutionPath
 	if executionPath == "" {
