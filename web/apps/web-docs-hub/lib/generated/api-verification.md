@@ -1,15 +1,15 @@
 # API Verification Report
 
-Generated: 2026-04-23T10:35:44.557Z
+Generated: 2026-05-03T23:40:02.030Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
 - Total documented endpoints: 103
-- Test-covered: 14
-- Client-referenced: 12
-- Implemented but unverified: 77
+- Test-covered: 15
+- Client-referenced: 13
+- Implemented but unverified: 75
 
 ## Endpoints
 
@@ -28,7 +28,7 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | GET | `/api/v1/runtime/download` | Runtime Distribution & Fleet Coordination | none |
 | test-covered | POST | `/api/v1/runtime/register` | Runtime Distribution & Fleet Coordination | tests: 1, clients: 1 |
 | test-covered | POST | `/api/v1/runtime/heartbeat` | Runtime Distribution & Fleet Coordination | tests: 1, clients: 1 |
-| implemented-unverified | GET | `/api/v1/runtime/commands` | Runtime Distribution & Fleet Coordination | none |
+| client-referenced | GET | `/api/v1/runtime/commands` | Runtime Distribution & Fleet Coordination | clients: 1 |
 | client-referenced | DELETE | `/api/v1/runtime/deregister` | Runtime Distribution & Fleet Coordination | clients: 1 |
 | implemented-unverified | GET | `/api/v1/runtime/list` | Runtime Distribution & Fleet Coordination | none |
 | implemented-unverified | POST | `/api/v1/runtime/config/push` | Runtime Distribution & Fleet Coordination | none |
@@ -51,7 +51,7 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | test-covered | GET | `/v1/receipts` | Execution, History, and Receipts | tests: 1 |
 | test-covered | GET | `/v1/receipts/:id` | Execution, History, and Receipts | tests: 1 |
 | implemented-unverified | GET | `/v1/receipts/export` | Execution, History, and Receipts | none |
-| implemented-unverified | POST | `/proof/receipts/verify` | Execution, History, and Receipts | none |
+| test-covered | POST | `/proof/receipts/verify` | Execution, History, and Receipts | tests: 1 |
 | implemented-unverified | GET | `/v1/routing/stats` | Routing Control & Analytics | none |
 | implemented-unverified | GET | `/v1/routing/recent` | Routing Control & Analytics | none |
 | implemented-unverified | GET | `/v1/routing/leaderboard` | Routing Control & Analytics | none |
