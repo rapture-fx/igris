@@ -51,7 +51,7 @@ export default function MultiTenancy() {
             </h3>
             <Link
               href="/security"
-              className="landing-surface-button inline-flex items-center justify-center px-3 py-1.5 transition-all duration-200 text-xs font-medium shadow-sm rounded-xl border shrink-0 md:ml-4"
+              className="landing-surface-button inline-flex items-center justify-center px-4 py-2 transition-all duration-200 text-sm font-medium shadow-sm rounded-xl border shrink-0 md:ml-4"
               style={{ fontFamily }}
             >
               Learn More
