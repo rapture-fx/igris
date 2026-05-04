@@ -6,28 +6,23 @@ export default function UseCasesTeaser() {
   const useCases = [
     {
       title: 'Enterprise AI Operations',
-      description: 'Multi-tenant cost control, policy-driven routing, and trust-aware provider selection for teams managing AI at scale.',
-      product: 'Overture'
+      description: 'Multi-tenant cost control, governed execution, and path-selection visibility for teams managing AI at scale.',
     },
     {
       title: 'Hybrid Cloud–Edge Reliability',
-      description: 'Cryptographically bound decision-execution with automatic failover. Keep applications online when cloud providers fail.',
-      product: 'Hybrid'
+      description: 'Keep one execution model across hosted and local environments while making failure paths and review surfaces visible.',
     },
     {
       title: 'Edge-First AI Systems',
-      description: 'Deterministic execution and local model inference for robotics and autonomous systems with poor connectivity.',
-      product: 'Runtime'
+      description: 'Run governed execution closer to devices, with local execution paths where teams need them.',
     },
     {
       title: 'Air-Gapped & Restricted Environments',
       description: 'Isolated operation with encrypted storage and no external telemetry, designed for secure facilities.',
-      product: 'Runtime'
     },
     {
       title: 'AI Reliability Engineering',
-      description: 'Decision traces, provider verification, and replayable execution paths for production AI systems.',
-      product: 'Overture + Hybrid'
+      description: 'Inspect execution events, signed records, and replayable run context for production AI systems.',
     },
   ]
 
@@ -48,7 +43,7 @@ export default function UseCasesTeaser() {
                 Use Cases
               </h3>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
-                How teams use Igris for AI workloads across cloud and edge.
+                How teams use Igris across hosted, local, and hybrid execution surfaces.
               </p>
             </div>
 
@@ -63,7 +58,7 @@ export default function UseCasesTeaser() {
                   Use Cases
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-12">
-                  How teams use Igris for AI workloads across cloud and edge.
+                  How teams use Igris across hosted, local, and hybrid execution surfaces.
                 </p>
 
                 {/* Use Cases List - without cards */}
