@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-04-23T10:35:44.547Z",
+  "generated_at": "2026-05-03T23:40:02.027Z",
   "summary": {
     "total": 103,
     "by_status": {
-      "test-covered": 14,
-      "client-referenced": 12,
-      "implemented-unverified": 77
+      "test-covered": 15,
+      "client-referenced": 13,
+      "implemented-unverified": 75
     },
     "by_section": {
       "Inference & Integration": 7,
@@ -285,12 +285,14 @@
       "surface": "Fleet management",
       "stability": "stable",
       "description": "Fetches and clears queued commands for a registered runtime.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-runtime/crates/igris-license-client/src/lib.rs"
+        ]
       }
     },
     {
@@ -675,11 +677,13 @@
       "surface": "Proof API",
       "stability": "stable",
       "description": "Verifies a receipt signature and chain integrity.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_proof_contract_test.go"
+        ],
         "client_files": []
       }
     },
