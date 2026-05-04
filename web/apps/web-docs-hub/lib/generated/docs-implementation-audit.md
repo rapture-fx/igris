@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-05-04T11:20:53.325Z
+Generated: 2026-05-04T11:53:58.331Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 934
-- Implemented on expected surface: 934
+- Route claims audited: 930
+- Implemented on expected surface: 930
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 208
-- Implemented on expected surface: 208
+- Guide route claims audited: 204
+- Implemented on expected surface: 204
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -33,7 +33,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/circuit-breaker.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 15 | 15 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deployment.mdx` | 1 | 1 | 0 | 0 | 0 |
@@ -54,7 +54,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/ros2-integration.mdx` | 12 | 12 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/shadow-mode.mdx` | 2 | 2 | 0 | 0 | 0 |
@@ -187,7 +187,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/circuit-breaker.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 15 | 15 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deployment.mdx` | 1 | 1 | 0 | 0 | 0 |
@@ -208,7 +208,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/provider-health.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/ros2-integration.mdx` | 12 | 12 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/shadow-mode.mdx` | 2 | 2 | 0 | 0 | 0 |
