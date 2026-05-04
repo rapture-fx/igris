@@ -24,24 +24,7 @@ The cloud API is versioned independently and maintains backward compatibility wi
 
 ## Upgrading the Runtime
 
-### Automatic OTA Updates (Horizon+)
-
-If you are on the Horizon or Infinite tier, you can push updates to your fleet from the console:
-
-1. Navigate to **Fleet → Devices**
-2. Select the instances to update
-3. Click **Push Update**
-4. Choose the target version and update strategy
-
-**Update strategies:**
-
-| Strategy | Behavior |
-|---|---|
-| `rolling` | Update instances one at a time (default) |
-| `canary` | Update one instance first, verify health, then proceed |
-| `all-at-once` | Update all instances simultaneously |
-
-### Manual Upgrade
+### Manual Upgrade Is The Default Recommended Path
 
 For Seed tier or manual deployments:
 
@@ -74,6 +57,12 @@ sudo systemctl restart igris-runtime
 igris-runtime --version
 curl http://localhost:8080/health
 ```
+
+### Coordinated Rollout Surfaces
+
+Some deployments may expose coordinated rollout or console-assisted update workflows for registered execution environments.
+
+Treat those as environment-management surfaces whose stronger OTA or automated rollout claims depend on proof status and deployment reality. If you need the most conservative upgrade story, use the manual path above and expand gradually with your own validation gates.
 
 ---
 
@@ -110,9 +99,9 @@ After upgrading, review the config file and update any deprecated fields to thei
 
 Execution receipts are stored in the runtime's local database. They are preserved across upgrades and do not require migration.
 
-### Fleet Configuration
+### Execution Environment Configuration
 
-Fleet configuration (instance registrations, tags, topic mappings) is stored in the coordination layer and is preserved across upgrades.
+Environment registration metadata, tags, and related coordination-layer state are preserved according to the deployment mode you use.
 
 ### Provider Keys
 
@@ -203,7 +192,7 @@ sudo systemctl start igris-runtime
 
 ### Via Console
 
-The console displays available updates in **Fleet → Devices** when a new version is published.
+The console can display available updates for registered execution environments when the relevant management surfaces are enabled in your deployment.
 
 ### Via API
 
