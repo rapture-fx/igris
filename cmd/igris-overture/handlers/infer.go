@@ -791,9 +791,6 @@ func coordinatorExecutionRefs(executionEnvelope, executionReceipt json.RawMessag
 		if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
 			return nil, false
 		}
-		if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
-			return nil, false
-		}
 		if strings.TrimSpace(receipt.RuntimeID) != "" && strings.TrimSpace(envelope.RuntimeID) != "" && strings.TrimSpace(receipt.RuntimeID) != strings.TrimSpace(envelope.RuntimeID) {
 			return nil, false
 		}
@@ -828,7 +825,7 @@ func coordinatorExecutionRefs(executionEnvelope, executionReceipt json.RawMessag
 	}
 
 	return &inferExecutionContextRefs{
-		ExecutionID:        envelope.ExecutionID,
+		ExecutionID:        firstNonEmptyString(receipt.ExecutionID, envelope.ExecutionID),
 		TenantID:           tenantID,
 		RuntimeID:          firstNonEmptyString(receipt.RuntimeID, envelope.RuntimeID),
 		Provider:           firstNonEmptyString(envelope.Provider, envelope.Model),
