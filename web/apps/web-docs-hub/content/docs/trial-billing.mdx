@@ -1,16 +1,20 @@
 ---
 title: "Trial & Billing"
-description: "Every new account gets a 7-day trial on one tier."
+description: "Trial and billing controls for selecting a tier, checking account status, and managing access to the commercial Igris surfaces."
 audience: "public"
 ---
 
 # Trial & Billing
 
+Trial and billing controls are the account-side surfaces for choosing a tier, checking subscription status, and managing access to the commercial parts of Igris.
+
+This page is about account lifecycle and access control. It should stay aligned with the main commercial story: verified execution, retention, operator access, and deployment scope.
+
 ---
 
 ## Free Trial
 
-Every new account gets a 7-day trial on one tier.
+Every new account can start a 7-day trial on one tier.
 
 ### POST /v1/trial/start
 
@@ -27,18 +31,6 @@ Allowed values:
 - `horizon`
 - `infinite`
 
-Successful responses are created with:
-
-```json
-{
-  "status": "trial_started",
-  "tier": "horizon",
-  "days_left": 7,
-  "ends_at": "2026-04-07T12:00:00Z",
-  "message": "Your 7-day trial has started. No credit card required."
-}
-```
-
 ### GET /v1/trial/status
 
 ```bash
@@ -46,22 +38,13 @@ curl https://overture.igrisinertial.com/v1/trial/status \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Current response fields:
+Use this to answer:
 
-```json
-{
-  "trial_active": true,
-  "trial_tier": "horizon",
-  "current_tier": "horizon",
-  "started_at": "2026-03-31T12:00:00Z",
-  "ends_at": "2026-04-07T12:00:00Z",
-  "days_left": 5
-}
-```
+- is the trial active
+- which tier is active
+- when the trial ends
 
----
-
-## Subscription
+## Subscription Status
 
 ### GET /api/subscription/status
 
@@ -70,23 +53,11 @@ curl https://overture.igrisinertial.com/api/subscription/status \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Current response shape:
+This surface is most useful when operators need to understand:
 
-```json
-{
-  "tier": "horizon",
-  "tier_name": "Horizon",
-  "monthly_price_cents": 14900,
-  "subscription_status": "active",
-  "runtimes": {
-    "used": 4,
-    "limit": 50,
-    "percent": 8
-  },
-  "upgrade_tier": "infinite",
-  "current_period_end": ""
-}
-```
+- the active tier
+- environment capacity in use versus limit
+- whether an upgrade path is available
 
 ### GET /api/subscription/plans
 
@@ -95,82 +66,31 @@ curl https://overture.igrisinertial.com/api/subscription/plans \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-Current response shape:
-
-```json
-{
-  "plans": [
-    {
-      "tier_id": "seed",
-      "name": "Seed",
-      "monthly_price_usd": 29,
-      "runtime_limit": 3,
-      "checkout_url": "https://polar.sh/igris-inertial"
-    }
-  ]
-}
-```
-
----
+Use this when the application or operator workflow needs plan metadata rather than marketing copy.
 
 ## API Key Management
 
-The account API key endpoints are authenticated by either:
-
-- a current `igris_...` API key in `Authorization: Bearer`
-- a console session cookie when used from the web app
-
-Do **not** document these endpoints as bearer session-token endpoints.
+These account endpoints let a tenant manage API-key access to the commercial surfaces.
 
 ### GET /v1/account/api-key
-
-```bash
-curl https://overture.igrisinertial.com/v1/account/api-key \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-
-```json
-{
-  "has_key": true,
-  "prefix": "igris_abc123",
-  "created_at": "2026-03-01T12:00:00Z"
-}
-```
-
 ### POST /v1/account/api-key
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/account/api-key \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-
-```json
-{
-  "api_key": "igris_abc123...",
-  "prefix": "igris_abc123",
-  "created_at": "2026-03-01T12:05:00Z"
-}
-```
-
 ### DELETE /v1/account/api-key
 
-```bash
-curl -X DELETE https://overture.igrisinertial.com/v1/account/api-key \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
+These routes are part of account access management, not of the execution model itself.
 
-Response:
+## Commercial Reading
 
-```json
-{
-  "revoked": true
-}
-```
+When explaining billing or trial behavior, keep the message aligned with what the tiers actually differentiate:
 
----
+- environment capacity
+- retention
+- operator visibility
+- deployment flexibility
 
-[Pricing Tiers →](/docs/pricing-tiers) · [API Reference →](/docs/api-reference)
+Avoid turning trial and billing into a feature-promise page for advanced preview surfaces.
+
+## Related Pages
+
+- [Pricing & Tiers →](/docs/pricing-tiers)
+- [Console User Guide →](/docs/console)
+- [Deployment →](/docs/deployment)

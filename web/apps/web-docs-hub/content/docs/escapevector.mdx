@@ -1,124 +1,69 @@
 ---
 title: "Routing Engine"
-description: "The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every infe"
+description: "The routing engine is an advanced path-selection layer inside Igris execution, combining policy, health, trust, and strategy-specific selection logic."
 audience: "public"
 ---
 
 # Routing Engine
 
-The routing engine is Igris's provider selection system. It combines circuit-breaker logic and real-time provider health monitoring to make optimal routing decisions for every inference request.
+The routing engine is an advanced path-selection layer inside Igris execution.
+
+Its job is to choose among the execution paths that remain allowed and usable after policy, health, and trust have already narrowed the field. This makes it important to advanced operators, but it should not be read as the primary product identity.
 
 ---
 
 ## What It Is
 
-The routing engine is the core decision layer that powers Igris's multi-provider inference coordination. It evaluates available providers, their current health and performance characteristics, and selects the optimal provider for each request.
+At a simple level:
 
-```
-Request → Routing Engine → Provider Selection → Inference
-```
-
-The routing engine runs:
-- **In the cloud** — as part of the coordination layer, routing requests across your provider pool
-- **On edge devices** — embedded in the Runtime binary, making local routing decisions when multiple models or providers are available
-
----
-
-## How It Works
-
-The routing engine continuously tracks performance metrics for each configured provider:
-
-| Metric | Description |
-|---|---|
-| **Latency** | p50 and p95 response times with exponential decay weighting |
-| **Success rate** | Fraction of requests returning valid responses |
-| **Cost** | Per-token cost based on provider pricing |
-| **Availability** | Current health status from continuous monitoring |
-
-On each request, the engine evaluates these metrics against your routing strategy to select the best provider.
-
----
-
-## Routing Strategies
-
-### Adaptive (Default)
-
-The default routing strategy automatically balances exploration (trying providers to keep statistics fresh) with exploitation (using the best-known provider). Traffic adapts in real time — a provider that degrades sees its traffic share drop automatically. When it recovers, traffic gradually returns.
-
-### Cost-Optimized
-
-Routes requests to minimize cost per token while maintaining acceptable quality. Useful for high-volume, cost-sensitive workloads.
-
-### Latency-Optimized
-
-Routes requests to minimize response time. Useful for interactive applications where speed is the primary concern.
-
-### Strategy Configuration
-
-```json
-{
-  "routing": {
-    "strategy": "thompson-sampling",
-    "fallback_chain": ["anthropic", "openai", "local"]
-  }
-}
+```text
+Request
+  -> policy and boundary checks
+  -> health and trust filters
+  -> routing engine
+  -> selected execution path
 ```
 
-[Cloud Coordination →](/docs/cloud-coordination)
+That means the routing engine is not a standalone product story. It is one layer inside the broader Execute stage.
 
----
+## What It Considers
 
-## Circuit Breaker
+Depending on configuration, the engine may consider:
 
-The circuit breaker protects against cascading failures when a provider degrades:
+- latency behavior
+- success or failure history
+- cost signals
+- availability
+- strategy-specific selection logic
 
-```
-                    ┌──────────┐
-     Success ──────►│  CLOSED  │────── Requests flow normally
-                    └────┬─────┘
-                         │ consecutive failures >= threshold
-                    ┌────▼─────┐
-                    │   OPEN   │────── Requests diverted to next provider
-                    └────┬─────┘
-                         │ recovery timeout elapsed
-                    ┌────▼─────┐
-     Success ──────►│ HALF-OPEN│────── Test request to verify recovery
-                    └──────────┘
-```
+Different deployment modes may expose different routing behavior, but the core idea is the same: choose an execution path under governance, not by ad hoc client-side guessing.
 
-**Circuit breaker states:**
+## Strategy Layer
 
-| State | Behavior |
-|---|---|
-| **Closed** | Provider is healthy. Requests flow normally. |
-| **Open** | Provider has exceeded the failure threshold. Requests are diverted to the next provider in the fallback chain. |
-| **Half-Open** | Testing whether the provider has recovered. A single test request is sent; success closes the circuit, failure reopens it. |
+Different strategy modes can exist on top of the engine, such as adaptive, cost-aware, or latency-aware selection. Those strategies are advanced operator tools and should be evaluated with workload-specific evidence rather than broad assumptions.
 
-**Configuration:**
-```json
-{
-  "circuit_breaker": {
-    "failure_threshold": 5,
-    "success_threshold": 3,
-    "timeout_seconds": 30,
-    "half_open_max_requests": 1
-  }
-}
-```
+## Relationship To Other Controls
 
-[Circuit Breaker →](/docs/circuit-breaker)
+The engine sits behind:
 
----
+- policy
+- health
+- trust
+- circuit-breaker state
 
-## Console Integration
+That ordering matters. Advanced path selection should not override the safety and governance layers that determine whether a path should even be considered.
 
-The Console at `/models/routing` displays the live routing engine status:
+## Console And Inspection
 
-- **Engine status** — loaded and operational
-- **Benchmark results** — routing decision latency across providers
-- **Provider weights** — visual weight bars showing routing probability
-- **Circuit breaker states** — per-provider open/closed/half-open status
+Routing dashboards can help explain which path was chosen and why, but they should be treated as advanced execution diagnostics. They are useful after you already understand the main product model.
 
----
+## Proof Language
 
-[Cloud Coordination →](/docs/cloud-coordination) · [Provider Health →](/docs/provider-health) · [SDK →](/docs/sdk)
+The routing engine is a real advanced control layer, but this page should not promise globally optimal provider choice, automatic savings, or universal reliability gains without evidence for the specific workload and environment.
+
+## Related Pages
+
+- [Semantic Routing →](/docs/semantic-routing)
+- [Provider Health →](/docs/provider-health)
+- [Circuit Breaker →](/docs/circuit-breaker)
+- [Cloud Coordination →](/docs/cloud-coordination)

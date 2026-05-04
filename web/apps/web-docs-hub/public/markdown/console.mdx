@@ -1,334 +1,112 @@
 ---
 title: "Console User Guide"
-description: "The Igris console at console.igrisinertial.com is the primary web interface for monitoring your fleet, reviewing execution runs, managing agents, tuning policy, and handling billin"
+description: "The console is the operator view for execution events, run history, signed records, environment visibility, and account management."
 audience: "public"
 ---
 
 # Console User Guide
 
-The Igris console at [console.igrisinertial.com](https://console.igrisinertial.com) is the primary web interface for monitoring your fleet, reviewing execution runs, managing agents, tuning policy, and handling billing. This guide walks through every section.
+The console is the operator view for Igris.
+
+Its main job is to help teams inspect and operate:
+
+- execution events and run history
+- signed records and receipt-oriented workflows
+- execution environments
+- account, policy, and billing surfaces
+
+This page focuses on the practical operator reading of the console rather than trying to document every advanced feature as if it were equally central.
 
 ---
 
 ## Dashboard
 
-The dashboard is the first screen after sign-in. It shows a real-time snapshot of your tenant's activity.
+The dashboard is the summary view.
 
-**Metric cards**
+Use it to get a quick answer to questions like:
 
-| Card | What it means |
-|---|---|
-| Active Executions | Execution runs currently in a RUNNING or PAUSED state across all registered runtime instances |
-| Violations (24h) | Count of capability violations recorded in the last 24 hours |
-| Fleet Health | Fraction of registered instances currently reporting a healthy status |
-| Quota Used | Runtime instances in use vs your tier limit (e.g. 12 / 50) |
+- are execution runs active
+- are violations or alert-worthy events increasing
+- are registered environments still visible
+- are we approaching an environment-capacity limit
 
-**Interpreting the numbers**
-
-- A nonzero violation count is not always an emergency — single violations on test agents are routine. A spike in violations across multiple agents at the same time warrants investigation. Open **Proof → Violations** to see which capability type is being blocked and which agents are producing it.
-- Fleet health below 100% means at least one registered instance has stopped sending heartbeats. Open **Fleet → Devices** to identify which instance is offline and whether it is expected to be.
-- Quota used approaching your limit will affect whether new instances can register. If you are near the limit, consider upgrading your plan under **Settings → Billing**.
-
-**When numbers look wrong**
-
-If active executions reads zero when you expect runs in progress, verify that your runtime instances are registered and healthy in **Fleet → Devices**. Executions are counted against the instance that processed them — if an instance drops offline mid-run, the run stays in its last reported state until it reconnects.
-
-If violation count appears unexpectedly high, check whether a new agent was deployed with overly broad capability requests. Use **Agents** to inspect per-agent violation counts and identify the source.
-
----
-
-## Fleet → Devices
-
-The **Devices** page lists every runtime instance registered to your account.
-
-**Device status**
-
-| Status | Meaning |
-|---|---|
-| Healthy | Instance is sending regular heartbeats. Error rate and latency are within normal bounds. |
-| Degraded | Instance is reachable but error rate or latency has exceeded warning thresholds. Requests still route to this instance but at reduced weight. |
-| Offline | No heartbeat received within the expected window. Requests are not routed to this instance. |
-
-A device that shows **Degraded** may be under memory pressure, processing a large batch, or experiencing a network issue. Clicking the instance opens a detail view with recent error rate and latency charts to help diagnose.
-
-**Inspecting a device**
-
-Click any device row to open its detail panel. You will see:
-- Registration details (name, tags, registered at)
-- Recent execution history (last 20 runs processed by this instance)
-- Current resource readings (if the instance is reporting them)
-- The instance's last known configuration
-
-The recent execution list links to individual runs in **Execution Runs**, so you can trace a suspicious pattern back to the full run context.
-
-**Pushing config to devices**
-
-Configuration pushes let you update runtime settings without redeploying instances. In the device detail panel, click **Push Config**. You can apply the change to this single device or to all devices matching a tag.
-
-For a targeted push to one device, select **This device only** and supply the config values. For a fleet-wide push by tag, use the **Push to Group** option from the Devices list and specify the tag selector.
-
-If an instance is offline when you send a push, the config is queued and delivered the next time the instance reconnects — you do not need to retry manually.
-
-Config pushes are available on **Horizon** and **Infinite** tiers. On Seed, configuration must be set at the instance level.
-
----
-
-## Agents
-
-The **Agents** page lists agents derived from your execution history. An agent entry is created the first time an `agent_id` appears in an execution run. Agents are not created through the console — they emerge from execution activity.
-
-**Agent fields**
-
-| Field | What it means |
-|---|---|
-| Agent ID | Unique identifier used in API calls and receipts |
-| Last Active | Timestamp of the most recent execution for this agent |
-| Violation Count | Total capability violations recorded across all runs for this agent |
-| Mode Flags | Current behavioral mode configuration |
-
-**Mode flags**
-
-Each agent can have one or more behavioral modes active simultaneously.
-
-| Flag | What it does |
-|---|---|
-| `shadow_mode` | The agent runs but its output is not used. Execution still produces a receipt. Useful for validating new agents against live traffic before promoting them. |
-| `reflection_mode` | The agent evaluates its own response and may regenerate before returning. Improves output quality at the cost of additional inference time. |
-| `council_mode` | Multiple model providers are consulted and their responses are synthesized before returning. Increases reliability for high-stakes decisions. |
-| `cognitive_advisor_enabled` | The routing advisor monitors this agent's routing telemetry and may propose or apply configuration changes. |
-
-**Toggling modes**
-
-Click an agent row, then use the **Mode** toggles in the detail panel. Changes take effect on the next execution. You do not need to restart any runtime instance.
-
-Shadow mode is the safest way to introduce a new agent: traffic routes to it, a receipt is produced, but the caller receives the response from the existing agent. Compare receipts between the shadow and primary agents to validate behavior before switching.
-
-**Interpreting violation_count**
-
-A violation_count of zero means this agent has never attempted a capability outside its grants. Any positive number means the agent requested a capability — HTTP, shell, or filesystem access — that was not granted in its policy. Review the **Proof → Violations** view filtered by this agent to see exactly which operations were blocked and when.
-
----
+Treat it as an operator snapshot, not as the source of truth for deep execution analysis.
 
 ## Execution Runs
 
-The **Execution Runs** page shows every run — live and historical — for your tenant. It is the primary diagnostic surface for understanding what is happening and what has happened.
+The most important console surface for many teams is the run view.
 
-**Run statuses**
+Use it to inspect:
 
-| Status | Meaning |
-|---|---|
-| RUNNING | The execution is actively processing. |
-| PAUSED | Execution is suspended. The pause reason is shown in the detail panel. |
-| COMPLETED | The execution finished normally and returned a result. |
-| CANCELLED | A user or policy action stopped the run before completion. |
-| REJECTED | A human reviewer rejected the run at an approval gate. The run is terminated. |
-| violation | The execution was terminated because it attempted a blocked capability. |
+- current run status
+- pause, cancellation, or review state
+- run metadata
+- links into receipt and follow-up workflows
 
-**Filtering runs**
+This is the console surface that maps most directly to the Verify stage of the product model.
 
-Use the status filter dropdown to narrow the list. For operations work, the most useful filters are **RUNNING** (what is happening now), **PAUSED** (runs waiting for action), and **violation** (policy incidents to investigate).
+## Proof, Receipts, And Violations
 
-**Run actions**
+The proof-oriented areas of the console help operators inspect:
 
-Each run has an action menu depending on its current status.
+- signed or receipt-oriented records
+- policy-violation follow-up
+- what should be verified before evidence leaves the product boundary
 
-| Action | When available | What it does |
-|---|---|---|
-| Pause | RUNNING | Suspends the run. It will hold in PAUSED state until resumed or cancelled. |
-| Resume | PAUSED (not awaiting approval) | Continues the run from its suspended state. |
-| Cancel | RUNNING or PAUSED | Terminates the run immediately. The run moves to CANCELLED and a receipt is issued. |
-| Approve | PAUSED (human_review_required) | Releases the run. It resumes as RUNNING. |
-| Reject | PAUSED (human_review_required) | Terminates the run. It moves to REJECTED and a receipt is issued. |
-| Replay | COMPLETED, REJECTED, CANCELLED | Starts a new run with the same inputs. Useful after adjusting policy or capability grants. |
+Use these views together with:
 
-**When to use each action**
+- [Verification](/docs/verification)
+- [Execution Receipts](/docs/execution-receipts)
+- [Receipts and Audit Workflow](/docs/receipts-audit-workflow)
 
-- Use **Pause** when you want to inspect a long-running execution without terminating it — for example, before a high-stakes tool call.
-- Use **Cancel** to stop a run that is misbehaving and cannot be approved.
-- Use **Replay** after making a policy change to verify the same input now routes correctly. Replay creates a new `execution_id` — it does not alter the original run's receipt.
+## Execution Environments
 
----
+The console also shows registered execution environments and their visibility state.
 
-## Execution Runs → Approve / Reject
+That is useful for:
 
-When a run's pause reason is `human_review_required`, it is in the human-in-the-loop (HITL) approval queue. These runs cannot be resumed automatically — they require a deliberate decision from a console user or API caller.
+- checking whether a runtime environment is registered
+- confirming heartbeat visibility
+- staging rollout work carefully
 
-**How runs end up in the queue**
+The console should not be read as proof that all environment-management automation is broadly ready across every workflow. Use [Proof Status](/docs/proof-status) when rollout or update claims matter.
 
-The execution engine evaluates review triggers configured in your policy. When a trigger fires — for example, a tool call targeting a sensitive endpoint, or an output classification above a risk threshold — the run transitions to PAUSED with `pause_reason: human_review_required`.
+## Policy And Governance Views
 
-**Reviewing in the console**
+Console policy and governance views are operator tools for:
 
-On the Execution Runs page, paused runs show a **Review** badge in the status column. Click the run to open its detail panel. You will see:
+- checking whether boundaries are behaving as expected
+- investigating violations
+- reviewing the effect of permission and policy changes
 
-- **Prompt preview** — a brief description of what the execution was about to do
-- **Agent ID** — which agent initiated this run
-- **Pause reason** — always `human_review_required` for HITL queue items
-- **Time in queue** — how long the run has been waiting
+They are useful because policy only matters if the run and its results can still be inspected afterward.
 
-Review the prompt preview carefully. If the intended action is within scope and aligned with your expectations, click **Approve**. If it is out of scope, unexpected, or policy-violating, click **Reject** and supply a reason.
+## Billing And Account Areas
 
-**What gets recorded**
+The console also includes account and billing surfaces.
 
-Both approve and reject decisions are recorded in the signed execution receipt with the approver identity, timestamp, and (for rejections) the stated reason. This record is tamper-evident and cannot be modified after the fact.
+Use them when you need:
 
-A rejected run cannot be retried by the agent. Use **Replay** from the run detail panel if you want to re-run after adjusting policy or capability grants.
+- tier visibility
+- environment-capacity awareness
+- account-key management
+- upgrade or subscription actions
 
-HITL approvals are available on **Horizon** and **Infinite** tiers.
+These views are commercial controls around the execution system, not part of the execution model itself.
 
----
+## How To Read The Console
 
-## Proof → Violations
+The shortest useful mental model is:
 
-The **Violations** page lists every capability violation recorded across your tenant — operations that an execution attempted but was blocked from performing by policy.
-
-**What a violation means**
-
-A violation is not an error in the traditional sense — it is the policy enforcement system working correctly. It means an agent attempted to use a capability (HTTP, shell, filesystem) that was not granted in its execution envelope. The execution was terminated at that point and a receipt was issued.
-
-**Violation types**
-
-| violation_type | What was blocked |
-|---|---|
-| `http_blocked` | The agent attempted an outbound HTTP request without `allow_http` capability |
-| `shell_blocked` | The agent attempted a shell command without `allow_shell` capability |
-| `filesystem_blocked` | The agent attempted a filesystem operation without `allow_filesystem` capability |
-| `tool_rate_limit` | The agent exceeded the tool call limit set in its policy |
-| `duration_exceeded` | The execution exceeded `max_duration_ms` |
-| `depth_exceeded` | A behavior tree execution exceeded the maximum allowed depth |
-
-**Using violations for policy tuning**
-
-Violations are the primary signal for calibrating capability grants. The workflow is:
-
-1. Review the violation list filtered by agent. Identify which violation type recurs most frequently.
-2. Decide whether the blocked operation is legitimate for this agent's purpose.
-3. If legitimate: update the agent's policy to grant that capability. Use **Policy** in the API or SDK, or assign a policy via the console's **Policy** section.
-4. If not legitimate: the agent's code or prompt is requesting capabilities it should not need. Investigate the agent behavior.
-
-A violation rate that suddenly increases for a previously stable agent is a signal worth investigating — it may indicate a prompt injection attempt or unexpected change in the agent's execution path.
-
----
-
-## History
-
-The **History** section gives access to the full execution event log, aggregate metrics, and the alert queue for your tenant.
-
-**Events**
-
-The Events tab shows a searchable, paginated log of all execution events. Filter by date range, agent, or violation status. Each row links to the full run in Execution Runs.
-
-Use the event log when you need to reconstruct what happened during a specific window — for example, to answer "what did agent-abc do between 14:00 and 15:00 on March 30?"
-
-**Metrics**
-
-The Metrics tab shows aggregate statistics: total executions, violation count, average wall time, and throughput over time. The throughput chart is useful for identifying traffic patterns and correlating spikes with specific agents or time windows.
-
-**Alerts**
-
-Alerts are raised when a policy violation occurs. Each alert maps to a specific execution run.
-
-The alert queue has three actions:
-
-| Action | Meaning |
-|---|---|
-| Acknowledge | You have seen this alert. Records the timestamp. The alert stays open. |
-| Resolve | The incident is closed. Records the resolution timestamp. |
-| Escalate | Flags the alert for elevated attention or external notification. |
-
-Use **Acknowledge** immediately when you begin investigating an alert, so other team members know it is being handled. Use **Resolve** when the root cause is understood and corrected. Use **Escalate** when the violation indicates a serious policy breach that requires action beyond the console.
-
-The alert lifecycle is: unacknowledged → acknowledged → resolved (or escalated from any state).
-
----
-
-## Behavior Tree Editor
-
-The console includes an interactive behavior tree editor accessible from two places:
-
-- **Fleet → Devices** — open a device detail and click **Edit Behavior Tree** to create or assign a definition scoped to that device
-- **Agents** — open an agent detail and click **Edit Behavior Tree** to manage the BT definition assigned to that agent
-
-**Using templates**
-
-The editor includes a set of built-in starter templates — Patrol Loop, Shutdown Guard, Task Retry, and others. Click **Templates** in the editor toolbar to browse them. Selecting a template loads its node graph into the editor canvas as a starting point. Templates are not saved to your tenant until you explicitly save.
-
-**Editing the graph**
-
-The canvas supports drag-and-drop node placement. Click **Add Node** to insert a node type, then drag edges between nodes to define parent-child relationships. Node types available in the editor match those in the API: Sequence, Selector, Parallel, Condition, Action, Decorator, and ROS2 topic/service nodes.
-
-Each node has a properties panel on the right where you can set the label, type-specific parameters, and any tool arguments for Action nodes.
-
-**Saving a definition**
-
-Click **Save** to persist the definition to your tenant. The definition name must be unique within your tenant — saving with an existing name overwrites that definition. The editor shows the `created_at` and `updated_at` timestamps after save.
-
-**Assigning a definition to an agent**
-
-After saving, click **Assign to Agent** from the definition detail to link it to one or more agents. The assigned definition takes effect on the next execution for that agent — no restart required.
-
-Saved definitions are also accessible via the API for programmatic management.
-
----
-
-## Settings → Keys
-
-**Settings → Keys** is where you manage the cloud provider API keys that Igris uses for routing. Keys are encrypted at rest and never exposed in full after initial entry.
-
-**Adding a key**
-
-1. Navigate to **Settings → Keys**
-2. Click **Add Key** next to the provider you want to configure
-3. Paste the API key from your provider's dashboard
-4. Click **Save** — Igris validates the key against the provider's live API before storing it
-
-If validation fails, the key is not stored and you will see the provider's error message. Common causes: the key was copied with extra whitespace, the key has not been activated yet in the provider dashboard, or the key has already been revoked.
-
-**Rotating a key**
-
-When you rotate a key at the provider side, update it in the console before the old key expires:
-
-1. Go to **Settings → Keys**
-2. Click **Replace** next to the provider
-3. Paste the new key and click **Save**
-
-Igris validates the new key before replacing the old one. The transition is atomic — routing continues uninterrupted during validation.
-
-**Removing a key**
-
-Click **Remove** next to a provider to stop routing requests to that provider. If it is your only key for that provider, Igris will no longer send requests there. Requests that previously routed to that provider will fall back to other configured providers according to your routing strategy.
-
-All key operations — add, replace, remove — are recorded in your audit log.
-
----
-
-## Settings → Billing
-
-**Settings → Billing** is where you manage your subscription, trial, and payment method.
-
-**Current plan**
-
-The top of the billing page shows your active tier (Seed, Horizon, or Infinite), billing cycle, and next renewal date. It also shows trial status if a trial is active, including the number of days remaining.
-
-**Starting a trial**
-
-If you have not yet started a trial, a **Start Free Trial** button is shown. Select the tier you want to trial and click **Start**. The trial runs for 7 days. At the end of the trial:
-
-- If you have added a payment method and subscribed: your subscription continues at the selected tier
-- If you have not subscribed: your account moves to Seed tier (no lockout, access continues)
-
-One trial is available per account. The button is not shown after the trial has been used.
-
-**Upgrading or downgrading**
-
-Click **Change Plan** to move between tiers. Upgrades take effect immediately — your account gains the new tier's features and runtime instance limit right away. Downgrades take effect at the end of the current billing period.
-
-**Managing payment**
-
-Click **Manage Payment** to update your credit card or billing details. This opens the billing portal where you can also view past invoices.
-
----
+1. use the dashboard for snapshot awareness
+2. use execution runs and history for inspection
+3. use receipt and proof surfaces for evidence workflows
+4. use environment views for runtime visibility and rollout checks
+5. use billing and account views for commercial controls
 
 ## Related Pages
 
-[API Reference →](/docs/api-reference) · [Fleet Management →](/docs/fleet-management) · [Agents →](/docs/agents) · [Execution Receipts →](/docs/execution-receipts)
+- [History & Alerts →](/docs/history)
+- [Verification →](/docs/verification)
+- [Fleet Management →](/docs/fleet-management)
+- [Trial & Billing →](/docs/trial-billing)

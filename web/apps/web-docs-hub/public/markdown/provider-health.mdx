@@ -1,183 +1,75 @@
 ---
 title: "Provider Health"
-description: "Igris continuously monitors the health of your configured AI providers and uses this data to make intelligent routing decisions."
+description: "Provider health is an advanced hosted coordination mechanism for failure-aware path selection during execution."
 audience: "public"
 ---
 
 # Provider Health
 
-Igris continuously monitors the health of your configured AI providers and uses this data to make intelligent routing decisions.
+Provider health is an advanced hosted coordination mechanism inside the **Execute** stage.
+
+Its purpose is straightforward: help Igris avoid obviously unhealthy upstream paths and make failure-aware execution decisions. This page is about the mechanics of that decision support, not about turning routing into the product identity.
 
 ---
 
-## Health Metrics
+## What Provider Health Means
 
-For each provider, Igris tracks:
+Provider health asks whether a configured upstream path appears usable right now.
 
-| Metric | Description |
-|---|---|
-| **Status** | `active`, `degraded`, or `unavailable` |
-| **Latency (p50)** | Median response time over the last 5 minutes |
-| **Latency (p99)** | 99th percentile response time over the last 5 minutes |
-| **Success rate** | Percentage of successful requests in the last 5 minutes |
-| **Error rate** | Percentage of failed requests in the last 5 minutes |
-| **Requests/min** | Current throughput |
-| **Cost/request** | Average cost per request in USD |
+Typical signals include:
 
----
+- response success or failure
+- latency behavior
+- recent throughput
+- health-check outcomes where those are enabled
 
-## Health Status Levels
+These signals help path selection, but they do not guarantee a perfect execution outcome.
 
-### Active
+## Health States
 
-The provider is operating normally:
-- Success rate ≥ 95%
-- p99 latency within SLO target
-- Circuit breaker is closed
+The exact thresholds depend on configuration, but the common states are:
 
-### Degraded
+- **active** when the path looks healthy enough to use normally
+- **degraded** when the path is still available but should be treated more cautiously
+- **unavailable** when the path should not receive ordinary execution traffic
 
-The provider is experiencing issues but still functional:
-- Success rate between 80% and 95%
-- p99 latency elevated but within 2× SLO target
-- Circuit breaker may be half-open
+This is about failure visibility and safer path selection, not a blanket survival promise.
 
-### Unavailable
+## Why It Matters
 
-The provider is not usable:
-- Success rate < 80%
-- p99 latency exceeds 2× SLO target
-- Circuit breaker is open
+Provider health helps operators answer:
 
----
+- which upstream paths are currently usable
+- whether a sudden latency or error spike should reduce traffic
+- whether a path should be removed from ordinary selection until it recovers
 
-## Health Monitoring Pipeline
+That makes it part of governed execution rather than just a dashboard nicety.
 
-```
-Provider Response → Metrics Collector → Health Evaluator → Routing Decision
-```
+## How It Affects Execution
 
-1. **Metrics Collector** — records latency, success/failure, and cost for every request
-2. **Health Evaluator** — computes rolling averages and determines health status
-3. **Routing Decision** — The routing engine uses health data to select the best provider
+Provider health feeds into hosted path selection alongside:
 
-The health evaluation runs on a sliding window (default 5 minutes). Older data decays exponentially.
+- policy
+- trust
+- circuit-breaker state
+- any advanced routing mode in use
 
----
+Health should narrow the set of usable paths before an advanced routing strategy makes its final choice.
 
-## Provider Health Dashboard
+## Monitoring Surfaces
 
-View provider health in the Console at `/models/providers`:
+Use the health APIs and console views to inspect health state, but keep expectations realistic:
 
-- **Provider cards** — status badge, latency, success rate, and last checked time
-- **Latency chart** — p50 and p99 latency over the last 24 hours
-- **Success rate chart** — rolling success rate over the last 24 hours
-- **Cost chart** — average cost per request over time
+- health telemetry helps explain execution behavior
+- health telemetry does not by itself prove performance or reliability outcomes for every workload
 
----
+## Proof Language
 
-## Health API
+Provider health is an advanced execution mechanism with real implementation support. It is appropriate to describe it as failure-aware path selection, but not as a guarantee that every outage or degradation scenario is already solved automatically.
 
-### GET /v1/providers/stats
+## Related Pages
 
-Returns health and performance statistics for all configured providers.
-
-```bash
-curl https://overture.igrisinertial.com/v1/providers/stats \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-{
-  "providers": [
-    {
-      "name": "anthropic",
-      "status": "active",
-      "latency_p50_ms": 287,
-      "latency_p99_ms": 512,
-      "success_rate": 0.994,
-      "error_rate": 0.006,
-      "requests_per_min": 42,
-      "cost_per_request_usd": 0.0034,
-      "circuit_breaker": {
-        "state": "closed",
-        "consecutive_failures": 0
-      }
-    },
-    {
-      "name": "openai",
-      "status": "degraded",
-      "latency_p50_ms": 892,
-      "latency_p99_ms": 2340,
-      "success_rate": 0.871,
-      "error_rate": 0.129,
-      "requests_per_min": 18,
-      "cost_per_request_usd": 0.0028,
-      "circuit_breaker": {
-        "state": "half-open",
-        "consecutive_failures": 3
-      }
-    }
-  ]
-}
-```
-
-### GET /v1/providers/:id/health
-
-Returns the health details for one configured provider.
-
-```bash
-curl https://overture.igrisinertial.com/v1/providers/provider_abc/health \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-{
-  "provider_id": "provider_abc",
-  "status": "active",
-  "latency_p50_ms": 287,
-  "latency_p99_ms": 512,
-  "success_rate": 0.994,
-  "error_rate": 0.006,
-  "last_checked_at": "2026-03-15T14:30:00Z"
-}
-```
-
----
-
-## Automatic Actions
-
-Based on health status, Igris takes automatic actions:
-
-| Status | Action |
-|---|---|
-| **Active** | Normal routing — provider receives traffic proportional to its weight |
-| **Degraded** | Reduced routing weight — provider receives less traffic |
-| **Unavailable** | Zero routing weight — all traffic diverted to fallback providers |
-
-These adjustments happen automatically. You do not need to manually reconfigure routing when a provider degrades.
-
----
-
-## Health Checks
-
-In addition to monitoring actual request traffic, Igris can perform periodic health check requests:
-
-```json
-{
-  "health_check": {
-    "enabled": true,
-    "interval_seconds": 60,
-    "prompt": "Say 'ok'",
-    "timeout_ms": 5000
-  }
-}
-```
-
-Health checks are useful when traffic volume is low and there isn't enough real request data to assess provider health.
-
----
-
-[Provider Trust →](/docs/provider-trust) · [Circuit Breaker →](/docs/circuit-breaker) · [Routing Engine →](/docs/escapevector) · [Cloud Coordination →](/docs/cloud-coordination)
+- [Provider Trust →](/docs/provider-trust)
+- [Circuit Breaker →](/docs/circuit-breaker)
+- [Routing Engine →](/docs/escapevector)
+- [Cloud Coordination →](/docs/cloud-coordination)

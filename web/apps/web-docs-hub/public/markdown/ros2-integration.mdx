@@ -1,291 +1,46 @@
 ---
-title: "ROS2 Integration"
-description: "Igris integrates natively with ROS2, exposing AI inference and agent execution as standard ROS2 nodes, topics, and services. Robots using ROS2 can invoke Igris without any custom t"
+title: "ROS2 Integration (Technical Preview)"
+description: "ROS2 integration is a technical-preview surface for teams exploring runtime execution near ROS2-based systems."
 audience: "public"
 ---
 
-# ROS2 Integration
+# ROS2 Integration (Technical Preview)
 
-Igris integrates natively with ROS2, exposing AI inference and agent execution as standard ROS2 nodes, topics, and services. Robots using ROS2 can invoke Igris without any custom transport code.
+ROS2 integration is a **technical preview** surface.
 
----
+Use this page when you need to understand how ROS2-related execution could fit under the Igris model. Do not treat it as a claim of broadly proven ROS2 production readiness.
 
-## Prerequisites
-
-Before installing the Igris ROS2 package, ensure your environment meets these requirements:
-
-### ROS2 Distribution
-
-| Distribution | Support Status | Platform |
-|---|---|---|
-| **Humble Hawksbill** | Supported | Ubuntu 22.04 |
-| **Iron Irwini** | Supported | Ubuntu 22.04 |
-| **Jazzy Jalisco** | Supported | Ubuntu 24.04 |
-
-### System Requirements
-
-- **OS**: Ubuntu 22.04 or 24.04 (LTS recommended)
-- **Architecture**: x86_64 or ARM64
-- **RAM**: 4 GB minimum (8 GB recommended for local inference)
-- **Network**: Outbound access to `overture.igrisinertial.com` for fleet coordination
-
-### DDS Configuration
-
-ROS2 uses DDS for inter-node communication. Igris works with the default Fast DDS or Cyclone DDS. For multi-robot deployments:
-
-- Set `ROS_DOMAIN_ID` to isolate robot networks (default: 0)
-- Ensure DDS discovery traffic (UDP multicast) is allowed on your network
-- For wireless deployments, consider increasing `ROS_DISCOVERY_SERVER` timeout
-
-### Dependencies
-
-```bash
-# Install ROS2 development tools
-sudo apt update && sudo apt install -y \
-  ros-dev-tools \
-  python3-colcon-common-extensions
-```
-
-### Installing the Package
-
-The Igris ROS2 package is available through your authenticated console. Navigate to **Fleet → Downloads → ROS2 Package** for the latest installation instructions and package downloads.
+Check [Proof Status](/docs/proof-status) before presenting ROS2 behavior beyond preview language.
 
 ---
 
-## Overview
+## How It Fits
 
-The Igris ROS2 node acts as a bridge between your robot's ROS2 graph and the execution engine. It subscribes to command topics, forwards requests to the local engine, and publishes results back onto the graph.
+ROS2 integration is a specialized extension of the same execution model:
 
-```
-ROS2 Node → /igris/infer (topic) → Igris ROS2 Bridge → Execution Engine
-                                                               │
-ROS2 Node ← /igris/response (topic) ←──────────────────── Response
-```
+- requests still enter through Igris workflows
+- execution still runs under boundaries and permissions
+- verification still depends on execution events and signed records
 
----
+The difference is simply that the surrounding environment is ROS2-oriented.
 
-## Installation
+## What Teams Should Expect
 
-The Igris ROS2 package targets ROS2 Humble, Iron, and Jazzy.
+Teams exploring this surface should expect:
 
-The ROS2 package is available through your authenticated console. Navigate to **Fleet → Downloads → ROS2 Package** for the latest installation instructions, package downloads, and build-from-source guides.
+- extra environment-specific integration work
+- the need for explicit operator validation
+- preview-level maturity rather than first-contact onboarding readiness
 
----
+## Use It Carefully
 
-## Starting the Node
+This page is appropriate for specialized engineering evaluation.
 
-```bash
-ros2 launch igris igris.launch.py \
-  engine_url:=http://localhost:8080 \
-  api_key:=YOUR_API_KEY
-```
+It is not the right page to lead with when explaining the product to a new team, and it should not be used to imply broadly proven robotics or ROS2 deployment workflows.
 
-The node publishes on `/igris/status` when it is connected and ready.
+## Related Pages
 
----
-
-## Sending an Inference Request
-
-Publish to `/igris/infer` using the `igris_msgs/InferRequest` message type:
-
-```bash
-ros2 topic pub /igris/infer igris_msgs/InferRequest '{
-  request_id: "req-001",
-  model: "phi3",
-  messages: [{role: "user", content: "Is the path ahead safe?"}]
-}'
-```
-
-Subscribe to `/igris/response` to receive the result:
-
-```bash
-ros2 topic echo /igris/response
-```
-
-```yaml
-request_id: "req-001"
-status: "success"
-content: "Based on the sensor data, the path appears clear."
-provider: "local"
-cost_usd: 0.0
-wall_time_ms: 84
-```
-
----
-
-## ROS2 Service Interface
-
-For synchronous calls, use the `/igris/infer_sync` service:
-
-```bash
-ros2 service call /igris/infer_sync igris_msgs/InferSync '{
-  model: "phi3",
-  messages: [{role: "user", content: "What action should I take?"}]
-}'
-```
-
----
-
-## Behavior Tree Integration
-
-The Igris ROS2 node exposes behavior tree execution as ROS2 actions:
-
-```bash
-# Deploy a behavior tree
-ros2 action send_goal /igris/btree/deploy igris_msgs/DeployTree \
-  '{tree_json: "/path/to/tree.json"}'
-
-# Run a behavior tree tick
-ros2 action send_goal /igris/btree/run igris_msgs/RunTree \
-  '{tree_id: "navigation-guard", context: {sensor: {temperature: 72}}}'
-```
-
----
-
-## Configuration
-
-The ROS2 node reads a configuration file at startup:
-
-```yaml
-# igris_ros2.yaml
-igris:
-  ros__parameters:
-    engine_url: "http://localhost:8080"
-    default_model: "phi3"
-    timeout_ms: 5000
-    publish_receipts: true        # publish signed receipts to /igris/receipts
-    receipt_topic_qos: reliable
-```
-
----
-
-## Message Types
-
-| Message | Type | Description |
-|---|---|---|
-| `igris_msgs/InferRequest` | Topic | Asynchronous inference request |
-| `igris_msgs/InferResponse` | Topic | Inference result |
-| `igris_msgs/InferSync` | Service | Synchronous inference |
-| `igris_msgs/DeployTree` | Action | Deploy a behavior tree |
-| `igris_msgs/RunTree` | Action | Run a behavior tree tick |
-| `igris_msgs/ExecutionReceipt` | Topic | Signed execution receipt |
-
----
-
-## ROS Topic Management API
-
-Igris exposes a REST API for managing ROS topic mappings, queuing publish commands, and reading live topic activity. All endpoints require authentication.
-
-### GET /v1/ros/topics
-
-List all registered ROS topic mappings for your tenant.
-
-```bash
-curl https://overture.igrisinertial.com/v1/ros/topics \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-[
-  {
-    "id": "tmap-01HXYZ",
-    "device_id": "runtime-01",
-    "bt_action": "move_forward",
-    "topic_name": "/robot/cmd_vel",
-    "direction": "publish",
-    "created_at": "2026-03-01T12:00:00Z"
-  }
-]
-```
-
-### POST /v1/ros/topics/map
-
-Create a new topic mapping — link a BT action name to a ROS topic.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/ros/topics/map \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "device_id": "runtime-01",
-    "bt_action": "move_forward",
-    "topic_name": "/robot/cmd_vel",
-    "direction": "publish"
-  }'
-```
-
-| Field | Description |
-|---|---|
-| `device_id` | Runtime instance this mapping applies to |
-| `bt_action` | BT `Action` node name that triggers this topic |
-| `topic_name` | ROS 2 topic name |
-| `direction` | `publish` or `subscribe` |
-
-### DELETE /v1/ros/topics/map/:id
-
-Remove a topic mapping.
-
-```bash
-curl -X DELETE https://overture.igrisinertial.com/v1/ros/topics/map/tmap-01HXYZ \
-  -H "Authorization: Bearer YOUR_API_KEY"
-# → 204 No Content
-```
-
-### POST /v1/ros/publish
-
-Queue a one-shot publish command to a ROS topic on a specific device. The command is delivered on the device's next heartbeat.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/ros/publish \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "device_id": "runtime-01",
-    "topic": "/robot/cmd_vel",
-    "message": {"linear": {"x": 0.5}, "angular": {"z": 0.0}}
-  }'
-```
-
-### GET /v1/ros/discovery
-
-Live ROS topic and service discovery data reported by fleet devices.
-
-```bash
-curl https://overture.igrisinertial.com/v1/ros/discovery \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-[
-  {
-    "device_id": "runtime-01",
-    "topic_name": "/robot/scan",
-    "message_type": "sensor_msgs/LaserScan",
-    "last_seen_at": "2026-03-01T12:00:01Z",
-    "within_envelope": true
-  }
-]
-```
-
-### POST /v1/ros/lifecycle
-
-Queue a ROS 2 lifecycle state transition command.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/ros/lifecycle \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "device_id": "runtime-01",
-    "node_name": "/igris_bridge",
-    "transition": "activate"
-  }'
-```
-
-Valid transitions: `configure`, `activate`, `deactivate`, `cleanup`, `shutdown`.
-
----
-
-[Robotics →](/docs/robotics) · [Behavior Trees →](/docs/behavior-trees) · [Fleet Management →](/docs/fleet-management)
+- [Robotics →](/docs/robotics)
+- [Behavior Trees →](/docs/behavior-trees)
+- [Proof Status →](/docs/proof-status)
+- [Deployment →](/docs/deployment)

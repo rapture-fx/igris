@@ -1,192 +1,65 @@
 ---
 title: "Circuit Breaker"
-description: "The circuit breaker protects your inference pipeline from cascading failures when a provider degrades or becomes unavailable."
+description: "The circuit breaker is an advanced failure-aware execution mechanism that reduces traffic to unhealthy upstream paths."
 audience: "public"
 ---
 
 # Circuit Breaker
 
-The circuit breaker protects your inference pipeline from cascading failures when a provider degrades or becomes unavailable.
+The circuit breaker is an advanced failure-aware execution mechanism.
+
+Its purpose is to reduce traffic to an upstream path that is repeatedly failing, then probe cautiously to see whether that path has recovered. This helps make failure paths more visible and controlled during execution.
 
 ---
 
-## How It Works
+## Core States
 
-The circuit breaker monitors provider health in real time and automatically diverts traffic away from unhealthy providers. It operates in three states:
+The common state model is:
 
-### Closed (Healthy)
+- **closed** when the path is healthy enough for ordinary traffic
+- **open** when the path should stop receiving ordinary traffic
+- **half-open** when the system is probing recovery carefully
 
-The provider is operating normally. All requests flow to it according to the routing strategy.
+This is a classic control mechanism, but in Igris it matters because it shapes which execution paths remain eligible during failure conditions.
 
-- Failures are counted but do not affect routing
-- When failure count reaches the threshold, the circuit opens
+## Why It Matters
 
-### Open (Unhealthy)
+Without a breaker, the system may keep sending work into a failing path longer than it should.
 
-The provider is considered unhealthy. No new requests are sent to it.
+With a breaker, operators get:
 
-- Requests are immediately routed to the next provider in the fallback chain
-- A timer starts — after the timeout period, the circuit transitions to half-open
+- clearer failure handling
+- reduced repeated attempts against a path that is already misbehaving
+- a more deliberate recovery probe before normal traffic resumes
 
-### Half-Open (Testing)
+## What It Does Not Mean
 
-The circuit allows a single test request through to check if the provider has recovered.
+The breaker is not a blanket guarantee that every execution survives every upstream issue. It is one mechanism in the larger Execute-stage control stack.
 
-- If the test succeeds, the circuit closes (provider is healthy again)
-- If the test fails, the circuit reopens and the timeout resets
+Other layers still matter:
 
----
+- policy
+- health
+- trust
+- explicit deployment choices
 
-## State Machine
+## How To Operate It
 
-```
-                    ┌──────────┐
-    Success ──────►│  CLOSED  │────── All requests flow
-                   │          │
-                   └────┬─────┘
-                        │ consecutive failures >= threshold
-                   ┌────▼─────┐
-                   │   OPEN   │────── Zero requests, timer running
-                   │          │
-                   └────┬─────┘
-                        │ timeout elapsed
-                   ┌────▼─────┐
-    Success ──────►│ HALF-OPEN│────── 1 test request
-    Failure ──────►│          │────── Reopen on failure
-                   └──────────┘
-```
+Use breaker settings to match your tolerance for:
 
----
+- repeated upstream failures
+- recovery probe frequency
+- flapping behavior
 
-## Configuration
-
-Circuit breaker settings are configured per-tenant:
-
-```json
-{
-  "circuit_breaker": {
-    "enabled": true,
-    "failure_threshold": 5,
-    "success_threshold": 3,
-    "timeout_seconds": 30,
-    "half_open_max_requests": 1,
-    "monitoring_window_seconds": 300
-  }
-}
-```
-
-<TypeTable
-  type={{
-    enabled: {
-      type: 'boolean',
-      description: 'Enable circuit breaker.',
-      default: 'true',
-      required: true,
-    },
-    failure_threshold: {
-      type: 'number',
-      description: 'Consecutive failures required before the circuit opens.',
-      default: '5',
-      required: true,
-    },
-    success_threshold: {
-      type: 'number',
-      description: 'Consecutive successes required to close the circuit from half-open.',
-      default: '3',
-      required: true,
-    },
-    timeout_seconds: {
-      type: 'number',
-      description: 'Seconds before an open circuit transitions to half-open.',
-      default: '30',
-      required: true,
-    },
-    half_open_max_requests: {
-      type: 'number',
-      description: 'Maximum concurrent requests allowed during half-open probing.',
-      default: '1',
-      required: true,
-    },
-    monitoring_window_seconds: {
-      type: 'number',
-      description: 'Rolling window used for failure-rate calculations, in seconds.',
-      default: '300',
-      required: true,
-    },
-  }}
-/>
-
----
-
-## What Counts as a Failure?
-
-A provider request is considered a failure if:
-
-- **HTTP error** — 5xx response from the provider API
-- **Timeout** — request exceeds the configured timeout
-- **Empty response** — provider returns a 200 with no content
-- **Rate limit** — 429 response (optional, configurable)
-
-Successful responses (2xx with valid content) reset the consecutive failure counter.
-
----
+If a path is bouncing rapidly between states, that is an operational signal worth inspecting rather than something to hide behind automation language.
 
 ## Monitoring
 
-### Console
+Use console and API health views to inspect breaker state and recent failure behavior. Treat those views as execution diagnostics, not as proof that all survival scenarios are fully covered.
 
-View circuit breaker status at the routing dashboard in the console:
+## Related Pages
 
-- Per-provider state indicator (closed/open/half-open)
-- Failure count and last failure timestamp
-- Visual timeline of state transitions
-
-### API
-
-```bash
-curl https://overture.igrisinertial.com/v1/providers/stats \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response includes circuit breaker state per provider:
-
-```json
-{
-  "providers": [
-    {
-      "name": "anthropic",
-      "status": "active",
-      "circuit_breaker": {
-        "state": "closed",
-        "consecutive_failures": 0,
-        "last_failure_at": null
-      }
-    },
-    {
-      "name": "openai",
-      "status": "degraded",
-      "circuit_breaker": {
-        "state": "half-open",
-        "consecutive_failures": 5,
-        "last_failure_at": "2026-03-01T11:58:00Z"
-      }
-    }
-  ]
-}
-```
-
----
-
-## Best Practices
-
-1. **Set `failure_threshold` based on provider reliability** — for providers with occasional transient errors, use a higher threshold (5–10). For critical providers, use a lower threshold (2–3).
-
-2. **Keep `timeout_seconds` short** — 30 seconds is a good default. If a provider is down, you want to test recovery quickly.
-
-3. **Monitor the half-open state** — frequent transitions between open and half-open indicate a flapping provider. Consider removing it from your fallback chain.
-
-4. **Combine with SLO enforcement** — the circuit breaker handles hard failures; the SLO Enforcer handles soft degradation (slow responses that still succeed).
-
----
-
-[SLO Enforcer →](/docs/slo-enforcer) · [Provider Health →](/docs/provider-health) · [Cloud Coordination →](/docs/cloud-coordination)
+- [Provider Health →](/docs/provider-health)
+- [Provider Trust →](/docs/provider-trust)
+- [Cloud Coordination →](/docs/cloud-coordination)
+- [SLO Enforcer →](/docs/slo-enforcer)
