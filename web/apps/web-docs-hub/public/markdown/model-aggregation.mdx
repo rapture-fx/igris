@@ -1,177 +1,65 @@
 ---
-title: "Model Aggregation"
-description: "> Infinite Tier — Federated model aggregation is included with the Infinite plan."
+title: "Model Aggregation (Technical Preview)"
+description: "A preview-oriented look at model aggregation and federated-style learning workflows under Igris."
 audience: "public"
 ---
 
-# Model Aggregation
+# Model Aggregation (Technical Preview)
 
-> **Infinite Tier** — Federated model aggregation is included with the Infinite plan.
+Model aggregation is a specialized, preview-oriented surface in Igris.
 
-Igris supports federated learning across your fleet of Runtime devices, enabling collaborative model improvement without sharing raw data between devices.
+It is not part of the default Request -> Execute -> Verify path, and it should not be treated as a proof-backed production capability today.
 
----
-
-## What It Is
-
-Model Aggregation (federated learning) allows multiple Runtime devices to train local model updates (LoRA adapters) and aggregate them into a global model improvement — all without sending training data off-device.
-
-```
-Device A: trains local adapter ──┐
-Device B: trains local adapter ──┼──► Aggregator → Global model update
-Device C: trains local adapter ──┘
-```
-
-Each device:
-1. Trains a LoRA adapter on its local execution history
-2. Sends only the adapter weights (encrypted) to the aggregator
-3. Receives the aggregated global model update
-4. Applies the update to its local model
-
-Raw execution data never leaves the device.
+See [Proof Status](/docs/proof-status) before planning around this page.
 
 ---
 
-## Architecture
+## What This Page Covers
 
-```
-┌─────────────────────────────────────────────────────┐
-│               Coordination Layer (Cloud)              │
-│                                                     │
-│  ┌─────────────────────────────────────────────┐   │
-│  │           Federated Coordinator              │   │
-│  │                                              │   │
-│  │  Round Manager → Aggregator → Model Distributor│   │
-│  └──────────────────┬──────────────────────────┘   │
-└─────────────────────┼──────────────────────────────┘
-                      │
-        ┌─────────────┼─────────────┐
-        │             │             │
-   ┌────▼────┐  ┌────▼────┐  ┌────▼────┐
-   │Device A  │  │Device B  │  │Device C  │
-   │(LoRA)    │  │(LoRA)    │  │(LoRA)    │
-   └─────────┘  └─────────┘  └─────────┘
-```
+In the codebase, Igris includes source-confirmed structures for federated-style learning workflows where multiple configured execution environments contribute updates to a shared model-improvement process.
+
+The high-level idea is:
+
+1. local environments produce model-adaptation artifacts
+2. those artifacts are collected centrally
+3. an aggregated result is redistributed
+
+That is useful for organizations exploring privacy-preserving adaptation workflows, but the public proof for this area is still limited.
 
 ---
 
-## Aggregation Rounds
+## What Is Confirmed Today
 
-Federated learning operates in rounds:
-
-1. **Round Start** — The coordinator triggers a new aggregation round
-2. **Local Training** — Each participating device trains its LoRA adapter
-3. **Weight Upload** — Devices upload encrypted adapter weights
-4. **Aggregation** — The coordinator computes a weighted average of all adapters
-5. **Distribution** — The aggregated model is sent back to all participants
-6. **Application** — Each device loads the updated model
-
-### Round Configuration
-
-```json
-{
-  "federated_learning": {
-    "enabled": true,
-    "min_participants": 3,
-    "round_interval_mins": 60,
-    "max_rounds_per_day": 12,
-    "privacy_budget": 1.0,
-    "noise_scale": 0.1
-  }
-}
-```
-
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `enabled` | bool | `false` | Enable federated learning |
-| `min_participants` | int | 3 | Minimum devices required to start a round |
-| `round_interval_mins` | int | 60 | Time between aggregation rounds |
-| `max_rounds_per_day` | int | 12 | Maximum rounds per day |
-| `privacy_budget` | float | 1.0 | Differential privacy budget (ε) |
-| `noise_scale` | float | 0.1 | Noise added to weights for privacy |
+- source-confirmed configuration and API surfaces exist for model-aggregation-style workflows
+- the idea fits naturally with hosted and hybrid deployment modes
+- operators can reason about this as a specialized execution-environment workflow rather than a separate product
 
 ---
 
-## Privacy
+## What Is Not Proven Here
 
-Federated learning in Igris includes differential privacy guarantees:
+- end-to-end production model aggregation across real customer environments
+- public proof for privacy guarantees or convergence behavior
+- rollout guidance strong enough to treat this as generally available
 
-- **Noise injection** — Gaussian noise is added to adapter weights before upload
-- **Privacy budget** — The total privacy loss (ε) is tracked across rounds
-- **Clipping** — Weight updates are clipped to a maximum norm before aggregation
-
-The privacy budget ensures that no individual device's training data can be reconstructed from the aggregated model.
+For those reasons, this page should be read as technical preview guidance, not a deployment commitment.
 
 ---
 
-## API
+## When To Evaluate It
 
-### GET /v1/federated/status
+Evaluate model aggregation only if you already need:
 
-Current status of the federated learning coordinator.
+- local adaptation close to where work happens
+- coordination across multiple configured execution environments
+- stronger control over what data leaves the execution surface
 
-```bash
-curl https://overture.igrisinertial.com/v1/federated/status \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-{
-  "enabled": true,
-  "active_round": 12,
-  "total_rounds": 47,
-  "participants": 8,
-  "last_aggregated": "2026-03-01T10:00:00Z",
-  "privacy_budget": 1.0,
-  "noise_scale": 0.1
-}
-```
-
-### GET /v1/federated/participants
-
-List active fleet participants (devices seen in the last 10 minutes).
-
-### GET /v1/federated/rounds
-
-List recent aggregation rounds.
-
-```json
-[
-  {
-    "id": 12,
-    "started_at": "2026-03-01T11:30:00Z",
-    "status": "running",
-    "participant_count": 8,
-    "updates_received": 5,
-    "model_version": "v1.4"
-  }
-]
-```
-
-### POST /v1/federated/rounds/start
-
-Manually trigger a new aggregation round.
-
-### GET /v1/federated/config
-
-Returns current federated learning configuration.
-
-### PUT /v1/federated/config
-
-Update federated learning configuration.
+If your immediate goal is governed execution with signed records and verification-ready receipts, start with the standard docs path instead.
 
 ---
 
-## Console
+## Related Pages
 
-View federated learning at `/models/federated`:
-
-- Active round status and participant count
-- Round history with completion times
-- Privacy budget consumption chart
-- Per-device contribution tracking
-
----
-
-[On-Device Training →](/docs/memory) · [Fleet Management →](/docs/fleet-management) · [Cloud Coordination →](/docs/cloud-coordination)
+- [Deployment →](/docs/deployment)
+- [Fleet Management →](/docs/fleet-management)
+- [Proof Status →](/docs/proof-status)
