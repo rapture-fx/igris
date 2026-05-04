@@ -8,7 +8,7 @@
 CREATE TABLE IF NOT EXISTS execution_context (
     execution_id TEXT PRIMARY KEY,
     tenant_id TEXT,
-    task_id UUID REFERENCES task_records(task_id) ON DELETE SET NULL,
+    task_id UUID,
     runtime_id TEXT,
     runtime_label TEXT,
     provider TEXT,
@@ -26,6 +26,26 @@ CREATE TABLE IF NOT EXISTS execution_context (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+          AND table_name = 'task_records'
+    ) AND NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'execution_context_task_id_fkey'
+    ) THEN
+        ALTER TABLE execution_context
+            ADD CONSTRAINT execution_context_task_id_fkey
+            FOREIGN KEY (task_id)
+            REFERENCES task_records(task_id)
+            ON DELETE SET NULL;
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS execution_context_tenant_updated_idx
     ON execution_context (tenant_id, updated_at DESC);
