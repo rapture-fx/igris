@@ -1,166 +1,116 @@
 ---
 title: "Execution Flow"
-description: "This page traces the path of a request through the Igris platform from SDK call to signed receipt."
+description: "This page traces the detailed Request -> Execute -> Verify lifecycle from request intake through execution events and receipt-oriented outputs."
 audience: "public"
 ---
 
 # Execution Flow
 
-This page traces the path of a request through the Igris platform from SDK call to signed receipt.
+This page is the detailed version of Request -> Execute -> Verify.
+
+Use it when you already understand the product model and want the more concrete lifecycle of a run.
 
 ---
 
-## Request Lifecycle
+## Lifecycle Overview
 
-```
-1. Application sends request
-        │
-        ▼
-2. SDK serializes to OpenAI format
-        │
-        ▼
-3. Coordination layer receives request
-   ├── Authenticates tenant
-   ├── Checks budget limit
-   ├── Applies routing policy
-   └── Selects provider (adaptive routing)
-        │
-        ├──── Cloud provider selected ──────────────────┐
-        │                                               │
-        ├──── Runtime selected (hybrid mode) ──────┐   │
-        │                                          │   │
-        ▼                                          ▼   ▼
-4. Runtime (if used)                       Cloud provider
-   ├── Opens execution envelope            (OpenAI / Anthropic
-   ├── Checks capability gates              / Google / etc.)
-   ├── Runs inference (local or cloud)          │
-   ├── Closes envelope                          │
-   └── Signs receipt                            │
-        │                                       │
-        └───────────────────────────────────────┘
-                            │
-                            ▼
-5. Coordination layer receives response
-   ├── Records cost and latency
-   ├── Updates provider statistics
-   └── Returns response to application
-        │
-        ▼
-6. Application receives response
-   └── metadata includes: provider, cost, latency, routing_decision
+```text
+1. Request enters Igris
+        |
+        v
+2. Igris authenticates, scopes, and prepares execution
+        |
+        v
+3. Execution runs on the configured hosted or runtime-backed path
+        |
+        v
+4. Igris records execution metadata and outcome details
+        |
+        v
+5. Receipt-oriented records and verification surfaces become available
 ```
 
----
+## 1. Request Intake
 
-## Step by Step
+The lifecycle starts when the application sends work through a documented Igris surface.
 
-### 1. SDK Call
+At intake, Igris determines the context for the run:
 
-Your application uses any OpenAI-compatible SDK pointed at the Igris endpoint.
+- who is making the request
+- which tenant or deployment context applies
+- what inputs and parameters were supplied
+- which boundaries and policies matter for this run
 
-```python
-from openai import OpenAI
+## 2. Execution Preparation
 
-client = OpenAI(
-    base_url="https://overture.igrisinertial.com/v1",
-    api_key="your-igris-api-key"
-)
+Before the main work runs, Igris prepares the execution path.
 
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Explain quantum entanglement"}]
-)
-```
+That can include:
 
-The request is standard OpenAI format. No Igris-specific fields are required for basic usage.
+- authentication and tenant scoping
+- policy or capability checks
+- resource and budget checks
+- choosing the hosted or runtime-backed path that should own execution
 
----
+This is where the run becomes governed work rather than an unstructured provider call.
 
-### 2. The Coordination Layer Routes the Request
+## 3. Execution
 
-The coordination layer receives the request and applies routing logic before forwarding:
+Execution happens on the configured path for the workload.
 
-**Authentication.** The API key is validated and associated with a tenant. All downstream cost, quota, and policy enforcement uses this tenant context.
+### Hosted path
 
-**Budget check.** If the tenant has a monthly budget configured and the current spend has reached the hard limit, the coordination layer returns HTTP 402 before forwarding the request.
+When the workload stays on the hosted path, Igris coordinates the provider-backed execution and returns the resulting output plus the metadata relevant to that run.
 
-**Provider selection.** The coordination layer selects a provider from the tenant's configured provider pool. The selection uses current performance statistics, the tenant's routing policy, and real-time provider health.
+### Runtime-backed path
 
-**Forwarding.** The request is forwarded to the selected provider in the provider's native format. If the provider fails, the coordination layer selects the next provider and retries.
+When the workload uses runtime participation, the runtime owns the execution step and can produce the execution artifacts associated with that path.
 
----
+### Failure-path language
 
-### 3. Execution (Cloud or Local)
+Igris is designed to make failure paths visible, but you should still be precise:
 
-**Cloud path:** The provider runs inference and returns a response. The coordination layer records latency, token count, and error status.
+- some runtime-backed proof paths are demonstrated locally
+- some broader failover or recovery stories are supported in architecture but not yet proven in every environment
 
-**Runtime path (hybrid mode):** If the coordination layer's routing selects the Runtime as the provider, the request goes to a registered Runtime instance. The Runtime opens an execution envelope, enforces capability gates, runs inference (local or cloud), signs the completed envelope, and returns the response.
+Use [Proof Status](/docs/proof-status) when you need to distinguish those cases.
 
----
+## 4. Execution Events And Outcome
 
-### 4. Response Returns to Application
+After or during execution, the workflow can expose:
 
-The response follows OpenAI's response format with additional metadata:
+- route decisions
+- provider or runtime labels
+- usage and timing details
+- execution-state outcomes
+- receipt-oriented material
 
-```json
-{
-  "id": "chatcmpl-abc123",
-  "object": "chat.completion",
-  "choices": [...],
-  "usage": {
-    "prompt_tokens": 12,
-    "completion_tokens": 87,
-    "total_tokens": 99
-  },
-  "metadata": {
-    "provider": "anthropic",
-    "model_used": "claude-3-haiku",
-    "routing_decision": "thompson-sampling",
-    "cost_usd": 0.00021,
-    "latency_ms": 312,
-    "fallback": false
-  }
-}
-```
+This is the point where the flow becomes inspectable instead of disappearing behind a plain text response.
 
----
+## 5. Receipt And Verification Layer
 
-## Offline Path
+When the run needs post-execution review, move into the verification layer:
 
-When all cloud providers are unreachable and the Runtime is configured as a local fallback:
+- inspect receipt-oriented records
+- compare stored values where the hosted proof route is appropriate
+- use the local verified run when you need the strongest demonstrated signature and hash checks
 
-```
-Application → Coordination Layer (cloud providers unreachable)
-                   │
-                   └──► Runtime (local inference)
-                             │
-                             ├── Phi-3 / Mistral / Llama
-                             ├── Signs execution receipt
-                             └── Returns response
-```
+Relevant pages:
 
-From the application's perspective, the response is identical. The `metadata.provider` field reflects which provider was used.
+- [Execution Receipts](/docs/execution-receipts)
+- [Verification](/docs/verification)
+- [Receipts and Audit Workflow](/docs/receipts-audit-workflow)
 
-[Configuring local fallback →](/docs/local-llm-fallback)
+## A Simple Way To Read The Flow
+
+If you are explaining Igris to another engineer, the shortest honest version is:
+
+1. send a request through Igris
+2. let Igris execute it under boundaries
+3. inspect the records the run produced
+
+Everything else is detail layered underneath that lifecycle.
 
 ---
 
-## Execution Receipts
-
-When Runtime processes a request, it produces a signed execution receipt. The receipt contains:
-
-- Canonical record of inputs and outputs
-- Resource usage (tokens, time, tool calls)
-- Applied capability gates
-- Cryptographic signature
-
-Receipts are stored in Runtime's local database and can be exported for audit. They cannot be altered after signing.
-
-[Execution Receipts →](/docs/execution-receipts) · [Architecture →](/docs/architecture)
-
----
-
-## SDK References
-
-- [SDKs →](/docs/sdk)
-- [API Reference →](/docs/api-reference)
+[Execution Model →](/docs/execution-model) · [Verification →](/docs/verification) · [Architecture →](/docs/architecture)
