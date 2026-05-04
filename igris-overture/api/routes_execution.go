@@ -243,6 +243,15 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
+	schemaCaps, err := detectExecutionSchemaCapabilities(c.Context(), h.db)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Execution] Failed to inspect schema capabilities")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to retrieve execution runs",
+		})
+	}
+
 	// Parse limit param, default 20, cap at 200
 	limit := 20
 	if raw := c.Query("limit", ""); raw != "" {
@@ -276,49 +285,44 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 
 	var args []interface{}
 	args = append(args, tenantID)
-	whereClause := "WHERE tenant_id = $1"
+	whereClause := "WHERE execution_lineage.tenant_id = $1"
 	if rangeParam := c.Query("range", ""); rangeParam != "" {
-		whereClause += " AND timestamp_utc >= NOW() - INTERVAL '" + rangeToInterval(rangeParam) + "'"
+		whereClause += " AND execution_lineage.timestamp_utc >= NOW() - INTERVAL '" + rangeToInterval(rangeParam) + "'"
 	}
 	if statusFilter != "" {
 		args = append(args, statusFilter)
-		whereClause += fmt.Sprintf(" AND UPPER(COALESCE(status, CASE WHEN violation_occurred THEN 'VIOLATION' ELSE 'COMPLETED' END)) = $%d", len(args))
+		whereClause += fmt.Sprintf(" AND UPPER(COALESCE(execution_lineage.status, CASE WHEN execution_lineage.violation_occurred THEN 'VIOLATION' ELSE 'COMPLETED' END)) = $%d", len(args))
 	}
 	args = append(args, limit)
 	args = append(args, offset)
 
 	query := `
 		SELECT
-			execution_id,
-			agent_id,
-			COALESCE(runtime_id, '') AS device_id,
-			timestamp_utc,
-			wall_time_ms,
-			violation_occurred,
-			COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
-			COALESCE(pause_reason, '') AS pause_reason,
-			COALESCE(prompt_preview, '') AS prompt_preview,
-			id::text,
-			COALESCE(receipt_hash, '') AS receipt_hash,
-			COALESCE(previous_hash, '') AS previous_hash,
-			COALESCE(signature, '') AS signature,
+			execution_lineage.execution_id,
+			execution_lineage.agent_id,
+			COALESCE(execution_lineage.runtime_id, '') AS device_id,
+			execution_lineage.timestamp_utc,
+			execution_lineage.wall_time_ms,
+			execution_lineage.violation_occurred,
+			COALESCE(execution_lineage.status, CASE WHEN execution_lineage.violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
+			COALESCE(execution_lineage.pause_reason, '') AS pause_reason,
+			COALESCE(execution_lineage.prompt_preview, '') AS prompt_preview,
+			execution_lineage.id::text,
+			COALESCE(execution_lineage.receipt_hash, '') AS receipt_hash,
+			COALESCE(execution_lineage.previous_hash, '') AS previous_hash,
+			COALESCE(execution_lineage.signature, '') AS signature,
 			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status
 		FROM execution_lineage
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = execution_lineage.execution_id
 		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
-		LEFT JOIN LATERAL (
-			SELECT proof_status
-			FROM task_records
-			WHERE tenant_id = execution_lineage.tenant_id
-			  AND proof_execution_id = execution_lineage.execution_id
-			ORDER BY created_at DESC
-			LIMIT 1
-		) tp ON TRUE
+		%s
 		` + whereClause + `
-		ORDER BY timestamp_utc ` + sortDir + `
+		ORDER BY execution_lineage.timestamp_utc ` + sortDir + `
 		LIMIT $` + fmt.Sprintf("%d", len(args)-1) + `
 		OFFSET $` + fmt.Sprintf("%d", len(args))
+
+	query = fmt.Sprintf(query, executionTaskProofLookupJoinSQL(schemaCaps.taskProofLookup, "execution_lineage"))
 
 	rows, err := h.db.QueryContext(c.Context(), query, args...)
 	if err != nil {
@@ -365,6 +369,15 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
 
+	schemaCaps, err := detectExecutionSchemaCapabilities(c.Context(), h.db)
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Execution] Failed to inspect schema capabilities")
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "internal_error",
+			"message": "Failed to load execution run",
+		})
+	}
+
 	runID := strings.TrimSpace(c.Params("id"))
 	if runID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -374,23 +387,23 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 	}
 
 	record := executionRunRecord{}
-	err := h.db.QueryRowContext(c.Context(), `
+	query := `
 		SELECT
-			execution_id,
-			agent_id,
-			COALESCE(runtime_id, '') AS device_id,
-			timestamp_utc,
-			COALESCE(wall_time_ms, 0) AS wall_time_ms,
-			COALESCE(violation_occurred, false) AS violation_occurred,
-			COALESCE(status, CASE WHEN violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
-			COALESCE(pause_reason, '') AS pause_reason,
-			COALESCE(prompt_preview, '') AS prompt_preview,
-			id::text,
-			COALESCE(receipt_hash, '') AS receipt_hash,
-			COALESCE(previous_hash, '') AS previous_hash,
-			COALESCE(signature, '') AS signature,
+			execution_lineage.execution_id,
+			execution_lineage.agent_id,
+			COALESCE(execution_lineage.runtime_id, '') AS device_id,
+			execution_lineage.timestamp_utc,
+			COALESCE(execution_lineage.wall_time_ms, 0) AS wall_time_ms,
+			COALESCE(execution_lineage.violation_occurred, false) AS violation_occurred,
+			COALESCE(execution_lineage.status, CASE WHEN execution_lineage.violation_occurred THEN 'violation' ELSE 'completed' END) AS status,
+			COALESCE(execution_lineage.pause_reason, '') AS pause_reason,
+			COALESCE(execution_lineage.prompt_preview, '') AS prompt_preview,
+			execution_lineage.id::text,
+			COALESCE(execution_lineage.receipt_hash, '') AS receipt_hash,
+			COALESCE(execution_lineage.previous_hash, '') AS previous_hash,
+			COALESCE(execution_lineage.signature, '') AS signature,
 			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status,
-			violation_details,
+			%s,
 			COALESCE(ec.provider, '') AS context_provider,
 			COALESCE(ec.route_decision, '') AS context_route_decision,
 			COALESCE(ec.execution_path, '') AS context_execution_path,
@@ -413,32 +426,17 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = execution_lineage.execution_id
 		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
-		LEFT JOIN LATERAL (
-			SELECT
-				proof_status,
-				execution_envelope,
-				failure_reason,
-				failure_details,
-				created_at,
-				dispatched_at,
-				completed_at,
-				canceled_at,
-				COALESCE((
-					SELECT permission_envelope
-					FROM ai_task_permission_audit
-					WHERE task_id = task_records.task_id
-					ORDER BY persisted_at DESC
-					LIMIT 1
-				), '{}'::jsonb) AS permission_envelope
-			FROM task_records
-			WHERE tenant_id = execution_lineage.tenant_id
-			  AND proof_execution_id = execution_lineage.execution_id
-			ORDER BY created_at DESC
-			LIMIT 1
-		) tp ON TRUE
-		WHERE execution_id = $1
-		  AND tenant_id = $2
-	`, runID, tenantID).Scan(
+		%s
+		WHERE execution_lineage.execution_id = $1
+		  AND execution_lineage.tenant_id = $2
+	`
+	query = fmt.Sprintf(
+		query,
+		executionLineageViolationDetailsSQL(schemaCaps.lineageViolationDetail, "execution_lineage"),
+		executionTaskProofDetailJoinSQL(schemaCaps.taskProofDetail, schemaCaps.permissionAudit),
+	)
+
+	err = h.db.QueryRowContext(c.Context(), query, runID, tenantID).Scan(
 		&record.ID,
 		&record.AgentID,
 		&record.DeviceID,
