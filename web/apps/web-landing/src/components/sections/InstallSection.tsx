@@ -73,7 +73,7 @@ export default function InstallSection() {
           <div className="mt-6">
             <a
               href="https://admin.igris-inertial.com/downloads/runtime"
-              className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-sm rounded-xl border"
+              className="inline-flex items-center justify-center px-4 py-2 hover:opacity-80 transition-all duration-200 text-sm font-medium shadow-sm rounded-xl border"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', backgroundColor: isDark ? 'rgba(246,246,244,0.08)' : '#f9f9fa', color: isDark ? '#f6f6f4' : '#1b1912', borderColor: isDark ? 'rgba(246,246,244,0.12)' : 'rgba(20,18,10,0.1)' }}
             >
               Download →
