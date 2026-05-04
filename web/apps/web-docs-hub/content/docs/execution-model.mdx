@@ -1,126 +1,103 @@
 ---
 title: "Execution Model"
-description: "Every request that passes through Igris runs inside a bounded execution envelope. This page explains how execution works from request arrival to signed receipt."
+description: "This page explains the Igris execution model as Request -> Execute -> Verify, with governed boundaries and signed records around the run."
 audience: "public"
 ---
 
 # Execution Model
 
-Every request that passes through Igris runs inside a bounded execution envelope. This page explains how execution works from request arrival to signed receipt.
+The Igris execution model is:
+
+1. **Request**
+2. **Execute**
+3. **Verify**
+
+Everything else on this page is a more detailed explanation of those three stages.
 
 ---
 
-## Execution Envelope
+## Request
 
-When the execution engine receives a request, it opens an execution envelope before processing begins. The envelope is a structured record that captures the full execution context.
+Request is how work enters Igris.
 
-An envelope contains:
-- **Identity**: request ID, tenant ID, timestamp
-- **Inputs**: the original prompt, system message, and parameters
-- **Capability grants**: what the execution is permitted to do
-- **Resource limits**: token budget, time budget, step budget
-- **Outputs**: model response and tool call results
-- **Resource usage**: tokens consumed, wall time, tool calls made
-- **Capability violations**: any rejected operations
+That can be an OpenAI-compatible call, a task-oriented request, or another documented surface. The key idea is consistency: the request enters one execution system, not a collection of unrelated product identities.
 
-When execution completes, the envelope is finalized and signed cryptographically. The signature covers the canonical form of all fields. The signed envelope becomes the execution receipt.
+At request time, Igris establishes the context that matters for the run:
 
-[Execution Receipts →](/docs/execution-receipts)
+- identity and tenant scope
+- input payload and parameters
+- capability expectations
+- applicable limits or policy boundaries
 
----
+## Execute
 
-## Capability Bounds
+Execution is where the request becomes governed work.
 
-Before execution begins, the engine checks the request's declared capability grants against the tenant's configured policy. If the request claims more than its policy allows, the engine rejects it before the model is invoked.
+During execution, Igris can:
 
-During execution, the engine enforces capability limits in real time:
+- apply capability and policy checks
+- enforce budgets and other boundaries
+- capture execution events and state
+- run on the hosted or runtime-backed path configured for the workload
+- record violations or failure outcomes instead of hiding them
 
-| Capability | What it restricts |
+This is the layer that turns a plain model response into an inspectable run.
+
+### Boundaries
+
+Typical execution boundaries include:
+
+| Boundary | What it restricts |
 |---|---|
-| `allow_http` | HTTP calls to external endpoints |
-| `allow_shell` | Shell command execution |
-| `allow_filesystem` | File read/write operations |
-| `max_tokens` | Output token limit |
-| `max_steps` | Maximum planning or tool-call steps |
-| `max_duration_ms` | Maximum wall time for the full execution |
+| Capability gates | What the run is allowed to do |
+| Token or resource limits | How much work the run can consume |
+| Time limits | How long execution is allowed to continue |
+| Tool restrictions | Which external actions are allowed |
 
-If an execution exceeds any limit, the engine terminates it and records the violation in the receipt. Violations are part of the signed record — they cannot be suppressed.
+If execution exceeds an allowed boundary, that outcome should be recorded as part of the run.
 
-[Capability Model →](/docs/capability-model)
+## Verify
 
----
+Verification is how you inspect what happened after execution.
 
-## Execution Path
+Depending on the path, Igris can return or persist:
 
-### Cloud path
+- execution metadata
+- signed execution envelopes
+- signed execution receipts
+- receipt hashes
+- proof-status information
 
-When cloud providers are configured and available:
+That is what makes the system useful for review, governance, and post-run analysis.
 
-```
-Request → Engine → Cloud provider (OpenAI / Anthropic / Google / ...)
-                        │
-                   Response
-                        │
-              Engine signs receipt
-                        │
-                   Return to caller
-```
+## Signed Records
 
-The cloud provider runs inference. The engine records what was sent and received, applies any post-processing governed by the capability model, and signs the completed envelope.
+The model is not complete until the run produces something you can inspect later.
 
-### Local path
+In Igris terms, that can include:
 
-When the engine is configured with a local model and cloud providers are unavailable (or policy requires local execution):
+- the execution envelope for the run context
+- the execution receipt for the final record
+- hash-linked receipt material for downstream audit workflows
 
-```
-Request → Engine → Local inference (Phi-3 / Mistral / Llama / custom LoRA)
-                        │
-                   Response
-                        │
-              Engine signs receipt
-                        │
-                   Return to caller
-```
+Use [Execution Receipts](/docs/execution-receipts) and [Verification](/docs/verification) for the public-facing receipt and proof workflows.
 
-The response format is identical. The `metadata.provider` field reflects which provider ran inference. The signed receipt is produced either way.
+## Deployment Modes Fit Under The Same Model
 
-### Hybrid path
+Hosted, local, and hybrid setups all fit under the same execution model:
 
-The engine can be configured to try cloud first and fall back to local automatically:
+- the request still enters through Igris
+- execution still runs under boundaries
+- verification still depends on the records produced by the run
 
-```
-Request → Engine → Cloud provider (success) → signed receipt
-               └── Cloud provider (fail) → Local inference → signed receipt
-```
+The deployment mode changes where execution happens, not what product the user is learning.
 
-Failover is automatic and transparent to the caller.
+## What To Treat Carefully
+
+- Real provider-backed execution is supported and configurable, but proof claims should follow [Proof Status](/docs/proof-status).
+- Local GGUF fallback and checkpoint recovery should not be treated as universally proven behaviors unless you have the right artifact for the scenario.
+- Advanced routing strategies are part of the broader platform, but they are not the first concept to teach when explaining execution.
 
 ---
 
-## Signing
-
-The engine signs each receipt using a device-bound key. The signature covers a canonical JSON serialization of the envelope, including:
-
-- All input fields
-- All output fields
-- All resource usage counters
-- All capability grants and violations
-- Timestamp and request ID
-
-The signature cannot be regenerated without the signing key. A receipt with a valid signature proves that the envelope was produced by the engine that holds that key, and has not been altered since signing.
-
----
-
-## Receipt Storage
-
-Signed receipts are stored in the engine's local database. Retention duration is configured by your tier:
-
-| Tier | Retention |
-|---|---|
-| Seed | 7 days |
-| Horizon | 30 days |
-| Infinite | 90 days |
-
-Receipts can be queried via API and exported for external audit workflows.
-
-[Audit →](/docs/audit) · [Safety & Containment →](/docs/safety)
+[Request -> Execute -> Verify →](/docs/request-execute-verify) · [Execution Flow →](/docs/execution-flow) · [Verification →](/docs/verification)
