@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-03T23:39:58.150Z",
+  "generated_at": "2026-05-04T10:48:01.948Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
     "/docs/agents": "public",
@@ -140,6 +140,7 @@
     "/docs/execution-model": "public",
     "/docs/execution-receipts": "public",
     "/docs/first-cloud-integration": "public",
+    "/docs/first-verified-run": "public",
     "/docs/fleet-management": "public",
     "/docs/fleet-rollout-workflow": "public",
     "/docs/governance": "public",
@@ -161,11 +162,13 @@
     "/docs/observability-tracing": "public",
     "/docs/policy": "public",
     "/docs/pricing-tiers": "public",
+    "/docs/proof-status": "public",
     "/docs/provider-health": "public",
     "/docs/provider-trust": "public",
     "/docs/quickstart": "public",
     "/docs/rate-limiting": "public",
     "/docs/receipts-audit-workflow": "public",
+    "/docs/request-execute-verify": "public",
     "/docs/robotics": "public",
     "/docs/ros2-integration": "public",
     "/docs/safety": "public",
@@ -182,6 +185,7 @@
     "/docs/tools": "public",
     "/docs/trial-billing": "public",
     "/docs/troubleshooting": "public",
-    "/docs/upgrade-migration": "public"
+    "/docs/upgrade-migration": "public",
+    "/docs/verification": "public"
   }
 }
