@@ -1,39 +1,46 @@
 # Igris Inertial
 
-> A secure, governed AI execution runtime for agents, inference, and robotics. Igris provides bounded execution with verifiable traces, deterministic behavior, and local fallback — deployable as a 16MB binary on servers, edge devices, and ROS 2 systems. BYOM (bring your own model) with GGUF support and cloud API routing via Overture.
+> Igris is one execution system for AI tasks you can verify. It helps engineers send a request through one API surface, govern execution, inspect events, and verify signed records after the run.
 
-## Product
+## Product Model
 
-- [Runtime](https://igrisinertial.com/runtime/): A 16MB binary that executes AI models locally with bounded execution, sandboxed safety, and offline capability. Supports GGUF models and fleet management.
-- [Overture](https://igrisinertial.com/ai-agents/): The cloud coordination layer for routing decisions across LLM providers. Shadow mode testing, cost tracking, and provider health monitoring.
+Request -> Execute -> Verify
+
+- Request: submit a chat, task, or tool-using run through one Igris API surface
+- Execute: Igris applies boundaries, records execution events, and runs work in hosted, local, or hybrid environments
+- Verify: Igris returns execution metadata and verification-ready receipts
+
+## Deployment Modes
+
+- Hosted: provider-backed execution through the control plane
+- Local: execution closer to where work happens
+- Hybrid: hosted coordination plus local execution where needed
+
+These are deployment modes of one system, not separate products.
+
+## Proof Language
+
+- Proven locally: unified local proof path and receipt verification
+- Source-confirmed: code exists but no reproducible proof artifact is captured here
+- Technical preview: runnable or exposed surfaces with limited proof or production evidence
+- In development: partial or not-yet-proven behavior
+
+Preview-heavy areas such as robotics, ROS2, multimodal execution, local fallback, and coordinated rollout should be read using those labels.
 
 ## Documentation
 
-- [Overview](https://docs.igrisinertial.com/docs/): Platform introduction — what Igris is, how it works, and who it's for.
-- [Architecture](https://docs.igrisinertial.com/docs/architecture/): System design — hybrid behavior trees, the three-layer model (Execution, Intelligence, Memory & Proof).
-- [Quick Start](https://docs.igrisinertial.com/docs/quickstart/): Get running in minutes. Install Runtime, configure providers, execute your first bounded task.
-- [Execution Model](https://docs.igrisinertial.com/docs/execution-model/): How bounded execution works — envelopes, resource limits, signed violation logs, and deterministic paths.
-- [Safety & Containment](https://docs.igrisinertial.com/docs/safety/): OS-level cgroup containment, sandboxed execution, hard limits on runtime, memory, and network access.
-- [Capabilities & Limits](https://docs.igrisinertial.com/docs/capability-model/): Fine-grained capability grants — HTTP, shell, filesystem, tool access, max tokens, max steps.
-- [Execution Receipts](https://docs.igrisinertial.com/docs/execution-receipts/): Cryptographically signed audit records for every decision and action. Query, export, and verify.
-- [Agent Lifecycle](https://docs.igrisinertial.com/docs/agent-lifecycle/): Agent states — init, running, idle, degraded, terminated. Transitions and failure handling.
-- [Agents](https://docs.igrisinertial.com/docs/agents/): Reflection, planning, swarm coordination, and tool-use patterns.
-- [Behavior Trees](https://docs.igrisinertial.com/docs/behavior-trees/): Deterministic execution paths using sequence, selector, condition, and action nodes. LLM invocation as a tool within structured trees.
-- [Tools](https://docs.igrisinertial.com/docs/tools/): HTTP, shell, filesystem, and configuration tools with security constraints.
-- [Memory](https://docs.igrisinertial.com/docs/memory/): Vector store, KV cache, cross-instance context, and MCP swarm memory.
-- [Robotics](https://docs.igrisinertial.com/docs/robotics/): Autonomous systems execution — ROS 2 integration, fleet coordination, safety limits for physical systems.
-- [ROS 2 Integration](https://docs.igrisinertial.com/docs/ros2-integration/): ROS 2 Humble and Iron support — topics, services, behavior trees for robotic systems.
-- [Cloud Coordination](https://docs.igrisinertial.com/docs/cloud-coordination/): Provider routing, failover, cost optimization, and health monitoring across LLM providers.
-- [Fleet Management](https://docs.igrisinertial.com/docs/fleet-management/): Device registration, OTA updates, config push, health monitoring, and fleet-wide operations.
-- [Policy](https://docs.igrisinertial.com/docs/policy/): Routing strategy, budget limits, provider selection, and fallback configuration.
-- [Audit](https://docs.igrisinertial.com/docs/audit/): Compliance, receipt export, execution lineage, and verifiable traces.
-- [SDK](https://docs.igrisinertial.com/docs/sdk/): Client libraries for JavaScript, Python, Go, and Rust.
-- [Deployment](https://docs.igrisinertial.com/docs/deployment/): Cloud, edge, and self-hosted deployment — Fly.io, Kubernetes, bare metal.
-- [API Reference](https://docs.igrisinertial.com/docs/api-reference/): REST API endpoints for inference, management, receipts, fleet, and policy.
+- [Overview](https://docs.igrisinertial.com/docs/)
+- [Quick Start](https://docs.igrisinertial.com/docs/quickstart/)
+- [First Verified Run](https://docs.igrisinertial.com/docs/first-verified-run/)
+- [Request -> Execute -> Verify](https://docs.igrisinertial.com/docs/request-execute-verify/)
+- [Verification](https://docs.igrisinertial.com/docs/verification/)
+- [Proof Status](https://docs.igrisinertial.com/docs/proof-status/)
+- [Architecture](https://docs.igrisinertial.com/docs/architecture/)
+- [Deployment](https://docs.igrisinertial.com/docs/deployment/)
+- [API Reference](https://docs.igrisinertial.com/docs/api-reference/)
 
-## Other
+## Related Surfaces
 
-- [Machine Readable](https://igrisinertial.com/machine/): Structured, text-only version of the site for AI agents and automated systems. No JavaScript required.
-- [Pricing](https://igrisinertial.com/pricing/): Free, Pro, and Enterprise tiers.
-- [Use Cases](https://igrisinertial.com/use-cases/): Edge AI, autonomous systems, SaaS integration, hardware OEM, development.
-- [Security](https://igrisinertial.com/security/): Cryptographic verification, zero-trust enrollment, air-gapped operation, instance-bound encryption.
+- [Pricing](https://igrisinertial.com/pricing/)
+- [Use Cases](https://igrisinertial.com/use-cases/)
+- [Machine-readable site](https://igrisinertial.com/machine/)
