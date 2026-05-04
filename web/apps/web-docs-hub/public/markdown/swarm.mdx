@@ -1,139 +1,57 @@
 ---
-title: "Swarm & Council Mode"
-description: "Igris supports two multi-agent coordination patterns: Council Mode for multi-provider consensus on a single request, and Swarm Mode for orchestrating commands across your entire fl"
+title: "Swarm Coordination (Technical Preview)"
+description: "Advanced coordination patterns for multiple execution environments and multi-path review workflows."
 audience: "public"
 ---
 
-# Swarm & Council Mode
+# Swarm Coordination (Technical Preview)
 
-Igris supports two multi-agent coordination patterns: **Council Mode** for multi-provider consensus on a single request, and **Swarm Mode** for orchestrating commands across your entire fleet.
+Swarm-oriented coordination in Igris is an advanced surface.
 
----
+It sits under the **Execute** stage and should not be treated as the default product path. If you are new to Igris, start with [Request -> Execute -> Verify](/docs/request-execute-verify) and [First Verified Run](/docs/first-verified-run).
 
-## Council Mode
-
-Council mode sends a request to multiple providers simultaneously and uses a chairman model to rank and synthesize the best response. Use it when response quality matters more than cost.
-
-### Enabling council mode per agent
-
-```bash
-curl -X PATCH https://overture.igrisinertial.com/v1/agents/agent-abc \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"council_mode": true}'
-```
-
-### Configuring council mode
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/council \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "providers": ["anthropic", "openai", "google"],
-    "chairman": "anthropic",
-    "synthesis_strategy": "best_ranked"
-  }'
-# → {"saved": true}
-```
-
-| Field | Description |
-|---|---|
-| `providers` | Providers to query in parallel |
-| `chairman` | Provider whose model ranks the responses |
-| `synthesis_strategy` | `best_ranked` returns the top-ranked response; `synthesize` asks the chairman to merge responses |
-
-### Council analytics
-
-Query council round results:
-
-```bash
-curl https://overture.igrisinertial.com/v1/routing/stats \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Council metrics in the stats response show per-round cost, latency breakdown (ranking phase + synthesis phase), and winner distribution by provider.
-
-### Cost considerations
-
-Council mode multiplies per-request cost by the number of providers queried. A 3-provider council with an Anthropic chairman costs roughly 3–4× a single request. Use it selectively for high-stakes decisions.
+See [Proof Status](/docs/proof-status) before planning around this page.
 
 ---
 
-## Swarm Mode
+## Two Advanced Patterns
 
-Swarm mode broadcasts commands to all registered runtime instances in your fleet simultaneously.
+### Multi-Path Review
 
-### GET /v1/fleet/swarm
+Some workflows send the same task through more than one model or provider path, then compare or synthesize outcomes. This can be useful for high-scrutiny tasks, but it increases cost and complexity and should be enabled deliberately.
 
-Current swarm status — all runtime instances with their pending command queues.
+### Environment Broadcast
 
-```bash
-curl https://overture.igrisinertial.com/v1/fleet/swarm \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-```json
-{
-  "agents": [
-    {
-      "runtime_id": "runtime-01",
-      "hostname": "edge-node-01",
-      "status": "active",
-      "queued_commands": 0
-    },
-    {
-      "runtime_id": "runtime-02",
-      "hostname": "edge-node-02",
-      "status": "active",
-      "queued_commands": 1
-    }
-  ]
-}
-```
-
-### POST /v1/fleet/swarm/broadcast
-
-Queue a command to all runtime instances. The command is picked up by each instance on its next heartbeat.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/fleet/swarm/broadcast \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "command": "reload_config",
-    "payload": {"source": "overture"}
-  }'
-```
-
-Response:
-```json
-{
-  "queued": true,
-  "instances": 8,
-  "queued_at": "2026-03-01T12:05:00Z"
-}
-```
-
-### DELETE /v1/fleet/swarm/agents/:id/clear
-
-Clear all pending commands for a specific runtime instance.
-
-```bash
-curl -X DELETE https://overture.igrisinertial.com/v1/fleet/swarm/agents/runtime-01/clear \
-  -H "Authorization: Bearer YOUR_API_KEY"
-# → {"cleared": true}
-```
+Other workflows coordinate actions across more than one execution environment. This is useful when operators need a consistent rollout, command, or state change across registered environments.
 
 ---
 
-## Command Delivery
+## What To Expect
 
-Swarm commands are queued server-side and delivered to the runtime binary on its next heartbeat. Commands are processed in order.
+These patterns are best understood as:
 
-If a runtime instance is offline when a command is queued, the command remains queued until the instance reconnects.
+- advanced operator workflows
+- specialized coordination mechanisms
+- areas that require stronger proof before they should be marketed as broadly production-ready
+
+Do not assume autonomous fleet behavior, automatic failover, or guaranteed rollout semantics from the presence of these surfaces alone.
 
 ---
 
-[Fleet Management →](/docs/fleet-management) · [Policy →](/docs/policy) · [API Reference →](/docs/api-reference)
+## Practical Guidance
+
+Use swarm-style features only when you need them for a specific operational reason:
+
+- coordinated rollout across registered environments
+- deliberate multi-path review for higher-confidence tasks
+- controlled experimentation on advanced execution behavior
+
+If your main need is governed execution with visibility and receipts, the default execution model is simpler and better proven.
+
+---
+
+## Related Pages
+
+- [Fleet Management →](/docs/fleet-management)
+- [Fleet Rollout Workflow →](/docs/fleet-rollout-workflow)
+- [Proof Status →](/docs/proof-status)
