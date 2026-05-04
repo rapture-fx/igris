@@ -15,25 +15,25 @@ export default function UseCasesPage() {
     {
       title: 'Enterprise AI Operations',
       problem: 'Multi-tenant teams struggle with AI provider costs, quality consistency, and governance. Different departments use different providers, making budget control difficult. Provider behavior varies, and there is limited visibility into actual performance versus reported metrics.',
-      solution: 'Overture provides multi-tenant isolation with policy-driven routing decisions informed by observed performance. Teams get isolated access with configurable spending limits and real-time cost tracking. Trust-aware selection blocks providers below quality thresholds.',
-      features: ['Multi-tenant isolation', 'Policy-driven routing', 'Real-time cost tracking', 'Trust-aware selection', 'Budget enforcement']
+      solution: 'Igris provides multi-tenant isolation, governed execution, and policy-driven path selection informed by observed performance. Teams get isolated access, configurable spending limits, and better visibility into execution decisions and outcomes.',
+      features: ['Multi-tenant isolation', 'Governed execution', 'Real-time cost tracking', 'Path-selection visibility', 'Budget enforcement']
     },
     {
       title: 'Hybrid Cloud–Edge Reliability',
       problem: 'Applications need both cloud performance and edge continuity. Cloud providers fail occasionally, network connectivity is unreliable, and downtime impacts critical operations. Manual failover requires code changes and operator intervention.',
-      solution: 'Overture makes routing decisions in the cloud while Runtime executes on edge devices. Hybrid cryptographically binds decisions to execution, preventing policy bypass. When connectivity fails, Runtime continues with local models using the last approved routing policy.',
-      features: ['Cryptographic binding', 'Automatic failover', 'Policy continuity', 'Edge execution', 'Unified API']
+      solution: 'Igris can coordinate hosted and local execution surfaces under one execution model. Hybrid deployments help teams keep governance and reviewability consistent across both. Stronger automatic failover claims should still be validated against current proof status.',
+      features: ['Cryptographic binding', 'Visible failure paths', 'Policy continuity', 'Local execution surfaces', 'Unified API']
     },
     {
       title: 'Edge-First AI Systems',
       problem: 'Robotics, autonomous vehicles, and field equipment need AI inference in environments with poor or no connectivity. Cloud APIs fail in remote areas, underground facilities, or during outages. Systems must maintain operation with deterministic behavior.',
-      solution: 'Runtime executes AI workloads directly on edge devices with deterministic execution envelopes and resource limits. Local models provide fallback when connectivity is unavailable. Peer-aware execution hooks enable coordination between nearby devices.',
-      features: ['Deterministic execution', 'Local model inference', 'Offline operation', 'Resource safety limits', 'Peer coordination']
+      solution: 'Igris can run workloads closer to devices with bounded execution and resource limits. Local execution is useful where connectivity is constrained, but robotics and peer-coordination workflows should still be treated as preview-oriented unless separately proven.',
+      features: ['Governed execution', 'Local model inference', 'Constrained environments', 'Resource safety limits', 'Preview-oriented coordination']
     },
     {
       title: 'Air-Gapped & Restricted Environments',
       problem: 'Secure facilities, classified networks, and regulated environments cannot send data to external services. AI workloads must run within isolated boundaries with no external communication. Models and data require encrypted storage.',
-      solution: 'Runtime operates independently after provisioning, with no external telemetry by default. Encrypted storage protects models and execution data. Works within isolated networks using local coordination after initial setup.',
+      solution: 'Local execution surfaces can operate independently after provisioning, with no external telemetry by default. Encrypted storage protects models and execution data. Teams can keep execution inside isolated networks using local coordination after initial setup.',
       features: ['No external telemetry', 'Encrypted storage', 'Isolated operation', 'Local coordination', 'Provisioned deployment']
     },
     {
@@ -45,8 +45,8 @@ export default function UseCasesPage() {
     {
       title: 'AI Reliability Engineering',
       problem: 'Production AI systems require visibility, auditability, and reproducibility. Teams need to understand routing decisions, verify provider behavior, and replay execution paths for debugging and compliance.',
-      solution: 'Overture provides decision traces and observed vs reported provider metrics. Hybrid enables policy versioning and replayable execution paths. Every routing decision includes full reasoning and applied constraints.',
-      features: ['Decision traces', 'Provider behavior verification', 'Policy versioning', 'Replayable paths', 'Audit logging']
+      solution: 'Igris provides execution traces, signed records, and verification-ready receipts so teams can inspect what happened after a run. Policy versioning and execution metadata make debugging and review workflows more reliable.',
+      features: ['Execution traces', 'Verification-ready receipts', 'Policy versioning', 'Replayable paths', 'Audit logging']
     },
   ]
 
