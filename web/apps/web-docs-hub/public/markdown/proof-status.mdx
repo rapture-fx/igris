@@ -1,0 +1,72 @@
+---
+title: "Proof Status"
+description: "What Igris proves locally today, what is source-confirmed, and what should still be treated as preview or not yet proven."
+audience: "public"
+---
+
+# Proof Status
+
+This page keeps the docs honest.
+
+The categories here are based on the current proof artifacts, execution evidence, and source audit:
+
+- **Proven locally**
+- **Source-confirmed**
+- **Technical preview**
+- **In development / not yet proven**
+
+---
+
+## Proven Locally
+
+| Claim | Notes |
+|---|---|
+| Unified Request -> Execute -> Verify flow through Overture and Runtime | Demonstrated by the local proof demo with a mock upstream |
+| Signed execution envelope verification | Verified in the local proof path |
+| Signed execution receipt verification | Verified in the local proof path |
+| Receipt-hash verification | Verified in the local proof path |
+| Receipt-log chain linkage | Verified in the local proof path |
+| Execution metadata such as route decision and provider label | Returned and checked in the local proof path |
+| Capability-gated task execution | Backed by proof artifacts and local audit evidence |
+
+## Source-Confirmed
+
+| Claim | Notes |
+|---|---|
+| Real provider-backed unified flow | Wired through Runtime, but not proven in the prior environment because sanctioned credentials were unavailable |
+| Local GGUF fallback | Source exists, but no reproducible proof-backed failure-to-local demo is captured here |
+| Checkpoint and recovery structures | Code paths exist, but no kill/restart/resume proof is captured here |
+| Runtime registration, heartbeat, and deregistration | Implemented and documented from source-backed contracts |
+| Fleet coordination surfaces | Implemented at the API/control-plane level, but broader workflow proof remains limited |
+
+## Technical Preview
+
+| Claim | Notes |
+|---|---|
+| ROS2 integration | Optional or preview-oriented surface, not part of the default proof-backed path |
+| Robotics execution flows | Advanced area, not proven in the current artifacts |
+| Multimodal execution | Preview or stub-heavy surface, not a customer-ready first-contact claim |
+
+## In Development / Not Yet Proven
+
+| Claim | Notes |
+|---|---|
+| Fleet failover across multiple runtimes | Not proven in the current artifacts |
+| Config push and OTA-style workflows | Control-plane surfaces exist, but end-to-end execution proof is not established here |
+| Public proof-verification semantics as a full cryptographic verifier | Current hosted route compares stored values and syncs proof state; it should not be marketed as stronger than that |
+| Long-horizon checkpoint interruption and resumption | Not yet proven end to end |
+
+## How To Use This Page
+
+Use these labels when writing or reviewing docs:
+
+- **Proven locally** for the narrow local proof and receipt-verification path
+- **Source-confirmed** when code exists but the behavior is not yet demonstrated in a reproducible proof
+- **Technical preview** for optional, advanced, or stub-heavy surfaces
+- **In development / not yet proven** when the story is ahead of the execution evidence
+
+When in doubt, choose the weaker label.
+
+---
+
+[First Verified Run →](/docs/first-verified-run) · [Verification →](/docs/verification) · [Architecture →](/docs/architecture)
