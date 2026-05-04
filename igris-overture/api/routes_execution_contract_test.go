@@ -133,29 +133,35 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 	t.Parallel()
 
 	startedAt := time.Date(2026, 5, 3, 13, 0, 0, 0, time.UTC)
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{
-			"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
-			"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
-			"receipt_hash", "previous_hash", "signature", "proof_status",
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
 		},
-		rows: [][]driver.Value{{
-			"exec-infer-1",
-			"tenant-infer",
-			"runtime-infer-1",
-			startedAt,
-			int64(36),
-			false,
-			"completed",
-			"",
-			"hello runtime",
-			"row-infer-1",
-			"receipt-hash-infer-1",
-			"receipt-hash-prev-0",
-			"receipt-sig-infer-1",
-			"verified",
-		}},
-	}})
+		{
+			columns: []string{
+				"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
+				"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
+				"receipt_hash", "previous_hash", "signature", "proof_status",
+			},
+			rows: [][]driver.Value{{
+				"exec-infer-1",
+				"tenant-infer",
+				"runtime-infer-1",
+				startedAt,
+				int64(36),
+				false,
+				"completed",
+				"",
+				"hello runtime",
+				"row-infer-1",
+				"receipt-hash-infer-1",
+				"receipt-hash-prev-0",
+				"receipt-sig-infer-1",
+				"verified",
+			}},
+		},
+	})
 
 	handler := NewExecutionHandler(db)
 	app := fiber.New()
@@ -198,53 +204,59 @@ func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
 	t.Parallel()
 
 	startedAt := time.Date(2026, 5, 3, 13, 0, 0, 0, time.UTC)
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{
-			"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
-			"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
-			"receipt_hash", "previous_hash", "signature", "proof_status", "violation_details",
-			"context_provider", "context_route_decision", "context_execution_path", "context_runtime_label",
-			"context_fallback_used", "context_fallback_reason", "context_policy_snapshot",
-			"context_capability_snapshot", "context_events", "context_logs",
-			"execution_envelope", "permission_envelope", "task_failure_reason", "task_failure_details",
-			"created_at", "dispatched_at", "completed_at", "canceled_at",
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
 		},
-		rows: [][]driver.Value{{
-			"exec-infer-1",
-			"tenant-infer",
-			"runtime-infer-1",
-			startedAt,
-			int64(36),
-			false,
-			"completed",
-			"",
-			"hello runtime",
-			"row-infer-1",
-			"receipt-hash-infer-1",
-			"receipt-hash-prev-0",
-			"receipt-sig-infer-1",
-			"verified",
-			nil,
-			"local-mock-cloud",
-			"forwarded_to_runtime_task",
-			"runtime_task",
-			"http://runtime.test",
-			false,
-			"",
-			[]byte(`{"bounds_applied":{"max_tick_ms":1000}}`),
-			nil,
-			[]byte(`[{"timestamp":"2026-05-03T13:00:00Z","kind":"runtime_execution","message":"Runtime execution completed"}]`),
-			[]byte(`["2026-05-03T13:00:00Z runtime_execution: Runtime execution completed"]`),
-			nil,
-			nil,
-			"",
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-		}},
-	}})
+		{
+			columns: []string{
+				"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
+				"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
+				"receipt_hash", "previous_hash", "signature", "proof_status", "violation_details",
+				"context_provider", "context_route_decision", "context_execution_path", "context_runtime_label",
+				"context_fallback_used", "context_fallback_reason", "context_policy_snapshot",
+				"context_capability_snapshot", "context_events", "context_logs",
+				"execution_envelope", "permission_envelope", "task_failure_reason", "task_failure_details",
+				"created_at", "dispatched_at", "completed_at", "canceled_at",
+			},
+			rows: [][]driver.Value{{
+				"exec-infer-1",
+				"tenant-infer",
+				"runtime-infer-1",
+				startedAt,
+				int64(36),
+				false,
+				"completed",
+				"",
+				"hello runtime",
+				"row-infer-1",
+				"receipt-hash-infer-1",
+				"receipt-hash-prev-0",
+				"receipt-sig-infer-1",
+				"verified",
+				nil,
+				"local-mock-cloud",
+				"forwarded_to_runtime_task",
+				"runtime_task",
+				"http://runtime.test",
+				false,
+				"",
+				[]byte(`{"bounds_applied":{"max_tick_ms":1000}}`),
+				nil,
+				[]byte(`[{"timestamp":"2026-05-03T13:00:00Z","kind":"runtime_execution","message":"Runtime execution completed"}]`),
+				[]byte(`["2026-05-03T13:00:00Z runtime_execution: Runtime execution completed"]`),
+				nil,
+				nil,
+				"",
+				nil,
+				nil,
+				nil,
+				nil,
+				nil,
+			}},
+		},
+	})
 
 	handler := NewExecutionHandler(db)
 	app := fiber.New()
