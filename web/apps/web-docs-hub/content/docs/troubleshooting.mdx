@@ -48,11 +48,11 @@ After freeing the port or reconfiguring, restart the runtime.
 
 ---
 
-## Runtime Not Appearing in Fleet → Devices
+## Runtime Not Appearing In The Console Environment View
 
 ### Network or firewall blocking outbound registration
 
-**Symptoms:** The runtime starts and appears to be running (the local health endpoint responds) but never appears in **Fleet → Devices** in the console.
+**Symptoms:** The runtime starts and appears to be running (the local health endpoint responds) but never appears in the console environment view.
 
 **Cause:** Outbound HTTPS traffic to `overture.igrisinertial.com` is being blocked by a firewall rule, proxy, or network policy.
 
@@ -88,7 +88,7 @@ If this fails, work with your network administrator to allow outbound HTTPS (por
 curl http://localhost:8080/health
 ```
 
-A healthy response confirms the runtime is alive. If it is alive but not visible in the console, check the console's **Fleet → Devices** filter — you may be filtering by a tag or status that excludes the new instance. Clear all filters and look for the instance name.
+A healthy response confirms the runtime is alive. If it is alive but not visible in the console, check the console filters for execution environments, tags, or status values that may exclude the new instance.
 
 ---
 
@@ -208,27 +208,27 @@ The agent is requesting capabilities it should not need. Investigate the agent's
 
 ---
 
-## Requests Going to Wrong Provider
+## Requests Taking An Unexpected Execution Path
 
-### How provider selection works
+### How advanced path selection works
 
-By default, Igris uses adaptive routing: requests are sent to providers based on their recent performance (latency, success rate, cost). Over time the router converges on the best provider for your workload. Routing is dynamic — a provider that is currently performing well receives more traffic, and one that degrades receives less.
+If you enable more than one provider or execution path, Igris may choose between them based on recent health, policy, latency, cost, or other configured signals. That logic is part of the Execute stage and should be reviewed through execution metadata rather than assumed from static config alone.
 
-### Checking current routing behavior
+### Checking current path-selection behavior
 
 ```bash
-# Overall routing statistics per provider
+# Overall routing statistics per provider or path
 curl https://overture.igrisinertial.com/v1/routing/stats \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# Provider ranking as the router currently sees it
+# Current ranking or path-selection view
 curl https://overture.igrisinertial.com/v1/routing/leaderboard \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
-### Overriding routing behavior
+### Overriding path-selection behavior
 
-To pin routing to a specific strategy:
+To pin execution to a specific strategy:
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/v1/routing/strategy \
