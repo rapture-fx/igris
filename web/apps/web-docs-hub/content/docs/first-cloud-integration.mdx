@@ -1,34 +1,34 @@
 ---
-title: "First Cloud Integration"
-description: "Use this workflow when you want the shortest path from zero to a working Igris integration."
+title: "First Hosted Integration"
+description: "Use this workflow when you want provider-backed execution through the hosted Igris surface without introducing local runtime infrastructure first."
 audience: "public"
 ---
 
-# First Cloud Integration
+# First Hosted Integration
 
-Use this workflow when you want the shortest path from zero to a working Igris integration.
+Use this workflow when you want the shortest path from the Request -> Execute -> Verify model into a provider-backed hosted integration.
 
-If your goal is to get a production integration live quickly, this is the path to follow. It keeps the contract simple, avoids deployment complexity, and lets you confirm the product value before you adopt deeper product surfaces.
+Hosted execution is one deployment mode for Igris. It is a good fit when the team wants to start with a managed API surface, keep the application contract simple, and prove that governed execution is useful before adding local runtime infrastructure.
 
-The recommended sequence is:
+The basic sequence is:
 
 1. Create a tenant API key
 2. Add at least one provider key
-3. Call the OpenAI-compatible API
-4. Move to a native SDK only when you need Igris-specific features
+3. Send a request through the hosted Igris API surface
+4. Inspect execution metadata and decide whether you need deeper Igris-native features
 
 ---
 
-## 1. Create a tenant API key
+## 1. Create A Tenant API Key
 
-Create one tenant API key for the environment that will call the hosted API. Treat it like any other production secret and keep it in your standard secret store.
+Create one tenant API key for the environment that will call the hosted surface. Treat it like any other production secret and keep it in your standard secret store.
 
 - [Trial & Billing →](/docs/trial-billing)
 - [API Authentication →](/docs/api-reference/authentication)
 
-## 2. Add a provider key
+## 2. Add A Provider Key
 
-Igris routes requests using provider credentials stored in the vault. For most customer traffic today, use `openai` or `anthropic`.
+Hosted execution depends on provider credentials stored in the Igris vault. For customer traffic today, use `openai` or `anthropic`.
 
 ```bash
 curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
@@ -41,9 +41,9 @@ curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
   }'
 ```
 
-## 3. Call the OpenAI-compatible API
+## 3. Send A Hosted Request
 
-This should be your default starting point unless you already know you need native SDK features or local execution.
+The simplest application-facing path is OpenAI-compatible:
 
 ```typescript
 import OpenAI from 'openai';
@@ -55,36 +55,53 @@ const client = new OpenAI({
 
 const response = await client.chat.completions.create({
   model: 'gpt-4o-mini',
-  messages: [{ role: 'user', content: 'Summarize the latest fleet health' }],
+  messages: [{ role: 'user', content: 'Summarize the latest service status' }],
 });
 
 console.log(response.choices[0].message.content);
 ```
 
-## 4. Decide whether you need a native SDK
+This is still the same product model:
 
-Stay on the OpenAI-compatible path if you need inference, broad language portability, and the least integration overhead.
+- **Request** through one Igris surface
+- **Execute** on the hosted provider-backed path you configured
+- **Verify** using metadata, receipts, and proof-oriented pages when the workflow needs them
 
-Move to a native SDK when you need:
+## 4. Inspect What You Need Next
 
-- receipt helpers
-- vault operations
-- fleet APIs
-- richer routing metadata
+Stay on the hosted OpenAI-compatible path when you want:
 
-The first-class native SDKs today are JavaScript/TypeScript, Go, Rust, and Python.
+- the least integration overhead
+- broad SDK portability
+- provider-backed execution without local deployment work
 
-- [SDKs →](/docs/sdk)
-- [API Reference →](/docs/api-reference)
+Move deeper into Igris surfaces when you need:
+
+- receipt-oriented workflows
+- richer execution metadata
+- runtime participation
+- local or hybrid deployment
+
+## Proof Language For Hosted Execution
+
+Be precise about what is proven:
+
+- Hosted provider-backed execution is a supported deployment mode.
+- Real provider paths are configurable and wired through the product surfaces.
+- The strongest proof-backed walkthrough in these docs is still the local verified run, not a previously captured real-provider proof artifact.
+
+Use [Proof Status](/docs/proof-status) if you need to separate proven behavior from supported but not-yet-proven paths.
 
 ## Common Mistakes
 
-- Starting with a preview SDK or a local runtime before proving that the hosted path already solves the use case
-- Forgetting to add a provider key before sending hosted inference traffic
-- Using a browser session flow for server-side automation
+- Treating hosted execution like a different product instead of one deployment mode
+- Forgetting to add a provider key before sending hosted traffic
+- Starting with advanced deployment work before proving the hosted path fits the use case
+- Assuming provider-backed support means every provider workflow is already proven in your environment
 
 ## Related Guides
 
 - [Quick Start →](/docs/quickstart)
-- [API Authentication →](/docs/api-reference/authentication)
-- [Vault & Key Management →](/docs/key-management)
+- [Verification →](/docs/verification)
+- [Proof Status →](/docs/proof-status)
+- [API Reference →](/docs/api-reference)
