@@ -1,73 +1,76 @@
 ---
 title: "Overview"
-description: "Igris is a governed execution system for AI workloads. It runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient."
+description: "Igris helps engineers run AI tasks with governed, verifiable execution."
 audience: "public"
 ---
 
 # Igris
 
-Igris is a governed execution system for AI workloads. It runs across cloud, edge, and robotics hardware — every execution is bounded, verifiable, and resilient.
+Igris helps engineers run AI tasks with governed, verifiable execution.
+
+Direct provider calls are still the right tool for simple chat or one-off prompting. Igris becomes useful when AI output starts doing work: calling tools, crossing system boundaries, touching customer data, or triggering decisions that need to be reviewed later.
+
+The simplest mental model is:
+
+1. **Request** through one Igris API surface.
+2. **Execute** with governance, routing, events, and failure handling.
+3. **Verify** with signed records and verification-ready receipts.
 
 ---
 
-## One System, Three Surfaces
+## Request -> Execute -> Verify
 
-### Cloud
+### Request
 
-Igris coordinates inference across multiple cloud providers. It selects the best provider for each request, handles failover automatically, and tracks cost. Your application uses a single OpenAI-compatible API and stays oblivious to which provider responded.
+Send a request once. The surface can be OpenAI-compatible chat, a task submission, or another documented Igris endpoint. The point is not "many products." The point is one execution system that can accept work in a stable, inspectable way.
 
-### Edge
+### Execute
 
-Igris runs on your hardware — a server, a Raspberry Pi, a Jetson — and serves local inference without internet access. The same API, the same governance model. Data stays on device.
+Igris decides how the run should proceed for the deployment you have configured. That can include routing to a runtime, applying capability and policy boundaries, capturing execution events, and surfacing failure paths instead of hiding them behind a plain model response.
 
-### Robots
+### Verify
 
-Igris connects to ROS2 ecosystems and executes AI-driven missions on physical hardware. Fleet coordination, safety limits, and execution receipts apply to robotic agents the same way they apply to cloud workloads.
-
----
-
-## What Igris Guarantees
-
-**Bounded execution.** Every request runs inside declared resource limits. Token budgets, time limits, tool restrictions, and capability gates are enforced at the engine level — not at the application layer, where they could be bypassed.
-
-**Verifiable records.** Every execution produces a cryptographically signed receipt. Inputs, outputs, resource use, and capability grants are recorded and tamper-evident.
-
-**Resilient inference.** When cloud providers are unavailable, Igris falls back to local on-device models automatically. Your application sees the same response format either way.
-
-**Agent capabilities.** Igris runs reflection agents, planning agents, multi-agent swarms, and behavior trees. Tool use — HTTP, shell, filesystem — is governed and auditable.
+Igris returns more than output text. The system can also return execution metadata, signed execution records, and receipt material that can be checked after the run. That is the difference between "the model answered" and "the execution can be inspected."
 
 ---
+
+## What To Expect From The Current Product
+
+**Governed execution.** Igris is built for runs that need boundaries, not just completions. Capability checks, policy controls, and execution-state visibility are part of the product story.
+
+**Execution visibility.** The system tracks route decisions, execution metadata, and receipt-oriented records so engineers can inspect what happened after a run.
+
+**Verification-ready records.** Signed envelopes and receipts are part of the current implementation, and the local unified proof demonstrates signature and hash verification on the proof-backed path.
+
+**Honest proof status.** The strongest proven path today is the local unified proof with a mock upstream. Real-provider mode is wired, but it requires sanctioned credentials and was not proven in the prior environment. Advanced areas such as local GGUF fallback, checkpoint recovery, fleet failover, robotics, and multimodal should be treated according to their page-level proof labels.
 
 ## Recommended Path
 
-Follow this sequence if you are evaluating or implementing Igris for the first time:
+Start with the proof-backed path first, then branch into deployment-specific guides.
 
 | Step | Page | Outcome |
 |---:|---|---|
-| 1 | [Quick Start](/docs/quickstart) | Make the first hosted API call and understand when to use cloud, local, or hybrid deployment. |
-| 2 | [SDKs](/docs/sdk) | Choose OpenAI-compatible clients or a first-class native SDK: JavaScript/TypeScript, Go, Rust, or Python. |
-| 3 | [First Cloud Integration](/docs/first-cloud-integration) | Add credentials, call hosted inference, and prepare the integration for production traffic. |
-| 4 | [Deploy Local Runtime](/docs/deploy-local-runtime) | Run Igris on customer hardware when the workload needs local execution. |
-| 5 | [Hybrid Deployment Workflow](/docs/hybrid-deployment-workflow) | Keep one product surface while coordinating hosted and runtime execution. |
-| 6 | [Receipts and Audit Workflow](/docs/receipts-audit-workflow) | Retrieve, export, and verify execution records. |
-| 7 | [API Reference](/docs/api-reference) | Use endpoint-level contracts once you know which workflow you are implementing. |
+| 1 | [Quick Start](/docs/quickstart) | Run the first verified Igris flow and see what the product actually proves today. |
+| 2 | [First Verified Run](/docs/first-verified-run) | Inspect the local unified proof in more detail, including the execution artifacts it checks. |
+| 3 | [Request -> Execute -> Verify](/docs/request-execute-verify) | Learn the core execution model before choosing a deployment shape. |
+| 4 | [Verification](/docs/verification) | Understand execution metadata, signed records, receipts, and the limits of current verification surfaces. |
+| 5 | [Architecture](/docs/architecture) | See how the unified product maps onto hosted and runtime execution components. |
+| 6 | [Proof Status](/docs/proof-status) | Separate proven behavior from source-confirmed, preview, and not-yet-proven claims. |
+| 7 | [API Reference](/docs/api-reference) | Move to endpoint-level contracts once you know which workflow you are implementing. |
+
+---
 
 ## Find By Goal
 
 | Goal | Start here |
 |---|---|
-| Run AI agents | [Agents](/docs/agents) |
-| Deploy on a robot or edge device | [Robotics](/docs/robotics) |
-| Coordinate a cloud fleet | [Cloud Coordination](/docs/cloud-coordination) |
-| Audit and compliance | [Receipts and Audit Workflow](/docs/receipts-audit-workflow) |
-| Troubleshoot production behavior | [Troubleshooting](/docs/troubleshooting) |
+| Understand the product before integrating | [Request -> Execute -> Verify](/docs/request-execute-verify) |
+| Run a proof-backed local demo | [First Verified Run](/docs/first-verified-run) |
+| Inspect receipts and proof semantics | [Verification](/docs/verification) |
+| Prepare a hosted or hybrid integration | [Quick Start](/docs/quickstart) |
+| Review endpoint contracts | [API Reference](/docs/api-reference) |
+| Evaluate advanced deployment topics | [Architecture](/docs/architecture) |
 
----
+## Advanced Directions
 
-## Platform Guarantees
-
-**Bounded execution.** Resource limits, capability gates, and time budgets are enforced at the engine level.
-
-**Verifiable records.** Signed execution envelopes cannot be altered after the fact. Every decision is recorded with a cryptographic seal.
-
-**Resilient inference.** Cloud and local inference paths are equivalent from the application's perspective. Failover is automatic and transparent.
+Hybrid deployment, runtime fleets, edge execution, and robotics-adjacent workflows remain part of the broader docs set, but they are not the first-contact story. Start with the verified execution path first, then move into those areas deliberately.
