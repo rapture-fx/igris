@@ -1,27 +1,29 @@
 ---
 title: "Deploy Local Runtime"
-description: "Use this workflow when execution should happen on the machine itself instead of only through the hosted API."
+description: "Use this workflow when execution should happen closer to the machine, device, or environment where the work actually runs."
 audience: "public"
 ---
 
 # Deploy Local Runtime
 
-Use this workflow when execution should happen on the machine itself instead of only through the hosted API.
+Use this workflow when Igris should execute closer to where the work happens.
+
+Local runtime is not a separate product identity. It is an execution surface for workloads that benefit from locality, device-level boundaries, or reduced dependence on a hosted path.
 
 Choose this path when you need:
 
-- on-device inference
-- local policy enforcement
+- execution near the machine or device doing the work
+- local policy enforcement or bounded task handling
 - offline or low-connectivity operation
-- runtime-local behavior tree execution
+- runtime-local behavior tree or tool execution
 
-If those requirements are not central to the workload, start with the hosted API first. Local runtime is a deployment choice, not the default onboarding path.
+If those properties are not central to the workload, start with the hosted integration first.
 
 ---
 
-## 1. Download the runtime archive
+## 1. Download The Runtime Archive
 
-Use the runtime distribution endpoints for your platform and treat download as a provisioning step, not as application traffic.
+Use the runtime distribution endpoints for your platform and treat download as provisioning, not application traffic.
 
 ```bash
 export IGRIS_PLATFORM="linux-amd64"
@@ -34,7 +36,7 @@ curl -fL "https://overture.igrisinertial.com/v1/runtime/checksum?platform=${IGRI
 
 Verify the archive checksum before installation.
 
-## 2. Install the binary
+## 2. Install The Binary
 
 ```bash
 tar -xzf /tmp/igris-runtime.tar.gz -C /tmp
@@ -44,7 +46,7 @@ chmod +x "$HOME/.local/bin/igris-runtime"
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-## 3. Configure auth and local model behavior
+## 3. Configure Auth And Local Execution Behavior
 
 Create `~/.config/igris/config.json5`:
 
@@ -68,16 +70,22 @@ Create `~/.config/igris/config.json5`:
 }
 ```
 
-## 4. Start and verify the runtime
+This configuration expresses how the runtime should execute work locally. Treat local GGUF fallback carefully in public claims: the code path exists, but reproducible proof should be checked against [Proof Status](/docs/proof-status) before you present it as a guaranteed behavior.
+
+## 4. Start And Verify The Runtime
 
 ```bash
 igris-runtime serve
 curl http://localhost:8080/v1/health
 ```
 
-Use the local runtime API only against the runtime base URL, not the hosted API. That sounds obvious, but it is one of the most common integration mistakes once teams begin mixing hosted and local deployment models.
+Once the runtime is healthy, use the runtime base URL for local requests:
 
-## 5. Test a local call
+```text
+http://localhost:8080/v1
+```
+
+## 5. Send A Local Request
 
 ```typescript
 import OpenAI from 'openai';
@@ -93,15 +101,28 @@ const response = await client.chat.completions.create({
 });
 ```
 
+This is still the same execution model:
+
+- **Request** through an Igris API surface
+- **Execute** on the local runtime path
+- **Verify** with the records and receipts returned by the configured workflow
+
+## What To Say Carefully
+
+- Local execution is real and supported.
+- Local runtime is an execution surface, not a different product.
+- Local GGUF fallback should be treated as source-confirmed or in development unless you have a reproducible proof path for the exact scenario you are describing.
+
 ## Common Mistakes
 
-- Pointing the client at `https://overture.igrisinertial.com` for a local-only route
-- Assuming local auth behaves exactly like the hosted API
-- Treating runtime download as a hot-path request rather than a provisioning step
+- Pointing a local-only client at the hosted base URL
+- Treating runtime download or install as hot-path application traffic
+- Assuming local execution automatically proves local fallback, checkpoint recovery, or fleet behavior
+- Mixing hosted and local URLs without being explicit about which surface owns the request
 
 ## Related Guides
 
 - [Quick Start →](/docs/quickstart)
-- [Deployment →](/docs/deployment)
-- [Local LLM Fallback →](/docs/local-llm-fallback)
+- [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow)
+- [Proof Status →](/docs/proof-status)
 - [API Introduction →](/docs/api-reference/introduction)
