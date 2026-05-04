@@ -40,7 +40,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Do I need internet connectivity?",
-        answer: "No. The runtime operates fully offline with local LLM inference via llama.cpp. When connectivity is available, it routes to cloud providers for better results. The switch between local and cloud is automatic — same API either way.",
+        answer: "Not always. Hosted provider-backed execution requires connectivity, while local execution can run where you configure it. Exact cloud-to-local fallback behavior depends on deployment mode and proof status, so treat local fallback claims carefully unless you have validated them in your environment.",
         type: "text"
       },
       {
@@ -50,7 +50,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "How is this different from using OpenAI/Anthropic directly?",
-        answer: "We sit between your application and providers. Thompson Sampling learns which provider performs best for your workload. You get automatic failover, cost optimization, local fallback when cloud is down, and features like Council Mode and Speculative Execution that no single provider offers.",
+        answer: "Direct provider calls are fine for simple chat. Igris is for workloads where AI output starts doing work and you need governed execution, execution events, signed records, and verification-ready receipts. If you configure multiple providers, advanced path selection can help choose between them, but that is implementation detail rather than the whole product story.",
         type: "text"
       }
     ]
@@ -90,17 +90,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "What is Thompson Sampling?",
-        answer: "A Bayesian learning algorithm that routes each request to the best provider based on observed latency, cost, error rate, and quality. It learns your specific workload patterns — starting with cautious exploration and converging to optimal routing after ~500 requests.",
+        answer: "An advanced adaptive path-selection strategy used in some Igris configurations. It is one possible implementation detail inside the Execute stage, not a required part of using Igris.",
         type: "text"
       },
       {
         question: "What are Speculative Execution and Council Mode?",
-        answer: "Speculative Execution races 2-3 providers in parallel and returns the fastest quality response. Council Mode sends a request to multiple providers, has them evaluate each other's answers, then synthesizes the best response. Speed vs. quality — you choose per request.",
+        answer: "They are advanced or preview-oriented execution patterns for parallel path testing or multi-path review. Treat them as specialized workflows rather than default behavior, and avoid assuming broad performance gains unless you have benchmarked them yourself.",
         type: "text"
       },
       {
         question: "How do the AI agents work?",
-        answer: "Planning agents break complex tasks into steps using chain-of-thought reasoning. Reflection agents self-critique and regenerate until quality thresholds are met. Swarm agents run multiple perspectives in parallel with consensus voting. All agents support tool use (HTTP, shell, filesystem) with sandboxed execution.",
+        answer: "Igris supports AI tasks that can plan, reflect, and use tools such as HTTP, shell, or filesystem access when policy allows. The important part is that tool use stays bounded by permissions, events are recorded, and the run remains inspectable afterward.",
         type: "text"
       },
       {
@@ -110,7 +110,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Can I use it without the dashboard?",
-        answer: "Yes. The runtime operates completely standalone. The dashboard is optional for fleet management and provides visibility into routing decisions, device health, and audit trails when you need to manage multiple devices.",
+        answer: "Yes. Local execution surfaces can run without the console. The console adds operator visibility for runs, execution events, signed records, environment status, and account controls when you need them.",
         type: "text"
       }
     ]
@@ -130,7 +130,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "What is EscapeVector?",
-        answer: "A 72-hour encrypted response cache (AES-256-GCM) that activates when all providers fail. Pre-cached responses keep your system operational during extended outages. Combined with local LLM fallback, the platform degrades gracefully rather than failing.",
+        answer: "An advanced cache-oriented component in the codebase. Treat it as specialized failure-path support rather than a blanket availability guarantee.",
         type: "text"
       },
       {
@@ -140,7 +140,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Do you train on my data?",
-        answer: "No. We never train models on your data. QLoRA fine-tuning happens entirely on your device. Federated learning shares only encrypted model weight updates across your fleet — raw data never leaves the device.",
+        answer: "No. We do not train foundation models on your data. If you explore local fine-tuning or aggregation-style workflows, treat those capabilities according to the current proof-status and preview labels rather than assuming general availability.",
         type: "text"
       }
     ]
@@ -150,12 +150,12 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "What happens if a device goes offline?",
-        answer: "The runtime continues operating with local LLM inference, cached responses via EscapeVector, and local agent execution. All decisions are still cryptographically signed. When connectivity returns, the device syncs telemetry and audit logs with the dashboard automatically.",
+        answer: "Local execution can continue where your deployment is configured for it. The exact failure-path behavior depends on whether you rely on hosted providers, local models, cached state, or hybrid coordination. Use the proof-status language in the docs instead of assuming every cloud-to-local path is already proven.",
         type: "text"
       },
       {
         question: "How does fleet management work?",
-        answer: "Devices register with Ed25519 signatures via the fleet API. The dashboard shows device health, telemetry, and configuration. You can push model updates, configuration changes, and emergency patches (Gold Code) to individual devices or your entire fleet with cryptographic verification.",
+        answer: "Registered execution environments report health and status through coordination surfaces. The dashboard shows environment visibility, events, and related operator state. Stronger claims around automated rollout, config push, or OTA-style updates depend on deployment reality and current proof status.",
         type: "text"
       },
       {
@@ -165,7 +165,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "What observability do I get?",
-        answer: "Prometheus-compatible metrics (150+), distributed request tracing, per-request cost tracking, routing decision audit logs, and provider performance leaderboards. The Cognitive Advisor (Infinite tier) automatically proposes optimizations based on observed patterns.",
+        answer: "Operators can inspect execution runs, execution events, signed records, tracing data, and path-selection metadata where configured. Additional optimization or advisor-style surfaces should be treated as advanced workflows rather than assumed defaults.",
         type: "text"
       }
     ]
