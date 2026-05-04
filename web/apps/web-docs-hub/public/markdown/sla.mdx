@@ -6,7 +6,7 @@ audience: "public"
 
 # Service Level Agreement
 
-This document describes the service level commitments for each Igris tier.
+This document describes service-level commitments for hosted Igris surfaces. Technical-preview and proof-limited areas are excluded unless explicitly stated.
 
 ---
 
@@ -46,14 +46,6 @@ The cloud API targets the following response time percentiles for inference rout
 | P99 | < 500ms |
 
 Provider inference time depends on the selected provider and model and is not included in these targets.
-
-### Fleet Communication
-
-| Metric | Target |
-|---|---|
-| Heartbeat processing | < 1 second from receipt |
-| Config push delivery | < 5 minutes (next heartbeat cycle) |
-| OTA update initiation | < 10 minutes from queue |
 
 ---
 
@@ -129,6 +121,7 @@ The SLA does not apply to:
 - Scheduled maintenance windows
 - Issues reported more than 30 days after occurrence
 - Beta or experimental features
+- Technical preview surfaces such as robotics, ROS2, multimodal, or proof-limited coordinated rollout features
 
 ---
 
