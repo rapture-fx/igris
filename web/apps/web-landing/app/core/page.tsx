@@ -9,13 +9,13 @@ import ClosingPosition from '../../src/components/sections/ClosingPosition'
 const layers = [
   {
     name: 'Execution',
-    subtitle: 'Structured, bounded, deterministic.',
-    description: 'Runs AI with defined limits, ensuring behavior remains predictable across devices and fleets.',
+    subtitle: 'Structured, bounded, and reviewable.',
+    description: 'Runs AI with defined limits, keeping execution governed across configured environments.',
     details: [
       'Hybrid behavior trees define execution paths. The runtime follows structured decision paths, invoking language models only when needed.',
       'Every execution is bounded by configurable limits on time, memory, and output size. No uncontrolled behavior, no silent failures.',
       'Sandboxed environments isolate each workload. Resource exhaustion and runaway processes are prevented by design.',
-      'Execution works identically whether deployed on a single device or across a fleet of thousands.',
+      'Execution stays governed whether deployed in one environment or many configured environments.',
     ],
     lightImage: '/exc.png',
     darkImage: '/cr.png',
@@ -27,8 +27,8 @@ const layers = [
     details: [
       'Language models are invoked as tools within behavior trees\u2014not as autonomous agents. The runtime decides when and how to call them.',
       'BYOM (Bring Your Own Model) support lets you run any GGUF model locally. Use open-source models or your own fine-tuned weights.',
-      'Thompson Sampling routes requests to the optimal model based on real-time performance data. No manual tuning required.',
-      'All inference happens on-device. Models run entirely in memory with no cloud calls required. Network outages don\'t stop execution.',
+      'Advanced path selection can choose between configured providers or execution paths when needed.',
+      'Hosted, local, and hybrid modes let teams decide where work runs without changing the core product model.',
     ],
     lightImage: '/tre.png',
     darkImage: '/cs.png',
@@ -41,7 +41,7 @@ const layers = [
       'Every decision, inference call, and state transition is recorded in a structured execution log.',
       'Logs are cryptographically signed and tamper-evident. You can verify that what the system reports actually happened.',
       'Execution history enables replay, debugging, and compliance auditing without relying on external logging systems.',
-      'Fleet-wide synchronization ensures consistent records across all devices when connectivity is available.',
+      'Operators can correlate history across configured environments when their deployment mode exposes those coordination surfaces.',
     ],
     lightImage: '/one.png',
     darkImage: '/cc.png',
@@ -72,7 +72,7 @@ export default function CorePage() {
                   Every layer working together.
                 </h2>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-lg leading-relaxed text-left mt-4 font-geist-sans">
-                  Execution, intelligence, memory, and proof are designed to work together as one system. Each layer has a defined role. Together they form a runtime that is predictable, auditable, and deployable anywhere.
+                  Execution, intelligence, memory, and proof are designed to work together as one system. Each layer has a defined role. Together they form an execution system that is governable, auditable, and able to run across configured environments.
                 </p>
               </div>
             </div>
