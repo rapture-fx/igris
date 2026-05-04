@@ -1,6 +1,6 @@
 # API Contract Validation
 
-Generated: 2026-05-01T08:47:28.380Z
+Generated: 2026-05-03T23:40:02.885Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
@@ -42,7 +42,7 @@ This report validates API reference request/response examples and compares docum
 | `GET /v1/receipts` | 0 | not discovered | not-required | `igris-overture/api/routes_receipts.go` | 14 | verified |
 | `GET /v1/receipts/:id` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/receipts/export` | 0 | not discovered | not-required | not required | 0 | verified |
-| `POST /proof/receipts/verify` | 2 | `VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)` | source-backed | `igris-overture/api/routes_proof.go` | 4 | verified |
+| `POST /proof/receipts/verify` | 2 | `VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)` | source-backed | `igris-overture/api/routes_proof.go` | 8 | verified |
 | `GET /v1/routing/stats` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/routing/recent` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/routing/leaderboard` | 0 | not discovered | not-required | not required | 0 | verified |
