@@ -23,6 +23,7 @@ import {
   type ExecutionRunDetail,
   type ExecutionViolation,
 } from '@/lib/executionRuns';
+import { buildExecutionTimeline } from '@/lib/executionTimeline';
 import { api } from '@/lib/apiClient';
 import { formatDateTime, getRelativeTime } from '@/utils/helpers';
 import {
@@ -152,7 +153,7 @@ export default function ExecutionRunDetailPage() {
   const violationList = useMemo(() => run ? violationRows(run, violations) : [], [run, violations]);
   const policySnapshot = run?.policy_snapshot ?? null;
   const capabilitySnapshot = run?.capability_snapshot ?? null;
-  const events = run?.events ?? [];
+  const timeline = useMemo(() => buildExecutionTimeline(run?.events, run?.logs), [run?.events, run?.logs]);
 
   const refreshExecutionQueries = async () => {
     await refetchRun();
@@ -458,18 +459,49 @@ export default function ExecutionRunDetailPage() {
               </Surface>
             </div>
 
-            <Surface title="Execution events" icon={Clock3}>
-              {events.length === 0 ? (
-                <p className="text-xs text-gray-500">No structured execution events were returned for this run.</p>
+            <Surface title="Execution timeline" icon={Clock3}>
+              {timeline.length === 0 ? (
+                <p className="text-xs text-gray-500">No execution events recorded for this run.</p>
               ) : (
                 <div className="space-y-3">
-                  {events.map((event, index) => (
-                    <div key={`${event.timestamp}-${event.kind}-${index}`} className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-semibold text-gray-900">{event.kind || 'event'}</p>
-                        <span className="text-[11px] text-gray-500">{event.timestamp ? getRelativeTime(event.timestamp) : '—'}</span>
+                  {timeline.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <div className="w-28 shrink-0 pt-1">
+                        <p className="text-[11px] font-medium text-gray-700">
+                          {item.timestamp ? formatDateTime(item.timestamp) : 'Not recorded'}
+                        </p>
+                        {item.timestamp ? (
+                          <p className="mt-0.5 text-[11px] text-gray-500">{getRelativeTime(item.timestamp)}</p>
+                        ) : null}
                       </div>
-                      <p className="mt-1 text-xs text-gray-700">{event.message || 'No message recorded.'}</p>
+                      <div className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold text-gray-900">{item.label}</p>
+                          <span
+                            className={[
+                              'text-[11px]',
+                              item.severity === 'error'
+                                ? 'text-red-700'
+                                : item.severity === 'warning'
+                                  ? 'text-orange-700'
+                                  : item.severity === 'success'
+                                    ? 'text-green-700'
+                                    : 'text-gray-500',
+                            ].join(' ')}
+                          >
+                            {item.source === 'event' ? 'Event' : 'Log'}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-700">{item.detail}</p>
+                        {item.kind ? (
+                          <p className="mt-1 text-[11px] text-gray-500">
+                            Kind: <span className="font-mono">{item.kind}</span>
+                          </p>
+                        ) : null}
+                        {item.metadata?.raw_log ? (
+                          <p className="mt-1 break-all font-mono text-[11px] text-gray-500">{String(item.metadata.raw_log)}</p>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -496,6 +528,7 @@ export default function ExecutionRunDetailPage() {
                   run,
                   receipt,
                   violations,
+                  timeline,
                 }}
                 defaultOpen={false}
               />
