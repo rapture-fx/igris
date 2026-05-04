@@ -42,6 +42,8 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 |---|---|---|---|
 | `machine_id` | `string` | Yes | Stable runtime fingerprint for the host. |
 | `bt_state` | `object` | No | Optional current behavior-tree state snapshot. |
+| `timestamp_unix_ms` | `integer` | Yes | Millisecond Unix timestamp used for replay-window validation. |
+| `signature` | `string` | Yes | Runtime signature over the heartbeat payload. |
 
 ## Request Example
 
@@ -51,7 +53,9 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
   "bt_state": {
     "tick": 418,
     "status": "running"
-  }
+  },
+  "timestamp_unix_ms": 1775283720000,
+  "signature": "MEQCIB3exampleRuntimeHeartbeatSignature=="
 }
 ```
 
@@ -68,7 +72,9 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/heartbeat \
   "bt_state": {
     "tick": 418,
     "status": "running"
-  }
+  },
+  "timestamp_unix_ms": 1775283720000,
+  "signature": "MEQCIB3exampleRuntimeHeartbeatSignature=="
 }'
 ```
 
@@ -86,7 +92,9 @@ const response = await fetch('https://overture.igrisinertial.com/api/v1/runtime/
   "bt_state": {
     "tick": 418,
     "status": "running"
-  }
+  },
+  "timestamp_unix_ms": 1775283720000,
+  "signature": "MEQCIB3exampleRuntimeHeartbeatSignature=="
 }),
 });
 
@@ -98,7 +106,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"machine_id\": \"dev_0f4c3f1a2d9b45cf\",\n  \"bt_state\": {\n    \"tick\": 418,\n    \"status\": \"running\"\n  }\n}")
+body := strings.NewReader("{\n  \"machine_id\": \"dev_0f4c3f1a2d9b45cf\",\n  \"bt_state\": {\n    \"tick\": 418,\n    \"status\": \"running\"\n  },\n  \"timestamp_unix_ms\": 1775283720000,\n  \"signature\": \"MEQCIB3exampleRuntimeHeartbeatSignature==\"\n}")
 
 req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/api/v1/runtime/heartbeat", body)
 if err != nil {
@@ -129,7 +137,9 @@ let response = client
   "bt_state": {
     "tick": 418,
     "status": "running"
-  }
+  },
+  "timestamp_unix_ms": 1775283720000,
+  "signature": "MEQCIB3exampleRuntimeHeartbeatSignature=="
 }))
         .send()
         .await?;
