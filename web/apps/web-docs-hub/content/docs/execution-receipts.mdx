@@ -96,8 +96,14 @@ Use the proof endpoints when you want receipt-oriented verification views:
 curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"execution_id": "exec-01HXYZ"}'
+  -d '{
+    "execution_id": "exec-01HXYZ",
+    "hash": "sha256:...",
+    "signature": "base64:..."
+  }'
 ```
+
+This endpoint compares submitted receipt values against the stored record and syncs proof status. In the current handler it does **not** perform full cryptographic signature verification by itself. Use the local proof-backed verification flow when you need the strongest demonstrated verification path today.
 
 ---
 
