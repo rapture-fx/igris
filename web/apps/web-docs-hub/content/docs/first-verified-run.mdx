@@ -1,0 +1,116 @@
+---
+title: "First Verified Run"
+description: "Run the proof-backed local Igris flow and inspect what Request -> Execute -> Verify proves today."
+audience: "public"
+---
+
+# First Verified Run
+
+This page walks through the narrowest honest proof-backed path in the repo today.
+
+Use it when you want to see Igris do real execution work and return verification-ready artifacts, without assuming unproven provider, fallback, or robotics behavior.
+
+---
+
+## What This Run Proves
+
+The local proof demonstrates:
+
+- one request sent through Overture
+- execution handed off to Runtime
+- signed `execution_envelope` returned from the run
+- signed `execution_receipt` returned from the run
+- receipt hash recomputation and receipt-log chain verification
+- route-decision metadata showing the request was forwarded to Runtime
+
+This is a **proven locally** path based on the current proof artifacts.
+
+## Prerequisites
+
+- A checkout of this repository
+- `node`, `go`, `cargo`, `curl`, and `lsof`
+- Free ports `8080` and `8081`
+- Free port `18090` for the default mock-provider mode
+
+## Run The Demo
+
+From the repo root:
+
+```bash
+./scripts/unified_execution_proof_demo.sh
+```
+
+Expected output shape:
+
+```text
+Unified execution proof succeeded.
+Mode: mock
+Provider: local-mock-cloud
+Route decision: forwarded_to_runtime_task
+Receipt execution_id: ...
+Receipt hash: ...
+Artifacts: /tmp/igris-unified-proof.XXXXXX
+```
+
+## What The Script Does
+
+1. Prepares local proof artifacts, including an offline license artifact and local signing material.
+2. Builds or reuses the Runtime binary.
+3. Builds the Overture binary.
+4. Starts a local mock OpenAI-compatible upstream on `127.0.0.1:18090`.
+5. Starts Runtime on `127.0.0.1:8080`.
+6. Starts Overture on `127.0.0.1:8081`.
+7. Sends one `/v1/infer` request through Overture.
+8. Fails if Overture falls back away from Runtime.
+9. Verifies the returned `execution_envelope`.
+10. Verifies the returned `execution_receipt`, its hash, and its receipt-log chain entry.
+
+## What To Inspect
+
+The script prints an artifact directory at the end of the run. The most useful files are:
+
+- `overture-response.json` for the public response payload
+- `verification.json` for the verification summary
+- `logs/overture.log` for handoff behavior
+- `logs/runtime.log` for runtime-side execution details
+
+## What Is Proven Locally
+
+| Claim | Status |
+|---|---|
+| Unified Request -> Execute -> Verify flow through Overture and Runtime | Proven locally |
+| Signed execution envelope verification | Proven locally |
+| Signed execution receipt verification | Proven locally |
+| Receipt-hash verification | Proven locally |
+| Receipt-log chain linkage | Proven locally |
+| Route-decision metadata for runtime handoff | Proven locally |
+
+## What Is Not Proven By This Demo
+
+| Claim | Current status |
+|---|---|
+| Real provider-backed execution | Wired and configurable, but not proven in the prior environment |
+| Local GGUF fallback | Source-confirmed, not proven here |
+| Checkpoint recovery | Source-confirmed, not proven here |
+| Fleet failover | Not yet proven here |
+| ROS2 or robotics execution | Technical preview or in development |
+| Multimodal execution | Preview or stub-heavy, not proven here |
+
+## Real Provider Mode
+
+The script also supports a real-provider mode, but it should be treated separately from the default proof path because it requires sanctioned credentials.
+
+Example shape:
+
+```bash
+export IGRIS_UNIFIED_PROVIDER_MODE=real
+export IGRIS_REAL_PROVIDER=openai
+export OPENAI_API_KEY=...
+./scripts/unified_execution_proof_demo.sh
+```
+
+That mode is wired through Runtime, not around it. It is appropriate for controlled proof work, not for the default onboarding path.
+
+---
+
+[Quick Start →](/docs/quickstart) · [Verification →](/docs/verification) · [Proof Status →](/docs/proof-status)
