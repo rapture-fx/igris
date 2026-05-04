@@ -403,6 +403,9 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       { name: 'platform', type: 'string', description: 'Platform identifier such as `linux-amd64`.' },
       { name: 'runtime_version', type: 'string', required: true, description: 'Runtime version string.' },
       { name: 'endpoint', type: 'string', description: 'Optional public endpoint for the runtime.' },
+      { name: 'public_key_ed25519', type: 'string', required: true, description: 'Runtime Ed25519 public key in hex, used to bind later signed runtime requests to the registered machine identity.' },
+      { name: 'timestamp_unix_ms', type: 'integer', required: true, description: 'Millisecond Unix timestamp used for replay-window validation.' },
+      { name: 'signature', type: 'string', required: true, description: 'Runtime signature over the registration payload.' },
     ],
     requestExample: {
       machine_id: 'dev_0f4c3f1a2d9b45cf',
@@ -410,6 +413,9 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       platform: 'linux-amd64',
       runtime_version: 'runtime-v1.6.0',
       endpoint: 'http://10.0.0.12:8080',
+      public_key_ed25519: 'f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766',
+      timestamp_unix_ms: 1775283660000,
+      signature: 'MEQCIB3exampleRuntimeRegisterSignature==',
     },
     responseExample: {
       runtime_id: 'rt_01HV94AS6G98PZ2YH',
@@ -424,6 +430,8 @@ const endpointOverrides: Record<string, EndpointOverride> = {
     requestBodyFields: [
       { name: 'machine_id', type: 'string', required: true, description: 'Stable runtime fingerprint for the host.' },
       { name: 'bt_state', type: 'object', description: 'Optional current behavior-tree state snapshot.' },
+      { name: 'timestamp_unix_ms', type: 'integer', required: true, description: 'Millisecond Unix timestamp used for replay-window validation.' },
+      { name: 'signature', type: 'string', required: true, description: 'Runtime signature over the heartbeat payload.' },
     ],
     requestExample: {
       machine_id: 'dev_0f4c3f1a2d9b45cf',
@@ -431,6 +439,8 @@ const endpointOverrides: Record<string, EndpointOverride> = {
         tick: 418,
         status: 'running',
       },
+      timestamp_unix_ms: 1775283720000,
+      signature: 'MEQCIB3exampleRuntimeHeartbeatSignature==',
     },
     responseExample: {
       status: 'ok',
@@ -496,9 +506,13 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       'Marks a runtime as deregistered and unhealthy for the current tenant. The runtime remains in historical records but should no longer be treated as an active fleet member.',
     requestBodyFields: [
       { name: 'machine_id', type: 'string', required: true, description: 'Stable runtime machine identifier used during registration.' },
+      { name: 'timestamp_unix_ms', type: 'integer', required: true, description: 'Millisecond Unix timestamp used for replay-window validation.' },
+      { name: 'signature', type: 'string', required: true, description: 'Runtime signature over the deregistration payload.' },
     ],
     requestExample: {
       machine_id: 'dev_0f4c3f1a2d9b45cf',
+      timestamp_unix_ms: 1775283780000,
+      signature: 'MEQCIB3exampleRuntimeDeregisterSignature==',
     },
     responseExample: {
       status: 'ok',
@@ -732,20 +746,33 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /proof/receipts/verify': {
     functionality:
-      'Verifies a receipt hash and signature for a known execution. Use this to confirm the proof chain before presenting a receipt externally.',
+      'Compares submitted receipt values against the stored record for a known execution and returns the current proof status. The current handler compares stored values; it does not perform full cryptographic signature verification by itself.',
     requestBodyFields: [
       { name: 'execution_id', type: 'string', required: true, description: 'Execution identifier to verify.' },
-      { name: 'expected_hash', type: 'string', description: 'Optional expected receipt hash for direct comparison.' },
+      { name: 'expected_hash', type: 'string', description: 'Compatibility alias for the comparison hash accepted by the current handler.' },
+      { name: 'hash', type: 'string', required: true, description: 'Receipt hash value to compare against the stored record.' },
+      { name: 'signature', type: 'string', required: true, description: 'Receipt signature value to compare against the stored record.' },
     ],
     requestExample: {
       execution_id: 'exec_01HV95R5Y3TVVJ7R3',
-      expected_hash: '6f16f4bc4d6627240ca4c7d66ea2d7d2',
+      hash: '6f16f4bc4d6627240ca4c7d66ea2d7d2',
+      signature: 'MEUCIDexampleReceiptSignature==',
     },
     responseExample: {
+      verified: true,
       valid: true,
       execution_id: 'exec_01HV95R5Y3TVVJ7R3',
+      receipt_id: '7f8a6c71-6a4b-4d9c-9b74-437f2ea0b761',
+      runtime_id: 'rt_01HV94AS6G98PZ2YH',
+      runtime_label: 'edge-node-01',
       hash: '6f16f4bc4d6627240ca4c7d66ea2d7d2',
-      signature: 'MEUCID...==',
+      signature: 'MEUCIDexampleReceiptSignature==',
+      verification_status: 'verified',
+      hash_valid: true,
+      signature_matches: true,
+      chain_valid: null,
+      message:
+        'Stored receipt hash and signature matched the submitted values. This endpoint does not perform cryptographic signature validation.',
     },
   },
   'GET /v1/health': {
