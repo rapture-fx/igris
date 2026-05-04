@@ -1,35 +1,41 @@
 ---
 title: "Hybrid Deployment Workflow"
-description: "Use this workflow when you want one product experience for the customer while combining the hosted API with one or more local runtimes."
+description: "Use this workflow when one Igris execution model needs to span hosted coordination and local runtime execution."
 audience: "public"
 ---
 
 # Hybrid Deployment Workflow
 
-Use this workflow when you want one product experience for the customer while combining the hosted API with one or more local runtimes.
+Use this workflow when one Igris execution model needs to span hosted and local environments.
 
-This is the right model when you want:
+Hybrid deployment is still one product story:
 
-- hosted API access for the application layer
-- local runtime execution close to the device or workload
-- fleet visibility and rollout control
-- a fallback path between hosted and local execution
+- **Request** enters through a stable application-facing Igris surface
+- **Execute** can involve hosted coordination and runtime-backed execution
+- **Verify** stays tied to the same records, receipts, and inspection workflows
+
+This model is useful when you care about:
+
+- governance across hosted and local environments
+- running execution closer to devices or private infrastructure
+- clearer failure-path handling between application traffic and runtime operations
+- verification-ready records even when execution topology is mixed
 
 ---
 
-## 1. Keep the application pointed at the hosted API
+## 1. Keep One Application-Facing Contract
 
-The application-facing base URL stays the same:
+In most hybrid setups, the application still points at the hosted base URL:
 
 ```text
 https://overture.igrisinertial.com/v1
 ```
 
-That keeps the customer contract unified even when runtimes are participating underneath. The application continues to see one product API, while Igris decides where execution and coordination should happen.
+That keeps the application contract stable while allowing runtime participation underneath.
 
-## 2. Start runtimes with registration credentials
+## 2. Start Runtimes With The Right Registration Context
 
-Hybrid deployment only works when the runtime can register successfully.
+Hybrid deployment only works when the runtime can start and register correctly.
 
 ```bash
 export IGRIS_LICENSE_KEY="YOUR_LICENSE_KEY"
@@ -37,42 +43,54 @@ export IGRIS_API_KEY="YOUR_IGRIS_API_KEY"
 igris-runtime serve
 ```
 
-## 3. Verify cloud and runtime access separately
+This is the operational step that makes runtime-backed participation possible. It does not create a second product surface for the application team.
 
-Confirm both sides independently:
+## 3. Verify Hosted And Runtime Health Separately
+
+Check both sides of the system deliberately:
 
 - hosted API calls succeed with your tenant API key
 - the runtime answers `http://localhost:8080/v1/health`
-- fleet visibility appears in the console when registration succeeds
+- runtime registration and visibility succeed where your workflow depends on them
 
-## 4. Use fleet APIs for coordination
+Hybrid works best when execution traffic and runtime operations are both observable.
 
-Once runtimes are participating, use the documented fleet-management routes and workflows for:
+## 4. Decide What Must Stay Hosted Versus Local
 
-- runtime inventory
-- config push
-- OTA updates
+Use hosted coordination when you want:
 
-Do not rebuild a parallel coordination system when the product surface already supports it. Hybrid works best when the application path stays simple and device operations stay explicit.
+- the simplest application-facing entry path
+- provider-backed execution without device-local routing decisions in the client
+- centralized operator workflows
 
-## 5. Separate hot-path traffic from provisioning traffic
+Use runtime-backed execution when you want:
 
-Keep the hosted inference path and runtime management path conceptually separate:
+- locality
+- device-level governance
+- execution near private infrastructure or tools
 
-- application traffic calls the hosted API
-- operators and rollout systems manage runtimes and fleet operations
+The important point is that the workflow still belongs to one execution system.
 
-That keeps the architecture readable, makes failure handling clearer, and avoids treating device management like ordinary inference traffic.
+## 5. Treat Failure Paths Carefully
+
+Hybrid deployment is often adopted because teams care about failure handling, but you should be disciplined about proof language:
+
+- hybrid participation is real
+- runtime registration and coordination surfaces are real
+- not every failover or recovery story should be described as proven unless you have the corresponding proof artifact
+
+Use [Proof Status](/docs/proof-status) when the docs or rollout plan need to separate supported architecture from demonstrated behavior.
 
 ## Common Mistakes
 
-- Pointing application clients directly at runtime coordination routes
-- Expecting fleet visibility without valid `IGRIS_LICENSE_KEY` and `IGRIS_API_KEY`
-- Mixing rollout traffic and customer inference traffic into the same operational path
+- Explaining hybrid as if it were two different products glued together
+- Mixing runtime lifecycle traffic with ordinary application requests
+- Assuming all failover scenarios are already proven in your environment
+- Pointing clients directly at coordination or fleet routes when the application should stay on the main API surface
 
 ## Related Guides
 
-- [Quick Start →](/docs/quickstart)
-- [Fleet Management →](/docs/fleet-management)
+- [Deploy Local Runtime →](/docs/deploy-local-runtime)
 - [Cloud Coordination →](/docs/cloud-coordination)
-- [API Reference →](/docs/api-reference)
+- [Verification →](/docs/verification)
+- [Proof Status →](/docs/proof-status)
