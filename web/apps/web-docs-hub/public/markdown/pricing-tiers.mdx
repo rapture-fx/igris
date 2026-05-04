@@ -1,12 +1,19 @@
 ---
 title: "Pricing & Tiers"
-description: "Simple, transparent pricing for runtime fleet management. Start with a 7-day free trial on any tier — no credit card required."
+description: "Pricing for verified AI execution, execution-environment capacity, retention, and operator access."
 audience: "public"
 ---
 
 # Pricing & Tiers
 
-**Simple, transparent pricing for runtime fleet management.** Start with a 7-day free trial on any tier — no credit card required.
+Pricing is organized around the practical things teams buy from Igris:
+
+- execution-environment capacity
+- retention for signed records and run history
+- operator surfaces and team workflows
+- deployment flexibility
+
+The commercial story should stay aligned with the product story: governed execution, verification-ready records, and deployment choice. It should not depend on presenting every advanced surface as broadly ready by default.
 
 ---
 
@@ -15,237 +22,77 @@ audience: "public"
 | | **Seed** | **Horizon** | **Infinite** |
 |---|---|---|---|
 | **Price** | $29/month | $149/month | $699/month |
-| **Runtime Instances** | 3 | 50 | 500 |
-| **Deployment** | Edge or server | Edge or server | Edge, server, or on-premise |
+| **Execution environments** | 3 | 50 | 500 |
+| **Retention** | 7 days | 30 days | 90 days |
+| **Deployment scope** | Hosted, local, or small hybrid | Larger hybrid and operator workflows | Private deployment and larger environment sets |
 | **Support** | Email (48h) | Email (24h) | Priority (8h) |
-| **Log Retention** | 7 days | 30 days | 90 days |
-| **Free Trial** | 7 days | 7 days | 7 days |
+| **Trial** | 7 days | 7 days | 7 days |
 
-All tiers include a 7-day free trial. One trial per account. No credit card required to start.
+All tiers include a 7-day trial. No credit card is required to start.
 
----
+## What Tiers Primarily Differentiate
 
-## Seed — $29/month
+Tiers are best understood through operational differences:
 
-The right starting point for developers shipping agents or robots to production. Includes the full Igris runtime with every core execution capability.
+- how many execution environments you can register
+- how long you retain run history and signed records
+- whether you need deeper operator workflows
+- whether you need private deployment options
 
-**Runtime capacity:** 3 instances
+## Seed
 
-### Included Features
+Seed is the smallest paid footprint for teams that want to start running governed, verifiable AI tasks.
 
-**Core Execution**
-- Behavior Trees + hybrid LLM execution
-- Agent Memory (shared blackboard)
-- Safety Containment
-- Cryptographic execution receipts
-- Tamper-evident audit logs
+Good fit:
 
-**Routing & Inference**
-- Adaptive multi-provider routing with automatic failover
-- Shadow mode
-- Speculative execution
-- Council mode (multi-model consensus)
-- Offline survival mode
-- Local and cloud routing
-
-**Governance**
-- Capability gates
-- SLO enforcement
-- Prometheus metrics
-- Advanced policy engine
-- Human-in-the-Loop approvals
-- Routing advisor
-
-**Deployment & Integration**
-- Edge or server deployment
-- Verified binary install (checksum-verified download)
-- MCP Integration
-- ROS2 Integration
-- On-device training (LoRA)
-- Multi-Agent Swarms
-
-**Support**
-- Email support (48-hour response)
+- early production teams
+- small environment counts
+- short retention needs
+- teams proving the value of signed records and governed execution first
 
-[Start Seed Trial →](https://console.igrisinertial.com)
-
----
+## Horizon
 
-## Horizon — $149/month
-
-Recommended for growing teams that need fleet management, remote operations, and longer audit retention.
+Horizon is for teams that need broader operator visibility and more registered execution environments.
 
-**Runtime capacity:** 50 instances
+Good fit:
 
-### Everything in Seed, plus
+- growing environment counts
+- longer retention windows
+- teams that need more day-to-day operator coordination
 
-**Fleet Management**
-- Fleet dashboard
-- Remote OTA fleet updates
-- Configuration push to devices
+## Infinite
 
-**Retention and Support**
-- 30-day log retention
-- Email support (24-hour response)
+Infinite is for organizations that need larger deployment scope and private deployment flexibility.
 
-[Start Horizon Trial →](https://console.igrisinertial.com)
+Good fit:
 
----
+- larger execution-environment footprints
+- private or self-managed deployment needs
+- longer retention expectations
 
-## Infinite — $699/month
+## What This Page Does Not Assume
 
-For organizations running large-scale fleets with on-premise requirements or federated workloads.
+This page intentionally does not sell unproven advanced surfaces as default tier promises.
 
-**Runtime capacity:** 500 instances
+Use careful language for:
 
-### Everything in Horizon, plus
+- robotics and ROS2
+- multimodal
+- OTA-style rollout behavior
+- broad fleet failover
+- checkpoint recovery
 
-**Deployment**
-- On-premise deployment
-- Self-hosted coordination layer
+Those areas should follow [Proof Status](/docs/proof-status) rather than being treated as blanket paid-tier guarantees.
 
-**Capabilities**
-- Federated model aggregation
-- Multimodal inference *(Early Access)*
+## Trial Basics
 
-**Retention and Support**
-- Custom retention policy
-- Dedicated onboarding
-- Priority support (8-hour response)
+Every account can start one 7-day trial on a selected tier.
 
-[Start Infinite Trial →](https://console.igrisinertial.com)
+For API details and account flows, see [Trial & Billing](/docs/trial-billing).
 
----
+## Related Pages
 
-## Feature Comparison
-
-| Feature | Seed | Horizon | Infinite |
-|---------|------|---------|----------|
-| **Runtime instances** | 3 | 50 | 500 |
-| **Behavior Trees + hybrid LLM execution** | Yes | Yes | Yes |
-| **Agent Memory (blackboard)** | Yes | Yes | Yes |
-| **Safety Containment** | Yes | Yes | Yes |
-| **Cryptographic execution receipts** | Yes | Yes | Yes |
-| **Tamper-evident audit logs** | Yes | Yes | Yes |
-| **Adaptive multi-provider routing** | Yes | Yes | Yes |
-| **Shadow mode** | Yes | Yes | Yes |
-| **Speculative execution** | Yes | Yes | Yes |
-| **Council mode** | Yes | Yes | Yes |
-| **SLO enforcement** | Yes | Yes | Yes |
-| **Prometheus metrics** | Yes | Yes | Yes |
-| **Advanced policy engine** | Yes | Yes | Yes |
-| **Human-in-the-Loop approvals** | Yes | Yes | Yes |
-| **Routing advisor** | Yes | Yes | Yes |
-| **Multi-Agent Swarms** | Yes | Yes | Yes |
-| **Reflection Mode** | Yes | Yes | Yes |
-| **On-device training (LoRA)** | Yes | Yes | Yes |
-| **MCP Integration** | Yes | Yes | Yes |
-| **ROS2 Integration** | Yes | Yes | Yes |
-| **Verified binary install** | Yes | Yes | Yes |
-| **Offline survival mode** | Yes | Yes | Yes |
-| **Local + cloud routing** | Yes | Yes | Yes |
-| **Edge or server deployment** | Yes | Yes | Yes |
-| **On-premise deployment** | No | No | Yes |
-| **Self-hosted coordination layer** | No | No | Yes |
-| **Remote OTA fleet updates** | No | Yes | Yes |
-| **Fleet dashboard** | No | Yes | Yes |
-| **Configuration push** | No | Yes | Yes |
-| **Federated model aggregation** | No | No | Yes |
-| **Multimodal inference** | No | No | Early Access |
-| **Log retention** | 7 days | 30 days | 90 days |
-| **Dedicated onboarding** | No | No | Yes |
-| **Support response time** | 48 hours | 24 hours | 8 hours |
-
----
-
-## Trial System
-
-Every Igris account is eligible for one 7-day free trial on any tier.
-
-**How it works:**
-
-1. Select a tier (Seed, Horizon, or Infinite) when you start your trial.
-2. Your trial runs for 7 days from the activation date.
-3. At the end of the trial, you can subscribe to continue at the selected tier.
-4. If you do not subscribe before the trial ends, your account moves to the Seed tier. You are not locked out. All data and runtime configuration is preserved.
-
-**Key details:**
-- No credit card is required to start a trial.
-- One trial per account — you cannot start a second trial after the first has ended.
-- If you start a Horizon or Infinite trial and choose not to subscribe, the Seed tier remains active so your work is not interrupted.
-
----
-
-## Billing
-
-**Payment processor:** All billing is handled by [Polar.sh](https://polar.sh). You will be redirected to a Polar.sh checkout page when subscribing.
-
-**Billing cycle:** Monthly. There are no annual contracts or long-term commitments.
-
-**Cancellation:** Cancel anytime from the billing section of your console account at [console.igrisinertial.com](https://console.igrisinertial.com).
-
-**No overage charges:** Igris does not charge per-request fees or overage rates. Your subscription covers your runtime instance capacity. If you need more instances, upgrade to a higher tier.
-
----
-
-## Upgrading and Downgrading
-
-**Upgrading:** You can upgrade your tier at any time from the billing settings in the console. The new tier's features and instance capacity become available immediately. Charges are prorated for the remainder of the billing period.
-
-**Downgrading:** Downgrades take effect at the start of the next billing cycle. Your current tier's features and capacity remain active until then.
-
-**Instance limits:** If your active runtime count exceeds the limit of a lower tier after a downgrade, the excess instances will be deregistered at the billing cycle boundary. You will receive an email notification before this happens.
-
----
-
-## Frequently Asked Questions
-
-### What counts as a runtime instance?
-
-A runtime instance is a single deployed Igris runtime process registered to your account. Each instance can run independently, participate in fleet coordination, and report health and telemetry back to the console. The instance count is the primary dimension that determines your tier.
-
-### Can I run multiple instances per machine?
-
-Yes. There is no restriction on how many instances run on a single host. The limit applies to the total number of registered instances across your entire fleet.
-
-### What happens to my data if I do not subscribe after the trial?
-
-Your account moves to the Seed tier. Audit logs, fleet configuration, and runtime history are preserved within the Seed tier's 7-day log retention window. You are not locked out, and you can subscribe at any time to restore higher-tier features.
-
-### Can I start on Seed and upgrade later?
-
-Yes. Upgrades are self-service and take effect immediately. If you start on Seed and later need a larger fleet with remote OTA and fleet dashboard, upgrade to Horizon or Infinite from the billing settings in the console.
-
-### Is there a setup fee or onboarding cost?
-
-No setup fee on any tier. Infinite includes dedicated onboarding as part of the subscription at no additional cost.
-
-### How does on-premise deployment work on Infinite?
-
-On Infinite, you can deploy the Igris runtime within your own infrastructure — including air-gapped or private cloud environments. The runtime binary is distributed through your authenticated account and can be installed on any supported Linux or macOS target. The fleet dashboard and telemetry still communicate with the Igris cloud control plane unless you configure a self-hosted endpoint.
-
-### What are the API rate limits per tier?
-
-Each tier has different rate limits for inference and management API calls. See [Rate Limiting →](/docs/rate-limiting) for the full breakdown.
-
----
-
-## Getting Started
-
-1. Choose a tier and start your 7-day free trial.
-2. Install the runtime on your target machines using the install script from the console.
-3. Register your instances and explore the fleet dashboard.
-4. Subscribe before your trial ends to continue without interruption.
-
-**Questions?** Reach us at [support@igrisinertial.com](mailto:support@igrisinertial.com).
-
-[Open Console →](https://console.igrisinertial.com) • [Start Trial →](https://console.igrisinertial.com)
-
----
-
-## Next Steps
-
-- [Quick Start](/docs/quickstart) — Deploy your first runtime instance
-- [Fleet Management](/docs/fleet-management) — Monitor and manage your fleet
-- [API Reference](/docs/api-reference) — Complete API documentation
-- [Security](/docs/security) — Authentication and security best practices
+- [Trial & Billing →](/docs/trial-billing)
+- [Console User Guide →](/docs/console)
+- [Deployment →](/docs/deployment)
+- [Proof Status →](/docs/proof-status)

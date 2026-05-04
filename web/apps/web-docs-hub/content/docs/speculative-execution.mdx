@@ -1,209 +1,74 @@
 ---
 title: "Speculative Execution"
-description: "Speculative execution runs a lightweight draft inference in parallel with the main inference. When the draft result meets a quality threshold, it is returned immediately — before t"
+description: "Speculative execution is an advanced path-selection mode that can race draft and primary execution paths for selected workloads."
 audience: "public"
 ---
 
 # Speculative Execution
 
-Speculative execution runs a lightweight draft inference in parallel with the main inference. When the draft result meets a quality threshold, it is returned immediately — before the main inference completes. This reduces time-to-first-token by up to 60% for streaming requests, at no change to output quality for the workloads where it applies.
+Speculative execution is an advanced execution mode.
+
+It can run a draft path in parallel with a primary path and decide whether the draft is good enough to return. This is useful for advanced latency-sensitive setups, but it should be treated as an optimization layer under the Execute stage, not as the core product story.
 
 ---
 
-## How It Works
+## What It Does
 
-When speculative execution is enabled, each incoming inference request spawns two parallel paths:
+At a high level:
 
-1. **Draft path** — A faster, smaller model generates a candidate response. The draft is evaluated for quality as it streams.
-2. **Main path** — The configured primary model processes the request normally.
+1. a draft path starts
+2. the primary path starts
+3. the system decides whether the draft is acceptable
+4. one result is returned
 
-If the draft meets the acceptance threshold before the main inference completes, the draft is returned immediately and the main inference is cancelled. If the draft does not meet the threshold — because the task is too complex or unpredictable for the draft model — the main inference result is returned instead.
+The caller still receives one execution result. The internal race is an advanced mechanism, not a separate surface the application needs to learn first.
 
-The caller always receives one response. The distinction between draft and main is not exposed in the response payload. The execution receipt records which path was used.
+## Where It Can Help
 
----
+Speculative execution is most relevant when teams are experimenting with:
 
-## When It Helps
+- streaming workloads
+- predictable request types
+- advanced latency tuning
 
-Speculative execution provides the most benefit in these scenarios:
+It is less relevant for ordinary onboarding or for teams that have not yet established a stable baseline execution path.
 
-**Streaming responses with latency requirements.** The time-to-first-token improvement is most noticeable in streaming use cases where users are waiting for a response to begin. Draft acceptance reduces the delay before the first token arrives.
+## What To Say Carefully
 
-**Repetitive or predictable completions.** Tasks like summarization, translation, structured data extraction, and templated generation tend to have high draft acceptance rates because the output space is constrained and the draft model handles them well.
+Do not assume speculative execution always improves latency or cost. The exact outcome depends on workload shape, provider behavior, and how often the draft path is accepted.
 
-**High-throughput batch workloads where p50 latency is a key metric.** At scale, improving the median case across many requests compounds into a significant reduction in overall processing time.
+This page intentionally does not promise headline percentage improvements without benchmark evidence for the environment in question.
 
----
+## Operational Reading
 
-## When It Does Not Help
+If you enable speculative execution, watch for:
 
-**Non-streaming requests.** For non-streaming calls, the latency benefit is smaller because the caller waits for the full response regardless. Speculative execution still applies, but the improvement to perceived latency is minimal.
+- acceptance rate
+- cost impact
+- path-selection stability
+- whether the workload is actually a good fit
 
-**Highly creative or open-ended tasks.** Tasks like long-form creative writing, complex multi-step reasoning, or novel problem-solving tend to have low draft acceptance rates — the draft model produces a candidate that does not meet the quality threshold, so the main inference result is used anyway. In these cases, speculative execution adds overhead without benefit.
+If acceptance is consistently low, the feature is probably adding complexity without enough benefit.
 
-**Workloads where correctness is paramount and draft quality is consistently low.** If your analytics show a low `draft_acceptance_rate` for a particular agent or task type, speculative execution is likely not beneficial for that workload. Disable it per-tenant or evaluate per-agent after reviewing the analytics.
+## Simulation And Analytics
 
----
+The product exposes speculative status, analytics, and simulation surfaces so operators can inspect how the mode behaves before using it broadly.
 
-## Tier Availability
+Treat these surfaces as advanced evaluation tools, not as proof that the optimization is beneficial for every workload.
 
-Speculative execution is available on all tiers. On Seed, it runs with a single draft model. On Horizon and Infinite, you can configure multiple draft models and set custom acceptance thresholds.
+## Related Features
 
----
+- council and shadow features should be evaluated independently
+- receipts should still reflect the path that actually produced the returned result
+- proof claims should stay aligned with [Proof Status](/docs/proof-status)
 
-## Enabling Speculative Execution
+## Proof Language
 
-### Enable for your tenant
+Speculative execution is best documented as an advanced, source-confirmed capability. Use production claims only when you have workload-specific evidence.
 
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/speculative \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"enabled": true}'
-# {"saved": true}
-```
+## Related Pages
 
-To disable:
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/speculative \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"enabled": false}'
-```
-
-Changes take effect on the next request. There is no restart required.
-
----
-
-### Check current configuration
-
-```bash
-curl https://overture.igrisinertial.com/v1/routing/speculative/config \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-
-```json
-{
-  "enabled": true,
-  "max_parallel_providers": 3,
-  "timeout_ms": 5000,
-  "first_token_threshold_ms": 500,
-  "enabled_providers": ["openai", "anthropic"]
-}
-```
-
----
-
-### Check live status
-
-```bash
-curl https://overture.igrisinertial.com/v1/routing/speculative/status \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-
-```json
-{
-  "enabled": true,
-  "success_rate": 68.2,
-  "latency_improvement_ms": 380,
-  "cost_delta_percent": -4.5,
-  "races_24h": 4821,
-  "wins_by_provider": [
-    {"provider": "openai", "win_rate": 54.8},
-    {"provider": "anthropic", "win_rate": 45.2}
-  ]
-}
-```
-
-`enabled` reflects the current routing status view. `success_rate`, `latency_improvement_ms`, and `cost_delta_percent` are best-effort telemetry values; on a fresh deployment they can be zero until routing telemetry has accumulated.
-
----
-
-## Reading Analytics
-
-```bash
-curl https://overture.igrisinertial.com/v1/routing/speculative/analytics \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Response:
-
-```json
-{
-  "race_win_rate": [],
-  "latency_distribution": [],
-  "cost_savings_timeline": []
-}
-```
-
-**Field reference:**
-
-| Field | Meaning |
-|---|---|
-| `race_win_rate` | Series for provider race win-rate analytics. |
-| `latency_distribution` | Series for latency distribution analytics. |
-| `cost_savings_timeline` | Series for cost-delta analytics over time. |
-
-**Interpreting telemetry:**
-
-Use `/v1/routing/speculative/status` for the compact operational summary. Use `/v1/routing/speculative/analytics` when your UI needs time-series data. Empty arrays mean telemetry is not yet available, not that the endpoint failed.
-
-If success rate is consistently low, consider whether the workload is a good fit. Run the simulation endpoint on a representative sample request to verify wiring before enabling production traffic.
-
----
-
-## Simulating Before Enabling
-
-The simulate endpoint runs a dry-run of speculative execution on a sample request and reports whether the draft would have been accepted and what the estimated latency reduction would be. Use this to evaluate benefit before enabling for production traffic.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/routing/speculative/simulate \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "messages": [
-      {"role": "user", "content": "Summarize the following meeting notes in three bullet points: ..."}
-    ],
-    "model": "gpt-4o"
-  }'
-```
-
-Current response:
-
-```json
-{
-  "simulated": true,
-  "message": "simulation triggered"
-}
-```
-
-The current simulation response confirms that simulation was triggered. Treat it as a wiring and workflow check rather than a full offline predictor.
-
----
-
-## Interaction with Other Features
-
-**Council mode:** Council mode is applied to the main inference path — speculative execution and council mode are independent. When a draft is accepted, council mode does not run on that request (the draft is a single-model result). When the draft is rejected, the full council evaluation runs on the main inference as configured.
-
-**Shadow mode:** Shadow mode agents run their execution against the full main inference, not the draft path. Shadow comparisons reflect what the primary model would produce without speculative acceleration.
-
-**Execution receipts:** Receipts always record the result that was actually returned to the caller. If the draft was accepted, the receipt reflects the draft result. If the main inference was used, the receipt reflects the main inference result. The `speculative_draft_used` field in the receipt indicates which path was taken.
-
-```json
-{
-  "execution_id": "exec-01HXYZ",
-  "speculative_draft_used": true,
-  "wall_time_ms": 743
-}
-```
-
-**Routing Advisor:** The routing advisor tracks speculative acceptance rates as part of its routing telemetry. If acceptance rate falls below a threshold, the advisor may propose disabling speculative execution for the affected workload.
-
----
-
-[Cloud Coordination →](/docs/cloud-coordination) · [API Reference →](/docs/api-reference) · [Routing Advisor →](/docs/cognitive-advisor)
+- [Routing Engine →](/docs/escapevector)
+- [Shadow Mode →](/docs/shadow-mode)
+- [Cloud Coordination →](/docs/cloud-coordination)
+- [Proof Status →](/docs/proof-status)

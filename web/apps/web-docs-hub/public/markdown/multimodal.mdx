@@ -1,127 +1,46 @@
 ---
-title: "Multimodal Inference"
-description: "> Early Access — Multimodal inference is currently in early access. The API is functional but subject to change. Contact support@igrisinertial.com to enable it for your account."
+title: "Multimodal Inference (Technical Preview)"
+description: "Multimodal inference is a technical-preview surface for teams evaluating text-plus-image or text-plus-audio execution paths."
 audience: "public"
 ---
 
-# Multimodal Inference
+# Multimodal Inference (Technical Preview)
 
-> **Early Access** — Multimodal inference is currently in early access. The API is functional but subject to change. Contact [support@igrisinertial.com](mailto:support@igrisinertial.com) to enable it for your account.
+Multimodal inference is a **technical preview** surface.
 
-Igris supports multimodal inference — requests that include text plus image or audio inputs. The coordination layer routes multimodal requests to providers that support the requested modalities.
+Use this page when you need to understand how multimodal execution could fit into Igris. Do not treat it as a broadly proven or customer-ready default path.
 
----
-
-## POST /v1/infer/multimodal
-
-Send a prompt alongside image or audio data. The request is routed to a provider with multimodal capability.
-
-```bash
-curl -X POST https://overture.igrisinertial.com/v1/infer/multimodal \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "Describe what you see in this image.",
-    "image_data": "<base64-encoded-image>"
-  }'
-```
-
-**Request fields:**
-
-<TypeTable
-  type={{
-    prompt: {
-      type: 'string',
-      description: 'Text prompt sent alongside image or audio inputs.',
-      required: true,
-    },
-    image_data: {
-      type: 'string',
-      description: 'Base64-encoded image payload. Supports JPEG, PNG, and WebP.',
-    },
-    audio_data: {
-      type: 'string',
-      description: 'Base64-encoded audio payload. Supports MP3, WAV, and M4A.',
-    },
-  }}
-/>
-
-At least one of `image_data` or `audio_data` must be provided alongside `prompt`.
-
-**Response:**
-```json
-{
-  "content": "The image shows a robotic arm in a warehouse environment...",
-  "input_tokens": 142,
-  "output_tokens": 87,
-  "latency_ms": 1240,
-  "modalities": ["text", "image"]
-}
-```
-
-<TypeTable
-  type={{
-    content: {
-      type: 'string',
-      description: 'Model response text.',
-      required: true,
-    },
-    input_tokens: {
-      type: 'number',
-      description: 'Tokens consumed by text and multimodal encoding.',
-      required: true,
-    },
-    output_tokens: {
-      type: 'number',
-      description: 'Tokens emitted in the response.',
-      required: true,
-    },
-    latency_ms: {
-      type: 'number',
-      description: 'End-to-end request latency in milliseconds.',
-      required: true,
-    },
-    modalities: {
-      type: 'Array<"text" | "image" | "audio">',
-      description: 'Modalities used in this request.',
-      required: true,
-    },
-  }}
-/>
+Check [Proof Status](/docs/proof-status) before promoting multimodal behavior beyond preview language.
 
 ---
 
-## GET /v1/infer/multimodal/stats
+## How It Fits
 
-Usage analytics for multimodal inference.
+Multimodal work still belongs under the same Request -> Execute -> Verify model:
 
-```bash
-curl https://overture.igrisinertial.com/v1/infer/multimodal/stats \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
+- **Request** includes text plus one or more additional modalities
+- **Execute** depends on the configured multimodal-capable path
+- **Verify** depends on the execution record that comes back from that run
 
-Response:
-```json
-{
-  "total_requests": 2841,
-  "image_requests": 2503,
-  "audio_requests": 338,
-  "avg_latency_ms": 1187.4
-}
-```
+The preview status is about maturity, not about a different product identity.
 
----
+## What To Expect
 
-## Supported providers
+This surface is appropriate for evaluation when teams want to explore:
 
-| Provider | Image | Audio |
-|---|---|---|
-| OpenAI (GPT-4V, GPT-4o) | ✓ | ✓ |
-| Anthropic (Claude 3+) | ✓ | — |
-| Google (Gemini Pro Vision) | ✓ | ✓ |
+- text-plus-image workflows
+- text-plus-audio workflows
+- how multimodal requests should be represented in execution and verification workflows
 
-Provider selection follows the same adaptive routing as text inference. If no cloud provider with the required modality is available, the request returns an error (multimodal requests cannot fall back to local text models).
+Use careful language:
 
----
+- multimodal support should be treated as preview-oriented
+- provider-backed proof should be checked before making stronger readiness claims
+- stub-heavy or partial behavior should be assumed possible until validated in the target environment
 
-[API Reference →](/docs/api-reference) · [Cloud Coordination →](/docs/cloud-coordination)
+## Related Pages
+
+- [Proof Status →](/docs/proof-status)
+- [Verification →](/docs/verification)
+- [Execution Model →](/docs/execution-model)
+- [API Reference →](/docs/api-reference)

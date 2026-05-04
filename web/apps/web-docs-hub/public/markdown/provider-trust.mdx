@@ -1,105 +1,62 @@
 ---
 title: "Provider Trust"
-description: "How Igris scores whether a provider should still be trusted for routing based on observed behavior instead of provider claims alone."
+description: "Provider trust is an advanced hosted coordination mechanism for deciding whether an available path should still be considered reliable enough for execution."
 audience: "public"
 ---
 
 # Provider Trust
 
-Provider health and provider trust are not the same thing.
+Provider trust is an advanced hosted coordination mechanism.
 
-- **Health** asks whether a provider is up right now.
-- **Trust** asks whether the provider is behaving close enough to what it claims that Igris should keep routing traffic there.
+Health asks whether a path appears up right now. Trust asks whether that path should still be considered reliable enough to keep using for governed execution.
 
-This distinction matters in production.
-
----
-
-## What Trust Measures
-
-The trust model compares **observed behavior** against **reported or expected behavior**.
-
-Current trust inputs include:
-
-- observed latency
-- observed error rate
-- observed cost
-- divergence from reported latency, error rate, and cost
-- confidence level based on sample count
-
-That lets the router react not only to outages, but also to providers that quietly drift away from their stated performance envelope.
+That distinction matters for advanced operators who want more than a binary up-or-down signal.
 
 ---
 
-## Fail-Closed Behavior
+## What Trust Evaluates
 
-Provider trust is intentionally fail-closed.
+Trust looks at observed behavior over time, such as:
 
-A provider can be blocked when:
+- latency drift
+- error-rate drift
+- cost drift
+- how much evidence exists for the path so far
 
-- the trust score drops below the configured threshold
-- there are not enough samples to trust the provider yet
-- the provider is unknown to the trust tracker
+This helps distinguish "technically available" from "credible enough to keep using."
 
-That is stricter than ordinary health monitoring, and it should be understood as part of Igris's safety posture.
+## Why It Matters
 
----
+A path can be healthy in the narrow sense and still be a poor choice if its behavior is drifting away from what operators expect.
+
+Trust is the layer that says:
+
+- this path is up, but not yet proven enough
+- this path is up, but its behavior has drifted too far
+- this path may need more evidence before it receives normal traffic
 
 ## Cold Start And Confidence
 
-Trust is not binary. It grows with evidence.
+Trust grows with evidence.
 
-New or rarely used providers start with low confidence. In the current model, sample count determines when trust becomes stable enough for normal routing decisions. This protects the system from treating an unverified provider as production-ready just because it responded once.
+New or rarely used paths may need a warm-up period before operators should treat them as ordinary choices for production execution. That is part of the point of having a separate trust concept.
 
-Operationally, that means provider onboarding has a warm-up phase.
+## How It Affects Path Selection
 
----
+Trust should sit ahead of final advanced routing decisions:
 
-## Divergence And Decay
+1. policy decides what is allowed
+2. health decides what is currently usable
+3. trust decides what is credible enough to keep using
+4. final path selection chooses among the remaining candidates
 
-Trust decays when observed behavior diverges too far from reported behavior.
+## Proof Language
 
-Examples:
-
-- latency is materially worse than claimed
-- error rate is higher than expected
-- real cost is above the advertised envelope
-
-Trust can also decay over time without fresh activity. This prevents stale historical success from granting indefinite routing privilege.
-
----
-
-## How It Affects Routing
-
-Provider trust sits in front of final provider selection.
-
-The decision stack is effectively:
-
-1. Is the provider allowed by policy?
-2. Is it healthy enough to consider?
-3. Is it trusted enough to consider?
-4. If yes, how should it be weighted against the alternatives?
-
-That means a provider can appear technically available while still being excluded from routing for trust reasons.
-
----
-
-## What To Document For Operators
-
-Teams operating Igris should understand:
-
-- why a provider can be blocked even when health checks pass
-- why new providers may be held back until enough samples exist
-- why trust recovery is gradual rather than immediate
-- why routing decisions may change after cost or reliability drift
-
-Without that explanation, trust-based routing looks random when it is actually doing exactly what it was designed to do.
-
----
+Provider trust is best described as an advanced, source-confirmed execution mechanism. It is appropriate to explain how it influences selection, but this page should not promise globally optimal or universally safer outcomes without deployment-specific evidence.
 
 ## Related Pages
 
 - [Provider Health →](/docs/provider-health)
-- [Routing Engine →](/docs/escapevector)
 - [Circuit Breaker →](/docs/circuit-breaker)
+- [Routing Engine →](/docs/escapevector)
 - [SLO Enforcer →](/docs/slo-enforcer)
