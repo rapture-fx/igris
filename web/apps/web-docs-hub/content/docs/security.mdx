@@ -80,8 +80,10 @@ Example:
 curl -X POST https://overture.igrisinertial.com/proof/receipts/verify \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"execution_id": "exec-01HXYZ"}'
+  -d '{"hash": "sha256:...", "signature": "base64:..."}'
 ```
+
+Treat that hosted verification route carefully. The stronger proof-backed cryptographic verification story is demonstrated in the local proof path; the hosted route should be described according to its current stored-value comparison and proof-status behavior.
 
 ---
 
