@@ -290,9 +290,6 @@ func executionContextRefsFromArtifacts(executionEnvelope, executionReceipt json.
 		if err := json.Unmarshal(executionReceipt, &receipt); err != nil {
 			return nil, false
 		}
-		if receipt.ExecutionID != "" && receipt.ExecutionID != envelope.ExecutionID {
-			return nil, false
-		}
 		if strings.TrimSpace(receipt.RuntimeID) != "" && strings.TrimSpace(envelope.RuntimeID) != "" && strings.TrimSpace(receipt.RuntimeID) != strings.TrimSpace(envelope.RuntimeID) {
 			return nil, false
 		}
@@ -327,7 +324,7 @@ func executionContextRefsFromArtifacts(executionEnvelope, executionReceipt json.
 	}
 
 	return &executionContextArtifactRefs{
-		ExecutionID:        envelope.ExecutionID,
+		ExecutionID:        firstNonEmpty(receipt.ExecutionID, envelope.ExecutionID),
 		TenantID:           tenantID,
 		RuntimeID:          firstNonEmpty(receipt.RuntimeID, envelope.RuntimeID),
 		Provider:           firstNonEmpty(envelope.Provider, providerFromRouteDecision(envelope.RoutingDecision), envelope.Model),
