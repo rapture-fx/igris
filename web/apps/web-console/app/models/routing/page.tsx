@@ -184,8 +184,8 @@ interface ProviderTelemetryRow {
 const EXECUTION_MODES = [
   {
     label: 'thompson',
-    title: 'Thompson Sampling',
-    description: 'Learns provider preference over time for adaptive routing.',
+    title: 'Adaptive',
+    description: 'Learns provider preference over time for adaptive path selection.',
   },
   {
     label: 'speculative',
@@ -830,7 +830,7 @@ export default function ModelsRoutingPage() {
 
         <div className="border border-amber-200 bg-amber-50 rounded-3xl px-4 py-3 text-xs text-amber-800">
           This page is configuration-first again. Some controls persist tenant preferences used by orchestration flows,
-          while live routing telemetry remains the source of truth for what Overture and Runtime are actually doing right now.
+          while live routing telemetry remains the source of truth for what hosted and local execution surfaces are actually doing right now.
         </div>
 
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -865,7 +865,7 @@ export default function ModelsRoutingPage() {
           <SurfaceSection
             icon={Route}
             title="Routing Preference"
-            description="Persist the preferred request routing mode used by Runtime-facing execution flows."
+            description="Persist the preferred path-selection mode used by execution flows."
             className="h-full"
           >
             <div className="space-y-4">
@@ -925,8 +925,8 @@ export default function ModelsRoutingPage() {
 
           <SurfaceSection
             icon={Cpu}
-            title="EscapeVector WASM Engine"
-            description="Rust-compiled Thompson Sampling and circuit-breaker support surfaced in-browser for observability and benchmarking."
+            title="In-Browser Routing Engine"
+            description="WASM-backed path-selection and circuit-breaker support surfaced in-browser for observability and benchmarking."
             className="xl:col-span-2"
             actions={(
               <div className="flex items-center gap-2 flex-wrap justify-end">
@@ -988,7 +988,7 @@ export default function ModelsRoutingPage() {
             )}
             {!wasmStatus.supported && (
               <p className="mt-3 text-[11px] text-yellow-700">
-                WebAssembly is not supported in this browser. Runtime execution still falls back to server-side routing.
+                WebAssembly is not supported in this browser. Execution still falls back to the server-side path-selection flow.
               </p>
             )}
           </SurfaceSection>
