@@ -13,7 +13,7 @@ export default function TermsPage() {
     <>
       <Head>
         <title>Igris Inertial Terms of Service</title>
-        <meta name="description" content="Legal terms for using Igris Inertial API — speculative execution, BYOK routing, flat pricing." />
+        <meta name="description" content="Legal terms for using Igris Inertial services, execution surfaces, and operator tooling." />
       </Head>
       <div className="min-h-screen bg-[#f6f6f4]">
         <Header />
