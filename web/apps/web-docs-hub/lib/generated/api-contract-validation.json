@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-01T08:47:28.350Z",
+  "generated_at": "2026-05-03T23:40:02.871Z",
   "endpoints": [
     {
       "endpoint": "POST /v1/infer",
@@ -330,7 +330,7 @@
       "source_schema": "VerifyReceiptRequest (go, igris-overture/api/routes_proof.go)",
       "request_fields": 2,
       "response_contract": "igris-overture/api/routes_proof.go",
-      "response_fields": 4,
+      "response_fields": 8,
       "schema_policy": "source-backed",
       "status": "verified"
     },
