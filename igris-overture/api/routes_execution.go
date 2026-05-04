@@ -414,14 +414,14 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 			ec.capability_snapshot,
 			ec.events,
 			ec.logs,
-			tr.execution_envelope,
-			tr.permission_envelope,
-			COALESCE(tr.failure_reason, '') AS task_failure_reason,
-			tr.failure_details,
-			tr.created_at,
-			tr.dispatched_at,
-			tr.completed_at,
-			tr.canceled_at
+			tp.execution_envelope,
+			tp.permission_envelope,
+			COALESCE(tp.failure_reason, '') AS task_failure_reason,
+			tp.failure_details,
+			tp.created_at,
+			tp.dispatched_at,
+			tp.completed_at,
+			tp.canceled_at
 		FROM execution_lineage
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = execution_lineage.execution_id
