@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-05-04T12:50:02.292Z
+Generated: 2026-05-04T15:37:21.658Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 869
-- Implemented on expected surface: 869
+- Route claims audited: 836
+- Implemented on expected surface: 836
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 143
-- Implemented on expected surface: 143
+- Guide route claims audited: 110
+- Implemented on expected surface: 110
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -29,11 +29,8 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/approval-workflows.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/architecture.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
@@ -45,12 +42,10 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/memory.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/model-aggregation.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/swarm.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/trial-billing.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 11 | 0 | 0 | 0 |
@@ -174,11 +169,8 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/approval-workflows.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/architecture.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/articles/thompson-sampling-routing.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/audit.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/cognitive-advisor.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
@@ -190,12 +182,10 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/memory.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/model-aggregation.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/swarm.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/trial-billing.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 11 | 11 | 0 | 0 | 0 |
