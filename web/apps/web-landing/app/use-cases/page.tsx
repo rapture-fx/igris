@@ -13,36 +13,42 @@ export default function UseCasesPage() {
 
   const useCases = [
     {
+      id: 'internal-automation',
       title: 'Enterprise AI Operations',
       problem: 'Multi-tenant teams struggle with AI provider costs, quality consistency, and governance. Different departments use different providers, making budget control difficult. Provider behavior varies, and there is limited visibility into actual performance versus reported metrics.',
       solution: 'Igris provides multi-tenant isolation, governed execution, and policy-driven path selection informed by observed performance. Teams get isolated access, configurable spending limits, and better visibility into execution decisions and outcomes.',
       features: ['Multi-tenant isolation', 'Governed execution', 'Real-time cost tracking', 'Path-selection visibility', 'Budget enforcement']
     },
     {
+      id: 'edge-ai',
       title: 'Hybrid Cloud–Edge Reliability',
       problem: 'Applications need both cloud performance and edge continuity. Cloud providers fail occasionally, network connectivity is unreliable, and downtime impacts critical operations. Manual failover requires code changes and operator intervention.',
       solution: 'Igris can coordinate hosted and local execution surfaces under one execution model. Hybrid deployments help teams keep governance and reviewability consistent across both. Stronger automatic failover claims should still be validated against current proof status.',
       features: ['Cryptographic binding', 'Visible failure paths', 'Policy continuity', 'Local execution surfaces', 'Unified API']
     },
     {
+      id: 'specialized-environments',
       title: 'Edge-First AI Systems',
       problem: 'Robotics, autonomous vehicles, and field equipment need AI inference in environments with poor or no connectivity. Cloud APIs fail in remote areas, underground facilities, or during outages. Systems must maintain operation with deterministic behavior.',
       solution: 'Igris can run workloads closer to devices with bounded execution and resource limits. Local execution is useful where connectivity is constrained, but robotics and peer-coordination workflows should still be treated as preview-oriented unless separately proven.',
       features: ['Governed execution', 'Local model inference', 'Constrained environments', 'Resource safety limits', 'Preview-oriented coordination']
     },
     {
+      id: 'regulated-workflows',
       title: 'Air-Gapped & Restricted Environments',
       problem: 'Secure facilities, classified networks, and regulated environments cannot send data to external services. AI workloads must run within isolated boundaries with no external communication. Models and data require encrypted storage.',
       solution: 'Local execution surfaces can operate independently after provisioning, with no external telemetry by default. Encrypted storage protects models and execution data. Teams can keep execution inside isolated networks using local coordination after initial setup.',
       features: ['No external telemetry', 'Encrypted storage', 'Isolated operation', 'Local coordination', 'Provisioned deployment']
     },
     {
+      id: 'ai-agents',
       title: 'Research & Evaluation',
       problem: 'Teams need to evaluate AI providers, compare performance, and prototype workflows without production constraints. Switching between providers requires code changes. Cost tracking and performance comparison are manual processes.',
       solution: 'OpenAI-compatible API enables existing code to work unchanged. Configuration-driven provider switching and shadow testing compare strategies side-by-side. Cost tracking shows actual spend by provider and model.',
       features: ['OpenAI-compatible API', 'Configuration switching', 'Shadow mode testing', 'Cost tracking', 'Performance comparison']
     },
     {
+      id: 'ai-agents-secondary',
       title: 'AI Reliability Engineering',
       problem: 'Production AI systems require visibility, auditability, and reproducibility. Teams need to understand routing decisions, verify provider behavior, and replay execution paths for debugging and compliance.',
       solution: 'Igris provides execution traces, signed records, and verification-ready receipts so teams can inspect what happened after a run. Policy versioning and execution metadata make debugging and review workflows more reliable.',
@@ -88,7 +94,7 @@ export default function UseCasesPage() {
 
           {/* Use Cases Sections */}
           {useCases.map((useCase, index) => (
-            <section key={useCase.title} className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
+            <section key={useCase.title} id={useCase.id} className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', height: '800px', borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)' }}>
               <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8" style={{ height: '100%' }}>
                 <div className="relative px-4 md:px-4 lg:px-6 flex flex-col" style={{
                   backgroundColor: '#f6f6f4',
