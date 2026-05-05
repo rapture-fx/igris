@@ -406,7 +406,7 @@ export default function Products() {
   const isDark = mounted && theme === 'dark'
 
   return (
-    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: 'var(--section-border)' }} />
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
