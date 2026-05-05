@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Menu, X, ChevronDown, Sun, Moon, Frame } from 'lucide-react';
+import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 type DropdownKey = 'product' | 'docs' | 'usecases' | 'resources' | null;
 
@@ -120,36 +120,36 @@ export default function Header() {
   // --- Dropdown data ---
 
   const productItems: DropdownItem[] = [
-    { label: 'Verifiable Execution', description: 'Run AI tasks with signed execution records.', href: '/#verifiable-execution' },
-    { label: 'Governed Runs', description: 'Apply boundaries, permissions, and controlled task execution.', href: '/#governed-runs' },
-    { label: 'Failure-Aware Execution', description: 'Make fallback paths and failures visible.', href: '/#failure-aware-execution' },
-    { label: 'Structured Execution', description: 'Use defined paths for agents, workflows, and edge systems.', href: '/#structured-execution' },
-    { label: 'Edge & Local Execution', description: 'Run closer to the environment where work happens.', href: '/#edge-local-execution' },
-    { label: 'Signed Receipts', description: 'Verify what happened after a critical run.', href: '/#signed-receipts' },
+    { label: 'Verifiable Execution', description: 'Run AI tasks with signed execution records.', href: '/#product' },
+    { label: 'Governed Runs', description: 'Apply boundaries, permissions, and controlled task execution.', href: '/#how-it-works' },
+    { label: 'Failure-Aware Execution', description: 'Make fallback paths and failures visible.', href: '/#how-it-works' },
+    { label: 'Structured Execution', description: 'Use defined paths for agents, workflows, and edge systems.', href: '/#how-it-works' },
+    { label: 'Edge & Local Execution', description: 'Run through configured local and edge execution surfaces.', href: '/#use-cases' },
+    { label: 'Signed Receipts', description: 'Verify what happened after a critical run.', href: '/#product' },
   ];
 
   const docsItems: DropdownItem[] = [
-    { label: 'Getting Started', description: 'Install and run the first local proof demo.', href: `${docsHubUrl}/docs/getting-started/`, external: true },
-    { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: `${docsHubUrl}/docs/api-reference/`, external: true },
-    { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: `${docsHubUrl}/docs/sdk/`, external: true },
-    { label: 'Proof Demo', description: 'Run the unified execution proof locally.', href: `${docsHubUrl}/docs/proof-demo/`, external: true },
-    { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: `${docsHubUrl}/docs/receipt-verification/`, external: true },
-    { label: 'Architecture', description: 'How Igris governs execution across environments.', href: `${docsHubUrl}/docs/architecture/`, external: true },
+    { label: 'Getting Started', description: 'Run your first verified execution path.', href: `https://docs.igrisinertial.com/docs/`, external: true },
+    { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: `https://docs.igrisinertial.com/docs/api-reference/`, external: true },
+    { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: `https://docs.igrisinertial.com/docs/sdk/`, external: true },
+    { label: 'Proof Demo', description: 'Run the unified execution proof locally.', href: `https://docs.igrisinertial.com/docs/first-verified-run/`, external: true },
+    { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: `https://docs.igrisinertial.com/docs/verification/`, external: true },
+    { label: 'Architecture', description: 'How Igris governs execution across environments.', href: `https://docs.igrisinertial.com/docs/architecture/`, external: true },
   ];
 
   const useCasesItems: DropdownItem[] = [
-    { label: 'AI Agents', description: 'Control, inspect, and verify tool-calling agents.', href: '/ai-agents' },
-    { label: 'Internal Automation', description: 'Add execution records to AI-powered business workflows.', href: '/use-cases' },
-    { label: 'Edge AI', description: 'Run AI closer to devices and local environments.', href: '/machine' },
-    { label: 'Specialized Environments', description: 'Preview-oriented execution paths for edge and physical systems.', href: '/robotics' },
-    { label: 'Regulated Workflows', description: 'Create auditable records for sensitive AI runs.', href: '/use-cases' },
+    { label: 'AI Agents', description: 'Control, inspect, and verify tool-calling agents.', href: '/use-cases#ai-agents' },
+    { label: 'Internal Automation', description: 'Add execution records to AI-powered business workflows.', href: '/use-cases#internal-automation' },
+    { label: 'Edge AI', description: 'Run governed AI tasks closer to local environments.', href: '/use-cases#edge-ai' },
+    { label: 'Specialized Environments', description: 'Preview-oriented paths for edge and physical-system workflows.', href: '/use-cases#specialized-environments' },
+    { label: 'Regulated Workflows', description: 'Create auditable records for sensitive AI runs.', href: '/use-cases#regulated-workflows' },
   ];
 
   const resourcesItems: DropdownItem[] = [
-    { label: 'Proof Status', description: 'What is proven today and what is still in progress.', href: '/#proof' },
+    { label: 'Proof Status', description: 'What is proven today and what is still in progress.', href: `https://docs.igrisinertial.com/docs/proof-status/`, external: true },
     { label: 'Private Demo', description: 'See Igris run a verified execution path.', href: '/#how-it-works' },
-    { label: 'Roadmap', description: 'What is being validated next.', href: '/#product' },
-    { label: 'Changelog', description: 'Product updates and proof milestones.', href: '/#product' },
+    { label: 'Roadmap', description: 'What is being validated next.', href: `https://docs.igrisinertial.com/docs/proof-status/#in-development`, external: true },
+    { label: 'Changelog', description: 'Product updates and proof milestones.', href: `https://docs.igrisinertial.com/docs/changelog/`, external: true },
     { label: 'Blog', description: 'Technical notes and implementation updates.', href: '/blog' },
   ];
 
@@ -158,9 +158,6 @@ export default function Header() {
   const renderDropdownItem = (item: DropdownItem) => {
     const inner = (
       <div className="flex items-start gap-2.5">
-        <div className="flex-shrink-0 mt-0.5 w-6 h-6 flex items-center justify-center rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2a2a2a]">
-          <Frame className="h-3 w-3 text-gray-500 dark:text-[#a8a898]" strokeWidth={1.5} />
-        </div>
         <div>
           <span className="block text-xs font-medium text-[#1b1912] dark:text-[#f6f6f4] mb-0.5 group-hover:text-gray-700 dark:group-hover:text-[#e8e8e0] transition-colors" style={{ fontFamily: NAV_FONT }}>{item.label}</span>
           <span className="block text-xs text-gray-500 dark:text-[#a8a898] leading-snug" style={{ fontFamily: NAV_FONT }}>{item.description}</span>
