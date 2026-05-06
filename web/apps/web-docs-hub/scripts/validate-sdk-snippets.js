@@ -2,12 +2,31 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const { docsAppRoot, docsDir, generatedDir, repoRoot } = require('./docs-data');
+const { docsAppRoot, docsDir, generatedDir, repoRoot, sdkSupport } = require('./docs-data');
 
 const SDK_DOCS = [
   path.join(docsDir, 'sdk.mdx'),
   path.join(docsDir, 'sdk-integration-patterns.mdx'),
 ];
+
+function firstExistingPath(candidates) {
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+}
+
+function resolveSdkRoots() {
+  const jsRoot = firstExistingPath([
+    path.join(repoRoot, 'igris-javascript-sdk'),
+    path.join(repoRoot, 'labs', 'packages', 'javascript-sdk'),
+  ]);
+  const goRoot = firstExistingPath([
+    path.join(repoRoot, 'igris-go-sdk'),
+  ]);
+  const rustRoot = firstExistingPath([
+    path.join(repoRoot, 'igris-rust-sdk'),
+  ]);
+
+  return { jsRoot, goRoot, rustRoot };
+}
 
 function read(filePath) {
   return fs.readFileSync(filePath, 'utf8');
@@ -39,13 +58,13 @@ function extractNamedImports(code, moduleName) {
   return imports;
 }
 
-function extractGoModule() {
-  const goMod = read(path.join(repoRoot, 'igris-go-sdk', 'go.mod'));
+function extractGoModule(goRoot) {
+  const goMod = read(path.join(goRoot, 'go.mod'));
   return goMod.match(/^module\s+(.+)$/m)?.[1]?.trim();
 }
 
-function extractJsExports() {
-  const source = read(path.join(repoRoot, 'igris-javascript-sdk', 'src', 'index.ts'));
+function extractJsExports(jsRoot) {
+  const source = read(path.join(jsRoot, 'src', 'index.ts'));
   const exports = new Set();
   for (const match of source.matchAll(/export\s+\{([^}]+)\}/g)) {
     for (const name of match[1].split(',')) {
@@ -85,14 +104,14 @@ function findMatchingBrace(source, openIndex) {
   return source.length - 1;
 }
 
-function extractGoSymbols() {
-  const files = fs.readdirSync(path.join(repoRoot, 'igris-go-sdk')).filter((file) => file.endsWith('.go'));
+function extractGoSymbols(goRoot) {
+  const files = fs.readdirSync(goRoot).filter((file) => file.endsWith('.go'));
   const functions = new Set();
   const methods = new Set();
   const types = new Set();
 
   for (const file of files) {
-    const source = read(path.join(repoRoot, 'igris-go-sdk', file));
+    const source = read(path.join(goRoot, file));
     for (const match of source.matchAll(/^func\s+(\w+)\s*\(/gm)) functions.add(match[1]);
     for (const match of source.matchAll(/^func\s+\([^)]*\)\s+(\w+)\s*\(/gm)) methods.add(match[1]);
     for (const match of source.matchAll(/^type\s+(\w+)\s+/gm)) types.add(match[1]);
@@ -101,8 +120,8 @@ function extractGoSymbols() {
   return { functions, methods, types };
 }
 
-function extractRustExports() {
-  const lib = read(path.join(repoRoot, 'igris-rust-sdk', 'src', 'lib.rs'));
+function extractRustExports(rustRoot) {
+  const lib = read(path.join(rustRoot, 'src', 'lib.rs'));
   const exports = new Set();
   for (const match of lib.matchAll(/pub\s+use\s+[\w:]+::\{([^}]+)\}/g)) {
     for (const item of match[1].split(',')) {
@@ -114,7 +133,7 @@ function extractRustExports() {
     exports.add(match[1]);
   }
   if (/pub\s+use\s+types::\*/.test(lib)) {
-    const types = read(path.join(repoRoot, 'igris-rust-sdk', 'src', 'types.rs'));
+    const types = read(path.join(rustRoot, 'src', 'types.rs'));
     for (const match of types.matchAll(/^pub\s+struct\s+(\w+)/gm)) exports.add(match[1]);
     for (const match of types.matchAll(/^pub\s+enum\s+(\w+)/gm)) exports.add(match[1]);
   }
@@ -141,6 +160,11 @@ function validateJavaScript(block, context, failures) {
     return null;
   }
 
+  const matched = block.code.includes(context.jsPackageName) || block.code.includes('new IgrisClient') || block.code.includes('client.');
+  if (!context.jsAvailable) {
+    return matched;
+  }
+
   const namedImports = extractNamedImports(block.code, context.jsPackageName);
   for (const name of namedImports) {
     if (!context.jsExports.has(name)) {
@@ -154,13 +178,17 @@ function validateJavaScript(block, context, failures) {
       failures.push(`${block.file}:${block.line}: JavaScript snippet calls client.${method}(), but IgrisClient does not implement it.`);
     }
   }
-
-  return namedImports.length > 0 || block.code.includes('new IgrisClient') || block.code.includes('client.');
+  return matched;
 }
 
 function validateGo(block, context, failures) {
   if (block.language !== 'go') {
     return null;
+  }
+
+  const matched = block.code.includes(context.goModule) || block.code.includes('igris.');
+  if (!context.goAvailable) {
+    return matched;
   }
 
   if (block.code.includes('github.com/') && !block.code.includes(context.goModule)) {
@@ -178,8 +206,7 @@ function validateGo(block, context, failures) {
       failures.push(`${block.file}:${block.line}: Go snippet calls client.${method}(), but *igris.Client does not implement it.`);
     }
   }
-
-  return block.code.includes(context.goModule) || block.code.includes('igris.');
+  return matched;
 }
 
 function validateRust(block, context, failures) {
@@ -188,6 +215,11 @@ function validateRust(block, context, failures) {
   }
 
   const crate = context.rustCrate.replace(/-/g, '_');
+  const matched = block.code.includes(crate) || block.code.includes('IgrisClient');
+  if (!context.rustAvailable) {
+    return matched;
+  }
+
   const importMatch = block.code.match(new RegExp(`use\\s+${crate}::\\{([^}]+)\\}`));
   if (importMatch) {
     for (const name of importMatch[1].split(',').map((item) => item.trim()).filter(Boolean)) {
@@ -205,8 +237,7 @@ function validateRust(block, context, failures) {
   if (block.code.includes('IgrisClient::builder') && !context.rustClientMethods.has('builder')) {
     failures.push(`${block.file}:${block.line}: Rust snippet calls IgrisClient::builder(), but the Rust SDK does not implement it.`);
   }
-
-  return block.code.includes(crate) || block.code.includes('IgrisClient');
+  return matched;
 }
 
 function ensureDir(dir) {
@@ -243,6 +274,9 @@ function writeTypeScriptExamples(baseDir, blocks, context) {
   const tsDir = path.join(baseDir, 'typescript');
   ensureDir(tsDir);
   const examples = [];
+  if (!context.jsAvailable || !context.jsRoot) {
+    return { dir: tsDir, examples };
+  }
   for (const [index, block] of blocks.entries()) {
     if (!['typescript', 'ts', 'javascript', 'js'].includes(block.language)) {
       continue;
@@ -264,7 +298,7 @@ function writeTypeScriptExamples(baseDir, blocks, context) {
       path.join(tsDir, 'optional-deps.d.ts'),
       "declare module 'js-yaml';\n"
     );
-    const sdkIndex = path.join(repoRoot, 'igris-javascript-sdk', 'src', 'index.ts');
+    const sdkIndex = path.join(context.jsRoot, 'src', 'index.ts');
     fs.writeFileSync(
       path.join(tsDir, 'tsconfig.json'),
       `${JSON.stringify({
@@ -294,6 +328,9 @@ function writeGoExamples(baseDir, blocks, context) {
   const goDir = path.join(baseDir, 'go');
   ensureDir(goDir);
   const examples = [];
+  if (!context.goAvailable || !context.goRoot) {
+    return { dir: goDir, examples };
+  }
   for (const [index, block] of blocks.entries()) {
     if (block.language !== 'go') {
       continue;
@@ -325,11 +362,11 @@ function writeGoExamples(baseDir, blocks, context) {
         '\tgopkg.in/yaml.v3 v3.0.1',
         ')',
         '',
-        `replace ${context.goModule} => ${posixRelative(goDir, path.join(repoRoot, 'igris-go-sdk'))}`,
+        `replace ${context.goModule} => ${posixRelative(goDir, context.goRoot)}`,
         '',
       ].join('\n')
     );
-    const sdkGoSum = path.join(repoRoot, 'igris-go-sdk', 'go.sum');
+    const sdkGoSum = path.join(context.goRoot, 'go.sum');
     if (fs.existsSync(sdkGoSum)) {
       fs.copyFileSync(sdkGoSum, path.join(goDir, 'go.sum'));
     }
@@ -359,6 +396,9 @@ function writeRustExamples(baseDir, blocks, context) {
   const binDir = path.join(rustDir, 'src', 'bin');
   ensureDir(binDir);
   const examples = [];
+  if (!context.rustAvailable || !context.rustRoot) {
+    return { dir: rustDir, examples };
+  }
   for (const [index, block] of blocks.entries()) {
     if (block.language !== 'rust') {
       continue;
@@ -385,12 +425,12 @@ function writeRustExamples(baseDir, blocks, context) {
         'edition = "2021"',
         '',
         '[dependencies]',
-        `igris-inertial = { path = "${posixRelative(rustDir, path.join(repoRoot, 'igris-rust-sdk'))}" }`,
+        `igris-inertial = { path = "${posixRelative(rustDir, context.rustRoot)}" }`,
         'tokio = { version = "1", features = ["full"] }',
         '',
       ].join('\n')
     );
-    const sdkCargoLock = path.join(repoRoot, 'igris-rust-sdk', 'Cargo.lock');
+    const sdkCargoLock = path.join(context.rustRoot, 'Cargo.lock');
     if (fs.existsSync(sdkCargoLock)) {
       fs.copyFileSync(sdkCargoLock, path.join(rustDir, 'Cargo.lock'));
     }
@@ -416,12 +456,22 @@ function runCompileCommand(label, command, args, options, failures) {
   }
 }
 
-function compileGeneratedExamples(blocks, context, failures) {
+function compileGeneratedExamples(blocks, context, failures, warnings) {
   const examplesDir = cleanGeneratedExamples();
   const typescript = writeTypeScriptExamples(examplesDir, blocks, context);
   const go = writeGoExamples(examplesDir, blocks, context);
   const rust = writeRustExamples(examplesDir, blocks, context);
   const results = [];
+
+  if (!context.jsAvailable) {
+    warnings.push('Skipping JavaScript SDK snippet compilation; SDK sources are not available in this checkout.');
+  }
+  if (!context.goAvailable) {
+    warnings.push('Skipping Go SDK snippet compilation; SDK sources are not available in this checkout.');
+  }
+  if (!context.rustAvailable) {
+    warnings.push('Skipping Rust SDK snippet compilation; SDK sources are not available in this checkout.');
+  }
 
   if (typescript.examples.length > 0) {
     const tscBin = path.join(docsAppRoot, 'node_modules', 'typescript', 'bin', 'tsc');
@@ -454,20 +504,50 @@ function compileGeneratedExamples(blocks, context, failures) {
 
 function main() {
   const failures = [];
+  const warnings = [];
   const rows = [];
-  const jsPackage = JSON.parse(read(path.join(repoRoot, 'igris-javascript-sdk', 'package.json')));
-  const rustCargo = read(path.join(repoRoot, 'igris-rust-sdk', 'Cargo.toml'));
-  const rustCrate = rustCargo.match(/^name\s*=\s*"([^"]+)"/m)?.[1];
+  const sdkRoots = resolveSdkRoots();
+  const jsSdkRow = sdkSupport.rows.find((row) => row.language === 'JavaScript / TypeScript');
+  const goSdkRow = sdkSupport.rows.find((row) => row.language === 'Go');
+  const rustSdkRow = sdkSupport.rows.find((row) => row.language === 'Rust');
+  const jsPackageName = sdkRoots.jsRoot
+    ? JSON.parse(read(path.join(sdkRoots.jsRoot, 'package.json'))).name
+    : (jsSdkRow?.package ?? '@igris-inertial/sdk');
+  const goModule = sdkRoots.goRoot
+    ? extractGoModule(sdkRoots.goRoot)
+    : (goSdkRow?.package ?? 'github.com/igris-inertial/go-sdk');
+  const rustCrate = sdkRoots.rustRoot
+    ? read(path.join(sdkRoots.rustRoot, 'Cargo.toml')).match(/^name\s*=\s*"([^"]+)"/m)?.[1]
+    : (rustSdkRow?.package ?? 'igris-inertial');
   const context = {
-    jsPackageName: jsPackage.name,
-    jsExports: extractJsExports(),
-    jsClientMethods: extractClassMethods(read(path.join(repoRoot, 'igris-javascript-sdk', 'src', 'client.ts')), 'IgrisClient'),
-    goModule: extractGoModule(),
-    goSymbols: extractGoSymbols(),
+    jsRoot: sdkRoots.jsRoot,
+    jsAvailable: Boolean(sdkRoots.jsRoot),
+    jsPackageName,
+    jsExports: sdkRoots.jsRoot ? extractJsExports(sdkRoots.jsRoot) : new Set(),
+    jsClientMethods: sdkRoots.jsRoot
+      ? extractClassMethods(read(path.join(sdkRoots.jsRoot, 'src', 'client.ts')), 'IgrisClient')
+      : new Set(),
+    goRoot: sdkRoots.goRoot,
+    goAvailable: Boolean(sdkRoots.goRoot),
+    goModule,
+    goSymbols: sdkRoots.goRoot ? extractGoSymbols(sdkRoots.goRoot) : { functions: new Set(), methods: new Set(), types: new Set() },
+    rustRoot: sdkRoots.rustRoot,
+    rustAvailable: Boolean(sdkRoots.rustRoot),
     rustCrate,
-    rustExports: extractRustExports(),
-    rustClientMethods: extractRustImplMethods(read(path.join(repoRoot, 'igris-rust-sdk', 'src', 'client.rs')), 'IgrisClient'),
+    rustExports: sdkRoots.rustRoot ? extractRustExports(sdkRoots.rustRoot) : new Set(),
+    rustClientMethods: sdkRoots.rustRoot
+      ? extractRustImplMethods(read(path.join(sdkRoots.rustRoot, 'src', 'client.rs')), 'IgrisClient')
+      : new Set(),
   };
+  if (!context.jsAvailable) {
+    warnings.push('JavaScript SDK sources not found; deep JS snippet validation will be skipped.');
+  }
+  if (!context.goAvailable) {
+    warnings.push('Go SDK sources not found; deep Go snippet validation will be skipped.');
+  }
+  if (!context.rustAvailable) {
+    warnings.push('Rust SDK sources not found; deep Rust snippet validation will be skipped.');
+  }
   const allBlocks = [];
 
   for (const docPath of SDK_DOCS) {
@@ -488,7 +568,7 @@ function main() {
     }
   }
 
-  const compileResults = compileGeneratedExamples(allBlocks, context, failures);
+  const compileResults = compileGeneratedExamples(allBlocks, context, failures, warnings);
 
   fs.mkdirSync(generatedDir, { recursive: true });
   fs.writeFileSync(
@@ -506,6 +586,10 @@ function main() {
       console.error(`- ${failure}`);
     }
     process.exit(1);
+  }
+
+  for (const warning of warnings) {
+    console.warn(`[validate-sdk-snippets] ${warning}`);
   }
 
   const compiled = compileResults.reduce((count, result) => count + result.examples.length, 0);
