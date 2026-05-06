@@ -1,4 +1,5 @@
 import { JsonLd } from '../../src/components/JsonLd';
+import { FLEET_GATING_COPY } from '../../src/lib/pricing';
 
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
@@ -177,20 +178,23 @@ export default function MachinePage() {
             <p className="text-[#000000] dark:text-[#f6f6f4] mb-3 font-medium">### Three tiers. Same governed execution.</p>
             <div className="space-y-4">
               <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Seed — $29/month</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For developers shipping verified AI execution. 3 runtime instances. Edge or server deployment. Execution receipts. Operator visibility. Audit logs. 30-day log retention.</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Seed — $19/month</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For builders validating verified AI execution. 1 project. 1 execution environment. 2,500 verified runs per month. Signed execution records. Execution events. Basic receipt verification. 7-day retention.</p>
               </div>
               <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Horizon — $149/month</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For teams scaling governed execution across more environments. Up to 50 runtime instances. Everything in Seed. Shadow mode. Prometheus metrics. Advanced policy controls. 90-day log retention. Priority support (12h).</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Horizon — $79/month</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For teams running governed AI tasks. 5 projects. 10 execution environments. 50,000 verified runs per month. Everything in Seed plus failure-path configuration, tool and permission controls, team access, advanced event search, 60-day retention, and priority email support.</p>
               </div>
               <div>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Infinite — Custom</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For organizations running governed execution at scale. Unlimited instances. Everything in Horizon. Private deployment options. Dedicated engineer. SLA with financial backing. Custom log retention.</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For private deployment and advanced governance. Custom execution volume. Custom execution environments. Everything in Horizon plus private deployment options, custom retention policy, advanced audit exports, dedicated onboarding, and security review support.</p>
               </div>
             </div>
             <p className="text-sm mt-3 text-gray-600 dark:text-[#a8a898]">
               Full pricing: <a href="https://igrisinertial.com/pricing/" className="text-blue-600 dark:text-blue-400 hover:underline">igrisinertial.com/pricing/</a>
+            </p>
+            <p className="text-sm mt-3 text-gray-600 dark:text-[#a8a898]">
+              Fleet and operator access scale with the same plan model: {FLEET_GATING_COPY}
             </p>
           </div>
 

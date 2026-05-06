@@ -6,7 +6,7 @@
 # Overture durable-task flow and the Runtime WAL:
 #
 # 1. Submit a durable task through Overture.
-# 2. Runtime 1 hits a 1ms budget and returns a real checkpoint.
+# 2. Runtime 1 reaches the built-in checkpoint interval and returns a real checkpoint.
 # 3. Overture persists that checkpoint in task_records + wal_checkpoints.
 # 4. Runtime 1 is interrupted.
 # 5. Runtime 2 starts on the same host, reusing the persisted Runtime WAL store.
@@ -165,6 +165,7 @@ PROOF_API_KEY_PREFIX=$(node -e 'process.stdout.write(JSON.parse(require("fs").re
 
 RUNTIME_1_MACHINE_ID="$DEVICE_ID"
 RUNTIME_2_MACHINE_ID="${DEVICE_ID}-recovery"
+RUNTIME_2_DEVICE_ID="$DEVICE_ID"
 RUNTIME_1_PEER_ID="checkpoint-runtime-1"
 RUNTIME_2_PEER_ID="checkpoint-runtime-2"
 RUNTIME_SHARED_DB="$TMP_DIR/runtime-shared.db"
@@ -198,7 +199,6 @@ const taskReq = {
   task_type: "agent_workflow",
   task_definition: { steps: runtimeReq.task_type.steps },
   idempotency_key: runtimeReq.idempotency_key,
-  deadline_at: new Date(1).toISOString(),
 };
 fs.writeFileSync(process.argv[3], JSON.stringify(taskReq, null, 2));
 NODE
@@ -359,7 +359,7 @@ sleep 1
     RUNTIME_MOCK_KEY=dummy \
     IGRIS_ALLOW_INSECURE_DEV_MODE=true \
     IGRIS_CONFIG="$RUNTIME_2_CONFIG" \
-    IGRIS_DEVICE_ID="$RUNTIME_2_MACHINE_ID" \
+    IGRIS_DEVICE_ID="$RUNTIME_2_DEVICE_ID" \
     IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
     IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
     IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
@@ -534,8 +534,8 @@ if (checkpointTask.status !== "checkpointed") {
 if (finalTask.status !== "completed") {
   fail(`expected completed task status, got ${finalTask.status}`);
 }
-if (String(dbCheckpoint.last_committed_step) !== "0") {
-  fail(`expected checkpoint last_committed_step=0, got ${dbCheckpoint.last_committed_step}`);
+if (String(dbCheckpoint.last_committed_step) !== "4") {
+  fail(`expected checkpoint last_committed_step=4, got ${dbCheckpoint.last_committed_step}`);
 }
 if (dbFinal.runtime_id !== runtime2RegistryId) {
   fail(`expected final task runtime_id=${runtime2RegistryId}, got ${dbFinal.runtime_id}`);
@@ -549,21 +549,21 @@ if (dbFinal.checkpoint_runtime_id !== runtime2PeerId) {
 if (!dbFinal.execution_envelope_present || !dbFinal.execution_receipt_present) {
   fail("expected final execution artifacts to be persisted on task_records");
 }
-if (!Array.isArray(checkpointSteps.steps) || checkpointSteps.total !== 1) {
-  fail("expected exactly one persisted step after checkpoint");
+if (!Array.isArray(checkpointSteps.steps) || checkpointSteps.total !== 5) {
+  fail(`expected five persisted steps after checkpoint, got ${checkpointSteps.total}`);
 }
-if (!Array.isArray(finalSteps.steps) || finalSteps.total !== 5) {
-  fail(`expected five persisted steps after recovery, got ${finalSteps.total}`);
+if (!Array.isArray(finalSteps.steps) || finalSteps.total !== 8) {
+  fail(`expected eight persisted steps after recovery, got ${finalSteps.total}`);
 }
 const stepIndices = finalSteps.steps.map((step) => step.step_index);
 const stepRuntimeIds = finalSteps.steps.map((step) => String(step.runtime_id || ""));
-if (JSON.stringify(stepIndices) !== JSON.stringify([0, 1, 2, 3, 4])) {
+if (JSON.stringify(stepIndices) !== JSON.stringify([0, 1, 2, 3, 4, 5, 6, 7])) {
   fail(`unexpected step indices after recovery: ${JSON.stringify(stepIndices)}`);
 }
-if (stepRuntimeIds[0] !== runtime1PeerId) {
-  fail(`expected step 0 runtime_id=${runtime1PeerId}, got ${stepRuntimeIds[0]}`);
+if (!stepRuntimeIds.slice(0, 5).every((value) => value === runtime1PeerId)) {
+  fail(`expected checkpointed steps to use runtime_id=${runtime1PeerId}, got ${JSON.stringify(stepRuntimeIds)}`);
 }
-if (!stepRuntimeIds.slice(1).every((value) => value === runtime2PeerId)) {
+if (!stepRuntimeIds.slice(5).every((value) => value === runtime2PeerId)) {
   fail(`expected recovered steps to use runtime_id=${runtime2PeerId}, got ${JSON.stringify(stepRuntimeIds)}`);
 }
 if ((dbCheckpointWal && dbCheckpointWal.count) !== 1) {
@@ -573,7 +573,7 @@ if ((dbFinalWal && dbFinalWal.count) !== 2) {
   fail(`expected 2 wal_checkpoints rows after recovery, got ${dbFinalWal && dbFinalWal.count}`);
 }
 const walStepIndices = (dbFinalWal.rows || []).map((row) => row.step_index);
-if (JSON.stringify(walStepIndices) !== JSON.stringify([0, 4])) {
+if (JSON.stringify(walStepIndices) !== JSON.stringify([4, 7])) {
   fail(`unexpected wal_checkpoints step indices: ${JSON.stringify(walStepIndices)}`);
 }
 
