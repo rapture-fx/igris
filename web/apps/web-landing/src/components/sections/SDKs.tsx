@@ -327,7 +327,7 @@ function AnimatedCodeBlock({ code, animKey }: { code: string[]; animKey: number 
     cancelAnimationFrame(rafRef.current!)
     clearTimeout(timerRef.current)
 
-    const DURATION = 900
+    const DURATION = 400
 
     function scrambleAll(): string[] {
       return code.map(line =>
