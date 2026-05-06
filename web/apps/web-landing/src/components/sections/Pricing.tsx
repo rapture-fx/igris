@@ -2,76 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
+import { PRICING_TIERS } from '../../lib/pricing';
 
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-
-const POLAR_CHECKOUT: Record<string, string> = {
-  seed:     'https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl',
-  horizon:  'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
-  infinite: 'mailto:sales@igrisinertial.com',
-};
-
-const pricingTiers = [
-  {
-    name: 'Seed',
-    price: '$19',
-    period: '/ month',
-    description: 'For builders validating verified AI execution.',
-    features: [
-      '1 project',
-      '1 execution environment',
-      '2,500 verified runs / month',
-      'Signed execution records',
-      'Execution events',
-      'Basic receipt verification',
-      'API + SDK access',
-      '7-day retention',
-    ],
-    cta: 'Start with Seed',
-    checkoutKey: 'seed',
-    recommended: false,
-  },
-  {
-    name: 'Horizon',
-    price: '$79',
-    period: '/ month',
-    description: 'For teams running governed AI tasks.',
-    features: [
-      '5 projects',
-      '10 execution environments',
-      '50,000 verified runs / month',
-      'Everything in Seed',
-      'Failure-path configuration',
-      'Tool and permission controls',
-      'Team access',
-      'Advanced event search',
-      '60-day retention',
-      'Priority email support',
-    ],
-    cta: 'Get Horizon',
-    checkoutKey: 'horizon',
-    recommended: true,
-  },
-  {
-    name: 'Infinite',
-    price: 'Custom',
-    period: '',
-    description: 'For private deployment and advanced governance.',
-    features: [
-      'Custom execution volume',
-      'Custom execution environments',
-      'Everything in Horizon',
-      'Private deployment options',
-      'Custom retention policy',
-      'Advanced audit exports',
-      'Dedicated onboarding',
-      'Security review support',
-    ],
-    cta: 'Contact sales',
-    checkoutKey: 'infinite',
-    recommended: false,
-  },
-];
 
 export default function Pricing() {
   const { theme } = useTheme();
@@ -88,7 +21,7 @@ export default function Pricing() {
           <div className="max-w-[1000px] mx-auto px-0 md:px-8 lg:px-0">
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-[1200px] mx-auto">
-              {pricingTiers.map((tier, index) => (
+              {PRICING_TIERS.map((tier, index) => (
                 <div
                   key={index}
                   className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col"
@@ -144,7 +77,7 @@ export default function Pricing() {
 
                     {/* CTA */}
                     <a
-                      href={POLAR_CHECKOUT[tier.checkoutKey]}
+                      href={tier.checkoutUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 self-start"
