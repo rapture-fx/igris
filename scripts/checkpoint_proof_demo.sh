@@ -93,13 +93,13 @@ wait_for_task_status() {
   : > "$history_path"
   for _ in $(seq 1 "$attempts"); do
     poll_task_status "$task_id" > "$out_path"
-    local status
-    status=$(node -e 'const fs=require("fs"); const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(body.status||""));' "$out_path")
-    printf '%s\n' "$status" >> "$history_path"
-    if [[ "$status" == "$wanted" ]]; then
+    local task_state
+    task_state=$(node -e 'const fs=require("fs"); const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(body.status||""));' "$out_path")
+    printf '%s\n' "$task_state" >> "$history_path"
+    if [[ "$task_state" == "$wanted" ]]; then
       return 0
     fi
-    if [[ "$status" == "failed" ]]; then
+    if [[ "$task_state" == "failed" ]]; then
       echo "task $task_id failed while waiting for status=$wanted" >&2
       cat "$out_path" >&2
       exit 1
