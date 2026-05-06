@@ -388,11 +388,16 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		}
 	}
 
-	switch result.Status {
+	failureReason := result.FailureReason
+	if failureReason == "" {
+		failureReason = result.Status.Reason
+	}
+
+	switch result.Status.Name {
 	case "completed":
 		_ = tc.store.MarkCompleted(task.TaskID)
 	case "failed":
-		_ = tc.store.MarkFailedWithDetails(task.TaskID, result.FailureReason, result.FailureDetails)
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, failureReason, result.FailureDetails)
 	}
 }
 
@@ -421,13 +426,44 @@ func (tc *TaskCoordinator) verifyExecutionArtifactsForTask(ctx context.Context, 
 }
 
 type taskSubmitResult struct {
-	TaskID            uuid.UUID           `json:"task_id"`
-	Status            string              `json:"status"` // completed | checkpointed | failed
-	Checkpoint        *CheckpointPayload  `json:"checkpoint,omitempty"`
-	FailureReason     string              `json:"reason,omitempty"` // matches Rust TaskStatus::Failed { reason }
-	FailureDetails    *TaskFailureDetails `json:"failure_details,omitempty"`
-	ExecutionEnvelope json.RawMessage     `json:"execution_envelope,omitempty"`
-	ExecutionReceipt  json.RawMessage     `json:"execution_receipt,omitempty"`
+	TaskID            uuid.UUID              `json:"task_id"`
+	Status            taskSubmitResultStatus `json:"status"`
+	Checkpoint        *CheckpointPayload     `json:"checkpoint,omitempty"`
+	FailureReason     string                 `json:"reason,omitempty"` // legacy string-form status compatibility
+	FailureDetails    *TaskFailureDetails    `json:"failure_details,omitempty"`
+	ExecutionEnvelope json.RawMessage        `json:"execution_envelope,omitempty"`
+	ExecutionReceipt  json.RawMessage        `json:"execution_receipt,omitempty"`
+}
+
+type taskSubmitResultStatus struct {
+	Name        string       `json:"status"`
+	Reason      string       `json:"reason,omitempty"`
+	ResumeToken *ResumeToken `json:"resume_token,omitempty"`
+}
+
+func (s *taskSubmitResultStatus) UnmarshalJSON(data []byte) error {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		*s = taskSubmitResultStatus{}
+		return nil
+	}
+
+	if trimmed[0] == '"' {
+		var name string
+		if err := json.Unmarshal(trimmed, &name); err != nil {
+			return err
+		}
+		*s = taskSubmitResultStatus{Name: name}
+		return nil
+	}
+
+	type alias taskSubmitResultStatus
+	var decoded alias
+	if err := json.Unmarshal(trimmed, &decoded); err != nil {
+		return err
+	}
+	*s = taskSubmitResultStatus(decoded)
+	return nil
 }
 
 type governedAction struct {

@@ -1214,6 +1214,94 @@ func TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestDispatchToRuntimeAcceptsStructuredRuntimeCheckpointStatus(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-checkpointed"
+	inputDigest := strings.Repeat("ab", 32)
+	checkpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 4,
+			CheckpointDigest:  "digest-4",
+			RuntimeID:         runtimeID,
+		},
+		WalEntries: []WalEntry{{
+			EntryID:     uuid.New(),
+			TaskID:      taskID,
+			StepIndex:   4,
+			StepType:    "agent",
+			Status:      "committed",
+			InputDigest: inputDigest,
+			TimestampMs: 1_700_000_045_000,
+			RuntimeID:   runtimeID,
+		}},
+		Metadata:   json.RawMessage(`{"tick_count":42}`),
+		CapturedAt: time.Unix(1_900_000_045, 0).UTC(),
+	}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+	var checkpointJSON any
+	require.NoError(t, json.Unmarshal(checkpointBytes, &checkpointJSON))
+	responsePayload, err := json.Marshal(map[string]any{
+		"task_id": taskID,
+		"status": map[string]any{
+			"status":       "checkpointed",
+			"resume_token": checkpoint.ResumeToken,
+		},
+		"checkpoint": checkpointJSON,
+	})
+	require.NoError(t, err)
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{
+			columns: []string{"last_checkpoint"},
+			values:  []driver.Value{nil},
+		}},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "UPDATE task_records")
+				require.Equal(t, string(TaskStatusCheckpointed), args[0].Value)
+				require.JSONEq(t, string(checkpointBytes), string(args[1].Value.([]byte)))
+				require.Equal(t, taskID.String(), args[2].Value)
+			},
+		},
+		queuedExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "INSERT INTO wal_checkpoints")
+				require.Equal(t, taskID.String(), args[1].Value)
+				require.EqualValues(t, 4, args[2].Value)
+			},
+		},
+	)
+
+	tc := &TaskCoordinator{
+		store: NewCheckpointStore(db),
+		httpClient: &http.Client{Transport: roundTripperFunc(func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(string(responsePayload))),
+			}, nil
+		})},
+	}
+
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        "tenant-checkpointed",
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition:  json.RawMessage(`{"type":"agent_workflow","steps":[{"step_index":4,"model":"gpt-4.1-mini","messages":[{"role":"user","content":"checkpoint"}]}]}`),
+		IdempotencyKey:  "idem-checkpointed",
+	}, nil)
+
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestSaveExecutionArtifactsIndexesRoboticsReceiptAudit(t *testing.T) {
 	t.Parallel()
 

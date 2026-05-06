@@ -1,9 +1,11 @@
 package coordinator
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -148,6 +150,230 @@ type WalEntry struct {
 	TimestampMs  uint64      `json:"timestamp_ms"`
 	RuntimeID    string      `json:"runtime_id"`
 	Signature    *string     `json:"signature,omitempty"` // base64
+}
+
+func (e WalEntry) MarshalJSON() ([]byte, error) {
+	type walEntryJSON struct {
+		EntryID      uuid.UUID        `json:"entry_id"`
+		TaskID       uuid.UUID        `json:"task_id"`
+		StepIndex    uint32           `json:"step_index"`
+		StepType     interface{}      `json:"step_type"`
+		Status       any              `json:"status"`
+		InputDigest  json.RawMessage  `json:"input_digest"`
+		OutputDigest *json.RawMessage `json:"output_digest,omitempty"`
+		TimestampMs  uint64           `json:"timestamp_ms"`
+		RuntimeID    string           `json:"runtime_id"`
+		Signature    *json.RawMessage `json:"signature,omitempty"`
+	}
+
+	inputDigest, err := marshalHexByteArrayField(e.InputDigest, 32)
+	if err != nil {
+		return nil, err
+	}
+
+	var outputDigest *json.RawMessage
+	if e.OutputDigest != nil {
+		encoded, err := marshalHexByteArrayField(*e.OutputDigest, 32)
+		if err != nil {
+			return nil, err
+		}
+		outputDigest = &encoded
+	}
+
+	var signature *json.RawMessage
+	if e.Signature != nil {
+		encoded, err := marshalBinaryArrayField(*e.Signature)
+		if err != nil {
+			return nil, err
+		}
+		signature = &encoded
+	}
+
+	return json.Marshal(walEntryJSON{
+		EntryID:      e.EntryID,
+		TaskID:       e.TaskID,
+		StepIndex:    e.StepIndex,
+		StepType:     e.StepType,
+		Status:       marshalWalStatusField(e.Status),
+		InputDigest:  inputDigest,
+		OutputDigest: outputDigest,
+		TimestampMs:  e.TimestampMs,
+		RuntimeID:    e.RuntimeID,
+		Signature:    signature,
+	})
+}
+
+func (e *WalEntry) UnmarshalJSON(data []byte) error {
+	type walEntryJSON struct {
+		EntryID      uuid.UUID       `json:"entry_id"`
+		TaskID       uuid.UUID       `json:"task_id"`
+		StepIndex    uint32          `json:"step_index"`
+		StepType     interface{}     `json:"step_type"`
+		Status       json.RawMessage `json:"status"`
+		InputDigest  json.RawMessage `json:"input_digest"`
+		OutputDigest json.RawMessage `json:"output_digest"`
+		TimestampMs  uint64          `json:"timestamp_ms"`
+		RuntimeID    string          `json:"runtime_id"`
+		Signature    json.RawMessage `json:"signature"`
+	}
+
+	var decoded walEntryJSON
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return err
+	}
+
+	inputDigest, err := unmarshalHexByteArrayField(decoded.InputDigest, 32)
+	if err != nil {
+		return fmt.Errorf("decode input_digest: %w", err)
+	}
+
+	outputDigest, err := unmarshalOptionalHexByteArrayField(decoded.OutputDigest, 32)
+	if err != nil {
+		return fmt.Errorf("decode output_digest: %w", err)
+	}
+
+	signature, err := unmarshalOptionalBinaryArrayField(decoded.Signature)
+	if err != nil {
+		return fmt.Errorf("decode signature: %w", err)
+	}
+
+	*e = WalEntry{
+		EntryID:      decoded.EntryID,
+		TaskID:       decoded.TaskID,
+		StepIndex:    decoded.StepIndex,
+		StepType:     decoded.StepType,
+		Status:       unmarshalWalStatusField(decoded.Status),
+		InputDigest:  inputDigest,
+		OutputDigest: outputDigest,
+		TimestampMs:  decoded.TimestampMs,
+		RuntimeID:    decoded.RuntimeID,
+		Signature:    signature,
+	}
+	return nil
+}
+
+func marshalHexByteArrayField(value string, expectedLen int) (json.RawMessage, error) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return json.Marshal(trimmed)
+	}
+
+	decoded, err := hex.DecodeString(trimmed)
+	if err != nil || (expectedLen > 0 && len(decoded) != expectedLen) {
+		return json.Marshal(trimmed)
+	}
+	return json.Marshal(decoded)
+}
+
+func unmarshalHexByteArrayField(data []byte, expectedLen int) (string, error) {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		return "", nil
+	}
+
+	if trimmed[0] == '"' {
+		var value string
+		if err := json.Unmarshal(trimmed, &value); err != nil {
+			return "", err
+		}
+		if value == "" {
+			return "", nil
+		}
+		_, _ = hex.DecodeString(value)
+		return strings.ToLower(value), nil
+	}
+
+	var raw []byte
+	if err := json.Unmarshal(trimmed, &raw); err != nil {
+		return "", err
+	}
+	if expectedLen > 0 && len(raw) != expectedLen {
+		return "", fmt.Errorf("expected %d bytes, got %d", expectedLen, len(raw))
+	}
+	return hex.EncodeToString(raw), nil
+}
+
+func unmarshalOptionalHexByteArrayField(data []byte, expectedLen int) (*string, error) {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		return nil, nil
+	}
+	value, err := unmarshalHexByteArrayField(trimmed, expectedLen)
+	if err != nil {
+		return nil, err
+	}
+	return &value, nil
+}
+
+func marshalBinaryArrayField(value string) (json.RawMessage, error) {
+	decoded, err := base64.StdEncoding.DecodeString(value)
+	if err != nil {
+		return json.Marshal(value)
+	}
+	return json.Marshal(decoded)
+}
+
+func unmarshalOptionalBinaryArrayField(data []byte) (*string, error) {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		return nil, nil
+	}
+	if trimmed[0] == '"' {
+		var value string
+		if err := json.Unmarshal(trimmed, &value); err != nil {
+			return nil, err
+		}
+		return &value, nil
+	}
+	var raw []byte
+	if err := json.Unmarshal(trimmed, &raw); err != nil {
+		return nil, err
+	}
+	encoded := base64.StdEncoding.EncodeToString(raw)
+	return &encoded, nil
+}
+
+func unmarshalWalStatusField(data []byte) string {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		return ""
+	}
+
+	if trimmed[0] == '"' {
+		var value string
+		if err := json.Unmarshal(trimmed, &value); err == nil {
+			return normalizeWalStatus(value)
+		}
+		return ""
+	}
+
+	var object map[string]json.RawMessage
+	if err := json.Unmarshal(trimmed, &object); err != nil {
+		return ""
+	}
+	for key := range object {
+		return normalizeWalStatus(key)
+	}
+	return ""
+}
+
+func marshalWalStatusField(status string) any {
+	switch normalizeWalStatus(status) {
+	case "intent":
+		return "Intent"
+	case "executing":
+		return "Executing"
+	case "committed", "completed":
+		return "Committed"
+	case "failed":
+		return "Failed"
+	default:
+		return status
+	}
+}
+
+func normalizeWalStatus(status string) string {
+	return strings.ToLower(strings.TrimSpace(status))
 }
 
 // CreateTask inserts a new TaskRecord in PENDING state.
