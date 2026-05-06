@@ -66,7 +66,7 @@ function SdkCard({ row }: { row: SdkRow }) {
         </div>
       )}
 
-      <p className="text-[0.82rem] leading-relaxed text-fd-muted-foreground m-0">{row.notes}</p>
+      <p className="text-[0.84rem] leading-relaxed text-fd-muted-foreground m-0">{row.notes}</p>
     </div>
   );
 }
@@ -122,7 +122,7 @@ export function SdkSupportMatrix() {
               </span>
             ))}
           </div>
-          <p className="text-[0.82rem] leading-relaxed text-fd-muted-foreground m-0">
+          <p className="text-[0.84rem] leading-relaxed text-fd-muted-foreground m-0">
             Point any OpenAI-compatible client at{' '}
             <code className="font-mono text-[0.72rem] bg-fd-muted rounded px-1 py-0.5">
               https://overture.igrisinertial.com/v1
