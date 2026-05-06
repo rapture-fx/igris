@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# Build script for combined documentation deployment
-# This creates a single output directory with:
-#   / -> Hub page
-#   /overture -> Overture docs
-#   /runtime -> Runtime docs
+# Build script for documentation deployment
+# Current repo layout only includes web-docs-hub, so this script
+# builds that app and copies its static export into a deployable output dir.
 
 set -e  # Exit on error
 
-echo "🚀 Building Combined Documentation Site..."
+echo "🚀 Building Documentation Site..."
 echo "🔧 Current directory: $(pwd)"
 echo ""
 
@@ -63,65 +61,24 @@ echo "🧹 Cleaning previous builds..."
 rm -rf combined-docs-output
 mkdir -p combined-docs-output
 
-copy_app_output() {
-  local source_dir="$1"
-  local target_dir="$2"
-
-  if [ ! -d "$source_dir/out" ]; then
-    echo "  Skipping copy for $source_dir; no out/ directory found"
-    return
-  fi
-
-  mkdir -p "$target_dir"
-  cp -r "$source_dir/out/"* "$target_dir/"
-}
-
-# Build Hub
+# Build docs hub
 echo ""
-echo "📦 Building Hub (/)..."
+echo "📦 Building Docs Hub (/)..."
 cd web-docs-hub
 pnpm run build
 cd ..
 
-if [ -d "web-docs" ]; then
-  echo ""
-  echo "📦 Building Overture Docs (/overture)..."
-  cd web-docs
-  NEXT_PUBLIC_USE_BASEPATH=true pnpm run build
-  cd ..
-else
-  echo ""
-  echo "⏭️  Skipping Overture Docs (/overture); web-docs app not present"
+if [ ! -d "web-docs-hub/out" ]; then
+  echo "❌ Error: web-docs-hub build completed but no out/ directory was generated"
+  exit 1
 fi
 
-if [ -d "web-docs-runtime" ]; then
-  echo ""
-  echo "📦 Building Runtime Docs (/runtime)..."
-  cd web-docs-runtime
-  NEXT_PUBLIC_USE_BASEPATH=true pnpm run build
-  cd ..
-else
-  echo ""
-  echo "⏭️  Skipping Runtime Docs (/runtime); web-docs-runtime app not present"
-fi
-
-# Combine outputs
+# Copy output
 echo ""
-echo "🔄 Combining outputs..."
+echo "🔄 Preparing deploy output..."
 
-# Copy hub (root level)
-echo "  Copying hub to /"
-copy_app_output "web-docs-hub" "combined-docs-output"
-
-if [ -d "web-docs" ]; then
-  echo "  Copying Overture docs to /overture"
-  copy_app_output "web-docs" "combined-docs-output/overture"
-fi
-
-if [ -d "web-docs-runtime" ]; then
-  echo "  Copying Runtime docs to /runtime"
-  copy_app_output "web-docs-runtime" "combined-docs-output/runtime"
-fi
+echo "  Copying docs hub output"
+cp -r web-docs-hub/out/. combined-docs-output/
 
 # Summary
 echo ""
@@ -129,17 +86,9 @@ echo "✅ Build complete!"
 echo ""
 echo "📁 Output structure:"
 echo "   combined-docs-output/"
-echo "   ├── index.html              (Hub page)"
-if [ -d "web-docs" ]; then
-  echo "   ├── overture/"
-  echo "   │   ├── index.html          (Overture redirect)"
-  echo "   │   └── docs/               (Overture docs)"
-fi
-if [ -d "web-docs-runtime" ]; then
-  echo "   └── runtime/"
-  echo "       ├── index.html          (Runtime redirect)"
-  echo "       └── docs/               (Runtime docs)"
-fi
+echo "   ├── index.html"
+echo "   ├── docs/"
+echo "   └── ..."
 echo ""
 echo "🌐 Deploy the 'combined-docs-output' directory to Cloudflare Pages"
 echo ""
