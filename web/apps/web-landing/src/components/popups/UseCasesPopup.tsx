@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { RUNTIME_PLAN_COPY } from '../../lib/pricing';
 
 interface UseCasesPopupProps {
   isOpen: boolean;
@@ -82,7 +83,7 @@ export default function UseCasesPopup({ isOpen, onClose }: UseCasesPopupProps) {
                   How teams use Igris Runtime
                 </h2>
                 <p className="text-xs md:text-sm text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-inter">
-                  Real-world applications of Runtime for AI execution on edge devices, with Fleet Dashboard included for cloud-based management.
+                  Real-world applications of Runtime for AI execution on edge devices, with fleet visibility and coordination that scale with your plan.
                 </p>
               </div>
             </div>
@@ -132,7 +133,7 @@ export default function UseCasesPopup({ isOpen, onClose }: UseCasesPopupProps) {
                   Start with Runtime
                 </h4>
                 <p className="text-xs text-gray-600 dark:text-[#c8c8b8] font-inter leading-relaxed mb-4">
-                  Download the 16MB Runtime binary and deploy to any device. The Fleet Dashboard is included free with every license. Start with the Free tier for 1 device, or upgrade to Pro for fleet management at scale.
+                  Download the 16MB Runtime binary and deploy to any device. {RUNTIME_PLAN_COPY}
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/runtime/quickstart"
