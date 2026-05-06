@@ -481,8 +481,6 @@ func TestNormalizePublicTaskDefinitionRequiresBehaviorTreeDefinition(t *testing.
 }
 
 func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
-	t.Parallel()
-
 	taskID := uuid.New()
 	runtimeID := "runtime-recovery-1"
 	tenantID := "tenant-recovery"
@@ -490,11 +488,15 @@ func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
 	deadlineAt := time.Unix(1_900_000_000, 0).UTC()
 	var gotBody map[string]any
 	var gotTenantHeader string
+	var gotAuthHeader string
+
+	t.Setenv("IGRIS_RUNTIME_SECRET", "runtime-secret-test")
 
 	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		require.Equal(t, http.MethodPost, r.Method)
 		require.Equal(t, "/v1/runtime/task/submit", r.URL.Path)
 		gotTenantHeader = r.Header.Get("X-Igris-Tenant")
+		gotAuthHeader = r.Header.Get("Authorization")
 
 		body, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
@@ -541,6 +543,7 @@ func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
 	tc.dispatchToRuntime(context.Background(), task, checkpoint)
 
 	require.Equal(t, tenantID, gotTenantHeader)
+	require.Equal(t, "Bearer runtime-secret-test", gotAuthHeader)
 	require.Equal(t, taskID.String(), gotBody["task_id"])
 	require.Equal(t, tenantID, gotBody["tenant_id"])
 	require.Equal(t, idempotencyKey, gotBody["idempotency_key"])
