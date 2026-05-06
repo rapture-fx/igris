@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 
 type Language = 'javascript' | 'python' | 'go' | 'rust' | 'curl'
 
@@ -15,7 +15,7 @@ const languageLabels: Record<Language, string> = {
 const codeExamples: Record<Language, string[]> = {
   curl: [
     '# Send one request through Igris',
-    'curl -X POST https://api.igris-inertial.com/v1/infer \\',
+    'curl -X POST https://overture.igrisinertial.com/v1/infer \\',
     '  -H "Authorization: Bearer $IGRIS_API_KEY" \\',
     '  -H "Content-Type: application/json" \\',
     '  -d \'{',
@@ -34,7 +34,7 @@ const codeExamples: Record<Language, string[]> = {
     "import { IgrisClient } from '@igris-inertial/sdk';",
     '',
     'const client = new IgrisClient({',
-    "  baseUrl: 'https://api.igris-inertial.com',",
+    "  baseUrl: 'https://overture.igrisinertial.com',",
     "  apiKey: process.env.IGRIS_API_KEY,",
     '});',
     '',
@@ -55,7 +55,7 @@ const codeExamples: Record<Language, string[]> = {
     'from igris import IgrisClient, InferRequest, Message',
     '',
     'client = IgrisClient(',
-    '    base_url="https://api.igris-inertial.com",',
+    '    base_url="https://overture.igrisinertial.com",',
     '    api_key=os.environ["IGRIS_API_KEY"],',
     ')',
     '',
@@ -85,7 +85,7 @@ const codeExamples: Record<Language, string[]> = {
     'func main() {',
     '    ctx := context.Background()',
     '    client := igris.NewClient(',
-    '        "https://api.igris-inertial.com",',
+    '        "https://overture.igrisinertial.com",',
     '        os.Getenv("IGRIS_API_KEY"),',
     '    )',
     '',
@@ -115,7 +115,7 @@ const codeExamples: Record<Language, string[]> = {
     '',
     '#[tokio::main]',
     'async fn main() -> Result<(), Box<dyn std::error::Error>> {',
-    '    let client = IgrisClient::builder("https://api.igris-inertial.com")',
+    '    let client = IgrisClient::builder("https://overture.igrisinertial.com")',
     '        .api_key(std::env::var("IGRIS_API_KEY")?)',
     '        .build()?;',
     '',
@@ -314,13 +314,60 @@ function CopyButton({ code }: { code: string[] }) {
   )
 }
 
-function CodeBlock({ code, language }: { code: string[]; language: Language }) {
+const POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_-+={}|;<>?/'
+
+function AnimatedCodeBlock({ code, animKey }: { code: string[]; animKey: number }) {
+  const [lines, setLines] = useState<string[]>([])
+  const [isDone, setIsDone] = useState(false)
+  const rafRef = useRef<number>()
+  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+
+  useEffect(() => {
+    setIsDone(false)
+    cancelAnimationFrame(rafRef.current!)
+    clearTimeout(timerRef.current)
+
+    const DURATION = 900
+
+    function scrambleAll(): string[] {
+      return code.map(line =>
+        line === '' ? '' : line.split('').map(c => c === ' ' ? ' ' : POOL[Math.floor(Math.random() * POOL.length)]).join('')
+      )
+    }
+
+    let start = -1
+
+    function frame(ts: number) {
+      if (start < 0) start = ts
+      if (ts - start >= DURATION) {
+        setLines([...code])
+        setIsDone(true)
+      } else {
+        setLines(scrambleAll())
+        rafRef.current = requestAnimationFrame(frame)
+      }
+    }
+
+    timerRef.current = setTimeout(() => {
+      setLines(scrambleAll())
+      rafRef.current = requestAnimationFrame(frame)
+    }, 100)
+
+    return () => {
+      cancelAnimationFrame(rafRef.current!)
+      clearTimeout(timerRef.current)
+    }
+  }, [animKey, code])
+
   return (
     <div className="font-mono" style={{ fontSize: '0.8125rem' }}>
-      <div className="leading-relaxed overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {code.map((line, i) => (
+      <div className="leading-relaxed overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {lines.map((line, i) => (
           <div key={i} className="whitespace-pre">
-            {line === '' ? '\u00A0' : <SyntaxLine line={line} />}
+            {line === '' ? ' ' : isDone
+              ? <SyntaxLine line={line} />
+              : <span className="text-[#bbb] dark:text-[#555]">{line}</span>
+            }
           </div>
         ))}
       </div>
@@ -371,13 +418,31 @@ function SyntaxLine({ line }: { line: string }) {
 
 export default function SDKs() {
   const [selectedLang, setSelectedLang] = useState<Language>('javascript')
+  const [animKey, setAnimKey] = useState(0)
+  const sectionRef = useRef<HTMLElement>(null)
   const languages: Language[] = ['javascript', 'python', 'go', 'rust', 'curl']
 
   const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
   const borderStyle = 'var(--section-border)'
 
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setAnimKey(k => k + 1) },
+      { threshold: 0.12 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const handleLangChange = useCallback((lang: Language) => {
+    setSelectedLang(lang)
+    setAnimKey(k => k + 1)
+  }, [])
+
   return (
-    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section ref={sectionRef} className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
           {/* Title */}
@@ -406,7 +471,7 @@ export default function SDKs() {
                       {i > 0 && i < languages.length - 1 && ', '}
                       {i === languages.length - 1 && ', '}
                       <button
-                        onClick={() => setSelectedLang(lang)}
+                        onClick={() => handleLangChange(lang)}
                         className={`underline decoration-dotted underline-offset-2 transition-colors cursor-pointer ${
                           selectedLang === lang
                             ? 'text-gray-900 dark:text-white'
@@ -447,7 +512,7 @@ export default function SDKs() {
                   <CopyButton code={codeExamples[selectedLang]} />
                 </div>
                 <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-6 py-4 flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  <CodeBlock code={codeExamples[selectedLang]} language={selectedLang} />
+                  <AnimatedCodeBlock code={codeExamples[selectedLang]} animKey={animKey} />
                 </div>
               </div>
             </div>
@@ -477,6 +542,9 @@ export default function SDKs() {
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
                   For teams building long-running agents, approvals, and tool-driven workflows that need clear execution boundaries.
                 </p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
+                  These examples target a local Igris Runtime at <code className="text-[0.95em]">http://localhost:8080</code>, not the hosted Overture API.
+                </p>
                 <div>
                   <a
                     href="https://docs.igrisinertial.com/docs/behavior-trees/"
@@ -496,7 +564,7 @@ export default function SDKs() {
                   <CopyButton code={btreeExamples[selectedLang]} />
                 </div>
                 <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-6 py-4 flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  <CodeBlock code={btreeExamples[selectedLang]} language={selectedLang} />
+                  <AnimatedCodeBlock code={btreeExamples[selectedLang]} animKey={animKey} />
                 </div>
               </div>
             </div>
