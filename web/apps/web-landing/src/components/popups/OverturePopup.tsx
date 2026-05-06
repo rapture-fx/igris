@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { FLEET_GATING_COPY } from '../../lib/pricing';
 
 interface OverturePopupProps {
   isOpen: boolean;
@@ -67,7 +68,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
     {
       title: 'Included with Runtime',
       description: 'The dashboard unlocks automatically when you scale. No separate purchase.',
-      how: 'The fleet dashboard is not a separate product—it\'s part of Runtime. Free tier gets basic dashboard access. Pro and Enterprise unlock advanced features. No separate billing.',
+      how: FLEET_GATING_COPY,
       features: [
         'Included with Runtime',
         'No additional cost',
@@ -124,7 +125,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
           <div className="relative z-10">
             <section className="bg-transparent text-gray-900 dark:text-white">
               <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                {capabilities.map((capability, index) => (
+                {capabilities.map((capability) => (
                   <div key={capability.title} className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-auto py-6">
                     <div className="flex flex-col justify-start">
                       <h4 className="text-sm md:text-base font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-geist-sans text-left">
@@ -163,7 +164,7 @@ export default function OverturePopup({ isOpen, onClose }: OverturePopupProps) {
                   The view unlocks when you scale
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-geist-sans leading-relaxed mb-4">
-                  The fleet dashboard is included with Runtime. There is no separate pricing—the view scales with your plan. Free tier includes basic dashboard features. Pro and Enterprise unlock advanced fleet management capabilities.
+                  {FLEET_GATING_COPY}
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/overture"
