@@ -88,11 +88,13 @@ Tenants are allocated resource quotas based on their tier:
 
 | Resource | Seed | Horizon | Infinite |
 |---|---|---|---|
-| Runtime instances | 3 | 50 | 500 |
-| Receipt retention | 7 days | 30 days | 90 days |
-| Federated learning | — | — | ✓ |
-| SLO enforcement | ✓ | ✓ | ✓ |
-| Routing advisor | ✓ | ✓ | ✓ |
+| Projects | 1 | 5 | Custom |
+| Execution environments | 1 | 10 | Custom |
+| Verified runs / month | 2,500 | 50,000 | Custom |
+| Receipt retention | 7 days | 60 days | Custom retention policy |
+| Team access | — | ✓ | ✓ |
+| Advanced event search | — | ✓ | ✓ |
+| Private deployment options | — | — | ✓ |
 
 When a tenant exceeds its quota, requests are rejected with HTTP 429. The `X-RateLimit-Remaining` header indicates remaining capacity.
 

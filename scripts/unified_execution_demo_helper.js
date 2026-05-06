@@ -1050,21 +1050,22 @@ function commandPrepareCheckpoint(outDir) {
 
   const taskId = crypto.randomUUID();
   const tenantId = "checkpoint-proof-tenant";
-  const steps = Array.from({ length: 5 }, (_, i) => ({
+  const steps = Array.from({ length: 8 }, (_, i) => ({
     step_index: i,
     model: "mock-model",
     messages: [{ role: "user", content: `checkpoint proof step ${i}` }],
   }));
   const taskType = { type: "agent_workflow", steps };
 
-  // Checkpoint request: deadline_ms=1 forces an immediate checkpoint.
+  // Checkpoint request: the runtime's built-in checkpoint interval fires after
+  // step 4, so an 8-step task produces a real persisted checkpoint without a
+  // synthetic deadline budget.
   const checkpointIkey = `ck-${taskId.slice(0, 8)}-a`;
   const checkpointReq = {
     task_id: taskId,
     task_type: taskType,
     idempotency_key: checkpointIkey,
     tenant_id: tenantId,
-    deadline_ms: 1,
   };
   const checkpointBody = JSON.stringify(checkpointReq);
   const checkpointBodyHash = sha256(Buffer.from(checkpointBody));
@@ -1101,7 +1102,7 @@ function commandPrepareCheckpoint(outDir) {
     provider_mode: "mock",
     task_id: taskId,
     tenant_id: tenantId,
-    steps_total: 5,
+    steps_total: 8,
     checkpoint_idempotency_key: checkpointIkey,
     resume_idempotency_key: resumeIkey,
   });
