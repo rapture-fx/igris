@@ -1,278 +1,211 @@
 # Checkpoint and Recovery Proof
 
-**Date:** 2026-05-05  
-**Claim:** When a multi-step task hits its wall-clock deadline mid-execution, the Runtime produces a WAL-backed checkpoint with a cryptographic resume token. A subsequent resume request verifies the token against the Runtime's WAL, starts at the next uncommitted step, and completes without re-executing work already committed.  
-**Credentials used:** None. All providers are local mock servers.
-
----
+**Date:** 2026-05-06  
+**Product claim under test:** support long-horizon execution by checkpointing and recovering work  
+**Scope:** existing Runtime + Overture paths only, no external provider credentials, no fake checkpoint or recovery events
 
 ## Summary
 
-A 5-step `agent_workflow` task (step indices 0–4) was submitted to the Runtime directly via `POST /v1/runtime/task/submit` with `deadline_ms=1`. Step 0 completed before the 1ms deadline fired. The Runtime produced a `TaskStatus::Checkpointed` response carrying a WAL-backed `ResumeToken`.
+**Proven today**
+- Overture can submit a durable task to Runtime, receive a real Runtime checkpoint, persist it in `task_records` and `wal_checkpoints`, and expose that checkpoint through `GET /v1/tasks/:id` and `GET /v1/tasks/:id/steps`.
+- The checkpointed task detail includes signed `execution_envelope` and `execution_receipt`, and the task writes an `execution_context` row.
+- Overture's failed-runtime recovery loop detects the stale runtime and redispatches the checkpointed task to a replacement runtime.
 
-The same task was then resumed using the token. The Runtime verified WAL digest continuity, started execution at step 1 (skipping step 0), and completed steps 1–4. The WAL confirms exactly 5 committed entries (steps 0–4) with Ed25519 signatures — step 0 appears once from the checkpoint phase, not twice.
+**Partially proven**
+- Recovery redispatch is real and observable, but end-to-end Overture resume-to-completion is **not** proven.
 
----
+**Not proven**
+- A full Overture checkpoint -> recovery -> completed task -> global proof/run API chain.
+- `/proof/receipts` and `/v1/execution/runs` visibility for this checkpointed task path.
 
-## Commands Run
+Evidence artifacts referenced below come from:
+- `/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt`
+- `/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OADIUf`
 
-```
-cd /Users/wira/Desktop/system
+## Checkpoint mechanism inspected
 
-# Kill any leftover processes
-kill $(lsof -iTCP:8080 -sTCP:LISTEN -t) 2>/dev/null || true
-kill $(lsof -iTCP:18090 -sTCP:LISTEN -t) 2>/dev/null || true
+- Runtime checkpoint generation lives in `igris-runtime/crates/igris-server/src/task_executor.rs`.
+- WAL payload and resume token types live in `igris-runtime/crates/igris-wal/`.
+- Overture persistence and redispatch live in `igris-overture/coordinator/task_coordinator.go` and `igris-overture/coordinator/checkpoint_store.go`.
+- Task API visibility lives in `igris-overture/api/routes_tasks.go`.
+- Execution/proof listing APIs live in `igris-overture/api/routes_execution.go` and `igris-overture/api/routes_proof.go`.
 
-# Run the checkpoint proof (no credentials required)
-bash scripts/checkpoint_proof_demo.sh
-```
+Important findings from inspection:
+- Runtime returns externally visible checkpoints on the deadline path and on behavior-tree `Running` checkpoints.
+- Runtime's periodic every-5-steps checkpoint is only cached internally; it is not returned to Overture as a checkpoint response.
+- Overture recovery redispatch exists and is active.
+- The recovery proof path initially had three real interop bugs that were fixed during this task:
+  - Overture was not sending `Authorization: Bearer $IGRIS_RUNTIME_SECRET` to Runtime durable-task submit.
+  - Overture expected Runtime task `status` to be a string instead of the actual structured object.
+  - Overture's Go checkpoint mirror did not accept Runtime WAL JSON shapes for digests/signatures.
 
-Output:
-```
-[1/7] Preparing checkpoint proof artifacts in /tmp/igris-checkpoint-proof.6v754Q
-    task_id: d28211b2-9fb0-407c-b953-77ca158fad17
-    steps: 5 (indices 0-4)
-    checkpoint request: deadline_ms=1 (fires before step 0)
-[2/7] Reusing existing Runtime binary
-[3/7] Starting mock provider on port 18090
-      Starting Runtime on port 8080
-[4/7] Submitting task (deadline_ms=1) — expecting checkpoint before step 0
-    Checkpoint received: status.status=checkpointed
-    WAL entries after checkpoint: 1 (step 0 committed; deadline fired before step 1)
-[5/7] Building resume request from checkpoint token
-    resume_token.last_committed_step: 0
-    resume will start at step 1 (skipping step 0)
-      Submitting resume request (deadline_ms=30000)
-    Resume completed: status.status=completed, steps_completed=5/5
-    WAL entries after resume: 5 (step 0 from checkpoint run + steps 1-4 from resume = 5 total)
-[6/7] Verifying checkpoint and resume proofs
-Checkpoint and recovery proof succeeded.
+## Commands run
 
-Checkpoint type: WAL-backed deadline checkpoint (agent_workflow)
-Task ID:         d28211b2-9fb0-407c-b953-77ca158fad17
-Steps total:     5
-After checkpoint: steps_completed=1 (step 0 ran), WAL committed=1
-After resume:    steps_completed=5 (steps 1-4 ran), WAL committed=5
-Step 0 not re-executed: true (resume token last_committed_step=0)
-WAL step indices committed: [0,1,2,3,4]
-WAL count matches steps_total: true
-WAL entries signed: true
+Secrets were redacted. `DATABASE_URL` was sourced from `.env` and never printed.
 
-Resume token:    last_committed_step=0, runtime_id=igris-local
-Checkpoint digest: 55f6f0f6ccbf377c1665ab3c2ebb579af39122710ea176a25ef4a3511dba7466
-Final output:    mock-response:user: graph_blackboard: {"last_node_id":"agent-step-3","last_outpu
+```bash
+go test ./igris-overture/coordinator -run 'TestDispatchToRuntimeIncludesRecoveryResumePayload|TestDispatchToRuntimePreservesCheckpointAndFailureDetailsOnExecutionFailure|TestDispatchToRuntimeAcceptsStructuredRuntimeCheckpointStatus' -count=1
 
-Artifacts: /tmp/igris-checkpoint-proof.6v754Q
+./scripts/checkpoint_proof_demo.sh
+
+psql "$DATABASE_URL" -f igris-overture/database/migrations/031_task_records.sql
+psql "$DATABASE_URL" -f igris-overture/database/migrations/032_task_record_artifacts.sql
+...
+psql "$DATABASE_URL" -f igris-overture/database/migrations/048_runtime_command_device_key.sql
+
+psql "$DATABASE_URL" -c 'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tier TEXT DEFAULT '\''seed'\'';'
+psql "$DATABASE_URL" -c 'ALTER TABLE tenants ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;'
+psql "$DATABASE_URL" -c 'ALTER TABLE runtime_instances ALTER COLUMN tenant_id TYPE TEXT USING tenant_id::text;'
 ```
 
----
+## Checkpoint creation result
 
-## Checkpoint Phase
+**Proven**
 
-### Request
+Checkpointed task:
+- `task_id`: `e879d14c-efa2-426b-a055-e03b487e7c79`
+- Overture artifact: [task-after-checkpoint.json](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/task-after-checkpoint.json>)
 
-Submitted to `POST /v1/runtime/task/submit` with:
-- `task_id`: `d28211b2-9fb0-407c-b953-77ca158fad17`
-- `task_type`: `agent_workflow` with 5 steps (indices 0–4)
-- `deadline_ms`: 1
-- Auth: `x-api-key` (Runtime shared secret) + `x-igris-decision-sig` (Ed25519 signature over SHA-256 of request body, signed with Overture private key)
+Observed result from `GET /v1/tasks/:id`:
+- `status: "checkpointed"`
+- `last_step: 0`
+- `checkpoint_digest: 55f6f0f6ccbf377c1665ab3c2ebb579af39122710ea176a25ef4a3511dba7466`
+- `checkpoint_runtime_id: "checkpoint-runtime-1"`
+- signed `execution_envelope` present
+- signed `execution_receipt` present
 
-### Response
+This was a real Runtime deadline checkpoint produced through the normal Overture durable-task submit path. It was not synthesized from source code or manual DB writes.
 
-```json
-{
-  "task_id": "d28211b2-9fb0-407c-b953-77ca158fad17",
-  "steps_completed": 1,
-  "steps_total": 5,
-  "status": {
-    "status": "checkpointed",
-    "resume_token": {
-      "last_committed_step": 0,
-      "checkpoint_digest": "55f6f0f6ccbf377c1665ab3c2ebb579af39122710ea176a25ef4a3511dba7466",
-      "runtime_id": "igris-local"
-    }
-  },
-  "checkpoint": {
-    "task_id": "d28211b2-9fb0-407c-b953-77ca158fad17",
-    "resume_token": {
-      "last_committed_step": 0,
-      "checkpoint_digest": "55f6f0f6ccbf377c1665ab3c2ebb579af39122710ea176a25ef4a3511dba7466",
-      "runtime_id": "igris-local"
-    },
-    "wal_entries": ["<1 committed WalEntry for step 0 — see WAL section>"],
-    "metadata": {
-      "domain": "agent",
-      "step_index": 0,
-      "steps_completed": 1,
-      "output_preview": "mock-response:user: user: checkpoint proof step 0"
-    }
-  },
-  "final_output": "mock-response:user: user: checkpoint proof step 0",
-  "execution_envelope": {
-    "execution_id": "exec-10deb9d3-75f3-489a-9737-8a69725ad204",
-    "routing_decision": "local-mock-cloud",
-    "runtime_id": "igris-local",
-    "signature": "fPGtoYZlJgvU53MPi3P8z0NyU7ct/JlWgNYkZ41YvD6EoUbMs9X5hFFLxbfKOpEDXG6epttuEvN5bfcgShrXDQ==",
-    "timestamp": "2026-05-05T17:00:39Z"
-  },
-  "execution_receipt": {
-    "execution_id": "019df915-a7a0-7021-837f-183b8a7837cd",
-    "hash": "719b5b0320705a7c3eda0495f892889226585cfc3b00002c98e6a354fb75cc13",
-    "runtime_id": "igris-local",
-    "signature": "17ioARWXNZXVl2E823DZ2RJTNFNps5oJhSP8BXt7oGpb3MPHfn8qlDF+W6rVRyavqA500XZmiDL57IG21FWUCA==",
-    "wall_time_ms": 37
-  }
-}
-```
+## Checkpoint persistence result
 
-**`steps_completed=1`, `steps_total=5`, `status.status="checkpointed"`** — step 0 ran; deadline fired before step 1. The `resume_token` encodes the WAL watermark needed for verification.
+**Proven**
 
----
+Task row snapshot:
+- [db-task-after-checkpoint.json](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/db-task-after-checkpoint.json>)
 
-## WAL State After Checkpoint
+Persisted facts:
+- `task_records.status = "checkpointed"`
+- `task_records.last_checkpoint.resume_token.last_committed_step = 0`
+- `task_records.last_checkpoint.resume_token.runtime_id = "checkpoint-runtime-1"`
+- `task_records.execution_envelope IS NOT NULL`
+- `task_records.execution_receipt IS NOT NULL`
 
-`GET /v1/runtime/task/d28211b2-9fb0-407c-b953-77ca158fad17/wal` (auth: `x-api-key`):
+Checkpoint history snapshot:
+- [db-wal-checkpoints-after-checkpoint.json](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/db-wal-checkpoints-after-checkpoint.json>)
 
-```json
-{
-  "task_id": "d28211b2-9fb0-407c-b953-77ca158fad17",
-  "count": 1,
-  "entries": [
-    {
-      "step_index": 0,
-      "step_type": { "Inference": { "provider": "", "model": "mock-model" } },
-      "status": "Committed",
-      "signature_present": true
-    }
-  ]
-}
-```
+Persisted facts:
+- `wal_checkpoints.count = 1`
+- persisted checkpoint row `step_index = 0`
+- persisted checkpoint row `resume_runtime_id = "checkpoint-runtime-1"`
+- persisted checkpoint row `wal_entry_count = 1`
 
-**1 committed entry** for step 0. Step 0 is durably recorded with an Ed25519 signature over its output digest.
+## Recovery/resume result
 
-### Checkpoint Digest
+**Partial**
 
-`checkpoint_digest = SHA-256(output_digest[step 0])` — a rolling hash over committed outputs. The resume verifies this matches the Runtime's local WAL state before allowing any work to proceed.
+What was proven:
+- Runtime 1 was intentionally stopped after the checkpoint.
+- Runtime 2 was started on the same WAL store.
+- Runtime 2 registered successfully in Overture under a different runtime instance:
+  - old runtime row: `ec261179-ae11-4ca7-b42c-2197aa8bd700`
+  - replacement runtime row: `d53ecbb1-fbad-4fda-a9a9-0d6fe3113b9e`
+- Overture recovery loop detected the stale runtime and redispatched the task.
 
----
+Recovery evidence:
+- [overture.log](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/logs/overture.log:272>)
+- [task-status-history-after-recovery.txt](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/task-status-history-after-recovery.txt>)
 
-## Resume Phase
+Relevant Overture log lines:
+- `[Coordinator] Recovering tasks from failed runtime`
+- `[Coordinator] Redispatching recovered task`
+- `[Coordinator] Save checkpoint` with `task transition rejected`
 
-### Request
+What failed:
+- The deadline-based checkpoint proof used `deadline_at=1970-01-01T00:00:00.001Z` so Overture forwarded `deadline_ms=1` on every dispatch.
+- On recovery redispatch, Runtime resumed under the same 1ms budget and returned another non-advancing checkpoint instead of completing.
+- Overture then rejected that checkpoint as non-advancing (`task transition rejected`), leaving the task unable to complete through this path.
 
-Built from the checkpoint token. Submitted to `POST /v1/runtime/task/submit` with:
-- **Same** `task_id`: `d28211b2-9fb0-407c-b953-77ca158fad17`
-- **Different** `idempotency_key` (prevents idempotency cache collision)
-- `resume_from`: the `resume_token` from the checkpoint response
-- `deadline_ms`: 30000
+Additional recovery attempt:
+- The later interval-based run `84d7df8c-778c-46c7-94d6-f6987044feca` removed the synthetic deadline and used an 8-step task.
+- Result: the task went straight from `dispatched` to `completed`; no Overture-visible checkpoint was emitted.
+- That showed the Runtime's periodic checkpoint is internal-only for this task type and cannot currently be used to prove Overture-visible recovery.
 
-The Runtime's `verified_resume_start_step()` confirms:
-- `local_checkpoint_digest` (WAL SHA-256 over step 0 output) == `token.checkpoint_digest` ✓
-- `local_last_committed_step` (0) == `token.last_committed_step` (0) ✓
-- Returns `Some(0 + 1) = 1` → execution starts at step 1, skipping step 0
+Bottom line:
+- **Recovery detection and redispatch are proven.**
+- **Resume-to-completion through Overture is not proven today.**
 
-### Response
+## Receipt/proof result
 
-```json
-{
-  "task_id": "d28211b2-9fb0-407c-b953-77ca158fad17",
-  "steps_completed": 5,
-  "steps_total": 5,
-  "status": { "status": "completed" },
-  "final_output": "mock-response:user: graph_blackboard: ..."
-}
-```
+**Partial**
 
-**`steps_completed=5`, `status.status="completed"`** — steps 1–4 executed; all 5 steps done.
+Proven:
+- The checkpointed task detail already carried signed execution artifacts:
+  - `execution_envelope.signature` present
+  - `execution_receipt.signature` present
+- The task also persisted an `execution_context` row:
+  - `execution_id = 019dfdf0-2ed7-7d92-9797-5a2dad9386d3`
+  - `runtime_id = checkpoint-runtime-1`
+  - `route_decision = local-mock-cloud`
+  - `verification_status = pending`
 
----
+Not proven:
+- Global proof receipt indexing for this task path.
 
-## WAL State After Resume
+DB evidence:
+- `execution_context` row exists for the task.
+- `execution_lineage` row count for `execution_id = 019dfdf0-2ed7-7d92-9797-5a2dad9386d3` was `0`.
 
-`GET /v1/runtime/task/d28211b2-9fb0-407c-b953-77ca158fad17/wal`:
+Implication:
+- Task detail retained the signed receipt.
+- The global proof/run listing APIs that depend on `execution_lineage` were not proven for this checkpoint path.
 
-```json
-{
-  "task_id": "d28211b2-9fb0-407c-b953-77ca158fad17",
-  "count": 5,
-  "entries": [
-    { "step_index": 0, "status": "Committed", "signature_present": true },
-    { "step_index": 1, "status": "Committed", "signature_present": true },
-    { "step_index": 2, "status": "Committed", "signature_present": true },
-    { "step_index": 3, "status": "Committed", "signature_present": true },
-    { "step_index": 4, "status": "Committed", "signature_present": true }
-  ]
-}
-```
+## API visibility result
 
-**5 committed entries** (one per step). Step 0 appears exactly once — from the checkpoint phase. Steps 1–4 were added during the resume. **Step 0 was not re-executed.**
+**Proven**
+- `GET /v1/tasks/:id` exposed the checkpointed state and receipt metadata.
+- `GET /v1/tasks/:id/steps` exposed the persisted WAL-backed step snapshot after checkpoint.
 
----
+Evidence:
+- [task-after-checkpoint.json](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/task-after-checkpoint.json>)
+- [task-steps-after-checkpoint.json](</var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.OObsHt/task-steps-after-checkpoint.json>)
 
-## Verification Result
+Observed task-step visibility after checkpoint:
+- `total = 1`
+- `step_index = 0`
+- `runtime_id = "checkpoint-runtime-1"`
 
-```json
-{
-  "task_id": "d28211b2-9fb0-407c-b953-77ca158fad17",
-  "checkpoint_steps_completed": 1,
-  "resume_steps_completed": 5,
-  "steps_total": 5,
-  "step_0_skipped_by_resume": true,
-  "all_steps_completed": true,
-  "resume_token_last_committed_step": 0,
-  "wal_committed_entries_after_resume": 5,
-  "wal_step_indices_committed": [0, 1, 2, 3, 4],
-  "wal_count_matches_steps_total": true,
-  "wal_has_signed_entries": true,
-  "checkpoint_verified": true,
-  "resume_verified": true
-}
-```
+**Not proven**
+- `GET /proof/receipts`
+- `POST /proof/receipts/verify`
+- `GET /v1/execution/runs`
 
----
+Reason:
+- the checkpoint path wrote `execution_context`, but did not produce `execution_lineage` rows for the task evidence inspected here.
 
-## Checkpoint Mechanism — Code Evidence
+## Files changed
 
-| Component | Location | Role |
-|---|---|---|
-| Deadline check | `task_executor.rs:1165` | `if wall_start.elapsed().as_millis() as u64 > deadline` |
-| `build_checkpoint()` | `task_executor.rs:2031` | Computes rolling SHA-256 digest over WAL committed outputs; creates `CheckpointPayload` |
-| `WalLog::compute_checkpoint_digest()` | `igris-wal/src/log.rs` | Rolling SHA-256 over committed output digests in step order |
-| `verified_resume_start_step()` | `task_executor.rs:2174` | Returns `Some(last_committed_step + 1)` if digest AND step both match; `None` (→ 409) otherwise |
-| Resume filter | `task_executor.rs:1114` | `for step in steps.iter().filter(|step| step.step_index() >= start_step)` |
-| WAL write (intent) | `task_executor.rs:1206` | Written before step execution |
-| WAL write (committed) | `task_executor.rs:1440` | Signed with Runtime Ed25519 key after step completes |
+- [igris-overture/coordinator/task_coordinator.go](/Users/wira/Desktop/system/igris-overture/coordinator/task_coordinator.go)
+- [igris-overture/coordinator/checkpoint_store.go](/Users/wira/Desktop/system/igris-overture/coordinator/checkpoint_store.go)
+- [igris-overture/coordinator/task_coordinator_test.go](/Users/wira/Desktop/system/igris-overture/coordinator/task_coordinator_test.go)
+- [scripts/unified_execution_demo_helper.js](/Users/wira/Desktop/system/scripts/unified_execution_demo_helper.js)
+- [scripts/checkpoint_proof_demo.sh](/Users/wira/Desktop/system/scripts/checkpoint_proof_demo.sh)
+- [CHECKPOINT_RECOVERY_PROOF.md](/Users/wira/Desktop/system/CHECKPOINT_RECOVERY_PROOF.md)
 
----
+## Known limitations
 
-## Checkpoint Type Demonstrated
+- This proof does **not** show a completed Overture recovery flow.
+- The successful checkpoint proof depended on a deadline-driven checkpoint.
+- The Runtime's periodic checkpoint path is not externally surfaced to Overture for `agent_workflow`.
+- Global proof/run APIs were not proven for the checkpoint task because `execution_lineage` was absent for the inspected execution.
+- Local DB compatibility work was required before the proof could run:
+  - durable-task migrations `031` through `048`
+  - `tenants.tier`
+  - `tenants.is_active`
+  - `runtime_instances.tenant_id` widened from `UUID` to `TEXT`
 
-**Deadline checkpoint on `agent_workflow`.**
+## Recommended next task
 
-The Runtime checked the wall-clock deadline between step 0 (completed) and step 1 (not started). This is the primary durability guarantee: any task with a bounded deadline will checkpoint rather than fail if it exhausts its time budget mid-execution.
-
-The resume token's `checkpoint_digest` is a rolling SHA-256 over committed output digests. A forged or stale digest fails `verified_resume_start_step()` and the Runtime rejects the resume with 409 Conflict — preventing replays from an inconsistent state.
-
----
-
-## Known Limitations
-
-1. **Only `deadline_ms=1` checkpoint tested.** The step-level checkpoint (fired explicitly by `step_result.checkpoint_requested`) and the periodic every-5-steps checkpoint are not demonstrated in this script. Both paths lead to the same `build_checkpoint()` call.
-
-2. **No Overture persistence demonstrated.** The checkpoint payload is verified at the Runtime level only. Overture's coordinator saves checkpoint payloads to `wal_checkpoints` (migration 031) when it dispatches tasks through the task coordinator API. That flow requires migrations 031-035 applied and Overture running with a DB — not exercised here.
-
-3. **No recovery loop demonstrated.** The coordinator's `StartRecoveryLoop()` fires every 15 seconds, marks tasks assigned to runtimes with stale heartbeats (`last_heartbeat < NOW() - 90s`) as `recovering`, and re-dispatches with the last checkpoint. This path is not exercised here because it requires two Overture + Runtime instances and a deliberate heartbeat timeout.
-
-4. **No cloud-to-local fallback after checkpoint.** If a cloud provider fails during the resume, the Runtime falls back to local LLM (if configured). No GGUF model is available in this environment.
-
----
-
-## Files Changed
-
-| File | Change |
-|---|---|
-| `scripts/unified_execution_demo_helper.js` | Added `prepare-checkpoint`, `build-resume-request`, `verify-checkpoint`, `verify-checkpoint-resume` commands |
-| `scripts/checkpoint_proof_demo.sh` | New — end-to-end checkpoint proof script |
-| `CHECKPOINT_RECOVERY_PROOF.md` | This document |
-
-No Runtime or Overture application code was modified. The checkpoint behavior is exercised as-shipped.
+Fix the Overture-visible recovery path without inventing a new subsystem:
+- make Runtime return a coordinator-visible checkpoint for the existing periodic checkpoint path, or
+- change Overture recovery redispatch to use a correct remaining deadline model instead of replaying the original synthetic `deadline_ms=1`,
+- then wire successful durable-task artifacts into `execution_lineage` so `/proof/receipts` and `/v1/execution/runs` become provable for checkpointed/recovered tasks.
