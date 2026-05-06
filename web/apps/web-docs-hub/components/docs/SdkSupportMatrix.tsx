@@ -34,7 +34,7 @@ function Badge({ status }: { status: string }) {
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.62rem] font-semibold leading-none tracking-wide ${meta.badgeClass}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[0.66rem] font-semibold leading-none tracking-wide ${meta.badgeClass}`}
     >
       {meta.label}
     </span>
@@ -54,26 +54,26 @@ function SdkCard({ row }: { row: SdkRow }) {
       {row.package !== 'n/a' && (
         <div className="space-y-1.5">
           <div className="rounded-md bg-fd-muted px-2.5 py-1.5">
-            <code className="font-mono text-[0.68rem] text-fd-foreground break-all">
+            <code className="font-mono text-[0.72rem] text-fd-foreground break-all">
               {row.install}
             </code>
           </div>
           <div className="rounded-md bg-fd-muted px-2.5 py-1.5">
-            <code className="font-mono text-[0.68rem] text-fd-muted-foreground break-all">
+            <code className="font-mono text-[0.72rem] text-fd-muted-foreground break-all">
               {row.import}
             </code>
           </div>
         </div>
       )}
 
-      <p className="text-[0.72rem] leading-relaxed text-fd-muted-foreground m-0">{row.notes}</p>
+      <p className="text-[0.82rem] leading-relaxed text-fd-muted-foreground m-0">{row.notes}</p>
     </div>
   );
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[0.65rem] font-semibold uppercase tracking-widest text-fd-muted-foreground m-0 mb-2.5">
+    <p className="text-[0.68rem] font-semibold uppercase tracking-widest text-fd-muted-foreground m-0 mb-2.5">
       {children}
     </p>
   );
@@ -122,9 +122,9 @@ export function SdkSupportMatrix() {
               </span>
             ))}
           </div>
-          <p className="text-[0.72rem] leading-relaxed text-fd-muted-foreground m-0">
+          <p className="text-[0.82rem] leading-relaxed text-fd-muted-foreground m-0">
             Point any OpenAI-compatible client at{' '}
-            <code className="font-mono text-[0.68rem] bg-fd-muted rounded px-1 py-0.5">
+            <code className="font-mono text-[0.72rem] bg-fd-muted rounded px-1 py-0.5">
               https://overture.igrisinertial.com/v1
             </code>{' '}
             as the base URL. Native SDKs for these languages are not yet available.
