@@ -325,6 +325,9 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Igris-Tenant", task.TenantID)
+	if runtimeSecret := strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_SECRET")); runtimeSecret != "" {
+		req.Header.Set("Authorization", "Bearer "+runtimeSecret)
+	}
 	internal.SetDecisionSigHeader(req, body)
 
 	resp, err := tc.httpClient.Do(req)
