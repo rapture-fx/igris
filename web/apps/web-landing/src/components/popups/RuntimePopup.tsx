@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { RUNTIME_PLAN_COPY } from '../../lib/pricing';
 
 interface RuntimePopupProps {
   isOpen: boolean;
@@ -53,18 +54,18 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
         'Safe process isolation'
       ]
     },
-    {
-      title: 'Fleet Dashboard Integration',
-      description: 'Auto-sync with fleet dashboard when online. Included free.',
-      how: 'When devices have connectivity, Runtime automatically syncs status, telemetry, and logs with the fleet dashboard. Push model updates and configuration changes to your entire fleet. QR code pairing for instant device linking.',
-      features: [
-        'Zero-config sync',
-        'Real-time status monitoring',
-        'Over-the-air model updates',
-        'QR code device pairing',
-        'Included free with Runtime'
-      ]
-    },
+  {
+    title: 'Fleet Dashboard Integration',
+    description: 'Auto-sync with fleet dashboard when online. Visibility scales with your tier.',
+    how: 'When devices have connectivity, Runtime automatically syncs status, telemetry, and logs with the fleet dashboard. Push model updates and configuration changes according to your plan, from a single execution environment on Seed through multi-environment coordination on Horizon and private deployment options on Infinite.',
+    features: [
+      'Zero-config sync',
+      'Real-time status monitoring',
+      'Over-the-air model updates',
+      'QR code device pairing',
+      'Plan-based fleet visibility'
+    ]
+  },
   ];
 
   useEffect(() => {
@@ -103,7 +104,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   Secure AI execution for edge devices.
                 </h2>
                 <p className="text-sm md:text-base text-gray-700 dark:text-[#c8c8b8] max-w-md leading-relaxed text-left mt-4 font-geist-sans">
-                  Deploy AI anywhere with a 16MB binary. Run GGUF models locally, work offline, and manage your fleet from the cloud when needed. Fleet dashboard included free.
+                  Deploy AI anywhere with a 16MB binary. Run GGUF models locally, work offline, and manage your fleet from the cloud when needed. {RUNTIME_PLAN_COPY}
                 </p>
               </div>
             </div>
@@ -114,7 +115,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
           <div className="relative z-10">
             <section className="bg-transparent text-gray-900 dark:text-white">
               <div className="relative px-4 md:px-8 lg:px-12 pt-0 pb-8 flex flex-col bg-transparent border-l border-r border-gray-200 dark:border-[#f6f6f4]/5">
-                {capabilities.map((capability, index) => (
+                {capabilities.map((capability) => (
                   <div key={capability.title} className="grid grid-cols-1 gap-0 relative border-t border-gray-200 dark:border-[#f6f6f4]/5 h-auto py-6">
                     <div className="flex flex-col justify-start">
                       <h4 className="text-sm md:text-base font-medium text-[#111111] dark:text-[#f6f6f4] mb-2 font-geist-sans text-left">
@@ -153,7 +154,7 @@ export default function RuntimePopup({ isOpen, onClose }: RuntimePopupProps) {
                   Get Started with Runtime
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-[#c8c8b8] font-geist-sans leading-relaxed mb-4">
-                  Download the Runtime binary for your platform, add your GGUF models, and deploy to any device. The fleet dashboard is included free for cloud-based fleet management.
+                  Download the Runtime binary for your platform, add your GGUF models, and deploy to any device. {RUNTIME_PLAN_COPY}
                 </p>
                 <a
                   href="https://docs.igrisinertial.com/runtime/quickstart"
