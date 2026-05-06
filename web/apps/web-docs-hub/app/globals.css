@@ -19,8 +19,8 @@
 
 @layer components {
   .docs-prose {
-    font-size: 0.8rem;
-    line-height: 1.58;
+    font-size: 0.88rem;
+    line-height: 1.6;
   }
 
   .docs-prose :where(h1) {
@@ -36,16 +36,16 @@
   }
 
   .docs-prose :where(p, li, blockquote) {
-    font-size: 0.8rem;
+    font-size: 0.88rem;
   }
 
   .docs-prose.prose :where(table):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
-    font-size: 0.78rem;
-    line-height: 1.45;
+    font-size: 0.86rem;
+    line-height: 1.5;
   }
 
   .docs-prose.prose :where(thead th):not(:where([class~='not-prose'], [class~='not-prose'] *)) {
-    font-size: 0.68rem;
+    font-size: 0.76rem;
     font-weight: 600;
     letter-spacing: 0.02em;
   }
@@ -75,8 +75,8 @@
   }
 
   .docs-prose .docs-tab-content {
-    font-size: 0.8rem !important;
-    line-height: 1.58 !important;
+    font-size: 0.88rem !important;
+    line-height: 1.6 !important;
   }
 
   .docs-prose .docs-tab-content :where(p, li, blockquote) {
@@ -84,12 +84,12 @@
   }
 
   .docs-prose .docs-tab-content :where(table) {
-    font-size: 0.78rem;
-    line-height: 1.45;
+    font-size: 0.86rem;
+    line-height: 1.5;
   }
 
   .docs-prose .docs-tab-content :where(thead th) {
-    font-size: 0.68rem;
+    font-size: 0.76rem;
     font-weight: 600;
     letter-spacing: 0.02em;
   }
@@ -100,7 +100,7 @@
   }
 
   .docs-prose .docs-type-table > div {
-    font-size: 0.72rem;
+    font-size: 0.82rem;
   }
 
   .docs-prose .docs-type-table code {
@@ -108,8 +108,8 @@
   }
 
   .docs-prose .docs-type-table .prose {
-    font-size: 0.72rem;
-    line-height: 1.45;
+    font-size: 0.82rem;
+    line-height: 1.5;
   }
 
   .docs-prose .docs-code-block {
@@ -225,7 +225,7 @@
 
   .docs-agent-prompt-description {
     margin: 0.22rem 0 0;
-    font-size: 0.76rem;
+    font-size: 0.84rem;
     line-height: 1.45;
     color: var(--color-fd-muted-foreground);
   }
@@ -355,7 +355,7 @@
     border: 1px solid var(--color-fd-border);
     border-radius: 9999px;
     background: var(--color-fd-card);
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     line-height: 1;
   }
 
