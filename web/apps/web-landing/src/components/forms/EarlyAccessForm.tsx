@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Send } from 'lucide-react';
+import { PLAN_INTEREST_OPTIONS } from '../../lib/pricing';
 
 export default function EarlyAccessForm() {
   const [formData, setFormData] = useState({
@@ -79,7 +80,7 @@ export default function EarlyAccessForm() {
               Thanks for joining early access!
             </h3>
             <p className="text-gray-600 mb-6 font-inter">
-              We've received your information and will be in touch soon with next steps.
+              We&apos;ve received your information and will be in touch soon with next steps.
             </p>
             <button
               onClick={() => setIsSubmitted(false)}
@@ -172,11 +173,11 @@ export default function EarlyAccessForm() {
                 className="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-inter"
                 style={{ borderColor: 'rgba(156, 163, 175, 0.3)' }}
               >
-                <option value="">Select a plan</option>
-                <option value="developer">Developer - $99/month</option>
-                <option value="founders">Founders' Plan - $299/month</option>
-                <option value="pro">Pro - $499/month</option>
-                <option value="enterprise">Enterprise - Custom</option>
+                {PLAN_INTEREST_OPTIONS.map((option) => (
+                  <option key={option.value || 'empty'} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
