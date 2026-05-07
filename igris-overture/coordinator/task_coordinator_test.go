@@ -546,8 +546,11 @@ func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
 	require.Equal(t, "Bearer runtime-secret-test", gotAuthHeader)
 	require.Equal(t, taskID.String(), gotBody["task_id"])
 	require.Equal(t, tenantID, gotBody["tenant_id"])
-	require.Equal(t, idempotencyKey, gotBody["idempotency_key"])
-	require.Equal(t, float64(deadlineAt.UnixMilli()), gotBody["deadline_ms"])
+	require.Equal(t, "idem-recovery:resume:7:digest-7", gotBody["idempotency_key"])
+	deadlineBudget, ok := gotBody["deadline_ms"].(float64)
+	require.True(t, ok)
+	require.Greater(t, deadlineBudget, float64(0))
+	require.LessOrEqual(t, deadlineBudget, float64(time.Until(deadlineAt).Milliseconds()+1000))
 
 	taskType, ok := gotBody["task_type"].(map[string]any)
 	require.True(t, ok)
@@ -572,6 +575,39 @@ func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
 	blackboard, ok := metadata["blackboard_state"].(map[string]any)
 	require.True(t, ok)
 	require.Equal(t, "dock", blackboard["goal"])
+}
+
+func TestRuntimeDeadlineBudgetMsOmitsExpiredDeadlineOnRecovery(t *testing.T) {
+	t.Parallel()
+
+	now := time.Unix(1_900_000_000, 0).UTC()
+	expired := now.Add(-time.Second)
+	future := now.Add(30 * time.Second)
+	checkpoint := &CheckpointPayload{ResumeToken: ResumeToken{LastCommittedStep: 1}}
+
+	require.Nil(t, runtimeDeadlineBudgetMs(nil, checkpoint, now))
+	require.Nil(t, runtimeDeadlineBudgetMs(&expired, checkpoint, now))
+
+	initialExpired := runtimeDeadlineBudgetMs(&expired, nil, now)
+	require.NotNil(t, initialExpired)
+	require.Equal(t, uint64(1), *initialExpired)
+
+	recoveryFuture := runtimeDeadlineBudgetMs(&future, checkpoint, now)
+	require.NotNil(t, recoveryFuture)
+	require.Equal(t, uint64(30_000), *recoveryFuture)
+}
+
+func TestRuntimeDispatchIdempotencyKeyDerivesRecoveryKeyFromCheckpoint(t *testing.T) {
+	t.Parallel()
+
+	task := &TaskRecord{IdempotencyKey: "idem-original"}
+	checkpoint := &CheckpointPayload{ResumeToken: ResumeToken{
+		LastCommittedStep: 4,
+		CheckpointDigest:  "0123456789abcdef999999",
+	}}
+
+	require.Equal(t, "idem-original", runtimeDispatchIdempotencyKey(task, nil))
+	require.Equal(t, "idem-original:resume:4:0123456789abcdef", runtimeDispatchIdempotencyKey(task, checkpoint))
 }
 
 func TestDispatchToRuntimeIncludesRoboticsTaskDefinitionWithoutResumeFields(t *testing.T) {

@@ -1479,7 +1479,10 @@ pub async fn handle_task_submit(
             ) {
                 Ok(cp) => {
                     checkpoint = Some(cp);
-                    entries_since_checkpoint.clear();
+                    // This checkpoint is internal to Runtime unless execution
+                    // stops here. Keep the delta entries so the next
+                    // coordinator-visible checkpoint can persist complete step
+                    // evidence in Overture.
                 }
                 Err(e) => {
                     // Non-fatal: log and continue. The checkpoint will be

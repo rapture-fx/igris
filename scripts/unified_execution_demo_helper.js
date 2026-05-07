@@ -1057,9 +1057,9 @@ function commandPrepareCheckpoint(outDir) {
   }));
   const taskType = { type: "agent_workflow", steps };
 
-  // Checkpoint request: the runtime's built-in checkpoint interval fires after
-  // step 4, so an 8-step task produces a real persisted checkpoint without a
-  // synthetic deadline budget.
+  // Checkpoint request: Overture's proof script wraps this with an intentionally
+  // expired deadline_at so Runtime returns an Overture-visible checkpoint after
+  // the first committed step. Recovery must not replay that tiny deadline.
   const checkpointIkey = `ck-${taskId.slice(0, 8)}-a`;
   const checkpointReq = {
     task_id: taskId,
@@ -1074,7 +1074,8 @@ function commandPrepareCheckpoint(outDir) {
     overtureKeyPair.secretKey
   );
 
-  // Resume base request: no deadline, resume_from will be patched in later.
+  // Resume base request: resume_from will be patched in later by direct-runtime
+  // experiments; the Overture proof uses the durable-task recovery path.
   const resumeIkey = `ck-${taskId.slice(0, 8)}-b`;
   const resumeBaseReq = {
     task_id: taskId,
