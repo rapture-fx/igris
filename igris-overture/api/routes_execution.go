@@ -186,6 +186,7 @@ type ExecutionRunEvent struct {
 
 type ExecutionRunDetail struct {
 	ExecutionRun
+	TaskID             string                        `json:"task_id,omitempty"`
 	RouteDecision      *string                       `json:"route_decision"`
 	Provider           *string                       `json:"provider"`
 	ProviderPath       *string                       `json:"provider_path"`
@@ -227,6 +228,7 @@ type executionRunRecord struct {
 	ContextEvents             []byte
 	ContextLogs               []byte
 	TaskExecutionEnvelope     []byte
+	TaskID                    string
 	TaskPermissionEnvelope    []byte
 	TaskFailureReason         string
 	TaskFailureDetails        []byte
@@ -415,6 +417,7 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 			ec.events,
 			ec.logs,
 			tp.execution_envelope,
+			tp.task_id,
 			tp.permission_envelope,
 			COALESCE(tp.failure_reason, '') AS task_failure_reason,
 			tp.failure_details,
@@ -463,6 +466,7 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 		&record.ContextEvents,
 		&record.ContextLogs,
 		&record.TaskExecutionEnvelope,
+		&record.TaskID,
 		&record.TaskPermissionEnvelope,
 		&record.TaskFailureReason,
 		&record.TaskFailureDetails,
@@ -515,6 +519,7 @@ func buildExecutionRunDetail(record executionRunRecord) ExecutionRunDetail {
 	run := buildExecutionRunSummary(record)
 	detail := ExecutionRunDetail{
 		ExecutionRun:       run,
+		TaskID:             record.TaskID,
 		RouteDecision:      optionalExecutionString(record.ContextRouteDecision),
 		Provider:           optionalExecutionString(record.ContextProvider),
 		ProviderPath:       optionalExecutionString(record.ContextExecutionPath),
