@@ -23,6 +23,16 @@ export interface Task {
   deadline_at?: string;
   last_step?: number;
   checkpoint_digest?: string;
+  checkpoint_runtime_id?: string;
+  checkpoint_summary?: {
+    checkpoint_status?: string;
+    last_committed_step?: number;
+    checkpoint_digest?: string;
+    checkpoint_runtime_id?: string;
+    resume_token_present?: boolean;
+    wal_entry_count?: number;
+    proof_status?: string;
+  };
   checkpoint_metadata?: unknown;
   failure_reason?: string;
   requested_mode?: string;
