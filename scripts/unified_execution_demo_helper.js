@@ -1055,11 +1055,11 @@ function commandPrepareCheckpoint(outDir) {
     model: "mock-model",
     messages: [{ role: "user", content: `checkpoint proof step ${i}` }],
   }));
-  const taskType = { type: "agent_workflow", steps };
+  const taskType = { type: "agent_workflow", steps, checkpoint_after_steps: 1 };
 
-  // Checkpoint request: Overture's proof script wraps this with an intentionally
-  // expired deadline_at so Runtime returns an Overture-visible checkpoint after
-  // the first committed step. Recovery must not replay that tiny deadline.
+  // Checkpoint request: checkpoint_after_steps asks Runtime to return an
+  // Overture-visible checkpoint after the first committed step without relying
+  // on a synthetic expired deadline.
   const checkpointIkey = `ck-${taskId.slice(0, 8)}-a`;
   const checkpointReq = {
     task_id: taskId,
