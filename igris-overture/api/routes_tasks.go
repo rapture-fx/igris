@@ -885,6 +885,8 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 	if task.LastCheckpoint != nil {
 		resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
 		resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
+		resp["checkpoint_runtime_id"] = task.LastCheckpoint.ResumeToken.RuntimeID
+		resp["checkpoint_summary"] = buildTaskCheckpointSummaryResponse(task)
 		if len(task.LastCheckpoint.Metadata) > 0 {
 			resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
 			if requestedMode, resolvedStrategy := extractModeSemantics(task.LastCheckpoint.Metadata); requestedMode != "" || resolvedStrategy != "" {
@@ -907,6 +909,32 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		}
 	}
 
+	return resp
+}
+
+func buildTaskCheckpointSummaryResponse(task *coordinator.TaskRecord) fiber.Map {
+	if task == nil || task.LastCheckpoint == nil {
+		return nil
+	}
+	status := string(task.Status)
+	if status == "" {
+		status = "checkpointed"
+	}
+	resp := fiber.Map{
+		"checkpoint_status":    status,
+		"last_committed_step":  task.LastCheckpoint.ResumeToken.LastCommittedStep,
+		"checkpoint_digest":    task.LastCheckpoint.ResumeToken.CheckpointDigest,
+		"checkpoint_runtime_id": task.LastCheckpoint.ResumeToken.RuntimeID,
+		"resume_token_present": task.LastCheckpoint.ResumeToken.CheckpointDigest != "" ||
+			task.LastCheckpoint.ResumeToken.RuntimeID != "" ||
+			task.LastCheckpoint.ResumeToken.LastCommittedStep > 0,
+		"wal_entry_count": len(task.LastCheckpoint.WalEntries),
+	}
+	if proof := buildTaskProofResponse(task.Proof); proof != nil {
+		if status, ok := proof["status"]; ok {
+			resp["proof_status"] = status
+		}
+	}
 	return resp
 }
 
