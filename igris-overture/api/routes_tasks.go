@@ -921,9 +921,9 @@ func buildTaskCheckpointSummaryResponse(task *coordinator.TaskRecord) fiber.Map 
 		status = "checkpointed"
 	}
 	resp := fiber.Map{
-		"checkpoint_status":    status,
-		"last_committed_step":  task.LastCheckpoint.ResumeToken.LastCommittedStep,
-		"checkpoint_digest":    task.LastCheckpoint.ResumeToken.CheckpointDigest,
+		"checkpoint_status":     status,
+		"last_committed_step":   task.LastCheckpoint.ResumeToken.LastCommittedStep,
+		"checkpoint_digest":     task.LastCheckpoint.ResumeToken.CheckpointDigest,
 		"checkpoint_runtime_id": task.LastCheckpoint.ResumeToken.RuntimeID,
 		"resume_token_present": task.LastCheckpoint.ResumeToken.CheckpointDigest != "" ||
 			task.LastCheckpoint.ResumeToken.RuntimeID != "" ||
