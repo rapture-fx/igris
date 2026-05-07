@@ -32,6 +32,9 @@ const (
 	recoveryInterval = 15 * time.Second
 	// checkpointInterval is how many steps between forced checkpoints.
 	checkpointInterval = 5
+	// minRuntimeDeadlineBudgetMs keeps an already-expired first dispatch from
+	// becoming a huge absolute timestamp when Runtime expects a duration budget.
+	minRuntimeDeadlineBudgetMs = int64(1)
 )
 
 var ErrInvalidTaskDefinition = errors.New("invalid task_definition")
@@ -250,7 +253,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	// Inject / override control-plane fields.
 	taskIDBytes, _ := json.Marshal(task.TaskID)
 	tenantIDBytes, _ := json.Marshal(task.TenantID)
-	idempotencyBytes, _ := json.Marshal(task.IdempotencyKey)
+	idempotencyBytes, _ := json.Marshal(runtimeDispatchIdempotencyKey(task, checkpoint))
 	runtimePayload["task_id"] = taskIDBytes
 	runtimePayload["tenant_id"] = tenantIDBytes
 	runtimePayload["idempotency_key"] = idempotencyBytes
@@ -264,8 +267,8 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		cpBytes, _ := json.Marshal(checkpoint)
 		runtimePayload["resume_checkpoint"] = cpBytes
 	}
-	if task.DeadlineAt != nil {
-		deadlineBytes, _ := json.Marshal(task.DeadlineAt.UnixMilli())
+	if deadlineBudgetMs := runtimeDeadlineBudgetMs(task.DeadlineAt, checkpoint, time.Now()); deadlineBudgetMs != nil {
+		deadlineBytes, _ := json.Marshal(*deadlineBudgetMs)
 		runtimePayload["deadline_ms"] = deadlineBytes
 	}
 	governance := taskGovernanceForRecord(task)
@@ -376,6 +379,20 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		if err := tc.store.SaveExecutionArtifacts(task.TaskID, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution artifacts")
 		} else {
+			lineage, err := BuildExecutionLineageRecordFromReceipt(
+				result.ExecutionReceipt,
+				task.TenantID,
+				taskRuntimeID(task),
+				result.Status.Name,
+				"",
+			)
+			if err != nil {
+				log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Build execution lineage from task receipt")
+			} else if lineage != nil {
+				if err := tc.store.SaveExecutionLineage(lineage); err != nil {
+					log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution lineage from task receipt")
+				}
+			}
 			triggerAvailable, err := tc.store.HasTaskProofSyncTrigger()
 			if err != nil {
 				log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Proof trigger readiness check failed; falling back to direct sync")
@@ -399,6 +416,42 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	case "failed":
 		_ = tc.store.MarkFailedWithDetails(task.TaskID, failureReason, result.FailureDetails)
 	}
+}
+
+func runtimeDeadlineBudgetMs(deadlineAt *time.Time, checkpoint *CheckpointPayload, now time.Time) *uint64 {
+	if deadlineAt == nil {
+		return nil
+	}
+	remainingMs := deadlineAt.Sub(now).Milliseconds()
+	if checkpoint != nil && remainingMs <= 0 {
+		return nil
+	}
+	if remainingMs < minRuntimeDeadlineBudgetMs {
+		remainingMs = minRuntimeDeadlineBudgetMs
+	}
+	value := uint64(remainingMs)
+	return &value
+}
+
+func runtimeDispatchIdempotencyKey(task *TaskRecord, checkpoint *CheckpointPayload) string {
+	if task == nil {
+		return ""
+	}
+	if checkpoint == nil {
+		return task.IdempotencyKey
+	}
+	digest := strings.TrimSpace(checkpoint.ResumeToken.CheckpointDigest)
+	if len(digest) > 16 {
+		digest = digest[:16]
+	}
+	return fmt.Sprintf("%s:resume:%d:%s", task.IdempotencyKey, checkpoint.ResumeToken.LastCommittedStep, digest)
+}
+
+func taskRuntimeID(task *TaskRecord) string {
+	if task == nil || task.RuntimeID == nil {
+		return ""
+	}
+	return *task.RuntimeID
 }
 
 func (tc *TaskCoordinator) verifyExecutionArtifactsForTask(ctx context.Context, task *TaskRecord, envelopeRaw, receiptRaw json.RawMessage) error {
