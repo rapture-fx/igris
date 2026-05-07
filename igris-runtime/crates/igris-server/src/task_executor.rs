@@ -377,8 +377,8 @@ pub enum ExecutionNode {
 pub enum TaskType {
     AgentWorkflow {
         steps: Vec<AgentStep>,
-        /// Return an Overture-visible checkpoint after this many newly
-        /// completed steps. Disabled by default.
+        /// Return an Overture-visible checkpoint when total completed steps
+        /// first reaches this threshold. Disabled by default.
         #[serde(default)]
         checkpoint_after_steps: Option<u32>,
     },
@@ -2113,8 +2113,7 @@ fn should_checkpoint_agent_workflow(
     if *checkpoint_after_steps == 0 {
         return false;
     }
-    steps_completed > start_step
-        && steps_completed.saturating_sub(start_step) >= *checkpoint_after_steps
+    start_step < *checkpoint_after_steps && steps_completed >= *checkpoint_after_steps
 }
 
 fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
@@ -5598,7 +5597,7 @@ mod tests {
         assert!(!should_checkpoint_agent_workflow(&task_type, 0, 1));
         assert!(should_checkpoint_agent_workflow(&task_type, 0, 2));
         assert!(!should_checkpoint_agent_workflow(&task_type, 2, 3));
-        assert!(should_checkpoint_agent_workflow(&task_type, 2, 4));
+        assert!(!should_checkpoint_agent_workflow(&task_type, 2, 4));
 
         let disabled = TaskType::AgentWorkflow {
             checkpoint_after_steps: Some(0),
