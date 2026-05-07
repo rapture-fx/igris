@@ -166,12 +166,28 @@ Global API visibility:
 
 The checkpointed intermediate execution also appears in proof/run listings as `CHECKPOINTED`/pending, reflecting real checkpoint artifacts from Runtime 1.
 
+## Console Visibility
+
+Task detail now shows a Checkpoint and Recovery section backed by real task API fields and WAL steps:
+- checkpoint status, last committed step, checkpoint runtime, checkpoint digest, resume-token presence, and proof status from `GET /v1/tasks/:id`;
+- recovered/original runtime split, resumed-from step, final step, WAL step count, and duplicate-step status derived from `GET /v1/tasks/:id/steps`.
+
+Run detail remains focused on execution proof and receipt data. When Overture can link a run to a durable task, it shows the task id as a link back to task detail.
+
+Raw resume token material is not exposed in the console.
+
 ## Files Changed
 
 - [igris-runtime/crates/igris-server/src/task_executor.rs](/Users/wira/Desktop/system/igris-runtime/crates/igris-server/src/task_executor.rs)
 - [igris-overture/coordinator/task_coordinator.go](/Users/wira/Desktop/system/igris-overture/coordinator/task_coordinator.go)
 - [igris-overture/coordinator/task_coordinator_test.go](/Users/wira/Desktop/system/igris-overture/coordinator/task_coordinator_test.go)
 - [igris-overture/api/routes_tasks.go](/Users/wira/Desktop/system/igris-overture/api/routes_tasks.go)
+- [igris-overture/api/routes_execution.go](/Users/wira/Desktop/system/igris-overture/api/routes_execution.go)
+- [igris-overture/api/execution_schema.go](/Users/wira/Desktop/system/igris-overture/api/execution_schema.go)
+- [web/apps/web-console/app/execution/tasks/[id]/page.tsx](/Users/wira/Desktop/system/web/apps/web-console/app/execution/tasks/[id]/page.tsx)
+- [web/apps/web-console/app/execution/runs/[id]/page.tsx](/Users/wira/Desktop/system/web/apps/web-console/app/execution/runs/[id]/page.tsx)
+- [web/apps/web-console/hooks/useTasks.ts](/Users/wira/Desktop/system/web/apps/web-console/hooks/useTasks.ts)
+- [web/apps/web-console/lib/executionRuns.ts](/Users/wira/Desktop/system/web/apps/web-console/lib/executionRuns.ts)
 - [scripts/checkpoint_proof_demo.sh](/Users/wira/Desktop/system/scripts/checkpoint_proof_demo.sh)
 - [scripts/unified_execution_demo_helper.js](/Users/wira/Desktop/system/scripts/unified_execution_demo_helper.js)
 - [CHECKPOINT_RECOVERY_PROOF.md](/Users/wira/Desktop/system/CHECKPOINT_RECOVERY_PROOF.md)
