@@ -314,6 +314,117 @@ export default function ExecutionTaskInspectorPage() {
               </Card>
             </div>
 
+            <Card className="border-gray-200 shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-900">
+                  Checkpoint and Recovery
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!recoveryEvidence.hasCheckpoint ? (
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    No checkpoint has been recorded for this task.
+                  </div>
+                ) : (
+                  <>
+                    <KeyValueGrid
+                      rows={[
+                        {
+                          label: 'Checkpoint Status',
+                          value: task.checkpoint_summary?.checkpoint_status ?? task.status,
+                        },
+                        {
+                          label: 'Last Committed Step',
+                          value:
+                            task.checkpoint_summary?.last_committed_step !== undefined
+                              ? String(task.checkpoint_summary.last_committed_step)
+                              : task.last_step !== undefined
+                                ? String(task.last_step)
+                                : '—',
+                        },
+                        {
+                          label: 'Checkpoint Runtime',
+                          value:
+                            task.checkpoint_summary?.checkpoint_runtime_id ??
+                            task.checkpoint_runtime_id ??
+                            '—',
+                          mono: Boolean(
+                            task.checkpoint_summary?.checkpoint_runtime_id ||
+                              task.checkpoint_runtime_id,
+                          ),
+                        },
+                        {
+                          label: 'Checkpoint Digest',
+                          value:
+                            task.checkpoint_summary?.checkpoint_digest ??
+                            task.checkpoint_digest ??
+                            '—',
+                          mono: Boolean(
+                            task.checkpoint_summary?.checkpoint_digest ||
+                              task.checkpoint_digest,
+                          ),
+                          copyable:
+                            task.checkpoint_summary?.checkpoint_digest ??
+                            task.checkpoint_digest,
+                        },
+                        {
+                          label: 'Resume Token',
+                          value: task.checkpoint_summary?.resume_token_present
+                            ? 'Present'
+                            : 'Not exposed',
+                        },
+                        {
+                          label: 'Proof Status',
+                          value: task.checkpoint_summary?.proof_status ?? task.proof?.status ?? '—',
+                        },
+                      ]}
+                    />
+                    <KeyValueGrid
+                      rows={[
+                        {
+                          label: 'Recovered',
+                          value: recoveryEvidence.recovered ? 'Yes' : 'No',
+                        },
+                        {
+                          label: 'Original Runtime',
+                          value: recoveryEvidence.originalRuntimeId ?? '—',
+                          mono: Boolean(recoveryEvidence.originalRuntimeId),
+                        },
+                        {
+                          label: 'Recovery Runtime',
+                          value: recoveryEvidence.recoveryRuntimeId ?? '—',
+                          mono: Boolean(recoveryEvidence.recoveryRuntimeId),
+                        },
+                        {
+                          label: 'Resumed From Step',
+                          value:
+                            recoveryEvidence.resumedFromStep !== undefined
+                              ? String(recoveryEvidence.resumedFromStep)
+                              : '—',
+                        },
+                        {
+                          label: 'Final Step',
+                          value:
+                            recoveryEvidence.finalStep !== undefined
+                              ? String(recoveryEvidence.finalStep)
+                              : '—',
+                        },
+                        {
+                          label: 'WAL Step Count',
+                          value: String(recoveryEvidence.walStepCount),
+                        },
+                        {
+                          label: 'Duplicate Steps',
+                          value: recoveryEvidence.duplicateStepsDetected ? 'Detected' : 'None detected',
+                        },
+                      ]}
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
               <Card className="border-gray-200 shadow-none">
                 <CardHeader className="pb-3">
