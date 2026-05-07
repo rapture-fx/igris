@@ -226,6 +226,35 @@ func TestNormalizePublicTaskDefinitionRejectsInvalidAgentWorkflow(t *testing.T) 
 	require.Contains(t, err.Error(), "agent_workflow.steps[0]: model is required")
 }
 
+func TestNormalizePublicTaskDefinitionAcceptsAgentWorkflowCheckpointAfterSteps(t *testing.T) {
+	t.Parallel()
+
+	normalized, err := normalizePublicTaskDefinition("agent_workflow", json.RawMessage(`{
+		"checkpoint_after_steps": 1,
+		"steps": [
+			{"step_index": 0, "model": "mock-model", "messages": [{"role":"user","content":"hello"}]}
+		]
+	}`))
+	require.NoError(t, err)
+
+	var definition map[string]any
+	require.NoError(t, json.Unmarshal(normalized, &definition))
+	require.Equal(t, float64(1), definition["checkpoint_after_steps"])
+}
+
+func TestNormalizePublicTaskDefinitionRejectsInvalidAgentWorkflowCheckpointAfterSteps(t *testing.T) {
+	t.Parallel()
+
+	_, err := normalizePublicTaskDefinition("agent_workflow", json.RawMessage(`{
+		"checkpoint_after_steps": 0,
+		"steps": [
+			{"step_index": 0, "model": "mock-model", "messages": [{"role":"user","content":"hello"}]}
+		]
+	}`))
+	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), "checkpoint_after_steps must be a positive integer")
+}
+
 func TestNormalizePublicTaskDefinitionRejectsStreamingSingleInference(t *testing.T) {
 	t.Parallel()
 
@@ -659,6 +688,50 @@ func TestDispatchToRuntimeIncludesRoboticsTaskDefinitionWithoutResumeFields(t *t
 	require.Len(t, steps, 2)
 	require.NotContains(t, gotBody, "resume_from")
 	require.NotContains(t, gotBody, "resume_checkpoint")
+	require.NotContains(t, gotBody, "deadline_ms")
+}
+
+func TestDispatchToRuntimeForwardsAgentWorkflowCheckpointAfterSteps(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-agent-checkpoint"
+	tenantID := "tenant-agent-checkpoint"
+	var gotBody map[string]any
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	tc := &TaskCoordinator{httpClient: client}
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        tenantID,
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition: json.RawMessage(`{
+			"type":"agent_workflow",
+			"checkpoint_after_steps":1,
+			"steps":[
+				{"step_index":0,"model":"mock-model","messages":[{"role":"user","content":"step 0"}]},
+				{"step_index":1,"model":"mock-model","messages":[{"role":"user","content":"step 1"}]}
+			]
+		}`),
+		IdempotencyKey: "idem-agent-checkpoint",
+	}, nil)
+
+	taskType, ok := gotBody["task_type"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "agent_workflow", taskType["type"])
+	require.Equal(t, float64(1), taskType["checkpoint_after_steps"])
 	require.NotContains(t, gotBody, "deadline_ms")
 }
 
