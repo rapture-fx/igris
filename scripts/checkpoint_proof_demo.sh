@@ -6,7 +6,7 @@
 # Overture durable-task flow and the Runtime WAL:
 #
 # 1. Submit a durable task through Overture.
-# 2. Runtime 1 commits step 0 and returns a real deadline-triggered checkpoint.
+# 2. Runtime 1 commits step 0 and returns a real checkpoint_after_steps checkpoint.
 # 3. Overture persists that checkpoint in task_records + wal_checkpoints.
 # 4. Runtime 1 is interrupted.
 # 5. Runtime 2 starts on the same host, reusing the persisted Runtime WAL store.
@@ -197,9 +197,11 @@ const runtimeReq = JSON.parse(fs.readFileSync(prep.checkpoint_request_path, "utf
 const taskReq = {
   task_id: runtimeReq.task_id,
   task_type: "agent_workflow",
-  task_definition: { steps: runtimeReq.task_type.steps },
+  task_definition: {
+    steps: runtimeReq.task_type.steps,
+    checkpoint_after_steps: runtimeReq.task_type.checkpoint_after_steps,
+  },
   idempotency_key: runtimeReq.idempotency_key,
-  deadline_at: "1970-01-01T00:00:00.001Z",
 };
 fs.writeFileSync(process.argv[3], JSON.stringify(taskReq, null, 2));
 NODE
