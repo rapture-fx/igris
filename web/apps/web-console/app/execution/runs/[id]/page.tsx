@@ -318,6 +318,20 @@ export default function ExecutionRunDetailPage() {
                 <KeyValueGrid
                   rows={[
                     { label: 'Run ID', value: run.id, mono: true, copyable: run.id },
+                    {
+                      label: 'Task ID',
+                      value: run.task_id ? (
+                        <Link
+                          href={`/execution/tasks/${encodeURIComponent(run.task_id)}`}
+                          className="font-mono text-[11px] text-blue-700 hover:underline"
+                        >
+                          {run.task_id}
+                        </Link>
+                      ) : (
+                        '—'
+                      ),
+                      copyable: run.task_id,
+                    },
                     { label: 'Agent ID', value: run.agent_id, mono: true, copyable: run.agent_id },
                     { label: 'Runtime ID', value: runtimeId || 'Not recorded', mono: true, copyable: runtimeId || undefined },
                     { label: 'Model', value: run.model ?? '—' },
