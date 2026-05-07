@@ -174,6 +174,7 @@ func executionTaskProofDetailJoinSQL(taskProofDetail, permissionAudit bool) stri
 			SELECT
 				''::text AS proof_status,
 				NULL::jsonb AS execution_envelope,
+				''::text AS task_id,
 				''::text AS failure_reason,
 				NULL::jsonb AS failure_details,
 				NULL::timestamptz AS created_at,
@@ -200,6 +201,7 @@ func executionTaskProofDetailJoinSQL(taskProofDetail, permissionAudit bool) stri
 			SELECT
 				proof_status,
 				execution_envelope,
+				task_records.task_id::text AS task_id,
 				failure_reason,
 				failure_details,
 				created_at,
