@@ -231,6 +231,10 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 			ResumeToken: coordinator.ResumeToken{
 				LastCommittedStep: 3,
 				CheckpointDigest:  "abc123",
+				RuntimeID:         "checkpoint-runtime-1",
+			},
+			WalEntries: []coordinator.WalEntry{
+				{EntryID: uuid.New(), TaskID: taskID, StepIndex: 3, RuntimeID: "checkpoint-runtime-1"},
 			},
 			Metadata: json.RawMessage(`{
 				"domain":"robotics",
@@ -283,6 +287,15 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	require.Equal(t, "provider_race_quality", resp["resolved_strategy"])
 	require.EqualValues(t, 3, resp["last_step"])
 	require.Equal(t, "abc123", resp["checkpoint_digest"])
+	require.Equal(t, "checkpoint-runtime-1", resp["checkpoint_runtime_id"])
+	require.Equal(t, fiber.Map{
+		"checkpoint_status":     "failed",
+		"last_committed_step":   uint32(3),
+		"checkpoint_digest":     "abc123",
+		"checkpoint_runtime_id": "checkpoint-runtime-1",
+		"resume_token_present":  true,
+		"wal_entry_count":       1,
+	}, resp["checkpoint_summary"])
 	require.NotNil(t, resp["checkpoint_metadata"])
 	require.JSONEq(t, `{"last_node_id":"robotics-1","nodes":{"robotics-1":{"status":"canceled"}},"slots":{"robotics.robotics_1":{"status":"canceled"}}}`, string(resp["graph_blackboard"].(json.RawMessage)))
 	require.JSONEq(t, `{"robotics-1":{"status":"canceled"}}`, string(resp["graph_nodes"].(json.RawMessage)))
@@ -331,6 +344,8 @@ func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	require.NotContains(t, resp, "resolved_strategy")
 	require.NotContains(t, resp, "last_step")
 	require.NotContains(t, resp, "checkpoint_digest")
+	require.NotContains(t, resp, "checkpoint_runtime_id")
+	require.NotContains(t, resp, "checkpoint_summary")
 	require.NotContains(t, resp, "checkpoint_metadata")
 	require.NotContains(t, resp, "execution_envelope")
 	require.NotContains(t, resp, "execution_receipt")
