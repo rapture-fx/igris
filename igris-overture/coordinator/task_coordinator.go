@@ -1216,6 +1216,9 @@ func validateTaskDefinition(taskType string, definition map[string]json.RawMessa
 		if err != nil {
 			return err
 		}
+		if err := validateOptionalPositiveUint32Field(definition, "checkpoint_after_steps"); err != nil {
+			return err
+		}
 		if len(steps) == 0 {
 			return invalidTaskDefinition("agent_workflow.steps must contain at least one step")
 		}
@@ -1467,6 +1470,21 @@ func requireNumericField(definition map[string]json.RawMessage, field string) er
 	}
 	if _, err := value.Float64(); err != nil {
 		return invalidTaskDefinition("%s must be a number", field)
+	}
+	return nil
+}
+
+func validateOptionalPositiveUint32Field(definition map[string]json.RawMessage, field string) error {
+	raw, ok := definition[field]
+	if !ok {
+		return nil
+	}
+	var value uint64
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return invalidTaskDefinition("%s must be a positive integer", field)
+	}
+	if value == 0 || value > uint64(^uint32(0)) {
+		return invalidTaskDefinition("%s must be a positive integer", field)
 	}
 	return nil
 }
