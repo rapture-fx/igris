@@ -34,15 +34,16 @@ type publicTaskSubmitRequest struct {
 }
 
 type publicAgentTask struct {
-	Name        string               `json:"name,omitempty"`
-	Model       string               `json:"model,omitempty"`
-	Messages    []publicAgentMessage `json:"messages,omitempty"`
-	MaxTokens   *uint32              `json:"max_tokens,omitempty"`
-	Temperature *float32             `json:"temperature,omitempty"`
-	Mode        string               `json:"mode,omitempty"`
-	Memory      *publicAgentMemory   `json:"memory,omitempty"`
-	Approval    *publicApproval      `json:"approval,omitempty"`
-	Steps       []publicAgentStep    `json:"steps,omitempty"`
+	Name                 string               `json:"name,omitempty"`
+	Model                string               `json:"model,omitempty"`
+	Messages             []publicAgentMessage `json:"messages,omitempty"`
+	MaxTokens            *uint32              `json:"max_tokens,omitempty"`
+	Temperature          *float32             `json:"temperature,omitempty"`
+	Mode                 string               `json:"mode,omitempty"`
+	Memory               *publicAgentMemory   `json:"memory,omitempty"`
+	Approval             *publicApproval      `json:"approval,omitempty"`
+	Steps                []publicAgentStep    `json:"steps,omitempty"`
+	CheckpointAfterSteps *uint32              `json:"checkpoint_after_steps,omitempty"`
 }
 
 type publicAgentStep struct {
@@ -264,9 +265,13 @@ func buildAgentTaskDefinition(taskType string, task *publicAgentTask) (json.RawM
 		if err != nil {
 			return nil, err
 		}
-		return json.Marshal(map[string]interface{}{
+		definition := map[string]interface{}{
 			"steps": steps,
-		})
+		}
+		if task.CheckpointAfterSteps != nil {
+			definition["checkpoint_after_steps"] = *task.CheckpointAfterSteps
+		}
+		return json.Marshal(definition)
 	default:
 		return nil, fmt.Errorf("%w: agent_task is only valid with task_type=single_inference, task_type=agent_workflow, or task_type=execution_graph", coordinator.ErrInvalidTaskDefinition)
 	}
