@@ -124,6 +124,16 @@ export default function ExecutionTaskInspectorPage() {
       });
     }
 
+    if (task.checkpoint_summary) {
+      events.push({
+        state: 'CHECKPOINTED',
+        timestamp: task.dispatched_at ?? task.created_at,
+        note: `Checkpoint recorded at step ${
+          task.checkpoint_summary.last_committed_step ?? task.last_step ?? '—'
+        }.`,
+      });
+    }
+
     if (task.completed_at) {
       events.push({
         state: task.status.toUpperCase(),
@@ -154,6 +164,32 @@ export default function ExecutionTaskInspectorPage() {
         typeof envelope?.signature === 'string' ? envelope.signature : undefined,
     };
   }, [task]);
+
+  const recoveryEvidence = useMemo(() => {
+    const walSteps = steps?.steps ?? [];
+    const stepIndices = walSteps.map((step) => step.step_index);
+    const uniqueStepCount = new Set(stepIndices).size;
+    const duplicateStepsDetected = stepIndices.length !== uniqueStepCount;
+    const ordered = [...walSteps].sort((a, b) => a.step_index - b.step_index);
+    const originalRuntimeId = ordered[0]?.runtime_id;
+    const recoveryRuntimeId =
+      ordered.find((step) => step.runtime_id && step.runtime_id !== originalRuntimeId)?.runtime_id ??
+      (task?.runtime_id && task.runtime_id !== originalRuntimeId ? task.runtime_id : undefined);
+    const finalStep = ordered.length > 0 ? Math.max(...stepIndices) : undefined;
+    const checkpointStep = task?.checkpoint_summary?.last_committed_step ?? task?.last_step;
+
+    return {
+      hasCheckpoint: Boolean(task?.checkpoint_summary || task?.checkpoint_digest),
+      recovered: Boolean(originalRuntimeId && recoveryRuntimeId && originalRuntimeId !== recoveryRuntimeId),
+      originalRuntimeId,
+      recoveryRuntimeId,
+      resumedFromStep:
+        checkpointStep !== undefined && recoveryRuntimeId ? checkpointStep + 1 : undefined,
+      finalStep,
+      duplicateStepsDetected,
+      walStepCount: walSteps.length,
+    };
+  }, [steps?.steps, task]);
 
   return (
     <DashboardLayout>
