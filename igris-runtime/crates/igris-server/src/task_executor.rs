@@ -377,6 +377,10 @@ pub enum ExecutionNode {
 pub enum TaskType {
     AgentWorkflow {
         steps: Vec<AgentStep>,
+        /// Return an Overture-visible checkpoint after this many newly
+        /// completed steps. Disabled by default.
+        #[serde(default)]
+        checkpoint_after_steps: Option<u32>,
     },
     RoboticsWorkflow {
         steps: Vec<RoboticsStep>,
@@ -1468,6 +1472,45 @@ pub async fn handle_task_submit(
         last_envelope = Some(execution_envelope);
         last_receipt = execution_receipt;
 
+        if should_checkpoint_agent_workflow(&req.task_type, start_step, steps_completed) {
+            let payload = match build_checkpoint(
+                &wal,
+                req.task_id,
+                step.step_index(),
+                runtime_id.clone(),
+                entries_since_checkpoint.clone(),
+                checkpoint_metadata.clone(),
+            ) {
+                Ok(p) => p,
+                Err(e) => {
+                    error!(task_id = %req.task_id, "Agent workflow checkpoint build failed: {}", e);
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": { "message": "Failed to build checkpoint", "type": "wal_error" }
+                        })),
+                    ).into_response();
+                }
+            };
+
+            let response = TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed,
+                steps_total,
+                status: TaskStatus::Checkpointed {
+                    resume_token: payload.resume_token.clone(),
+                },
+                checkpoint: Some(payload),
+                final_output: last_output,
+                usage: last_usage,
+                failure_details: None,
+                execution_envelope: last_envelope,
+                execution_receipt: last_receipt,
+            };
+            let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            return (StatusCode::OK, Json(response)).into_response();
+        }
+
         if steps_completed > 0 && steps_completed % 5 == 0 {
             match build_checkpoint(
                 &wal,
@@ -2055,6 +2098,25 @@ fn build_checkpoint(
     })
 }
 
+fn should_checkpoint_agent_workflow(
+    task_type: &TaskType,
+    start_step: u32,
+    steps_completed: u32,
+) -> bool {
+    let TaskType::AgentWorkflow {
+        checkpoint_after_steps: Some(checkpoint_after_steps),
+        ..
+    } = task_type
+    else {
+        return false;
+    };
+    if *checkpoint_after_steps == 0 {
+        return false;
+    }
+    steps_completed > start_step
+        && steps_completed.saturating_sub(start_step) >= *checkpoint_after_steps
+}
+
 fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
     format!("{}:{}", tenant_id, idempotency_key)
 }
@@ -2291,7 +2353,7 @@ fn normalize_agent_mode(mode: Option<&str>) -> anyhow::Result<AgentExecutionMode
 fn materialize_execution_graph(task_type: &TaskType) -> anyhow::Result<ExecutionGraph> {
     match task_type {
         TaskType::ExecutionGraph { graph } => Ok(graph.clone()),
-        TaskType::AgentWorkflow { steps } => Ok(ExecutionGraph {
+        TaskType::AgentWorkflow { steps, .. } => Ok(ExecutionGraph {
             graph_id: Some("agent_workflow".to_string()),
             blackboard: None,
             nodes: steps
@@ -5345,13 +5407,13 @@ mod tests {
         evaluate_robotics_safety_gate, initialize_graph_blackboard, materialize_execution_graph,
         normalize_agent_mode, permission_failure_for_step, persist_task_status_index,
         resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
-        stream_durability_metadata, task_status_key, unix_now_ms, update_graph_blackboard,
-        validate_task_permission_envelope, verified_resume_start_step, AgentApprovalOptions,
-        AgentExecutionMode, AgentIdentity, AgentMemoryOptions, BehaviorTreeStep,
-        CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode, GovernedAction,
-        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
-        StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope, TaskStatus,
-        TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
+        should_checkpoint_agent_workflow, stream_durability_metadata, task_status_key, unix_now_ms,
+        update_graph_blackboard, validate_task_permission_envelope, verified_resume_start_step,
+        AgentApprovalOptions, AgentExecutionMode, AgentIdentity, AgentMemoryOptions,
+        BehaviorTreeStep, CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode,
+        GovernedAction, GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep,
+        RuntimeTaskStep, StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope,
+        TaskStatus, TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
@@ -5500,6 +5562,49 @@ mod tests {
             runtime_id,
         )
         .is_ok());
+    }
+
+    #[test]
+    fn agent_workflow_checkpoint_after_steps_deserializes() {
+        let raw = serde_json::json!({
+            "type": "agent_workflow",
+            "checkpoint_after_steps": 1,
+            "steps": [{
+                "step_index": 0,
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "checkpoint me"}]
+            }]
+        });
+
+        let task_type: TaskType = serde_json::from_value(raw).expect("agent workflow task type");
+        let TaskType::AgentWorkflow {
+            checkpoint_after_steps,
+            steps,
+        } = task_type
+        else {
+            panic!("expected agent workflow");
+        };
+        assert_eq!(checkpoint_after_steps, Some(1));
+        assert_eq!(steps.len(), 1);
+    }
+
+    #[test]
+    fn agent_workflow_checkpoint_after_steps_triggers_only_after_new_steps() {
+        let task_type = TaskType::AgentWorkflow {
+            checkpoint_after_steps: Some(2),
+            steps: Vec::new(),
+        };
+
+        assert!(!should_checkpoint_agent_workflow(&task_type, 0, 1));
+        assert!(should_checkpoint_agent_workflow(&task_type, 0, 2));
+        assert!(!should_checkpoint_agent_workflow(&task_type, 2, 3));
+        assert!(should_checkpoint_agent_workflow(&task_type, 2, 4));
+
+        let disabled = TaskType::AgentWorkflow {
+            checkpoint_after_steps: Some(0),
+            steps: Vec::new(),
+        };
+        assert!(!should_checkpoint_agent_workflow(&disabled, 0, 1));
     }
 
     #[test]
