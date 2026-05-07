@@ -109,6 +109,7 @@ export interface ExecutionRunEvent {
 }
 
 export interface ExecutionRunDetail extends ExecutionRun {
+  task_id?: string;
   route_decision?: string | null;
   provider?: string | null;
   provider_path?: string | null;
