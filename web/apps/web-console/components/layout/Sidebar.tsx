@@ -245,7 +245,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-background border-r border-border">
+        <div className="flex h-full flex-col bg-background border-r border-[#e4e4e4] dark:border-border">
 
           {/* Logo */}
           <div className="h-12 flex items-center px-5 pt-4">
@@ -263,7 +263,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 type="text"
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border rounded-lg outline-none bg-background cursor-pointer text-foreground focus:border-ring/30 transition-colors shadow-sm"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-[#e4e4e4] dark:border-border rounded-lg outline-none bg-background cursor-pointer text-foreground transition-colors shadow-sm"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span className="text-xs font-medium text-muted-foreground">⌘ F</span>
@@ -281,15 +281,15 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <li key={item.name}>
                       <button
                         onClick={() => toggleSection(item.name)}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                        className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-foreground/75 hover:text-foreground hover:bg-muted/60"
                       >
                         <div className="flex items-center gap-2">
-                          <item.icon className="h-[15px] w-[15px] flex-shrink-0 text-muted-foreground" strokeWidth={1.5} />
+                          <item.icon className="h-[15px] w-[15px] flex-shrink-0 text-foreground/60" strokeWidth={1.5} />
                           {item.name}
                         </div>
                         <ChevronDown
                           className={cn(
-                            'h-3.5 w-3.5 text-muted-foreground/70 transition-transform duration-150',
+                            'h-3.5 w-3.5 text-foreground/50 transition-transform duration-150',
                             isExpanded && 'rotate-180'
                           )}
                         />
@@ -309,8 +309,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   className={cn(
                                     'flex items-center justify-between rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
                                     isActive
-                                      ? 'bg-background text-foreground font-semibold shadow-sm border border-border'
-                                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                                      ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                                      : 'text-foreground/70 hover:text-foreground hover:bg-muted/60'
                                   )}
                                 >
                                   {child.name}
@@ -334,11 +334,11 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
                         isActive
-                          ? 'bg-background text-foreground font-semibold shadow-sm border border-border'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                          ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                          : 'text-foreground/70 hover:text-foreground hover:bg-muted/60'
                       )}
                     >
-                      <item.icon className={cn('h-[15px] w-[15px] flex-shrink-0', isActive ? 'text-foreground' : 'text-muted-foreground')} strokeWidth={1.5} />
+                      <item.icon className={cn('h-[15px] w-[15px] flex-shrink-0', isActive ? 'text-foreground' : 'text-foreground/60')} strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
