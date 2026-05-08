@@ -95,7 +95,7 @@ const SEV_ROW: Record<Severity, string> = {
 
 function SeverityBadge({ severity }: { severity: Severity }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${SEV_STYLES[severity]}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium border rounded ${SEV_STYLES[severity]}`}>
       {severity}
     </span>
   );
@@ -116,7 +116,7 @@ const TYPE_STYLES: Record<EventType, string> = {
 
 function EventTypeChip({ type }: { type: EventType }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium rounded ${TYPE_STYLES[type]}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-mono font-medium rounded ${TYPE_STYLES[type]}`}>
       {type}
     </span>
   );
@@ -161,30 +161,39 @@ function SurfaceSection({
   bodyClassName,
   collapsed,
 }: {
-  icon: LucideIcon;
-  title: string;
+  icon?: LucideIcon;
+  title?: string;
   description?: string;
   actions?: ReactNode;
   children?: ReactNode;
   bodyClassName?: string;
   collapsed?: boolean;
 }) {
+  const hasHeader = title || Icon || actions;
   return (
-    <div className="rounded-3xl overflow-hidden bg-white shadow border border-gray-200">
-      <div className="flex items-start justify-between gap-4 px-5 py-4">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-xl bg-gray-100">
-            <Icon className="h-4 w-4 text-gray-500" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">{title}</p>
-            {description && <p className="text-xs text-black mt-0.5">{description}</p>}
-          </div>
+    <div className="rounded-lg overflow-hidden bg-white border border-[#e4e4e4]">
+      {hasHeader && (
+        <div className="flex items-start justify-between gap-4 px-5 py-4">
+          {(title || Icon) && (
+            <div className="flex items-start gap-3">
+              {Icon && (
+                <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-md bg-gray-100">
+                  <Icon className="h-4 w-4 text-gray-500" />
+                </div>
+              )}
+              {title && (
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{title}</p>
+                  {description && <p className="text-xs text-black mt-0.5">{description}</p>}
+                </div>
+              )}
+            </div>
+          )}
+          {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
         </div>
-        {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
-      </div>
+      )}
       {!collapsed && (
-        <div className={cn('bg-gray-50 border-t border-gray-200', bodyClassName ?? 'px-5 py-4')}>
+        <div className={cn('bg-white', hasHeader && 'border-t border-[#e4e4e4]', bodyClassName ?? 'px-5 py-4')}>
           {children}
         </div>
       )}
@@ -215,7 +224,7 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
 
   if (grouped.length === 0) {
     return (
-      <div className="py-8 font-mono text-[11px] text-gray-500">
+      <div className="py-8 font-mono text-xs text-gray-500">
         — no events for the selected filters —
       </div>
     );
@@ -229,17 +238,17 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
             <div className="flex items-center gap-2 min-w-0">
               <Activity className="h-3 w-3 text-gray-400 flex-shrink-0" />
               {execId === '__device__' ? (
-                <span className="text-[10px] text-gray-400">device events</span>
+                <span className="text-xs text-gray-400">device events</span>
               ) : (
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[10px] text-blue-600 truncate">{execId}</span>
+                  <span className="text-xs text-blue-600 truncate">{execId}</span>
                   <CopyBtn text={execId} className="text-gray-300 hover:text-gray-600" />
                 </div>
               )}
-              {hasCritical && <span className="text-[10px] text-red-500 font-bold">CRIT</span>}
-              {!hasCritical && hasError && <span className="text-[10px] text-orange-600 font-bold">ERR</span>}
+              {hasCritical && <span className="text-xs text-red-500 font-bold">CRIT</span>}
+              {!hasCritical && hasError && <span className="text-xs text-orange-600 font-bold">ERR</span>}
             </div>
-            <div className="flex items-center gap-3 flex-shrink-0 text-[10px] text-gray-400">
+            <div className="flex items-center gap-3 flex-shrink-0 text-xs text-gray-400">
               <span>{evts.length} events</span>
               {firstTs && lastTs && firstTs !== lastTs && (
                 <span>{getRelativeTime(firstTs)} → {getRelativeTime(lastTs)}</span>
@@ -249,11 +258,11 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
           <div className="divide-y divide-gray-100">
             {evts.map((e) => (
               <div key={e.id} className="flex items-baseline gap-0 px-4 py-[3px] hover:bg-gray-50 transition-colors">
-                <span className="text-[10px] text-gray-400 tabular-nums whitespace-nowrap pr-3 flex-shrink-0 select-none">
+                <span className="text-xs text-gray-400 tabular-nums whitespace-nowrap pr-3 flex-shrink-0 select-none">
                   {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
                 <span className={cn(
-                  'text-[10px] font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
+                  'text-xs font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
                   e.severity === 'critical' ? 'text-red-400'    :
                   e.severity === 'error'    ? 'text-orange-400' :
                   e.severity === 'warning'  ? 'text-yellow-400' :
@@ -261,10 +270,10 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
                 )}>
                   {e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()}
                 </span>
-                <span className="text-[10px] text-violet-600 pr-3 w-[160px] flex-shrink-0 truncate select-none">{e.event_type}</span>
-                <span className="text-[11px] text-gray-700 flex-1 min-w-0 break-words leading-[1.7]">{e.message}</span>
+                <span className="text-xs text-violet-600 pr-3 w-[160px] flex-shrink-0 truncate select-none">{e.event_type}</span>
+                <span className="text-xs text-gray-700 flex-1 min-w-0 break-words leading-[1.7]">{e.message}</span>
                 {e.payload.latency_ms != null && (
-                  <span className="text-[10px] text-gray-400 tabular-nums flex-shrink-0 pl-3 select-none">
+                  <span className="text-xs text-gray-400 tabular-nums flex-shrink-0 pl-3 select-none">
                     {e.payload.latency_ms}ms
                   </span>
                 )}
@@ -394,97 +403,69 @@ function LogsContent() {
   const q = textSearch.trim().toLowerCase();
 
   return (
-    <DashboardLayout>
+    <DashboardLayout fullWidth>
       <div className="space-y-4">
 
-        {/* ── Header ────────────────────────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Runtime Events</h1>
-            <p className="text-xs text-black mt-0.5">Structured event stream produced by the runtime and control plane.</p>
-          </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-md bg-white">
-              <div className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', liveMode ? 'bg-green-500 animate-pulse' : 'bg-gray-300')} />
-              <span className="text-xs text-gray-600">Live</span>
-              <Switch checked={liveMode} onCheckedChange={setLiveMode} className="h-4 w-8 scale-75" />
-            </div>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
-              <RefreshCw className="h-3.5 w-3.5" /> Refresh
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" disabled={events.length === 0}
-              onClick={() => downloadJSON(events, `events-${timeRange}`)}>
-              <Download className="h-3.5 w-3.5" /> Export
-            </Button>
-          </div>
-        </div>
-
         {/* ── Filter bar ────────────────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 whitespace-nowrap">Agent</span>
-            <Select value={agentFilter} onValueChange={setAgentFilter}>
-              <SelectTrigger className="h-7 w-36 text-xs bg-white"><SelectValue placeholder="all agents" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-xs">all agents</SelectItem>
-                {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs font-mono">{a}</SelectItem>)}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+          <Select value={agentFilter} onValueChange={setAgentFilter}>
+            <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue placeholder="all agents" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">all agents</SelectItem>
+              {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs font-mono">{a}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={deviceFilter} onValueChange={setDeviceFilter}>
+            <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue placeholder="all devices" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">all devices</SelectItem>
+              {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Input placeholder="exec ID..." className="h-8 w-36 text-xs"
+            value={execFilter} onChange={(e) => setExecFilter(e.target.value)} />
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-8 w-44 text-xs bg-white"><SelectValue placeholder="all types" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">all types</SelectItem>
+              {EVENT_TYPES.map((t) => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={severityFilter} onValueChange={setSeverityFilter}>
+            <SelectTrigger className="h-8 w-28 text-xs bg-white"><SelectValue placeholder="all" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">all</SelectItem>
+              {(['info', 'warning', 'error', 'critical'] as Severity[]).map((s) =>
+                <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="h-8 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {[
+                { label: 'Last 5m',  value: 'last_5m'  },
+                { label: 'Last 15m', value: 'last_15m' },
+                { label: 'Last 1h',  value: 'last_1h'  },
+                { label: 'Last 6h',  value: 'last_6h'  },
+                { label: 'Last 24h', value: 'last_24h' },
+              ].map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2 px-2.5 py-1 border border-gray-200 rounded-md bg-white h-8">
+            <div className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', liveMode ? 'bg-green-500 animate-pulse' : 'bg-gray-300')} />
+            <span className="text-xs text-gray-600">Live</span>
+            <Switch checked={liveMode} onCheckedChange={setLiveMode} className="h-4 w-8 scale-75" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 whitespace-nowrap">Device</span>
-            <Select value={deviceFilter} onValueChange={setDeviceFilter}>
-              <SelectTrigger className="h-7 w-36 text-xs bg-white"><SelectValue placeholder="all devices" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-xs">all devices</SelectItem>
-                {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 whitespace-nowrap">Exec ID</span>
-            <Input placeholder="exec_..." className="h-7 w-36 text-xs"
-              value={execFilter} onChange={(e) => setExecFilter(e.target.value)} />
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 whitespace-nowrap">Type</span>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-7 w-44 text-xs bg-white"><SelectValue placeholder="all types" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-xs">all types</SelectItem>
-                {EVENT_TYPES.map((t) => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 whitespace-nowrap">Severity</span>
-            <Select value={severityFilter} onValueChange={setSeverityFilter}>
-              <SelectTrigger className="h-7 w-28 text-xs bg-white"><SelectValue placeholder="all" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="text-xs">all</SelectItem>
-                {(['info', 'warning', 'error', 'critical'] as Severity[]).map((s) =>
-                  <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-400 whitespace-nowrap">Range</span>
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger className="h-7 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {[
-                  { label: 'Last 5m',  value: 'last_5m'  },
-                  { label: 'Last 15m', value: 'last_15m' },
-                  { label: 'Last 1h',  value: 'last_1h'  },
-                  { label: 'Last 6h',  value: 'last_6h'  },
-                  { label: 'Last 24h', value: 'last_24h' },
-                ].map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
+            <RefreshCw className="h-3 w-3" /> Refresh
+          </Button>
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" disabled={events.length === 0}
+            onClick={() => downloadJSON(events, `events-${timeRange}`)}>
+            <Download className="h-3 w-3" /> Export
+          </Button>
           <div className="relative flex-1 min-w-[160px]">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
-            <Input placeholder="search messages..." className="h-7 text-xs pl-6"
+            <Input placeholder="search messages..." className="h-8 text-xs pl-6"
               value={textSearch} onChange={(e) => setTextSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Escape' && setTextSearch('')} />
           </div>
@@ -515,9 +496,9 @@ function LogsContent() {
             <span className="text-gray-400 tabular-nums">
               {isLoading ? '…' : events.length}{allEvents.length !== events.length && ` / ${allEvents.length}`} events
             </span>
-            {counts.critical > 0 && <span className="px-1.5 py-0.5 rounded border text-[10px] font-medium bg-red-50 text-red-700 border-red-200">{counts.critical} critical</span>}
-            {counts.error > 0 && <span className="px-1.5 py-0.5 rounded border text-[10px] font-medium bg-orange-50 text-orange-700 border-orange-200">{counts.error} error</span>}
-            {counts.warning > 0 && <span className="px-1.5 py-0.5 rounded border text-[10px] font-medium bg-yellow-50 text-yellow-700 border-yellow-200">{counts.warning} warning</span>}
+            {counts.critical > 0 && <span className="px-1.5 py-0.5 rounded border text-xs font-medium bg-red-50 text-red-700 border-red-200">{counts.critical} critical</span>}
+            {counts.error > 0 && <span className="px-1.5 py-0.5 rounded border text-xs font-medium bg-orange-50 text-orange-700 border-orange-200">{counts.error} error</span>}
+            {counts.warning > 0 && <span className="px-1.5 py-0.5 rounded border text-xs font-medium bg-yellow-50 text-yellow-700 border-yellow-200">{counts.warning} warning</span>}
             {liveMode && <span className="flex items-center gap-1 text-green-600"><Radio className="h-2.5 w-2.5" /> live</span>}
             {dataUpdatedAt > 0 && <span className="text-gray-400">{new Date(dataUpdatedAt).toLocaleTimeString()}</span>}
           </div>
@@ -535,14 +516,11 @@ function LogsContent() {
           return (
             <>
               <SurfaceSection
-                icon={Link2}
-                title="Request Traces"
-                description="Provider API traces with token and cost breakdown."
                 bodyClassName="px-0 py-0"
                 actions={
                   <>
                     <Select value={traceProviderFilter} onValueChange={setTraceProviderFilter}>
-                      <SelectTrigger className="h-7 w-36 text-xs bg-white"><SelectValue placeholder="All providers" /></SelectTrigger>
+                      <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue placeholder="All providers" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all" className="text-xs">All providers</SelectItem>
                         {traceProviders.map((p) => (
@@ -551,7 +529,7 @@ function LogsContent() {
                       </SelectContent>
                     </Select>
                     <Select value={traceStatusFilter} onValueChange={setTraceStatusFilter}>
-                      <SelectTrigger className="h-7 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-8 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all"   className="text-xs">All statuses</SelectItem>
                         <SelectItem value="200"   className="text-xs">Success (200)</SelectItem>
@@ -573,14 +551,14 @@ function LogsContent() {
                   <Table className="w-full table-fixed">
                     <TableHeader className="sticky top-0 z-10">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-[90px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Time</TableHead>
-                        <TableHead className="w-[110px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Provider</TableHead>
-                        <TableHead className="w-[140px] text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Model</TableHead>
-                        <TableHead className="w-[64px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Status</TableHead>
-                        <TableHead className="w-[80px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Latency</TableHead>
-                        <TableHead className="w-[80px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tokens</TableHead>
-                        <TableHead className="w-[70px]  text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Cost</TableHead>
-                        <TableHead className="           text-[10px] font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tags</TableHead>
+                        <TableHead className="w-[90px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Time</TableHead>
+                        <TableHead className="w-[110px] text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Provider</TableHead>
+                        <TableHead className="w-[140px] text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Model</TableHead>
+                        <TableHead className="w-[64px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Status</TableHead>
+                        <TableHead className="w-[80px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Latency</TableHead>
+                        <TableHead className="w-[80px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tokens</TableHead>
+                        <TableHead className="w-[70px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Cost</TableHead>
+                        <TableHead className="           text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tags</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -610,7 +588,7 @@ function LogsContent() {
                             )}
                             onClick={() => setSelectedTrace(selectedTrace?.id === trace.id ? null : trace)}
                           >
-                            <TableCell className="px-3 py-2 text-[10px] text-gray-400 tabular-nums font-mono whitespace-nowrap">
+                            <TableCell className="px-3 py-2 text-xs text-gray-400 tabular-nums font-mono whitespace-nowrap">
                               {new Date(trace.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </TableCell>
                             <TableCell className="px-3 py-2 text-xs text-gray-700 font-medium truncate">
@@ -620,7 +598,7 @@ function LogsContent() {
                               {trace.model}
                             </TableCell>
                             <TableCell className="px-3 py-2">
-                              <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                              <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium border ${
                                 trace.status === 200
                                   ? 'bg-green-50 text-green-700 border-green-200'
                                   : trace.status === 429
@@ -644,13 +622,13 @@ function LogsContent() {
                             <TableCell className="px-3 py-2">
                               <div className="flex items-center gap-1 flex-wrap">
                                 {trace.cache_hit && (
-                                  <span className="inline-flex px-1 py-0.5 rounded text-[10px] bg-sky-50 text-sky-600 border border-sky-200">cache</span>
+                                  <span className="inline-flex px-1 py-0.5 rounded text-xs bg-sky-50 text-sky-600 border border-sky-200">cache</span>
                                 )}
                                 {trace.used_speculative && (
-                                  <span className="inline-flex px-1 py-0.5 rounded text-[10px] bg-violet-50 text-violet-600 border border-violet-200">spec</span>
+                                  <span className="inline-flex px-1 py-0.5 rounded text-xs bg-violet-50 text-violet-600 border border-violet-200">spec</span>
                                 )}
                                 {trace.tag && (
-                                  <span className="inline-flex px-1 py-0.5 rounded text-[10px] bg-amber-50 text-amber-600 border border-amber-200">{trace.tag}</span>
+                                  <span className="inline-flex px-1 py-0.5 rounded text-xs bg-amber-50 text-amber-600 border border-amber-200">{trace.tag}</span>
                                 )}
                               </div>
                             </TableCell>
@@ -672,7 +650,7 @@ function LogsContent() {
                     <Activity className="h-4 w-4 text-gray-400" />
                     <span className="font-mono text-sm">{selectedTrace?.provider ?? ''}</span>
                     {selectedTrace && (
-                      <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium border ${
+                      <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium border ${
                         selectedTrace.status === 200 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
                       }`}>
                         {selectedTrace.status}
@@ -736,7 +714,7 @@ function LogsContent() {
                         <div className="bg-red-50 border border-red-200 rounded p-2.5">
                           <p className="text-xs text-red-700 font-medium">{selectedTrace.error.message}</p>
                           {selectedTrace.error.provider_error && (
-                            <p className="text-[10px] text-red-500 mt-1 font-mono">{selectedTrace.error.provider_error}</p>
+                            <p className="text-xs text-red-500 mt-1 font-mono">{selectedTrace.error.provider_error}</p>
                           )}
                         </div>
                       </DrawerSection>
@@ -755,9 +733,6 @@ function LogsContent() {
         {/* ── Execution Timeline ────────────────────────────────────────────── */}
         {viewMode === 'execution_timeline' ? (
           <SurfaceSection
-            icon={Activity}
-            title="Execution Timeline"
-            description="Runtime events grouped by execution run."
             bodyClassName="px-4 py-4"
           >
             <div
@@ -773,19 +748,16 @@ function LogsContent() {
 
         /* ── Event Stream ────────────────────────────────────────────────── */
         <SurfaceSection
-          icon={Activity}
-          title="Event Stream"
-          description="Structured runtime events with severity and execution context."
           bodyClassName="px-0 py-0"
           actions={
             <div className="flex items-center gap-2">
               {liveMode && (
-                <span className="flex items-center gap-1 text-[10px] text-green-600">
+                <span className="flex items-center gap-1 text-xs text-green-600">
                   <Radio className="h-2.5 w-2.5" /> live
                 </span>
               )}
               {dataUpdatedAt > 0 && !liveMode && (
-                <span className="text-[10px] text-gray-400 font-mono">
+                <span className="text-xs text-gray-400 font-mono">
                   {new Date(dataUpdatedAt).toLocaleTimeString()}
                 </span>
               )}
@@ -801,16 +773,16 @@ function LogsContent() {
               <div className="px-4 py-6 font-mono">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3 py-[3px] opacity-30 animate-pulse">
-                    <span className="text-[10px] text-gray-600 w-[58px] bg-gray-200 rounded h-2.5" />
-                    <span className="text-[10px] w-[36px] bg-gray-100 rounded h-2.5" />
-                    <span className="text-[10px] w-[120px] bg-gray-200 rounded h-2.5" />
-                    <span className="text-[10px] flex-1 bg-gray-200 rounded h-2.5" style={{ maxWidth: `${(i * 47 + 120) % 280 + 80}px` }} />
+                    <span className="text-xs text-gray-600 w-[58px] bg-gray-200 rounded h-2.5" />
+                    <span className="text-xs w-[36px] bg-gray-100 rounded h-2.5" />
+                    <span className="text-xs w-[120px] bg-gray-200 rounded h-2.5" />
+                    <span className="text-xs flex-1 bg-gray-200 rounded h-2.5" style={{ maxWidth: `${(i * 47 + 120) % 280 + 80}px` }} />
                   </div>
                 ))}
               </div>
             ) : events.length === 0 ? (
               <div className="px-4 py-8 font-mono">
-                <span className="text-[11px] text-gray-600">
+                <span className="text-xs text-gray-600">
                   {activeFilters.length > 0
                     ? <>— no events match filters — <button onClick={clearAll} className="text-gray-500 hover:text-gray-300 underline underline-offset-2 transition-colors">clear</button></>
                     : '— no events in selected time range —'}
@@ -834,13 +806,13 @@ function LogsContent() {
                   onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
                 >
                   {/* Timestamp */}
-                  <span className="text-[10px] text-gray-400 tabular-nums font-mono whitespace-nowrap pr-3 flex-shrink-0 select-none">
+                  <span className="text-xs text-gray-400 tabular-nums font-mono whitespace-nowrap pr-3 flex-shrink-0 select-none">
                     {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
 
                   {/* Severity level */}
                   <span className={cn(
-                    'text-[10px] font-mono font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
+                    'text-xs font-mono font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
                     e.severity === 'critical' ? 'text-red-400'    :
                     e.severity === 'error'    ? 'text-orange-400' :
                     e.severity === 'warning'  ? 'text-yellow-400' :
@@ -850,19 +822,19 @@ function LogsContent() {
                   </span>
 
                   {/* Event type */}
-                  <span className="text-[10px] text-violet-600 font-mono pr-3 w-[176px] flex-shrink-0 truncate select-none">
+                  <span className="text-xs text-violet-600 font-mono pr-3 w-[176px] flex-shrink-0 truncate select-none">
                     {e.event_type}
                   </span>
 
                   {/* Message */}
-                  <span className="text-[11px] text-gray-700 font-mono flex-1 min-w-0 break-words leading-[1.7]">
+                  <span className="text-xs text-gray-700 font-mono flex-1 min-w-0 break-words leading-[1.7]">
                     {q ? highlightMatch(e.message, q) : e.message}
                   </span>
 
                   {/* Exec ID — reveal on hover */}
                   {e.execution_id && (
                     <span
-                      className="text-[10px] text-blue-500/60 font-mono flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                      className="text-xs text-blue-500/60 font-mono flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
                       onClick={(ev) => { ev.stopPropagation(); router.push(`/execution/runs/${e.execution_id}`); }}
                     >
                       {e.execution_id.slice(0, 10)}
@@ -950,7 +922,7 @@ function LogsContent() {
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-blue-600 group-hover:text-blue-700 font-mono truncate">{selected.execution_id}</span>
-                        <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">Execution →</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Execution →</span>
                       </a>
                     )}
                     {selected.agent_id && (
@@ -960,7 +932,7 @@ function LogsContent() {
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-teal-600 group-hover:text-teal-700 font-mono truncate">{selected.agent_id}</span>
-                        <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">Agent →</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Agent →</span>
                       </a>
                     )}
                     {selected.device_id && (
@@ -970,7 +942,7 @@ function LogsContent() {
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-violet-600 group-hover:text-violet-700 font-mono truncate">{selected.device_id}</span>
-                        <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">Device →</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Device →</span>
                       </a>
                     )}
                     {selected.event_type === 'ReceiptSigned' && selected.execution_id && (
@@ -980,7 +952,7 @@ function LogsContent() {
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-green-600 group-hover:text-green-700 font-mono truncate">receipt for {selected.execution_id.slice(0, 14)}…</span>
-                        <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">Receipt →</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Receipt →</span>
                       </a>
                     )}
                     {selected.event_type === 'PolicyViolation' && selected.execution_id && (
@@ -990,7 +962,7 @@ function LogsContent() {
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-red-600 group-hover:text-red-700 font-mono truncate">violation record</span>
-                        <span className="text-[10px] text-gray-400 ml-auto flex-shrink-0">Violation →</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Violation →</span>
                       </a>
                     )}
                   </div>
