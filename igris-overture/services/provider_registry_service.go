@@ -55,15 +55,16 @@ var VerifiedProviders = map[string]struct {
 	AuthHeaderTemplate string
 }{
 	"openai":        {"https://api.openai.com/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
-	"anthropic":     {"https://api.anthropic.com/v1", models.OpenAICompatible, "x-api-key: {key}"},
+	"anthropic":     {"https://api.anthropic.com/v1", models.AnthropicCompatible, "x-api-key: {key}"},
 	"xai":           {"https://api.x.ai/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
-	"kimi":          {"https://api.moonshot.cn/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
-	"qwen":          {"https://dashscope.aliyuncs.com/api/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
-	"deepseek":      {"https://api.deepseek.com/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
+	"kimi":          {"https://api.moonshot.ai/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
+	"qwen":          {"https://dashscope.aliyuncs.com/compatible-mode/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
+	"deepseek":      {"https://api.deepseek.com", models.OpenAICompatible, "Authorization: Bearer {key}"},
 	"mistral":       {"https://api.mistral.ai/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
 	"llama":         {"https://api.meta.ai/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
 	"google_gemini": {"https://generativelanguage.googleapis.com/v1", models.CustomAdapter, "x-goog-api-key: {key}"},
-	"zai":           {"https://api.z.ai/v1", models.OpenAICompatible, "Authorization: Bearer {key}"},
+	"glm":           {"https://open.bigmodel.cn/api/paas/v4", models.OpenAICompatible, "Authorization: Bearer {key}"},
+	"zai":           {"https://open.bigmodel.cn/api/paas/v4", models.OpenAICompatible, "Authorization: Bearer {key}"},
 }
 
 // RegisterProvider registers a new provider with security validation
@@ -173,6 +174,8 @@ func (s *ProviderRegistryService) ValidateProvider(ctx context.Context, provider
 	switch provider.CompatibilityClass {
 	case models.OpenAICompatible:
 		err = s.validateOpenAICompatible(ctx, provider, apiKey, validationLog)
+	case models.AnthropicCompatible:
+		err = s.validateAnthropicCompatible(ctx, provider, apiKey, validationLog)
 	case models.CustomAdapter:
 		err = s.validateCustomAdapter(ctx, provider, apiKey, validationLog)
 	default:
@@ -290,6 +293,60 @@ func (s *ProviderRegistryService) validateOpenAICompatible(ctx context.Context, 
 	}
 
 	log.Success = true
+	return nil
+}
+
+func (s *ProviderRegistryService) validateAnthropicCompatible(ctx context.Context, provider *models.ProviderRegistry, apiKey string, log *models.ProviderValidationLog) error {
+	model := "claude-haiku-4-5-20251001"
+	if len(provider.Models) > 0 && strings.TrimSpace(provider.Models[0]) != "" {
+		model = provider.Models[0]
+	}
+
+	body, _ := json.Marshal(map[string]interface{}{
+		"model":      model,
+		"max_tokens": 1,
+		"messages": []map[string]string{
+			{"role": "user", "content": "hi"},
+		},
+	})
+
+	messagesURL := fmt.Sprintf("%s/messages", strings.TrimSuffix(provider.BaseURL, "/"))
+	req, err := http.NewRequestWithContext(ctx, "POST", messagesURL, strings.NewReader(string(body)))
+	if err != nil {
+		log.Success = false
+		log.ErrorMessage = stringPtr(fmt.Sprintf("failed to create request: %v", err))
+		return err
+	}
+
+	req.Header.Set("x-api-key", apiKey)
+	req.Header.Set("anthropic-version", "2023-06-01")
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("x-igris-provider-id", provider.ID)
+	req.Header.Set("User-Agent", "Igris Inertial/1.0")
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		log.Success = false
+		log.ErrorMessage = stringPtr(fmt.Sprintf("request failed: %v", err))
+		return err
+	}
+	defer resp.Body.Close()
+
+	statusCode := resp.StatusCode
+	log.StatusCode = &statusCode
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusTooManyRequests {
+		respBody, _ := io.ReadAll(resp.Body)
+		log.Success = false
+		log.ErrorMessage = stringPtr(fmt.Sprintf("HTTP %d: %s", resp.StatusCode, string(respBody)))
+		return fmt.Errorf("validation failed with status %d", resp.StatusCode)
+	}
+
+	log.Success = true
+	log.ModelsDetected = provider.Models
+	if len(log.ModelsDetected) == 0 {
+		log.ModelsDetected = []string{model}
+	}
 	return nil
 }
 
