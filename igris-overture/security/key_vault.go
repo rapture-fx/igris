@@ -762,10 +762,27 @@ func (kv *KeyVault) validateWithProvider(provider, apiKey string) (bool, error) 
 		return kv.validateAnthropic(apiKey)
 
 	case "xai":
-		// FIX-2026-02: byok — real xAI validation via POST /v1/chat/completions
-		return kv.validateXAI(apiKey)
+		return kv.validateOpenAICompatibleKey("xAI", "https://api.x.ai/v1", "grok-4", apiKey)
 
-	case "google", "cohere", "azure":
+	case "groq":
+		return kv.validateOpenAICompatibleKey("Groq", "https://api.groq.com/openai/v1", "llama3-70b-8192", apiKey)
+
+	case "qwen":
+		return kv.validateOpenAICompatibleKey("Qwen", "https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus", apiKey)
+
+	case "kimi", "moonshot":
+		return kv.validateOpenAICompatibleKey("Kimi", "https://api.moonshot.ai/v1", "kimi-k2-0711-preview", apiKey)
+
+	case "glm", "zai":
+		return kv.validateOpenAICompatibleKey("GLM", "https://open.bigmodel.cn/api/paas/v4", "glm-5", apiKey)
+
+	case "deepseek":
+		return kv.validateOpenAICompatibleKey("DeepSeek", "https://api.deepseek.com", "deepseek-v4-flash", apiKey)
+
+	case "mistral":
+		return kv.validateOpenAICompatibleKey("Mistral", "https://api.mistral.ai/v1", "mistral-large-latest", apiKey)
+
+	case "google", "google_gemini", "cohere", "azure", "custom":
 		// Basic length check (no public key-validation endpoint available without auth scope)
 		if len(apiKey) < 10 {
 			return false, fmt.Errorf("key appears to be too short")
@@ -803,6 +820,38 @@ func (kv *KeyVault) validateOpenAI(apiKey string) (bool, error) {
 		return false, nil
 	default:
 		return false, fmt.Errorf("OpenAI validation returned unexpected status %d", resp.StatusCode)
+	}
+}
+
+func (kv *KeyVault) validateOpenAICompatibleKey(providerName, baseURL, model, apiKey string) (bool, error) {
+	body, _ := json.Marshal(map[string]interface{}{
+		"model": model,
+		"messages": []map[string]string{
+			{"role": "user", "content": "hi"},
+		},
+		"max_tokens": 1,
+	})
+
+	req, err := http.NewRequest(http.MethodPost, strings.TrimSuffix(baseURL, "/")+"/chat/completions", bytes.NewReader(body))
+	if err != nil {
+		return false, fmt.Errorf("failed to build %s request: %w", providerName, err)
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("content-type", "application/json")
+
+	resp, err := kv.httpClient.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("%s validation request failed: %w", providerName, err)
+	}
+	defer resp.Body.Close()
+
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusTooManyRequests:
+		return true, nil
+	case http.StatusUnauthorized, http.StatusForbidden:
+		return false, nil
+	default:
+		return false, fmt.Errorf("%s validation returned unexpected status %d", providerName, resp.StatusCode)
 	}
 }
 
