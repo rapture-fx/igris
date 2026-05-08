@@ -83,21 +83,6 @@ export default function ExecutionRunsPage() {
     retry: false,
   });
 
-  if (error) {
-    return (
-      <DashboardLayout>
-        <ErrorState
-          error={error}
-          title="Run records are unavailable"
-          description="This page uses live execution records only and does not fall back to mock data."
-          onRetry={() => {
-            void refetch();
-          }}
-        />
-      </DashboardLayout>
-    );
-  }
-
   const filteredRuns = useMemo(() => {
     const query = search.trim().toLowerCase();
     return runs.filter((run) => {
@@ -128,6 +113,21 @@ export default function ExecutionRunsPage() {
       : '—';
     return { running, completed, violations, avgDuration };
   }, [runs]);
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <ErrorState
+          error={error}
+          title="Run records are unavailable"
+          description="This page uses live execution records only and does not fall back to mock data."
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
