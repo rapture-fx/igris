@@ -16,6 +16,8 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/models"
 )
 
+const anthropicVersion = "2023-06-01"
+
 // ChatCompletionRequest represents a standard OpenAI-style chat completion request
 type ChatCompletionRequest struct {
 	Model            string                 `json:"model"`
@@ -41,13 +43,13 @@ type ChatMessage struct {
 
 // ChatCompletionResponse represents a standard OpenAI-style chat completion response
 type ChatCompletionResponse struct {
-	ID      string                   `json:"id"`
-	Object  string                   `json:"object"`
-	Created int64                    `json:"created"`
-	Model   string                   `json:"model"`
-	Choices []ChatCompletionChoice   `json:"choices"`
-	Usage   ChatCompletionUsage      `json:"usage"`
-	Error   *ChatCompletionError     `json:"error,omitempty"`
+	ID      string                 `json:"id"`
+	Object  string                 `json:"object"`
+	Created int64                  `json:"created"`
+	Model   string                 `json:"model"`
+	Choices []ChatCompletionChoice `json:"choices"`
+	Usage   ChatCompletionUsage    `json:"usage"`
+	Error   *ChatCompletionError   `json:"error,omitempty"`
 }
 
 // ChatCompletionChoice represents a completion choice
@@ -62,6 +64,40 @@ type ChatCompletionUsage struct {
 	PromptTokens     int `json:"prompt_tokens"`
 	CompletionTokens int `json:"completion_tokens"`
 	TotalTokens      int `json:"total_tokens"`
+}
+
+type anthropicMessageRequest struct {
+	Model       string             `json:"model"`
+	System      string             `json:"system,omitempty"`
+	Messages    []anthropicMessage `json:"messages"`
+	MaxTokens   int                `json:"max_tokens"`
+	Temperature *float64           `json:"temperature,omitempty"`
+	Stream      bool               `json:"stream"`
+}
+
+type anthropicMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type anthropicMessageResponse struct {
+	ID      string `json:"id"`
+	Type    string `json:"type"`
+	Role    string `json:"role"`
+	Model   string `json:"model"`
+	Content []struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	} `json:"content"`
+	StopReason string `json:"stop_reason"`
+	Usage      struct {
+		InputTokens  int `json:"input_tokens"`
+		OutputTokens int `json:"output_tokens"`
+	} `json:"usage"`
+	Error *struct {
+		Type    string `json:"type"`
+		Message string `json:"message"`
+	} `json:"error,omitempty"`
 }
 
 // ChatCompletionError represents an error response
@@ -104,6 +140,18 @@ func NewHTTPAdapter(timeout time.Duration) *HTTPAdapter {
 
 // SendChatCompletion sends a chat completion request to a provider
 func (a *HTTPAdapter) SendChatCompletion(
+	ctx context.Context,
+	provider *models.ProviderRegistry,
+	apiKey string,
+	request *ChatCompletionRequest,
+) *AdapterResult {
+	if provider.CompatibilityClass == models.AnthropicCompatible {
+		return a.sendAnthropicMessage(ctx, provider, apiKey, request)
+	}
+	return a.sendOpenAICompatibleChatCompletion(ctx, provider, apiKey, request)
+}
+
+func (a *HTTPAdapter) sendOpenAICompatibleChatCompletion(
 	ctx context.Context,
 	provider *models.ProviderRegistry,
 	apiKey string,
@@ -218,6 +266,183 @@ func (a *HTTPAdapter) SendChatCompletion(
 		Success:    true,
 		StatusCode: statusCode,
 		LatencyMs:  latencyMs,
+	}
+}
+
+func (a *HTTPAdapter) sendAnthropicMessage(
+	ctx context.Context,
+	provider *models.ProviderRegistry,
+	apiKey string,
+	request *ChatCompletionRequest,
+) *AdapterResult {
+	startTime := time.Now()
+	url := fmt.Sprintf("%s/messages", strings.TrimSuffix(provider.BaseURL, "/"))
+
+	anthropicReq := toAnthropicMessageRequest(request)
+	requestBody, err := json.Marshal(anthropicReq)
+	if err != nil {
+		return &AdapterResult{
+			Success:   false,
+			Error:     fmt.Errorf("failed to marshal Anthropic request: %w", err),
+			LatencyMs: int(time.Since(startTime).Milliseconds()),
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return &AdapterResult{
+			Success:   false,
+			Error:     fmt.Errorf("failed to create Anthropic request: %w", err),
+			LatencyMs: int(time.Since(startTime).Milliseconds()),
+		}
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("anthropic-version", anthropicVersion)
+	req.Header.Set("User-Agent", "Igris-Inertial/1.0")
+
+	authHeader := strings.Replace(provider.AuthHeaderTemplate, "{key}", apiKey, 1)
+	parts := strings.SplitN(authHeader, ":", 2)
+	if len(parts) == 2 {
+		req.Header.Set(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
+	} else {
+		req.Header.Set("x-api-key", apiKey)
+	}
+	req.Header.Set("x-igris-provider-id", logging.MaskProviderID(provider.ID))
+
+	resp, err := a.httpClient.Do(req)
+	if err != nil {
+		return &AdapterResult{
+			Success:   false,
+			Error:     fmt.Errorf("Anthropic request failed: %w", err),
+			LatencyMs: int(time.Since(startTime).Milliseconds()),
+		}
+	}
+	defer resp.Body.Close()
+
+	latencyMs := int(time.Since(startTime).Milliseconds())
+	statusCode := resp.StatusCode
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &AdapterResult{
+			Success:    false,
+			StatusCode: statusCode,
+			Error:      fmt.Errorf("failed to read Anthropic response: %w", err),
+			LatencyMs:  latencyMs,
+		}
+	}
+
+	var anthropicResp anthropicMessageResponse
+	if err := json.Unmarshal(body, &anthropicResp); err != nil {
+		return &AdapterResult{
+			Success:    false,
+			StatusCode: statusCode,
+			Error:      fmt.Errorf("failed to parse Anthropic response: %w", err),
+			LatencyMs:  latencyMs,
+		}
+	}
+
+	if statusCode < 200 || statusCode >= 300 {
+		message := string(body)
+		errorType := "provider_error"
+		if anthropicResp.Error != nil {
+			message = anthropicResp.Error.Message
+			errorType = anthropicResp.Error.Type
+		}
+		errorResp := &ChatCompletionResponse{
+			Error: &ChatCompletionError{
+				Message: message,
+				Type:    errorType,
+			},
+		}
+		return &AdapterResult{
+			Response:   errorResp,
+			Success:    false,
+			StatusCode: statusCode,
+			Error:      fmt.Errorf("provider error: %s", message),
+			LatencyMs:  latencyMs,
+		}
+	}
+
+	content := ""
+	for _, block := range anthropicResp.Content {
+		if block.Type == "text" {
+			content += block.Text
+		}
+	}
+	response := &ChatCompletionResponse{
+		ID:      anthropicResp.ID,
+		Object:  "chat.completion",
+		Created: time.Now().Unix(),
+		Model:   anthropicResp.Model,
+		Choices: []ChatCompletionChoice{
+			{
+				Index: 0,
+				Message: ChatMessage{
+					Role:    "assistant",
+					Content: content,
+				},
+				FinishReason: normalizeAnthropicStopReason(anthropicResp.StopReason),
+			},
+		},
+		Usage: ChatCompletionUsage{
+			PromptTokens:     anthropicResp.Usage.InputTokens,
+			CompletionTokens: anthropicResp.Usage.OutputTokens,
+			TotalTokens:      anthropicResp.Usage.InputTokens + anthropicResp.Usage.OutputTokens,
+		},
+	}
+
+	a.logger.Printf("[HTTPAdapter] Success: provider=%s, provider_id=%s, model=%s, latency=%dms, tokens=%d",
+		provider.Name, logging.MaskProviderID(provider.ID), request.Model, latencyMs, response.Usage.TotalTokens)
+
+	return &AdapterResult{
+		Response:   response,
+		Success:    true,
+		StatusCode: statusCode,
+		LatencyMs:  latencyMs,
+	}
+}
+
+func toAnthropicMessageRequest(request *ChatCompletionRequest) anthropicMessageRequest {
+	messages := make([]anthropicMessage, 0, len(request.Messages))
+	var systemParts []string
+	for _, message := range request.Messages {
+		switch message.Role {
+		case "system":
+			systemParts = append(systemParts, message.Content)
+		case "assistant":
+			messages = append(messages, anthropicMessage{Role: "assistant", Content: message.Content})
+		default:
+			messages = append(messages, anthropicMessage{Role: "user", Content: message.Content})
+		}
+	}
+
+	maxTokens := 512
+	if request.MaxTokens != nil && *request.MaxTokens > 0 {
+		maxTokens = *request.MaxTokens
+	}
+	stream := false
+
+	return anthropicMessageRequest{
+		Model:       request.Model,
+		System:      strings.Join(systemParts, "\n\n"),
+		Messages:    messages,
+		MaxTokens:   maxTokens,
+		Temperature: request.Temperature,
+		Stream:      stream,
+	}
+}
+
+func normalizeAnthropicStopReason(reason string) string {
+	switch reason {
+	case "end_turn":
+		return "stop"
+	case "max_tokens":
+		return "length"
+	case "":
+		return "stop"
+	default:
+		return reason
 	}
 }
 
