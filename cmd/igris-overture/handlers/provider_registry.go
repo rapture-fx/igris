@@ -8,12 +8,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/Igris-inertial/system/igris-overture/repository"
 	"github.com/Igris-inertial/system/igris-overture/security"
 	"github.com/Igris-inertial/system/igris-overture/services"
+	"github.com/gofiber/fiber/v2"
 )
 
 // ProviderRegistryHandler handles provider registry operations
@@ -38,17 +38,20 @@ func NewProviderRegistryHandler(db *sql.DB, keyVault *security.KeyVault) *Provid
 // RegisterProviderRequest represents the request to register a new provider
 type RegisterProviderRequest struct {
 	Name               string                     `json:"name" validate:"required"`
+	Kind               string                     `json:"kind,omitempty"`
 	BaseURL            string                     `json:"base_url" validate:"required"`
+	Endpoint           string                     `json:"endpoint,omitempty"`
 	KeyID              string                     `json:"key_id" validate:"required"` // Vault key reference; no raw keys accepted
 	Models             []string                   `json:"models"`
+	DefaultModel       string                     `json:"default_model,omitempty"`
 	Pricing            *models.ProviderPricing    `json:"pricing,omitempty"`
 	CompatibilityClass *models.CompatibilityClass `json:"compatibility_class,omitempty"`
 }
 
 // RegisterProviderResponse represents the response after registering a provider
 type RegisterProviderResponse struct {
-	Status  string                  `json:"status"`
-	Message string                  `json:"message"`
+	Status   string                 `json:"status"`
+	Message  string                 `json:"message"`
 	Provider map[string]interface{} `json:"provider"`
 }
 
@@ -85,6 +88,7 @@ func (h *ProviderRegistryHandler) RegisterProvider(c *fiber.Ctx) error {
 			"code":  "INVALID_REQUEST",
 		})
 	}
+	normalizeProviderRegistryRequest(&req)
 
 	// Validate required fields
 	if req.Name == "" || req.BaseURL == "" || req.KeyID == "" {
@@ -204,6 +208,18 @@ func (h *ProviderRegistryHandler) TestProvider(c *fiber.Ctx) error {
 	})
 }
 
+func normalizeProviderRegistryRequest(req *RegisterProviderRequest) {
+	if req.Name == "" && req.Kind != "" {
+		req.Name = req.Kind
+	}
+	if req.BaseURL == "" && req.Endpoint != "" {
+		req.BaseURL = req.Endpoint
+	}
+	if len(req.Models) == 0 && req.DefaultModel != "" {
+		req.Models = []string{req.DefaultModel}
+	}
+}
+
 // ListProviders lists all registered providers for the current tenant
 // GET /v1/providers
 func (h *ProviderRegistryHandler) ListProviders(c *fiber.Ctx) error {
@@ -294,12 +310,12 @@ func (h *ProviderRegistryHandler) GetProviderHealth(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"provider_id":         provider.ID,
-		"name":                provider.Name,
-		"status":              provider.Status,
-		"health":              provider.Health,
-		"last_validated_at":   provider.LastValidatedAt,
-		"validation_history":  validationHistory,
+		"provider_id":        provider.ID,
+		"name":               provider.Name,
+		"status":             provider.Status,
+		"health":             provider.Health,
+		"last_validated_at":  provider.LastValidatedAt,
+		"validation_history": validationHistory,
 	})
 }
 
