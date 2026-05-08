@@ -245,7 +245,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-card">
+        <div className="flex h-full flex-col bg-background border-r border-border">
 
           {/* Logo */}
           <div className="h-12 flex items-center px-5 pt-4">
