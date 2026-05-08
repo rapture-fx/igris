@@ -82,6 +82,7 @@ mod tests {
             name: "Mock".to_string(),
             endpoint,
             model: "mock-model".to_string(),
+            api_format: Some("openai_compatible".to_string()),
             api_key_env: Some("TEST_API_KEY".to_string()),
             cost_per_1k_input: 0.0,
             cost_per_1k_output: 0.0,
@@ -1426,6 +1427,7 @@ mod tests {
             name: "Mock".to_string(),
             endpoint: "http://127.0.0.1:1".to_string(), // Unreachable endpoint
             model: "mock-model".to_string(),
+            api_format: Some("openai_compatible".to_string()),
             api_key_env: Some("TEST_API_KEY".to_string()),
             cost_per_1k_input: 0.0,
             cost_per_1k_output: 0.0,
@@ -1555,6 +1557,7 @@ mod tests {
             name: "Mock".to_string(),
             endpoint: "http://127.0.0.1:1".to_string(), // Unreachable
             model: "mock-model".to_string(),
+            api_format: Some("openai_compatible".to_string()),
             api_key_env: Some("TEST_API_KEY".to_string()),
             cost_per_1k_input: 0.0,
             cost_per_1k_output: 0.0,
