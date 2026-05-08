@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/gofiber/fiber/v2"
 )
 
 // VaultHandler handles BYOK vault operations
@@ -35,12 +35,12 @@ type StoreKeyRequest struct {
 
 // StoreKeyResponse represents the response after storing a key
 type StoreKeyResponse struct {
-	ID         string `json:"id"`
-	Provider   string `json:"provider"`
-	KeyName    string `json:"key_name"`
-	MaskedKey  string `json:"masked_key"`
-	IsActive   bool   `json:"is_active"`
-	CreatedAt  string `json:"created_at"`
+	ID        string `json:"id"`
+	Provider  string `json:"provider"`
+	KeyName   string `json:"key_name"`
+	MaskedKey string `json:"masked_key"`
+	IsActive  bool   `json:"is_active"`
+	CreatedAt string `json:"created_at"`
 }
 
 // KeyListResponse represents a key in list responses
@@ -74,13 +74,27 @@ func (vh *VaultHandler) StoreKey(c *fiber.Ctx) error {
 
 	// Validate provider
 	validProviders := map[string]bool{
-		"openai":     true,
-		"anthropic":  true,
-		"benchmark":  true,
+		"openai":        true,
+		"anthropic":     true,
+		"benchmark":     true,
+		"groq":          true,
+		"xai":           true,
+		"qwen":          true,
+		"kimi":          true,
+		"moonshot":      true,
+		"glm":           true,
+		"zai":           true,
+		"deepseek":      true,
+		"mistral":       true,
+		"google":        true,
+		"google_gemini": true,
+		"cohere":        true,
+		"azure":         true,
+		"custom":        true,
 	}
 	if !validProviders[req.Provider] {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid provider. Must be one of: openai, anthropic, benchmark",
+			"error": "Invalid provider. Must be a supported verified provider or custom provider key",
 			"code":  "INVALID_PROVIDER",
 		})
 	}
@@ -247,7 +261,7 @@ func (vh *VaultHandler) DeleteKey(c *fiber.Ctx) error {
 	vh.logger.Printf("[VaultHandler] Deleted %s key for tenant: %s", provider, tenantID)
 
 	return c.JSON(fiber.Map{
-		"message": "API key deleted successfully",
+		"message":  "API key deleted successfully",
 		"provider": provider,
 	})
 }
@@ -340,10 +354,10 @@ func (vh *VaultHandler) ValidateKey(c *fiber.Ctx) error {
 	vh.logger.Printf("[VaultHandler] Validated %s key for tenant: %s", provider, tenantID)
 
 	return c.JSON(fiber.Map{
-		"provider":  provider,
-		"is_valid":  isValid,
-		"message":   validationMessage,
-		"key_name":  decKey.KeyName,
+		"provider": provider,
+		"is_valid": isValid,
+		"message":  validationMessage,
+		"key_name": decKey.KeyName,
 	})
 }
 
