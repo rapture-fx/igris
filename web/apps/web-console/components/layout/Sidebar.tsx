@@ -6,11 +6,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
   ChevronDown, Search, FileText,
-  LayoutDashboard, PlayCircle, Network,
-  ScrollText, BadgeCheck, CalendarClock, SlidersHorizontal,
-  KeyRound, Settings, LogOut,
-  BookOpen, ExternalLink, Mail, Activity,
+  LogOut,
 } from 'lucide-react';
+import {
+  ActivityLogIcon, BarChartIcon, Component1Icon, DashboardIcon, DesktopIcon,
+  EnvelopeClosedIcon, ExitIcon, FileTextIcon, GearIcon, LightningBoltIcon,
+  LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
+  RulerSquareIcon, SunIcon,
+} from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -20,10 +23,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useTenant } from '@/hooks/useTenant';
+import { useTheme } from 'next-themes';
 import { useSession } from '@/lib/auth-client';
 import { getInitials } from '@/utils/helpers';
 import { cn } from '@/utils/helpers';
-import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 interface SidebarProps {
   open?: boolean;
@@ -41,11 +44,31 @@ const navigation: NavigationItem[] = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    icon: LayoutDashboard,
+    icon: DashboardIcon,
+  },
+  {
+    name: 'Logs',
+    href: '/history/logs',
+    icon: ActivityLogIcon,
+  },
+  {
+    name: 'Metrics',
+    href: '/history/metrics',
+    icon: BarChartIcon,
+  },
+  {
+    name: 'Providers',
+    href: '/models/providers',
+    icon: Component1Icon,
+  },
+  {
+    name: 'Devices',
+    href: '/fleet/devices',
+    icon: DesktopIcon,
   },
   {
     name: 'Execution',
-    icon: PlayCircle,
+    icon: LightningBoltIcon,
     children: [
       { name: 'Runs', href: '/execution/runs' },
       { name: 'Tasks', href: '/execution/tasks' },
@@ -54,7 +77,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Proof',
-    icon: BadgeCheck,
+    icon: LockClosedIcon,
     children: [
       { name: 'Receipts', href: '/proof/receipts' },
       { name: 'Violations', href: '/proof/violations' },
@@ -62,31 +85,15 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Policy',
-    icon: ScrollText,
+    icon: RulerSquareIcon,
     children: [
       { name: 'Bounds', href: '/policy/bounds' },
       { name: 'Capabilities', href: '/policy/capabilities' },
     ],
   },
   {
-    name: 'Infrastructure',
-    icon: Network,
-    children: [
-      { name: 'Providers', href: '/models/providers' },
-      { name: 'Devices', href: '/fleet/devices' },
-    ],
-  },
-  {
-    name: 'History',
-    icon: CalendarClock,
-    children: [
-      { name: 'Logs', href: '/history/logs' },
-      { name: 'Metrics', href: '/history/metrics' },
-    ],
-  },
-  {
     name: 'Settings',
-    icon: SlidersHorizontal,
+    icon: MixerHorizontalIcon,
     children: [
       { name: 'General', href: '/settings/general' },
       { name: 'API Keys', href: '/settings/keys' },
@@ -99,8 +106,6 @@ const DEFAULT_EXPANDED: Record<string, boolean> = {
   Execution: false,
   Proof: false,
   Policy: false,
-  Infrastructure: false,
-  History: false,
   Settings: false,
 };
 
@@ -120,6 +125,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const handleLogout = async () => {
     await signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/auth'; } } });
   };
+  const { theme, setTheme } = useTheme();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -171,10 +177,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof policy violations enforcement bounds alerts' },
     { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
     { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
-    { title: 'Infrastructure › Providers', path: '/models/providers', keywords: 'infrastructure providers endpoints keys models health' },
-    { title: 'Infrastructure › Devices', path: '/fleet/devices', keywords: 'infrastructure devices runtime nodes online policy sync' },
-    { title: 'History › Logs', path: '/history/logs', keywords: 'history logs events runtime stream traces' },
-    { title: 'History › Metrics', path: '/history/metrics', keywords: 'history metrics performance charts throughput latency' },
+    { title: 'Providers', path: '/models/providers', keywords: 'providers endpoints keys models health infrastructure' },
+    { title: 'Devices', path: '/fleet/devices', keywords: 'devices runtime nodes online policy sync infrastructure' },
+    { title: 'Logs', path: '/history/logs', keywords: 'logs events runtime stream traces history' },
+    { title: 'Metrics', path: '/history/metrics', keywords: 'metrics performance charts throughput latency history' },
     { title: 'Settings › General', path: '/settings/general', keywords: 'settings general configuration security api keys roles' },
     { title: 'Settings › API Keys', path: '/settings/keys', keywords: 'settings keys vault api provider authentication' },
     { title: 'Settings › License', path: '/settings/license', keywords: 'settings license plan quota activation key' },
@@ -241,29 +247,29 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-screen w-64 transform transition-transform duration-200 ease-in-out md:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-72 transform transition-transform duration-200 ease-in-out md:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-background border-r border-[#e4e4e4] dark:border-border">
+        <div className="flex h-full flex-col bg-background border-r-[0.5px] border-black/[0.08] dark:border-white/[0.08]">
 
           {/* Logo */}
           <div className="h-12 flex items-center px-5 pt-4">
             <Link href="/dashboard" className="flex items-center">
-              <img src="/inertiadm.png" alt="Igris" className="h-8 w-auto rounded-lg hidden dark:block" />
-              <img src="/inertia.png" alt="Igris" className="h-8 w-auto rounded-lg dark:hidden" />
+              <img src="/inertiadm.png" alt="Igris" className="h-7 w-auto rounded-lg hidden dark:block" />
+              <img src="/inertia.png" alt="Igris" className="h-7 w-auto rounded-lg dark:hidden" />
             </Link>
           </div>
 
           {/* Search */}
-          <div className="px-4 pt-5 pb-3">
+          <div className="px-3 pt-5 pb-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-gray-400 pointer-events-none" strokeWidth={1.5} />
               <input
                 type="text"
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-[#e4e4e4] dark:border-border rounded-lg outline-none bg-background cursor-pointer text-foreground transition-colors shadow-sm"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-[#e4e4e4] dark:border-border rounded-lg outline-none bg-background cursor-pointer text-foreground transition-colors"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span className="text-xs font-medium text-muted-foreground">⌘ F</span>
@@ -272,7 +278,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 pt-2 pb-4 scrollbar-hide">
+          <nav className="flex-1 overflow-y-auto px-3 pt-0 pb-4 scrollbar-hide">
             <ul className="space-y-0.5">
               {navigation.map((item) => {
                 if (item.children) {
@@ -281,15 +287,15 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <li key={item.name}>
                       <button
                         onClick={() => toggleSection(item.name)}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-foreground/75 hover:text-foreground hover:bg-muted/60"
+                        className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/75 hover:text-foreground hover:bg-muted/60"
                       >
                         <div className="flex items-center gap-2">
-                          <item.icon className="h-[15px] w-[15px] flex-shrink-0 text-foreground/60" strokeWidth={1.5} />
+                          <item.icon className="h-5 w-5 flex-shrink-0 text-foreground/60" strokeWidth={1.5} />
                           {item.name}
                         </div>
                         <ChevronDown
                           className={cn(
-                            'h-3.5 w-3.5 text-foreground/50 transition-transform duration-150',
+                            'h-5 w-5 text-foreground/50 transition-transform duration-150',
                             isExpanded && 'rotate-180'
                           )}
                         />
@@ -307,7 +313,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                   href={child.href}
                                   onClick={onClose}
                                   className={cn(
-                                    'flex items-center justify-between rounded-lg px-2 py-1.5 text-xs font-medium transition-colors',
+                                    'flex items-center justify-between rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
                                     isActive
                                       ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
                                       : 'text-foreground/70 hover:text-foreground hover:bg-muted/60'
@@ -332,13 +338,13 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       href={item.href}
                       onClick={onClose}
                       className={cn(
-                        'flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+                        'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
                         isActive
                           ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
                           : 'text-foreground/70 hover:text-foreground hover:bg-muted/60'
                       )}
                     >
-                      <item.icon className={cn('h-[15px] w-[15px] flex-shrink-0', isActive ? 'text-foreground' : 'text-foreground/60')} strokeWidth={1.5} />
+                      <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive ? 'text-foreground' : 'text-foreground/60')} strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
@@ -348,7 +354,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           </nav>
 
           {/* Footer — profile */}
-          <div className="px-4 py-3 flex-shrink-0 flex items-center gap-2">
+          <div className="px-3 py-3 flex-shrink-0 flex items-center gap-2">
 
             {/* Profile dropdown */}
             <DropdownMenu>
@@ -359,8 +365,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <span className="absolute bottom-0 right-0 h-1.5 w-1.5 rounded-full bg-green-500 border border-white dark:border-[#1b1912]" />
                   </div>
                   <div className="min-w-0 flex-1 text-left">
-                    <p className="text-xs font-medium text-foreground truncate leading-tight">{displayName}</p>
-                    {tenant?.plan && <p className="text-[9px] text-muted-foreground truncate leading-tight">{tenant.plan}</p>}
+                    <p className="text-sm font-medium text-foreground truncate leading-tight">{displayName}</p>
+                    {tenant?.plan && <p className="text-xs text-muted-foreground truncate leading-tight">{tenant.plan}</p>}
                   </div>
                 </button>
               </DropdownMenuTrigger>
@@ -369,107 +375,88 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 side="top"
                 align="start"
                 sideOffset={8}
-                className="w-56 p-0 rounded-xl border border-border shadow-lg overflow-hidden"
+                className="w-64 p-0 rounded-lg border border-border shadow-sm overflow-hidden bg-background"
               >
                 {/* User info header */}
-                <div className="px-3 py-3 bg-muted/70">
-                  <div className="flex items-center gap-2.5">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-white text-[0.65rem] font-semibold flex-shrink-0">
-                      {initials}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-foreground truncate">{displayName}</p>
-                      {tenant?.plan && <p className="text-[9px] text-muted-foreground truncate">{tenant.plan}</p>}
-                    </div>
+                <div className="px-3 py-3 bg-background border-b border-border">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{email}</p>
                   </div>
                 </div>
 
                 <div className="p-1">
                   <DropdownMenuItem
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
+                    className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer"
                     onSelect={() => { router.push('/settings/license'); onClose?.(); }}
                   >
-                    <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">License</p>
-                      <p className="text-[10px] text-muted-foreground">Plan and quota</p>
-                    </div>
+                    <span className="font-medium text-foreground">License</span>
+                    <FileTextIcon className="h-4 w-4 flex-shrink-0" />
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
+                    className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer"
                     onSelect={() => { router.push('/settings/keys'); onClose?.(); }}
                   >
-                    <KeyRound className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">API Keys</p>
-                      <p className="text-[10px] text-muted-foreground">Manage access keys</p>
-                    </div>
+                    <span className="font-medium text-foreground">API Keys</span>
+                    <LockClosedIcon className="h-4 w-4 flex-shrink-0" />
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer"
+                    className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer"
                     onSelect={() => { router.push('/settings/general'); onClose?.(); }}
                   >
-                    <Settings className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-foreground">Settings</p>
-                      <p className="text-[10px] text-muted-foreground">System configuration</p>
-                    </div>
+                    <span className="font-medium text-foreground">Settings</span>
+                    <GearIcon className="h-4 w-4 flex-shrink-0" />
                   </DropdownMenuItem>
                 </div>
-
-                <Separator />
 
                 <div className="p-1">
-                  <DropdownMenuItem className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer" asChild>
+                  <DropdownMenuItem className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer" asChild>
                     <a href="https://docs.igrisinertial.com" target="_blank" rel="noopener noreferrer">
-                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">Documentation</p>
-                        <p className="text-[10px] text-muted-foreground">Guides and API reference</p>
-                      </div>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium text-foreground">Documentation</span>
+                      <OpenInNewWindowIcon className="h-4 w-4 flex-shrink-0" />
                     </a>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer" asChild>
+                  <DropdownMenuItem className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer" asChild>
                     <a href="mailto:support@igrisinertial.com">
-                      <Mail className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                      <div>
-                        <p className="font-medium text-foreground">Contact Support</p>
-                        <p className="text-[10px] text-muted-foreground">support@igrisinertial.com</p>
-                      </div>
+                      <span className="font-medium text-foreground">Contact Support</span>
+                      <EnvelopeClosedIcon className="h-4 w-4 flex-shrink-0" />
                     </a>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer" asChild>
+                  <DropdownMenuItem className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer" asChild>
                     <a href="https://status.igrisinertial.com" target="_blank" rel="noopener noreferrer">
-                      <Activity className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">System Status</p>
-                        <p className="text-[10px] text-muted-foreground">Uptime and incidents</p>
-                      </div>
-                      <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <span className="font-medium text-foreground">System Status</span>
+                      <ActivityLogIcon className="h-4 w-4 flex-shrink-0" />
                     </a>
                   </DropdownMenuItem>
                 </div>
-
-                <Separator />
 
                 <div className="p-1">
                   <DropdownMenuItem
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30"
+                    className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer"
+                    onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  >
+                    <span className="font-medium text-foreground">Theme</span>
+                    {theme === 'dark' ? (
+                      <SunIcon className="h-4 w-4 flex-shrink-0" />
+                    ) : (
+                      <MoonIcon className="h-4 w-4 flex-shrink-0" />
+                    )}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="flex items-center justify-between gap-2.5 px-2.5 py-3 rounded-lg text-sm cursor-pointer text-red-600"
                     onSelect={() => setShowLogoutDialog(true)}
                   >
-                    <LogOut className="h-3.5 w-3.5 flex-shrink-0" />
                     <span className="font-medium">Log out</span>
+                    <ExitIcon className="h-4 w-4 flex-shrink-0" />
                   </DropdownMenuItem>
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <ThemeSwitcher />
 
           </div>
         </div>
