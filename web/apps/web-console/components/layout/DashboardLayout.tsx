@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sidebar } from './Sidebar';
+import { Breadcrumbs } from './Breadcrumbs';
 import { useTenant } from '@/hooks/useTenant';
 import { AlertCircle, X } from 'lucide-react';
 import { HealthCheckGate } from '@/components/HealthCheckGate';
@@ -32,17 +33,18 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
           <div className="flex-1 flex flex-col md:ml-64 min-w-0">
-            {/* Mobile top bar */}
-            <nav className="md:hidden h-12 px-4 flex items-center border-b border-border bg-background flex-shrink-0">
+            {/* Header navbar */}
+            <header className="h-12 px-4 sm:px-6 flex items-center border-b border-[#e4e4e4] dark:border-border bg-background flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="md:hidden h-8 w-8 mr-2 -ml-1"
                 onClick={() => setSidebarOpen(true)}
               >
                 <Menu className="h-4 w-4" />
               </Button>
-            </nav>
+              <Breadcrumbs />
+            </header>
 
             {/* Trial Banner */}
             {showTrialBanner && (
