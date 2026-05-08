@@ -32,9 +32,9 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
         <div className="flex min-h-screen bg-background">
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-          <div className="flex-1 flex flex-col md:ml-64 min-w-0">
+          <div className="flex-1 flex flex-col md:ml-72 min-w-0">
             {/* Header navbar */}
-            <header className="h-12 px-4 sm:px-6 flex items-center border-b border-[#e4e4e4] dark:border-border bg-background flex-shrink-0">
+            <header className="h-12 px-4 sm:px-6 flex items-center border-b-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-background flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -77,7 +77,7 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
             )}
 
             <main className="flex-1 overflow-x-hidden">
-              <div className={`console-cardscope px-4 sm:px-6 lg:px-8 py-6 ${fullWidth ? 'w-full' : 'max-w-[1200px] mx-auto'}`}>
+              <div className={`console-cardscope py-6 ${fullWidth ? 'w-full px-4 sm:px-5' : 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8'}`}>
                 {children}
               </div>
             </main>
