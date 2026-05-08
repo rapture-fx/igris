@@ -28,7 +28,7 @@
 - External provider proof; the proof uses the local mock provider.
 
 Evidence artifact directory:
-- `/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.xvRujR`
+- `/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/igris-checkpoint-proof.xVAP8S`
 
 ## Checkpoint Trigger Used
 
@@ -90,8 +90,8 @@ Previous full `go test ./igris-overture/coordinator -count=1` still has unrelate
 ## Checkpoint Evidence
 
 Task:
-- `task_id`: `5085ce3c-a94a-4d63-81a8-3bb411ead243`
-- Runtime 1 registry id: `9b028d11-1357-46c6-a877-2eb64f569dfe`
+- `task_id`: `791c9415-d3a7-4e03-b8f2-9c0f6dacd50a`
+- Runtime 1 registry id: `571d0d77-2402-4bfb-97ba-b601e51e1ad0`
 - Runtime 1 peer id: `checkpoint-runtime-1`
 
 Checkpoint state from `db-task-after-checkpoint.json`:
@@ -106,7 +106,7 @@ Checkpoint state from `db-task-after-checkpoint.json`:
 ## Recovery Redispatch Evidence
 
 Runtime 1 was stopped. Runtime 2 was started with the same Runtime WAL store and registered as:
-- Runtime 2 registry id: `dd383a1f-8f0b-496e-b184-3cd03eb236c6`
+- Runtime 2 registry id: `89257e50-b985-42cb-806d-debbb2933491`
 - Runtime 2 peer id: `checkpoint-runtime-2`
 
 Overture recovery log snippets:
@@ -122,7 +122,7 @@ Status history after recovery:
 
 Final task state from `db-task-after-recovery.json`:
 - `status = "completed"`
-- `runtime_id = "dd383a1f-8f0b-496e-b184-3cd03eb236c6"`
+- `runtime_id = "89257e50-b985-42cb-806d-debbb2933491"`
 - `last_committed_step = "7"`
 - `checkpoint_runtime_id = "checkpoint-runtime-2"`
 - `checkpoint_digest = c0785c04e2ff7f0c76a534f4bc052daec7b5a8d32cc1d80ca1e7f377981e348f`
@@ -133,7 +133,7 @@ Final task state from `db-task-after-recovery.json`:
 `task-after-recovery.json`:
 - `status = "completed"`
 - `last_step = 7`
-- receipt available for execution `019e02f6-f8bf-7b23-ae9e-3fb4da6c8d95`
+- receipt available for execution `019e0304-b256-7932-96d5-9e8e83fbba63`
 - task proof `matched = true`
 
 ## WAL / No-Duplicate-Step Evidence
@@ -154,8 +154,8 @@ This proves step 0 was not re-executed by Runtime 2.
 ## Runs And Receipts Visibility
 
 Final recovered execution:
-- `execution_id = 019e02f6-f8bf-7b23-ae9e-3fb4da6c8d95`
-- `receipt_hash = f33d04e5948c3b744960875d8db181868fa99dab7bfa3a2e1e224af13002bc2c`
+- `execution_id = 019e0304-b256-7932-96d5-9e8e83fbba63`
+- `receipt_hash = a6d85058136a1da31a416edb82cd173cefeb8c2094a2290fa541f2737f4c5515`
 - `execution_lineage` count for the final execution: `1`
 
 Global API visibility:
