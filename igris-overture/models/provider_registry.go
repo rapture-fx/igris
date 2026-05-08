@@ -12,6 +12,8 @@ type CompatibilityClass string
 const (
 	// OpenAICompatible providers use OpenAI-compatible API format
 	OpenAICompatible CompatibilityClass = "openai_compatible"
+	// AnthropicCompatible providers use Anthropic Messages API format
+	AnthropicCompatible CompatibilityClass = "anthropic"
 	// CustomAdapter providers require custom transformation logic
 	CustomAdapter CompatibilityClass = "custom_adapter"
 	// Unsupported providers are not yet supported
@@ -59,7 +61,7 @@ type ProviderRegistry struct {
 	// Connection Configuration
 	BaseURL            string  `json:"base_url" db:"base_url"`
 	AuthHeaderTemplate string  `json:"auth_header_template" db:"auth_header_template"` // Static template e.g. "Authorization: Bearer {key}"
-	KeyID              *string `json:"key_id,omitempty" db:"key_id"`                    // Reference to tenant_keys.id
+	KeyID              *string `json:"key_id,omitempty" db:"key_id"`                   // Reference to tenant_keys.id
 
 	// Provider Metadata
 	Models             []string           `json:"models" db:"models"`
