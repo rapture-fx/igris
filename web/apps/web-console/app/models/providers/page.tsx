@@ -54,10 +54,15 @@ interface ProviderForm {
 const PROVIDER_OPTIONS = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'anthropic', label: 'Anthropic' },
-  { value: 'deepseek', label: 'DeepSeek' },
-  { value: 'google', label: 'Google Gemini' },
+  { value: 'groq', label: 'Groq' },
   { value: 'xai', label: 'xAI' },
+  { value: 'qwen', label: 'Qwen' },
+  { value: 'kimi', label: 'Kimi' },
+  { value: 'glm', label: 'GLM' },
+  { value: 'deepseek', label: 'DeepSeek' },
   { value: 'mistral', label: 'Mistral' },
+  { value: 'google_gemini', label: 'Google Gemini' },
+  { value: 'custom', label: 'Custom OpenAI-compatible' },
   { value: 'local', label: 'Local (GGUF)' },
 ];
 
