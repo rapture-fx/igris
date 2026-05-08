@@ -77,7 +77,7 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
             )}
 
             <main className="flex-1 overflow-x-hidden">
-              <div className={`console-cardscope py-6 ${fullWidth ? 'w-full px-4 sm:px-5' : 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8'}`}>
+              <div className={`console-cardscope ${fullWidth ? 'w-full px-4 sm:px-5 pt-5 pb-6' : 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
                 {children}
               </div>
             </main>
