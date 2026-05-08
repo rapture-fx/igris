@@ -287,15 +287,15 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <li key={item.name}>
                       <button
                         onClick={() => toggleSection(item.name)}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/75 hover:text-foreground hover:bg-muted/60"
+                        className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/90 hover:text-foreground hover:bg-muted/60"
                       >
                         <div className="flex items-center gap-2">
-                          <item.icon className="h-5 w-5 flex-shrink-0 text-foreground/60" strokeWidth={1.5} />
+                          <item.icon className="h-4 w-4 flex-shrink-0 text-foreground/80" strokeWidth={1.5} />
                           {item.name}
                         </div>
                         <ChevronDown
                           className={cn(
-                            'h-5 w-5 text-foreground/50 transition-transform duration-150',
+                            'h-4 w-4 text-foreground/70 transition-transform duration-150',
                             isExpanded && 'rotate-180'
                           )}
                         />
@@ -316,7 +316,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                                     'flex items-center justify-between rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
                                     isActive
                                       ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                                      : 'text-foreground/70 hover:text-foreground hover:bg-muted/60'
+                                      : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
                                   )}
                                 >
                                   {child.name}
@@ -341,10 +341,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
                         isActive
                           ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                          : 'text-foreground/70 hover:text-foreground hover:bg-muted/60'
+                          : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
                       )}
                     >
-                      <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive ? 'text-foreground' : 'text-foreground/60')} strokeWidth={1.5} />
+                      <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-foreground' : 'text-foreground/80')} strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
