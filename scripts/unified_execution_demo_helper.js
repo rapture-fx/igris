@@ -22,16 +22,72 @@ const PROVIDER_PRESETS = {
     name: "OpenAI Real Provider",
     endpoint: "https://api.openai.com/v1",
     model: "gpt-4o-mini",
+    apiFormat: "openai_compatible",
     apiKeyEnv: "OPENAI_API_KEY",
     capabilities: ["reasoning", "coding"],
+  },
+  anthropic: {
+    id: "anthropic-real",
+    name: "Anthropic Real Provider",
+    endpoint: "https://api.anthropic.com/v1",
+    model: "claude-sonnet-4-20250514",
+    apiFormat: "anthropic",
+    apiKeyEnv: "ANTHROPIC_API_KEY",
+    capabilities: ["reasoning", "coding", "long_context"],
   },
   groq: {
     id: "groq-real",
     name: "Groq Real Provider",
     endpoint: "https://api.groq.com/openai/v1",
     model: "llama3-70b-8192",
+    apiFormat: "openai_compatible",
     apiKeyEnv: "GROQ_API_KEY",
     capabilities: ["fast", "coding"],
+  },
+  xai: {
+    id: "xai-real",
+    name: "xAI Real Provider",
+    endpoint: "https://api.x.ai/v1",
+    model: "grok-4",
+    apiFormat: "openai_compatible",
+    apiKeyEnv: "XAI_API_KEY",
+    capabilities: ["reasoning"],
+  },
+  qwen: {
+    id: "qwen-real",
+    name: "Qwen Real Provider",
+    endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    model: "qwen-plus",
+    apiFormat: "openai_compatible",
+    apiKeyEnv: "DASHSCOPE_API_KEY",
+    capabilities: ["reasoning", "coding"],
+  },
+  kimi: {
+    id: "kimi-real",
+    name: "Kimi Real Provider",
+    endpoint: "https://api.moonshot.ai/v1",
+    model: "kimi-k2-0711-preview",
+    apiFormat: "openai_compatible",
+    apiKeyEnv: "MOONSHOT_API_KEY",
+    capabilities: ["reasoning", "coding"],
+  },
+  glm: {
+    id: "glm-real",
+    name: "GLM Real Provider",
+    endpoint: "https://open.bigmodel.cn/api/paas/v4",
+    model: "glm-5",
+    apiFormat: "openai_compatible",
+    apiKeyEnv: "ZAI_API_KEY",
+    capabilities: ["reasoning", "coding"],
+  },
+  deepseek: {
+    id: "deepseek-real",
+    name: "DeepSeek Real Provider",
+    endpoint: "https://api.deepseek.com",
+    model: "deepseek-v4-flash",
+    apiFormat: "openai_compatible",
+    apiKeyEnv: "DEEPSEEK_API_KEY",
+    capabilities: ["reasoning", "coding", "cost_effective"],
   },
 };
 
@@ -146,6 +202,7 @@ function providerConfigForMode(mode) {
       name: "Local Mock Cloud Provider",
       endpoint: "http://127.0.0.1:18090/v1",
       model: "mock-model",
+      api_format: "openai_compatible",
       api_key_env: "RUNTIME_MOCK_KEY",
       cost_per_1k_input: 0.01,
       cost_per_1k_output: 0.03,
@@ -162,7 +219,7 @@ function providerConfigForMode(mode) {
     providerKind === "openai_compatible" ? null : PROVIDER_PRESETS[providerKind];
   if (!preset && providerKind !== "openai_compatible") {
     fail(
-      `unsupported IGRIS_REAL_PROVIDER=${providerKind}; expected openai, groq, or openai_compatible`
+      `unsupported IGRIS_REAL_PROVIDER=${providerKind}; expected ${Object.keys(PROVIDER_PRESETS).join(", ")}, or openai_compatible`
     );
   }
 
@@ -180,11 +237,19 @@ function providerConfigForMode(mode) {
     process.env.IGRIS_REAL_PROVIDER_ENDPOINT || (preset ? preset.endpoint : "");
   const model =
     process.env.IGRIS_REAL_PROVIDER_MODEL || (preset ? preset.model : "");
+  const apiFormat =
+    process.env.IGRIS_REAL_PROVIDER_API_FORMAT ||
+    (preset ? preset.apiFormat : "openai_compatible");
   if (!endpoint) {
     fail("real provider endpoint is required via IGRIS_REAL_PROVIDER_ENDPOINT");
   }
   if (!model) {
     fail("real provider model is required via IGRIS_REAL_PROVIDER_MODEL");
+  }
+  if (!["openai_compatible", "anthropic"].includes(apiFormat)) {
+    fail(
+      `unsupported IGRIS_REAL_PROVIDER_API_FORMAT=${apiFormat}; expected openai_compatible or anthropic`
+    );
   }
 
   return {
@@ -196,6 +261,7 @@ function providerConfigForMode(mode) {
       (preset ? preset.name : "OpenAI-Compatible Real Provider"),
     endpoint,
     model,
+    api_format: apiFormat,
     api_key_env: apiKeyEnv,
     cost_per_1k_input: 0.0,
     cost_per_1k_output: 0.0,
@@ -712,6 +778,7 @@ function buildFallbackRuntimeConfig(outDir) {
     name: "Mock Primary (will fail)",
     endpoint: "http://127.0.0.1:19090/v1",
     model: "mock-model",
+    api_format: "openai_compatible",
     api_key_env: "RUNTIME_MOCK_KEY",
     cost_per_1k_input: 0.0,
     cost_per_1k_output: 0.0,
@@ -723,6 +790,7 @@ function buildFallbackRuntimeConfig(outDir) {
     name: "Mock Fallback (will succeed)",
     endpoint: "http://127.0.0.1:18090/v1",
     model: "mock-model",
+    api_format: "openai_compatible",
     api_key_env: "RUNTIME_MOCK_KEY",
     cost_per_1k_input: 0.01,
     cost_per_1k_output: 0.03,
