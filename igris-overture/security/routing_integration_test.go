@@ -2,12 +2,55 @@ package security
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/base64"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func signedRuntimeRegistration(t *testing.T, runtimeID, tenantID string, timestamp int64) *RuntimeRegistration {
+	t.Helper()
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	message := fmt.Sprintf("%s:%s:%d", runtimeID, tenantID, timestamp)
+	return &RuntimeRegistration{
+		RuntimeID:       runtimeID,
+		TenantID:        tenantID,
+		PublicKeyBase64: base64.StdEncoding.EncodeToString(publicKey),
+		Timestamp:       timestamp,
+		Signature:       base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message))),
+	}
+}
+
+func signedRuntimeHeartbeat(t *testing.T, runtimeID, tenantID string, timestamp int64, privateKey ed25519.PrivateKey, stats map[string]interface{}) *RuntimeHeartbeat {
+	t.Helper()
+	message := fmt.Sprintf("%s:%s:%d", runtimeID, tenantID, timestamp)
+	return &RuntimeHeartbeat{
+		RuntimeID: runtimeID,
+		TenantID:  tenantID,
+		Timestamp: timestamp,
+		Stats:     stats,
+		Signature: base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message))),
+	}
+}
+
+func signedRuntimeRegistrationWithKey(t *testing.T, runtimeID, tenantID string, timestamp int64) (*RuntimeRegistration, ed25519.PrivateKey) {
+	t.Helper()
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	message := fmt.Sprintf("%s:%s:%d", runtimeID, tenantID, timestamp)
+	return &RuntimeRegistration{
+		RuntimeID:       runtimeID,
+		TenantID:        tenantID,
+		PublicKeyBase64: base64.StdEncoding.EncodeToString(publicKey),
+		Timestamp:       timestamp,
+		Signature:       base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, []byte(message))),
+	}, privateKey
+}
 
 func TestRoutingIntegrationDisabled(t *testing.T) {
 	config := RoutingIntegrationConfig{
@@ -41,12 +84,7 @@ func TestRuntimeRegistry(t *testing.T) {
 	registry := NewRuntimeRegistry()
 
 	// Register a runtime
-	reg := &RuntimeRegistration{
-		RuntimeID:       "runtime-001",
-		TenantID:        "tenant-1",
-		PublicKeyBase64: "dGVzdC1wdWJsaWMta2V5LWJhc2U2NC1lbmNvZGVk",
-		Timestamp:       time.Now().Unix(),
-	}
+	reg := signedRuntimeRegistration(t, "runtime-001", "tenant-1", time.Now().Unix())
 
 	err := registry.RegisterRuntime(reg)
 	require.NoError(t, err)
@@ -75,25 +113,15 @@ func TestRuntimeHeartbeat(t *testing.T) {
 	registry := NewRuntimeRegistry()
 
 	// Register first
-	reg := &RuntimeRegistration{
-		RuntimeID:       "runtime-002",
-		TenantID:        "tenant-1",
-		PublicKeyBase64: "dGVzdC1wdWJsaWMta2V5",
-		Timestamp:       time.Now().Unix(),
-	}
+	reg, privateKey := signedRuntimeRegistrationWithKey(t, "runtime-002", "tenant-1", time.Now().Unix())
 	err := registry.RegisterRuntime(reg)
 	require.NoError(t, err)
 
 	// Send heartbeat
-	hb := &RuntimeHeartbeat{
-		RuntimeID: "runtime-002",
-		TenantID:  "tenant-1",
-		Timestamp: time.Now().Unix(),
-		Stats: map[string]interface{}{
-			"requests_processed": 100,
-			"avg_latency_ms":     45.5,
-		},
-	}
+	hb := signedRuntimeHeartbeat(t, "runtime-002", "tenant-1", time.Now().Unix(), privateKey, map[string]interface{}{
+		"requests_processed": 100,
+		"avg_latency_ms":     45.5,
+	})
 
 	err = registry.UpdateHeartbeat(hb)
 	require.NoError(t, err)
@@ -123,12 +151,7 @@ func TestRuntimeUnregister(t *testing.T) {
 	registry := NewRuntimeRegistry()
 
 	// Register
-	reg := &RuntimeRegistration{
-		RuntimeID:       "runtime-003",
-		TenantID:        "tenant-1",
-		PublicKeyBase64: "dGVzdC1rZXk=",
-		Timestamp:       time.Now().Unix(),
-	}
+	reg := signedRuntimeRegistration(t, "runtime-003", "tenant-1", time.Now().Unix())
 	err := registry.RegisterRuntime(reg)
 	require.NoError(t, err)
 
@@ -174,32 +197,15 @@ func TestDefaultRoutingIntegrationConfig(t *testing.T) {
 func TestMultipleRuntimesSameTenant(t *testing.T) {
 	registry := NewRuntimeRegistry()
 
-	// Valid base64-encoded test keys (32 bytes each = Ed25519 public key size)
-	testKeys := []string{
-		"YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=", // 32 bytes of 'a'
-		"YmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmI=", // 32 bytes of 'b'
-		"Y2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2M=", // 32 bytes of 'c'
-	}
-
 	// Register multiple runtimes for same tenant
 	for i := 0; i < 3; i++ {
-		reg := &RuntimeRegistration{
-			RuntimeID:       "runtime-" + string(rune('1'+i)),
-			TenantID:        "tenant-1",
-			PublicKeyBase64: testKeys[i],
-			Timestamp:       time.Now().Unix(),
-		}
+		reg := signedRuntimeRegistration(t, "runtime-"+string(rune('1'+i)), "tenant-1", time.Now().Unix())
 		err := registry.RegisterRuntime(reg)
 		require.NoError(t, err)
 	}
 
 	// Register one for different tenant
-	reg := &RuntimeRegistration{
-		RuntimeID:       "runtime-other",
-		TenantID:        "tenant-2",
-		PublicKeyBase64: "ZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGQ=", // 32 bytes of 'd'
-		Timestamp:       time.Now().Unix(),
-	}
+	reg := signedRuntimeRegistration(t, "runtime-other", "tenant-2", time.Now().Unix())
 	err := registry.RegisterRuntime(reg)
 	require.NoError(t, err)
 
