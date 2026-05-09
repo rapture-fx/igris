@@ -7,7 +7,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -160,6 +159,7 @@ function SurfaceSection({
   children,
   bodyClassName,
   collapsed,
+  className,
 }: {
   icon?: LucideIcon;
   title?: string;
@@ -168,10 +168,11 @@ function SurfaceSection({
   children?: ReactNode;
   bodyClassName?: string;
   collapsed?: boolean;
+  className?: string;
 }) {
   const hasHeader = title || Icon || actions;
   return (
-    <div className="rounded-lg overflow-hidden bg-white border border-[#e4e4e4]">
+    <div className={cn('rounded-lg overflow-hidden bg-background border-[0.5px] border-black/[0.08] dark:border-white/[0.08]', className)}>
       {hasHeader && (
         <div className="flex items-start justify-between gap-4 px-5 py-4">
           {(title || Icon) && (
@@ -193,7 +194,7 @@ function SurfaceSection({
         </div>
       )}
       {!collapsed && (
-        <div className={cn('bg-white', hasHeader && 'border-t border-[#e4e4e4]', bodyClassName ?? 'px-5 py-4')}>
+        <div className={cn('bg-background', hasHeader && 'border-t-[0.5px] border-black/[0.08] dark:border-white/[0.08]', bodyClassName ?? 'px-5 py-4')}>
           {children}
         </div>
       )}
@@ -404,35 +405,35 @@ function LogsContent() {
 
   return (
     <DashboardLayout fullWidth>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-2 flex-1 min-h-0">
 
         {/* ── Filter bar ────────────────────────────────────────────────────── */}
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 flex-shrink-0">
           <Select value={agentFilter} onValueChange={setAgentFilter}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue placeholder="all agents" /></SelectTrigger>
+            <SelectTrigger className="h-auto py-2 w-52 text-xs bg-white shadow-none"><SelectValue placeholder="all agents" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">all agents</SelectItem>
               {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs font-mono">{a}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={deviceFilter} onValueChange={setDeviceFilter}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue placeholder="all devices" /></SelectTrigger>
+            <SelectTrigger className="h-auto py-2 w-52 text-xs bg-white shadow-none"><SelectValue placeholder="all devices" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">all devices</SelectItem>
               {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Input placeholder="exec ID..." className="h-8 w-36 text-xs"
+          <Input placeholder="exec ID..." className="py-2 h-auto w-52 text-xs shadow-none"
             value={execFilter} onChange={(e) => setExecFilter(e.target.value)} />
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-8 w-44 text-xs bg-white"><SelectValue placeholder="all types" /></SelectTrigger>
+            <SelectTrigger className="h-auto py-2 w-60 text-xs bg-white shadow-none"><SelectValue placeholder="all types" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">all types</SelectItem>
               {EVENT_TYPES.map((t) => <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={severityFilter} onValueChange={setSeverityFilter}>
-            <SelectTrigger className="h-8 w-28 text-xs bg-white"><SelectValue placeholder="all" /></SelectTrigger>
+            <SelectTrigger className="h-auto py-2 w-44 text-xs bg-white shadow-none"><SelectValue placeholder="all" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">all</SelectItem>
               {(['info', 'warning', 'error', 'critical'] as Severity[]).map((s) =>
@@ -440,7 +441,7 @@ function LogsContent() {
             </SelectContent>
           </Select>
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="h-8 w-28 text-xs bg-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-auto py-2 w-44 text-xs bg-white shadow-none"><SelectValue /></SelectTrigger>
             <SelectContent>
               {[
                 { label: 'Last 5m',  value: 'last_5m'  },
@@ -451,21 +452,20 @@ function LogsContent() {
               ].map((t) => <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="flex items-center gap-2 px-2.5 py-1 border border-gray-200 rounded-md bg-white h-8">
-            <div className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', liveMode ? 'bg-green-500 animate-pulse' : 'bg-gray-300')} />
-            <span className="text-xs text-gray-600">Live</span>
-            <Switch checked={liveMode} onCheckedChange={setLiveMode} className="h-4 w-8 scale-75" />
-          </div>
-          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
+          <Button variant="outline" size="sm" className="h-auto py-2 text-xs gap-1.5" onClick={() => setLiveMode(!liveMode)}>
+            <span className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', liveMode ? 'bg-green-500 animate-pulse' : 'bg-gray-400')} />
+            Live
+          </Button>
+          <Button variant="outline" size="sm" className="h-auto py-2 text-xs gap-1.5" onClick={() => refetch()}>
             <RefreshCw className="h-3 w-3" /> Refresh
           </Button>
-          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" disabled={events.length === 0}
+          <Button variant="outline" size="sm" className="h-auto py-2 text-xs gap-1.5" disabled={events.length === 0}
             onClick={() => downloadJSON(events, `events-${timeRange}`)}>
             <Download className="h-3 w-3" /> Export
           </Button>
-          <div className="relative flex-1 min-w-[160px]">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
-            <Input placeholder="search messages..." className="h-8 text-xs pl-6"
+          <div className="relative flex-1 min-w-[120px]">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Input placeholder="search messages..." className="py-2 h-auto text-xs pl-7 shadow-none bg-white"
               value={textSearch} onChange={(e) => setTextSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Escape' && setTextSearch('')} />
           </div>
@@ -478,16 +478,16 @@ function LogsContent() {
         )}
 
         {/* ── Tabs + stats ──────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 flex-shrink-0">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
-            <TabsList className="h-8 p-0.5 bg-gray-100 gap-0">
-              <TabsTrigger value="event_stream" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
+            <TabsList className="h-8 p-0.5 bg-[#ebebeb] gap-0">
+              <TabsTrigger value="event_stream" className="h-7 px-3 text-xs text-gray-600 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-muted data-[state=active]:text-gray-900 dark:data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
                 Event Stream
               </TabsTrigger>
-              <TabsTrigger value="execution_timeline" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
+              <TabsTrigger value="execution_timeline" className="h-7 px-3 text-xs text-gray-600 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-muted data-[state=active]:text-gray-900 dark:data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
                 Execution Timeline
               </TabsTrigger>
-              <TabsTrigger value="request_traces" className="h-7 px-3 text-xs data-[state=active]:bg-white data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
+              <TabsTrigger value="request_traces" className="h-7 px-3 text-xs text-gray-600 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-muted data-[state=active]:text-gray-900 dark:data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
                 Request Traces
               </TabsTrigger>
             </TabsList>
@@ -516,7 +516,8 @@ function LogsContent() {
           return (
             <>
               <SurfaceSection
-                bodyClassName="px-0 py-0"
+                className="flex-1 min-h-0 flex flex-col"
+                bodyClassName="px-0 py-0 flex-1 min-h-0"
                 actions={
                   <>
                     <Select value={traceProviderFilter} onValueChange={setTraceProviderFilter}>
@@ -543,22 +544,21 @@ function LogsContent() {
                 }
               >
               {/* Traces table */}
-              <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white mx-4 mb-4">
-                <div
-                  className="overflow-y-auto"
-                  style={{ height: 'calc(100vh - 380px)', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
-                >
+              <div
+                className="overflow-y-auto flex-1 min-h-0"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+              >
                   <Table className="w-full table-fixed">
                     <TableHeader className="sticky top-0 z-10">
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-[90px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Time</TableHead>
-                        <TableHead className="w-[110px] text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Provider</TableHead>
-                        <TableHead className="w-[140px] text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Model</TableHead>
-                        <TableHead className="w-[64px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Status</TableHead>
-                        <TableHead className="w-[80px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Latency</TableHead>
-                        <TableHead className="w-[80px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tokens</TableHead>
-                        <TableHead className="w-[70px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Cost</TableHead>
-                        <TableHead className="           text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-gray-50 border-b border-gray-200">Tags</TableHead>
+                        <TableHead className="w-[90px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Time</TableHead>
+                        <TableHead className="w-[110px] text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Provider</TableHead>
+                        <TableHead className="w-[140px] text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Model</TableHead>
+                        <TableHead className="w-[64px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Status</TableHead>
+                        <TableHead className="w-[80px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Latency</TableHead>
+                        <TableHead className="w-[80px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Tokens</TableHead>
+                        <TableHead className="w-[70px]  text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Cost</TableHead>
+                        <TableHead className="           text-xs font-medium text-gray-500 uppercase tracking-wide h-9 px-3 bg-background border-b border-black/[0.08] dark:border-white/[0.08]">Tags</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -638,7 +638,6 @@ function LogsContent() {
                     </TableBody>
                   </Table>
                 </div>
-              </div>
               </SurfaceSection>
 
               {/* Trace detail drawer */}
@@ -733,11 +732,11 @@ function LogsContent() {
         {/* ── Execution Timeline ────────────────────────────────────────────── */}
         {viewMode === 'execution_timeline' ? (
           <SurfaceSection
-            bodyClassName="px-4 py-4"
+            className="flex-1 min-h-0 flex flex-col"
+            bodyClassName="px-4 py-4 flex-1 min-h-0 overflow-y-auto"
           >
             <div
-              className="overflow-y-auto"
-              style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
+              style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
             >
               <div className="space-y-3 pb-6">
                 <ExecutionTimeline events={events} />
@@ -748,7 +747,8 @@ function LogsContent() {
 
         /* ── Event Stream ────────────────────────────────────────────────── */
         <SurfaceSection
-          bodyClassName="px-0 py-0"
+          className="flex-1 min-h-0 flex flex-col"
+          bodyClassName="px-0 py-0 flex-1 min-h-0"
           actions={
             <div className="flex items-center gap-2">
               {liveMode && (
@@ -766,8 +766,8 @@ function LogsContent() {
         >
           {/* Log lines */}
           <div
-            className="overflow-y-auto"
-            style={{ height: 'calc(100vh - 360px)', scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
+            className="overflow-y-auto h-full"
+            style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
           >
             {isLoading ? (
               <div className="px-4 py-6 font-mono">
