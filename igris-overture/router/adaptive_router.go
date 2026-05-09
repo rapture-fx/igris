@@ -136,6 +136,18 @@ func (ar *AdaptiveRouter) RegisterBackend(backend *Backend) error {
 	backend.Healthy = true
 	backend.LastHealthCheck = time.Now()
 	ar.backends[backend.ID] = backend
+	if ar.trustTracker != nil {
+		ar.trustTracker.mu.Lock()
+		if _, exists := ar.trustTracker.providers[backend.ID]; !exists {
+			ar.trustTracker.providers[backend.ID] = &ProviderTrust{
+				ProviderID:      backend.ID,
+				TrustScore:      1.0,
+				ConfidenceLevel: 0.0,
+				LastDecayTime:   time.Now(),
+			}
+		}
+		ar.trustTracker.mu.Unlock()
+	}
 
 	return nil
 }
