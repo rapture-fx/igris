@@ -480,7 +480,7 @@ function LogsContent() {
         {/* ── Tabs + stats ──────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-4 flex-shrink-0">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as typeof viewMode)}>
-            <TabsList className="h-8 p-0.5 bg-[#ebebeb] gap-0">
+            <TabsList className="h-8 p-0.5 bg-muted gap-0">
               <TabsTrigger value="event_stream" className="h-7 px-3 text-xs text-gray-600 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-muted data-[state=active]:text-gray-900 dark:data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:shadow-none data-[state=active]:border-0 data-[state=active]:rounded-md">
                 Event Stream
               </TabsTrigger>
