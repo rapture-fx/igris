@@ -90,7 +90,7 @@ interface DeviceStats {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ViolationCountBadge({ count }: { count: number }) {
-  if (count === 0) return <span className="text-xs text-gray-300">—</span>;
+  if (count === 0) return <span className="text-xs text-muted-foreground">—</span>;
   if (count <= 5) {
     return (
       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
@@ -152,7 +152,7 @@ function formatDuration(ms: number): string {
 }
 
 function ContainmentBadge({ containment }: { containment?: { enabled: boolean; mode?: string; violation_count?: number } }) {
-  if (!containment?.enabled) return <span className="text-xs text-gray-300">—</span>;
+  if (!containment?.enabled) return <span className="text-xs text-muted-foreground">—</span>;
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200">
       <Shield className="h-2.5 w-2.5" />
@@ -195,35 +195,35 @@ function BoundedTopicMonitor({ deviceId }: { deviceId: string }) {
   }
 
   if (topics.length === 0) {
-    return <p className="text-xs text-gray-400">No topic activity. Connect ROS bridge to see live topic data.</p>;
+    return <p className="text-xs text-muted-foreground">No topic activity. Connect ROS bridge to see live topic data.</p>;
   }
 
   return (
-    <div className="border border-gray-100 rounded-md overflow-hidden">
+    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
       <table className="w-full text-xs">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-100">
-            <th className="text-left px-3 py-2 font-medium text-gray-500">Topic</th>
-            <th className="text-left px-3 py-2 font-medium text-gray-500">Last Message</th>
-            <th className="text-left px-3 py-2 font-medium text-gray-500">Envelope</th>
+          <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
+            <th className="text-left px-3 py-2 font-medium text-muted-foreground">Topic</th>
+            <th className="text-left px-3 py-2 font-medium text-muted-foreground">Last Message</th>
+            <th className="text-left px-3 py-2 font-medium text-muted-foreground">Envelope</th>
           </tr>
         </thead>
         <tbody>
           {topics.map((t) => (
-            <tr key={t.topic} className="border-b border-gray-50 last:border-0">
-              <td className="px-3 py-2 font-mono text-teal-700 whitespace-nowrap">{t.topic}</td>
-              <td className="px-3 py-2 text-gray-500 max-w-[140px] truncate" title={t.last_message}>
+            <tr key={t.topic} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] last:border-0">
+              <td className="px-3 py-2 font-mono text-teal-600 whitespace-nowrap">{t.topic}</td>
+              <td className="px-3 py-2 text-muted-foreground max-w-[140px] truncate" title={t.last_message}>
                 {t.last_message ? (
                   <span className="font-mono text-[10px]">{t.last_message.slice(0, 30)}{t.last_message.length > 30 ? '…' : ''}</span>
                 ) : (
-                  <span className="text-gray-300">—</span>
+                  <span className="text-muted-foreground">—</span>
                 )}
               </td>
               <td className="px-3 py-2">
                 <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
                   t.within_envelope
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : 'bg-red-50 text-red-700 border-red-200'
+                    ? 'bg-green-50 text-green-600 border-green-200'
+                    : 'bg-red-50 text-red-600 border-red-200'
                 }`}>
                   {t.within_envelope ? 'Within' : 'Violated'}
                 </span>
@@ -403,10 +403,10 @@ function FleetDevicesContent() {
   );
 
   const STAT_CARDS = [
-    { label: 'Online', value: counts.online, icon: Wifi, color: 'text-green-600', pending: devicesLoading },
-    { label: 'Offline', value: counts.offline, icon: WifiOff, color: 'text-gray-500', pending: devicesLoading },
-    { label: 'Executions (24h)', value: stats?.executions_total ?? '—', icon: Activity, color: 'text-blue-600', pending: !stats },
-    { label: 'Violations (24h)', value: stats?.violations_total ?? '—', icon: AlertTriangle, color: 'text-orange-600', pending: !stats },
+    { label: 'Online', value: counts.online, icon: Wifi, pending: devicesLoading },
+    { label: 'Offline', value: counts.offline, icon: WifiOff, pending: devicesLoading },
+    { label: 'Executions (24h)', value: stats?.executions_total ?? '—', icon: Activity, pending: !stats },
+    { label: 'Violations (24h)', value: stats?.violations_total ?? '—', icon: AlertTriangle, pending: !stats },
   ];
 
   return (
@@ -415,21 +415,16 @@ function FleetDevicesContent() {
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Devices</h1>
-            <p className="text-xs text-black mt-0.5">
-              Distributed runtime nodes participating in governed execution.
-            </p>
-          </div>
+          <h1 className="text-base font-semibold text-foreground">Devices</h1>
 
           {runtimeQuota && (
             <div className="flex-shrink-0 min-w-[200px]">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-gray-500 flex items-center gap-1">
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Zap className="h-3 w-3" />
                   Runtime quota · {runtimeQuota.tier_name}
                 </span>
-                <span className="text-xs tabular-nums font-medium text-gray-900">
+                <span className="text-xs tabular-nums font-medium text-foreground">
                   {runtimeQuota.runtimes.used} / {runtimeQuota.runtimes.limit}
                 </span>
               </div>
@@ -449,29 +444,29 @@ function FleetDevicesContent() {
         {/* ── Summary Cards ───────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {STAT_CARDS.map((c) => (
-            <div key={c.label} className="border border-gray-200 shadow hover:border-gray-300 transition-colors rounded-3xl overflow-hidden bg-white">
-              <div className="px-4 pt-3 pb-2 flex items-center gap-1.5">
-                <c.icon className={`h-3.5 w-3.5 ${c.color}`} />
-                <span className="text-xs font-medium text-gray-500">{c.label}</span>
+            <div key={c.label} className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
+              <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
+                <c.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                {c.label}
               </div>
-              <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+              <div className="bg-white px-4 pt-4 pb-5">
                 {c.pending ? (
                   <Skeleton className="h-8 w-12" />
                 ) : (
-                  <div className="text-4xl font-bold tabular-nums text-gray-900">{c.value}</div>
+                  <div className="text-3xl font-bold tabular-nums text-foreground">{c.value}</div>
                 )}
               </div>
             </div>
           ))}
         </div>
 
-        {/* ── Devices Table Card ──────────────────────────────────────────── */}
-        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+        {/* ── Devices Table ──────────────────────────────────────────── */}
+        <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-sm font-medium text-gray-900">Devices</span>
+            <span className="text-sm font-medium text-foreground">Devices</span>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   placeholder="Search device_id…"
                   className="pl-8 h-8 text-xs w-48"
@@ -506,20 +501,20 @@ function FleetDevicesContent() {
             </div>
           </div>
 
-          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+          <div className="bg-white overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-200">
+                  <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
                     {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Active Exec', 'Runs (24h)', 'Violations', 'Policy Sync', 'Containment'].map((col) => (
-                      <th key={col} className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">{col}</th>
+                      <th key={col} className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">{col}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {devicesLoading ? (
                     Array.from({ length: 6 }).map((_, i) => (
-                      <tr key={i} className="border-b border-gray-100">
+                      <tr key={i} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
                         {Array.from({ length: 9 }).map((_, j) => (
                           <td key={j} className="px-4 py-2.5">
                             <Skeleton className="h-3.5 w-16" />
@@ -528,11 +523,11 @@ function FleetDevicesContent() {
                       </tr>
                     ))
                   ) : filtered.length === 0 ? (
-                    <tr>
+                    <tr className="bg-white">
                       <td colSpan={9} className="py-14">
                         <div className="flex flex-col items-center gap-2.5 text-center">
                           <Server className="h-9 w-9 text-gray-200" />
-                          <p className="text-xs text-gray-400">No runtime nodes registered yet.</p>
+                          <p className="text-xs text-muted-foreground">No runtime nodes registered yet.</p>
                           {runtimeLimitReached ? (
                             <div className="flex flex-col items-center gap-1">
                               <Button variant="outline" size="sm" className="h-7 text-xs mt-0.5" disabled>
@@ -554,22 +549,22 @@ function FleetDevicesContent() {
                     filtered.map((device) => (
                       <tr
                         key={device.device_id}
-                        className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors cursor-pointer"
+                        className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => openDevice(device.device_id)}
                       >
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-gray-700">{truncateText(device.device_id, 18)}</span>
+                            <span className="font-mono text-muted-foreground">{truncateText(device.device_id, 18)}</span>
                             <CopyButton value={device.device_id} />
                           </div>
                         </td>
                         <td className="px-4 py-2.5">
                           <StatusBadge status={device.status.toUpperCase()} />
                         </td>
-                        <td className="px-4 py-2.5 font-mono text-gray-600">{device.runtime_version}</td>
-                        <td className="px-4 py-2.5 text-gray-500">{getRelativeTime(device.last_seen)}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-gray-700">{device.active_executions}</td>
-                        <td className="px-4 py-2.5 tabular-nums text-gray-700">{device.executions_24h}</td>
+                        <td className="px-4 py-2.5 font-mono text-muted-foreground">{device.runtime_version}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{getRelativeTime(device.last_seen)}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-foreground">{device.active_executions}</td>
+                        <td className="px-4 py-2.5 tabular-nums text-foreground">{device.executions_24h}</td>
                         <td className="px-4 py-2.5">
                           <ViolationCountBadge count={device.violations_24h} />
                         </td>
@@ -585,8 +580,8 @@ function FleetDevicesContent() {
                 </tbody>
               </table>
             </div>
-            <div className="px-4 py-3 border-t border-gray-200">
-              <span className="text-xs text-black">
+            <div className="px-4 py-3">
+              <span className="text-xs text-foreground">
                 {filtered.length} device{filtered.length !== 1 ? 's' : ''}
               </span>
             </div>
