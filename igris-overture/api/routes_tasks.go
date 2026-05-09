@@ -845,6 +845,7 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		"lifecycle":     buildTaskLifecycleResponse(task.Status),
 		"durability":    buildTaskDurabilityResponse(task),
 		"recovery":      buildTaskRecoveryResponse(task),
+		"links":         buildTaskLinks(task),
 		"runtime_id":    task.RuntimeID,
 		"dispatched_at": task.DispatchedAt,
 		"completed_at":  task.CompletedAt,
@@ -946,11 +947,35 @@ func buildTaskAcceptedResponse(task *coordinator.TaskRecord) fiber.Map {
 		"lifecycle":  buildTaskLifecycleResponse(task.Status),
 		"durability": buildTaskDurabilityResponse(task),
 		"recovery":   buildTaskRecoveryResponse(task),
+		"links":      buildTaskLinks(task),
 	}
 	if taskType := extractTaskType(task.TaskDefinition); taskType != "" {
 		resp["task_type"] = taskType
 	}
 	return resp
+}
+
+// buildTaskLinks returns navigable URLs for the task's lifecycle:
+//   - task: GET task detail (status, runtime, checkpoint, receipt, proof state)
+//   - steps: GET WAL steps for the task
+//   - verify: POST to re-sync the task's proof state and return verification status
+//   - run: GET execution run detail (only set once an execution_id has been recorded)
+//   - receipt_verify: POST receipt-level verification by execution_id
+func buildTaskLinks(task *coordinator.TaskRecord) fiber.Map {
+	if task == nil {
+		return nil
+	}
+	id := task.TaskID.String()
+	links := fiber.Map{
+		"task":           fmt.Sprintf("/v1/tasks/%s", id),
+		"steps":          fmt.Sprintf("/v1/tasks/%s/steps", id),
+		"verify":         fmt.Sprintf("/v1/tasks/%s/proof/verify", id),
+		"receipt_verify": "/proof/receipts/verify",
+	}
+	if task.Proof != nil && task.Proof.ExecutionID != "" {
+		links["run"] = fmt.Sprintf("/v1/execution/runs/%s", task.Proof.ExecutionID)
+	}
+	return links
 }
 
 func buildTaskMutationResponse(task *coordinator.TaskRecord, extras fiber.Map) fiber.Map {
