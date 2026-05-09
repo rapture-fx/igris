@@ -9,9 +9,9 @@ import {
   LogOut,
 } from 'lucide-react';
 import {
-  ActivityLogIcon, BarChartIcon, Component1Icon, DashboardIcon, DesktopIcon,
+  ActivityLogIcon, BarChartIcon, DashboardIcon, DesktopIcon,
   EnvelopeClosedIcon, ExitIcon, FileTextIcon, GearIcon, LightningBoltIcon,
-  LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
+  LockClosedIcon, MagicWandIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
   RulerSquareIcon, SunIcon,
 } from '@radix-ui/react-icons';
 import {
@@ -59,7 +59,7 @@ const navigation: NavigationItem[] = [
   {
     name: 'Providers',
     href: '/models/providers',
-    icon: Component1Icon,
+    icon: MagicWandIcon,
   },
   {
     name: 'Devices',
@@ -269,7 +269,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 type="text"
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-[#e4e4e4] dark:border-border rounded-lg outline-none bg-background cursor-pointer text-foreground transition-colors"
+                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-[#e4e4e4] dark:border-border rounded-lg outline-none bg-white dark:bg-background cursor-pointer text-foreground transition-colors"
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <span className="text-xs font-medium text-muted-foreground">⌘ F</span>
