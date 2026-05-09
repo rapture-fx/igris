@@ -52,6 +52,13 @@ export interface Task {
     present?: boolean;
     matched?: boolean;
   };
+  links?: {
+    task?: string;
+    steps?: string;
+    verify?: string;
+    run?: string;
+    receipt_verify?: string;
+  };
 }
 
 export interface TaskListResponse {
