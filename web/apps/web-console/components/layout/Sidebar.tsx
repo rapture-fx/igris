@@ -40,66 +40,52 @@ interface NavigationItem {
   icon: any;
 }
 
-const navigation: NavigationItem[] = [
+interface NavigationGroup {
+  title: string;
+  items: NavigationItem[];
+}
+
+const navigationGroups: NavigationGroup[] = [
   {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: DashboardIcon,
+    title: 'OBSERVABILITY',
+    items: [
+      { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
+      { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
+    ],
   },
   {
-    name: 'Logs',
-    href: '/history/logs',
-    icon: ActivityLogIcon,
+    title: 'MODELS',
+    items: [
+      { name: 'Providers', href: '/models/providers', icon: TokensIcon },
+    ],
   },
   {
-    name: 'Metrics',
-    href: '/history/metrics',
-    icon: BarChartIcon,
+    title: 'FLEET',
+    items: [
+      { name: 'Devices', href: '/fleet/devices', icon: BoxIcon },
+    ],
   },
   {
-    name: 'Providers',
-    href: '/models/providers',
-    icon: TokensIcon,
+    title: 'EXECUTION',
+    items: [
+      { name: 'Runs', href: '/execution/runs', icon: PlayIcon },
+      { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
+      { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
+    ],
   },
   {
-    name: 'Devices',
-    href: '/fleet/devices',
-    icon: BoxIcon,
+    title: 'PROOF',
+    items: [
+      { name: 'Receipts', href: '/proof/receipts', icon: ReaderIcon },
+      { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
+    ],
   },
   {
-    name: 'Runs',
-    href: '/execution/runs',
-    icon: PlayIcon,
-  },
-  {
-    name: 'Tasks',
-    href: '/execution/tasks',
-    icon: ListBulletIcon,
-  },
-  {
-    name: 'Approvals',
-    href: '/execution/approvals',
-    icon: CheckCircledIcon,
-  },
-  {
-    name: 'Receipts',
-    href: '/proof/receipts',
-    icon: ReaderIcon,
-  },
-  {
-    name: 'Violations',
-    href: '/proof/violations',
-    icon: CrossCircledIcon,
-  },
-  {
-    name: 'Bounds',
-    href: '/policy/bounds',
-    icon: RulerHorizontalIcon,
-  },
-  {
-    name: 'Capabilities',
-    href: '/policy/capabilities',
-    icon: CheckIcon,
+    title: 'POLICY',
+    items: [
+      { name: 'Bounds', href: '/policy/bounds', icon: RulerHorizontalIcon },
+      { name: 'Capabilities', href: '/policy/capabilities', icon: CheckIcon },
+    ],
   },
 ];
 
@@ -207,6 +193,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     setIsSettingsExpanded((prev) => !prev);
   };
 
+  const isActive = (href: string) => pathname === href || pathname?.startsWith(href + '/');
+
   return (
     <>
       {/* Mobile overlay */}
@@ -252,29 +240,58 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-3 pt-0 pb-4 scrollbar-hide">
             <ul className="space-y-0.5">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-                return (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      onClick={onClose}
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
-                        isActive
-                          ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                          : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
-                      )}
-                    >
-                      <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
-                      {item.name}
-                    </Link>
-                  </li>
-                );
-              })}
+              {/* Dashboard - standalone */}
+              <li>
+                <Link
+                  href="/dashboard"
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
+                    isActive('/dashboard')
+                      ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                      : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
+                  )}
+                >
+                  <DashboardIcon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
+                  Dashboard
+                </Link>
+              </li>
+
+              {/* Category groups */}
+              {navigationGroups.map((group) => (
+                <li key={group.title} className="pt-4">
+                  <div className="px-1.5 mb-1.5">
+                    <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
+                      {group.title}
+                    </span>
+                  </div>
+                  <ul className="space-y-0.5">
+                    {group.items.map((item) => {
+                      const active = isActive(item.href);
+                      return (
+                        <li key={item.name}>
+                          <Link
+                            href={item.href}
+                            onClick={onClose}
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
+                              active
+                                ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                                : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
+                            )}
+                          >
+                            <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
+                            {item.name}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              ))}
               
               {/* Settings dropdown */}
-              <li>
+              <li className="pt-4">
                 <button
                   onClick={toggleSettings}
                   className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/90 hover:text-foreground hover:bg-muted/60"
@@ -294,9 +311,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 {isSettingsExpanded && (
                   <ul className="mt-0.5 ml-5 space-y-0.5 pl-2">
                     {settingsNavigation.map((child) => {
-                      const isActive =
-                        pathname === child.href ||
-                        pathname?.startsWith(child.href + '/');
+                      const childActive = isActive(child.href);
                       return (
                         <li key={child.name}>
                           <Link
@@ -304,7 +319,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                             onClick={onClose}
                             className={cn(
                               'flex items-center justify-between rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
-                              isActive
+                              childActive
                                 ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
                                 : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
                             )}
