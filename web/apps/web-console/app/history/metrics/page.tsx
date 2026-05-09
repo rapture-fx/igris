@@ -78,7 +78,7 @@ function OverviewCard({
         <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-white border-t border-black/[0.08] dark:border-white/[0.08] px-4 pt-4 pb-5">
+      <div className="bg-white px-4 pt-4 pb-5">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
@@ -105,7 +105,7 @@ function SurfaceSection({
         </div>
         {actions}
       </div>
-      <div className={`bg-white border-t border-black/[0.08] dark:border-white/[0.08] ${bodyClassName}`}>
+      <div className={`bg-white ${bodyClassName}`}>
         {children}
       </div>
     </div>
