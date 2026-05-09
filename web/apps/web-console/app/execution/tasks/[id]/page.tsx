@@ -18,12 +18,13 @@ import {
 } from '@/components/ui/table';
 import {
   ArrowLeft,
-  BrainCircuit,
   CheckCircle2,
   Clock3,
+  ExternalLink,
+  Hash,
+  ListOrdered,
   Network,
   ShieldCheck,
-  Workflow,
   XCircle,
 } from 'lucide-react';
 import { useTask, useTaskSteps } from '@/hooks/useTasks';
