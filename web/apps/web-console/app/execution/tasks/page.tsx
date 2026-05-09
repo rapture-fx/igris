@@ -107,7 +107,7 @@ function ProofBadge({ task }: { task: Task }) {
       <Shield className="h-3 w-3" /> Envelope
     </span>
   );
-  return <span className="text-gray-300">—</span>;
+  return <span className="text-muted-foreground">—</span>;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -341,24 +341,24 @@ function ExecutionTasksContent() {
 
         </div>
 
-        {/* ── Task Activity Card ───────────────────────────────────────────── */}
-        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+        {/* ── Task Activity ───────────────────────────────────────────── */}
+        <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
 
           {/* Card header with search + controls */}
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-xs font-medium text-black">Task Activity</span>
+            <span className="text-sm font-medium text-foreground">Task Activity</span>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={(e) => updateSearch(e.target.value)}
                   placeholder="task · runtime · mode · strategy"
-                  className="pl-8 h-7 text-xs w-56"
+                  className="pl-8 h-8 text-xs w-56"
                 />
               </div>
-              <div className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-600">
-                <Filter className="h-3.5 w-3.5 text-gray-400" />
+              <div className="inline-flex items-center gap-1.5 rounded-md border border-black/[0.08] dark:border-white/[0.08] bg-background px-2.5 py-1 text-xs text-muted-foreground">
+                <Filter className="h-3.5 w-3.5 text-muted-foreground" />
                 <select
                   value={proofFilter}
                   onChange={(e) => updateProofFilter(e.target.value as any)}
@@ -377,7 +377,7 @@ function ExecutionTasksContent() {
                 variant={prioritizeUnresolved ? 'default' : 'outline'}
                 size="sm"
                 onClick={togglePrioritize}
-                className="h-7 text-xs"
+                className="h-8 text-xs"
               >
                 Unresolved first
               </Button>
@@ -385,10 +385,10 @@ function ExecutionTasksContent() {
           </div>
 
           {/* Nested inner area */}
-          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+          <div className="bg-white overflow-hidden">
 
             {/* Filter pills */}
-            <div className="flex flex-wrap items-center gap-1.5 px-4 py-3 border-b border-gray-200">
+            <div className="flex flex-wrap items-center gap-1.5 px-4 py-3 border-b border-black/[0.08] dark:border-white/[0.08]">
               {FILTER_PILLS.map((pill) => {
                 const active = proofFilter === pill.value;
                 return (
@@ -399,12 +399,12 @@ function ExecutionTasksContent() {
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
                       active
                         ? 'bg-gray-900 text-white'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
+                        : 'bg-white border border-black/[0.08] dark:border-white/[0.08] text-muted-foreground hover:border-gray-300 hover:text-foreground'
                     }`}
                   >
                     {pill.label}
                     <span className={`rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                      active ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                      active ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
                     }`}>
                       {isLoading ? '—' : pill.count}
                     </span>
@@ -417,7 +417,7 @@ function ExecutionTasksContent() {
             {isLoading ? (
               <div className="space-y-0">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="flex gap-4 px-4 py-3 border-b border-gray-100">
+                  <div key={i} className="flex gap-4 px-4 py-3 border-b border-black/[0.08] dark:border-white/[0.08]">
                     <Skeleton className="h-3.5 w-40" />
                     <Skeleton className="h-3.5 w-20" />
                     <Skeleton className="h-3.5 w-24" />
@@ -426,34 +426,34 @@ function ExecutionTasksContent() {
                 ))}
               </div>
             ) : filteredTasks.length === 0 ? (
-              <div className="px-4 py-16 text-center text-xs text-black">
+              <div className="px-4 py-16 text-center text-xs text-foreground">
                 No tasks matched this filter.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Task ID</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Status</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Type</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Mode</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Strategy</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Proof</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Runtime</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Updated</th>
-                      <th className="px-4 py-2.5 text-right font-medium text-black whitespace-nowrap">Inspect</th>
+                    <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Task ID</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Status</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Type</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Mode</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Strategy</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Proof</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Runtime</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Updated</th>
+                      <th className="px-4 py-2.5 text-right font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Inspect</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredTasks.map((task) => (
                       <tr
                         key={task.task_id}
-                        className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors cursor-pointer"
+                        className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => updateSelectedTask(task.task_id)}
                       >
                         <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-1 font-mono text-gray-700">
+                          <div className="flex items-center gap-1 font-mono text-muted-foreground">
                             <span>{truncateText(task.task_id, 18)}</span>
                             <CopyButton value={task.task_id} />
                           </div>
@@ -461,23 +461,23 @@ function ExecutionTasksContent() {
                         <td className="px-4 py-2.5">
                           <ExecutionStatusBadge status={task.status.toUpperCase()} />
                         </td>
-                        <td className="px-4 py-2.5 text-gray-700">{task.task_type ?? '—'}</td>
-                        <td className="px-4 py-2.5 text-gray-700">{task.requested_mode ?? '—'}</td>
-                        <td className="px-4 py-2.5 text-gray-700">{task.resolved_strategy ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{task.task_type ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{task.requested_mode ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{task.resolved_strategy ?? '—'}</td>
                         <td className="px-4 py-2.5">
                           <div className="space-y-0.5">
                             <ProofBadge task={task} />
                             {task.proof?.checked_at && (
-                              <div className="text-[10px] text-gray-400">
+                              <div className="text-[10px] text-muted-foreground">
                                 {getRelativeTime(task.proof.checked_at)}
                               </div>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 font-mono text-gray-700">
+                        <td className="px-4 py-2.5 font-mono text-muted-foreground">
                           {task.runtime_id ? truncateText(task.runtime_id, 18) : '—'}
                         </td>
-                        <td className="px-4 py-2.5 text-gray-500 tabular-nums">
+                        <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
                           {getRelativeTime(task.completed_at ?? task.dispatched_at ?? task.created_at)}
                         </td>
                         <td className="px-4 py-2.5 text-right">
@@ -498,8 +498,8 @@ function ExecutionTasksContent() {
             )}
 
             {/* Bottom row */}
-            <div className="px-4 py-3 border-t border-gray-200">
-              <span className="text-xs text-black">
+            <div className="px-4 py-3">
+              <span className="text-xs text-foreground">
                 {filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}
                 {proofFilter !== 'all' ? ` · ${proofFilter}` : ''}
               </span>
