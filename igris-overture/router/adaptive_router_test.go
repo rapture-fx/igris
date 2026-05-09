@@ -17,6 +17,9 @@ func setupTestRouter(policy RoutingPolicy, window time.Duration) *AdaptiveRouter
 		learningRate:    0.1,
 		explorationRate: 0.15,
 	}
+	trustConfig := DefaultTrustConfig()
+	trustConfig.BlockWithoutMinSamples = false
+	router.trustTracker = NewProviderTrustTracker(trustConfig)
 
 	// Use test-specific registry to avoid conflicts
 	reg := prometheus.NewRegistry()
@@ -69,10 +72,10 @@ func TestRegisterBackend_Success(t *testing.T) {
 	router := setupTestRouter(PolicyLeastLatency, 5*time.Minute)
 
 	backend := &Backend{
-		ID:          "backend-1",
-		URL:         "http://localhost:5000",
-		Type:        BackendTypeMLPython,
-		MaxCapacity: 100,
+		ID:           "backend-1",
+		URL:          "http://localhost:5000",
+		Type:         BackendTypeMLPython,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference", "batch"},
 	}
 
@@ -112,7 +115,7 @@ func TestRoute_NoBackends(t *testing.T) {
 	router := setupTestRouter(PolicyLeastLatency, 5*time.Minute)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
@@ -127,18 +130,18 @@ func TestRoute_LeastLatency(t *testing.T) {
 
 	// Register backends with different latencies
 	backend1 := &Backend{
-		ID:          "fast-backend",
-		Type:        BackendTypeMLPython,
-		AvgLatency:  50.0,
-		MaxCapacity: 100,
+		ID:           "fast-backend",
+		Type:         BackendTypeMLPython,
+		AvgLatency:   50.0,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference"},
 	}
 
 	backend2 := &Backend{
-		ID:          "slow-backend",
-		Type:        BackendTypeMLPython,
-		AvgLatency:  200.0,
-		MaxCapacity: 100,
+		ID:           "slow-backend",
+		Type:         BackendTypeMLPython,
+		AvgLatency:   200.0,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference"},
 	}
 
@@ -146,7 +149,7 @@ func TestRoute_LeastLatency(t *testing.T) {
 	_ = router.RegisterBackend(backend2)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
@@ -164,18 +167,18 @@ func TestRoute_LeastLoad(t *testing.T) {
 	router := setupTestRouter(PolicyLeastLoad, 5*time.Minute)
 
 	backend1 := &Backend{
-		ID:          "busy-backend",
-		Type:        BackendTypeMLPython,
-		CurrentLoad: 80,
-		MaxCapacity: 100,
+		ID:           "busy-backend",
+		Type:         BackendTypeMLPython,
+		CurrentLoad:  80,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference"},
 	}
 
 	backend2 := &Backend{
-		ID:          "idle-backend",
-		Type:        BackendTypeMLPython,
-		CurrentLoad: 10,
-		MaxCapacity: 100,
+		ID:           "idle-backend",
+		Type:         BackendTypeMLPython,
+		CurrentLoad:  10,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference"},
 	}
 
@@ -183,7 +186,7 @@ func TestRoute_LeastLoad(t *testing.T) {
 	_ = router.RegisterBackend(backend2)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
@@ -224,7 +227,7 @@ func TestRoute_ThompsonSampling_Exploitation(t *testing.T) {
 	_ = router.RegisterBackend(backend2)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
@@ -269,7 +272,7 @@ func TestRoute_ThompsonSampling_Exploration(t *testing.T) {
 	_ = router.RegisterBackend(backend2)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
@@ -292,20 +295,20 @@ func TestRoute_WeightedRandom(t *testing.T) {
 	router := setupTestRouter(PolicyWeightedRandom, 5*time.Minute)
 
 	backend1 := &Backend{
-		ID:          "fast-backend",
-		Type:        BackendTypeMLPython,
-		AvgLatency:  50.0,
-		ErrorRate:   0.01,
-		MaxCapacity: 100,
+		ID:           "fast-backend",
+		Type:         BackendTypeMLPython,
+		AvgLatency:   50.0,
+		ErrorRate:    0.01,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference"},
 	}
 
 	backend2 := &Backend{
-		ID:          "slow-backend",
-		Type:        BackendTypeMLPython,
-		AvgLatency:  200.0,
-		ErrorRate:   0.1,
-		MaxCapacity: 100,
+		ID:           "slow-backend",
+		Type:         BackendTypeMLPython,
+		AvgLatency:   200.0,
+		ErrorRate:    0.1,
+		MaxCapacity:  100,
 		Capabilities: []string{"inference"},
 	}
 
@@ -313,7 +316,7 @@ func TestRoute_WeightedRandom(t *testing.T) {
 	_ = router.RegisterBackend(backend2)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
@@ -357,7 +360,7 @@ func TestRoute_RoundRobin(t *testing.T) {
 	_ = router.RegisterBackend(backend2)
 
 	req := &RoutingRequest{
-		ModelName: "test-model",
+		ModelName:    "test-model",
 		Capabilities: []string{"inference"},
 	}
 
