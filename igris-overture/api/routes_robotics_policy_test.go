@@ -8,6 +8,8 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -638,6 +640,78 @@ func signedRouteRuntimeArtifact(t *testing.T, privateKey ed25519.PrivateKey, fie
 	return raw
 }
 
+func signedRouteRuntimeReceipt(t *testing.T, privateKey ed25519.PrivateKey, fields map[string]any) []byte {
+	t.Helper()
+	canonical := map[string]string{
+		"agent_id":           routeReceiptFieldString(fields, "agent_id"),
+		"cpu_time_ms":        routeReceiptFieldString(fields, "cpu_time_ms"),
+		"execution_id":       routeReceiptFieldString(fields, "execution_id"),
+		"fs_bytes_written":   routeReceiptFieldString(fields, "fs_bytes_written"),
+		"memory_peak_mb":     routeReceiptFieldString(fields, "memory_peak_mb"),
+		"previous_hash":      routeReceiptFieldString(fields, "previous_hash"),
+		"timestamp_utc":      routeReceiptFieldString(fields, "timestamp_utc"),
+		"tool_calls":         routeReceiptFieldString(fields, "tool_calls"),
+		"violation_occurred": routeReceiptFieldString(fields, "violation_occurred"),
+		"wall_time_ms":       routeReceiptFieldString(fields, "wall_time_ms"),
+	}
+	if runtimeID := routeReceiptFieldString(fields, "runtime_id"); runtimeID != "" {
+		canonical["runtime_id"] = runtimeID
+	}
+	if txHash := routeReceiptFieldString(fields, "transaction_hash"); txHash != "" {
+		canonical["transaction_hash"] = txHash
+	}
+	if txID := routeReceiptFieldString(fields, "transaction_id"); txID != "" {
+		canonical["transaction_id"] = txID
+	}
+	canonicalBytes, err := json.Marshal(canonical)
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonicalBytes)
+	fields["hash"] = hex.EncodeToString(sum[:])
+	fields["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
+	raw, err := json.Marshal(fields)
+	require.NoError(t, err)
+	return raw
+}
+
+func routeReceiptFieldString(receipt map[string]any, key string) string {
+	value, ok := receipt[key]
+	if !ok || value == nil {
+		return ""
+	}
+	switch v := value.(type) {
+	case string:
+		return v
+	case bool:
+		return strconv.FormatBool(v)
+	case float64:
+		if v == math.Trunc(v) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case float32:
+		if v == float32(math.Trunc(float64(v))) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case int:
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case int32:
+		return strconv.FormatInt(int64(v), 10)
+	case uint64:
+		return strconv.FormatUint(v, 10)
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint:
+		return strconv.FormatUint(uint64(v), 10)
+	case json.Number:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
 func jsonFieldString(t *testing.T, raw []byte, field string) string {
 	t.Helper()
 	var value map[string]any
@@ -700,11 +774,11 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 		"policy_decision_id": "decision-route-verified",
 		"routing_decision":   "ros2:publish_zero_velocity",
 	})
-	receipt := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+	receipt := signedRouteRuntimeReceipt(t, privateKey, map[string]any{
 		"execution_id":       "exec-route-verified",
-		"receipt_hash":       "receipt-hash-verified",
 		"violation_occurred": false,
 	})
+	receiptHash := jsonFieldString(t, receipt, "hash")
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
 		columns: []string{
 			"task_id", "tenant_id", "runtime_id", "execution_id",
@@ -720,7 +794,7 @@ func TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey(t *tes
 			taskID.String(), "tenant-robotics-policy", "runtime-a", "exec-route-verified",
 			"decision-route-verified", "robotics-policy.active", "publish_zero_velocity",
 			"robotics-step-0", "", true, "permitted", "ros2:publish_zero_velocity",
-			"", "", "receipt-hash-verified", jsonFieldString(t, receipt, "signature"),
+			"", "", receiptHash, jsonFieldString(t, receipt, "signature"),
 			jsonFieldString(t, envelope, "signature"), "policy-sig", false, "",
 			decision, envelope, receipt, persistedAt, hex.EncodeToString(publicKey),
 		}},
@@ -987,9 +1061,8 @@ func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T)
 		"policy_decision_id": "decision-hil-stop-timeout",
 		"routing_decision":   "ros2:emergency_stop:timeout",
 	})
-	stopReceipt := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+	stopReceipt := signedRouteRuntimeReceipt(t, privateKey, map[string]any{
 		"execution_id":       "exec-hil-stop-timeout",
-		"receipt_hash":       "receipt-hash-hil-stop-timeout",
 		"violation_occurred": true,
 	})
 	cancelEnvelope := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
@@ -998,11 +1071,12 @@ func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T)
 		"policy_decision_id": "decision-hil-cancel-failed",
 		"routing_decision":   "ros2:cancel_navigation:failed",
 	})
-	cancelReceipt := signedRouteRuntimeArtifact(t, privateKey, map[string]any{
+	cancelReceipt := signedRouteRuntimeReceipt(t, privateKey, map[string]any{
 		"execution_id":       "exec-hil-cancel-failed",
-		"receipt_hash":       "receipt-hash-hil-cancel-failed",
 		"violation_occurred": true,
 	})
+	stopReceiptHash := jsonFieldString(t, stopReceipt, "hash")
+	cancelReceiptHash := jsonFieldString(t, cancelReceipt, "hash")
 	stopDecision := []byte(`{
 		"schema_version":"governed_policy_decision.v1",
 		"decision_id":"decision-hil-stop-timeout",
@@ -1077,7 +1151,7 @@ func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T)
 					taskIDStop.String(), "tenant-robotics-policy", "runtime-hil", "exec-hil-stop-timeout",
 					"decision-hil-stop-timeout", "robotics-policy.hil", "emergency_stop",
 					"hil-stop-node", "hardware-loop-base", true, "timeout", "ros2:emergency_stop:timeout",
-					"", "", "receipt-hash-hil-stop-timeout", jsonFieldString(t, stopReceipt, "signature"),
+					"", "", stopReceiptHash, jsonFieldString(t, stopReceipt, "signature"),
 					jsonFieldString(t, stopEnvelope, "signature"), "policy-sig-hil-stop", true, "stop timeout",
 					stopDecision, stopEnvelope, stopReceipt, persistedAt, publicKeyHex,
 				},
@@ -1085,7 +1159,7 @@ func TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle(t *testing.T)
 					taskIDCancel.String(), "tenant-robotics-policy", "runtime-hil", "exec-hil-cancel-failed",
 					"decision-hil-cancel-failed", "robotics-policy.hil", "cancel_navigation",
 					"hil-cancel-node", "hardware-loop-base", true, "runtime failure", "ros2:cancel_navigation:failed",
-					"", "", "receipt-hash-hil-cancel-failed", jsonFieldString(t, cancelReceipt, "signature"),
+					"", "", cancelReceiptHash, jsonFieldString(t, cancelReceipt, "signature"),
 					jsonFieldString(t, cancelEnvelope, "signature"), "policy-sig-hil-cancel", true, "cancel failed",
 					cancelDecision, cancelEnvelope, cancelReceipt, persistedAt.Add(time.Second), publicKeyHex,
 				},
