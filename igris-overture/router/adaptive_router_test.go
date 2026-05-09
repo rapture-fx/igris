@@ -20,6 +20,7 @@ func setupTestRouter(policy RoutingPolicy, window time.Duration) *AdaptiveRouter
 	trustConfig := DefaultTrustConfig()
 	trustConfig.BlockWithoutMinSamples = false
 	router.trustTracker = NewProviderTrustTracker(trustConfig)
+	router.thompsonEngine = NewThompsonSamplingEngine(DefaultThompsonSamplingConfig())
 
 	// Use test-specific registry to avoid conflicts
 	reg := prometheus.NewRegistry()
