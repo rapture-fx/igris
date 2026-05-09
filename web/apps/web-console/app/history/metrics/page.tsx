@@ -68,48 +68,44 @@ const PROVIDER_COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#3b82f6', '#ef4444', 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function OverviewCard({
-  icon: Icon, label, value, sub, loading,
+  icon: Icon, label, value, loading,
 }: {
-  icon: LucideIcon; label: string; value: ReactNode; sub: string; loading?: boolean;
+  icon: LucideIcon; label: string; value: ReactNode; loading?: boolean;
 }) {
   return (
-    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+      <div className="bg-white border-t border-black/[0.08] dark:border-white/[0.08] px-4 pt-4 pb-5">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
         )}
-        <p className="text-xs text-black mt-1">{sub}</p>
       </div>
     </div>
   );
 }
 
 function SurfaceSection({
-  icon: Icon, title, description, actions,
+  icon: Icon, title, actions,
   bodyClassName = 'px-4 py-4', className = '', children,
 }: {
-  icon: LucideIcon; title: string; description: string;
+  icon: LucideIcon; title: string;
   actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
 }) {
   return (
-    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-black">{title}</p>
-          </div>
-          <p className="text-[11px] text-black mt-0.5">{description}</p>
+    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+          <p className="text-xs font-medium text-foreground">{title}</p>
         </div>
         {actions}
       </div>
-      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+      <div className={`bg-white border-t border-black/[0.08] dark:border-white/[0.08] ${bodyClassName}`}>
         {children}
       </div>
     </div>
@@ -196,10 +192,7 @@ export default function HistoryMetricsPage() {
       <div className="space-y-5">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Metrics</h1>
-            <p className="text-xs text-black mt-0.5">Performance, resource, and fleet metrics.</p>
-          </div>
+          <h1 className="text-base font-semibold text-gray-900">Metrics</h1>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
           </Button>
@@ -254,10 +247,10 @@ export default function HistoryMetricsPage() {
 
         {/* Summary stat cards */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-          <OverviewCard icon={Activity}     label="Executions / min"  value={s ? s.executions_per_minute : '—'}       sub="Rolling average"  loading={isLoading} />
-          <OverviewCard icon={Zap}          label="Avg Latency"        value={s ? `${s.avg_latency_ms} ms` : '—'}      sub="All providers"    loading={isLoading} />
-          <OverviewCard icon={CheckCircle2} label="Success Rate"       value={s ? `${s.success_rate_percent}%` : '—'}  sub="Last window"      loading={isLoading} />
-          <OverviewCard icon={ShieldAlert}  label="Policy Violations"  value={s ? s.policy_violations : '—'}           sub="In time range"    loading={isLoading} />
+          <OverviewCard icon={Activity}     label="Executions / min"  value={s ? s.executions_per_minute : '—'}       loading={isLoading} />
+          <OverviewCard icon={Zap}          label="Avg Latency"        value={s ? `${s.avg_latency_ms} ms` : '—'}      loading={isLoading} />
+          <OverviewCard icon={CheckCircle2} label="Success Rate"       value={s ? `${s.success_rate_percent}%` : '—'}  loading={isLoading} />
+          <OverviewCard icon={ShieldAlert}  label="Policy Violations"  value={s ? s.policy_violations : '—'}           loading={isLoading} />
         </div>
 
         {/* 2×2 Chart grid */}
@@ -266,7 +259,6 @@ export default function HistoryMetricsPage() {
           <SurfaceSection
             icon={Activity}
             title="Execution Throughput"
-            description="Executions per minute over time."
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
@@ -292,7 +284,6 @@ export default function HistoryMetricsPage() {
           <SurfaceSection
             icon={Zap}
             title="Provider Latency"
-            description="Request latency in milliseconds per provider."
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
@@ -315,7 +306,6 @@ export default function HistoryMetricsPage() {
           <SurfaceSection
             icon={Cpu}
             title="Runtime Resource Usage"
-            description="CPU and memory utilization over time."
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
@@ -337,7 +327,6 @@ export default function HistoryMetricsPage() {
           <SurfaceSection
             icon={Users}
             title="Fleet Activity"
-            description="Active devices and executions over time."
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
@@ -360,70 +349,66 @@ export default function HistoryMetricsPage() {
         <SurfaceSection
           icon={Activity}
           title="Metric Events"
-          description="Raw metric events recorded in the selected time window."
           bodyClassName="px-0 py-0"
         >
-          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white mx-4 mb-4">
-            <div
-              className="overflow-y-auto relative"
-              style={{ height: 'calc(100vh - 640px)', minHeight: 220, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
-            >
-              <Table className="w-full table-fixed">
-                <TableHeader className="sticky top-0 z-10">
-                  <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
-                    <TableHead className="w-[148px] text-xs font-medium text-gray-500 py-2 px-4">Timestamp</TableHead>
-                    <TableHead className="w-[148px] text-xs font-medium text-gray-500 py-2 px-3">Metric</TableHead>
-                    <TableHead className="w-[100px] text-xs font-medium text-gray-500 py-2 px-3">Value</TableHead>
-                    <TableHead className="w-[118px] text-xs font-medium text-gray-500 py-2 px-3">Agent</TableHead>
-                    <TableHead className="w-[110px] text-xs font-medium text-gray-500 py-2 px-3">Device</TableHead>
-                    <TableHead className="w-[90px] text-xs font-medium text-gray-500 py-2 px-3">Provider</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading
-                    ? Array.from({ length: 6 }).map((_, i) => (
-                        <TableRow key={i} className="border-b border-gray-100">
-                          <TableCell className="py-2 px-4"><Skeleton className="h-3.5 w-28" /></TableCell>
-                          <TableCell className="py-2 px-3"><Skeleton className="h-3.5 w-24" /></TableCell>
-                          <TableCell className="py-2 px-3"><Skeleton className="h-3.5 w-14" /></TableCell>
-                          <TableCell className="py-2 px-3"><Skeleton className="h-3.5 w-20" /></TableCell>
-                          <TableCell className="py-2 px-3"><Skeleton className="h-3.5 w-16" /></TableCell>
-                          <TableCell className="py-2 px-3"><Skeleton className="h-3.5 w-16" /></TableCell>
-                        </TableRow>
-                      ))
-                    : (metrics?.events ?? []).length === 0
-                    ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="py-10 text-center text-xs text-gray-400">
-                            No metric events in this time range.
+          <div
+            className="overflow-y-auto flex-1 min-h-0"
+            style={{ height: 'calc(100vh - 560px)', minHeight: 220, scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
+          >
+            <Table className="w-full table-fixed">
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow className="hover:bg-transparent bg-white">
+                  <TableHead className="w-[148px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-4 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Timestamp</TableHead>
+                  <TableHead className="w-[148px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Metric</TableHead>
+                  <TableHead className="w-[100px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Value</TableHead>
+                  <TableHead className="w-[118px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Agent</TableHead>
+                  <TableHead className="w-[110px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Device</TableHead>
+                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Provider</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i} className="bg-white">
+                        {Array.from({ length: 6 }).map((_, j) => (
+                          <TableCell key={j} className="px-3 py-2">
+                            <div className="h-3 rounded bg-gray-100 animate-pulse" style={{ width: `${(i * 37 + j * 19) % 80 + 32}px` }} />
                           </TableCell>
-                        </TableRow>
-                      )
-                    : (metrics?.events ?? []).map((ev) => (
-                        <TableRow key={ev.id} className="border-b border-gray-100 hover:bg-gray-50/60">
-                          <TableCell className="py-2 px-4 text-xs text-gray-500 font-mono whitespace-nowrap">
-                            {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </TableCell>
-                          <TableCell className="py-2 px-3">
-                            <MetricNameBadge name={ev.metric_name} />
-                          </TableCell>
-                          <TableCell className="py-2 px-3 text-xs text-gray-800 font-mono tabular-nums">
-                            {ev.metric_value.toFixed(2)}{ev.unit ? ` ${ev.unit}` : ''}
-                          </TableCell>
-                          <TableCell className="py-2 px-3 text-xs text-gray-600 font-mono truncate">
-                            {ev.agent_id}
-                          </TableCell>
-                          <TableCell className="py-2 px-3 text-xs text-gray-600 font-mono truncate">
-                            {ev.device_id}
-                          </TableCell>
-                          <TableCell className="py-2 px-3 text-xs text-gray-500 capitalize">
-                            {ev.provider}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                </TableBody>
-              </Table>
-            </div>
+                        ))}
+                      </TableRow>
+                    ))
+                  : (metrics?.events ?? []).length === 0
+                  ? (
+                      <TableRow className="bg-white">
+                        <TableCell colSpan={6} className="py-16 text-center text-xs text-muted-foreground">
+                          No metric events in this time range.
+                        </TableCell>
+                      </TableRow>
+                    )
+                  : (metrics?.events ?? []).map((ev) => (
+                      <TableRow key={ev.id} className="border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 bg-white">
+                        <TableCell className="px-4 py-2 text-xs text-muted-foreground font-mono whitespace-nowrap">
+                          {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </TableCell>
+                        <TableCell className="px-3 py-2">
+                          <MetricNameBadge name={ev.metric_name} />
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-xs text-foreground font-mono tabular-nums">
+                          {ev.metric_value.toFixed(2)}{ev.unit ? ` ${ev.unit}` : ''}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-xs text-muted-foreground font-mono truncate">
+                          {ev.agent_id}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-xs text-muted-foreground font-mono truncate">
+                          {ev.device_id}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-xs text-muted-foreground capitalize">
+                          {ev.provider}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+              </TableBody>
+            </Table>
           </div>
         </SurfaceSection>
       </div>
