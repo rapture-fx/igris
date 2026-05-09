@@ -39,6 +39,16 @@ import {
 } from '@/components/execution/shared';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 
+function verificationLabel(status?: string | null): string {
+  if (!status) return 'Pending';
+  const normalized = String(status).toLowerCase();
+  if (normalized === 'verified') return 'Verified';
+  if (normalized === 'mismatch') return 'Mismatch';
+  if (normalized === 'present') return 'Recorded';
+  if (normalized === 'missing') return 'Missing';
+  return String(status);
+}
+
 function InspectorStat({
   label,
   value,
@@ -519,6 +529,16 @@ export default function ExecutionTaskInspectorPage() {
                       <ShieldCheck className="h-3.5 w-3.5" />
                       {verifyMutation.isPending ? 'Verifying…' : 'Verify receipt'}
                     </Button>
+                    {(task.proof?.execution_id || task.links?.run) && (
+                      <Button asChild variant="outline" size="sm" className="gap-1.5">
+                        <Link
+                          href={`/execution/runs/${encodeURIComponent(task.proof?.execution_id ?? '')}`}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          View execution run
+                        </Link>
+                      </Button>
+                    )}
                     {verifyResult === true && (
                       <span className="inline-flex items-center gap-1 text-xs text-green-700">
                         <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
