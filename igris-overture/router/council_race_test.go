@@ -19,6 +19,7 @@ import (
 // MockProvider implements the Provider interface for testing
 type MockProvider struct {
 	id              string
+	name            string
 	inferFunc       func(context.Context, *models.InferRequest) (*models.InferResponse, error)
 	streamFunc      func(context.Context, *models.InferRequest) (<-chan *models.StreamChunk, <-chan error)
 	delay           time.Duration
@@ -26,9 +27,15 @@ type MockProvider struct {
 	firstTokenDelay time.Duration
 	tokenInterval   time.Duration
 	totalTokens     int
+	failAfterTokens int
 }
 
-func (m *MockProvider) Name() string { return m.id }
+func (m *MockProvider) Name() string {
+	if m.id != "" {
+		return m.id
+	}
+	return m.name
+}
 
 func (m *MockProvider) Infer(ctx context.Context, req *models.InferRequest) (*models.InferResponse, error) {
 	if m.inferFunc != nil {
@@ -42,7 +49,7 @@ func (m *MockProvider) Infer(ctx context.Context, req *models.InferRequest) (*mo
 	}
 	return &models.InferResponse{
 		Choices: []models.Choice{
-			{Index: 0, Message: &models.Message{Role: "assistant", Content: "Response from " + m.id}},
+			{Index: 0, Message: &models.Message{Role: "assistant", Content: "Response from " + m.Name()}},
 		},
 		Usage: &models.UsageStats{TotalTokens: 50},
 	}, nil
@@ -77,11 +84,15 @@ func (m *MockProvider) InferStream(ctx context.Context, req *models.InferRequest
 			interval = 10 * time.Millisecond
 		}
 		for i := 0; i < total; i++ {
+			if m.shouldFail && m.failAfterTokens > 0 && i >= m.failAfterTokens {
+				errChan <- errors.New("mock provider error")
+				return
+			}
 			select {
 			case <-ctx.Done():
 				return
 			case tokenChan <- &models.StreamChunk{
-				Choices: []models.Choice{{Index: 0, Delta: &models.Message{Content: fmt.Sprintf("token_%d_%s", i, m.id)}}},
+				Choices: []models.Choice{{Index: 0, Delta: &models.Message{Content: fmt.Sprintf("token_%d_%s", i, m.Name())}}},
 			}:
 				if i < total-1 {
 					time.Sleep(interval)
@@ -111,10 +122,10 @@ func TestCouncil_DeadlockPrevention(t *testing.T) {
 	provider3 := &MockProvider{id: "provider3", delay: 35 * time.Second} // Will timeout
 	provider4 := &MockProvider{id: "provider4", delay: 150 * time.Millisecond}
 
-	registry.Register("provider1", provider1)
-	registry.Register("provider2", provider2)
-	registry.Register("provider3", provider3)
-	registry.Register("provider4", provider4)
+	registry.Register(provider1)
+	registry.Register(provider2)
+	registry.Register(provider3)
+	registry.Register(provider4)
 
 	// Create router
 	speculativeConfig := &config.SpeculativeConfig{
@@ -194,7 +205,7 @@ func TestCouncil_ConcurrentRankingsSafety(t *testing.T) {
 			mu.Lock()
 			rankings = append(rankings, PeerRanking{
 				RankerProvider: "provider-" + string(rune('A'+idx%26)),
-				Rankings: []ResponseRanking{
+				Rankings: []ResponseRank{
 					{ResponseID: idx, Rank: 1},
 				},
 			})
@@ -279,7 +290,7 @@ func TestCouncil_HighConcurrencyStress(t *testing.T) {
 			id:    providerID,
 			delay: time.Duration(10+i*10) * time.Millisecond,
 		}
-		registry.Register(providerID, provider)
+		registry.Register(provider)
 	}
 
 	speculativeConfig := &config.SpeculativeConfig{
@@ -337,22 +348,4 @@ func TestCouncil_HighConcurrencyStress(t *testing.T) {
 	}
 
 	assert.Equal(t, 0, errorCount, "Should have no errors in concurrent execution")
-}
-
-// PeerRankingResponse for testing
-type PeerRankingResponse struct {
-	Rankings []ResponseRanking `json:"rankings"`
-}
-
-// ResponseRanking for testing
-type ResponseRanking struct {
-	ResponseID int    `json:"response_id"`
-	Rank       int    `json:"rank"`
-	Reasoning  string `json:"reasoning,omitempty"`
-}
-
-// PeerRanking for testing
-type PeerRanking struct {
-	RankerProvider string
-	Rankings       []ResponseRanking
 }
