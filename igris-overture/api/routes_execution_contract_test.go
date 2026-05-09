@@ -217,7 +217,7 @@ func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
 				"context_provider", "context_route_decision", "context_execution_path", "context_runtime_label",
 				"context_fallback_used", "context_fallback_reason", "context_policy_snapshot",
 				"context_capability_snapshot", "context_events", "context_logs",
-				"execution_envelope", "permission_envelope", "task_failure_reason", "task_failure_details",
+				"execution_envelope", "task_id", "permission_envelope", "task_failure_reason", "task_failure_details",
 				"created_at", "dispatched_at", "completed_at", "canceled_at",
 			},
 			rows: [][]driver.Value{{
@@ -247,7 +247,7 @@ func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
 				[]byte(`[{"timestamp":"2026-05-03T13:00:00Z","kind":"runtime_execution","message":"Runtime execution completed"}]`),
 				[]byte(`["2026-05-03T13:00:00Z runtime_execution: Runtime execution completed"]`),
 				nil,
-				nil,
+				"",
 				"",
 				nil,
 				nil,
