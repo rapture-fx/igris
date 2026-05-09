@@ -563,16 +563,52 @@ func TestBuildTaskResponseReturnsFiberMap(t *testing.T) {
 	require.True(t, ok)
 }
 
+func TestBuildTaskLinks(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+
+	// Without an execution_id we still expose task / steps / verify / receipt_verify so consumers know where to poll.
+	withoutRun := buildTaskLinks(&coordinator.TaskRecord{
+		TaskID:    taskID,
+		Status:    coordinator.TaskStatusDispatched,
+		CreatedAt: time.Now().UTC(),
+	})
+	require.Equal(t, "/v1/tasks/"+taskID.String(), withoutRun["task"])
+	require.Equal(t, "/v1/tasks/"+taskID.String()+"/steps", withoutRun["steps"])
+	require.Equal(t, "/v1/tasks/"+taskID.String()+"/proof/verify", withoutRun["verify"])
+	require.Equal(t, "/proof/receipts/verify", withoutRun["receipt_verify"])
+	require.NotContains(t, withoutRun, "run")
+
+	// Once a proof.execution_id has been recorded we expose the run-detail link too.
+	withRun := buildTaskLinks(&coordinator.TaskRecord{
+		TaskID:    taskID,
+		Status:    coordinator.TaskStatusCompleted,
+		CreatedAt: time.Now().UTC(),
+		Proof: &coordinator.TaskProofState{
+			ExecutionID: "exec-123",
+			Status:      "verified",
+		},
+	})
+	require.Equal(t, "/v1/execution/runs/exec-123", withRun["run"])
+}
+
 func TestBuildTaskAcceptedResponse(t *testing.T) {
 	t.Parallel()
 
 	createdAt := time.Unix(1_700_000_700, 0).UTC()
+	taskID := uuid.New()
 	resp := buildTaskAcceptedResponse(&coordinator.TaskRecord{
-		TaskID:         uuid.New(),
+		TaskID:         taskID,
 		Status:         coordinator.TaskStatusDispatched,
 		CreatedAt:      createdAt,
 		TaskDefinition: json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hello"}]}`),
 	})
+
+	links, ok := resp["links"].(fiber.Map)
+	require.True(t, ok, "links should be present on submit response")
+	require.Equal(t, "/v1/tasks/"+taskID.String(), links["task"])
+	require.Equal(t, "/v1/tasks/"+taskID.String()+"/proof/verify", links["verify"])
 
 	require.Equal(t, createdAt, resp["created_at"])
 	require.Equal(t, "single_inference", resp["task_type"])
