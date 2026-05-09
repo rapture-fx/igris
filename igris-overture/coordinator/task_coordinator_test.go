@@ -11,7 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -73,6 +75,78 @@ func signedArtifactJSON(t *testing.T, privateKey ed25519.PrivateKey, payload map
 	return signed
 }
 
+func signedReceiptJSON(t *testing.T, privateKey ed25519.PrivateKey, payload map[string]any) json.RawMessage {
+	t.Helper()
+	canonical := map[string]string{
+		"agent_id":           receiptTestFieldString(payload, "agent_id"),
+		"cpu_time_ms":        receiptTestFieldString(payload, "cpu_time_ms"),
+		"execution_id":       receiptTestFieldString(payload, "execution_id"),
+		"fs_bytes_written":   receiptTestFieldString(payload, "fs_bytes_written"),
+		"memory_peak_mb":     receiptTestFieldString(payload, "memory_peak_mb"),
+		"previous_hash":      receiptTestFieldString(payload, "previous_hash"),
+		"timestamp_utc":      receiptTestFieldString(payload, "timestamp_utc"),
+		"tool_calls":         receiptTestFieldString(payload, "tool_calls"),
+		"violation_occurred": receiptTestFieldString(payload, "violation_occurred"),
+		"wall_time_ms":       receiptTestFieldString(payload, "wall_time_ms"),
+	}
+	if runtimeID := receiptTestFieldString(payload, "runtime_id"); runtimeID != "" {
+		canonical["runtime_id"] = runtimeID
+	}
+	if txHash := receiptTestFieldString(payload, "transaction_hash"); txHash != "" {
+		canonical["transaction_hash"] = txHash
+	}
+	if txID := receiptTestFieldString(payload, "transaction_id"); txID != "" {
+		canonical["transaction_id"] = txID
+	}
+	canonicalBytes, err := json.Marshal(canonical)
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonicalBytes)
+	payload["hash"] = hex.EncodeToString(sum[:])
+	payload["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(privateKey, sum[:]))
+	signed, err := json.Marshal(payload)
+	require.NoError(t, err)
+	return signed
+}
+
+func receiptTestFieldString(receipt map[string]any, key string) string {
+	value, ok := receipt[key]
+	if !ok || value == nil {
+		return ""
+	}
+	switch v := value.(type) {
+	case string:
+		return v
+	case bool:
+		return strconv.FormatBool(v)
+	case float64:
+		if v == math.Trunc(v) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case float32:
+		if v == float32(math.Trunc(float64(v))) {
+			return strconv.FormatInt(int64(v), 10)
+		}
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case int:
+		return strconv.Itoa(v)
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case int32:
+		return strconv.FormatInt(int64(v), 10)
+	case uint64:
+		return strconv.FormatUint(v, 10)
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint:
+		return strconv.FormatUint(uint64(v), 10)
+	case json.Number:
+		return v.String()
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
 func TestVerifyExecutionArtifactsForTaskUsesRuntimeRegistryKey(t *testing.T) {
 	publicKey, privateKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
@@ -92,9 +166,8 @@ func TestVerifyExecutionArtifactsForTaskUsesRuntimeRegistryKey(t *testing.T) {
 		"routing_decision": "runtime:test",
 		"request_hash":     "request-hash",
 	})
-	receipt := signedArtifactJSON(t, privateKey, map[string]any{
+	receipt := signedReceiptJSON(t, privateKey, map[string]any{
 		"execution_id":       "exec-proof-1",
-		"hash":               "receipt-hash",
 		"violation_occurred": false,
 	})
 
@@ -1618,11 +1691,11 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 		"governed_action_hash": "action-hash-replay",
 		"routing_decision":     "runtime:robotics:failed",
 	})
-	receipt := signedRuntimeArtifactJSON(t, privateKey, map[string]any{
+	receipt := signedReceiptJSON(t, privateKey, map[string]any{
 		"execution_id":       "exec-replay-1",
-		"receipt_hash":       "receipt-hash-replay",
 		"violation_occurred": true,
 	})
+	receiptHash := mustJSONFieldString(t, receipt, "hash")
 	persistedAt := time.Unix(1_900_000_100, 0).UTC()
 	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
 		columns: []string{
@@ -1667,7 +1740,7 @@ func TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt(t *testing
 			"runtime:robotics:failed",
 			decisionHash,
 			"action-hash-replay",
-			"receipt-hash-replay",
+			receiptHash,
 			mustJSONFieldString(t, receipt, "signature"),
 			mustJSONFieldString(t, envelope, "signature"),
 			"policy-sig",
