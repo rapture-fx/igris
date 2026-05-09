@@ -87,48 +87,44 @@ function computeChainStatuses(receipts: Receipt[]): Map<string, ChainStatus> {
 // ─── Design primitives ────────────────────────────────────────────────────────
 
 function OverviewCard({
-  icon: Icon, label, value, sub, loading,
+  icon: Icon, label, value, loading,
 }: {
-  icon: LucideIcon; label: string; value: ReactNode; sub: string; loading?: boolean;
+  icon: LucideIcon; label: string; value: ReactNode; loading?: boolean;
 }) {
   return (
-    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+      <div className="bg-white px-4 pt-4 pb-5">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
         )}
-        <p className="text-xs text-black mt-1">{sub}</p>
       </div>
     </div>
   );
 }
 
 function SurfaceSection({
-  icon: Icon, title, description, actions,
+  icon: Icon, title, actions,
   bodyClassName = 'px-4 py-4', className = '', children,
 }: {
-  icon: LucideIcon; title: string; description: string;
+  icon: LucideIcon; title: string;
   actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
 }) {
   return (
-    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-black">{title}</p>
-          </div>
-          <p className="text-[11px] text-black mt-0.5">{description}</p>
+    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+          <p className="text-xs font-medium text-foreground">{title}</p>
         </div>
         {actions}
       </div>
-      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+      <div className={`bg-white ${bodyClassName}`}>
         {children}
       </div>
     </div>
@@ -147,7 +143,7 @@ function CopyBtn({ text }: { text: string }) {
         setOk(true);
         setTimeout(() => setOk(false), 1500);
       }}
-      className="flex-shrink-0 text-gray-300 hover:text-gray-600 transition-colors"
+      className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
       title="Copy"
     >
       {ok ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
@@ -171,9 +167,9 @@ function VerificationBadge({ status }: { status: Receipt['status'] }) {
 }
 
 function ViolationCountCell({ count }: { count: number }) {
-  if (count === 0) return <span className="text-xs text-gray-300">—</span>;
+  if (count === 0) return <span className="text-xs text-muted-foreground">—</span>;
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-700 border border-orange-200">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200">
       <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
       {count}
     </span>
@@ -184,12 +180,12 @@ function HashDisplay({ value, label }: { value: string; label: string }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
         {value && <CopyBtn text={value} />}
       </div>
-      <div className="px-3 py-2.5 rounded-md border border-gray-200 bg-gray-50">
-        <p className="text-[11px] font-mono text-gray-600 break-all leading-5">
-          {value || <span className="text-gray-300">none</span>}
+      <div className="px-3 py-2.5 rounded-md border border-black/[0.08] dark:border-white/[0.08] bg-white">
+        <p className="text-[11px] font-mono text-muted-foreground break-all leading-5">
+          {value || <span className="text-muted-foreground">none</span>}
         </p>
       </div>
     </div>
@@ -320,11 +316,8 @@ function ReceiptsContent() {
       <div className="space-y-5">
 
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Execution Receipts</h1>
-            <p className="text-xs text-black mt-0.5">Signed records of runtime execution.</p>
-          </div>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-base font-semibold text-foreground">Execution Receipts</h1>
           <div className="flex items-center gap-2 flex-shrink-0">
             <TimeRangePicker value={timeRange} onChange={setTimeRange} />
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportJSON}>
@@ -345,28 +338,24 @@ function ReceiptsContent() {
             icon={FileCheck}
             label="Receipts"
             value={counts.total}
-            sub={`In the last ${timeRange}`}
             loading={isLoading}
           />
           <OverviewCard
             icon={ShieldCheck}
             label="Verified"
             value={counts.verified}
-            sub="expected hash matched stored receipt"
             loading={isLoading}
           />
           <OverviewCard
             icon={AlertTriangle}
             label="Violations"
             value={counts.violations}
-            sub="Flagged executions"
             loading={isLoading}
           />
           <OverviewCard
             icon={Clock}
             label="Last Receipt"
             value={counts.last ? getRelativeTime(counts.last) : '—'}
-            sub="Most recent entry"
             loading={isLoading}
           />
         </div>
@@ -374,7 +363,7 @@ function ReceiptsContent() {
         {/* ── Action Bar ────────────────────────────────────────────────────── */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-80">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="execution_id / agent_id / runtime_id"
               className="pl-8 h-8 text-xs"
@@ -387,8 +376,8 @@ function ReceiptsContent() {
             className={[
               'h-8 px-3 text-xs border rounded-md transition-colors flex items-center gap-1.5',
               violationsOnly
-                ? 'bg-orange-50 border-orange-200 text-orange-700'
-                : 'border-gray-200 text-gray-600 hover:border-gray-300',
+                ? 'bg-orange-50 border-orange-200 text-orange-600'
+                : 'border-black/[0.08] dark:border-white/[0.08] text-muted-foreground hover:border-gray-300',
             ].join(' ')}
           >
             <AlertTriangle className="h-3.5 w-3.5" />
@@ -400,15 +389,14 @@ function ReceiptsContent() {
         <SurfaceSection
           icon={FileCheck}
           title="Receipt Log"
-          description="Signed execution records with hash-chain continuity tracking."
           bodyClassName="px-0 py-0"
         >
-          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white mx-4 mb-4">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="hover:bg-transparent">
+                <TableRow className="hover:bg-transparent bg-white">
                   {['Timestamp', 'Execution ID', 'Agent', 'Runtime', 'Status', 'Duration', 'Violations', ''].map((h) => (
-                    <TableHead key={h} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
+                    <TableHead key={h} className="text-xs font-medium text-muted-foreground h-9 px-4 bg-white uppercase tracking-wide">
                       {h}
                     </TableHead>
                   ))}
@@ -417,15 +405,15 @@ function ReceiptsContent() {
               <TableBody>
                 {isLoading ? (
                   Array.from({ length: 8 }).map((_, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={i} className="bg-white">
                       {Array.from({ length: 8 }).map((_, j) => (
                         <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="py-14 text-center text-xs text-gray-400">
+                  <TableRow className="bg-white">
+                    <TableCell colSpan={8} className="py-14 text-center text-xs text-muted-foreground">
                       No receipts found.
                     </TableCell>
                   </TableRow>
@@ -433,11 +421,11 @@ function ReceiptsContent() {
                   filtered.map((r) => (
                     <TableRow
                       key={r.id}
-                      className={`cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors ${selectedId === r.id ? 'bg-blue-50/50' : ''}`}
+                      className={`cursor-pointer bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 transition-colors ${selectedId === r.id ? 'bg-blue-50/50' : ''}`}
                       onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
                     >
                       {/* Timestamp */}
-                      <TableCell className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap tabular-nums">
+                      <TableCell className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
                         {getRelativeTime(r.timestamp)}
                       </TableCell>
 
@@ -458,13 +446,13 @@ function ReceiptsContent() {
                       </TableCell>
 
                       {/* Agent */}
-                      <TableCell className="px-4 py-3 text-xs text-gray-600 font-mono" title={r.agent_id}>
+                      <TableCell className="px-4 py-3 text-xs text-muted-foreground font-mono" title={r.agent_id}>
                         {trunc(r.agent_id, 12)}
                       </TableCell>
 
                       {/* Runtime */}
                       <TableCell
-                        className="px-4 py-3 text-xs text-gray-600 font-mono"
+                        className="px-4 py-3 text-xs text-muted-foreground font-mono"
                         title={r.runtime_id || 'Not recorded'}
                       >
                         {r.runtime_id ? trunc(r.runtime_id, 12) : 'Not recorded'}
@@ -476,7 +464,7 @@ function ReceiptsContent() {
                       </TableCell>
 
                       {/* Duration */}
-                      <TableCell className="px-4 py-3 text-xs tabular-nums text-gray-700">
+                      <TableCell className="px-4 py-3 text-xs tabular-nums text-foreground">
                         {r.duration_ms}ms
                       </TableCell>
 
@@ -491,7 +479,7 @@ function ReceiptsContent() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
+                            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground gap-1"
                             onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
                           >
                             <Eye className="h-3 w-3" /> View
