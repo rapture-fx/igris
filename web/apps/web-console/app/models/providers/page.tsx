@@ -69,14 +69,14 @@ const PROVIDER_OPTIONS = [
 const EMPTY_FORM: ProviderForm = { kind: '', key_id: '', endpoint: '', default_model: '' };
 
 function LatencyCell({ ms }: { ms: number | null }) {
-  if (ms === null) return <span className="text-xs text-gray-300">—</span>;
-  const cls = ms < 300 ? 'text-green-700' : ms < 600 ? 'text-yellow-700' : 'text-red-600';
+  if (ms === null) return <span className="text-xs text-muted-foreground">—</span>;
+  const cls = ms < 300 ? 'text-green-600' : ms < 600 ? 'text-yellow-600' : 'text-red-600';
   return <span className={`text-xs font-mono tabular-nums ${cls}`}>{ms}ms</span>;
 }
 
 function SuccessRateCell({ rate }: { rate: number | null }) {
-  if (rate === null) return <span className="text-xs text-gray-300">—</span>;
-  const cls = rate >= 98 ? 'text-green-700' : rate >= 90 ? 'text-yellow-700' : 'text-red-600';
+  if (rate === null) return <span className="text-xs text-muted-foreground">—</span>;
+  const cls = rate >= 98 ? 'text-green-600' : rate >= 90 ? 'text-yellow-600' : 'text-red-600';
   return <span className={`text-xs font-mono tabular-nums ${cls}`}>{rate.toFixed(1)}%</span>;
 }
 
@@ -84,28 +84,25 @@ function OverviewCard({
   icon: Icon,
   label,
   value,
-  sub,
   loading,
 }: {
   icon: LucideIcon;
   label: string;
   value: ReactNode;
-  sub: string;
   loading?: boolean;
 }) {
   return (
-    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+      <div className="bg-white border-t border-black/[0.08] dark:border-white/[0.08] px-4 pt-4 pb-5">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
         )}
-        <p className="text-xs text-black mt-1">{sub}</p>
       </div>
     </div>
   );
@@ -114,7 +111,6 @@ function OverviewCard({
 function SurfaceSection({
   icon: Icon,
   title,
-  description,
   actions,
   bodyClassName = 'px-4 py-4',
   className = '',
@@ -122,25 +118,21 @@ function SurfaceSection({
 }: {
   icon: LucideIcon;
   title: string;
-  description: string;
   actions?: ReactNode;
   bodyClassName?: string;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-black">{title}</p>
-          </div>
-          <p className="text-[11px] text-black mt-0.5">{description}</p>
+    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+          <p className="text-xs font-medium text-foreground">{title}</p>
         </div>
         {actions}
       </div>
-      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+      <div className={`bg-white border-t border-black/[0.08] dark:border-white/[0.08] ${bodyClassName}`}>
         {children}
       </div>
     </div>
@@ -229,11 +221,8 @@ export default function ModelsProvidersPage() {
   return (
     <DashboardLayout>
       <div className="space-y-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Model Providers</h1>
-            <p className="text-xs text-black mt-0.5">AI providers available for routing.</p>
-          </div>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-base font-semibold text-foreground">Model Providers</h1>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
@@ -249,28 +238,24 @@ export default function ModelsProvidersPage() {
             icon={CheckCircle}
             label="Active"
             value={counts.active}
-            sub={`${providers.length} total configured.`}
             loading={isLoading}
           />
           <OverviewCard
             icon={XCircle}
             label="Errors"
             value={counts.error}
-            sub={counts.error > 0 ? 'Check provider configuration.' : 'All providers healthy.'}
             loading={isLoading}
           />
           <OverviewCard
             icon={CloudCog}
             label="Models Available"
             value={counts.totalModels}
-            sub="Across all configured providers."
             loading={isLoading}
           />
           <OverviewCard
             icon={Activity}
             label="Avg Latency"
             value={counts.avgLatency !== null ? `${counts.avgLatency}ms` : '—'}
-            sub="Average across active providers."
             loading={isLoading}
           />
         </div>
@@ -278,111 +263,108 @@ export default function ModelsProvidersPage() {
         <SurfaceSection
           icon={CloudCog}
           title="Configured Providers"
-          description="AI providers wired for routing. Keys are managed in Settings → Keys."
           actions={
             providers.length > 0 ? (
-              <span className="text-[11px] text-gray-500">{providers.length} configured</span>
+              <span className="text-[11px] text-muted-foreground">{providers.length} configured</span>
             ) : undefined
           }
-          bodyClassName="px-4 py-4"
+          bodyClassName="px-0 py-0"
         >
-          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    {['Provider', 'Status', 'Key Reference', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
-                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                        {col}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <TableRow key={i}>
-                        {Array.from({ length: 8 }).map((_, j) => (
-                          <TableCell key={j} className="px-4 py-3">
-                            <Skeleton className="h-3.5 w-16" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : providers.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="px-4 py-10 text-center">
-                        <div className="flex flex-col items-center gap-2.5">
-                          <CloudCog className="h-7 w-7 text-gray-200" />
-                          <p className="text-xs text-gray-400">No providers configured.</p>
-                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1 mt-0.5" onClick={openAdd}>
-                            <Plus className="h-3.5 w-3.5" /> Add Provider
-                          </Button>
-                        </div>
-                      </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-white">
+                  {['Provider', 'Status', 'Key Reference', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
+                    <TableHead key={col} className="text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-4 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
+                      {col}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i} className="bg-white">
+                      {Array.from({ length: 8 }).map((_, j) => (
+                        <TableCell key={j} className="px-4 py-3">
+                          <Skeleton className="h-3.5 w-16" />
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  ) : (
-                    providers.map((p) => {
-                      const linkedKey = vaultKeys.find((k) => k.id === p.key_id);
-                      return (
-                        <TableRow key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <TableCell className="px-4 py-2.5">
-                            <p className="text-xs font-medium text-gray-900">{p.name}</p>
-                          </TableCell>
-                          <TableCell className="px-4 py-2.5">
-                            <StatusBadge status={p.status === 'active' ? 'ACTIVE' : p.status === 'error' ? 'ERROR' : 'INACTIVE'} />
-                          </TableCell>
-                          <TableCell className="px-4 py-2.5">
-                            {linkedKey ? (
-                              <span className="text-xs text-gray-700 font-mono">
-                                {linkedKey.key_name} · <span className="text-gray-400">{linkedKey.masked_key}</span>
-                              </span>
-                            ) : (
-                              <span className="text-xs text-amber-600">No key linked</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="px-4 py-2.5 text-xs tabular-nums text-gray-700">{p.models_available}</TableCell>
-                          <TableCell className="px-4 py-2.5"><LatencyCell ms={p.latency_ms} /></TableCell>
-                          <TableCell className="px-4 py-2.5"><SuccessRateCell rate={p.success_rate} /></TableCell>
-                          <TableCell className="px-4 py-2.5 text-xs text-gray-400">{getRelativeTime(p.last_checked_at)}</TableCell>
-                          <TableCell className="px-4 py-2.5 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-36">
-                                <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={() => openEdit(p)}>
-                                  <Pencil className="h-3.5 w-3.5 text-gray-400" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-xs gap-2 cursor-pointer"
-                                  onClick={() => toggleMutation.mutate({
-                                    id: p.id,
-                                    status: p.status === 'disabled' ? 'active' : 'disabled',
-                                  })}
-                                >
-                                  {p.status === 'disabled'
-                                    ? <><Power className="h-3.5 w-3.5 text-gray-400" /> Enable</>
-                                    : <><PowerOff className="h-3.5 w-3.5 text-gray-400" /> Disable</>}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-xs gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                                  onClick={() => setDeleteTarget(p)}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                  ))
+                ) : providers.length === 0 ? (
+                  <TableRow className="bg-white">
+                    <TableCell colSpan={8} className="px-4 py-10 text-center">
+                      <div className="flex flex-col items-center gap-2.5">
+                        <CloudCog className="h-7 w-7 text-gray-200" />
+                        <p className="text-xs text-muted-foreground">No providers configured.</p>
+                        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 mt-0.5" onClick={openAdd}>
+                          <Plus className="h-3.5 w-3.5" /> Add Provider
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  providers.map((p) => {
+                    const linkedKey = vaultKeys.find((k) => k.id === p.key_id);
+                    return (
+                      <TableRow key={p.id} className="border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 bg-white">
+                        <TableCell className="px-4 py-2.5">
+                          <p className="text-xs font-medium text-foreground">{p.name}</p>
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5">
+                          <StatusBadge status={p.status === 'active' ? 'ACTIVE' : p.status === 'error' ? 'ERROR' : 'INACTIVE'} />
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5">
+                          {linkedKey ? (
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {linkedKey.key_name} · <span className="text-gray-400">{linkedKey.masked_key}</span>
+                            </span>
+                          ) : (
+                            <span className="text-xs text-amber-600">No key linked</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs tabular-nums text-foreground">{p.models_available}</TableCell>
+                        <TableCell className="px-4 py-2.5"><LatencyCell ms={p.latency_ms} /></TableCell>
+                        <TableCell className="px-4 py-2.5"><SuccessRateCell rate={p.success_rate} /></TableCell>
+                        <TableCell className="px-4 py-2.5 text-xs text-muted-foreground">{getRelativeTime(p.last_checked_at)}</TableCell>
+                        <TableCell className="px-4 py-2.5 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-36">
+                              <DropdownMenuItem className="text-xs gap-2 cursor-pointer" onClick={() => openEdit(p)}>
+                                <Pencil className="h-3.5 w-3.5 text-muted-foreground" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-xs gap-2 cursor-pointer"
+                                onClick={() => toggleMutation.mutate({
+                                  id: p.id,
+                                  status: p.status === 'disabled' ? 'active' : 'disabled',
+                                })}
+                              >
+                                {p.status === 'disabled'
+                                  ? <><Power className="h-3.5 w-3.5 text-muted-foreground" /> Enable</>
+                                  : <><PowerOff className="h-3.5 w-3.5 text-muted-foreground" /> Disable</>}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-xs gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                onClick={() => setDeleteTarget(p)}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
           </div>
         </SurfaceSection>
       </div>
