@@ -9,10 +9,10 @@ import {
   LogOut,
 } from 'lucide-react';
 import {
-  ActivityLogIcon, BarChartIcon, DashboardIcon, DesktopIcon,
+  ActivityLogIcon, BarChartIcon, BoxIcon, CheckboxIcon, DashboardIcon,
   EnvelopeClosedIcon, ExitIcon, FileTextIcon, GearIcon, LightningBoltIcon,
-  LockClosedIcon, MagicWandIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
-  RulerSquareIcon, SunIcon,
+  LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
+  SunIcon, TokensIcon,
 } from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -59,12 +59,12 @@ const navigation: NavigationItem[] = [
   {
     name: 'Providers',
     href: '/models/providers',
-    icon: MagicWandIcon,
+    icon: TokensIcon,
   },
   {
     name: 'Devices',
     href: '/fleet/devices',
-    icon: DesktopIcon,
+    icon: BoxIcon,
   },
   {
     name: 'Execution',
@@ -85,7 +85,7 @@ const navigation: NavigationItem[] = [
   },
   {
     name: 'Policy',
-    icon: RulerSquareIcon,
+    icon: CheckboxIcon,
     children: [
       { name: 'Bounds', href: '/policy/bounds' },
       { name: 'Capabilities', href: '/policy/capabilities' },
