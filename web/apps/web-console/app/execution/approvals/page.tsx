@@ -105,20 +105,15 @@ export default function ApprovalsPage() {
       <div className="space-y-5">
 
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div>
-          <h1 className="text-base font-semibold text-gray-900">Human-in-the-Loop Approvals</h1>
-          <p className="text-xs text-black mt-0.5">
-            Execution runs paused awaiting human review. Approve to resume, reject to terminate.
-          </p>
-        </div>
+        <h1 className="text-base font-semibold text-foreground">Human-in-the-Loop Approvals</h1>
 
         {/* ── Approvals Card ──────────────────────────────────────────────── */}
-        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+        <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900">Pending Approvals</span>
+              <span className="text-sm font-medium text-foreground">Pending Approvals</span>
               {!isLoading && runs.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200">
                   <Clock className="h-2.5 w-2.5" />
                   {runs.length} waiting
                 </span>
@@ -127,7 +122,7 @@ export default function ApprovalsPage() {
             <div className="flex items-center gap-2">
               {selectedIds.size > 0 && (
                 <>
-                  <span className="text-xs text-gray-500">{selectedIds.size} selected</span>
+                  <span className="text-xs text-muted-foreground">{selectedIds.size} selected</span>
                   <Button
                     size="sm"
                     className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white"
@@ -140,7 +135,7 @@ export default function ApprovalsPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-7 text-xs gap-1 border-red-200 text-red-700 hover:bg-red-50"
+                    className="h-7 text-xs gap-1 border-red-200 text-red-600 hover:bg-red-50"
                     onClick={() => bulkRejectMutation.mutate(Array.from(selectedIds))}
                     disabled={bulkRejectMutation.isPending}
                   >
@@ -162,11 +157,11 @@ export default function ApprovalsPage() {
             </div>
           </div>
 
-          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+          <div className="bg-white overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-200">
+                  <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
                     <th className="w-10 px-4 py-2.5 text-left">
                       <input
                         type="checkbox"
@@ -176,14 +171,14 @@ export default function ApprovalsPage() {
                       />
                     </th>
                     {['Run ID', 'Agent', 'Paused', 'Reason / Model', 'BT Node', 'Prompt Preview', 'Actions'].map((h) => (
-                      <th key={h} className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {isLoading ? (
                     Array.from({ length: 4 }).map((_, i) => (
-                      <tr key={i} className="border-b border-gray-100">
+                      <tr key={i} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
                         {Array.from({ length: 8 }).map((_, j) => (
                           <td key={j} className="px-4 py-3">
                             <Skeleton className="h-3.5 w-20" />
@@ -192,18 +187,18 @@ export default function ApprovalsPage() {
                       </tr>
                     ))
                   ) : runs.length === 0 ? (
-                    <tr>
+                    <tr className="bg-white">
                       <td colSpan={8} className="py-16 text-center">
                         <CheckCircle2 className="h-8 w-8 text-green-300 mx-auto mb-2" />
-                        <p className="text-xs text-gray-400">No runs pending approval.</p>
-                        <p className="text-[11px] text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground">No runs pending approval.</p>
+                        <p className="text-[11px] text-muted-foreground mt-1">
                           Use &ldquo;Pause for Approval&rdquo; in an agent drawer to create a review checkpoint.
                         </p>
                       </td>
                     </tr>
                   ) : (
                     runs.map((run) => (
-                      <tr key={run.id} className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors">
+                      <tr key={run.id} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <input
                             type="checkbox"
@@ -212,39 +207,39 @@ export default function ApprovalsPage() {
                             className="rounded border-gray-300"
                           />
                         </td>
-                        <td className="px-4 py-3 font-mono text-gray-700">
+                        <td className="px-4 py-3 font-mono text-muted-foreground">
                           {truncateText(run.id, 16)}
                         </td>
                         <td className="px-4 py-3">
                           <div>
-                            <p className="text-gray-700">{truncateText(run.agent_id, 14)}</p>
+                            <p className="text-muted-foreground">{truncateText(run.agent_id, 14)}</p>
                             {run.namespace && (
-                              <p className="text-[10px] text-gray-400">{run.namespace}</p>
+                              <p className="text-[10px] text-muted-foreground">{run.namespace}</p>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {getRelativeTime(run.paused_at)}
                         </td>
                         <td className="px-4 py-3">
                           <div className="space-y-1">
                             {run.pause_reason ? (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200">
                                 {run.pause_reason === 'hitl' ? 'HitL' : run.pause_reason}
                               </span>
                             ) : (
-                              <span className="text-gray-300">—</span>
+                              <span className="text-muted-foreground">—</span>
                             )}
                             {run.model && (
                               <div>
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono bg-white text-gray-600 border border-gray-200">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono bg-white text-muted-foreground border border-black/[0.08] dark:border-white/[0.08]">
                                   {run.model}
                                 </span>
                               </div>
                             )}
                             {run.violation_type && (
                               <div>
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-700 border border-red-200">
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-50 text-red-600 border border-red-200">
                                   <AlertTriangle className="h-2.5 w-2.5" />
                                   {run.violation_type}
                                 </span>
@@ -255,16 +250,16 @@ export default function ApprovalsPage() {
                         <td className="px-4 py-3">
                           {run.bt_node_name ? (
                             <div className="flex items-center gap-1">
-                              <GitBranch className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                              <GitBranch className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                               <div>
-                                <p className="text-gray-700">{run.bt_node_name}</p>
+                                <p className="text-muted-foreground">{run.bt_node_name}</p>
                                 {run.bt_node_type && (
-                                  <p className="text-[9px] text-gray-400 font-mono">{run.bt_node_type}</p>
+                                  <p className="text-[9px] text-muted-foreground font-mono">{run.bt_node_type}</p>
                                 )}
                               </div>
                             </div>
                           ) : (
-                            <span className="text-gray-300">—</span>
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3 max-w-[220px]">
@@ -272,7 +267,7 @@ export default function ApprovalsPage() {
                             <button
                               type="button"
                               onClick={() => setExpandedPrompt(expandedPrompt === run.id ? null : run.id)}
-                              className="flex items-center gap-0.5 text-gray-500 hover:text-gray-800 text-left"
+                              className="flex items-center gap-0.5 text-muted-foreground hover:text-foreground text-left"
                             >
                               {expandedPrompt === run.id
                                 ? <ChevronDown className="h-3 w-3 flex-shrink-0" />
@@ -284,7 +279,7 @@ export default function ApprovalsPage() {
                               </span>
                             </button>
                           ) : (
-                            <span className="text-gray-300">—</span>
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -301,7 +296,7 @@ export default function ApprovalsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 text-[11px] gap-1 border-red-200 text-red-700 hover:bg-red-50"
+                              className="h-7 text-[11px] gap-1 border-red-200 text-red-600 hover:bg-red-50"
                               onClick={() => rejectMutation.mutate(run.id)}
                               disabled={isPending}
                             >
@@ -317,9 +312,9 @@ export default function ApprovalsPage() {
               </table>
             </div>
             {!isLoading && (
-              <div className="px-4 py-3 border-t border-gray-200">
-                <span className="text-xs text-black flex items-center gap-1.5">
-                  <AlertTriangle className="h-3 w-3 text-gray-400 flex-shrink-0" />
+              <div className="px-4 py-3">
+                <span className="text-xs text-foreground flex items-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                   Approval actions are logged to the tamper-evident execution ledger.
                 </span>
               </div>
