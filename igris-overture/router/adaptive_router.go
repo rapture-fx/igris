@@ -8,20 +8,19 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // AdaptiveRouter implements intelligent routing based on performance metrics
 type AdaptiveRouter struct {
-	backends       map[string]*Backend
-	mu             sync.RWMutex
-	metricsWindow  time.Duration
-	routingPolicy  RoutingPolicy
-	learningRate   float64
+	backends        map[string]*Backend
+	mu              sync.RWMutex
+	metricsWindow   time.Duration
+	routingPolicy   RoutingPolicy
+	learningRate    float64
 	explorationRate float64
 
 	// OVERTURE-02: Provider trust verification
-	trustTracker   *ProviderTrustTracker
+	trustTracker *ProviderTrustTracker
 
 	// OVERTURE-03: Thompson Sampling with cold-start protection
 	thompsonEngine *ThompsonSamplingEngine
@@ -34,19 +33,19 @@ type AdaptiveRouter struct {
 
 // Backend represents an inference backend with performance metrics
 type Backend struct {
-	ID              string
-	URL             string
-	Type            BackendType
-	Capabilities    []string
+	ID           string
+	URL          string
+	Type         BackendType
+	Capabilities []string
 
 	// Performance metrics (sliding window)
-	AvgLatency      float64
-	ErrorRate       float64
-	CurrentLoad     int
-	MaxCapacity     int
-	SuccessCount    int64
-	ErrorCount      int64
-	TotalRequests   int64
+	AvgLatency    float64
+	ErrorRate     float64
+	CurrentLoad   int
+	MaxCapacity   int
+	SuccessCount  int64
+	ErrorCount    int64
+	TotalRequests int64
 
 	// Health status
 	Healthy         bool
@@ -58,29 +57,29 @@ type Backend struct {
 type BackendType string
 
 const (
-	BackendTypeMLPython  BackendType = "ml-python"
-	BackendTypeMLGPU     BackendType = "ml-gpu"
-	BackendTypeMLCPU     BackendType = "ml-cpu"
-	BackendTypeONNX      BackendType = "onnx-runtime"
-	BackendTypeRustFFI   BackendType = "rust-ffi"
+	BackendTypeMLPython BackendType = "ml-python"
+	BackendTypeMLGPU    BackendType = "ml-gpu"
+	BackendTypeMLCPU    BackendType = "ml-cpu"
+	BackendTypeONNX     BackendType = "onnx-runtime"
+	BackendTypeRustFFI  BackendType = "rust-ffi"
 )
 
 type RoutingPolicy string
 
 const (
-	PolicyRoundRobin      RoutingPolicy = "round-robin"
-	PolicyLeastLatency    RoutingPolicy = "least-latency"
-	PolicyLeastLoad       RoutingPolicy = "least-load"
-	PolicyWeightedRandom  RoutingPolicy = "weighted-random"
+	PolicyRoundRobin       RoutingPolicy = "round-robin"
+	PolicyLeastLatency     RoutingPolicy = "least-latency"
+	PolicyLeastLoad        RoutingPolicy = "least-load"
+	PolicyWeightedRandom   RoutingPolicy = "weighted-random"
 	PolicyThompsonSampling RoutingPolicy = "thompson-sampling" // Reinforcement learning
 )
 
 type RoutingRequest struct {
-	ModelName      string
-	RequestSize    int
-	LatencyBudget  time.Duration
-	UserTier       string
-	Capabilities   []string
+	ModelName     string
+	RequestSize   int
+	LatencyBudget time.Duration
+	UserTier      string
+	Capabilities  []string
 }
 
 type RoutingDecision struct {
@@ -90,7 +89,7 @@ type RoutingDecision struct {
 	AlternativeIDs []string
 
 	// OVERTURE-04: Explainable routing traces
-	Metadata       *RoutingMetadata
+	Metadata *RoutingMetadata
 }
 
 // NewAdaptiveRouter creates a new adaptive routing instance
@@ -103,25 +102,61 @@ func NewAdaptiveRouter(policy RoutingPolicy, metricsWindow time.Duration) *Adapt
 		explorationRate: 0.15, // 15% exploration for Thompson Sampling (legacy)
 
 		// OVERTURE-02: Initialize trust tracker with default config
-		trustTracker:    NewProviderTrustTracker(DefaultTrustConfig()),
+		trustTracker: NewProviderTrustTracker(DefaultTrustConfig()),
 
 		// OVERTURE-03: Initialize Thompson Sampling engine with cold-start protection
-		thompsonEngine:  NewThompsonSamplingEngine(DefaultThompsonSamplingConfig()),
+		thompsonEngine: NewThompsonSamplingEngine(DefaultThompsonSamplingConfig()),
 
-		routingDecisions: promauto.NewCounter(prometheus.CounterOpts{
+		routingDecisions: adaptiveCounter(prometheus.CounterOpts{
 			Name: "adaptive_routing_decisions_total",
 			Help: "Total number of adaptive routing decisions made",
 		}),
-		backendLatency: promauto.NewHistogramVec(prometheus.HistogramOpts{
+		backendLatency: adaptiveHistogramVec(prometheus.HistogramOpts{
 			Name:    "adaptive_backend_latency_seconds",
 			Help:    "Backend inference latency tracked by adaptive router",
 			Buckets: prometheus.DefBuckets,
 		}, []string{"backend_id", "backend_type"}),
-		backendErrors: promauto.NewCounterVec(prometheus.CounterOpts{
+		backendErrors: adaptiveCounterVec(prometheus.CounterOpts{
 			Name: "adaptive_backend_errors_total",
 			Help: "Total errors per backend tracked by adaptive router",
 		}, []string{"backend_id", "backend_type"}),
 	}
+}
+
+func adaptiveCounter(opts prometheus.CounterOpts) prometheus.Counter {
+	collector := prometheus.NewCounter(opts)
+	if err := prometheus.Register(collector); err != nil {
+		if alreadyRegistered, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			if counter, ok := alreadyRegistered.ExistingCollector.(prometheus.Counter); ok {
+				return counter
+			}
+		}
+	}
+	return collector
+}
+
+func adaptiveHistogramVec(opts prometheus.HistogramOpts, labels []string) *prometheus.HistogramVec {
+	collector := prometheus.NewHistogramVec(opts, labels)
+	if err := prometheus.Register(collector); err != nil {
+		if alreadyRegistered, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			if histogram, ok := alreadyRegistered.ExistingCollector.(*prometheus.HistogramVec); ok {
+				return histogram
+			}
+		}
+	}
+	return collector
+}
+
+func adaptiveCounterVec(opts prometheus.CounterOpts, labels []string) *prometheus.CounterVec {
+	collector := prometheus.NewCounterVec(opts, labels)
+	if err := prometheus.Register(collector); err != nil {
+		if alreadyRegistered, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			if counter, ok := alreadyRegistered.ExistingCollector.(*prometheus.CounterVec); ok {
+				return counter
+			}
+		}
+	}
+	return collector
 }
 
 // RegisterBackend adds a new inference backend to the router
@@ -235,14 +270,14 @@ func (ar *AdaptiveRouter) Route(ctx context.Context, req *RoutingRequest) (*Rout
 	for _, backend := range allBackends {
 		backend.mu.RLock()
 		score := CandidateScore{
-			BackendID:   backend.ID,
-			BackendType: string(backend.Type),
-			Healthy:     backend.Healthy,
-			Trusted:     trustedSet[backend.ID],
+			BackendID:    backend.ID,
+			BackendType:  string(backend.Type),
+			Healthy:      backend.Healthy,
+			Trusted:      trustedSet[backend.ID],
 			AvgLatencyMs: backend.AvgLatency,
-			ErrorRate:   backend.ErrorRate,
-			CurrentLoad: backend.CurrentLoad,
-			Selected:    (decision.Backend != nil && decision.Backend.ID == backend.ID),
+			ErrorRate:    backend.ErrorRate,
+			CurrentLoad:  backend.CurrentLoad,
+			Selected:     (decision.Backend != nil && decision.Backend.ID == backend.ID),
 		}
 		backend.mu.RUnlock()
 
