@@ -217,7 +217,7 @@ function ViolationsContent() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-36 text-xs bg-background"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="last_1h" className="text-xs">Last 1 hour</SelectItem>
               <SelectItem value="last_6h" className="text-xs">Last 6 hours</SelectItem>
@@ -225,7 +225,7 @@ function ViolationsContent() {
             </SelectContent>
           </Select>
           <Select value={severityFilter} onValueChange={setSeverityFilter}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-white"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-36 text-xs bg-background"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">All severities</SelectItem>
               <SelectItem value="info" className="text-xs">Info</SelectItem>
@@ -239,98 +239,93 @@ function ViolationsContent() {
         <SurfaceSection
           icon={ShieldOff}
           title="Violations"
-          description="Policy violations returned by `/v1/proof/violations`."
           bodyClassName="px-0 py-0"
           actions={
             !isLoading ? (
-              <span className="text-[11px] text-gray-400 tabular-nums whitespace-nowrap">
+              <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">
                 {filtered.length} of {violations.length}
               </span>
             ) : undefined
           }
         >
-          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white mx-4 mb-4">
-            <div
-              className="overflow-y-auto"
-              style={{ maxHeight: 400, scrollbarWidth: 'none', msOverflowStyle: 'none' } as CSSProperties}
-            >
-              <Table className="w-full">
-                <TableHeader className="sticky top-0 z-10">
-                  <TableRow className="bg-gray-50 border-b border-gray-200 hover:bg-gray-50">
-                    <TableHead className="w-[120px] text-xs font-medium text-gray-500 py-2 px-4">Timestamp</TableHead>
-                    <TableHead className="w-[120px] text-xs font-medium text-gray-500 py-2 px-3">Agent</TableHead>
-                    <TableHead className="w-[160px] text-xs font-medium text-gray-500 py-2 px-3">Violation</TableHead>
-                    <TableHead className="w-[140px] text-xs font-medium text-gray-500 py-2 px-3">Policy Rule</TableHead>
-                    <TableHead className="w-[90px] text-xs font-medium text-gray-500 py-2 px-3">Severity</TableHead>
-                    <TableHead className="w-[90px] text-xs font-medium text-gray-500 py-2 px-3">Limit</TableHead>
-                    <TableHead className="w-[90px] text-xs font-medium text-gray-500 py-2 px-3">Observed</TableHead>
-                    <TableHead className="text-xs font-medium text-gray-500 py-2 px-3">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading
-                    ? Array.from({ length: 6 }).map((_, rowIndex) => (
-                        <TableRow key={rowIndex} className="border-b border-gray-100">
-                          {Array.from({ length: 8 }).map((_, cellIndex) => (
-                            <TableCell key={cellIndex} className="py-2.5 px-3"><Skeleton className="h-3.5 w-full" /></TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    : filtered.length === 0
-                      ? (
-                        <TableRow>
-                          <TableCell colSpan={8} className="text-center text-xs text-gray-400 py-14">
-                            No policy violations were returned for the selected filters.
+          <div className="overflow-y-auto"
+            style={{ maxHeight: 400, scrollbarWidth: 'none', msOverflowStyle: 'none' } as CSSProperties}
+          >
+            <Table className="w-full">
+              <TableHeader className="sticky top-0 z-10">
+                <TableRow className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-white">
+                  <TableHead className="w-[120px] text-xs font-medium text-muted-foreground py-2 px-4 uppercase tracking-wide">Timestamp</TableHead>
+                  <TableHead className="w-[120px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Agent</TableHead>
+                  <TableHead className="w-[160px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Violation</TableHead>
+                  <TableHead className="w-[140px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Policy Rule</TableHead>
+                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Severity</TableHead>
+                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Limit</TableHead>
+                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Observed</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, rowIndex) => (
+                      <TableRow key={rowIndex} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
+                        {Array.from({ length: 8 }).map((_, cellIndex) => (
+                          <TableCell key={cellIndex} className="py-2.5 px-3"><Skeleton className="h-3.5 w-full" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  : filtered.length === 0
+                    ? (
+                      <TableRow className="bg-white">
+                        <TableCell colSpan={8} className="text-center text-xs text-muted-foreground py-14">
+                          No policy violations were returned for the selected filters.
+                        </TableCell>
+                      </TableRow>
+                    )
+                    : filtered.map((violation) => (
+                        <TableRow
+                          key={violation.id}
+                          className={`bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 cursor-pointer ${selectedId === violation.id ? 'bg-blue-50/40' : ''}`}
+                          onClick={() => setSelectedId(violation.id === selectedId ? null : violation.id)}
+                        >
+                          <TableCell className="py-2.5 px-4 text-xs text-muted-foreground font-mono whitespace-nowrap">
+                            {getRelativeTime(violation.timestamp)}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground font-mono truncate">
+                            {violation.agent_id || <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground font-mono truncate">
+                            {violationLabel(violation)}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground font-mono truncate">
+                            {violation.policy_rule ?? <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3">
+                            <SeverityBadge severity={normalizeSeverity(violation.severity)} />
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground tabular-nums">
+                            {violation.limit_value != null ? String(violation.limit_value) : <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground tabular-nums">
+                            {violation.observed_value != null ? String(violation.observed_value) : <span className="text-muted-foreground">—</span>}
+                          </TableCell>
+                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground truncate">
+                            {violation.action_taken ?? <span className="text-muted-foreground">—</span>}
                           </TableCell>
                         </TableRow>
-                      )
-                      : filtered.map((violation) => (
-                          <TableRow
-                            key={violation.id}
-                            className={`border-b border-gray-100 hover:bg-gray-50/60 cursor-pointer ${selectedId === violation.id ? 'bg-blue-50/40' : ''}`}
-                            onClick={() => setSelectedId(violation.id === selectedId ? null : violation.id)}
-                          >
-                            <TableCell className="py-2.5 px-4 text-xs text-gray-500 font-mono whitespace-nowrap">
-                              {getRelativeTime(violation.timestamp)}
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3 text-xs text-gray-600 font-mono truncate">
-                              {violation.agent_id || <span className="text-gray-300">—</span>}
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3 text-xs text-gray-600 font-mono truncate">
-                              {violationLabel(violation)}
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3 text-xs text-gray-600 font-mono truncate">
-                              {violation.policy_rule ?? <span className="text-gray-300">—</span>}
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3">
-                              <SeverityBadge severity={normalizeSeverity(violation.severity)} />
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3 text-xs text-gray-600 tabular-nums">
-                              {violation.limit_value != null ? String(violation.limit_value) : <span className="text-gray-300">—</span>}
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3 text-xs text-gray-600 tabular-nums">
-                              {violation.observed_value != null ? String(violation.observed_value) : <span className="text-gray-300">—</span>}
-                            </TableCell>
-                            <TableCell className="py-2.5 px-3 text-xs text-gray-600 truncate">
-                              {violation.action_taken ?? <span className="text-gray-300">—</span>}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                </TableBody>
-              </Table>
-            </div>
+                      ))}
+              </TableBody>
+            </Table>
           </div>
         </SurfaceSection>
 
         <SurfaceSection
           icon={TrendingUp}
           title="Violations by Hour"
-          description="24-hour distribution of proof violations."
           collapsed={chartCollapsed}
           actions={
             <button
               onClick={() => setChartCollapsed((value) => !value)}
-              className="text-gray-400 hover:text-gray-700 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <ChevronUp className={`h-4 w-4 transition-transform ${chartCollapsed ? 'rotate-180' : ''}`} />
             </button>
@@ -373,7 +368,7 @@ function ViolationsContent() {
         onClose={() => setSelectedId(null)}
         title={
           <>
-            <ShieldAlert className="h-4 w-4 text-orange-400" />
+            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
             <span className="font-mono text-sm">{selected ? violationLabel(selected) : 'Policy Violation'}</span>
             {selected && <SeverityBadge severity={normalizeSeverity(selected.severity)} />}
           </>
