@@ -230,16 +230,24 @@ export default function ExecutionTaskInspectorPage() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <InspectorStat label="Status" value={task.status} icon={ShieldCheck} />
               <InspectorStat
-                label="Requested Mode"
-                value={task.requested_mode ?? '—'}
-                icon={BrainCircuit}
-              />
-              <InspectorStat
-                label="Strategy"
-                value={task.resolved_strategy ?? '—'}
-                icon={Workflow}
+                label="Steps Committed"
+                value={
+                  steps?.total !== undefined && steps.total > 0
+                    ? String(steps.total)
+                    : task.checkpoint_summary?.last_committed_step !== undefined
+                      ? String((task.checkpoint_summary.last_committed_step ?? 0) + 1)
+                      : task.last_step !== undefined
+                        ? String(task.last_step + 1)
+                        : '—'
+                }
+                icon={ListOrdered}
               />
               <InspectorStat label="Runtime" value={task.runtime_id ?? '—'} icon={Network} />
+              <InspectorStat
+                label="Receipt"
+                value={verificationLabel(task.proof?.status)}
+                icon={Hash}
+              />
             </div>
 
             <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
