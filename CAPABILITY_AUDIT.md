@@ -20,7 +20,7 @@ Major exposure risks remain:
 - Local GGUF execution and cloud-to-local fallback have source/tests, but no live end-to-end proof was run.
 - Clean-host recovery without a shared WAL store is not proven.
 - Robotics, ROS2, swarm, federated, multimodal, behavior trees, routing analytics, fleet workflows, billing, BYOK, SSO, and console advanced pages are implementation or preview surfaces, not homepage claims.
-- Several Go test packages are currently red: API, coordinator, security, and router. These failures matter for customer exposure decisions.
+- Focused API, coordinator, and security verification tests are now green after fixture/contract fixes. Router build drift was fixed, but the broader router package still has non-core advanced routing failures and should not be used for homepage claims.
 
 ## Live Validation Results
 
@@ -41,12 +41,10 @@ Major exposure risks remain:
 
 | Area | Current failure | Product risk |
 |---|---|---|
-| API | `TestReplayRoboticsReceiptsRouteVerifiesRuntimeSignatureWithPublicKey` and `TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle` fail with runtime signature/audit evidence issues. | Robotics proof/audit routes should not be customer-marketed. |
-| API | `TestGetRunDetailSupportsInferenceRecordWithoutTaskID` fails: `sql: expected 33 destination arguments in Scan, not 34`, HTTP `500` instead of `200`. | Run detail is contract-fragile despite live proof paths working. |
-| Coordinator | `TestVerifyExecutionArtifactsForTaskUsesRuntimeRegistryKey` fails with `execution_receipt hash mismatch`. | Receipt verification path has fixture/contract risk outside live happy-path scripts. |
-| Coordinator | `TestReplayRoboticsAuditReconstructsPolicyActionAndRuntimeReceipt` fails with runtime signature invalid. | Robotics replay/audit should be hidden. |
-| Security | runtime registry/heartbeat/unregister tests fail because registration signature is now required. | Runtime identity registration tests are stale or enforcement changed without test update. |
-| Router | router package test build fails: stale council/speculative tests call old provider registry APIs and redeclare types. | Routing internals are not stable enough for core exposure. |
+| API | Fixed. `go test ./igris-overture/api -count=1 -timeout=180s` passes. Receipt replay fixtures now use current canonical receipt hashing/signing, and run-detail inference records include the current task-proof scan shape. | Run detail and receipt replay contracts are no longer blocking core verification exposure. Robotics remains future/private-demo only because it still lacks live product proof. |
+| Coordinator | Fixed. `go test ./igris-overture/coordinator -count=1 -timeout=180s` passes. Receipt fixtures now match current runtime receipt canonicalization. | Runtime-registry receipt verification fixture drift is resolved without weakening verification. |
+| Security | Fixed. `go test ./igris-overture/security -count=1 -timeout=180s` passes. Registry tests now sign runtime registration and heartbeat messages. | Runtime identity registration tests now preserve signature enforcement. |
+| Router | Partially fixed. Original build failures from stale council/speculative test APIs are resolved, but `go test ./igris-overture/router -count=1 -timeout=180s` still fails in advanced/non-core routing tests: trust-threshold expectations, circuit-breaker flapping/leak checks, speculative tier gating, routing metadata rejection-order expectation, and Thompson Sampling reason text. | Routing internals remain advanced/internal and should not be customer-marketed beyond the live-proven fallback path. |
 | Behavior trees | visualizer alert tests fail. | Behavior-tree monitoring should stay advanced/internal. |
 
 ## Status Vocabulary
@@ -68,7 +66,7 @@ Major exposure risks remain:
 | Unified local Request -> Execute -> Verify | proven | Run | homepage | Live `./scripts/unified_execution_proof_demo.sh` passed. Source: `cmd/igris-overture/handlers/infer.go`, `igris-overture/internal/runtime_client.go`, `igris-runtime/crates/igris-server/src/task_executor.rs`. |
 | Runtime-backed inference route decision | proven | Run | homepage | Live unified proof returned `route_decision=forwarded_to_runtime_task`; script fails if Overture falls back away from Runtime. |
 | Durable task APIs | proven | Run | core docs | Live checkpoint proof used `POST /v1/tasks/submit`, `GET /v1/tasks/:id`, `GET /v1/tasks/:id/steps`, task proof verify. Source: `igris-overture/api/routes_tasks.go`. |
-| Execution run APIs | partially_proven | Run | core docs | Live proof scripts used run/receipt visibility where applicable, but `TestGetRunDetailSupportsInferenceRecordWithoutTaskID` currently fails in `igris-overture/api`. |
+| Execution run APIs | partially_proven | Run | core docs | Live proof scripts used run/receipt visibility where applicable, and `go test ./igris-overture/api` now passes. Still marked partially proven because console/browser run-detail e2e was not run. |
 | Runtime identity in evidence | proven | Verify | homepage | Live unified/fallback/checkpoint proofs returned runtime identity fields and verified runtime-signed artifacts. |
 | Signed execution envelope | proven | Verify | homepage | Live unified and fallback scripts verified envelope signatures from runtime key. Source: `igris-runtime/crates/igris-server/src/runtime_execute.rs`. |
 | Signed execution receipt | proven | Verify | homepage | Live unified and fallback scripts verified receipts. Source: `igris-runtime/crates/igris-server/src/receipt.rs`. |
@@ -76,7 +74,7 @@ Major exposure risks remain:
 | Hosted proof receipt API | partially_proven | Verify | core docs | Live checkpoint proof got `/proof/receipts/verify` HTTP `200`; source `igris-overture/api/routes_proof.go` compares stored hash/signature values rather than doing full fresh cryptographic verification. |
 | Receipt export / evidence export | implemented_not_proven | Verify | advanced docs | API docs/source exist, but no live export proof was run. |
 | Timelines / history events | implemented_not_proven | Verify | advanced docs | Source/UI exist; console audit found schema thinner than UI taxonomy. No live proof. |
-| Violations / containment records | partially_proven | Verify | advanced docs | Runtime structures and proof routes exist; API/robotics audit tests fail and console violations page is contract-fragile. |
+| Violations / containment records | partially_proven | Verify | advanced docs | Runtime structures and proof routes exist; focused API robotics replay fixtures now pass, but no live robotics/violations product proof or console browser e2e was run. |
 | Capability-gated task execution | implemented_not_proven | Run | core docs | Source exists in `task_executor.rs` and older manual evidence exists, but this greenfield pass did not run a live capability-envelope proof. |
 | Policy bounds/capabilities | implemented_not_proven | Run | advanced docs | Source and console pages exist; `igris-overture/policy` tests passed, but no live policy enforcement proof ran. |
 | BYOK / vault / provider credentials | implemented_not_proven | Operate | advanced docs | Source exists in `igris-overture/api/routes_key_vault.go`, `routes_ai_credentials.go`, `security/key_vault.go`; no live BYOK proof. |
@@ -88,8 +86,8 @@ Major exposure risks remain:
 | Checkpoint recovery, same host/shared WAL | proven | Recover | homepage | Live checkpoint proof passed with 8 persisted steps and two WAL checkpoint rows. |
 | Clean-host recovery without shared WAL | blocked | Future | hide | Not exercised; current proof script explicitly uses same-host shared WAL store. |
 | WAL resume/no duplicate steps | proven | Recover | core docs | Live checkpoint proof showed step 0 on runtime 1 and steps 1-7 on runtime 2. `igris-wal` tests passed. |
-| Routing modes: thompson/speculative/council | implemented_not_proven | Run | advanced docs | `igris-routing` Rust tests passed, but Overture router package tests fail to build. No live customer routing-mode proof beyond fallback. |
-| Thompson Sampling routing | implemented_not_proven | Run | advanced docs | Rust routing tests passed; Overture routing tests are stale/failing; no live product proof. |
+| Routing modes: thompson/speculative/council | implemented_not_proven | Run | advanced docs | `igris-routing` Rust tests passed and Overture router build drift was fixed, but the router package still has advanced/non-core test failures. No live customer routing-mode proof beyond fallback. |
+| Thompson Sampling routing | implemented_not_proven | Run | advanced docs | Rust routing tests passed; Overture router tests still have trust/phase expectation failures; no live product proof. |
 | Speculative routing | partially_proven | Recover | advanced docs | Live fallback proof uses ranked speculative router; broader mid-stream/council behavior not product-proven. |
 | Semantic routing | implemented_not_proven | Run | advanced docs | Source exists in `igris-overture/semantic` and `router/semantic_router.go`; no live proof. |
 | Real external provider execution | blocked | Run | private demo only | Not run; requires sanctioned non-empty provider credential. |
@@ -98,7 +96,7 @@ Major exposure risks remain:
 | Fleet failover | unknown | Future | hide | No live multi-runtime fleet failover proof beyond same-host checkpoint redispatch. |
 | Config push / OTA commands | stale | Future | hide | Docs/API surfaces exist; runtime source logs say live config apply and self-update orchestration are not implemented in `igris-runtime/crates/igris-server/src/main.rs`. |
 | ROS2 integration | stub_or_mock | Future | private demo only | `igris-ros2` tests passed in no-default/simulation path; real ROS2 feature/hardware path was not run. |
-| Robotics execution/replay | stale | Future | hide | Source exists, but API/coordinator robotics receipt/audit tests fail. |
+| Robotics execution/replay | implemented_not_proven | Future | private demo only | API/coordinator robotics receipt/audit fixtures now pass, but no live robotics execution/replay product proof was run. |
 | Swarm | implemented_not_proven | Future | hide | `igris-swarm` unit/doc tests passed; no live product proof and console swarm has synthetic fallback. |
 | Federated | implemented_not_proven | Future | hide | `igris-federated` unit/doc tests passed; no live product proof. |
 | Multimodal | stub_or_mock | Future | hide | `igris-multimodal` tests passed stub paths (`describe_image_stub`, `transcribe_audio_stub`). |
@@ -122,7 +120,7 @@ Major exposure risks remain:
 
 ## Partially Proven Capabilities
 
-- Execution run and proof APIs: live paths worked, but focused API tests expose run-detail and robotics/audit failures.
+- Execution run and proof APIs: live paths worked and focused API tests now pass, but no console/browser e2e was run.
 - Hosted/local/hybrid deployment: live local composition works; hosted and real-provider paths were not proven.
 - Speculative routing: proven only for ranked cloud-to-cloud fallback.
 - Console core: typechecks, but not browser-validated and some backend contracts are red.
@@ -182,9 +180,9 @@ Major exposure risks remain:
 
 ## Recommended Next Engineering Priorities
 
-1. Fix red API/coordinator proof tests.
-   - Strengthens: Verify.
-   - Claim protected: "Receipts and replay evidence verify correctly."
+1. Keep router internals out of customer-facing claims until broader router tests are green.
+   - Strengthens: Run.
+   - Claim protected: "Run chooses resilient execution paths."
 
 2. Add full cryptographic verification to hosted proof APIs.
    - Strengthens: Verify.
