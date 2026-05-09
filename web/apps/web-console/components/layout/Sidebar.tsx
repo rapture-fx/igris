@@ -9,10 +9,11 @@ import {
   LogOut,
 } from 'lucide-react';
 import {
-  ActivityLogIcon, BarChartIcon, BoxIcon, CheckboxIcon, DashboardIcon,
-  EnvelopeClosedIcon, ExitIcon, FileTextIcon, GearIcon, LightningBoltIcon,
+  ActivityLogIcon, BarChartIcon, BoxIcon, DashboardIcon,
+  EnvelopeClosedIcon, ExitIcon, FileTextIcon, GearIcon,
   LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
-  SunIcon, TokensIcon,
+  SunIcon, TokensIcon, PlayIcon, ListBulletIcon, CheckCircledIcon,
+  ReaderIcon, CrossCircledIcon, RulerHorizontalIcon, CheckIcon,
 } from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -35,9 +36,8 @@ interface SidebarProps {
 
 interface NavigationItem {
   name: string;
-  href?: string;
+  href: string;
   icon: any;
-  children?: Array<{ name: string; href: string }>;
 }
 
 const navigation: NavigationItem[] = [
@@ -67,47 +67,47 @@ const navigation: NavigationItem[] = [
     icon: BoxIcon,
   },
   {
-    name: 'Execution',
-    icon: LightningBoltIcon,
-    children: [
-      { name: 'Runs', href: '/execution/runs' },
-      { name: 'Tasks', href: '/execution/tasks' },
-      { name: 'Approvals', href: '/execution/approvals' },
-    ],
+    name: 'Runs',
+    href: '/execution/runs',
+    icon: PlayIcon,
   },
   {
-    name: 'Proof',
-    icon: LockClosedIcon,
-    children: [
-      { name: 'Receipts', href: '/proof/receipts' },
-      { name: 'Violations', href: '/proof/violations' },
-    ],
+    name: 'Tasks',
+    href: '/execution/tasks',
+    icon: ListBulletIcon,
   },
   {
-    name: 'Policy',
-    icon: CheckboxIcon,
-    children: [
-      { name: 'Bounds', href: '/policy/bounds' },
-      { name: 'Capabilities', href: '/policy/capabilities' },
-    ],
+    name: 'Approvals',
+    href: '/execution/approvals',
+    icon: CheckCircledIcon,
   },
   {
-    name: 'Settings',
-    icon: MixerHorizontalIcon,
-    children: [
-      { name: 'General', href: '/settings/general' },
-      { name: 'API Keys', href: '/settings/keys' },
-      { name: 'License', href: '/settings/license' },
-    ],
+    name: 'Receipts',
+    href: '/proof/receipts',
+    icon: ReaderIcon,
+  },
+  {
+    name: 'Violations',
+    href: '/proof/violations',
+    icon: CrossCircledIcon,
+  },
+  {
+    name: 'Bounds',
+    href: '/policy/bounds',
+    icon: RulerHorizontalIcon,
+  },
+  {
+    name: 'Capabilities',
+    href: '/policy/capabilities',
+    icon: CheckIcon,
   },
 ];
 
-const DEFAULT_EXPANDED: Record<string, boolean> = {
-  Execution: false,
-  Proof: false,
-  Policy: false,
-  Settings: false,
-};
+const settingsNavigation = [
+  { name: 'General', href: '/settings/general' },
+  { name: 'API Keys', href: '/settings/keys' },
+  { name: 'License', href: '/settings/license' },
+];
 
 export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
@@ -133,50 +133,18 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(DEFAULT_EXPANDED);
-
-  // Hydrate expanded state from localStorage after mount (avoids SSR/client mismatch)
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('sidebar_expanded');
-      if (saved) setExpandedSections((prev) => ({ ...prev, ...JSON.parse(saved) }));
-    } catch {}
-  }, []);
-
-  // Always expand the section containing the active route (never collapses others)
-  useEffect(() => {
-    const activeSection = navigation.find((item) =>
-      item.children?.some(
-        (child) => pathname === child.href || pathname?.startsWith(child.href + '/')
-      )
-    );
-    if (activeSection) {
-      setExpandedSections((prev) => {
-        if (prev[activeSection.name]) return prev; // already expanded, no update
-        return { ...prev, [activeSection.name]: true };
-      });
-    }
-  }, [pathname]);
-
-  // Persist to localStorage
-  useEffect(() => {
-    localStorage.setItem('sidebar_expanded', JSON.stringify(expandedSections));
-  }, [expandedSections]);
-
-  const toggleSection = (name: string) => {
-    setExpandedSections((prev) => ({ ...prev, [name]: !prev[name] }));
-  };
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
 
   // Build flat search index with rich keywords
   const searchIndex = [
     { title: 'Dashboard', path: '/dashboard', keywords: 'dashboard overview system stats home' },
-    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution runs receipts verification logs policy violations' },
-    { title: 'Execution › Tasks', path: '/execution/tasks', keywords: 'execution durable tasks wal checkpoints signed envelope receipt' },
-    { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals human review pause resume reject' },
-    { title: 'Proof › Receipts', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain' },
-    { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof policy violations enforcement bounds alerts' },
-    { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
-    { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
+    { title: 'Runs', path: '/execution/runs', keywords: 'execution runs receipts verification logs policy violations' },
+    { title: 'Tasks', path: '/execution/tasks', keywords: 'execution durable tasks wal checkpoints signed envelope receipt' },
+    { title: 'Approvals', path: '/execution/approvals', keywords: 'execution approvals human review pause resume reject' },
+    { title: 'Receipts', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain' },
+    { title: 'Violations', path: '/proof/violations', keywords: 'proof policy violations enforcement bounds alerts' },
+    { title: 'Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
+    { title: 'Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
     { title: 'Providers', path: '/models/providers', keywords: 'providers endpoints keys models health infrastructure' },
     { title: 'Devices', path: '/fleet/devices', keywords: 'devices runtime nodes online policy sync infrastructure' },
     { title: 'Logs', path: '/history/logs', keywords: 'logs events runtime stream traces history' },
@@ -235,6 +203,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     if (e.key === 'Enter' && filteredResults[selectedIndex]) { handleResultClick(filteredResults[selectedIndex].path); }
   };
 
+  const toggleSettings = () => {
+    setIsSettingsExpanded((prev) => !prev);
+  };
+
   return (
     <>
       {/* Mobile overlay */}
@@ -281,57 +253,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           <nav className="flex-1 overflow-y-auto px-3 pt-0 pb-4 scrollbar-hide">
             <ul className="space-y-0.5">
               {navigation.map((item) => {
-                if (item.children) {
-                  const isExpanded = expandedSections[item.name];
-                  return (
-                    <li key={item.name}>
-                      <button
-                        onClick={() => toggleSection(item.name)}
-                        className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/90 hover:text-foreground hover:bg-muted/60"
-                      >
-                        <div className="flex items-center gap-2">
-                          <item.icon className="h-4 w-4 flex-shrink-0 text-foreground/80" strokeWidth={1.5} />
-                          {item.name}
-                        </div>
-                        <ChevronDown
-                          className={cn(
-                            'h-4 w-4 text-foreground/70 transition-transform duration-150',
-                            isExpanded && 'rotate-180'
-                          )}
-                        />
-                      </button>
-
-                      {isExpanded && (
-                        <ul className="mt-0.5 ml-5 space-y-0.5 pl-2">
-                          {item.children.map((child) => {
-                            const isActive =
-                              pathname === child.href ||
-                              pathname?.startsWith(child.href + '/');
-                            return (
-                              <li key={child.name}>
-                                <Link
-                                  href={child.href}
-                                  onClick={onClose}
-                                  className={cn(
-                                    'flex items-center justify-between rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
-                                    isActive
-                                      ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                                      : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
-                                  )}
-                                >
-                                  {child.name}
-                                </Link>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
-                    </li>
-                  );
-                }
-
-                if (!item.href) return null;
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
                 return (
                   <li key={item.name}>
                     <Link
@@ -344,12 +266,57 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                           : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
                       )}
                     >
-                      <item.icon className={cn('h-4 w-4 flex-shrink-0', isActive ? 'text-foreground' : 'text-foreground/80')} strokeWidth={1.5} />
+                      <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
                       {item.name}
                     </Link>
                   </li>
                 );
               })}
+              
+              {/* Settings dropdown */}
+              <li>
+                <button
+                  onClick={toggleSettings}
+                  className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/90 hover:text-foreground hover:bg-muted/60"
+                >
+                  <div className="flex items-center gap-2">
+                    <MixerHorizontalIcon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
+                    Settings
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 text-foreground transition-transform duration-150',
+                      isSettingsExpanded && 'rotate-180'
+                    )}
+                  />
+                </button>
+
+                {isSettingsExpanded && (
+                  <ul className="mt-0.5 ml-5 space-y-0.5 pl-2">
+                    {settingsNavigation.map((child) => {
+                      const isActive =
+                        pathname === child.href ||
+                        pathname?.startsWith(child.href + '/');
+                      return (
+                        <li key={child.name}>
+                          <Link
+                            href={child.href}
+                            onClick={onClose}
+                            className={cn(
+                              'flex items-center justify-between rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
+                              isActive
+                                ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                                : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
+                            )}
+                          >
+                            {child.name}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
             </ul>
           </nav>
 
