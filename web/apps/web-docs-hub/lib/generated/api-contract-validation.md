@@ -1,6 +1,6 @@
 # API Contract Validation
 
-Generated: 2026-05-06T15:44:31.752Z
+Generated: 2026-05-09T07:42:50.703Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
