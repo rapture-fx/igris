@@ -31,8 +31,8 @@ type ViolationSeverity = 'info' | 'warning' | 'critical' | 'unknown';
 
 const SEV_STYLE: Record<ViolationSeverity, string> = {
   info: 'bg-gray-50 text-gray-600 border-gray-200',
-  warning: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  critical: 'bg-red-50 text-red-700 border-red-200',
+  warning: 'bg-yellow-50 text-yellow-600 border-yellow-200',
+  critical: 'bg-red-50 text-red-600 border-red-200',
   unknown: 'bg-gray-50 text-gray-500 border-gray-200',
 };
 
@@ -57,50 +57,46 @@ function SeverityBadge({ severity }: { severity: ViolationSeverity }) {
 }
 
 function OverviewCard({
-  icon: Icon, label, value, sub, loading,
+  icon: Icon, label, value, loading,
 }: {
-  icon: LucideIcon; label: string; value: ReactNode; sub: string; loading?: boolean;
+  icon: LucideIcon; label: string; value: ReactNode; loading?: boolean;
 }) {
   return (
-    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
+    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-4 pb-5">
+      <div className="bg-white px-4 pt-4 pb-5">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
         )}
-        <p className="text-xs text-black mt-1">{sub}</p>
       </div>
     </div>
   );
 }
 
 function SurfaceSection({
-  icon: Icon, title, description, actions,
+  icon: Icon, title, actions,
   bodyClassName = 'px-4 py-4', className = '', collapsed = false, children,
 }: {
-  icon: LucideIcon; title: string; description: string;
+  icon: LucideIcon; title: string;
   actions?: ReactNode; bodyClassName?: string; className?: string;
   collapsed?: boolean; children: ReactNode;
 }) {
   return (
-    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-black">{title}</p>
-          </div>
-          <p className="text-[11px] text-black mt-0.5">{description}</p>
+    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+          <p className="text-xs font-medium text-foreground">{title}</p>
         </div>
         {actions}
       </div>
       {!collapsed && (
-        <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+        <div className={`bg-white ${bodyClassName}`}>
           {children}
         </div>
       )}
