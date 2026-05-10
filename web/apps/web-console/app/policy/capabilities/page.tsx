@@ -80,22 +80,24 @@ function SurfaceSection({
   icon: Icon, title, description, actions,
   bodyClassName = 'px-4 py-4', className = '', children,
 }: {
-  icon: LucideIcon; title: string; description: string;
+  icon: LucideIcon; title: string; description?: ReactNode;
   actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
 }) {
   return (
-    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div>
+    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-0.5 min-w-0">
           <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-black">{title}</p>
+            <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-foreground">{title}</p>
           </div>
-          <p className="text-[11px] text-black mt-0.5">{description}</p>
+          {description ? (
+            <p className="text-[11px] text-muted-foreground">{description}</p>
+          ) : null}
         </div>
         {actions}
       </div>
-      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+      <div className={`bg-white ${bodyClassName}`}>
         {children}
       </div>
     </div>
@@ -104,18 +106,18 @@ function SurfaceSection({
 
 function MiniStat({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
-      <p className="text-[10px] text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-sm font-semibold text-gray-900 mt-1 tabular-nums">{value}</p>
+    <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white px-3 py-3">
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className="text-sm font-semibold text-foreground mt-1 tabular-nums">{value}</p>
     </div>
   );
 }
 
 function KeyValueCard({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
-      <p className="text-[10px] text-gray-500 mb-1">{label}</p>
-      <div className="text-xs text-gray-900 break-words">{value}</div>
+    <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white px-3 py-3">
+      <p className="text-[10px] text-muted-foreground mb-1">{label}</p>
+      <div className="text-xs text-foreground break-words">{value}</div>
     </div>
   );
 }
@@ -148,12 +150,12 @@ function PathList({
 
   return (
     <div>
-      <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">{title}</p>
-      <p className="text-[11px] text-gray-500 mb-2">{description}</p>
+      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">{title}</p>
+      <p className="text-[11px] text-muted-foreground mb-2">{description}</p>
       <div className="flex gap-2 mb-2">
         <Input
           placeholder={placeholder}
-          className="h-8 text-xs font-mono flex-1 bg-white"
+          className="h-8 text-xs font-mono flex-1 bg-background"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
@@ -163,18 +165,18 @@ function PathList({
         </Button>
       </div>
       {paths.length === 0 ? (
-        <p className="text-xs text-gray-300 py-1">No paths configured.</p>
+        <p className="text-xs text-muted-foreground py-1">No paths configured.</p>
       ) : (
         <div className="space-y-1">
           {paths.map((path) => (
             <div
               key={path}
-              className="flex items-center justify-between px-2.5 py-1.5 rounded-xl border border-gray-200 bg-white group"
+              className="flex items-center justify-between px-2.5 py-1.5 rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white group"
             >
-              <span className="text-xs font-mono text-gray-700">{path}</span>
+              <span className="text-xs font-mono text-muted-foreground">{path}</span>
               <button
                 onClick={() => onRemove(path)}
-                className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                className="text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
