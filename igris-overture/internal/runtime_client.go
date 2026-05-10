@@ -332,6 +332,22 @@ func VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json.RawMessage) error 
 	return client.VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw)
 }
 
+// ComputeCanonicalReceiptHash re-derives the canonical SHA-256 hex hash of
+// the supplied receipt map using the same BTreeMap-style ordering and
+// stringified values that the runtime uses (see
+// igris-runtime/crates/igris-server/src/receipt.rs). This is the same
+// canonicalization used for cryptographic verification, exposed separately
+// so callers (e.g. chain-link verification) can recompute prior receipts'
+// hashes without needing a public key.
+func ComputeCanonicalReceiptHash(receipt map[string]interface{}) (string, error) {
+	canonBytes, err := canonicalReceiptBytes(receipt)
+	if err != nil {
+		return "", err
+	}
+	digest := sha256.Sum256(canonBytes)
+	return hex.EncodeToString(digest[:]), nil
+}
+
 // ReceiptVerificationResult is the granular outcome of fresh cryptographic
 // verification: each field can be inspected independently so the caller can
 // surface hash and signature failures separately. RuntimeKeyFound is false
