@@ -206,7 +206,8 @@ function ReceiptsContent() {
   const [violationsOnly, setViolationsOnly] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
   const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('receipt'));
-  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string; chainValid?: boolean | null }
+    | null>(null);
 
   const { data: allReceipts = [], isLoading, error, refetch } = useQuery<Receipt[]>({
     queryKey: ['proof-receipts'],
@@ -220,8 +221,12 @@ function ReceiptsContent() {
   const verifyMutation = useMutation({
     mutationFn: (payload: { execution_id: string; expected_hash: string; signature: string }) =>
       api.post('/proof/receipts/verify', payload),
-    onSuccess: (result: { verified: boolean; message: string }) => {
-      setVerifyResult({ ok: result.verified, message: result.message });
+    onSuccess: (result: { verified: boolean; message: string; chain_valid?: boolean | null }) => {
+      setVerifyResult({
+        ok: result.verified,
+        message: result.message,
+        chainValid: result.chain_valid ?? null,
+      });
     },
     onError: (err: Error) => setVerifyResult({ ok: false, message: err.message }),
   });
@@ -523,6 +528,16 @@ function ReceiptsContent() {
               {verifyResult && !verifyResult.ok && (
                 <span className="text-xs text-red-600 flex items-center gap-1">
                   <XCircle className="h-3.5 w-3.5" /> Receipt check failed
+                </span>
+              )}
+              {verifyResult && verifyResult.chainValid === true && (
+                <span className="text-xs text-green-700 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Chain link intact
+                </span>
+              )}
+              {verifyResult && verifyResult.chainValid === false && (
+                <span className="text-xs text-red-600 flex items-center gap-1">
+                  <XCircle className="h-3.5 w-3.5" /> Chain link broken
                 </span>
               )}
               <Button
