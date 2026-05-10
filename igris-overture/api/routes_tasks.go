@@ -1241,14 +1241,67 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 		// sufficient to mark verified=true.
 		crypto := verifyTaskCryptographic(c.Context(), tc, task)
 
+		// Chain-link verification: verify the task receipt's previous_hash
+		// pointer resolves to a real, untampered prior receipt for the same
+		// tenant. Independent of cryptographic verification of the current
+		// receipt — both are reported separately in the response.
+		chain := verifyTaskChainLink(c.Context(), tc, task, tenantID)
+
 		respProof := buildTaskProofResponse(proof)
 		applyCryptographicProofFields(respProof, crypto)
+		applyChainProofFields(respProof, chain)
 
 		return c.JSON(fiber.Map{
 			"task_id":  taskID,
 			"verified": crypto.Verified(),
 			"proof":    respProof,
 		})
+	}
+}
+
+// verifyTaskChainLink extracts previous_hash from the task's stored receipt
+// and runs the same chain-link verification used by /proof/receipts/verify.
+// Tenant-scoped: the prior receipt must belong to the same tenant.
+func verifyTaskChainLink(ctx context.Context, tc *coordinator.TaskCoordinator, task *coordinator.TaskRecord, tenantID string) chainLinkOutcome {
+	out := chainLinkOutcome{Checked: true}
+	if task == nil || len(task.ExecutionReceipt) == 0 {
+		out.Reason = "task has no execution receipt to chain"
+		return out
+	}
+	var receipt struct {
+		PreviousHash string `json:"previous_hash"`
+	}
+	if err := json.Unmarshal(task.ExecutionReceipt, &receipt); err != nil {
+		out.Reason = "execution_receipt invalid json: " + err.Error()
+		return out
+	}
+	out.PreviousHash = receipt.PreviousHash
+	if tc == nil || tc.Store() == nil || tc.Store().DB() == nil {
+		out.Reason = "database not available for chain lookup"
+		return out
+	}
+	return verifyReceiptChainLinkWithDB(ctx, tc.Store().DB(), tenantID, receipt.PreviousHash)
+}
+
+// applyChainProofFields layers chain-link outcome onto the task proof
+// response. Distinct from cryptographic fields: a receipt may verify
+// cryptographically while failing the chain check (or vice versa).
+func applyChainProofFields(resp fiber.Map, chain chainLinkOutcome) {
+	if resp == nil {
+		return
+	}
+	if !chain.Checked {
+		return
+	}
+	resp["chain_link_valid"] = chain.Valid
+	if chain.PreviousHash != "" {
+		resp["previous_hash"] = chain.PreviousHash
+	}
+	if chain.Reason != "" {
+		resp["chain_link_reason"] = chain.Reason
+	}
+	if chain.PriorReceiptID != "" {
+		resp["prior_receipt_id"] = chain.PriorReceiptID
 	}
 }
 
