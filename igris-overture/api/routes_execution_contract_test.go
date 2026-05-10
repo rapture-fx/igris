@@ -200,6 +200,84 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 	}
 }
 
+// TestListRunsHandlesSparseLineageRow locks in the post-COALESCE contract for
+// the listing endpoint: a row with zero resource metrics, no violation, no
+// execution_context, and no task lateral row must return a clean 200 with
+// VerificationStatus == "missing" — never a 500 from a Scan into a Go
+// non-nullable type. This mirrors the GetRunDetail sparse-row contract so
+// drift between the two endpoints cannot reintroduce the historical
+// tp.task_id NULL-scan failure.
+func TestListRunsHandlesSparseLineageRow(t *testing.T) {
+	t.Parallel()
+
+	startedAt := time.Date(2026, 5, 10, 11, 0, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{true, true, false, true}},
+		},
+		{
+			columns: []string{
+				"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
+				"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
+				"receipt_hash", "previous_hash", "signature", "proof_status",
+			},
+			rows: [][]driver.Value{{
+				"exec-sparse-1",
+				"tenant-sparse",
+				"",         // post-COALESCE empty runtime/device id
+				startedAt,
+				int64(0),   // post-COALESCE zero wall_time_ms
+				false,      // post-COALESCE false violation_occurred
+				"completed",
+				"",
+				"",
+				"row-sparse-1",
+				"",         // post-COALESCE empty receipt_hash
+				"",
+				"",
+				"",         // post-COALESCE empty proof_status (no ec, no tp)
+			}},
+		},
+	})
+
+	handler := NewExecutionHandler(db)
+	app := fiber.New()
+	app.Get("/v1/execution/runs", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-sparse")
+		return handler.ListRuns(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/runs?limit=20", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var runs []ExecutionRun
+	if err := json.NewDecoder(resp.Body).Decode(&runs); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if len(runs) != 1 {
+		t.Fatalf("len(runs) = %d, want 1", len(runs))
+	}
+	if runs[0].VerificationStatus != "missing" {
+		t.Fatalf("VerificationStatus = %q, want missing", runs[0].VerificationStatus)
+	}
+	if runs[0].DurationMs != 0 {
+		t.Fatalf("DurationMs = %d, want 0", runs[0].DurationMs)
+	}
+	if runs[0].HasViolation {
+		t.Fatalf("HasViolation = true, want false")
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
 // TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask covers the
 // production schema mode (task_proof_detail = true) where the LEFT JOIN
 // LATERAL on task_records returns no rows for direct /v1/infer executions.
