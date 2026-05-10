@@ -31,7 +31,19 @@ run_step() {
     echo "missing or non-executable: $SCRIPT_DIR/$script" >&2
     exit 1
   fi
+  # Run the child script, but never let a transient signal/cleanup mask its
+  # exit code. We capture explicitly and abort the suite if non-zero so the
+  # final summary line can never be reached after a failed step.
+  local rc=0
+  set +e
   "$SCRIPT_DIR/$script"
+  rc=$?
+  set -e
+  if [[ "$rc" -ne 0 ]]; then
+    echo ""
+    echo "Proof suite aborted: $script failed with exit code $rc" >&2
+    exit "$rc"
+  fi
 }
 
 run_step "1/4" "task_v1_proof_demo.sh"
