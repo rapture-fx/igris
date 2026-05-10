@@ -328,7 +328,19 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 
 	verified := cryptoResult.Verified()
 	verificationStatus := cryptographicVerificationStatus(cryptoResult, row.proofStatus, row.storedHash)
+
+	// Chain-link verification: the previous_hash in the current receipt must
+	// reference a prior receipt whose canonical re-derivation still equals
+	// that pointer. This is independent of cryptographic verification of the
+	// current receipt — a row can verify cryptographically while still having
+	// a broken chain pointer (e.g. orphaned after a rollback).
+	chainOutcome := h.verifyReceiptChainLink(c.Context(), tenantID, row.previousHash)
+	chainValid := chainOutcome.Valid
+
 	message := buildCryptographicReceiptVerificationMessage(cryptoResult, hashValid, signatureMatches)
+	if chainOutcome.Checked && !chainOutcome.Valid {
+		message = message + " Chain link: " + chainOutcome.Reason + "."
+	}
 
 	if err := coordinator.NewCheckpointStore(h.db).UpdateTaskProofStateByExecutionID(tenantID, req.ExecutionID, comparisonHash, row.storedHash, row.storedSignature); err != nil {
 		log.Warn().Err(err).Str("execution_id", req.ExecutionID).Msg("[Proof] Failed to sync task proof state")
@@ -346,7 +358,7 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		VerificationStatus: verificationStatus,
 		HashValid:          hashValid,
 		SignatureMatches:   signatureMatches,
-		ChainValid:         nil,
+		ChainValid:         &chainValid,
 		RuntimeKeyFound:    &runtimeKeyFound,
 		Message:            message,
 	})
@@ -413,6 +425,138 @@ func (h *ProofHandler) fetchReceiptVerifyRow(ctx context.Context, executionID, t
 
 	row := &receiptVerifyRow{}
 	err := h.db.QueryRowContext(ctx, query, executionID, tenantID).Scan(
+		&row.receiptID,
+		&row.executionID,
+		&row.agentID,
+		&row.runtimeID,
+		&row.runtimeLabel,
+		&row.transactionID,
+		&row.transactionHash,
+		&row.cpuTimeMs,
+		&row.wallTimeMs,
+		&row.memoryPeakMb,
+		&row.fsBytesWritten,
+		&row.toolCalls,
+		&row.violationOccurred,
+		&row.storedHash,
+		&row.previousHash,
+		&row.storedSignature,
+		&row.timestampUTC,
+		&row.runtimePublicKey,
+		&row.proofStatus,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return row, nil
+}
+
+// chainLinkOutcome captures whether the current receipt's previous_hash
+// pointer references a real, intact prior receipt for the same tenant.
+//
+// Empty previous_hash is treated as a genesis receipt and reported as Valid
+// (with a clear reason). When a prior row exists but its canonical
+// re-derivation does not match the pointer, Valid is false — that case
+// indicates tampering or backfill-induced drift, not a missing chain.
+type chainLinkOutcome struct {
+	Valid             bool
+	Checked           bool
+	PriorReceiptID    string
+	PriorReceiptHash  string
+	PreviousHash      string
+	ComputedPriorHash string
+	Reason            string
+}
+
+// verifyReceiptChainLink resolves the prior receipt referenced by
+// previousHash for the given tenant and verifies that the prior receipt's
+// canonical SHA-256 still equals previousHash. Returns 200-shaped outcomes
+// even when the prior row is missing or malformed; never bubbles errors up
+// to a 500 unless the database itself is unhealthy.
+func (h *ProofHandler) verifyReceiptChainLink(ctx context.Context, tenantID, previousHash string) chainLinkOutcome {
+	return verifyReceiptChainLinkWithDB(ctx, h.db, tenantID, previousHash)
+}
+
+// verifyReceiptChainLinkWithDB is the database-only entry point used by both
+// /proof/receipts/verify and /v1/tasks/:id/proof/verify. Splitting it from
+// the handler method lets the task path reuse exactly the same chain
+// semantics without recreating a ProofHandler.
+func verifyReceiptChainLinkWithDB(ctx context.Context, db *sql.DB, tenantID, previousHash string) chainLinkOutcome {
+	out := chainLinkOutcome{PreviousHash: previousHash, Checked: true}
+	if strings.TrimSpace(previousHash) == "" {
+		out.Valid = true
+		out.Reason = "genesis receipt: no prior link to verify"
+		return out
+	}
+	if db == nil {
+		out.Reason = "database not available for chain lookup"
+		return out
+	}
+
+	prior, err := fetchReceiptForChain(ctx, db, tenantID, previousHash)
+	if err == sql.ErrNoRows {
+		out.Reason = "no prior receipt found for previous_hash"
+		return out
+	}
+	if err != nil {
+		out.Reason = "prior receipt lookup failed: " + err.Error()
+		return out
+	}
+	out.PriorReceiptID = prior.receiptID
+	out.PriorReceiptHash = prior.storedHash
+
+	priorReceipt := buildReceiptForVerification(prior)
+	computed, err := internal.ComputeCanonicalReceiptHash(priorReceipt)
+	if err != nil {
+		out.Reason = "prior receipt canonical hash failed: " + err.Error()
+		return out
+	}
+	out.ComputedPriorHash = computed
+
+	if computed != previousHash {
+		out.Reason = "prior receipt canonical hash does not match previous_hash pointer"
+		return out
+	}
+	if prior.storedHash != "" && prior.storedHash != previousHash {
+		out.Reason = "prior receipt stored hash does not match previous_hash pointer"
+		return out
+	}
+
+	out.Valid = true
+	out.Reason = "prior receipt re-derives to previous_hash"
+	return out
+}
+
+// fetchReceiptForChain returns the canonical-receipt fields for the prior
+// row whose receipt_hash equals previousHash. Tenant-scoped to prevent
+// cross-tenant chain leakage.
+func fetchReceiptForChain(ctx context.Context, db *sql.DB, tenantID, previousHash string) (*receiptVerifyRow, error) {
+	row := &receiptVerifyRow{}
+	err := db.QueryRowContext(ctx, `
+		SELECT el.id::text,
+		       el.execution_id,
+		       COALESCE(el.agent_id, '') AS agent_id,
+		       COALESCE(el.runtime_id, '') AS runtime_id,
+		       '' AS runtime_label,
+		       COALESCE(el.transaction_id, '') AS transaction_id,
+		       COALESCE(el.transaction_hash, '') AS transaction_hash,
+		       COALESCE(el.cpu_time_ms, 0) AS cpu_time_ms,
+		       COALESCE(el.wall_time_ms, 0) AS wall_time_ms,
+		       COALESCE(el.memory_peak_mb, 0) AS memory_peak_mb,
+		       COALESCE(el.fs_bytes_written, 0) AS fs_bytes_written,
+		       COALESCE(el.tool_calls, 0) AS tool_calls,
+		       COALESCE(el.violation_occurred, false) AS violation_occurred,
+		       COALESCE(el.receipt_hash, '') AS receipt_hash,
+		       COALESCE(el.previous_hash, '') AS previous_hash,
+		       COALESCE(el.signature, '') AS signature,
+		       el.timestamp_utc,
+		       '' AS runtime_public_key,
+		       '' AS proof_status
+		FROM execution_lineage el
+		WHERE el.receipt_hash = $1
+		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
+		LIMIT 1
+	`, previousHash, tenantID).Scan(
 		&row.receiptID,
 		&row.executionID,
 		&row.agentID,
