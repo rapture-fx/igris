@@ -417,7 +417,7 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 			ec.events,
 			ec.logs,
 			tp.execution_envelope,
-			tp.task_id,
+			COALESCE(tp.task_id, '') AS task_id,
 			tp.permission_envelope,
 			COALESCE(tp.failure_reason, '') AS task_failure_reason,
 			tp.failure_details,
