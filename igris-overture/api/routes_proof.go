@@ -115,14 +115,14 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 			COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), '') AS runtime_id,
 			COALESCE(ec.runtime_label, '') AS runtime_label,
 			el.timestamp_utc,
-			el.receipt_hash,
-			el.previous_hash,
-			el.signature,
-			el.cpu_time_ms,
-			el.memory_peak_mb,
-			el.tool_calls,
-			el.wall_time_ms,
-			el.violation_occurred,
+			COALESCE(el.receipt_hash, '') AS receipt_hash,
+			COALESCE(el.previous_hash, '') AS previous_hash,
+			COALESCE(el.signature, '') AS signature,
+			COALESCE(el.cpu_time_ms, 0) AS cpu_time_ms,
+			COALESCE(el.memory_peak_mb, 0) AS memory_peak_mb,
+			COALESCE(el.tool_calls, 0) AS tool_calls,
+			COALESCE(el.wall_time_ms, 0) AS wall_time_ms,
+			COALESCE(el.violation_occurred, false) AS violation_occurred,
 			COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status,
 			%s
 		FROM execution_lineage el
@@ -267,8 +267,8 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		SELECT el.id::text,
 		       COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), ''),
 		       COALESCE(ec.runtime_label, ''),
-		       el.receipt_hash,
-		       el.signature,
+		       COALESCE(el.receipt_hash, '') AS receipt_hash,
+		       COALESCE(el.signature, '') AS signature,
 		       COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '')
 		FROM execution_lineage el
 		LEFT JOIN execution_context ec
