@@ -5,15 +5,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
-  ChevronDown, Search, FileText,
-  LogOut,
-} from 'lucide-react';
-import {
-  ActivityLogIcon, BarChartIcon, BoxIcon, DashboardIcon,
-  EnvelopeClosedIcon, ExitIcon, FileTextIcon, GearIcon,
+  ActivityLogIcon, BarChartIcon, DashboardIcon,
+  ChevronDownIcon, MagnifyingGlassIcon, FileTextIcon,
+  EnvelopeClosedIcon, ExitIcon, GearIcon,
   LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
-  SunIcon, TokensIcon, PlayIcon, ListBulletIcon, CheckCircledIcon,
+  SunIcon, TokensIcon, ListBulletIcon, CheckCircledIcon,
   ReaderIcon, CrossCircledIcon, RulerHorizontalIcon, CheckIcon,
+  DesktopIcon, RocketIcon,
 } from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -62,13 +60,13 @@ const navigationGroups: NavigationGroup[] = [
   {
     title: 'FLEET',
     items: [
-      { name: 'Devices', href: '/fleet/devices', icon: BoxIcon },
+      { name: 'Devices', href: '/fleet/devices', icon: DesktopIcon },
     ],
   },
   {
     title: 'EXECUTION',
     items: [
-      { name: 'Runs', href: '/execution/runs', icon: PlayIcon },
+      { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
       { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
       { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
     ],
@@ -224,7 +222,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Search */}
           <div className="px-3 pt-5 pb-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-gray-400 pointer-events-none" strokeWidth={1.5} />
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-gray-400 pointer-events-none" />
               <input
                 type="text"
                 readOnly
@@ -300,7 +298,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     <MixerHorizontalIcon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
                     Settings
                   </div>
-                  <ChevronDown
+                  <ChevronDownIcon
                     className={cn(
                       'h-4 w-4 text-foreground transition-transform duration-150',
                       isSettingsExpanded && 'rotate-180'
@@ -458,7 +456,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               Cancel
             </Button>
             <Button size="sm" className="h-8 text-xs bg-gray-900 hover:bg-gray-800 text-white" onClick={handleLogout}>
-              <LogOut className="h-3.5 w-3.5 mr-1.5" />
+              <ExitIcon className="h-3.5 w-3.5 mr-1.5" />
               Log out
             </Button>
           </DialogFooter>
@@ -475,7 +473,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           <div className="relative w-full max-w-2xl mx-4">
             <div className="bg-card rounded-xl shadow-2xl border border-border overflow-hidden p-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   ref={modalInputRef}
                   type="text"
@@ -499,7 +497,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                           : 'hover:bg-background'
                       )}
                     >
-                      <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <FileTextIcon className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-foreground mb-0.5">{result.title}</div>
                         <div className="text-xs text-muted-foreground truncate">{result.path}</div>
