@@ -229,6 +229,80 @@ func TestListReceiptsHistoricalRowWithoutRuntimeIdentityRemainsValid(t *testing.
 	}
 }
 
+// TestListReceiptsHandlesEmptyReceiptHashAfterCoalesce locks in the
+// post-COALESCE contract: a receipt row with empty receipt_hash (a sparse
+// shape that COALESCE collapses NULL into) must return verification_status
+// "missing" and serialize as a valid 200 response — not 500.
+func TestListReceiptsHandlesEmptyReceiptHashAfterCoalesce(t *testing.T) {
+	t.Parallel()
+
+	timestamp := time.Date(2026, 5, 10, 12, 0, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{true, true, false, true}},
+		},
+		{
+			columns: []string{
+				"id", "execution_id", "agent_id", "runtime_id", "runtime_label", "timestamp_utc",
+				"receipt_hash", "previous_hash", "signature", "cpu_time_ms", "memory_peak_mb",
+				"tool_calls", "wall_time_ms", "violation_occurred", "proof_status", "violation_details",
+			},
+			rows: [][]driver.Value{{
+				"receipt-empty-1",
+				"exec-empty-1",
+				"tenant-empty",
+				"",
+				"",
+				timestamp,
+				"",         // post-COALESCE empty hash
+				"",         // post-COALESCE empty previous hash
+				"",         // post-COALESCE empty signature
+				int64(0),   // post-COALESCE zero metrics
+				int64(0),
+				int64(0),
+				int64(0),
+				false,      // post-COALESCE false
+				"",
+				nil,
+			}},
+		},
+	})
+
+	handler := NewProofHandler(db)
+	app := fiber.New()
+	app.Get("/proof/receipts", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-empty")
+		return handler.ListReceipts(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/proof/receipts?limit=20", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var receipts []ProofReceipt
+	if err := json.NewDecoder(resp.Body).Decode(&receipts); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if len(receipts) != 1 {
+		t.Fatalf("len(receipts) = %d, want 1", len(receipts))
+	}
+	if receipts[0].VerificationStatus != "missing" {
+		t.Fatalf("VerificationStatus = %q, want missing", receipts[0].VerificationStatus)
+	}
+	if receipts[0].Signed {
+		t.Fatalf("Signed = true, want false for empty signature")
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
 func TestVerifyReceiptResponseIncludesRuntimeIdentityWhenAvailable(t *testing.T) {
 	t.Parallel()
 
