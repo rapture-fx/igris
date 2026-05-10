@@ -332,6 +332,97 @@ func VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw json.RawMessage) error 
 	return client.VerifyExecutionArtifactsRaw(envelopeRaw, receiptRaw)
 }
 
+// ReceiptVerificationResult is the granular outcome of fresh cryptographic
+// verification: each field can be inspected independently so the caller can
+// surface hash and signature failures separately. RuntimeKeyFound is false
+// only when no public key was available for verification.
+type ReceiptVerificationResult struct {
+	RuntimeKeyFound  bool
+	ReceiptPresent   bool
+	SignaturePresent bool
+	HashValid        bool
+	SignatureValid   bool
+	ComputedHash     string
+	StoredHash       string
+	Reason           string
+}
+
+// Verified is true only when both hash and signature checks succeeded against
+// a real runtime public key. Missing key, missing signature, or any check
+// failure returns false — never trust stored-value comparison alone.
+func (r ReceiptVerificationResult) Verified() bool {
+	return r.RuntimeKeyFound && r.ReceiptPresent && r.SignaturePresent && r.HashValid && r.SignatureValid
+}
+
+// VerifyReceiptCryptographic re-derives the canonical receipt JSON from the
+// supplied receipt map, SHA-256 hashes it, compares to the stored "hash"
+// field, and verifies the Ed25519 signature against publicKeyHex. publicKeyHex
+// must be a hex-encoded 32-byte Ed25519 public key.
+//
+// All failure modes return a populated ReceiptVerificationResult with the
+// specific check flag false and a human-readable Reason; this function never
+// returns an error to the caller. The HTTP layer must inspect Verified() and
+// the granular flags to build a response.
+func VerifyReceiptCryptographic(receipt map[string]interface{}, publicKeyHex string) ReceiptVerificationResult {
+	result := ReceiptVerificationResult{}
+
+	if len(receipt) == 0 {
+		result.Reason = "receipt is empty"
+		return result
+	}
+	result.ReceiptPresent = true
+
+	publicKeyHex = strings.TrimSpace(publicKeyHex)
+	if publicKeyHex == "" {
+		result.Reason = "runtime public key not found"
+		return result
+	}
+	keyBytes, err := hex.DecodeString(publicKeyHex)
+	if err != nil || len(keyBytes) != ed25519.PublicKeySize {
+		result.Reason = "runtime public key invalid"
+		return result
+	}
+	result.RuntimeKeyFound = true
+
+	storedHashRaw, _ := receipt["hash"].(string)
+	result.StoredHash = storedHashRaw
+
+	canonBytes, err := canonicalReceiptBytes(receipt)
+	if err != nil {
+		result.Reason = "receipt canonical marshal failed: " + err.Error()
+		return result
+	}
+	digest := sha256.Sum256(canonBytes)
+	result.ComputedHash = hex.EncodeToString(digest[:])
+	result.HashValid = storedHashRaw != "" && result.ComputedHash == storedHashRaw
+
+	sigStr, _ := receipt["signature"].(string)
+	if sigStr == "" {
+		result.Reason = "receipt has no signature"
+		return result
+	}
+	result.SignaturePresent = true
+
+	sigBytes, err := base64.StdEncoding.DecodeString(sigStr)
+	if err != nil {
+		result.Reason = "receipt signature base64 decode failed: " + err.Error()
+		return result
+	}
+	if !ed25519.Verify(ed25519.PublicKey(keyBytes), digest[:], sigBytes) {
+		result.Reason = "receipt signature verification failed"
+		return result
+	}
+	result.SignatureValid = true
+
+	if !result.HashValid {
+		result.Reason = "receipt hash does not match canonical re-computation"
+		return result
+	}
+
+	result.Reason = "receipt cryptographically verified"
+	return result
+}
+
 // VerifyExecutionArtifactsRawWithPublicKey verifies raw Runtime execution
 // artifacts with a specific Runtime public key from the registry. Unlike
 // VerifyExecutionArtifactsRaw, this does not fall back to environment config
