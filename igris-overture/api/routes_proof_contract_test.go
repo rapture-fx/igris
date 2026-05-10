@@ -303,22 +303,47 @@ func TestListReceiptsHandlesEmptyReceiptHashAfterCoalesce(t *testing.T) {
 	}
 }
 
-func TestVerifyReceiptResponseIncludesRuntimeIdentityWhenAvailable(t *testing.T) {
+// verifyReceiptColumns matches the receipt-verify SELECT shape after we
+// upgraded the endpoint to do fresh cryptographic verification.
+var verifyReceiptColumns = []string{
+	"id", "execution_id", "agent_id", "runtime_id", "runtime_label",
+	"transaction_id", "transaction_hash",
+	"cpu_time_ms", "wall_time_ms", "memory_peak_mb", "fs_bytes_written", "tool_calls",
+	"violation_occurred",
+	"receipt_hash", "previous_hash", "signature", "timestamp_utc",
+	"runtime_public_key", "proof_status",
+}
+
+func TestVerifyReceiptStoredValuesAloneCannotMarkVerifiedTrue(t *testing.T) {
 	t.Parallel()
 
+	// Stored hash and signature are arbitrary strings, not a real Ed25519
+	// signature; with the new contract verified=true only when fresh
+	// cryptographic verification succeeds. Even though the request supplies
+	// matching values, verified must be false.
+	timestamp := time.Date(2026, 5, 10, 12, 0, 0, 0, time.UTC)
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
 		{
 			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
 			rows:    [][]driver.Value{{false, false, false, true}},
 		},
 		{
-			columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
+			columns: verifyReceiptColumns,
 			rows: [][]driver.Value{{
 				"receipt-row-3",
+				"exec-verify-3",
+				"agent-verify",
 				"runtime-verify-3",
 				"http://runtime.verify",
+				"",
+				"",
+				int64(0), int64(0), int64(0), int64(0), int64(0),
+				false,
 				"receipt-hash-3",
-				"receipt-signature-3",
+				"",
+				"receipt-signature-3", // not a real Ed25519 signature
+				timestamp,
+				"", // no runtime public key in registry
 				"verified",
 			}},
 		},
@@ -349,36 +374,46 @@ func TestVerifyReceiptResponseIncludesRuntimeIdentityWhenAvailable(t *testing.T)
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		t.Fatalf("Decode() error = %v", err)
 	}
-	if !result.Verified {
-		t.Fatalf("Verified = false, want true")
+	if result.Verified {
+		t.Fatalf("Verified = true, want false — stored-value comparison alone must not pass cryptographic verification")
 	}
 	if result.RuntimeID != "runtime-verify-3" {
 		t.Fatalf("RuntimeID = %q, want runtime-verify-3", result.RuntimeID)
 	}
-	if result.RuntimeLabel != "http://runtime.verify" {
-		t.Fatalf("RuntimeLabel = %q, want http://runtime.verify", result.RuntimeLabel)
+	if result.RuntimeKeyFound == nil || *result.RuntimeKeyFound {
+		t.Fatalf("RuntimeKeyFound = %v, want pointer to false (no key in registry, no env)", result.RuntimeKeyFound)
 	}
 	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
 		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
 	}
 }
 
-func TestVerifyReceiptResponseRemainsBackwardCompatibleWithoutRuntimeIdentity(t *testing.T) {
+func TestVerifyReceiptReturnsCleanlyWithoutRuntimeIdentity(t *testing.T) {
 	t.Parallel()
 
+	timestamp := time.Date(2026, 5, 10, 12, 30, 0, 0, time.UTC)
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
 		{
 			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
 			rows:    [][]driver.Value{{false, false, false, true}},
 		},
 		{
-			columns: []string{"id", "runtime_id", "runtime_label", "receipt_hash", "signature", "proof_status"},
+			columns: verifyReceiptColumns,
 			rows: [][]driver.Value{{
 				"receipt-row-4",
+				"exec-verify-4",
+				"agent-verify",
 				"",
 				"",
+				"",
+				"",
+				int64(0), int64(0), int64(0), int64(0), int64(0),
+				false,
 				"receipt-hash-4",
+				"",
 				"receipt-signature-4",
+				timestamp,
+				"",
 				"present",
 			}},
 		},
@@ -408,8 +443,8 @@ func TestVerifyReceiptResponseRemainsBackwardCompatibleWithoutRuntimeIdentity(t 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		t.Fatalf("Decode() error = %v", err)
 	}
-	if !result.Verified {
-		t.Fatalf("Verified = false, want true")
+	if result.Verified {
+		t.Fatalf("Verified = true, want false — no runtime key, no signature, must not verify")
 	}
 	if result.RuntimeID != "" {
 		t.Fatalf("RuntimeID = %q, want empty string", result.RuntimeID)
