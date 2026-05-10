@@ -425,3 +425,129 @@ func TestRuntimeClientForwardExecutionReturnsStructuredTaskErrorForNonCompletedS
 		t.Fatalf("payload.task_id = %v, want runtime-task-2", got)
 	}
 }
+
+// ─── VerifyReceiptCryptographic ──────────────────────────────────────────────
+
+// makeSignedReceiptForCryptoTest builds a receipt that is canonically hashed
+// and signed with the supplied Ed25519 key — matching the runtime's BTreeMap
+// + SHA-256 canonical form. Returns the full receipt map (ready to pass to
+// VerifyReceiptCryptographic) plus the hex-encoded public key.
+func makeSignedReceiptForCryptoTest(t *testing.T, seed string) (map[string]interface{}, string, ed25519.PrivateKey) {
+	t.Helper()
+	publicKey, privateKey, err := ed25519.GenerateKey(strings.NewReader(strings.Repeat(seed, ed25519.SeedSize/len(seed)+1)))
+	if err != nil {
+		t.Fatalf("GenerateKey() error = %v", err)
+	}
+	receipt := map[string]interface{}{
+		"execution_id":       "exec-crypto-1",
+		"agent_id":           "agent-crypto",
+		"runtime_id":         "runtime-crypto-1",
+		"cpu_time_ms":        int64(12),
+		"wall_time_ms":       int64(34),
+		"memory_peak_mb":     int64(56),
+		"fs_bytes_written":   int64(0),
+		"tool_calls":         int64(0),
+		"violation_occurred": false,
+		"timestamp_utc":      "2026-05-10T12:00:00Z",
+		"previous_hash":      "",
+	}
+	signed := signReceiptForTest(t, privateKey, receipt)
+	return signed, hex.EncodeToString(publicKey), privateKey
+}
+
+func TestVerifyReceiptCryptographicSucceedsForRealSignature(t *testing.T) {
+	t.Parallel()
+	receipt, pubHex, _ := makeSignedReceiptForCryptoTest(t, "A")
+
+	result := VerifyReceiptCryptographic(receipt, pubHex)
+	if !result.Verified() {
+		t.Fatalf("Verified() = false, want true. result=%+v", result)
+	}
+	if !result.HashValid {
+		t.Fatalf("HashValid = false, want true")
+	}
+	if !result.SignatureValid {
+		t.Fatalf("SignatureValid = false, want true")
+	}
+	if !result.RuntimeKeyFound {
+		t.Fatalf("RuntimeKeyFound = false, want true")
+	}
+}
+
+func TestVerifyReceiptCryptographicRejectsHashMismatch(t *testing.T) {
+	t.Parallel()
+	receipt, pubHex, _ := makeSignedReceiptForCryptoTest(t, "B")
+	// Tamper: replace the stored hash with something else.
+	receipt["hash"] = "0000000000000000000000000000000000000000000000000000000000000000"
+
+	result := VerifyReceiptCryptographic(receipt, pubHex)
+	if result.Verified() {
+		t.Fatal("Verified() = true, want false on hash mismatch")
+	}
+	if result.HashValid {
+		t.Fatal("HashValid = true, want false on hash mismatch")
+	}
+	// Signature was signed over the original digest, so even with a mismatched
+	// stored hash the signature itself is valid against the canonical digest —
+	// the failure must come from HashValid being false.
+	if !result.SignatureValid {
+		t.Fatalf("SignatureValid = false; signature was over canonical digest, want true")
+	}
+}
+
+func TestVerifyReceiptCryptographicRejectsSignatureMismatch(t *testing.T) {
+	t.Parallel()
+	receipt, pubHex, _ := makeSignedReceiptForCryptoTest(t, "C")
+	// Tamper: replace the signature with random bytes that decode but don't verify.
+	bogus := make([]byte, 64)
+	for i := range bogus {
+		bogus[i] = 0x42
+	}
+	receipt["signature"] = base64.StdEncoding.EncodeToString(bogus)
+
+	result := VerifyReceiptCryptographic(receipt, pubHex)
+	if result.Verified() {
+		t.Fatal("Verified() = true, want false on signature mismatch")
+	}
+	if result.SignatureValid {
+		t.Fatal("SignatureValid = true, want false")
+	}
+}
+
+func TestVerifyReceiptCryptographicRejectsMissingRuntimeKey(t *testing.T) {
+	t.Parallel()
+	receipt, _, _ := makeSignedReceiptForCryptoTest(t, "D")
+	result := VerifyReceiptCryptographic(receipt, "")
+	if result.Verified() {
+		t.Fatal("Verified() = true, want false when no runtime key supplied")
+	}
+	if result.RuntimeKeyFound {
+		t.Fatal("RuntimeKeyFound = true, want false when no key")
+	}
+	if result.Reason == "" {
+		t.Fatal("Reason should be populated when runtime key missing")
+	}
+}
+
+func TestVerifyReceiptCryptographicRejectsInvalidPublicKeyHex(t *testing.T) {
+	t.Parallel()
+	receipt, _, _ := makeSignedReceiptForCryptoTest(t, "E")
+	result := VerifyReceiptCryptographic(receipt, "not-a-hex-key")
+	if result.Verified() {
+		t.Fatal("Verified() = true, want false for malformed key hex")
+	}
+	if result.RuntimeKeyFound {
+		t.Fatal("RuntimeKeyFound = true, want false for malformed key hex")
+	}
+}
+
+func TestVerifyReceiptCryptographicHandlesEmptyReceipt(t *testing.T) {
+	t.Parallel()
+	result := VerifyReceiptCryptographic(map[string]interface{}{}, "deadbeef")
+	if result.Verified() {
+		t.Fatal("Verified() = true, want false for empty receipt")
+	}
+	if result.ReceiptPresent {
+		t.Fatal("ReceiptPresent = true, want false for empty receipt")
+	}
+}
