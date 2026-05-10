@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+
+	"github.com/Igris-inertial/system/igris-overture/internal"
 )
 
 func TestExpectedHashFromVerifyRequest(t *testing.T) {
@@ -451,6 +453,308 @@ func TestVerifyReceiptReturnsCleanlyWithoutRuntimeIdentity(t *testing.T) {
 	}
 	if result.RuntimeLabel != "" {
 		t.Fatalf("RuntimeLabel = %q, want empty string", result.RuntimeLabel)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
+// chainPriorRowColumns matches the SELECT shape used by fetchReceiptForChain
+// (the prior-receipt lookup for chain-link verification).
+var chainPriorRowColumns = []string{
+	"id", "execution_id", "agent_id", "runtime_id", "runtime_label",
+	"transaction_id", "transaction_hash",
+	"cpu_time_ms", "wall_time_ms", "memory_peak_mb", "fs_bytes_written", "tool_calls",
+	"violation_occurred",
+	"receipt_hash", "previous_hash", "signature", "timestamp_utc",
+	"runtime_public_key", "proof_status",
+}
+
+// makeChainTestPriorRow builds a driver row whose canonical hash, when
+// re-derived by ComputeCanonicalReceiptHash, equals the supplied hash. We
+// compute the hash directly from the same canonical helper to keep the test
+// in lockstep with the runtime's BTreeMap form.
+func makeChainTestPriorRow(t *testing.T, executionID, agentID string, timestamp time.Time) ([]driver.Value, string) {
+	t.Helper()
+	receipt := map[string]interface{}{
+		"execution_id":       executionID,
+		"agent_id":           agentID,
+		"cpu_time_ms":        int64(0),
+		"wall_time_ms":       int64(0),
+		"memory_peak_mb":     int64(0),
+		"fs_bytes_written":   int64(0),
+		"tool_calls":         int64(0),
+		"violation_occurred": false,
+		"timestamp_utc":      timestamp.UTC().Format(time.RFC3339Nano),
+		"previous_hash":      "",
+	}
+	hash, err := internal.ComputeCanonicalReceiptHash(receipt)
+	if err != nil {
+		t.Fatalf("ComputeCanonicalReceiptHash() error = %v", err)
+	}
+	row := []driver.Value{
+		"prior-row-id",
+		executionID,
+		agentID,
+		"", // runtime_id (not part of canonical when empty)
+		"", // runtime_label
+		"", // transaction_id
+		"", // transaction_hash
+		int64(0), int64(0), int64(0), int64(0), int64(0),
+		false,
+		hash, // receipt_hash
+		"",   // previous_hash empty (this prior row is genesis)
+		"",   // signature
+		timestamp,
+		"", // runtime_public_key
+		"", // proof_status
+	}
+	return row, hash
+}
+
+func TestVerifyReceiptChainLinkGenesisIsValid(t *testing.T) {
+	t.Parallel()
+
+	// Genesis receipt: previous_hash is empty. The chain check should not
+	// query the database and must report ChainValid=true.
+	timestamp := time.Date(2026, 5, 10, 13, 0, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
+		},
+		{
+			columns: verifyReceiptColumns,
+			rows: [][]driver.Value{{
+				"receipt-genesis",
+				"exec-genesis",
+				"agent-genesis",
+				"", "", "", "",
+				int64(0), int64(0), int64(0), int64(0), int64(0),
+				false,
+				"any-hash",
+				"", // previous_hash empty → genesis
+				"",
+				timestamp,
+				"", "",
+			}},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+
+	handler := NewProofHandler(db)
+	app := fiber.New()
+	app.Post("/proof/receipts/verify", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-genesis")
+		return handler.VerifyReceipt(c)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/proof/receipts/verify", bytes.NewBufferString(`{"execution_id":"exec-genesis"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var result VerifyReceiptResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if result.ChainValid == nil || !*result.ChainValid {
+		t.Fatalf("ChainValid = %v, want pointer to true for genesis receipt", result.ChainValid)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
+func TestVerifyReceiptChainLinkVerifiesPriorReceipt(t *testing.T) {
+	t.Parallel()
+
+	priorTimestamp := time.Date(2026, 5, 10, 13, 0, 0, 0, time.UTC)
+	priorRow, priorHash := makeChainTestPriorRow(t, "exec-prior", "agent-prior", priorTimestamp)
+	currentTimestamp := time.Date(2026, 5, 10, 13, 5, 0, 0, time.UTC)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
+		},
+		{
+			columns: verifyReceiptColumns,
+			rows: [][]driver.Value{{
+				"receipt-current",
+				"exec-current",
+				"agent-current",
+				"", "", "", "",
+				int64(0), int64(0), int64(0), int64(0), int64(0),
+				false,
+				"current-hash",
+				priorHash, // previous_hash points at prior row's canonical hash
+				"",
+				currentTimestamp,
+				"", "",
+			}},
+		},
+		{
+			columns: chainPriorRowColumns,
+			rows:    [][]driver.Value{priorRow},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+
+	handler := NewProofHandler(db)
+	app := fiber.New()
+	app.Post("/proof/receipts/verify", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-chain")
+		return handler.VerifyReceipt(c)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/proof/receipts/verify", bytes.NewBufferString(`{"execution_id":"exec-current"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var result VerifyReceiptResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if result.ChainValid == nil || !*result.ChainValid {
+		t.Fatalf("ChainValid = %v, want pointer to true when prior canonical hash matches", result.ChainValid)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
+func TestVerifyReceiptChainLinkRejectsMissingPriorReceipt(t *testing.T) {
+	t.Parallel()
+
+	currentTimestamp := time.Date(2026, 5, 10, 13, 10, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
+		},
+		{
+			columns: verifyReceiptColumns,
+			rows: [][]driver.Value{{
+				"receipt-orphan",
+				"exec-orphan",
+				"agent-orphan",
+				"", "", "", "",
+				int64(0), int64(0), int64(0), int64(0), int64(0),
+				false,
+				"orphan-hash",
+				"missing-prior-hash", // pointer to a hash with no row
+				"",
+				currentTimestamp,
+				"", "",
+			}},
+		},
+		// Empty result for the chain lookup → sql.ErrNoRows path.
+		{
+			columns: chainPriorRowColumns,
+			rows:    [][]driver.Value{},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+
+	handler := NewProofHandler(db)
+	app := fiber.New()
+	app.Post("/proof/receipts/verify", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-chain")
+		return handler.VerifyReceipt(c)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/proof/receipts/verify", bytes.NewBufferString(`{"execution_id":"exec-orphan"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d (must be 200, never 500)", resp.StatusCode, http.StatusOK)
+	}
+
+	var result VerifyReceiptResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if result.ChainValid == nil || *result.ChainValid {
+		t.Fatalf("ChainValid = %v, want pointer to false when prior row missing", result.ChainValid)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
+func TestVerifyReceiptChainLinkRejectsTamperedPriorReceipt(t *testing.T) {
+	t.Parallel()
+
+	priorTimestamp := time.Date(2026, 5, 10, 13, 15, 0, 0, time.UTC)
+	priorRow, priorHash := makeChainTestPriorRow(t, "exec-prior-tampered", "agent-prior", priorTimestamp)
+	// Tamper: agent_id on the stored prior row no longer matches the
+	// canonical re-derivation that was originally signed.
+	tamperedRow := append([]driver.Value(nil), priorRow...)
+	tamperedRow[2] = "agent-prior-tampered"
+	currentTimestamp := time.Date(2026, 5, 10, 13, 20, 0, 0, time.UTC)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{false, false, false, true}},
+		},
+		{
+			columns: verifyReceiptColumns,
+			rows: [][]driver.Value{{
+				"receipt-current",
+				"exec-current",
+				"agent-current",
+				"", "", "", "",
+				int64(0), int64(0), int64(0), int64(0), int64(0),
+				false,
+				"current-hash",
+				priorHash, // current claims to chain to the original prior hash
+				"",
+				currentTimestamp,
+				"", "",
+			}},
+		},
+		{
+			columns: chainPriorRowColumns,
+			rows:    [][]driver.Value{tamperedRow},
+		},
+	}, queuedRouteExecExpectation{rowsAffected: 1})
+
+	handler := NewProofHandler(db)
+	app := fiber.New()
+	app.Post("/proof/receipts/verify", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-chain")
+		return handler.VerifyReceipt(c)
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/proof/receipts/verify", bytes.NewBufferString(`{"execution_id":"exec-current"}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var result VerifyReceiptResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if result.ChainValid == nil || *result.ChainValid {
+		t.Fatalf("ChainValid = %v, want pointer to false when prior row tampered", result.ChainValid)
 	}
 	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
 		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
