@@ -56,7 +56,6 @@ const RESOURCE_NUMBER_FIELDS = [
 function SurfaceSection({
   icon: Icon,
   title,
-  description,
   actions,
   bodyClassName = 'px-4 py-4',
   className = '',
@@ -64,25 +63,21 @@ function SurfaceSection({
 }: {
   icon: LucideIcon;
   title: string;
-  description: string;
   actions?: ReactNode;
   bodyClassName?: string;
   className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className={`border border-gray-200 shadow rounded-3xl overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-gray-700" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-black">{title}</p>
-          </div>
-          <p className="text-[11px] text-black mt-0.5">{description}</p>
+    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
+      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+          <p className="text-xs font-medium text-foreground">{title}</p>
         </div>
         {actions}
       </div>
-      <div className={`bg-gray-50 border-t border-gray-200 rounded-t-3xl ${bodyClassName}`}>
+      <div className={`bg-white ${bodyClassName}`}>
         {children}
       </div>
     </div>
@@ -103,15 +98,15 @@ function FieldCard({
   range?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-1.5">
+    <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white px-3 py-3 space-y-1.5">
       <div className="flex items-baseline justify-between">
-        <Label className="text-xs font-medium text-gray-700">{label}</Label>
-        <span className="text-[10px] text-gray-400">{unit}</span>
+        <Label className="text-xs font-medium text-foreground">{label}</Label>
+        <span className="text-[10px] text-muted-foreground">{unit}</span>
       </div>
-      <p className="text-[11px] text-gray-500 leading-relaxed">{description}</p>
+      <p className="text-[11px] text-muted-foreground leading-relaxed">{description}</p>
       {children}
       {range && (
-        <p className="text-[10px] text-gray-300 font-mono tabular-nums">{range}</p>
+        <p className="text-[10px] text-muted-foreground font-mono tabular-nums">{range}</p>
       )}
     </div>
   );
@@ -209,16 +204,13 @@ export default function PolicyBoundsPage() {
   const displayBounds = serverBounds ?? EMPTY_BOUNDS;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout fullWidth>
       <div className="space-y-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Execution Bounds</h1>
-            <p className="text-xs text-black mt-0.5">System limits enforced during runtime execution.</p>
-          </div>
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-base font-semibold text-foreground">Execution Bounds</h1>
           <div className="flex items-center gap-2 flex-shrink-0">
             {isDirty && (
-              <span className="text-[11px] text-yellow-700 bg-yellow-50 px-2.5 py-1 rounded-full border border-yellow-200 whitespace-nowrap">
+              <span className="text-[11px] text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full border border-yellow-200 whitespace-nowrap">
                 Unsaved changes
               </span>
             )}
@@ -244,7 +236,7 @@ export default function PolicyBoundsPage() {
         </div>
 
         {mutation.isError && (
-          <div className="border border-red-200 bg-red-50 rounded-3xl px-4 py-3 text-xs text-red-700">
+          <div className="border border-red-200 bg-red-50 rounded-lg px-4 py-3 text-xs text-red-600">
             Failed to save policy changes. Try again.
           </div>
         )}
@@ -252,12 +244,11 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Zap}
           title="Execution Limits"
-          description="Limits applied to each individual execution run."
         >
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-2xl" />
+                <Skeleton key={i} className="h-24 rounded-lg" />
               ))}
             </div>
           ) : (
@@ -274,7 +265,7 @@ export default function PolicyBoundsPage() {
                     type="number" min={f.min} max={f.max}
                     value={form[f.key]}
                     onChange={(e) => set(f.key, Number(e.target.value))}
-                    className="h-8 text-xs font-mono bg-white"
+                    className="h-8 text-xs font-mono bg-background"
                   />
                 </FieldCard>
               ))}
@@ -285,26 +276,25 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Cpu}
           title="Resource Limits"
-          description="System resource constraints enforced per execution."
         >
           {isLoading ? (
             <div className="space-y-3">
-              <Skeleton className="h-20 rounded-2xl" />
+              <Skeleton className="h-20 rounded-lg" />
               <div className="grid grid-cols-2 gap-3">
-                <Skeleton className="h-24 rounded-2xl" />
-                <Skeleton className="h-24 rounded-2xl" />
+                <Skeleton className="h-24 rounded-lg" />
+                <Skeleton className="h-24 rounded-lg" />
               </div>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3 space-y-2">
+              <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white px-3 py-3 space-y-2">
                 <div className="flex items-baseline justify-between">
-                  <Label className="text-xs font-medium text-gray-700">CPU Limit</Label>
-                  <span className="text-sm font-mono font-semibold text-gray-900 tabular-nums">
+                  <Label className="text-xs font-medium text-foreground">CPU Limit</Label>
+                  <span className="text-sm font-mono font-semibold text-foreground tabular-nums">
                     {form.cpu_percent}%
                   </span>
                 </div>
-                <p className="text-[11px] text-gray-500 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Maximum CPU usage permitted per execution.
                 </p>
                 <Slider
@@ -312,7 +302,7 @@ export default function PolicyBoundsPage() {
                   value={[form.cpu_percent]}
                   onValueChange={([v]) => set('cpu_percent', v)}
                 />
-                <div className="flex justify-between text-[10px] text-gray-300 font-mono tabular-nums">
+                <div className="flex justify-between text-[10px] text-muted-foreground font-mono tabular-nums">
                   <span>1%</span><span>100%</span>
                 </div>
               </div>
@@ -330,7 +320,7 @@ export default function PolicyBoundsPage() {
                       type="number" min={f.min} max={f.max}
                       value={form[f.key]}
                       onChange={(e) => set(f.key, Number(e.target.value))}
-                      className="h-8 text-xs font-mono bg-white"
+                      className="h-8 text-xs font-mono bg-background"
                     />
                   </FieldCard>
                 ))}
@@ -342,32 +332,31 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Shield}
           title="Policy Version"
-          description="Hash and timestamp of the last saved policy configuration."
         >
           {isLoading ? (
             <div className="grid grid-cols-2 gap-3">
-              <Skeleton className="h-14 rounded-2xl" />
-              <Skeleton className="h-14 rounded-2xl" />
+              <Skeleton className="h-14 rounded-lg" />
+              <Skeleton className="h-14 rounded-lg" />
             </div>
           ) : displayBounds.policy_hash ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1.5">Policy Hash</p>
+              <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white px-3 py-3">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1.5">Policy Hash</p>
                 <div className="flex items-center gap-1.5">
-                  <code className="text-xs font-mono text-gray-900 truncate">
+                  <code className="text-xs font-mono text-foreground truncate">
                     {truncateText(displayBounds.policy_hash, 26)}
                   </code>
                   <CopyButton value={displayBounds.policy_hash} />
                 </div>
               </div>
-              <div className="rounded-2xl border border-gray-200 bg-white px-3 py-3">
-                <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1.5">Last Updated</p>
-                <p className="text-xs text-gray-900">{formatDateTime(displayBounds.updated_at)}</p>
+              <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white px-3 py-3">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1.5">Last Updated</p>
+                <p className="text-xs text-foreground">{formatDateTime(displayBounds.updated_at)}</p>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-5 text-center">
-              <p className="text-xs text-gray-400">No policy saved yet. Configure bounds above and save.</p>
+            <div className="rounded-lg border border-dashed border-black/[0.08] dark:border-white/[0.08] bg-white px-4 py-5 text-center">
+              <p className="text-xs text-muted-foreground">No policy saved yet. Configure bounds above and save.</p>
             </div>
           )}
         </SurfaceSection>
@@ -375,15 +364,14 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Brain}
           title="Apply to Agents"
-          description="Push the current saved policy to selected agents immediately."
         >
           {agents.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-5 text-center">
-              <p className="text-xs text-gray-400">No agents registered. Deploy a runtime to get started.</p>
+            <div className="rounded-lg border border-dashed border-black/[0.08] dark:border-white/[0.08] bg-white px-4 py-5 text-center">
+              <p className="text-xs text-muted-foreground">No agents registered. Deploy a runtime to get started.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 max-h-52 overflow-y-auto">
+              <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white divide-y divide-black/[0.08] dark:divide-white/[0.08] max-h-52 overflow-y-auto">
                 {agents.map((agent) => (
                   <div key={agent.id} className="flex items-center gap-2.5 px-3 py-2.5">
                     <Checkbox
@@ -392,11 +380,11 @@ export default function PolicyBoundsPage() {
                       onCheckedChange={() => toggleAgent(agent.id)}
                     />
                     <label htmlFor={`agent-${agent.id}`} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                      <span className="text-xs font-mono text-gray-700 truncate">{agent.id}</span>
-                      <span className="text-[10px] text-gray-400 shrink-0">{agent.namespace}</span>
+                      <span className="text-xs font-mono text-muted-foreground truncate">{agent.id}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">{agent.namespace}</span>
                       <span className={`ml-auto shrink-0 text-[10px] px-1.5 py-0.5 rounded border ${
                         agent.state === 'RUNNING' || agent.state === 'ACTIVE'
-                          ? 'bg-green-50 text-green-700 border-green-200'
+                          ? 'bg-green-50 text-green-600 border-green-200'
                           : 'bg-gray-50 text-gray-500 border-gray-200'
                       }`}>{agent.state}</span>
                     </label>
@@ -404,7 +392,7 @@ export default function PolicyBoundsPage() {
                 ))}
               </div>
               <div className="flex items-center justify-between pt-1">
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   {selectedAgentIds.size > 0 ? `${selectedAgentIds.size} selected` : 'Select agents above'}
                 </span>
                 <Button
@@ -425,54 +413,51 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={History}
           title="Policy History"
-          description="Audit log of policy configuration changes."
           bodyClassName="px-4 py-4"
         >
-          <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    {['Timestamp', 'Hash', 'Changed By', 'Summary'].map((col) => (
-                      <TableHead key={col} className="text-xs font-medium text-gray-500 h-9 px-4 bg-gray-50 hover:bg-gray-50">
-                        {col}
-                      </TableHead>
-                    ))}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-white">
+                  {['Timestamp', 'Hash', 'Changed By', 'Summary'].map((col) => (
+                    <TableHead key={col} className="text-xs font-medium text-muted-foreground h-9 px-4 bg-white uppercase tracking-wide">
+                      {col}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.length === 0 ? (
+                  <TableRow className="bg-white">
+                    <TableCell colSpan={4} className="px-4 py-10 text-center text-xs text-muted-foreground">
+                      No policy changes recorded.
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="px-4 py-10 text-center text-xs text-gray-500">
-                        No policy changes recorded.
+                ) : (
+                  history.map((entry) => (
+                    <TableRow key={entry.id} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50">
+                      <TableCell className="px-4 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                        {getRelativeTime(entry.timestamp)}
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <code className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-black/[0.08] dark:border-white/[0.08]">
+                            {truncateText(entry.policy_hash, 14)}
+                          </code>
+                          <CopyButton value={entry.policy_hash} />
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+                        {entry.changed_by}
+                      </TableCell>
+                      <TableCell className="px-4 py-2.5 text-xs text-muted-foreground max-w-[240px]">
+                        <span className="line-clamp-2">{entry.change_summary}</span>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    history.map((entry) => (
-                      <TableRow key={entry.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <TableCell className="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
-                          {getRelativeTime(entry.timestamp)}
-                        </TableCell>
-                        <TableCell className="px-4 py-2.5">
-                          <div className="flex items-center gap-1.5">
-                            <code className="text-xs font-mono text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
-                              {truncateText(entry.policy_hash, 14)}
-                            </code>
-                            <CopyButton value={entry.policy_hash} />
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-4 py-2.5 text-xs text-gray-600 whitespace-nowrap">
-                          {entry.changed_by}
-                        </TableCell>
-                        <TableCell className="px-4 py-2.5 text-xs text-gray-500 max-w-[240px]">
-                          <span className="line-clamp-2">{entry.change_summary}</span>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
         </SurfaceSection>
       </div>
