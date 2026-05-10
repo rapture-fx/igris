@@ -200,6 +200,107 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 	}
 }
 
+// TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask covers the
+// production schema mode (task_proof_detail = true) where the LEFT JOIN
+// LATERAL on task_records returns no rows for direct /v1/infer executions.
+// With COALESCE(tp.task_id, '') in the SELECT clause the empty-task row
+// shape must scan cleanly and the response must omit task_id while keeping
+// runtime/receipt/verification fields populated.
+func TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask(t *testing.T) {
+	t.Parallel()
+
+	startedAt := time.Date(2026, 5, 9, 13, 0, 0, 0, time.UTC)
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
+			rows:    [][]driver.Value{{true, true, true, true}},
+		},
+		{
+			columns: []string{
+				"execution_id", "agent_id", "device_id", "timestamp_utc", "wall_time_ms",
+				"violation_occurred", "status", "pause_reason", "prompt_preview", "id",
+				"receipt_hash", "previous_hash", "signature", "proof_status", "violation_details",
+				"context_provider", "context_route_decision", "context_execution_path", "context_runtime_label",
+				"context_fallback_used", "context_fallback_reason", "context_policy_snapshot",
+				"context_capability_snapshot", "context_events", "context_logs",
+				"execution_envelope", "task_id", "permission_envelope", "task_failure_reason", "task_failure_details",
+				"created_at", "dispatched_at", "completed_at", "canceled_at",
+			},
+			rows: [][]driver.Value{{
+				"exec-direct-1",
+				"tenant-direct",
+				"runtime-direct-1",
+				startedAt,
+				int64(48),
+				false,
+				"completed",
+				"",
+				"hello unified",
+				"row-direct-1",
+				"receipt-hash-direct-1",
+				"receipt-hash-prev-0",
+				"receipt-sig-direct-1",
+				"verified",
+				nil,
+				"local-mock-cloud",
+				"forwarded_to_runtime_task",
+				"runtime_task",
+				"http://runtime.test",
+				false,
+				"",
+				nil,
+				nil,
+				nil,
+				nil,
+				// tp.* columns: lateral subquery yielded no row → COALESCE(tp.task_id,'') = '';
+				// the rest of the tp.* columns come back as NULL/empty per their column types.
+				nil, // execution_envelope (jsonb NULL)
+				"",  // COALESCE(tp.task_id,'')
+				nil, // permission_envelope (jsonb NULL)
+				"",  // task_failure_reason (already COALESCE'd)
+				nil, // failure_details (jsonb NULL)
+				nil, nil, nil, nil, // task_records timestamps NULL
+			}},
+		},
+	})
+
+	handler := NewExecutionHandler(db)
+	app := fiber.New()
+	app.Get("/v1/execution/runs/:id", func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", "tenant-direct")
+		return handler.GetRunDetail(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/runs/exec-direct-1", nil)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test() error = %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var detail ExecutionRunDetail
+	if err := json.NewDecoder(resp.Body).Decode(&detail); err != nil {
+		t.Fatalf("Decode() error = %v", err)
+	}
+	if detail.TaskID != "" {
+		t.Fatalf("TaskID = %q, want empty string for direct inference run", detail.TaskID)
+	}
+	if detail.RuntimeID != "runtime-direct-1" {
+		t.Fatalf("RuntimeID = %q, want runtime-direct-1", detail.RuntimeID)
+	}
+	if detail.VerificationStatus != "verified" {
+		t.Fatalf("VerificationStatus = %q, want verified", detail.VerificationStatus)
+	}
+	if detail.Receipt == nil || detail.Receipt.Hash != "receipt-hash-direct-1" {
+		t.Fatalf("Receipt = %#v, want hash receipt-hash-direct-1", detail.Receipt)
+	}
+	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
+		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
+	}
+}
+
 func TestGetRunDetailSupportsInferenceRecordWithoutTaskID(t *testing.T) {
 	t.Parallel()
 
