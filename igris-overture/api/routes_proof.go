@@ -2,9 +2,11 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -212,6 +215,11 @@ type VerifyReceiptRequest struct {
 }
 
 // VerifyReceiptResponse is the response for POST /proof/receipts/verify.
+//
+// Verified is true only when fresh cryptographic verification succeeded:
+// the canonical hash re-derived from stored receipt columns matches the
+// stored hash AND the Ed25519 signature verifies against a known runtime
+// public key. Stored-value comparison alone is not sufficient.
 type VerifyReceiptResponse struct {
 	Verified           bool   `json:"verified"`
 	Valid              bool   `json:"valid"`
@@ -225,6 +233,7 @@ type VerifyReceiptResponse struct {
 	HashValid          *bool  `json:"hash_valid,omitempty"`
 	SignatureMatches   *bool  `json:"signature_matches,omitempty"`
 	ChainValid         *bool  `json:"chain_valid,omitempty"`
+	RuntimeKeyFound    *bool  `json:"runtime_key_found,omitempty"`
 	Message            string `json:"message"`
 }
 
@@ -261,27 +270,7 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 
 	comparisonHash := expectedHashFromVerifyRequest(req)
 
-	var receiptID, runtimeID, runtimeLabel, storedHash, signature string
-	var proofStatus sql.NullString
-	query := `
-		SELECT el.id::text,
-		       COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), ''),
-		       COALESCE(ec.runtime_label, ''),
-		       COALESCE(el.receipt_hash, '') AS receipt_hash,
-		       COALESCE(el.signature, '') AS signature,
-		       COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '')
-		FROM execution_lineage el
-		LEFT JOIN execution_context ec
-		       ON ec.execution_id = el.execution_id
-		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
-		%s
-		WHERE el.execution_id = $1
-		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
-	`
-	query = fmt.Sprintf(query, executionTaskProofLookupJoinSQL(schemaCaps.taskProofLookup, "el"))
-
-	err = h.db.QueryRow(query, req.ExecutionID, tenantID).Scan(&receiptID, &runtimeID, &runtimeLabel, &storedHash, &signature, &proofStatus)
-
+	row, err := h.fetchReceiptVerifyRow(c.Context(), req.ExecutionID, tenantID, schemaCaps)
 	if err == sql.ErrNoRows {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error":   "not_found",
@@ -296,36 +285,52 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		})
 	}
 
+	// Pick a runtime public key: registry entry first, env var fallback.
+	publicKeyHex := strings.TrimSpace(row.runtimePublicKey)
+	if publicKeyHex == "" {
+		publicKeyHex = strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY"))
+	}
+
+	// Reconstruct the canonical receipt from stored execution_lineage columns.
+	receipt := buildReceiptForVerification(row)
+
+	// Fresh cryptographic verification: canonical hash + Ed25519 signature.
+	cryptoResult := internal.VerifyReceiptCryptographic(receipt, publicKeyHex)
+
+	// Surface stored-value comparison fields for back-compat (consumed by
+	// scripts and the console) but do not let them set verified=true on
+	// their own.
 	var (
 		hashValid        *bool
 		signatureMatches *bool
-		verified         bool
 	)
-
-	checksPerformed := 0
-	if comparisonHash != "" {
-		match := storedHash == comparisonHash
-		hashValid = &match
-		checksPerformed++
-		verified = match
-	}
-	if req.Signature != "" {
-		match := signature == req.Signature
-		signatureMatches = &match
-		checksPerformed++
-		if checksPerformed == 1 {
-			verified = match
-		} else {
-			verified = verified && match
+	if cryptoResult.RuntimeKeyFound {
+		// Once we have a key, hash and signature checks are the cryptographic
+		// outcomes — not stored-value comparisons.
+		hv := cryptoResult.HashValid
+		sm := cryptoResult.SignatureValid
+		hashValid = &hv
+		signatureMatches = &sm
+	} else {
+		// No runtime key: still report stored-value matches if the request
+		// supplied them, but verified will be false because we cannot
+		// cryptographically verify.
+		if comparisonHash != "" {
+			match := row.storedHash != "" && row.storedHash == comparisonHash
+			hashValid = &match
+		}
+		if req.Signature != "" {
+			match := row.storedSignature != "" && row.storedSignature == req.Signature
+			signatureMatches = &match
 		}
 	}
-	if checksPerformed == 0 {
-		verified = false
-	}
+	runtimeKeyFound := cryptoResult.RuntimeKeyFound
 
-	verificationStatus := receiptVerificationStatus(proofStatus.String, storedHash)
+	verified := cryptoResult.Verified()
+	verificationStatus := cryptographicVerificationStatus(cryptoResult, row.proofStatus, row.storedHash)
+	message := buildCryptographicReceiptVerificationMessage(cryptoResult, hashValid, signatureMatches)
 
-	if err := coordinator.NewCheckpointStore(h.db).UpdateTaskProofStateByExecutionID(tenantID, req.ExecutionID, comparisonHash, storedHash, signature); err != nil {
+	if err := coordinator.NewCheckpointStore(h.db).UpdateTaskProofStateByExecutionID(tenantID, req.ExecutionID, comparisonHash, row.storedHash, row.storedSignature); err != nil {
 		log.Warn().Err(err).Str("execution_id", req.ExecutionID).Msg("[Proof] Failed to sync task proof state")
 	}
 
@@ -333,17 +338,139 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 		Verified:           verified,
 		Valid:              verified,
 		ExecutionID:        req.ExecutionID,
-		ReceiptID:          receiptID,
-		RuntimeID:          runtimeID,
-		RuntimeLabel:       runtimeLabel,
-		Hash:               storedHash,
-		Signature:          signature,
+		ReceiptID:          row.receiptID,
+		RuntimeID:          row.runtimeID,
+		RuntimeLabel:       row.runtimeLabel,
+		Hash:               row.storedHash,
+		Signature:          row.storedSignature,
 		VerificationStatus: verificationStatus,
 		HashValid:          hashValid,
 		SignatureMatches:   signatureMatches,
 		ChainValid:         nil,
-		Message:            buildReceiptVerificationMessage(hashValid, signatureMatches),
+		RuntimeKeyFound:    &runtimeKeyFound,
+		Message:            message,
 	})
+}
+
+// receiptVerifyRow holds every stored execution_lineage column needed to
+// re-derive the canonical receipt JSON, plus the runtime's registered public
+// key. Each text field is COALESCE'd to '' in SQL so a sparse row never
+// causes a NULL-scan failure.
+type receiptVerifyRow struct {
+	receiptID         string
+	executionID       string
+	agentID           string
+	runtimeID         string
+	runtimeLabel      string
+	transactionID     string
+	transactionHash   string
+	cpuTimeMs         int64
+	wallTimeMs        int64
+	memoryPeakMb      int64
+	fsBytesWritten    int64
+	toolCalls         int64
+	violationOccurred bool
+	storedHash        string
+	previousHash      string
+	storedSignature   string
+	timestampUTC      time.Time
+	runtimePublicKey  string
+	proofStatus       string
+}
+
+func (h *ProofHandler) fetchReceiptVerifyRow(ctx context.Context, executionID, tenantID string, schemaCaps executionSchemaCapabilities) (*receiptVerifyRow, error) {
+	query := `
+		SELECT el.id::text,
+		       el.execution_id,
+		       COALESCE(el.agent_id, '') AS agent_id,
+		       COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''), '') AS runtime_id,
+		       COALESCE(ec.runtime_label, '') AS runtime_label,
+		       COALESCE(el.transaction_id, '') AS transaction_id,
+		       COALESCE(el.transaction_hash, '') AS transaction_hash,
+		       COALESCE(el.cpu_time_ms, 0) AS cpu_time_ms,
+		       COALESCE(el.wall_time_ms, 0) AS wall_time_ms,
+		       COALESCE(el.memory_peak_mb, 0) AS memory_peak_mb,
+		       COALESCE(el.fs_bytes_written, 0) AS fs_bytes_written,
+		       COALESCE(el.tool_calls, 0) AS tool_calls,
+		       COALESCE(el.violation_occurred, false) AS violation_occurred,
+		       COALESCE(el.receipt_hash, '') AS receipt_hash,
+		       COALESCE(el.previous_hash, '') AS previous_hash,
+		       COALESCE(el.signature, '') AS signature,
+		       el.timestamp_utc,
+		       COALESCE(ri.public_key_ed25519, '') AS runtime_public_key,
+		       COALESCE(NULLIF(tp.proof_status, ''), NULLIF(ec.verification_status, ''), '') AS proof_status
+		FROM execution_lineage el
+		LEFT JOIN execution_context ec
+		       ON ec.execution_id = el.execution_id
+		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
+		LEFT JOIN runtime_instances ri
+		       ON ri.runtime_id::text = COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''))
+		%s
+		WHERE el.execution_id = $1
+		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
+	`
+	query = fmt.Sprintf(query, executionTaskProofLookupJoinSQL(schemaCaps.taskProofLookup, "el"))
+
+	row := &receiptVerifyRow{}
+	err := h.db.QueryRowContext(ctx, query, executionID, tenantID).Scan(
+		&row.receiptID,
+		&row.executionID,
+		&row.agentID,
+		&row.runtimeID,
+		&row.runtimeLabel,
+		&row.transactionID,
+		&row.transactionHash,
+		&row.cpuTimeMs,
+		&row.wallTimeMs,
+		&row.memoryPeakMb,
+		&row.fsBytesWritten,
+		&row.toolCalls,
+		&row.violationOccurred,
+		&row.storedHash,
+		&row.previousHash,
+		&row.storedSignature,
+		&row.timestampUTC,
+		&row.runtimePublicKey,
+		&row.proofStatus,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return row, nil
+}
+
+// buildReceiptForVerification reconstructs the canonical receipt map from the
+// stored execution_lineage columns. The map keys, types, and conditional
+// inclusion rules MUST match the runtime's BTreeMap construction in
+// igris-runtime/crates/igris-server/src/receipt.rs.
+func buildReceiptForVerification(row *receiptVerifyRow) map[string]interface{} {
+	if row == nil {
+		return nil
+	}
+	receipt := map[string]interface{}{
+		"execution_id":       row.executionID,
+		"agent_id":           row.agentID,
+		"cpu_time_ms":        row.cpuTimeMs,
+		"wall_time_ms":       row.wallTimeMs,
+		"memory_peak_mb":     row.memoryPeakMb,
+		"fs_bytes_written":   row.fsBytesWritten,
+		"tool_calls":         row.toolCalls,
+		"violation_occurred": row.violationOccurred,
+		"timestamp_utc":      row.timestampUTC.UTC().Format(time.RFC3339Nano),
+		"previous_hash":      row.previousHash,
+		"hash":               row.storedHash,
+		"signature":          row.storedSignature,
+	}
+	if row.runtimeID != "" {
+		receipt["runtime_id"] = row.runtimeID
+	}
+	if row.transactionID != "" {
+		receipt["transaction_id"] = row.transactionID
+	}
+	if row.transactionHash != "" {
+		receipt["transaction_hash"] = row.transactionHash
+	}
+	return receipt
 }
 
 type ReceiptViolationRecord struct {
@@ -483,6 +610,55 @@ func expectedHashFromVerifyRequest(req VerifyReceiptRequest) string {
 		return req.ExpectedHash
 	}
 	return req.Hash
+}
+
+// cryptographicVerificationStatus returns "verified" when fresh
+// cryptographic verification succeeded. When the runtime key was missing or
+// crypto checks failed, it falls back to the stored proof_status (if any)
+// or "present"/"missing" derived from the stored receipt hash. We never
+// upgrade an unverified row to "verified".
+func cryptographicVerificationStatus(result internal.ReceiptVerificationResult, proofStatus, storedHash string) string {
+	if result.Verified() {
+		return "verified"
+	}
+	if result.RuntimeKeyFound && result.ReceiptPresent && result.SignaturePresent {
+		// We had everything to verify and it failed cryptographically.
+		return "mismatch"
+	}
+	return receiptVerificationStatus(proofStatus, storedHash)
+}
+
+// buildCryptographicReceiptVerificationMessage produces a human-readable
+// message that explains the verification outcome. It distinguishes between
+// "no key available" (operator action: configure registry/env), "hash
+// mismatch" (tampering/corruption), "signature mismatch" (forgery), and the
+// success case.
+func buildCryptographicReceiptVerificationMessage(result internal.ReceiptVerificationResult, hashValid, signatureMatches *bool) string {
+	if result.Verified() {
+		return "Receipt cryptographically verified: canonical hash and Ed25519 signature both match the registered runtime public key."
+	}
+	if !result.ReceiptPresent {
+		return "No receipt was available for cryptographic verification."
+	}
+	if !result.RuntimeKeyFound {
+		// Fall back to the legacy stored-value message so callers still see
+		// some signal, but make clear verified=false until a key is found.
+		stored := buildReceiptVerificationMessage(hashValid, signatureMatches)
+		return "Runtime public key not found — cryptographic verification skipped. " + stored
+	}
+	if !result.SignaturePresent {
+		return "Receipt has no signature; cryptographic verification cannot proceed."
+	}
+	if !result.SignatureValid {
+		return "Receipt Ed25519 signature did not verify against the registered runtime public key."
+	}
+	if !result.HashValid {
+		return "Receipt hash does not match the canonical re-computation; receipt has been altered or rebuilt."
+	}
+	if result.Reason != "" {
+		return result.Reason
+	}
+	return "Cryptographic verification failed."
 }
 
 func buildReceiptVerificationMessage(hashValid *bool, signatureMatches *bool) string {
