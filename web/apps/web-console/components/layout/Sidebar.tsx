@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
-  ActivityLogIcon, BarChartIcon, DashboardIcon,
+  ActivityLogIcon, BarChartIcon, DashboardIcon, HomeIcon,
   ChevronDownIcon, MagnifyingGlassIcon, FileTextIcon,
   EnvelopeClosedIcon, ExitIcon, GearIcon,
   LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
   SunIcon, TokensIcon, ListBulletIcon, CheckCircledIcon,
   ReaderIcon, CrossCircledIcon, RulerHorizontalIcon, CheckIcon,
-  DesktopIcon, RocketIcon,
+  DesktopIcon, RocketIcon, PieChartIcon,
 } from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -82,7 +82,7 @@ const navigationGroups: NavigationGroup[] = [
     title: 'POLICY',
     items: [
       { name: 'Bounds', href: '/policy/bounds', icon: RulerHorizontalIcon },
-      { name: 'Capabilities', href: '/policy/capabilities', icon: CheckIcon },
+      { name: 'Capabilities', href: '/policy/capabilities', icon: LockClosedIcon },
     ],
   },
 ];
@@ -250,7 +250,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
                   )}
                 >
-                  <DashboardIcon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
+                  <DashboardIcon className="h-4 w-4 flex-shrink-0 text-foreground" />
                   Dashboard
                 </Link>
               </li>
