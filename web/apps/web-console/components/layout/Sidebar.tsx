@@ -11,7 +11,7 @@ import {
   LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
   SunIcon, TokensIcon, ListBulletIcon, CheckCircledIcon,
   ReaderIcon, CrossCircledIcon, RulerHorizontalIcon, CheckIcon,
-  DesktopIcon, RocketIcon, PieChartIcon,
+  DesktopIcon, RocketIcon, PieChartIcon, TransformIcon, UpdateIcon, MarginIcon,
 } from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -60,7 +60,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     title: 'FLEET',
     items: [
-      { name: 'Devices', href: '/fleet/devices', icon: DesktopIcon },
+      { name: 'Devices', href: '/fleet/devices', icon: MarginIcon },
     ],
   },
   {
@@ -81,8 +81,8 @@ const navigationGroups: NavigationGroup[] = [
   {
     title: 'POLICY',
     items: [
-      { name: 'Bounds', href: '/policy/bounds', icon: RulerHorizontalIcon },
-      { name: 'Capabilities', href: '/policy/capabilities', icon: LockClosedIcon },
+      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
+      { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
     ],
   },
 ];
