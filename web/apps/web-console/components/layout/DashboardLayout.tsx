@@ -29,12 +29,12 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
   return (
     <HealthCheckGate skipHealthCheck={true}>
       <ErrorBoundary>
-        <div className="flex min-h-screen bg-background">
+        <div className="flex h-screen overflow-hidden bg-background">
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-          <div className="flex-1 flex flex-col md:ml-72 min-w-0 overflow-hidden">
+          <div className="flex-1 flex flex-col md:ml-72 min-w-0 h-screen overflow-hidden">
             {/* Header navbar */}
-            <header className="h-12 px-4 sm:px-6 flex items-center border-b-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-background flex-shrink-0 sticky top-0 z-50">
+            <header className="h-12 px-4 sm:px-6 flex items-center border-b-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-background flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
