@@ -109,18 +109,23 @@ function OverviewCard({
 }
 
 function SurfaceSection({
-  icon: Icon, title, actions,
+  icon: Icon, title, description, actions,
   bodyClassName = 'px-4 py-4', className = '', children,
 }: {
-  icon: LucideIcon; title: string;
+  icon: LucideIcon; title: string; description?: ReactNode;
   actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
 }) {
   return (
     <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
       <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5">
-          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-          <p className="text-xs font-medium text-foreground">{title}</p>
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-foreground">{title}</p>
+          </div>
+          {description ? (
+            <p className="text-[11px] text-muted-foreground">{description}</p>
+          ) : null}
         </div>
         {actions}
       </div>
