@@ -158,7 +158,7 @@ export default function DashboardPage() {
     <DashboardLayout>
       <OnboardingModal />
       <div className="space-y-6">
-        <h1 className="text-base font-semibold text-foreground">Hi, {userName}, this is the Verified execution overview</h1>
+        <h1 className="text-base font-semibold text-foreground">Welcome {userName}</h1>
 
         <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
           <SummaryCard label="Runs" value={digest.runs} icon={PlayCircle} loading={runsLoading} />
