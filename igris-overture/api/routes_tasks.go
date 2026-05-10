@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -1234,10 +1235,88 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 			})
 		}
 
+		// Fresh cryptographic verification using the task's stored signed
+		// envelope + signed receipt and the runtime's registered public key
+		// (with env-var fallback). Stored-value comparison alone is not
+		// sufficient to mark verified=true.
+		crypto := verifyTaskCryptographic(c.Context(), tc, task)
+
+		respProof := buildTaskProofResponse(proof)
+		applyCryptographicProofFields(respProof, crypto)
+
 		return c.JSON(fiber.Map{
-			"task_id": taskID,
-			"proof":   buildTaskProofResponse(proof),
+			"task_id":  taskID,
+			"verified": crypto.Verified(),
+			"proof":    respProof,
 		})
+	}
+}
+
+// verifyTaskCryptographic looks up the runtime public key for the task's
+// runtime_id (falling back to IGRIS_RUNTIME_PUBLIC_KEY) and re-derives the
+// canonical receipt + envelope hashes for fresh Ed25519 verification. It
+// never returns an error: a missing key, missing artifacts, or failed crypto
+// surface as RuntimeKeyFound=false / SignatureValid=false / HashValid=false
+// in the result so the HTTP layer keeps a 200-shaped response.
+func verifyTaskCryptographic(ctx context.Context, tc *coordinator.TaskCoordinator, task *coordinator.TaskRecord) internal.ReceiptVerificationResult {
+	if task == nil || len(task.ExecutionReceipt) == 0 {
+		return internal.ReceiptVerificationResult{Reason: "task has no execution receipt"}
+	}
+
+	publicKeyHex := lookupRuntimePublicKeyForTask(ctx, tc, task)
+
+	var receipt map[string]interface{}
+	if err := json.Unmarshal(task.ExecutionReceipt, &receipt); err != nil {
+		return internal.ReceiptVerificationResult{Reason: "execution_receipt invalid json: " + err.Error()}
+	}
+
+	return internal.VerifyReceiptCryptographic(receipt, publicKeyHex)
+}
+
+// lookupRuntimePublicKeyForTask returns the hex-encoded Ed25519 public key
+// registered for the task's runtime in runtime_instances, or the value of
+// IGRIS_RUNTIME_PUBLIC_KEY when no registry entry is available. Returns ""
+// when neither source has a key.
+func lookupRuntimePublicKeyForTask(ctx context.Context, tc *coordinator.TaskCoordinator, task *coordinator.TaskRecord) string {
+	if tc != nil && task != nil && task.RuntimeID != nil && *task.RuntimeID != "" {
+		var key string
+		err := tc.Store().DB().QueryRowContext(ctx, `
+			SELECT COALESCE(public_key_ed25519, '')
+			FROM runtime_instances
+			WHERE runtime_id::text = $1
+			LIMIT 1
+		`, *task.RuntimeID).Scan(&key)
+		if err == nil && strings.TrimSpace(key) != "" {
+			return strings.TrimSpace(key)
+		}
+	}
+	return strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_PUBLIC_KEY"))
+}
+
+// applyCryptographicProofFields layers fresh-verification flags onto the
+// existing proof response, preserving back-compat fields. We never set
+// "matched": true unless the cryptographic Verified() path succeeded.
+func applyCryptographicProofFields(resp fiber.Map, crypto internal.ReceiptVerificationResult) {
+	if resp == nil {
+		return
+	}
+	resp["runtime_key_found"] = crypto.RuntimeKeyFound
+	resp["hash_valid"] = crypto.HashValid
+	resp["signature_valid"] = crypto.SignatureValid
+	resp["cryptographic_verification"] = crypto.Verified()
+	if crypto.Reason != "" {
+		resp["verification_reason"] = crypto.Reason
+	}
+	// Promote status to "verified" only when crypto succeeded; downgrade to
+	// "mismatch" when crypto rejects an otherwise present receipt.
+	if crypto.Verified() {
+		resp["status"] = "verified"
+		resp["present"] = true
+		resp["matched"] = true
+	} else if crypto.RuntimeKeyFound && crypto.ReceiptPresent && crypto.SignaturePresent && (!crypto.HashValid || !crypto.SignatureValid) {
+		resp["status"] = "mismatch"
+		resp["present"] = true
+		resp["matched"] = false
 	}
 }
 
