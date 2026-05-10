@@ -357,10 +357,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 side="top"
                 align="start"
                 sideOffset={8}
-                className="w-64 p-0 rounded-lg border border-border shadow-sm overflow-hidden bg-background"
+                className="w-64 p-0 rounded-lg border border-border/70 shadow-sm overflow-hidden bg-background"
               >
                 {/* User info header */}
-                <div className="px-3 py-3 bg-background border-b border-border">
+                <div className="px-3 py-3 bg-background border-b border-border/70">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
                     <p className="text-xs text-muted-foreground truncate">{email}</p>
