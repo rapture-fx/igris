@@ -204,7 +204,7 @@ export default function PolicyBoundsPage() {
   const displayBounds = serverBounds ?? EMPTY_BOUNDS;
 
   return (
-    <DashboardLayout fullWidth>
+    <DashboardLayout>
       <div className="space-y-5">
         <div className="flex items-center justify-end gap-4">
           {isDirty && (
