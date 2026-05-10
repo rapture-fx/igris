@@ -30,6 +30,17 @@ func NewCheckpointStore(db *sql.DB) *CheckpointStore {
 	return &CheckpointStore{db: db}
 }
 
+// DB exposes the underlying *sql.DB for callers that need to issue ad-hoc
+// queries against tables managed by the same connection (e.g.
+// runtime_instances for cryptographic verification key lookup). Prefer
+// adding a typed method on CheckpointStore when the query is reusable.
+func (s *CheckpointStore) DB() *sql.DB {
+	if s == nil {
+		return nil
+	}
+	return s.db
+}
+
 // TaskRecord is the durable state of a task tracked by Overture.
 type TaskRecord struct {
 	TaskID               uuid.UUID               `json:"task_id"`
