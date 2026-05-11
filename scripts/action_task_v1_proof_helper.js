@@ -290,15 +290,12 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
   if (receiptVerify.hash_valid !== true) fail("receipt verify hash_valid is not true");
   if (receiptVerify.signature_matches !== true) fail("receipt verify signature_matches is not true");
   if (receiptVerify.runtime_key_found !== true) fail("receipt verify runtime_key_found is not true");
-  // chain_valid is informational here: Overture persists only the *final* receipt
-  // of a multi-step task to execution_lineage, so a multi-step receipt's
-  // previous_hash points at a runtime-local intermediate receipt that Overture
-  // never received. The runtime's own receipts.jsonl hash-chain is verified
-  // separately (see `verify-receipt-chain`). chain_valid=true is asserted there.
-  const chainValidNote =
-    receiptVerify.chain_valid === true
-      ? "true (Overture-side)"
-      : `${JSON.stringify(receiptVerify.chain_valid)} (Overture-side; final-receipt-only, see runtime receipt chain)`;
+  // Overture now persists the full per-step receipt chain into execution_lineage,
+  // so the final multi-step receipt's previous_hash resolves to a real prior
+  // receipt and chain-link verification succeeds end to end.
+  if (receiptVerify.chain_valid !== true) {
+    fail(`receipt verify chain_valid is not true: ${JSON.stringify(receiptVerify).slice(0, 300)}`);
+  }
 
   // The final step's output is the db_write summary; it must reference the table
   // and (if supplied) the row id committed to Postgres.
@@ -317,8 +314,7 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
   console.log(`  http_call  -> step ${httpStep.step_index} (${JSON.stringify(httpStep.step_type)})`);
   console.log(`  db_write   -> step ${dbStep.step_index} (${JSON.stringify(dbStep.step_type)})`);
   console.log(`Run detail task_id:        ${run.task_id || "(not exposed in this build)"}`);
-  console.log(`Receipt verify:            verified=${receiptVerify.verified} hash_valid=${receiptVerify.hash_valid} signature_matches=${receiptVerify.signature_matches} runtime_key_found=${receiptVerify.runtime_key_found}`);
-  console.log(`Receipt chain_valid:       ${chainValidNote}`);
+  console.log(`Receipt verify:            verified=${receiptVerify.verified} hash_valid=${receiptVerify.hash_valid} signature_matches=${receiptVerify.signature_matches} runtime_key_found=${receiptVerify.runtime_key_found} chain_valid=${receiptVerify.chain_valid}`);
   if (finalSummary) {
     console.log(`db_write summary:          ${JSON.stringify(finalSummary)}`);
   }
