@@ -1148,7 +1148,11 @@ pub async fn handle_task_submit(
                 execution_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (StatusCode::OK, Json(response)).into_response();
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+            )
+                .into_response();
         }
         if is_task_canceled(&cancel_rx) {
             let reason = task_cancellation_reason(req.task_id);
@@ -1169,7 +1173,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (StatusCode::OK, Json(response)).into_response();
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+            )
+                .into_response();
         }
         if wall_start.elapsed().as_millis() as u64 > deadline {
             let payload = match build_checkpoint(
@@ -1207,7 +1215,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (StatusCode::OK, Json(response)).into_response();
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+            )
+                .into_response();
         }
 
         let input_digest: [u8; 32] = Sha256::digest(step.input_bytes()).into();
@@ -1356,7 +1368,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (StatusCode::OK, Json(response)).into_response();
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+            )
+                .into_response();
         }
 
         if step_result.checkpoint_requested {
@@ -1401,7 +1417,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (StatusCode::OK, Json(response)).into_response();
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+            )
+                .into_response();
         }
 
         let (execution_envelope, execution_receipt) = match build_execution_artifacts(
@@ -1516,7 +1536,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-            return (StatusCode::OK, Json(response)).into_response();
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+            )
+                .into_response();
         }
 
         if steps_completed > 0 && steps_completed % 5 == 0 {
