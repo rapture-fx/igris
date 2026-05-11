@@ -1343,7 +1343,11 @@ pub async fn handle_task_submit(
                     execution_receipt,
                 };
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
-                return (StatusCode::OK, Json(response)).into_response();
+                return (
+                    StatusCode::OK,
+                    Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                )
+                    .into_response();
             }
         };
 
