@@ -71,6 +71,7 @@ mod execution_graph;
 use execution_graph::ExecutionGraphRegistry;
 // RUNTIME-05: Resource safety limits
 mod resource_limits;
+use igris_tools::database::DatabaseWriteTool;
 use igris_tools::filesystem::FileSystemTool;
 use igris_tools::http::HttpTool;
 use igris_tools::shell::ShellTool;
@@ -4011,6 +4012,28 @@ async fn main() -> anyhow::Result<()> {
             reg.register(Arc::new(FileSystemTool::new(
                 tcfg.allowed_filesystem_paths.clone(),
             )));
+        }
+
+        // Controlled local database-write tool (Action Task V1). Registered only
+        // when an explicit localhost gateway URL is configured; fail-closed
+        // otherwise. The tool never holds DB credentials — it forwards writes to
+        // the gateway, which owns the connection and enforces the same table
+        // allow-list. See `igris_tools::database::DatabaseWriteTool`.
+        if let Ok(gateway_url) = std::env::var("IGRIS_DB_WRITE_GATEWAY_URL") {
+            let gateway_url = gateway_url.trim().to_string();
+            if !gateway_url.is_empty() {
+                let allowed_prefixes: Vec<String> =
+                    std::env::var("IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES")
+                        .ok()
+                        .map(|raw| {
+                            raw.split(',')
+                                .map(|s| s.trim().to_string())
+                                .filter(|s| !s.is_empty())
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                reg.register(Arc::new(DatabaseWriteTool::new(gateway_url, allowed_prefixes)));
+            }
         }
 
         Some(Arc::new(reg))
