@@ -9,6 +9,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+pub mod database;
 pub mod filesystem;
 pub mod http;
 pub mod registry;
