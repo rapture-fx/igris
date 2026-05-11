@@ -1475,6 +1475,9 @@ pub async fn handle_task_submit(
         last_output = Some(step_result.output_text);
         last_usage = Some(step_result.usage);
         last_envelope = Some(execution_envelope);
+        if let Some(receipt) = execution_receipt.as_ref() {
+            step_receipts.push(receipt.clone());
+        }
         last_receipt = execution_receipt;
 
         if should_checkpoint_agent_workflow(&req.task_type, start_step, steps_completed) {
