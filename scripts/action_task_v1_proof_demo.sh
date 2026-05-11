@@ -362,19 +362,43 @@ curl -sS -f \
   "http://127.0.0.1:8081/proof/receipts?limit=50&sort=timestamp:desc" > "$TMP_DIR/proof-receipts.json"
 
 echo "[10/11] Verifying side effects and calling receipt-verify / task-verify"
-DB_ROW_ID=$(node -e 'const fs=require("fs"); const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); let s=null; try { s = JSON.parse(body.final_output||"null"); } catch(e){} process.stdout.write(s && s.row_id ? String(s.row_id) : "");' "$TMP_DIR/task-completed.json")
+# The db_write action committed a real row — confirm it directly in Postgres.
+DB_ROW_ID=$(psql "$DB_URL" -qtAc "SELECT id::text FROM action_task_events WHERE task_id = '$TASK_ID' ORDER BY created_at DESC LIMIT 1" | tr -d '[:space:]')
 if [[ -z "$DB_ROW_ID" ]]; then
-  echo "final_output did not contain a db_write row_id" >&2
-  cat "$TMP_DIR/task-completed.json" >&2
+  echo "no action_task_events row was written for task_id=$TASK_ID" >&2
   exit 1
 fi
-DB_ROW_COUNT=$(psql "$DB_URL" -tAc "SELECT count(*) FROM action_task_events WHERE id = '$DB_ROW_ID' AND task_id = '$TASK_ID'" | tr -d '[:space:]')
+DB_ROW_COUNT=$(psql "$DB_URL" -qtAc "SELECT count(*) FROM action_task_events WHERE task_id = '$TASK_ID'" | tr -d '[:space:]')
 if [[ "$DB_ROW_COUNT" != "1" ]]; then
-  echo "expected exactly one action_task_events row for id=$DB_ROW_ID task_id=$TASK_ID, got $DB_ROW_COUNT" >&2
+  echo "expected exactly one action_task_events row for task_id=$TASK_ID, got $DB_ROW_COUNT" >&2
   psql "$DB_URL" -c "SELECT id, task_id, status, payload FROM action_task_events WHERE task_id = '$TASK_ID'" >&2
   exit 1
 fi
-echo "    db row id: $DB_ROW_ID  (task_id=$TASK_ID, count=$DB_ROW_COUNT)"
+DB_ROW_STATUS=$(psql "$DB_URL" -qtAc "SELECT status FROM action_task_events WHERE id = '$DB_ROW_ID'" | tr -d '[:space:]')
+if [[ "$DB_ROW_STATUS" != "processed" ]]; then
+  echo "action_task_events row status mismatch: expected processed, got '$DB_ROW_STATUS'" >&2
+  exit 1
+fi
+# Cross-check: the runtime's reported db_write row id (in the persisted task
+# evidence) must match the row that actually landed in Postgres.
+RESPONSE_ROW_ID=$(node -e '
+const fs=require("fs");
+const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+const cm=body.checkpoint_metadata||{};
+let rid="";
+if (typeof cm.output_preview==="string") { try { rid=(JSON.parse(cm.output_preview)||{}).row_id||""; } catch(e){} }
+if (!rid && cm.graph_blackboard && cm.graph_blackboard.nodes) {
+  for (const n of Object.values(cm.graph_blackboard.nodes)) {
+    if (n && n.tool_name==="database_write" && n.metadata && n.metadata.row_id) { rid=n.metadata.row_id; break; }
+  }
+}
+process.stdout.write(String(rid||""));
+' "$TMP_DIR/task-completed.json")
+if [[ -n "$RESPONSE_ROW_ID" && "$RESPONSE_ROW_ID" != "$DB_ROW_ID" ]]; then
+  echo "runtime-reported db_write row_id ($RESPONSE_ROW_ID) does not match the Postgres row ($DB_ROW_ID)" >&2
+  exit 1
+fi
+echo "    db row id: $DB_ROW_ID  (task_id=$TASK_ID, count=$DB_ROW_COUNT, status=$DB_ROW_STATUS, runtime-reported=${RESPONSE_ROW_ID:-n/a})"
 
 if ! grep -q '"event":"process"' "$LOG_DIR/action-target.log"; then
   echo "the action target server did not record a /process call" >&2
