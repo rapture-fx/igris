@@ -416,6 +416,14 @@ fi
 # receipt was emitted per committed action step.
 node "$ACTION_HELPER" verify-receipt-chain "$TMP_DIR/receipts.jsonl" 3 > "$TMP_DIR/receipt-chain.json"
 echo "    runtime receipt chain: $(cat "$TMP_DIR/receipt-chain.json")"
+# Tie the persisted, cryptographically-verified receipt to the verified chain:
+# it must be the head (last entry) of the runtime's receipt log.
+CHAIN_LAST_HASH=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).last_hash || "")' "$TMP_DIR/receipt-chain.json")
+RECEIPT_HASH=$(node -e 'const b=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); process.stdout.write(String((b.execution_receipt||{}).hash || (b.receipt||{}).receipt_hash || ""))' "$TMP_DIR/task-completed.json")
+if [[ -z "$RECEIPT_HASH" || "$RECEIPT_HASH" != "$CHAIN_LAST_HASH" ]]; then
+  echo "persisted receipt hash ($RECEIPT_HASH) is not the head of the runtime receipt chain ($CHAIN_LAST_HASH)" >&2
+  exit 1
+fi
 
 node "$UNIFIED_HELPER" build-verify-request "$TMP_DIR/task-completed.json" > "$TMP_DIR/task-verify-request.json"
 VERIFY_HTTP_STATUS=$(curl -sS \
