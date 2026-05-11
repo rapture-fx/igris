@@ -425,6 +425,21 @@ if [[ -z "$RECEIPT_HASH" || "$RECEIPT_HASH" != "$CHAIN_LAST_HASH" ]]; then
   exit 1
 fi
 
+# Per-step receipts must be persisted in Overture (execution_lineage), one row
+# per committed step, no duplicates. The proof tenant is brand new this run.
+LINEAGE_TOTAL=$(psql "$DB_URL" -qtAc "SELECT count(*) FROM execution_lineage WHERE tenant_id = '$PROOF_TENANT_ID'" | tr -d '[:space:]')
+LINEAGE_DISTINCT=$(psql "$DB_URL" -qtAc "SELECT count(DISTINCT execution_id) FROM execution_lineage WHERE tenant_id = '$PROOF_TENANT_ID'" | tr -d '[:space:]')
+if [[ "${LINEAGE_TOTAL:-0}" -lt 3 ]]; then
+  echo "expected at least 3 per-step receipts persisted in execution_lineage for tenant $PROOF_TENANT_ID, got ${LINEAGE_TOTAL:-0}" >&2
+  psql "$DB_URL" -c "SELECT execution_id, runtime_id, left(receipt_hash,12) AS hash, left(previous_hash,12) AS prev FROM execution_lineage WHERE tenant_id = '$PROOF_TENANT_ID' ORDER BY timestamp_utc" >&2
+  exit 1
+fi
+if [[ "$LINEAGE_TOTAL" != "$LINEAGE_DISTINCT" ]]; then
+  echo "execution_lineage has duplicate receipt rows for tenant $PROOF_TENANT_ID ($LINEAGE_TOTAL rows, $LINEAGE_DISTINCT distinct execution_ids)" >&2
+  exit 1
+fi
+echo "    persisted per-step receipts: $LINEAGE_TOTAL (distinct execution_ids: $LINEAGE_DISTINCT)"
+
 node "$UNIFIED_HELPER" build-verify-request "$TMP_DIR/task-completed.json" > "$TMP_DIR/task-verify-request.json"
 VERIFY_HTTP_STATUS=$(curl -sS \
   -o "$TMP_DIR/proof-receipt-verify-response.json" \
