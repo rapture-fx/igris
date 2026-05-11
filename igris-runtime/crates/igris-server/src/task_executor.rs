@@ -2257,6 +2257,28 @@ fn verified_resume_start_step(
     Some(requested_resume_from.last_committed_step + 1)
 }
 
+/// Serialize a `TaskSubmitResponse` and attach the per-step receipt chain under
+/// the additive `step_receipts` key (omitted when empty). `execution_receipt`
+/// stays as-is — it is the final (head) receipt, and equals `step_receipts`'
+/// last entry when the chain is present. Backward compatible: consumers that
+/// only read `execution_receipt` are unaffected.
+fn task_submit_response_with_step_receipts(
+    response: TaskSubmitResponse,
+    step_receipts: &[serde_json::Value],
+) -> serde_json::Value {
+    let mut value =
+        serde_json::to_value(&response).unwrap_or_else(|_| serde_json::json!({"task_id": null}));
+    if !step_receipts.is_empty() {
+        if let Some(obj) = value.as_object_mut() {
+            obj.insert(
+                "step_receipts".to_string(),
+                serde_json::Value::Array(step_receipts.to_vec()),
+            );
+        }
+    }
+    value
+}
+
 fn persist_task_record(
     state: &AppState,
     submission_key: &str,
