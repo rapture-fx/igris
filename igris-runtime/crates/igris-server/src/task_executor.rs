@@ -1606,7 +1606,11 @@ pub async fn handle_task_submit(
     };
     let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
 
-    (StatusCode::OK, Json(response)).into_response()
+    (
+        StatusCode::OK,
+        Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+    )
+        .into_response()
 }
 
 pub async fn handle_task_stream(
