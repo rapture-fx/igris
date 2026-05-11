@@ -27,11 +27,41 @@ type publicTaskSubmitRequest struct {
 	TaskDefinition       json.RawMessage                 `json:"task_definition"`
 	AgentTask            *publicAgentTask                `json:"agent_task,omitempty"`
 	RoboticsMission      *publicRoboticsMission          `json:"robotics_mission,omitempty"`
+	ActionTask           *publicActionTask               `json:"action_task,omitempty"`
 	AgentIdentity        *coordinator.AgentIdentity      `json:"agent_identity,omitempty"`
 	RequiredCapabilities []string                        `json:"required_capabilities,omitempty"`
 	CredentialRequests   []coordinator.CredentialRequest `json:"credential_requests,omitempty"`
 	IdempotencyKey       string                          `json:"idempotency_key,omitempty"`
 	DeadlineAt           *time.Time                      `json:"deadline_at,omitempty"`
+}
+
+// publicActionTask is the customer-facing shape for an Action Task V1 — a small,
+// auditable sequence of controlled local actions (read a file, call a localhost
+// HTTP endpoint, write one row to a clearly-named test table). Internally it is
+// compiled to a runtime execution graph whose nodes are the sandboxed local
+// tools (`filesystem`, `http_request`, `database_write`). It is intentionally
+// not a connector framework: only the three actions below are supported.
+type publicActionTask struct {
+	Name                 string             `json:"name,omitempty"`
+	Steps                []publicActionStep `json:"steps,omitempty"`
+	CheckpointAfterSteps *uint32            `json:"checkpoint_after_steps,omitempty"`
+}
+
+type publicActionStep struct {
+	Action string `json:"action"` // "read_file" | "http_call" | "db_write"
+
+	// read_file
+	Path string `json:"path,omitempty"`
+
+	// http_call
+	Method  string            `json:"method,omitempty"`
+	URL     string            `json:"url,omitempty"`
+	Body    string            `json:"body,omitempty"`
+	Headers map[string]string `json:"headers,omitempty"`
+
+	// db_write
+	Table  string                 `json:"table,omitempty"`
+	Record map[string]interface{} `json:"record,omitempty"`
 }
 
 type publicAgentTask struct {
@@ -189,10 +219,11 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 	}
 
 	if conflictingTaskInputCount(raw) > 1 {
-		return nil, fmt.Errorf("%w: provide only one of task_definition, agent_task, or robotics_mission", coordinator.ErrInvalidTaskDefinition)
+		return nil, fmt.Errorf("%w: provide only one of task_definition, agent_task, robotics_mission, or action_task", coordinator.ErrInvalidTaskDefinition)
 	}
 
 	taskDefinition := raw.TaskDefinition
+	taskType := raw.TaskType
 	if len(taskDefinition) == 0 {
 		switch {
 		case raw.AgentTask != nil:
@@ -207,13 +238,26 @@ func buildTaskSubmitRequest(body []byte, tenantID string) (*coordinator.TaskSubm
 			if err != nil {
 				return nil, err
 			}
+		case raw.ActionTask != nil:
+			if raw.TaskType != "" && raw.TaskType != "action_workflow" {
+				return nil, fmt.Errorf("%w: action_task is only valid with task_type=action_workflow", coordinator.ErrInvalidTaskDefinition)
+			}
+			var err error
+			taskDefinition, err = buildActionWorkflowDefinition(raw.ActionTask)
+			if err != nil {
+				return nil, err
+			}
+			// An Action Task is dispatched to the runtime as an execution graph
+			// of sandboxed local tools — the coordinator and runtime never need
+			// to know about a separate task type.
+			taskType = "execution_graph"
 		}
 	}
 
 	return &coordinator.TaskSubmitRequest{
 		TaskID:               raw.TaskID,
 		TenantID:             tenantID,
-		TaskType:             raw.TaskType,
+		TaskType:             taskType,
 		TaskDefinition:       taskDefinition,
 		AgentIdentity:        raw.AgentIdentity,
 		RequiredCapabilities: raw.RequiredCapabilities,
@@ -232,6 +276,9 @@ func conflictingTaskInputCount(raw publicTaskSubmitRequest) int {
 		count++
 	}
 	if raw.RoboticsMission != nil {
+		count++
+	}
+	if raw.ActionTask != nil {
 		count++
 	}
 	return count
@@ -629,6 +676,80 @@ func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json
 	}
 
 	return buildExecutionGraphDefinition(mission.Name, nodes)
+}
+
+// buildActionWorkflowDefinition compiles an Action Task V1 (`action_task`) into
+// a runtime execution graph whose nodes are the sandboxed local tools. Each
+// action maps to exactly one tool:
+//
+//	read_file  -> kind=tool tool_name=filesystem     args={operation:read, path}
+//	http_call  -> kind=tool tool_name=http_request   args={method, url, body?, headers?}
+//	db_write   -> kind=tool tool_name=database_write  args={table, record}
+//
+// Node ids are `<action>-<index>` so the action sequence is visible in task
+// detail and the WAL step list. checkpoint_after_steps is accepted but not
+// threaded through to the runtime in v1 (action graphs run to completion).
+func buildActionWorkflowDefinition(task *publicActionTask) (json.RawMessage, error) {
+	if task == nil {
+		return nil, fmt.Errorf("%w: action_task is required", coordinator.ErrInvalidTaskDefinition)
+	}
+	if len(task.Steps) == 0 {
+		return nil, fmt.Errorf("%w: action_task.steps must contain at least one step", coordinator.ErrInvalidTaskDefinition)
+	}
+	name := defaultTaskName(task.Name, "action")
+	nodes := make([]map[string]interface{}, 0, len(task.Steps))
+	for idx, step := range task.Steps {
+		action := strings.ToLower(strings.TrimSpace(step.Action))
+		if action == "" {
+			return nil, fmt.Errorf("%w: action_task.steps[%d].action is required", coordinator.ErrInvalidTaskDefinition, idx)
+		}
+		nodeID := fmt.Sprintf("%s-%d", action, idx)
+		node := map[string]interface{}{
+			"kind":           "tool",
+			"node_id":        nodeID,
+			"checkpoint_key": fmt.Sprintf("%s-checkpoint-%d", name, idx),
+			"write_slot":     defaultGraphWriteSlot("action", idx, nodeID),
+		}
+		switch action {
+		case "read_file":
+			if strings.TrimSpace(step.Path) == "" {
+				return nil, fmt.Errorf("%w: action_task.steps[%d].path is required for read_file", coordinator.ErrInvalidTaskDefinition, idx)
+			}
+			node["tool_name"] = "filesystem"
+			node["args"] = map[string]interface{}{"operation": "read", "path": step.Path}
+		case "http_call":
+			if strings.TrimSpace(step.URL) == "" {
+				return nil, fmt.Errorf("%w: action_task.steps[%d].url is required for http_call", coordinator.ErrInvalidTaskDefinition, idx)
+			}
+			method := strings.ToUpper(strings.TrimSpace(step.Method))
+			if method == "" {
+				method = "GET"
+			}
+			args := map[string]interface{}{"method": method, "url": step.URL}
+			if step.Body != "" {
+				args["body"] = step.Body
+			}
+			if len(step.Headers) > 0 {
+				args["headers"] = step.Headers
+			}
+			node["tool_name"] = "http_request"
+			node["args"] = args
+		case "db_write":
+			if strings.TrimSpace(step.Table) == "" {
+				return nil, fmt.Errorf("%w: action_task.steps[%d].table is required for db_write", coordinator.ErrInvalidTaskDefinition, idx)
+			}
+			record := step.Record
+			if record == nil {
+				record = map[string]interface{}{}
+			}
+			node["tool_name"] = "database_write"
+			node["args"] = map[string]interface{}{"table": step.Table, "record": record}
+		default:
+			return nil, fmt.Errorf("%w: action_task.steps[%d].action %q is not supported (use read_file, http_call, or db_write)", coordinator.ErrInvalidTaskDefinition, idx, step.Action)
+		}
+		nodes = append(nodes, node)
+	}
+	return buildExecutionGraphDefinition(name, nodes)
 }
 
 func buildTaskApproval(approvalConfig *publicApproval, taskName, action string, waypointIndex int) map[string]interface{} {
