@@ -3055,7 +3055,82 @@ func TestBuildTaskSubmitRequestRejectsAmbiguousMissionInput(t *testing.T) {
 
 	_, err := buildTaskSubmitRequest(body, "tenant-1")
 	require.ErrorIs(t, err, coordinator.ErrInvalidTaskDefinition)
-	require.Contains(t, err.Error(), "only one of task_definition, agent_task, or robotics_mission")
+	require.Contains(t, err.Error(), "only one of task_definition, agent_task, robotics_mission, or action_task")
+}
+
+func TestBuildTaskSubmitRequestCompilesActionTask(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{
+		"task_type": "action_workflow",
+		"action_task": {
+			"name": "action-task-v1-proof",
+			"steps": [
+				{"action": "read_file", "path": "/tmp/igris-action-proof/input.txt"},
+				{"action": "http_call", "method": "POST", "url": "http://127.0.0.1:18099/process", "body": "{}"},
+				{"action": "db_write", "table": "action_task_events", "record": {"status": "processed"}}
+			]
+		},
+		"idempotency_key": "action-task-v1-abc"
+	}`)
+
+	req, err := buildTaskSubmitRequest(body, "tenant-action")
+	require.NoError(t, err)
+	// Action tasks dispatch to the runtime as an execution graph of sandboxed tools.
+	require.Equal(t, "execution_graph", req.TaskType)
+	require.Equal(t, "action-task-v1-abc", req.IdempotencyKey)
+
+	var definition struct {
+		Graph struct {
+			GraphID string           `json:"graph_id"`
+			Nodes   []map[string]any `json:"nodes"`
+		} `json:"graph"`
+	}
+	require.NoError(t, json.Unmarshal(req.TaskDefinition, &definition))
+	require.Equal(t, "action-task-v1-proof", definition.Graph.GraphID)
+	require.Len(t, definition.Graph.Nodes, 3)
+
+	require.Equal(t, "tool", definition.Graph.Nodes[0]["kind"])
+	require.Equal(t, "read_file-0", definition.Graph.Nodes[0]["node_id"])
+	require.Equal(t, "filesystem", definition.Graph.Nodes[0]["tool_name"])
+	readArgs, ok := definition.Graph.Nodes[0]["args"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "read", readArgs["operation"])
+	require.Equal(t, "/tmp/igris-action-proof/input.txt", readArgs["path"])
+
+	require.Equal(t, "http_call-1", definition.Graph.Nodes[1]["node_id"])
+	require.Equal(t, "http_request", definition.Graph.Nodes[1]["tool_name"])
+	httpArgs, ok := definition.Graph.Nodes[1]["args"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "POST", httpArgs["method"])
+	require.Equal(t, "http://127.0.0.1:18099/process", httpArgs["url"])
+
+	require.Equal(t, "db_write-2", definition.Graph.Nodes[2]["node_id"])
+	require.Equal(t, "database_write", definition.Graph.Nodes[2]["tool_name"])
+	dbArgs, ok := definition.Graph.Nodes[2]["args"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "action_task_events", dbArgs["table"])
+	dbRecord, ok := dbArgs["record"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "processed", dbRecord["status"])
+}
+
+func TestBuildTaskSubmitRequestRejectsUnknownAction(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{"task_type":"action_workflow","action_task":{"steps":[{"action":"delete_everything"}]}}`)
+	_, err := buildTaskSubmitRequest(body, "tenant-action")
+	require.ErrorIs(t, err, coordinator.ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), "delete_everything")
+}
+
+func TestBuildTaskSubmitRequestRejectsActionTaskOnWrongTaskType(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{"task_type":"agent_workflow","action_task":{"steps":[{"action":"read_file","path":"/tmp/x"}]}}`)
+	_, err := buildTaskSubmitRequest(body, "tenant-action")
+	require.ErrorIs(t, err, coordinator.ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), "action_task is only valid with task_type=action_workflow")
 }
 
 func TestBuildTaskSubmitRequestRejectsMissionOnWrongTaskType(t *testing.T) {
