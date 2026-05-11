@@ -39,6 +39,37 @@ import {
 } from '@/components/execution/shared';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 
+// Derive a friendly action label from a WAL step's `step_type`. For tool steps
+// (the building blocks of an Action Task) this surfaces the underlying action:
+// `filesystem` (read_file), `http_request` (http_call), `database_write`
+// (db_write), etc. Falls back to the raw discriminator when unrecognised.
+function describeStepAction(stepType: unknown): string {
+  if (!stepType || typeof stepType !== 'object') return '—';
+  const obj = stepType as Record<string, unknown>;
+  const inner = (key: string): Record<string, unknown> | null => {
+    const v = obj[key];
+    return v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
+  };
+  const tool = inner('ToolCall') ?? inner('tool_call');
+  if (tool) {
+    const name = tool.tool_name;
+    return typeof name === 'string' && name ? `Tool · ${name}` : 'Tool';
+  }
+  const infer = inner('Inference') ?? inner('inference');
+  if (infer) {
+    const model = infer.model;
+    return typeof model === 'string' && model ? `Inference · ${model}` : 'Inference';
+  }
+  const robotics = inner('RoboticsAction') ?? inner('robotics_action');
+  if (robotics) {
+    const action = robotics.action;
+    return typeof action === 'string' && action ? `Robotics · ${action}` : 'Robotics';
+  }
+  if ('BtNode' in obj || 'bt_node' in obj) return 'Behavior tree';
+  const key = Object.keys(obj)[0];
+  return key ? key : '—';
+}
+
 function verificationLabel(status?: string | null): string {
   if (!status) return 'Pending';
   const normalized = String(status).toLowerCase();
