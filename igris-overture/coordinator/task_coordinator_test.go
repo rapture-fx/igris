@@ -2505,3 +2505,63 @@ func testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t *testing.T, terminalS
 	require.Equal(t, 0, queued.remainingExecs())
 	require.Equal(t, 0, queued.remainingQueries())
 }
+
+func TestValidateReceiptChainLinks(t *testing.T) {
+	t.Parallel()
+
+	receipt := func(hash, prev string) json.RawMessage {
+		return json.RawMessage(fmt.Sprintf(`{"hash":%q,"previous_hash":%q}`, hash, prev))
+	}
+
+	t.Run("empty batch is valid", func(t *testing.T) {
+		head, err := validateReceiptChainLinks(nil)
+		require.NoError(t, err)
+		require.Equal(t, "", head)
+	})
+
+	t.Run("single genesis receipt is valid", func(t *testing.T) {
+		head, err := validateReceiptChainLinks([]json.RawMessage{receipt("h0", "")})
+		require.NoError(t, err)
+		require.Equal(t, "h0", head)
+	})
+
+	t.Run("single receipt chained off prior history is valid", func(t *testing.T) {
+		head, err := validateReceiptChainLinks([]json.RawMessage{receipt("h5", "h4")})
+		require.NoError(t, err)
+		require.Equal(t, "h5", head)
+	})
+
+	t.Run("contiguous chain is valid and returns the head", func(t *testing.T) {
+		head, err := validateReceiptChainLinks([]json.RawMessage{
+			receipt("h0", ""),
+			receipt("h1", "h0"),
+			receipt("h2", "h1"),
+		})
+		require.NoError(t, err)
+		require.Equal(t, "h2", head)
+	})
+
+	t.Run("broken previous_hash is rejected", func(t *testing.T) {
+		_, err := validateReceiptChainLinks([]json.RawMessage{
+			receipt("h0", ""),
+			receipt("h1", "h0"),
+			receipt("h2", "WRONG"),
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "does not chain")
+	})
+
+	t.Run("missing hash is rejected", func(t *testing.T) {
+		_, err := validateReceiptChainLinks([]json.RawMessage{
+			receipt("h0", ""),
+			receipt("", "h0"),
+		})
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "has no hash")
+	})
+
+	t.Run("non-object receipt is rejected", func(t *testing.T) {
+		_, err := validateReceiptChainLinks([]json.RawMessage{json.RawMessage(`"not-an-object"`)})
+		require.Error(t, err)
+	})
+}
