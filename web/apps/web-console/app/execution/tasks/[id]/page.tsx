@@ -661,10 +661,11 @@ export default function ExecutionTaskInspectorPage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Step</TableHead>
+                          <TableHead>Action</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Runtime</TableHead>
                           <TableHead>Input Digest</TableHead>
-                          <TableHead>Output Digest</TableHead>
+                          <TableHead>Result Digest</TableHead>
                           <TableHead>Recorded</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -672,6 +673,9 @@ export default function ExecutionTaskInspectorPage() {
                         {steps.steps.map((step) => (
                           <TableRow key={step.entry_id}>
                             <TableCell className="text-xs text-gray-700">{step.step_index}</TableCell>
+                            <TableCell className="text-xs text-gray-700">
+                              {describeStepAction(step.step_type)}
+                            </TableCell>
                             <TableCell className="text-xs text-gray-700">{step.status}</TableCell>
                             <TableCell className="font-mono text-xs text-gray-700">
                               {truncateText(step.runtime_id, 18)}
