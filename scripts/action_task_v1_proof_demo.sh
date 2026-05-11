@@ -45,6 +45,8 @@ mkdir -p "$LOG_DIR"
 
 ACTION_TARGET_PORT=18091
 ACTION_TABLE="action_task_events"
+DB_WRITE_GATEWAY_URL="http://127.0.0.1:$ACTION_TARGET_PORT/db-write"
+PROCESS_URL="http://127.0.0.1:$ACTION_TARGET_PORT/process"
 
 if [[ -z "${DATABASE_URL:-}" && -z "${POSTGRES_URL:-}" && -f "$ROOT_DIR/.env" ]]; then
   set -a
@@ -150,7 +152,7 @@ check_port_free 8081
 check_port_free 18090
 check_port_free "$ACTION_TARGET_PORT"
 
-echo "[1/10] Preparing Action Task V1 proof artifacts in $TMP_DIR"
+echo "[1/11] Preparing Action Task V1 proof artifacts in $TMP_DIR"
 # Reuse the checkpoint helper for shared artifacts (offline license, runtime
 # config, overture/runtime keys, mock provider seeds). We discard its
 # checkpoint-specific request files and build our own action_task body below.
@@ -162,6 +164,7 @@ RUNTIME_SECRET=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFile
 LICENSE_PUBLIC_KEY_HEX=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).license_public_key_hex)' "$TMP_DIR/meta.json")
 OVERTURE_PUBLIC_KEY_HEX=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).overture_public_key_hex)' "$TMP_DIR/meta.json")
 OVERTURE_PRIVATE_KEY_HEX=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).overture_private_key_hex)' "$TMP_DIR/meta.json")
+RUNTIME_PUBLIC_KEY_HEX=$(node "$UNIFIED_HELPER" runtime-public-key "$ROOT_DIR/.igris/runtime-signing-key.ed25519")
 
 PROOF_TENANT_UUID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).tenant_uuid)' "$TMP_DIR/proof-access.json")
 PROOF_TENANT_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).tenant_id)' "$TMP_DIR/proof-access.json")
@@ -179,34 +182,7 @@ AUTH_ARGS=(-H "Cookie: better-auth.session_token=$PROOF_SESSION_TOKEN")
 INPUT_FILE="$TMP_DIR/igris-action-input.txt"
 printf 'igris action task v1 proof input — payload-token=%s\n' "$(node -e 'process.stdout.write(require("crypto").randomBytes(8).toString("hex"))')" > "$INPUT_FILE"
 
-# Enable the sandboxed local tools in the generated runtime config:
-#   - filesystem reads restricted to the proof temp dir
-#   - http calls restricted to 127.0.0.1
-# The database-write gateway URL + table allow-list go to the runtime via env.
-DB_WRITE_GATEWAY_URL="http://127.0.0.1:$ACTION_TARGET_PORT/db-write"
-PROCESS_URL="http://127.0.0.1:$ACTION_TARGET_PORT/process"
-node "$ACTION_HELPER" inject-tools-config \
-  "$TMP_DIR/runtime-config.json5" \
-  "$TMP_DIR" \
-  "127.0.0.1" \
-  "$DB_WRITE_GATEWAY_URL" > "$TMP_DIR/tools-config.json"
-
-TASK_ID=$(node -e 'process.stdout.write(require("crypto").randomUUID())')
-node "$ACTION_HELPER" build-action-task-request \
-  "$TMP_DIR/action-task-request.json" \
-  "$TASK_ID" \
-  "$INPUT_FILE" \
-  "$PROCESS_URL" \
-  "$ACTION_TABLE" > /dev/null
-
-echo "    task_id:     $TASK_ID"
-echo "    tenant_id:   $PROOF_TENANT_ID"
-echo "    input_file:  $INPUT_FILE"
-echo "    process_url: $PROCESS_URL"
-echo "    db gateway:  $DB_WRITE_GATEWAY_URL  (table: $ACTION_TABLE)"
-echo "    request:     $TMP_DIR/action-task-request.json"
-
-echo "[2/10] Building Runtime binary"
+echo "[2/11] Building Runtime binary"
 RUNTIME_BIN="$ROOT_DIR/igris-runtime/target/debug/igris-runtime"
 if [[ ! -x "$RUNTIME_BIN" ]]; then
   cargo build --manifest-path "$ROOT_DIR/igris-runtime/Cargo.toml" -p igris-server --bin igris-runtime
@@ -214,11 +190,11 @@ else
   echo "    Reusing existing Runtime binary"
 fi
 
-echo "[3/10] Building Overture binary"
+echo "[3/11] Building Overture binary"
 GOCACHE="$TMP_DIR/go-cache" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
   go build -o "$TMP_DIR/igris-overture" ./cmd/igris-overture
 
-echo "[4/10] Preparing controlled test table ($ACTION_TABLE) and seeding tenant"
+echo "[4/11] Preparing controlled test table ($ACTION_TABLE) and seeding tenant"
 psql "$DB_URL" <<SQL >/dev/null
 CREATE TABLE IF NOT EXISTS action_task_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -241,7 +217,7 @@ VALUES ('$PROOF_TENANT_UUID'::uuid,'$PROOF_TENANT_ID','Action Task V1 Proof Demo
 ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, email=EXCLUDED.email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, capabilities_policy='{"allowed_capabilities":["tools.*"]}'::jsonb, updated_at=NOW();
 SQL
 
-echo "[5/10] Starting mock provider, action target server, Runtime, and Overture"
+echo "[5/11] Starting mock provider and action target server"
 node "$UNIFIED_HELPER" serve-mock-provider 18090 > "$LOG_DIR/mock-provider.log" 2>&1 &
 MOCK_PID=$!
 wait_for_http "http://127.0.0.1:18090/health" "mock provider"
@@ -250,27 +226,7 @@ node "$ACTION_HELPER" serve-action-target "$ACTION_TARGET_PORT" "$DB_URL" > "$LO
 TARGET_PID=$!
 wait_for_http "http://127.0.0.1:$ACTION_TARGET_PORT/health" "action target server"
 
-(
-  cd "$ROOT_DIR"
-  env \
-    RUNTIME_MOCK_KEY=dummy \
-    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
-    IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
-    IGRIS_DEVICE_ID="$DEVICE_ID" \
-    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
-    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
-    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
-    IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
-    IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
-    IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
-    RUST_LOG="warn" \
-    "$RUNTIME_BIN" serve
-) > "$LOG_DIR/runtime.log" 2>&1 &
-RUNTIME_PID=$!
-wait_for_http "http://127.0.0.1:8080/v1/health" "runtime"
-
-RUNTIME_PUBLIC_KEY_HEX=$(node "$UNIFIED_HELPER" runtime-public-key "$ROOT_DIR/.igris/runtime-signing-key.ed25519")
-
+echo "[6/11] Starting Overture"
 (
   cd "$ROOT_DIR"
   env \
@@ -293,7 +249,7 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$UNIFIED_HELPER" runtime-public-key "$ROOT_DIR/.i
 OVERTURE_PID=$!
 wait_for_http "http://127.0.0.1:8081/healthz" "overture"
 
-echo "[6/10] Registering Runtime and submitting the Action Task"
+echo "[7/11] Registering Runtime instance (assigns runtime_id)"
 node "$UNIFIED_HELPER" runtime-register-request \
   "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
   "$DEVICE_ID" \
@@ -307,6 +263,59 @@ curl -sS -f \
   -H "Content-Type: application/json" \
   -d @"$TMP_DIR/runtime-register.json" \
   "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-register-response.json"
+RUNTIME_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-register-response.json")
+if [[ -z "$RUNTIME_ID" ]]; then
+  echo "runtime registration did not return a runtime_id" >&2
+  cat "$TMP_DIR/runtime-register-response.json" >&2
+  exit 1
+fi
+
+# Enable the sandboxed local tools in the generated runtime config and pin the
+# runtime's peer id to the registered runtime_id so the signed permission
+# envelope's runtime binding verifies on the runtime side.
+node "$ACTION_HELPER" inject-tools-config \
+  "$TMP_DIR/runtime-config.json5" \
+  "$TMP_DIR" \
+  "127.0.0.1" \
+  "$DB_WRITE_GATEWAY_URL" \
+  "$RUNTIME_ID" > "$TMP_DIR/tools-config.json"
+
+echo "    runtime_id:  $RUNTIME_ID"
+echo "    tenant_id:   $PROOF_TENANT_ID"
+echo "    input_file:  $INPUT_FILE"
+echo "    process_url: $PROCESS_URL"
+echo "    db gateway:  $DB_WRITE_GATEWAY_URL  (table: $ACTION_TABLE)"
+
+echo "[8/11] Starting Runtime"
+(
+  cd "$ROOT_DIR"
+  env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
+    IGRIS_DEVICE_ID="$DEVICE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
+    IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
+    IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
+    RUST_LOG="warn" \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime.log" 2>&1 &
+RUNTIME_PID=$!
+wait_for_http "http://127.0.0.1:8080/v1/health" "runtime"
+
+echo "[9/11] Submitting the Action Task"
+TASK_ID=$(node -e 'process.stdout.write(require("crypto").randomUUID())')
+node "$ACTION_HELPER" build-action-task-request \
+  "$TMP_DIR/action-task-request.json" \
+  "$TASK_ID" \
+  "$INPUT_FILE" \
+  "$PROCESS_URL" \
+  "$ACTION_TABLE" > /dev/null
+echo "    task_id:     $TASK_ID"
+echo "    request:     $TMP_DIR/action-task-request.json"
 
 curl -sS -f \
   "${AUTH_ARGS[@]}" \
@@ -326,7 +335,6 @@ for (const key of ["task", "steps", "verify", "receipt_verify"]) {
 }
 NODE
 
-echo "[7/10] Polling task detail until completed"
 wait_for_task_status "$TASK_ID" "completed" "$TMP_DIR/task-completed.json" 90 1
 
 curl -sS -f \
@@ -353,7 +361,7 @@ curl -sS -f \
   "${AUTH_ARGS[@]}" \
   "http://127.0.0.1:8081/proof/receipts?limit=50&sort=timestamp:desc" > "$TMP_DIR/proof-receipts.json"
 
-echo "[8/10] Verifying the database write landed in Postgres"
+echo "[10/11] Verifying side effects and calling receipt-verify / task-verify"
 DB_ROW_ID=$(node -e 'const fs=require("fs"); const body=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); let s=null; try { s = JSON.parse(body.final_output||"null"); } catch(e){} process.stdout.write(s && s.row_id ? String(s.row_id) : "");' "$TMP_DIR/task-completed.json")
 if [[ -z "$DB_ROW_ID" ]]; then
   echo "final_output did not contain a db_write row_id" >&2
@@ -368,7 +376,6 @@ if [[ "$DB_ROW_COUNT" != "1" ]]; then
 fi
 echo "    db row id: $DB_ROW_ID  (task_id=$TASK_ID, count=$DB_ROW_COUNT)"
 
-# Confirm the http_call action actually hit the local endpoint.
 if ! grep -q '"event":"process"' "$LOG_DIR/action-target.log"; then
   echo "the action target server did not record a /process call" >&2
   cat "$LOG_DIR/action-target.log" >&2
@@ -380,9 +387,7 @@ if ! grep -q '"event":"db-write"' "$LOG_DIR/action-target.log"; then
   exit 1
 fi
 
-echo "[9/10] Calling receipt-verify and task-verify endpoints"
 node "$UNIFIED_HELPER" build-verify-request "$TMP_DIR/task-completed.json" > "$TMP_DIR/task-verify-request.json"
-
 VERIFY_HTTP_STATUS=$(curl -sS \
   -o "$TMP_DIR/proof-receipt-verify-response.json" \
   -w "%{http_code}" \
@@ -390,7 +395,6 @@ VERIFY_HTTP_STATUS=$(curl -sS \
   -H "Content-Type: application/json" \
   -d @"$TMP_DIR/task-verify-request.json" \
   "http://127.0.0.1:8081/proof/receipts/verify")
-
 TASK_PROOF_HTTP_STATUS=$(curl -sS \
   -o "$TMP_DIR/task-proof-response.json" \
   -w "%{http_code}" \
@@ -398,7 +402,7 @@ TASK_PROOF_HTTP_STATUS=$(curl -sS \
   -X POST \
   "http://127.0.0.1:8081/v1/tasks/$TASK_ID/proof/verify")
 
-echo "[10/10] Validating Action Task V1 evidence"
+echo "[11/11] Validating Action Task V1 evidence"
 node "$ACTION_HELPER" verify-action-evidence \
   "$TMP_DIR/task-completed.json" \
   "$TMP_DIR/task-steps.json" \
@@ -410,6 +414,7 @@ node "$ACTION_HELPER" verify-action-evidence \
 
 echo ""
 echo "    task_id:                       $TASK_ID"
+echo "    runtime_id:                    $RUNTIME_ID"
 echo "    execution_id:                  $EXECUTION_ID"
 echo "    db row id:                     $DB_ROW_ID"
 echo "    receipt verify HTTP status:    $VERIFY_HTTP_STATUS"
