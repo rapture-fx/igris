@@ -16,9 +16,11 @@
 //       Every call is appended (as JSON) to <port>.requests.log next to cwd via
 //       stderr so the proof script can assert what happened.
 //
-//   inject-tools-config <runtime-config.json5> <allowed-fs-path> <allowed-http-host> <db-gateway-url>
+//   inject-tools-config <runtime-config.json5> <allowed-fs-path> <allowed-http-host> <db-gateway-url> <runtime-id>
 //       Rewrites the generated runtime config to enable the sandboxed local
-//       tools (filesystem read, localhost HTTP) with explicit whitelists.
+//       tools (filesystem read, localhost HTTP) with explicit whitelists, and
+//       pins the runtime's peer id so it matches the registered runtime_id (so
+//       the signed permission envelope's runtime binding verifies).
 //
 //   build-action-task-request <out.json> <task-id> <input-file> <process-url> <table>
 //       Writes the customer-facing `action_task` submit body.
@@ -142,9 +144,9 @@ function commandServeActionTarget(portArg, dbUrl) {
 
 // ── inject-tools-config ──────────────────────────────────────────────────────
 
-function commandInjectToolsConfig(configPath, allowedFsPath, allowedHttpHost, dbGatewayUrl) {
-  if (!configPath || !allowedFsPath || !allowedHttpHost || !dbGatewayUrl) {
-    fail("usage: inject-tools-config <runtime-config.json5> <allowed-fs-path> <allowed-http-host> <db-gateway-url>");
+function commandInjectToolsConfig(configPath, allowedFsPath, allowedHttpHost, dbGatewayUrl, runtimeId) {
+  if (!configPath || !allowedFsPath || !allowedHttpHost || !dbGatewayUrl || !runtimeId) {
+    fail("usage: inject-tools-config <runtime-config.json5> <allowed-fs-path> <allowed-http-host> <db-gateway-url> <runtime-id>");
   }
   const config = readJSON(configPath);
   if (!config || typeof config !== "object") fail(`runtime config is not a JSON object: ${configPath}`);
@@ -160,11 +162,13 @@ function commandInjectToolsConfig(configPath, allowedFsPath, allowedHttpHost, db
     max_execution_time_ms: 30000,
     max_concurrent_executions: 5,
   };
+  // Pin the runtime peer id so governed_runtime_id == the registered runtime_id.
+  config.mcp = Object.assign({}, config.mcp || {}, { peer_id: runtimeId });
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
   // The db gateway url + table allowlist are passed to the runtime via env vars
   // (IGRIS_DB_WRITE_GATEWAY_URL / IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES), not
   // the config file — echo back so the caller can confirm.
-  console.log(JSON.stringify({ config: configPath, db_write_gateway_url: dbGatewayUrl }));
+  console.log(JSON.stringify({ config: configPath, db_write_gateway_url: dbGatewayUrl, peer_id: runtimeId }));
 }
 
 // ── build-action-task-request ────────────────────────────────────────────────
@@ -300,7 +304,7 @@ function main() {
     case "serve-action-target":
       return commandServeActionTarget(args[0], args[1]);
     case "inject-tools-config":
-      return commandInjectToolsConfig(args[0], args[1], args[2], args[3]);
+      return commandInjectToolsConfig(args[0], args[1], args[2], args[3], args[4]);
     case "build-action-task-request":
       return commandBuildActionTaskRequest(args[0], args[1], args[2], args[3], args[4]);
     case "verify-action-evidence":
