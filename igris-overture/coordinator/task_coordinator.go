@@ -376,21 +376,45 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 			_ = tc.store.MarkFailedWithDetails(task.TaskID, fmt.Sprintf("runtime artifact verification failed: %v", err), overtureTaskFailureDetails("dispatch", "runtime_artifact_verification_failed", err.Error()))
 			return
 		}
+		// When the runtime returned the full per-step receipt chain, verify each
+		// receipt cryptographically before persisting any of them. The chain head
+		// (last entry) equals result.ExecutionReceipt, already verified above.
+		if len(result.StepReceipts) > 0 {
+			if err := tc.verifyStepReceiptsForTask(ctx, task, result.StepReceipts); err != nil {
+				log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Runtime step receipt verification failed")
+				_ = tc.store.MarkFailedWithDetails(task.TaskID, fmt.Sprintf("runtime step receipt verification failed: %v", err), overtureTaskFailureDetails("dispatch", "runtime_step_receipt_verification_failed", err.Error()))
+				return
+			}
+		}
 		if err := tc.store.SaveExecutionArtifacts(task.TaskID, result.ExecutionEnvelope, result.ExecutionReceipt); err != nil {
 			log.Error().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution artifacts")
 		} else {
-			lineage, err := BuildExecutionLineageRecordFromReceipt(
-				result.ExecutionReceipt,
-				task.TenantID,
-				taskRuntimeID(task),
-				result.Status.Name,
-				"",
-			)
-			if err != nil {
-				log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Build execution lineage from task receipt")
-			} else if lineage != nil {
+			// Persist the receipt chain into execution_lineage in commit order so
+			// the chain link stays verifiable for multi-step tasks. Fall back to
+			// the single final receipt for runtimes that don't send step_receipts.
+			// SaveExecutionLineage upserts on execution_id, so re-processing is
+			// idempotent (no duplicate rows).
+			receiptsToPersist := result.StepReceipts
+			if len(receiptsToPersist) == 0 {
+				receiptsToPersist = []json.RawMessage{result.ExecutionReceipt}
+			}
+			for idx, rawReceipt := range receiptsToPersist {
+				lineage, err := BuildExecutionLineageRecordFromReceipt(
+					rawReceipt,
+					task.TenantID,
+					taskRuntimeID(task),
+					result.Status.Name,
+					"",
+				)
+				if err != nil {
+					log.Warn().Err(err).Int("step", idx).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Build execution lineage from task receipt")
+					continue
+				}
+				if lineage == nil {
+					continue
+				}
 				if err := tc.store.SaveExecutionLineage(lineage); err != nil {
-					log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution lineage from task receipt")
+					log.Warn().Err(err).Int("step", idx).Str("task_id", task.TaskID.String()).Msg("[Coordinator] Save execution lineage from task receipt")
 				}
 			}
 			triggerAvailable, err := tc.store.HasTaskProofSyncTrigger()
@@ -454,11 +478,10 @@ func taskRuntimeID(task *TaskRecord) string {
 	return *task.RuntimeID
 }
 
-func (tc *TaskCoordinator) verifyExecutionArtifactsForTask(ctx context.Context, task *TaskRecord, envelopeRaw, receiptRaw json.RawMessage) error {
+func (tc *TaskCoordinator) runtimePublicKeyForTask(ctx context.Context, task *TaskRecord) (string, error) {
 	if task == nil || task.RuntimeID == nil || strings.TrimSpace(*task.RuntimeID) == "" {
-		return fmt.Errorf("runtime identity missing for execution artifact verification")
+		return "", fmt.Errorf("runtime identity missing for execution artifact verification")
 	}
-
 	var publicKeyHex string
 	err := tc.db.QueryRowContext(ctx, `
 		SELECT COALESCE(public_key_ed25519, '')
@@ -467,15 +490,77 @@ func (tc *TaskCoordinator) verifyExecutionArtifactsForTask(ctx context.Context, 
 		LIMIT 1
 	`, *task.RuntimeID).Scan(&publicKeyHex)
 	if errors.Is(err, sql.ErrNoRows) {
-		return fmt.Errorf("runtime public key missing for runtime %s", *task.RuntimeID)
+		return "", fmt.Errorf("runtime public key missing for runtime %s", *task.RuntimeID)
 	}
 	if err != nil {
-		return fmt.Errorf("load runtime public key: %w", err)
+		return "", fmt.Errorf("load runtime public key: %w", err)
 	}
 	if strings.TrimSpace(publicKeyHex) == "" {
-		return fmt.Errorf("runtime public key missing for runtime %s", *task.RuntimeID)
+		return "", fmt.Errorf("runtime public key missing for runtime %s", *task.RuntimeID)
+	}
+	return publicKeyHex, nil
+}
+
+func (tc *TaskCoordinator) verifyExecutionArtifactsForTask(ctx context.Context, task *TaskRecord, envelopeRaw, receiptRaw json.RawMessage) error {
+	publicKeyHex, err := tc.runtimePublicKeyForTask(ctx, task)
+	if err != nil {
+		return err
 	}
 	return internal.VerifyExecutionArtifactsRawWithPublicKey(envelopeRaw, receiptRaw, publicKeyHex)
+}
+
+// validateReceiptChainLinks checks that a batch of per-step receipts forms a
+// contiguous hash chain: every receipt has a non-empty hash, and each receipt
+// after the first has previous_hash equal to the prior receipt's hash. The
+// first receipt may be genesis ("") or chained off a receipt persisted by an
+// earlier runtime call (e.g. on resume) — either is acceptable here; the chain
+// is validated against persisted history by /proof/receipts/verify. Returns the
+// chain's head hash (the last receipt's hash) on success.
+func validateReceiptChainLinks(stepReceipts []json.RawMessage) (string, error) {
+	prevHash := ""
+	for idx, raw := range stepReceipts {
+		var receipt map[string]interface{}
+		if err := json.Unmarshal(raw, &receipt); err != nil {
+			return "", fmt.Errorf("step receipt %d is not a JSON object: %w", idx, err)
+		}
+		gotPrev, _ := receipt["previous_hash"].(string)
+		if idx > 0 && gotPrev != prevHash {
+			return "", fmt.Errorf("step receipt %d previous_hash %q does not chain to prior receipt hash %q", idx, gotPrev, prevHash)
+		}
+		hash, _ := receipt["hash"].(string)
+		if strings.TrimSpace(hash) == "" {
+			return "", fmt.Errorf("step receipt %d has no hash", idx)
+		}
+		prevHash = hash
+	}
+	return prevHash, nil
+}
+
+// verifyStepReceiptsForTask cryptographically verifies every per-step receipt
+// (canonical-hash re-derivation + Ed25519 signature against the runtime's
+// registered public key) and that the batch forms a contiguous hash chain.
+func (tc *TaskCoordinator) verifyStepReceiptsForTask(ctx context.Context, task *TaskRecord, stepReceipts []json.RawMessage) error {
+	if len(stepReceipts) == 0 {
+		return nil
+	}
+	publicKeyHex, err := tc.runtimePublicKeyForTask(ctx, task)
+	if err != nil {
+		return err
+	}
+	for idx, raw := range stepReceipts {
+		var receipt map[string]interface{}
+		if err := json.Unmarshal(raw, &receipt); err != nil {
+			return fmt.Errorf("step receipt %d is not a JSON object: %w", idx, err)
+		}
+		res := internal.VerifyReceiptCryptographic(receipt, publicKeyHex)
+		if !res.Verified() {
+			return fmt.Errorf("step receipt %d failed cryptographic verification: %s", idx, res.Reason)
+		}
+	}
+	if _, err := validateReceiptChainLinks(stepReceipts); err != nil {
+		return err
+	}
+	return nil
 }
 
 type taskSubmitResult struct {
@@ -486,6 +571,10 @@ type taskSubmitResult struct {
 	FailureDetails    *TaskFailureDetails    `json:"failure_details,omitempty"`
 	ExecutionEnvelope json.RawMessage        `json:"execution_envelope,omitempty"`
 	ExecutionReceipt  json.RawMessage        `json:"execution_receipt,omitempty"`
+	// StepReceipts, when present, is the full per-step receipt chain in commit
+	// order (its last entry equals ExecutionReceipt, the head). Older runtimes
+	// only send ExecutionReceipt — handled transparently.
+	StepReceipts []json.RawMessage `json:"step_receipts,omitempty"`
 }
 
 type taskSubmitResultStatus struct {
