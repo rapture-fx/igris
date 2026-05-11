@@ -1067,6 +1067,9 @@ func TestBuildExecutionLineageRecordFromReceipt(t *testing.T) {
 	if record.ReceiptHash != "receipt-hash-1" {
 		t.Fatalf("ReceiptHash = %q, want receipt-hash-1", record.ReceiptHash)
 	}
+	if record.PreviousHash != "receipt-hash-0" {
+		t.Fatalf("PreviousHash = %q, want receipt-hash-0 (chain link must be preserved)", record.PreviousHash)
+	}
 	if record.RuntimeID != "runtime-infer-1" {
 		t.Fatalf("RuntimeID = %q, want runtime-infer-1", record.RuntimeID)
 	}
