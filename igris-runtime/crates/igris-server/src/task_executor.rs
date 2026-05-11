@@ -1109,6 +1109,11 @@ pub async fn handle_task_submit(
     let mut last_usage: Option<ExecuteUsage> = None;
     let mut last_envelope: Option<serde_json::Value> = None;
     let mut last_receipt: Option<serde_json::Value> = None;
+    // Every committed step emits a signed, hash-chained receipt (appended to the
+    // runtime receipt log). We collect them in chain order so the response can
+    // carry the full per-step receipt chain — Overture persists each one into
+    // execution_lineage, keeping the chain link verifiable for multi-step tasks.
+    let mut step_receipts: Vec<serde_json::Value> = Vec::new();
     let mut checkpoint: Option<CheckpointPayload> = None;
     let mut checkpoint_metadata: Option<serde_json::Value> = None;
     let mut entries_since_checkpoint: Vec<WalEntry> = Vec::new();
