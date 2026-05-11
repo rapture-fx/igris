@@ -411,6 +411,12 @@ if ! grep -q '"event":"db-write"' "$LOG_DIR/action-target.log"; then
   exit 1
 fi
 
+# Chain-link verification at the source: the runtime's receipts.jsonl is a
+# hash-chained log (genesis previous_hash="", each next == prior.hash). One
+# receipt was emitted per committed action step.
+node "$ACTION_HELPER" verify-receipt-chain "$TMP_DIR/receipts.jsonl" 3 > "$TMP_DIR/receipt-chain.json"
+echo "    runtime receipt chain: $(cat "$TMP_DIR/receipt-chain.json")"
+
 node "$UNIFIED_HELPER" build-verify-request "$TMP_DIR/task-completed.json" > "$TMP_DIR/task-verify-request.json"
 VERIFY_HTTP_STATUS=$(curl -sS \
   -o "$TMP_DIR/proof-receipt-verify-response.json" \
