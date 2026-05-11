@@ -113,13 +113,15 @@ function commandServeActionTarget(portArg, dbUrl) {
         const taskId = typeof record.task_id === "string" ? record.task_id : "";
         const status = typeof record.status === "string" ? record.status : "processed";
         const payloadJSON = JSON.stringify(record);
+        // Wrap the INSERT in a CTE + SELECT so `psql -tAc` returns *only* the
+        // row id (no `INSERT 0 1` command tag).
         const sql =
-          `INSERT INTO ${table} (task_id, status, payload) VALUES (` +
+          `WITH ins AS (INSERT INTO ${table} (task_id, status, payload) VALUES (` +
           sqlQuote(taskId) + ", " + sqlQuote(status) + ", " + sqlQuote(payloadJSON) + "::jsonb" +
-          `) RETURNING id;`;
+          `) RETURNING id) SELECT id::text FROM ins;`;
         let rowId = "";
         try {
-          const out = execFileSync("psql", [dbUrl, "-tAc", sql], { encoding: "utf8" });
+          const out = execFileSync("psql", [dbUrl, "-qtAc", sql], { encoding: "utf8" });
           rowId = out.trim();
         } catch (e) {
           log({ event: "db-write", error: "insert failed", table, detail: String(e.message || e) });
