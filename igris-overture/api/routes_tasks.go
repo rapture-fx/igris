@@ -1846,25 +1846,25 @@ func summarizeActionResult(actionType string, node map[string]interface{}) fiber
 	out := fiber.Map{}
 	switch actionType {
 	case "read_file":
-		if n, ok := pickInt("bytes", "received_bytes", "size", "bytes_read"); ok {
+		if n, ok := pickInt("bytes_read", "bytes", "received_bytes", "size"); ok {
 			out["bytes_read"] = n
 		}
-		if d := pickString("digest", "content_digest"); d != "" {
+		if d := pickString("content_digest", "digest"); d != "" {
 			out["content_digest"] = d
 		}
 	case "http_call":
 		if n, ok := pickInt("status_code", "http_status", "response_status"); ok {
 			out["status_code"] = n
 		}
-		if d := pickString("digest", "response_digest"); d != "" {
+		if d := pickString("response_digest", "digest"); d != "" {
 			out["response_digest"] = d
 		}
 	case "db_write":
-		if id := pickString("row_id", "id"); id != "" {
-			out["row_id"] = id
-		}
 		if t := pickString("table"); t != "" {
 			out["table"] = t
+		}
+		if id := pickString("row_id", "id"); id != "" {
+			out["row_id"] = id
 		}
 	}
 	if len(out) == 0 {
