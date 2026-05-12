@@ -1321,6 +1321,29 @@ func buildTaskProofResponse(proof *coordinator.TaskProofState) fiber.Map {
 	} else if proof.Status == "present" {
 		resp["present"] = true
 	}
+	// Persisted verification summary (from the last /proof/verify run). Absent
+	// keys mean "verification has not run yet" — the UI shows that honestly.
+	if proof.Verified != nil {
+		resp["verified"] = *proof.Verified
+	}
+	if proof.HashValid != nil {
+		resp["hash_valid"] = *proof.HashValid
+	}
+	if proof.SignatureMatches != nil {
+		resp["signature_matches"] = *proof.SignatureMatches
+	}
+	if proof.RuntimeKeyFound != nil {
+		resp["runtime_key_found"] = *proof.RuntimeKeyFound
+	}
+	if proof.ChainLinkValid != nil {
+		resp["chain_link_valid"] = *proof.ChainLinkValid
+	}
+	if proof.VerificationReason != "" {
+		resp["verification_reason"] = proof.VerificationReason
+	}
+	if proof.VerifiedAt != nil {
+		resp["verified_at"] = proof.VerifiedAt
+	}
 	return resp
 }
 
@@ -1372,6 +1395,42 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 		// tenant. Independent of cryptographic verification of the current
 		// receipt — both are reported separately in the response.
 		chain := verifyTaskChainLink(c.Context(), tc, task, tenantID)
+
+		// Persist the safe verification summary so the task detail GET path can
+		// show "Receipt verified" / "Chain intact" without re-running this.
+		reason := strings.TrimSpace(crypto.Reason)
+		if chain.Checked && chain.Reason != "" {
+			if reason != "" {
+				reason += "; "
+			}
+			reason += "chain: " + chain.Reason
+		}
+		if err := tc.Store().PersistTaskProofVerification(taskID, tenantID, coordinator.TaskProofVerificationSummary{
+			Verified:         crypto.Verified(),
+			HashValid:        crypto.HashValid,
+			SignatureMatches: crypto.SignatureValid,
+			RuntimeKeyFound:  crypto.RuntimeKeyFound,
+			ChainChecked:     chain.Checked,
+			ChainLinkValid:   chain.Valid,
+			Reason:           reason,
+		}); err != nil {
+			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("failed to persist task proof verification summary")
+		} else {
+			// Reflect the just-persisted summary in the response too.
+			v := crypto.Verified()
+			hv := crypto.HashValid
+			sm := crypto.SignatureValid
+			rk := crypto.RuntimeKeyFound
+			proof.Verified = &v
+			proof.HashValid = &hv
+			proof.SignatureMatches = &sm
+			proof.RuntimeKeyFound = &rk
+			proof.VerificationReason = reason
+			if chain.Checked {
+				cv := chain.Valid
+				proof.ChainLinkValid = &cv
+			}
+		}
 
 		respProof := buildTaskProofResponse(proof)
 		applyCryptographicProofFields(respProof, crypto)
