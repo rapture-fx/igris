@@ -1005,6 +1005,10 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		resp["proof"] = proof
 	}
 
+	if evidence := buildActionEvidence(task); len(evidence) > 0 {
+		resp["action_evidence"] = evidence
+	}
+
 	if task.LastCheckpoint != nil {
 		resp["last_step"] = task.LastCheckpoint.ResumeToken.LastCommittedStep
 		resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
@@ -1619,6 +1623,251 @@ func extractGraphCheckpointViews(metadata json.RawMessage) (graphBlackboard json
 	}
 
 	return blackboard, graph["nodes"], graph["slots"]
+}
+
+// actionToolForType maps the sandboxed runtime tool that an Action Task V1 step
+// compiles to back to the customer-facing action verb. An Action Task graph is
+// composed *exclusively* of these three tools — any other node kind/tool means
+// the task is a general execution graph, not an Action Task, and we do not
+// surface it as customer "actions".
+var actionToolForType = map[string]string{
+	"filesystem":     "read_file",
+	"http_request":   "http_call",
+	"database_write": "db_write",
+}
+
+// buildActionEvidence derives a small, safe, authoritative view of the actions
+// an Action Task V1 performed, in execution order. It joins three sources that
+// are already on the task record:
+//
+//   - the compiled execution-graph definition  -> action_type + target_summary
+//     (controlled file path, HTTP method+URL, DB table — never file contents,
+//     request/response bodies, or raw records)
+//   - the latest checkpoint's WAL entries      -> status, result_digest,
+//     runtime_id, recorded_at
+//   - the checkpoint's graph blackboard nodes  -> result_summary (whitelisted,
+//     structured fields only: bytes read, HTTP status code, written row id)
+//
+// Returns nil for anything that is not an Action Task V1 graph.
+func buildActionEvidence(task *coordinator.TaskRecord) []fiber.Map {
+	if task == nil || len(task.TaskDefinition) == 0 {
+		return nil
+	}
+	var def struct {
+		Type  string `json:"type"`
+		Graph struct {
+			Nodes []json.RawMessage `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(task.TaskDefinition, &def); err != nil {
+		return nil
+	}
+	if def.Type != "execution_graph" || len(def.Graph.Nodes) == 0 {
+		return nil
+	}
+
+	type compiledAction struct {
+		stepIndex  int
+		nodeID     string
+		actionType string
+		toolName   string
+		target     string
+	}
+	compiled := make([]compiledAction, 0, len(def.Graph.Nodes))
+	for idx, rawNode := range def.Graph.Nodes {
+		var node struct {
+			Kind     string          `json:"kind"`
+			NodeID   string          `json:"node_id"`
+			ToolName string          `json:"tool_name"`
+			Args     json.RawMessage `json:"args"`
+		}
+		if err := json.Unmarshal(rawNode, &node); err != nil {
+			return nil
+		}
+		if node.Kind != "tool" {
+			return nil
+		}
+		actionType, ok := actionToolForType[node.ToolName]
+		if !ok {
+			return nil
+		}
+		if !strings.HasPrefix(node.NodeID, actionType+"-") {
+			return nil
+		}
+		compiled = append(compiled, compiledAction{
+			stepIndex:  idx,
+			nodeID:     node.NodeID,
+			actionType: actionType,
+			toolName:   node.ToolName,
+			target:     summarizeActionTarget(actionType, node.Args),
+		})
+	}
+	if len(compiled) == 0 {
+		return nil
+	}
+
+	walByIndex := map[uint32]coordinator.WalEntry{}
+	if task.LastCheckpoint != nil {
+		for _, e := range task.LastCheckpoint.WalEntries {
+			existing, ok := walByIndex[e.StepIndex]
+			if !ok || (existing.OutputDigest == nil && e.OutputDigest != nil) {
+				walByIndex[e.StepIndex] = e
+			}
+		}
+	}
+
+	blackboardNodes := map[string]map[string]interface{}{}
+	if task.LastCheckpoint != nil && len(task.LastCheckpoint.Metadata) > 0 {
+		var meta struct {
+			GraphBlackboard struct {
+				Nodes map[string]map[string]interface{} `json:"nodes"`
+			} `json:"graph_blackboard"`
+		}
+		if err := json.Unmarshal(task.LastCheckpoint.Metadata, &meta); err == nil && meta.GraphBlackboard.Nodes != nil {
+			blackboardNodes = meta.GraphBlackboard.Nodes
+		}
+	}
+
+	out := make([]fiber.Map, 0, len(compiled))
+	for _, ca := range compiled {
+		row := fiber.Map{
+			"step_index":  ca.stepIndex,
+			"node_id":     ca.nodeID,
+			"action_type": ca.actionType,
+			"tool_name":   ca.toolName,
+		}
+		if ca.target != "" {
+			row["target_summary"] = ca.target
+		}
+		if e, ok := walByIndex[uint32(ca.stepIndex)]; ok {
+			if e.Status != "" {
+				row["status"] = e.Status
+			}
+			if e.OutputDigest != nil && *e.OutputDigest != "" {
+				row["result_digest"] = *e.OutputDigest
+			}
+			if e.RuntimeID != "" {
+				row["runtime_id"] = e.RuntimeID
+			}
+			if e.TimestampMs > 0 {
+				row["recorded_at"] = time.UnixMilli(int64(e.TimestampMs)).UTC().Format(time.RFC3339)
+			}
+		}
+		if node := blackboardNodes[ca.nodeID]; node != nil {
+			if _, has := row["status"]; !has {
+				if s, ok := node["status"].(string); ok && s != "" {
+					row["status"] = s
+				}
+			}
+			if rs := summarizeActionResult(ca.actionType, node); len(rs) > 0 {
+				row["result_summary"] = rs
+			}
+		}
+		out = append(out, row)
+	}
+	return out
+}
+
+// summarizeActionTarget returns a short, human-readable description of *what* an
+// action targeted, derived from the compiled tool args. It deliberately reads
+// only safe fields: the controlled file path, the HTTP method + URL, and the DB
+// table name — never the file contents, request body, or record payload.
+func summarizeActionTarget(actionType string, args json.RawMessage) string {
+	if len(args) == 0 {
+		return ""
+	}
+	var a struct {
+		Path   string `json:"path"`
+		Method string `json:"method"`
+		URL    string `json:"url"`
+		Table  string `json:"table"`
+	}
+	if err := json.Unmarshal(args, &a); err != nil {
+		return ""
+	}
+	switch actionType {
+	case "read_file":
+		return strings.TrimSpace(a.Path)
+	case "http_call":
+		method := strings.ToUpper(strings.TrimSpace(a.Method))
+		url := strings.TrimSpace(a.URL)
+		switch {
+		case method != "" && url != "":
+			return method + " " + url
+		case url != "":
+			return url
+		default:
+			return ""
+		}
+	case "db_write":
+		if t := strings.TrimSpace(a.Table); t != "" {
+			return "table " + t
+		}
+	}
+	return ""
+}
+
+// summarizeActionResult extracts a small whitelist of safe, structured result
+// fields from a graph blackboard node (and its nested `metadata`). It never
+// echoes arbitrary blackboard content — only counts, status codes, digests, and
+// the written row id, so raw file contents / response bodies / records cannot
+// leak through this path.
+func summarizeActionResult(actionType string, node map[string]interface{}) fiber.Map {
+	if node == nil {
+		return nil
+	}
+	scopes := []map[string]interface{}{node}
+	if m, ok := node["metadata"].(map[string]interface{}); ok {
+		scopes = append(scopes, m)
+	}
+	pickString := func(keys ...string) string {
+		for _, s := range scopes {
+			for _, k := range keys {
+				if v, ok := s[k].(string); ok && v != "" {
+					return v
+				}
+			}
+		}
+		return ""
+	}
+	pickInt := func(keys ...string) (int64, bool) {
+		for _, s := range scopes {
+			for _, k := range keys {
+				if v, ok := s[k].(float64); ok {
+					return int64(v), true
+				}
+			}
+		}
+		return 0, false
+	}
+	out := fiber.Map{}
+	switch actionType {
+	case "read_file":
+		if n, ok := pickInt("bytes", "received_bytes", "size", "bytes_read"); ok {
+			out["bytes_read"] = n
+		}
+		if d := pickString("digest", "content_digest"); d != "" {
+			out["content_digest"] = d
+		}
+	case "http_call":
+		if n, ok := pickInt("status_code", "http_status", "response_status"); ok {
+			out["status_code"] = n
+		}
+		if d := pickString("digest", "response_digest"); d != "" {
+			out["response_digest"] = d
+		}
+	case "db_write":
+		if id := pickString("row_id", "id"); id != "" {
+			out["row_id"] = id
+		}
+		if t := pickString("table"); t != "" {
+			out["table"] = t
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func extractModeSemantics(metadata json.RawMessage) (requestedMode string, resolvedStrategy string) {
