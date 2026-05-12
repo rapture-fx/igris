@@ -113,10 +113,16 @@ impl Tool for FileSystemTool {
             "read" => match fs::read_to_string(path).await {
                 Ok(content) => {
                     let execution_time = start.elapsed().as_millis() as u64;
+                    // Safe result envelope: how much was read and a digest of it —
+                    // never the file contents themselves.
+                    let bytes_read = content.as_bytes().len();
+                    let content_digest = crate::sha256_hex(content.as_bytes());
                     Ok(
                         ToolResult::success("filesystem".to_string(), content, execution_time)
                             .with_metadata("operation".to_string(), "read".to_string())
-                            .with_metadata("path".to_string(), path.to_string()),
+                            .with_metadata("path".to_string(), path.to_string())
+                            .with_metadata("bytes_read".to_string(), bytes_read.to_string())
+                            .with_metadata("content_digest".to_string(), content_digest),
                     )
                 }
                 Err(e) => {
@@ -228,5 +234,37 @@ mod tests {
     fn test_empty_whitelist() {
         let tool = FileSystemTool::new(vec![]);
         assert!(!tool.is_path_allowed("/any/path"));
+    }
+
+    #[tokio::test]
+    async fn test_read_emits_safe_result_envelope() {
+        let dir = std::env::temp_dir().join(format!("igris-tools-fs-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("input.txt");
+        let contents = "igris action task v1 — payload-token=deadbeef\n";
+        std::fs::write(&file, contents).unwrap();
+
+        let tool = FileSystemTool::new(vec![dir.to_string_lossy().to_string()]);
+        let result = tool
+            .execute(json!({ "operation": "read", "path": file.to_string_lossy() }))
+            .await
+            .unwrap();
+        assert!(result.success);
+
+        // Safe result envelope: byte count + digest, never the contents.
+        assert_eq!(
+            result.metadata.get("bytes_read").map(String::as_str),
+            Some(contents.as_bytes().len().to_string().as_str())
+        );
+        assert_eq!(
+            result.metadata.get("content_digest").map(String::as_str),
+            Some(crate::sha256_hex(contents.as_bytes()).as_str())
+        );
+        // The metadata must not leak the file contents.
+        for value in result.metadata.values() {
+            assert!(!value.contains("payload-token"), "metadata leaked file contents: {value}");
+        }
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
