@@ -1426,6 +1426,8 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 			proof.SignatureMatches = &sm
 			proof.RuntimeKeyFound = &rk
 			proof.VerificationReason = reason
+			verifiedAt := time.Now().UTC()
+			proof.VerifiedAt = &verifiedAt
 			if chain.Checked {
 				cv := chain.Valid
 				proof.ChainLinkValid = &cv
