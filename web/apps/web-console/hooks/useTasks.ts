@@ -40,6 +40,7 @@ export interface Task {
   graph_blackboard?: unknown;
   graph_nodes?: unknown;
   graph_slots?: unknown;
+  action_evidence?: ActionEvidenceRow[];
   execution_envelope?: unknown;
   execution_receipt?: unknown;
   proof?: {
@@ -59,6 +60,25 @@ export interface Task {
     run?: string;
     receipt_verify?: string;
   };
+}
+
+/**
+ * One Action Task V1 step as exposed authoritatively by `GET /v1/tasks/:id`.
+ * The backend builds this from the compiled execution graph + WAL + checkpoint
+ * blackboard, exposing only safe summaries — never file contents, request/
+ * response bodies, or raw records.
+ */
+export interface ActionEvidenceRow {
+  step_index: number;
+  node_id?: string;
+  action_type: string;
+  tool_name?: string;
+  status?: string;
+  target_summary?: string;
+  result_summary?: Record<string, string | number>;
+  result_digest?: string;
+  runtime_id?: string;
+  recorded_at?: string;
 }
 
 export interface TaskListResponse {
