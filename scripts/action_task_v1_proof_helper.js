@@ -304,6 +304,44 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
     try { finalSummary = JSON.parse(task.final_output); } catch (e) { /* not json */ }
   }
 
+  // The task detail API must expose an authoritative, *safe* action_evidence
+  // array — action type + controlled target summary + result summary — for each
+  // of the three Action Task V1 actions, with no raw file contents, request
+  // bodies, headers, or record payloads leaking through it.
+  const actionEvidence = Array.isArray(task.action_evidence) ? task.action_evidence : null;
+  if (!actionEvidence) fail("task detail is missing the action_evidence array");
+  const evidenceByAction = {};
+  for (const row of actionEvidence) {
+    if (typeof row.step_index !== "number") fail(`action_evidence row missing numeric step_index: ${JSON.stringify(row)}`);
+    if (typeof row.action_type !== "string" || !row.action_type) fail(`action_evidence row missing action_type: ${JSON.stringify(row)}`);
+    evidenceByAction[row.action_type] = row;
+  }
+  for (const a of ["read_file", "http_call", "db_write"]) {
+    if (!evidenceByAction[a]) fail(`action_evidence is missing the ${a} action`);
+    if (typeof evidenceByAction[a].target_summary !== "string" || !evidenceByAction[a].target_summary) {
+      fail(`action_evidence ${a} has no target_summary`);
+    }
+  }
+  if (!/^\//.test(evidenceByAction.read_file.target_summary)) {
+    fail(`action_evidence read_file target_summary is not a controlled path: ${evidenceByAction.read_file.target_summary}`);
+  }
+  if (!/^[A-Z]+\s+https?:\/\//.test(evidenceByAction.http_call.target_summary)) {
+    fail(`action_evidence http_call target_summary is not "METHOD URL": ${evidenceByAction.http_call.target_summary}`);
+  }
+  if (!/^table\s+action_task_/.test(evidenceByAction.db_write.target_summary)) {
+    fail(`action_evidence db_write target_summary is not "table action_task_*": ${evidenceByAction.db_write.target_summary}`);
+  }
+  if (dbRowId) {
+    const rs = evidenceByAction.db_write.result_summary || {};
+    if (rs.row_id && String(rs.row_id) !== String(dbRowId)) {
+      fail(`action_evidence db_write result_summary.row_id (${rs.row_id}) does not match the Postgres row (${dbRowId})`);
+    }
+  }
+  const evidenceJSON = JSON.stringify(actionEvidence);
+  for (const banned of ['"body"', '"record"', '"headers"', "payload-token"]) {
+    if (evidenceJSON.includes(banned)) fail(`action_evidence leaked sensitive content (${banned}): ${evidenceJSON.slice(0, 400)}`);
+  }
+
   console.log("Action Task V1 proof succeeded.");
   console.log("");
   console.log(`Task status:               ${task.status}`);
@@ -317,6 +355,12 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
   console.log(`Receipt verify:            verified=${receiptVerify.verified} hash_valid=${receiptVerify.hash_valid} signature_matches=${receiptVerify.signature_matches} runtime_key_found=${receiptVerify.runtime_key_found} chain_valid=${receiptVerify.chain_valid}`);
   if (finalSummary) {
     console.log(`db_write summary:          ${JSON.stringify(finalSummary)}`);
+  }
+  console.log(`action_evidence:`);
+  for (const row of actionEvidence) {
+    console.log(`  [${row.step_index}] ${row.action_type} -> ${row.target_summary}` +
+      (row.result_summary ? ` (result ${JSON.stringify(row.result_summary)})` : "") +
+      (row.result_digest ? ` digest=${String(row.result_digest).slice(0, 12)}` : ""));
   }
   if (dbRowId) {
     console.log(`db row id (psql-verified): ${dbRowId}`);
