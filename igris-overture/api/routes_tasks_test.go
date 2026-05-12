@@ -3324,3 +3324,110 @@ func TestBuildTaskSubmitRequestRejectsAgentWorkflowStepsOnSingleInference(t *tes
 	require.ErrorIs(t, err, coordinator.ErrInvalidTaskDefinition)
 	require.Contains(t, err.Error(), "agent_task.steps is only valid with task_type=agent_workflow")
 }
+
+func TestBuildTaskResponseIncludesActionEvidence(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	definition := json.RawMessage(`{
+		"type": "execution_graph",
+		"graph": {
+			"graph_id": "action-task-v1-proof",
+			"nodes": [
+				{"kind":"tool","node_id":"read_file-0","tool_name":"filesystem","args":{"operation":"read","path":"/tmp/igris-action/input.txt"}},
+				{"kind":"tool","node_id":"http_call-1","tool_name":"http_request","args":{"method":"post","url":"http://127.0.0.1:18099/process","body":"{\"secret\":\"shhh\"}","headers":{"authorization":"Bearer top-secret"}}},
+				{"kind":"tool","node_id":"db_write-2","tool_name":"database_write","args":{"table":"action_task_events","record":{"status":"processed","ssn":"123-45-6789"}}}
+			]
+		}
+	}`)
+
+	outDigest0 := "aa00"
+	outDigest1 := "bb11"
+	outDigest2 := "cc22"
+	recordedMs := uint64(1_700_000_000_000)
+
+	task := &coordinator.TaskRecord{
+		TaskID:         taskID,
+		Status:         coordinator.TaskStatusCompleted,
+		TaskDefinition: definition,
+		LastCheckpoint: &coordinator.CheckpointPayload{
+			ResumeToken: coordinator.ResumeToken{LastCommittedStep: 2, CheckpointDigest: "digest-1", RuntimeID: "runtime-1"},
+			WalEntries: []coordinator.WalEntry{
+				{EntryID: uuid.New(), StepIndex: 0, Status: "committed", OutputDigest: &outDigest0, RuntimeID: "runtime-1", TimestampMs: recordedMs},
+				{EntryID: uuid.New(), StepIndex: 1, Status: "committed", OutputDigest: &outDigest1, RuntimeID: "runtime-1", TimestampMs: recordedMs + 10},
+				{EntryID: uuid.New(), StepIndex: 2, Status: "committed", OutputDigest: &outDigest2, RuntimeID: "runtime-1", TimestampMs: recordedMs + 20},
+			},
+			Metadata: json.RawMessage(`{
+				"graph_blackboard": {
+					"nodes": {
+						"read_file-0": {"status":"committed","metadata":{"bytes":128,"digest":"fa11"}},
+						"http_call-1": {"status":"committed","metadata":{"status_code":200,"digest":"fb22"}},
+						"db_write-2": {"status":"committed","metadata":{"row_id":"row-123","table":"action_task_events"}}
+					}
+				}
+			}`),
+		},
+	}
+
+	resp := buildTaskResponse(task)
+	evidence, ok := resp["action_evidence"].([]fiber.Map)
+	require.True(t, ok, "action_evidence should be present")
+	require.Len(t, evidence, 3)
+
+	require.Equal(t, 0, evidence[0]["step_index"])
+	require.Equal(t, "read_file-0", evidence[0]["node_id"])
+	require.Equal(t, "read_file", evidence[0]["action_type"])
+	require.Equal(t, "filesystem", evidence[0]["tool_name"])
+	require.Equal(t, "/tmp/igris-action/input.txt", evidence[0]["target_summary"])
+	require.Equal(t, "committed", evidence[0]["status"])
+	require.Equal(t, "aa00", evidence[0]["result_digest"])
+	require.Equal(t, "runtime-1", evidence[0]["runtime_id"])
+	require.NotEmpty(t, evidence[0]["recorded_at"])
+	rs0, ok := evidence[0]["result_summary"].(fiber.Map)
+	require.True(t, ok)
+	require.EqualValues(t, 128, rs0["bytes_read"])
+	require.Equal(t, "fa11", rs0["content_digest"])
+
+	require.Equal(t, "http_call", evidence[1]["action_type"])
+	require.Equal(t, "POST http://127.0.0.1:18099/process", evidence[1]["target_summary"])
+	rs1, ok := evidence[1]["result_summary"].(fiber.Map)
+	require.True(t, ok)
+	require.EqualValues(t, 200, rs1["status_code"])
+
+	require.Equal(t, "db_write", evidence[2]["action_type"])
+	require.Equal(t, "table action_task_events", evidence[2]["target_summary"])
+	rs2, ok := evidence[2]["result_summary"].(fiber.Map)
+	require.True(t, ok)
+	require.Equal(t, "row-123", rs2["row_id"])
+
+	serialized, err := json.Marshal(evidence)
+	require.NoError(t, err)
+	require.NotContains(t, string(serialized), "shhh")
+	require.NotContains(t, string(serialized), "top-secret")
+	require.NotContains(t, string(serialized), "123-45-6789")
+	require.NotContains(t, string(serialized), `"body"`)
+	require.NotContains(t, string(serialized), `"record"`)
+	require.NotContains(t, string(serialized), `"headers"`)
+}
+
+func TestBuildTaskResponseOmitsActionEvidenceForNonActionGraphs(t *testing.T) {
+	t.Parallel()
+
+	task := &coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"kind":"inference","node_id":"infer-0"}]}}`),
+	}
+	resp := buildTaskResponse(task)
+	_, ok := resp["action_evidence"]
+	require.False(t, ok)
+
+	task2 := &coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{"type":"agent_workflow","steps":[{"model":"m","messages":[{"role":"user","content":"hi"}]}]}`),
+	}
+	resp2 := buildTaskResponse(task2)
+	_, ok2 := resp2["action_evidence"]
+	require.False(t, ok2)
+}
