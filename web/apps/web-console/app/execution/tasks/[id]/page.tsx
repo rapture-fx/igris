@@ -150,6 +150,25 @@ function describeActionTarget(
   return pick('target', 'url', 'path', 'table');
 }
 
+const RESULT_KEY_LABELS: Record<string, string> = {
+  bytes_read: 'bytes',
+  content_digest: 'content digest',
+  status_code: 'HTTP status',
+  response_digest: 'response digest',
+  row_id: 'row',
+  table: 'table',
+};
+
+function formatResultSummary(
+  summary?: Record<string, string | number> | null,
+): string | undefined {
+  if (!summary || typeof summary !== 'object') return undefined;
+  const parts = Object.entries(summary)
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => `${RESULT_KEY_LABELS[key] ?? key}: ${value}`);
+  return parts.length > 0 ? parts.join(' · ') : undefined;
+}
+
 function verificationLabel(status?: string | null): string {
   if (!status) return 'Pending';
   const normalized = String(status).toLowerCase();
@@ -191,6 +210,7 @@ export default function ExecutionTaskInspectorPage() {
   const taskId = decodeURIComponent(params?.id ?? '');
   const { toast } = useToast();
   const [verifyResult, setVerifyResult] = useState<null | boolean>(null);
+  const [chainResult, setChainResult] = useState<null | boolean>(null);
 
   const { data: task, isLoading } = useTask(taskId || null);
   const { data: steps, isLoading: stepsLoading } = useTaskSteps(taskId || null);
@@ -200,7 +220,7 @@ export default function ExecutionTaskInspectorPage() {
       if (!taskId) {
         throw new Error('Task id is required');
       }
-      return api.post<{ proof?: { status?: string } }>(
+      return api.post<{ proof?: { status?: string; chain_link_valid?: boolean } }>(
         `/v1/tasks/${encodeURIComponent(taskId)}/proof/verify`,
         {},
       );
@@ -209,6 +229,9 @@ export default function ExecutionTaskInspectorPage() {
       const status = result.proof?.status;
       const valid = status === 'verified';
       setVerifyResult(valid);
+      setChainResult(
+        typeof result.proof?.chain_link_valid === 'boolean' ? result.proof.chain_link_valid : null,
+      );
       toast({
         title: valid ? 'Receipt verified' : 'Receipt mismatch',
         description: valid
@@ -218,6 +241,7 @@ export default function ExecutionTaskInspectorPage() {
     },
     onError: (error: Error) => {
       setVerifyResult(false);
+      setChainResult(null);
       toast({
         variant: 'destructive',
         title: 'Receipt verification failed',
@@ -316,6 +340,50 @@ export default function ExecutionTaskInspectorPage() {
   const actionEvidence = useMemo(() => {
     if (!task) return null;
 
+    type ActionRow = {
+      index: number;
+      label: string;
+      nodeId?: string;
+      status?: string;
+      runtimeId?: string;
+      resultDigest?: string;
+      recordedAt?: Date;
+      target?: string;
+      resultSummary?: string;
+      raw?: unknown;
+    };
+
+    // Authoritative path: the API exposes a safe `action_evidence` array for
+    // Action Task V1 tasks (compiled graph + WAL + checkpoint blackboard,
+    // summaries only — no file contents, request/response bodies, or records).
+    if (Array.isArray(task.action_evidence) && task.action_evidence.length > 0) {
+      const rows: ActionRow[] = [...task.action_evidence]
+        .sort((a, b) => a.step_index - b.step_index)
+        .map((row) => ({
+          index: row.step_index,
+          label:
+            ACTION_LABELS[row.action_type] ??
+            (row.tool_name ? ACTION_TOOL_LABELS[row.tool_name] : undefined) ??
+            row.action_type,
+          nodeId: row.node_id,
+          status: row.status,
+          runtimeId: row.runtime_id,
+          resultDigest: row.result_digest,
+          recordedAt: row.recorded_at ? new Date(row.recorded_at) : undefined,
+          target: row.target_summary,
+          resultSummary: formatResultSummary(row.result_summary),
+          raw: row,
+        }));
+      return {
+        authoritative: true,
+        rows,
+        receiptAvailable: Boolean(task.execution_receipt),
+        proofStatus: task.proof?.status,
+      };
+    }
+
+    // Fallback path: best-effort join of committed WAL steps with the graph
+    // blackboard nodes (older runs, or before the API exposed action_evidence).
     const rawNodes =
       task.graph_nodes && typeof task.graph_nodes === 'object' && !Array.isArray(task.graph_nodes)
         ? (task.graph_nodes as Record<string, unknown>)
@@ -340,18 +408,6 @@ export default function ExecutionTaskInspectorPage() {
     if (!isActionWorkflow) return null;
 
     const walSteps = [...(steps?.steps ?? [])].sort((a, b) => a.step_index - b.step_index);
-
-    type ActionRow = {
-      index: number;
-      label: string;
-      nodeId?: string;
-      status?: string;
-      runtimeId?: string;
-      resultDigest?: string;
-      recordedAt?: Date;
-      target?: string;
-      raw?: unknown;
-    };
     const rows: ActionRow[] = [];
 
     if (walSteps.length > 0) {
@@ -389,10 +445,10 @@ export default function ExecutionTaskInspectorPage() {
     }
 
     return {
+      authoritative: false,
       rows,
       receiptAvailable: Boolean(task.execution_receipt),
       proofStatus: task.proof?.status,
-      checkedAt: task.proof?.checked_at,
     };
   }, [task, steps?.steps]);
 
@@ -464,9 +520,11 @@ export default function ExecutionTaskInspectorPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-xs text-gray-500">
-                    Every external action this task performed, in execution order, with the durable
-                    WAL step it committed and the recorded result. Built from real persisted step
-                    and graph evidence — the raw WAL, graph nodes, and signed artifacts remain below.
+                    Every external action this task performed, in execution order — the controlled
+                    target, committed status, recorded result, and durable digest.{' '}
+                    {actionEvidence.authoritative
+                      ? 'Sourced from the task API’s safe action evidence (compiled graph, WAL, and checkpoint); raw WAL, graph nodes, and signed artifacts remain below.'
+                      : 'Best-effort view joined from committed WAL steps and graph blackboard nodes — raw WAL, graph nodes, and signed artifacts remain below.'}
                   </p>
                   {actionEvidence.rows.length === 0 ? (
                     <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -482,6 +540,7 @@ export default function ExecutionTaskInspectorPage() {
                             <TableHead>Action</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Target</TableHead>
+                            <TableHead>Result</TableHead>
                             <TableHead>Runtime</TableHead>
                             <TableHead>Result Digest</TableHead>
                             <TableHead>Recorded</TableHead>
@@ -508,6 +567,9 @@ export default function ExecutionTaskInspectorPage() {
                               </TableCell>
                               <TableCell className="text-xs text-gray-700">
                                 {row.target ?? '—'}
+                              </TableCell>
+                              <TableCell className="text-xs text-gray-700">
+                                {row.resultSummary ?? '—'}
                               </TableCell>
                               <TableCell className="font-mono text-xs text-gray-600">
                                 {row.runtimeId ? truncateText(row.runtimeId, 18) : '—'}
@@ -537,6 +599,16 @@ export default function ExecutionTaskInspectorPage() {
                       Receipt verification:
                       <span className="font-medium text-gray-900">
                         {verificationLabel(actionEvidence.proofStatus)}
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-gray-700">
+                      Chain:
+                      <span className="font-medium text-gray-900">
+                        {chainResult === true
+                          ? 'Intact'
+                          : chainResult === false
+                            ? 'Broken'
+                            : 'Unknown — run verification'}
                       </span>
                     </span>
                     {verifyResult === true && (
@@ -825,6 +897,7 @@ export default function ExecutionTaskInspectorPage() {
                       disabled={!task.execution_receipt || verifyMutation.isPending}
                       onClick={() => {
                         setVerifyResult(null);
+                        setChainResult(null);
                         verifyMutation.mutate();
                       }}
                     >
