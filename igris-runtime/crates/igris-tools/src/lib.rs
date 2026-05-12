@@ -7,6 +7,7 @@
 /// - Tool result sharing via MCP
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 pub mod database;
@@ -16,6 +17,18 @@ pub mod registry;
 pub mod shell;
 
 pub use registry::{ToolDefinition, ToolRegistry};
+
+/// SHA-256 of `bytes`, lowercase hex. Used to expose a *safe* digest of a tool's
+/// payload (file contents, HTTP response body) in action evidence without ever
+/// revealing the payload itself.
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    let mut out = String::with_capacity(64);
+    for byte in digest {
+        out.push_str(&format!("{byte:02x}"));
+    }
+    out
+}
 
 /// Tool execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -172,6 +185,20 @@ mod tests {
 
         assert!(!result.success);
         assert_eq!(result.error, Some("error message".to_string()));
+    }
+
+    #[test]
+    fn test_sha256_hex_known_vector() {
+        // SHA-256("") and SHA-256("abc") — standard test vectors.
+        assert_eq!(
+            sha256_hex(b""),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+        assert_eq!(
+            sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(sha256_hex(b"abc").len(), 64);
     }
 
     #[test]
