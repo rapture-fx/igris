@@ -2457,10 +2457,14 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	var proofSignature sql.NullString
 	var proofStatus sql.NullString
 	var proofCheckedAt sql.NullTime
+	var proofVerified, proofHashValid, proofSignatureMatches, proofRuntimeKeyFound, proofChainLinkValid sql.NullBool
+	var proofVerificationReason sql.NullString
+	var proofVerifiedAt sql.NullTime
 	err := row.Scan(
 		&t.TaskID, &t.TenantID, &t.Status, &t.RuntimeID, &t.RuntimeEndpoint,
 		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes,
 		&proofExecutionID, &proofExpectedHash, &proofStoredHash, &proofSignature, &proofStatus, &proofCheckedAt,
+		&proofVerified, &proofHashValid, &proofSignatureMatches, &proofRuntimeKeyFound, &proofChainLinkValid, &proofVerificationReason, &proofVerifiedAt,
 		&t.IdempotencyKey, &t.FailureReason, &failureDetailBytes,
 		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CanceledAt, &t.CreatedAt,
 	)
