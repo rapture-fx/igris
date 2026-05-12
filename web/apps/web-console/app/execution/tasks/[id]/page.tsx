@@ -165,7 +165,14 @@ function formatResultSummary(
   if (!summary || typeof summary !== 'object') return undefined;
   const parts = Object.entries(summary)
     .filter(([, value]) => value !== undefined && value !== null && value !== '')
-    .map(([key, value]) => `${RESULT_KEY_LABELS[key] ?? key}: ${value}`);
+    .map(([key, value]) => {
+      let display = String(value);
+      // Digests are long hex strings — show a recognizable prefix only.
+      if (key.endsWith('digest') && display.length > 16) {
+        display = `${display.slice(0, 12)}…`;
+      }
+      return `${RESULT_KEY_LABELS[key] ?? key}: ${display}`;
+    });
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }
 
