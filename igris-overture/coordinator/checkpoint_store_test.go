@@ -923,12 +923,12 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 		sql.NullString{String: "sig-proof", Valid: true},
 		sql.NullString{String: "verified", Valid: true},
 		sql.NullTime{Time: checkedAt, Valid: true},
-		sql.NullBool{Bool: true, Valid: true},  // proof_verified
-		sql.NullBool{Bool: true, Valid: true},  // proof_hash_valid
-		sql.NullBool{Bool: true, Valid: true},  // proof_signature_matches
-		sql.NullBool{Bool: true, Valid: true},  // proof_runtime_key_found
-		sql.NullBool{Bool: true, Valid: true},  // proof_chain_link_valid
-		sql.NullString{String: "ok", Valid: true}, // proof_verification_reason
+		sql.NullBool{Bool: true, Valid: true},      // proof_verified
+		sql.NullBool{Bool: true, Valid: true},      // proof_hash_valid
+		sql.NullBool{Bool: true, Valid: true},      // proof_signature_matches
+		sql.NullBool{Bool: true, Valid: true},      // proof_runtime_key_found
+		sql.NullBool{Bool: true, Valid: true},      // proof_chain_link_valid
+		sql.NullString{String: "ok", Valid: true},  // proof_verification_reason
 		sql.NullTime{Time: checkedAt, Valid: true}, // proof_verified_at
 		"idem-1",
 		failureReason,
@@ -1018,13 +1018,13 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 		sql.NullString{},
 		sql.NullString{},
 		sql.NullTime{},
-		sql.NullBool{}, // proof_verified
-		sql.NullBool{}, // proof_hash_valid
-		sql.NullBool{}, // proof_signature_matches
-		sql.NullBool{}, // proof_runtime_key_found
-		sql.NullBool{}, // proof_chain_link_valid
+		sql.NullBool{},   // proof_verified
+		sql.NullBool{},   // proof_hash_valid
+		sql.NullBool{},   // proof_signature_matches
+		sql.NullBool{},   // proof_runtime_key_found
+		sql.NullBool{},   // proof_chain_link_valid
 		sql.NullString{}, // proof_verification_reason
-		sql.NullTime{}, // proof_verified_at
+		sql.NullTime{},   // proof_verified_at
 		"idem-2",
 		nil,
 		nil,
