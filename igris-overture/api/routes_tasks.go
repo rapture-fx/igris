@@ -1808,10 +1808,13 @@ func summarizeActionTarget(actionType string, args json.RawMessage) string {
 }
 
 // summarizeActionResult extracts a small whitelist of safe, structured result
-// fields from a graph blackboard node (and its nested `metadata`). It never
-// echoes arbitrary blackboard content — only counts, status codes, digests, and
-// the written row id, so raw file contents / response bodies / records cannot
-// leak through this path.
+// fields from a graph blackboard node (and its nested `metadata`). The Runtime
+// tools emit a stable result envelope into the tool metadata — read_file:
+// `bytes_read` + `content_digest`; http_call: `status_code` + `response_digest`;
+// db_write: `table` + `row_id` — and this consumes exactly those keys (with a
+// couple of legacy aliases as fallback). It never echoes arbitrary blackboard
+// content, so raw file contents / request+response bodies / headers / DB record
+// payloads cannot leak through this path.
 func summarizeActionResult(actionType string, node map[string]interface{}) fiber.Map {
 	if node == nil {
 		return nil
