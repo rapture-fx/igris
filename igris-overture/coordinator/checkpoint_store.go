@@ -2235,6 +2235,7 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
 		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
@@ -2250,6 +2251,7 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
 		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
@@ -2265,6 +2267,7 @@ func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskR
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
 		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
@@ -2361,6 +2364,7 @@ func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
 		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
 		FROM task_records
