@@ -1833,11 +1833,19 @@ func summarizeActionResult(actionType string, node map[string]interface{}) fiber
 		}
 		return ""
 	}
+	// Tool metadata is a string map (igris_tools::ToolResult.metadata), so a
+	// "byte count" or "status code" arrives either as a JSON number (blackboard
+	// node body) or a numeric string (tool metadata) — accept both.
 	pickInt := func(keys ...string) (int64, bool) {
 		for _, s := range scopes {
 			for _, k := range keys {
-				if v, ok := s[k].(float64); ok {
+				switch v := s[k].(type) {
+				case float64:
 					return int64(v), true
+				case string:
+					if n, err := strconv.ParseInt(strings.TrimSpace(v), 10, 64); err == nil {
+						return n, true
+					}
 				}
 			}
 		}
