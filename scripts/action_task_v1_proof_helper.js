@@ -243,9 +243,9 @@ function stepTypeMentions(step, needle) {
   }
 }
 
-function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath, receiptVerifyPath, taskId, dbRowId) {
+function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath, receiptVerifyPath, taskId, dbRowId, taskAfterVerifyPath) {
   if (!taskPath || !stepsPath || !runPath || !receiptsPath || !receiptVerifyPath || !taskId) {
-    fail("usage: verify-action-evidence <task.json> <steps.json> <run.json> <receipts.json> <receipt-verify.json> <task-id> [db-row-id]");
+    fail("usage: verify-action-evidence <task.json> <steps.json> <run.json> <receipts.json> <receipt-verify.json> <task-id> [db-row-id] [task-after-verify.json]");
   }
   const task = readJSON(taskPath);
   const stepsDoc = readJSON(stepsPath);
