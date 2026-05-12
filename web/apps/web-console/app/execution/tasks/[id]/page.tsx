@@ -22,6 +22,7 @@ import {
   Clock3,
   ExternalLink,
   Hash,
+  ListChecks,
   ListOrdered,
   Network,
   ShieldCheck,
@@ -68,6 +69,85 @@ function describeStepAction(stepType: unknown): string {
   if ('BtNode' in obj || 'bt_node' in obj) return 'Behavior tree';
   const key = Object.keys(obj)[0];
   return key ? key : '—';
+}
+
+// ── Action Task V1 evidence helpers ────────────────────────────────────────────
+//
+// An Action Task (`task_type: "action_workflow"`) compiles to a runtime
+// execution graph whose nodes are sandboxed local tools. Each customer-facing
+// step maps to one tool and one durable WAL entry:
+//   read_file  -> filesystem      (graph node id `read_file-<i>`)
+//   http_call  -> http_request    (graph node id `http_call-<i>`)
+//   db_write   -> database_write  (graph node id `db_write-<i>`)
+// We surface that sequence from the *real* persisted evidence only — committed
+// WAL steps joined with the graph blackboard nodes — never synthesised data.
+
+const ACTION_LABELS: Record<string, string> = {
+  read_file: 'Read file',
+  http_call: 'HTTP call',
+  db_write: 'Database write',
+};
+
+const ACTION_TOOL_LABELS: Record<string, string> = {
+  filesystem: 'Read file',
+  http_request: 'HTTP call',
+  database_write: 'Database write',
+};
+
+function actionFromNodeId(nodeId: unknown): { action: string; index: number } | null {
+  if (typeof nodeId !== 'string') return null;
+  const match = nodeId.match(/^(read_file|http_call|db_write)-(\d+)$/);
+  if (!match) return null;
+  return { action: match[1], index: Number(match[2]) };
+}
+
+function toolNameFromStepType(stepType: unknown): string | null {
+  if (!stepType || typeof stepType !== 'object') return null;
+  const obj = stepType as Record<string, unknown>;
+  const tool = (obj.ToolCall ?? obj.tool_call) as Record<string, unknown> | undefined;
+  if (tool && typeof tool === 'object' && typeof tool.tool_name === 'string' && tool.tool_name) {
+    return tool.tool_name;
+  }
+  return null;
+}
+
+// Best-effort, read-only summary of *what* an action touched, pulled from the
+// graph blackboard node (and its `metadata`) when present. Falls back to
+// undefined — the target may legitimately not be echoed back in the blackboard.
+function describeActionTarget(
+  action: string | undefined,
+  node: Record<string, unknown> | null | undefined,
+): string | undefined {
+  if (!node) return undefined;
+  const meta =
+    node.metadata && typeof node.metadata === 'object' && !Array.isArray(node.metadata)
+      ? (node.metadata as Record<string, unknown>)
+      : undefined;
+  const pick = (...keys: string[]): string | undefined => {
+    for (const src of [node, meta]) {
+      if (!src) continue;
+      for (const key of keys) {
+        const value = src[key];
+        if (typeof value === 'string' && value) return value;
+        if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+      }
+    }
+    return undefined;
+  };
+  if (action === 'read_file') return pick('path', 'file', 'target');
+  if (action === 'http_call') {
+    const url = pick('url', 'target');
+    const code = pick('status_code', 'http_status', 'response_status');
+    if (url && code) return `${url} → ${code}`;
+    return url ?? (code ? `HTTP ${code}` : undefined);
+  }
+  if (action === 'db_write') {
+    const table = pick('table');
+    const rowId = pick('row_id', 'id');
+    if (table && rowId) return `${table} · row ${rowId}`;
+    return table ?? (rowId ? `row ${rowId}` : undefined);
+  }
+  return pick('target', 'url', 'path', 'table');
 }
 
 function verificationLabel(status?: string | null): string {
@@ -233,6 +313,89 @@ export default function ExecutionTaskInspectorPage() {
     };
   }, [steps?.steps, task]);
 
+  const actionEvidence = useMemo(() => {
+    if (!task) return null;
+
+    const rawNodes =
+      task.graph_nodes && typeof task.graph_nodes === 'object' && !Array.isArray(task.graph_nodes)
+        ? (task.graph_nodes as Record<string, unknown>)
+        : {};
+    const nodeByIndex = new Map<
+      number,
+      { nodeId: string; action: string; node: Record<string, unknown> }
+    >();
+    for (const [nodeId, value] of Object.entries(rawNodes)) {
+      const parsed = actionFromNodeId(nodeId);
+      if (!parsed) continue;
+      nodeByIndex.set(parsed.index, {
+        nodeId,
+        action: parsed.action,
+        node: value && typeof value === 'object' && !Array.isArray(value)
+          ? (value as Record<string, unknown>)
+          : {},
+      });
+    }
+
+    const isActionWorkflow = task.task_type === 'action_workflow' || nodeByIndex.size > 0;
+    if (!isActionWorkflow) return null;
+
+    const walSteps = [...(steps?.steps ?? [])].sort((a, b) => a.step_index - b.step_index);
+
+    type ActionRow = {
+      index: number;
+      label: string;
+      nodeId?: string;
+      status?: string;
+      runtimeId?: string;
+      resultDigest?: string;
+      recordedAt?: Date;
+      target?: string;
+      raw?: unknown;
+    };
+    const rows: ActionRow[] = [];
+
+    if (walSteps.length > 0) {
+      for (const step of walSteps) {
+        const meta = nodeByIndex.get(step.step_index);
+        const toolName = toolNameFromStepType(step.step_type);
+        const label = meta
+          ? ACTION_LABELS[meta.action] ?? meta.action
+          : toolName
+            ? ACTION_TOOL_LABELS[toolName] ?? describeStepAction(step.step_type)
+            : describeStepAction(step.step_type);
+        rows.push({
+          index: step.step_index,
+          label,
+          nodeId: meta?.nodeId,
+          status: step.status,
+          runtimeId: step.runtime_id,
+          resultDigest: step.output_digest,
+          recordedAt: Number.isFinite(step.timestamp_ms) ? new Date(step.timestamp_ms) : undefined,
+          target: describeActionTarget(meta?.action, meta?.node),
+          raw: meta?.node,
+        });
+      }
+    } else {
+      for (const [index, meta] of [...nodeByIndex.entries()].sort((a, b) => a[0] - b[0])) {
+        rows.push({
+          index,
+          label: ACTION_LABELS[meta.action] ?? meta.action,
+          nodeId: meta.nodeId,
+          status: typeof meta.node.status === 'string' ? meta.node.status : undefined,
+          target: describeActionTarget(meta.action, meta.node),
+          raw: meta.node,
+        });
+      }
+    }
+
+    return {
+      rows,
+      receiptAvailable: Boolean(task.execution_receipt),
+      proofStatus: task.proof?.status,
+      checkedAt: task.proof?.checked_at,
+    };
+  }, [task, steps?.steps]);
+
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -290,6 +453,114 @@ export default function ExecutionTaskInspectorPage() {
                 icon={Hash}
               />
             </div>
+
+            {actionEvidence && (
+              <Card className="border-gray-200 shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <ListChecks className="h-4 w-4 text-gray-500" />
+                    Action Evidence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-xs text-gray-500">
+                    Every external action this task performed, in execution order, with the durable
+                    WAL step it committed and the recorded result. Built from real persisted step
+                    and graph evidence — the raw WAL, graph nodes, and signed artifacts remain below.
+                  </p>
+                  {actionEvidence.rows.length === 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      No action steps have been committed yet.
+                    </div>
+                  ) : (
+                    <div className="overflow-hidden rounded-lg border border-gray-200">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>#</TableHead>
+                            <TableHead>Action</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Target</TableHead>
+                            <TableHead>Runtime</TableHead>
+                            <TableHead>Result Digest</TableHead>
+                            <TableHead>Recorded</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {actionEvidence.rows.map((row) => (
+                            <TableRow key={`${row.index}-${row.nodeId ?? row.label}`}>
+                              <TableCell className="text-xs text-gray-700">{row.index}</TableCell>
+                              <TableCell className="text-xs font-medium text-gray-900">
+                                {row.label}
+                                {row.nodeId && (
+                                  <span className="ml-1.5 font-mono text-[10px] text-gray-400">
+                                    {row.nodeId}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs">
+                                {row.status ? (
+                                  <ExecutionStatusBadge status={row.status.toUpperCase()} />
+                                ) : (
+                                  '—'
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs text-gray-700">
+                                {row.target ?? '—'}
+                              </TableCell>
+                              <TableCell className="font-mono text-xs text-gray-600">
+                                {row.runtimeId ? truncateText(row.runtimeId, 18) : '—'}
+                              </TableCell>
+                              <TableCell className="font-mono text-xs text-gray-600">
+                                {row.resultDigest ? truncateText(row.resultDigest, 16) : '—'}
+                              </TableCell>
+                              <TableCell className="text-xs text-gray-500">
+                                {row.recordedAt ? formatDateTime(row.recordedAt) : '—'}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-xs">
+                    <span className="inline-flex items-center gap-1.5 text-gray-700">
+                      <ShieldCheck className="h-3.5 w-3.5 text-gray-500" />
+                      Signed receipt:
+                      <span className="font-medium text-gray-900">
+                        {actionEvidence.receiptAvailable ? 'Recorded' : 'Not yet recorded'}
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-gray-700">
+                      <Hash className="h-3.5 w-3.5 text-gray-500" />
+                      Receipt verification:
+                      <span className="font-medium text-gray-900">
+                        {verificationLabel(actionEvidence.proofStatus)}
+                      </span>
+                    </span>
+                    {verifyResult === true && (
+                      <span className="inline-flex items-center gap-1 text-green-700">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                        Receipt verified
+                      </span>
+                    )}
+                    {verifyResult === false && !verifyMutation.isPending && (
+                      <span className="inline-flex items-center gap-1 text-red-700">
+                        <XCircle className="h-3.5 w-3.5 text-red-500" />
+                        Verification failed
+                      </span>
+                    )}
+                    <a
+                      href="#signed-artifacts"
+                      className="ml-auto inline-flex items-center gap-1 text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline"
+                    >
+                      Receipt &amp; signatures
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
               <Card className="border-gray-200 shadow-none">
@@ -504,7 +775,7 @@ export default function ExecutionTaskInspectorPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-gray-200 shadow-none">
+              <Card id="signed-artifacts" className="scroll-mt-20 border-gray-200 shadow-none">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold text-gray-900">
                     Signed Artifacts
