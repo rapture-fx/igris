@@ -2796,6 +2796,37 @@ func nullString(value string) any {
 	return value
 }
 
+// PersistTaskProofVerification stores the safe outcome of a fresh proof
+// verification (booleans + reason + timestamp) onto task_records, so the task
+// detail GET path can show "Receipt verified" / "Chain intact" without
+// re-running verification. It never persists receipt contents or secrets.
+func (s *CheckpointStore) PersistTaskProofVerification(taskID uuid.UUID, tenantID string, summary TaskProofVerificationSummary) error {
+	var chainValid any
+	if summary.ChainChecked {
+		chainValid = summary.ChainLinkValid
+	}
+	_, err := s.db.Exec(`
+		UPDATE task_records
+		SET proof_verified = $1,
+		    proof_hash_valid = $2,
+		    proof_signature_matches = $3,
+		    proof_runtime_key_found = $4,
+		    proof_chain_link_valid = $5,
+		    proof_verification_reason = $6,
+		    proof_verified_at = $7
+		WHERE task_id = $8 AND tenant_id = $9`,
+		summary.Verified,
+		summary.HashValid,
+		summary.SignatureMatches,
+		summary.RuntimeKeyFound,
+		chainValid,
+		nullString(summary.Reason),
+		time.Now().UTC(),
+		taskID, tenantID,
+	)
+	return err
+}
+
 func extractProofRefs(receipt json.RawMessage) (executionID, expectedHash string, ok bool) {
 	if len(receipt) == 0 {
 		return "", "", false
