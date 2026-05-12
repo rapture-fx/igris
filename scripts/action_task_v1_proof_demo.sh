@@ -455,6 +455,14 @@ TASK_PROOF_HTTP_STATUS=$(curl -sS \
   -X POST \
   "http://127.0.0.1:8081/v1/tasks/$TASK_ID/proof/verify")
 
+# Re-fetch the task detail *after* verification: the safe proof-verification
+# summary (verified / hash_valid / signature_matches / runtime_key_found /
+# chain_link_valid) must now be persisted on task.proof — no second verify
+# click required.
+curl -sS -f \
+  "${AUTH_ARGS[@]}" \
+  "http://127.0.0.1:8081/v1/tasks/$TASK_ID" > "$TMP_DIR/task-after-verify.json"
+
 echo "[11/11] Validating Action Task V1 evidence"
 node "$ACTION_HELPER" verify-action-evidence \
   "$TMP_DIR/task-completed.json" \
@@ -463,7 +471,8 @@ node "$ACTION_HELPER" verify-action-evidence \
   "$TMP_DIR/proof-receipts.json" \
   "$TMP_DIR/proof-receipt-verify-response.json" \
   "$TASK_ID" \
-  "$DB_ROW_ID"
+  "$DB_ROW_ID" \
+  "$TMP_DIR/task-after-verify.json"
 
 echo ""
 echo "    task_id:                       $TASK_ID"
