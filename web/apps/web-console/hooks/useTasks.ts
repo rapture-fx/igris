@@ -52,6 +52,15 @@ export interface Task {
     checked_at?: string;
     present?: boolean;
     matched?: boolean;
+    // Persisted verification summary (from the last /proof/verify run).
+    // Undefined ⇒ verification has not run yet.
+    verified?: boolean;
+    hash_valid?: boolean;
+    signature_matches?: boolean;
+    runtime_key_found?: boolean;
+    chain_link_valid?: boolean;
+    verification_reason?: string;
+    verified_at?: string;
   };
   links?: {
     task?: string;
