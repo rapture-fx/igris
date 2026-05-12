@@ -331,11 +331,30 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
   if (!/^table\s+action_task_/.test(evidenceByAction.db_write.target_summary)) {
     fail(`action_evidence db_write target_summary is not "table action_task_*": ${evidenceByAction.db_write.target_summary}`);
   }
-  if (dbRowId) {
-    const rs = evidenceByAction.db_write.result_summary || {};
-    if (rs.row_id && String(rs.row_id) !== String(dbRowId)) {
-      fail(`action_evidence db_write result_summary.row_id (${rs.row_id}) does not match the Postgres row (${dbRowId})`);
-    }
+  // Each action must carry a stable, safe result envelope.
+  const readResult = evidenceByAction.read_file.result_summary || {};
+  if (typeof readResult.bytes_read !== "number" || readResult.bytes_read < 0) {
+    fail(`action_evidence read_file result_summary.bytes_read is missing/invalid: ${JSON.stringify(readResult)}`);
+  }
+  if (typeof readResult.content_digest !== "string" || !/^[0-9a-f]{64}$/.test(readResult.content_digest)) {
+    fail(`action_evidence read_file result_summary.content_digest is not a sha256 hex string: ${JSON.stringify(readResult)}`);
+  }
+  const httpResult = evidenceByAction.http_call.result_summary || {};
+  if (typeof httpResult.status_code !== "number") {
+    fail(`action_evidence http_call result_summary.status_code is missing/invalid: ${JSON.stringify(httpResult)}`);
+  }
+  if (typeof httpResult.response_digest !== "string" || !/^[0-9a-f]{64}$/.test(httpResult.response_digest)) {
+    fail(`action_evidence http_call result_summary.response_digest is not a sha256 hex string: ${JSON.stringify(httpResult)}`);
+  }
+  const dbResult = evidenceByAction.db_write.result_summary || {};
+  if (typeof dbResult.table !== "string" || !/^action_task_/.test(dbResult.table)) {
+    fail(`action_evidence db_write result_summary.table is missing/invalid: ${JSON.stringify(dbResult)}`);
+  }
+  if (typeof dbResult.row_id !== "string" || !dbResult.row_id) {
+    fail(`action_evidence db_write result_summary.row_id is missing: ${JSON.stringify(dbResult)}`);
+  }
+  if (dbRowId && String(dbResult.row_id) !== String(dbRowId)) {
+    fail(`action_evidence db_write result_summary.row_id (${dbResult.row_id}) does not match the Postgres row (${dbRowId})`);
   }
   const evidenceJSON = JSON.stringify(actionEvidence);
   for (const banned of ['"body"', '"record"', '"headers"', "payload-token"]) {
