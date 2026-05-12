@@ -620,20 +620,20 @@ export default function ExecutionTaskInspectorPage() {
                     <span className="inline-flex items-center gap-1.5 text-gray-700">
                       Chain:
                       <span className="font-medium text-gray-900">
-                        {chainResult === true
+                        {effectiveChainValid === true
                           ? 'Intact'
-                          : chainResult === false
+                          : effectiveChainValid === false
                             ? 'Broken'
                             : 'Unknown — run verification'}
                       </span>
                     </span>
-                    {verifyResult === true && (
+                    {effectiveVerified === true && (
                       <span className="inline-flex items-center gap-1 text-green-700">
                         <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                         Receipt verified
                       </span>
                     )}
-                    {verifyResult === false && !verifyMutation.isPending && (
+                    {effectiveVerified === false && !verifyMutation.isPending && (
                       <span className="inline-flex items-center gap-1 text-red-700">
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
                         Verification failed
