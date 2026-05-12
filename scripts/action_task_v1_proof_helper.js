@@ -361,6 +361,31 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
     if (evidenceJSON.includes(banned)) fail(`action_evidence leaked sensitive content (${banned}): ${evidenceJSON.slice(0, 400)}`);
   }
 
+  // The persisted proof-verification summary must be visible on GET /v1/tasks/:id
+  // *after* a verify run — no second manual verification required.
+  let afterVerifyProof = null;
+  if (taskAfterVerifyPath) {
+    const afterVerify = readJSON(taskAfterVerifyPath);
+    if (!afterVerify || !afterVerify.proof) fail("task detail after verify is missing proof");
+    afterVerifyProof = afterVerify.proof;
+    for (const [field, want] of [
+      ["verified", true],
+      ["hash_valid", true],
+      ["signature_matches", true],
+      ["runtime_key_found", true],
+      ["chain_link_valid", true],
+    ]) {
+      if (afterVerifyProof[field] !== want) {
+        fail(`task.proof.${field} after verify = ${JSON.stringify(afterVerifyProof[field])}, want ${want}: ${JSON.stringify(afterVerifyProof)}`);
+      }
+    }
+    if (!afterVerifyProof.verified_at) fail("task.proof.verified_at is missing after verify");
+    const proofJSON = JSON.stringify(afterVerifyProof);
+    for (const banned of ["payload-token", "BEGIN ", "Authorization"]) {
+      if (proofJSON.includes(banned)) fail(`task.proof leaked sensitive content (${banned}): ${proofJSON.slice(0, 400)}`);
+    }
+  }
+
   console.log("Action Task V1 proof succeeded.");
   console.log("");
   console.log(`Task status:               ${task.status}`);
@@ -384,6 +409,9 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
   if (dbRowId) {
     console.log(`db row id (psql-verified): ${dbRowId}`);
   }
+  if (afterVerifyProof) {
+    console.log(`persisted proof summary:   verified=${afterVerifyProof.verified} hash_valid=${afterVerifyProof.hash_valid} signature_matches=${afterVerifyProof.signature_matches} runtime_key_found=${afterVerifyProof.runtime_key_found} chain_link_valid=${afterVerifyProof.chain_link_valid} verified_at=${afterVerifyProof.verified_at}`);
+  }
   console.log(`links.task:                ${task.links.task}`);
   console.log(`links.steps:               ${task.links.steps}`);
   console.log(`links.run:                 ${task.links.run}`);
@@ -405,7 +433,7 @@ function main() {
     case "verify-receipt-chain":
       return commandVerifyReceiptChain(args[0], args[1]);
     case "verify-action-evidence":
-      return commandVerifyActionEvidence(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+      return commandVerifyActionEvidence(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
     default:
       fail(
         "usage: action_task_v1_proof_helper.js <serve-action-target|inject-tools-config|build-action-task-request|verify-receipt-chain|verify-action-evidence> ..."
