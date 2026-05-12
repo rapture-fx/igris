@@ -923,6 +923,13 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 		sql.NullString{String: "sig-proof", Valid: true},
 		sql.NullString{String: "verified", Valid: true},
 		sql.NullTime{Time: checkedAt, Valid: true},
+		sql.NullBool{Bool: true, Valid: true},  // proof_verified
+		sql.NullBool{Bool: true, Valid: true},  // proof_hash_valid
+		sql.NullBool{Bool: true, Valid: true},  // proof_signature_matches
+		sql.NullBool{Bool: true, Valid: true},  // proof_runtime_key_found
+		sql.NullBool{Bool: true, Valid: true},  // proof_chain_link_valid
+		sql.NullString{String: "ok", Valid: true}, // proof_verification_reason
+		sql.NullTime{Time: checkedAt, Valid: true}, // proof_verified_at
 		"idem-1",
 		failureReason,
 		failureDetailsBytes,
@@ -966,6 +973,18 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 	if record.Proof.CheckedAt == nil || !record.Proof.CheckedAt.Equal(checkedAt) {
 		t.Fatalf("Proof.CheckedAt = %v, want %v", record.Proof.CheckedAt, checkedAt)
 	}
+	if record.Proof.Verified == nil || !*record.Proof.Verified {
+		t.Fatalf("Proof.Verified = %v, want true", record.Proof.Verified)
+	}
+	if record.Proof.ChainLinkValid == nil || !*record.Proof.ChainLinkValid {
+		t.Fatalf("Proof.ChainLinkValid = %v, want true", record.Proof.ChainLinkValid)
+	}
+	if record.Proof.VerificationReason != "ok" {
+		t.Fatalf("Proof.VerificationReason = %q, want ok", record.Proof.VerificationReason)
+	}
+	if record.Proof.VerifiedAt == nil || !record.Proof.VerifiedAt.Equal(checkedAt) {
+		t.Fatalf("Proof.VerifiedAt = %v, want %v", record.Proof.VerifiedAt, checkedAt)
+	}
 	if record.FailureDetails == nil {
 		t.Fatal("FailureDetails is nil")
 	}
@@ -999,6 +1018,13 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 		sql.NullString{},
 		sql.NullString{},
 		sql.NullTime{},
+		sql.NullBool{}, // proof_verified
+		sql.NullBool{}, // proof_hash_valid
+		sql.NullBool{}, // proof_signature_matches
+		sql.NullBool{}, // proof_runtime_key_found
+		sql.NullBool{}, // proof_chain_link_valid
+		sql.NullString{}, // proof_verification_reason
+		sql.NullTime{}, // proof_verified_at
 		"idem-2",
 		nil,
 		nil,
