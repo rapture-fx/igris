@@ -53,6 +53,12 @@ zsh scripts/action_task_v1_proof_demo.sh
 It runs to completion in well under a minute after the binaries are built. Exit code `0` means
 the full evidence chain checked out.
 
+If you have a web console running, pass its base URL — either `CONSOLE_URL=http://localhost:3000
+zsh scripts/action_task_v1_proof_demo.sh` or `zsh scripts/action_task_v1_proof_demo.sh
+--console-base-url http://localhost:3000`. The script then prints a direct **Console Task
+Inspector** URL (`<base>/execution/tasks/<task_id>`) in the final summary, so a presenter can
+click straight through. It's optional — omit it and behavior is unchanged.
+
 If you also want to keep the local services up to click around the console live, run the same
 script (it starts Overture on `http://127.0.0.1:8081`) — note it cleans up on exit, so do your
 console walkthrough against the persisted task while a run is in flight, or re-run and inspect
@@ -86,6 +92,9 @@ receipt verify HTTP status:    200
 task verify HTTP status:       200
 artifacts:      <temp dir with all request/response JSON>
 ```
+
+If you passed `CONSOLE_URL` / `--console-base-url`, one more line follows:
+`Console Task Inspector:        <base>/execution/tasks/<task_id>` — the direct link to open below.
 
 - **task ID** — `task_id` (also the path segment in `links.task`, `/v1/tasks/<task_id>`).
 - **execution ID** — `execution_id` (also `links.run`, `/v1/execution/runs/<execution_id>`).
