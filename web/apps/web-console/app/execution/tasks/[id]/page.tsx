@@ -222,6 +222,15 @@ export default function ExecutionTaskInspectorPage() {
   const { data: task, isLoading } = useTask(taskId || null);
   const { data: steps, isLoading: stepsLoading } = useTaskSteps(taskId || null);
 
+  // Prefer this session's manual verify result, else the persisted proof
+  // summary from the last /proof/verify run; null ⇒ verification not run yet.
+  const persistedVerified =
+    typeof task?.proof?.verified === 'boolean' ? task.proof.verified : null;
+  const persistedChainValid =
+    typeof task?.proof?.chain_link_valid === 'boolean' ? task.proof.chain_link_valid : null;
+  const effectiveVerified: boolean | null = verifyResult ?? persistedVerified;
+  const effectiveChainValid: boolean | null = chainResult ?? persistedChainValid;
+
   const verifyMutation = useMutation({
     mutationFn: async () => {
       if (!taskId) {
