@@ -2488,7 +2488,8 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	if len(receiptBytes) > 0 {
 		t.ExecutionReceipt = receiptBytes
 	}
-	if proofExecutionID.Valid || proofExpectedHash.Valid || proofStoredHash.Valid || proofSignature.Valid || proofStatus.Valid || proofCheckedAt.Valid {
+	if proofExecutionID.Valid || proofExpectedHash.Valid || proofStoredHash.Valid || proofSignature.Valid || proofStatus.Valid || proofCheckedAt.Valid ||
+		proofVerified.Valid || proofHashValid.Valid || proofSignatureMatches.Valid || proofRuntimeKeyFound.Valid || proofChainLinkValid.Valid || proofVerificationReason.Valid || proofVerifiedAt.Valid {
 		t.Proof = &TaskProofState{
 			ExecutionID:  proofExecutionID.String,
 			ExpectedHash: proofExpectedHash.String,
@@ -2498,6 +2499,32 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 		}
 		if proofCheckedAt.Valid {
 			t.Proof.CheckedAt = &proofCheckedAt.Time
+		}
+		if proofVerified.Valid {
+			v := proofVerified.Bool
+			t.Proof.Verified = &v
+		}
+		if proofHashValid.Valid {
+			v := proofHashValid.Bool
+			t.Proof.HashValid = &v
+		}
+		if proofSignatureMatches.Valid {
+			v := proofSignatureMatches.Bool
+			t.Proof.SignatureMatches = &v
+		}
+		if proofRuntimeKeyFound.Valid {
+			v := proofRuntimeKeyFound.Bool
+			t.Proof.RuntimeKeyFound = &v
+		}
+		if proofChainLinkValid.Valid {
+			v := proofChainLinkValid.Bool
+			t.Proof.ChainLinkValid = &v
+		}
+		if proofVerificationReason.Valid {
+			t.Proof.VerificationReason = proofVerificationReason.String
+		}
+		if proofVerifiedAt.Valid {
+			t.Proof.VerifiedAt = &proofVerifiedAt.Time
 		}
 	}
 	if len(failureDetailBytes) > 0 {
