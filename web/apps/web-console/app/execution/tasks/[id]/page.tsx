@@ -930,13 +930,14 @@ export default function ExecutionTaskInspectorPage() {
                         </Link>
                       </Button>
                     )}
-                    {verifyResult === true && (
+                    {effectiveVerified === true && (
                       <span className="inline-flex items-center gap-1 text-xs text-green-700">
                         <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                         Verified against proof store
+                        {effectiveChainValid === true ? ' · chain intact' : ''}
                       </span>
                     )}
-                    {verifyResult === false && !verifyMutation.isPending && (
+                    {effectiveVerified === false && !verifyMutation.isPending && (
                       <span className="inline-flex items-center gap-1 text-xs text-red-700">
                         <XCircle className="h-3.5 w-3.5 text-red-500" />
                         Verification failed
