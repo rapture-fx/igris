@@ -43,6 +43,32 @@ TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/igris-action-v1-proof.XXXXXX")
 LOG_DIR="$TMP_DIR/logs"
 mkdir -p "$LOG_DIR"
 
+# Optional: a console base URL so the proof can print a clickable Task Inspector
+# link for presenters. Accept --console-base-url <url> or CONSOLE_URL=<url>.
+# Never required; omitting it leaves behavior unchanged.
+CONSOLE_BASE_URL="${CONSOLE_URL:-}"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --console-base-url)
+      CONSOLE_BASE_URL="${2:-}"
+      shift 2
+      ;;
+    --console-base-url=*)
+      CONSOLE_BASE_URL="${1#*=}"
+      shift
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      echo "usage: $0 [--console-base-url <url>]   (or set CONSOLE_URL)" >&2
+      exit 2
+      ;;
+  esac
+done
+# Normalize: strip trailing slashes so "<base>/execution/tasks/<id>" stays clean.
+while [[ "$CONSOLE_BASE_URL" == */ ]]; do
+  CONSOLE_BASE_URL="${CONSOLE_BASE_URL%/}"
+done
+
 ACTION_TARGET_PORT=18091
 ACTION_TABLE="action_task_events"
 DB_WRITE_GATEWAY_URL="http://127.0.0.1:$ACTION_TARGET_PORT/db-write"
@@ -482,3 +508,6 @@ echo "    db row id:                     $DB_ROW_ID"
 echo "    receipt verify HTTP status:    $VERIFY_HTTP_STATUS"
 echo "    task verify HTTP status:       $TASK_PROOF_HTTP_STATUS"
 echo "    artifacts:                     $TMP_DIR"
+if [[ -n "$CONSOLE_BASE_URL" ]]; then
+  echo "    Console Task Inspector:        $CONSOLE_BASE_URL/execution/tasks/$TASK_ID"
+fi
