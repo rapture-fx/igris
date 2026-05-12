@@ -82,16 +82,17 @@ function describeStepAction(stepType: unknown): string {
 // We surface that sequence from the *real* persisted evidence only — committed
 // WAL steps joined with the graph blackboard nodes — never synthesised data.
 
+// Plain, operator-facing labels for the three Action Task V1 steps.
 const ACTION_LABELS: Record<string, string> = {
   read_file: 'Read file',
-  http_call: 'HTTP call',
-  db_write: 'Database write',
+  http_call: 'Call API',
+  db_write: 'Write database row',
 };
 
 const ACTION_TOOL_LABELS: Record<string, string> = {
   filesystem: 'Read file',
-  http_request: 'HTTP call',
-  database_write: 'Database write',
+  http_request: 'Call API',
+  database_write: 'Write database row',
 };
 
 function actionFromNodeId(nodeId: unknown): { action: string; index: number } | null {
@@ -151,11 +152,11 @@ function describeActionTarget(
 }
 
 const RESULT_KEY_LABELS: Record<string, string> = {
-  bytes_read: 'bytes',
+  bytes_read: 'bytes read',
   content_digest: 'content digest',
   status_code: 'HTTP status',
   response_digest: 'response digest',
-  row_id: 'row',
+  row_id: 'row ID',
   table: 'table',
 };
 
@@ -582,10 +583,12 @@ export default function ExecutionTaskInspectorPage() {
                                 )}
                               </TableCell>
                               <TableCell className="text-xs text-gray-700">
-                                {row.target ?? '—'}
+                                {row.target ?? <span className="text-gray-400">Not recorded</span>}
                               </TableCell>
                               <TableCell className="text-xs text-gray-700">
-                                {row.resultSummary ?? '—'}
+                                {row.resultSummary ?? (
+                                  <span className="text-gray-400">Not recorded</span>
+                                )}
                               </TableCell>
                               <TableCell className="font-mono text-xs text-gray-600">
                                 {row.runtimeId ? truncateText(row.runtimeId, 18) : '—'}
@@ -602,49 +605,98 @@ export default function ExecutionTaskInspectorPage() {
                       </Table>
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-xs">
-                    <span className="inline-flex items-center gap-1.5 text-gray-700">
-                      <ShieldCheck className="h-3.5 w-3.5 text-gray-500" />
-                      Signed receipt:
-                      <span className="font-medium text-gray-900">
-                        {actionEvidence.receiptAvailable ? 'Recorded' : 'Not yet recorded'}
+                  <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-3 text-xs">
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                      <span className="inline-flex items-center gap-1.5 text-gray-700">
+                        {effectiveVerified === true ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                        ) : effectiveVerified === false ? (
+                          <XCircle className="h-3.5 w-3.5 text-red-500" />
+                        ) : (
+                          <ShieldCheck className="h-3.5 w-3.5 text-gray-400" />
+                        )}
+                        Receipt:
+                        <span
+                          className={`font-medium ${
+                            effectiveVerified === true
+                              ? 'text-green-700'
+                              : effectiveVerified === false
+                                ? 'text-red-700'
+                                : 'text-gray-900'
+                          }`}
+                        >
+                          {effectiveVerified === true
+                            ? 'Verified'
+                            : effectiveVerified === false
+                              ? 'Verification failed'
+                              : actionEvidence.receiptAvailable
+                                ? 'Recorded · verification not run yet'
+                                : 'Not yet recorded'}
+                        </span>
                       </span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-gray-700">
-                      <Hash className="h-3.5 w-3.5 text-gray-500" />
-                      Receipt verification:
-                      <span className="font-medium text-gray-900">
-                        {verificationLabel(actionEvidence.proofStatus)}
+                      <span className="inline-flex items-center gap-1.5 text-gray-700">
+                        <Hash className="h-3.5 w-3.5 text-gray-400" />
+                        Chain:
+                        <span
+                          className={`font-medium ${
+                            effectiveChainValid === true
+                              ? 'text-green-700'
+                              : effectiveChainValid === false
+                                ? 'text-red-700'
+                                : 'text-gray-900'
+                          }`}
+                        >
+                          {effectiveChainValid === true
+                            ? 'Intact'
+                            : effectiveChainValid === false
+                              ? 'Broken'
+                              : 'Run verification to check chain'}
+                        </span>
                       </span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-gray-700">
-                      Chain:
-                      <span className="font-medium text-gray-900">
-                        {effectiveChainValid === true
-                          ? 'Intact'
-                          : effectiveChainValid === false
-                            ? 'Broken'
-                            : 'Unknown — run verification'}
+                      {effectiveVerified === null && !verifyMutation.isPending && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-6 gap-1 px-2 text-[11px]"
+                          disabled={!task.execution_receipt}
+                          onClick={() => {
+                            setVerifyResult(null);
+                            setChainResult(null);
+                            verifyMutation.mutate();
+                          }}
+                        >
+                          <ShieldCheck className="h-3 w-3" />
+                          Verify receipt
+                        </Button>
+                      )}
+                      {verifyMutation.isPending && (
+                        <span className="text-gray-500">Verifying…</span>
+                      )}
+                      <a
+                        href="#signed-artifacts"
+                        className="ml-auto inline-flex items-center gap-1 text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline"
+                      >
+                        Receipt &amp; signatures
+                      </a>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-gray-500">
+                      <span>
+                        Runtime ID:{' '}
+                        {task.runtime_id ? (
+                          <span className="font-mono text-gray-700">{task.runtime_id}</span>
+                        ) : (
+                          'Not recorded'
+                        )}
                       </span>
-                    </span>
-                    {effectiveVerified === true && (
-                      <span className="inline-flex items-center gap-1 text-green-700">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                        Receipt verified
+                      <span>
+                        Execution ID:{' '}
+                        {task.proof?.execution_id ? (
+                          <span className="font-mono text-gray-700">{task.proof.execution_id}</span>
+                        ) : (
+                          'Not recorded'
+                        )}
                       </span>
-                    )}
-                    {effectiveVerified === false && !verifyMutation.isPending && (
-                      <span className="inline-flex items-center gap-1 text-red-700">
-                        <XCircle className="h-3.5 w-3.5 text-red-500" />
-                        Verification failed
-                      </span>
-                    )}
-                    <a
-                      href="#signed-artifacts"
-                      className="ml-auto inline-flex items-center gap-1 text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline"
-                    >
-                      Receipt &amp; signatures
-                    </a>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
