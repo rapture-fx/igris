@@ -156,6 +156,9 @@ impl Tool for HttpTool {
                 info!("HTTP response: {} ({})", url, status);
 
                 let execution_time = start.elapsed().as_millis() as u64;
+                // Safe result envelope: the status code and a digest of the
+                // response body — never the body or headers themselves.
+                let response_digest = crate::sha256_hex(body.as_bytes());
 
                 Ok(ToolResult::success(
                     "http_request".to_string(),
@@ -163,7 +166,8 @@ impl Tool for HttpTool {
                     execution_time,
                 )
                 .with_metadata("status_code".to_string(), status.as_u16().to_string())
-                .with_metadata("url".to_string(), url.to_string()))
+                .with_metadata("url".to_string(), url.to_string())
+                .with_metadata("response_digest".to_string(), response_digest))
             }
             Err(e) => {
                 let execution_time = start.elapsed().as_millis() as u64;
