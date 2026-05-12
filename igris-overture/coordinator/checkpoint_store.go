@@ -98,6 +98,33 @@ type TaskProofState struct {
 	Signature    string     `json:"signature,omitempty"`
 	Status       string     `json:"status,omitempty"`
 	CheckedAt    *time.Time `json:"checked_at,omitempty"`
+
+	// Persisted verification summary — set the last time
+	// /v1/tasks/:id/proof/verify ran a fresh cryptographic + chain-link check.
+	// Nil pointers / empty strings mean "verification has not run yet". These
+	// hold only booleans + a short reason + a timestamp — never receipt
+	// contents, payloads, or secrets.
+	Verified           *bool      `json:"verified,omitempty"`
+	HashValid          *bool      `json:"hash_valid,omitempty"`
+	SignatureMatches   *bool      `json:"signature_matches,omitempty"`
+	RuntimeKeyFound    *bool      `json:"runtime_key_found,omitempty"`
+	ChainLinkValid     *bool      `json:"chain_link_valid,omitempty"`
+	VerificationReason string     `json:"verification_reason,omitempty"`
+	VerifiedAt         *time.Time `json:"verified_at,omitempty"`
+}
+
+// TaskProofVerificationSummary is the safe outcome of a fresh proof
+// verification, persisted onto task_records by PersistTaskProofVerification.
+type TaskProofVerificationSummary struct {
+	Verified         bool
+	HashValid        bool
+	SignatureMatches bool
+	RuntimeKeyFound  bool
+	// ChainChecked indicates whether chain-link verification was attempted at
+	// all (false ⇒ ChainLinkValid is left as "unknown"/NULL, not persisted).
+	ChainChecked   bool
+	ChainLinkValid bool
+	Reason         string
 }
 
 type TaskFailureDetails struct {
