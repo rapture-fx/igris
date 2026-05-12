@@ -45,14 +45,21 @@ func taskRecordRowForRecoveryTestWithFailureReason(taskID uuid.UUID, tenantID st
 		runtimeEndpoint,
 		[]byte(taskDefinition),
 		checkpointBytes,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
+		nil, // execution_envelope
+		nil, // execution_receipt
+		nil, // proof_execution_id
+		nil, // proof_expected_hash
+		nil, // proof_stored_hash
+		nil, // proof_signature
+		nil, // proof_status
+		nil, // proof_checked_at
+		nil, // proof_verified
+		nil, // proof_hash_valid
+		nil, // proof_signature_matches
+		nil, // proof_runtime_key_found
+		nil, // proof_chain_link_valid
+		nil, // proof_verification_reason
+		nil, // proof_verified_at
 		idempotencyKey,
 		failureReason,
 		failureDetailBytes,
@@ -1913,7 +1920,7 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -1928,7 +1935,7 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -1951,7 +1958,7 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -1966,7 +1973,7 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -2099,7 +2106,7 @@ func TestRecoverRuntimeMarksFailedForInvalidRecoveryCheckpoint(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -2191,7 +2198,7 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -2206,7 +2213,7 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -2375,7 +2382,7 @@ func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, f
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -2390,7 +2397,7 @@ func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, f
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
@@ -2490,7 +2497,7 @@ func testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t *testing.T, terminalS
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
 					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
 					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 					"idempotency_key", "failure_reason", "failure_details",
 					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
 				},
