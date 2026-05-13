@@ -246,7 +246,7 @@ VALUES ('$PROOF_TENANT_UUID'::uuid,'$PROOF_TENANT_ID','Action Task V1 Recovery P
 ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, email=EXCLUDED.email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, capabilities_policy='{"allowed_capabilities":["tools.*"]}'::jsonb, updated_at=NOW();
 SQL
 
-echo "[5/11] Starting mock provider, action target, Runtime 1, and Overture"
+echo "[5/11] Starting mock provider, action target, and Overture"
 node "$UNIFIED_HELPER" serve-mock-provider 18090 > "$LOG_DIR/mock-provider.log" 2>&1 &
 MOCK_PID=$!
 wait_for_http "http://127.0.0.1:18090/health" "mock provider"
@@ -254,25 +254,6 @@ wait_for_http "http://127.0.0.1:18090/health" "mock provider"
 node "$ACTION_HELPER" serve-action-target "$ACTION_TARGET_PORT" "$DB_URL" > "$LOG_DIR/action-target.log" 2>&1 &
 TARGET_PID=$!
 wait_for_http "http://127.0.0.1:$ACTION_TARGET_PORT/health" "action target server"
-
-(
-  cd "$ROOT_DIR"
-  env \
-    RUNTIME_MOCK_KEY=dummy \
-    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
-    IGRIS_CONFIG="$RUNTIME_1_CONFIG" \
-    IGRIS_DEVICE_ID="$RUNTIME_1_MACHINE_ID" \
-    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
-    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
-    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
-    IGRIS_RECEIPT_LOG="$TMP_DIR/recovery-receipts.jsonl" \
-    IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
-    IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
-    RUST_LOG="warn" \
-    "$RUNTIME_BIN" serve
-) > "$LOG_DIR/runtime-1.log" 2>&1 &
-RUNTIME_PID=$!
-wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 1"
 
 (
   cd "$ROOT_DIR"
@@ -310,6 +291,38 @@ curl -sS -f \
   -H "Content-Type: application/json" \
   -d @"$TMP_DIR/runtime-1-register.json" \
   "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-1-register-response.json"
+RUNTIME_1_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-1-register-response.json")
+if [[ -z "$RUNTIME_1_REGISTRY_ID" ]]; then
+  echo "runtime 1 registration did not return runtime_id" >&2
+  cat "$TMP_DIR/runtime-1-register-response.json" >&2
+  exit 1
+fi
+node - <<'NODE' "$RUNTIME_1_CONFIG" "$RUNTIME_1_REGISTRY_ID"
+const fs = require("fs");
+const [path, peerId] = process.argv.slice(2);
+const config = JSON.parse(fs.readFileSync(path, "utf8"));
+config.mcp = Object.assign({}, config.mcp || {}, { peer_id: peerId });
+fs.writeFileSync(path, JSON.stringify(config, null, 2) + "\n");
+NODE
+
+(
+  cd "$ROOT_DIR"
+  env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$RUNTIME_1_CONFIG" \
+    IGRIS_DEVICE_ID="$RUNTIME_1_MACHINE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/recovery-receipts.jsonl" \
+    IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
+    IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
+    RUST_LOG="warn" \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime-1.log" 2>&1 &
+RUNTIME_PID=$!
+wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 1"
 
 curl -sS -f \
   "${AUTH_ARGS[@]}" \
@@ -340,6 +353,33 @@ wait "$RUNTIME_PID" >/dev/null 2>&1 || true
 RUNTIME_PID=""
 sleep 1
 
+node "$UNIFIED_HELPER" runtime-register-request \
+  "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
+  "$RUNTIME_2_MACHINE_ID" \
+  "$RUNTIME_2_PEER_ID" \
+  "darwin" \
+  "1.6.0" \
+  "http://127.0.0.1:8080" > "$TMP_DIR/runtime-2-register.json"
+
+curl -sS -f \
+  -H "X-API-Key: $PROOF_RAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @"$TMP_DIR/runtime-2-register.json" \
+  "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-2-register-response.json"
+RUNTIME_2_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-2-register-response.json")
+if [[ -z "$RUNTIME_2_REGISTRY_ID" ]]; then
+  echo "runtime 2 registration did not return runtime_id" >&2
+  cat "$TMP_DIR/runtime-2-register-response.json" >&2
+  exit 1
+fi
+node - <<'NODE' "$RUNTIME_2_CONFIG" "$RUNTIME_2_REGISTRY_ID"
+const fs = require("fs");
+const [path, peerId] = process.argv.slice(2);
+const config = JSON.parse(fs.readFileSync(path, "utf8"));
+config.mcp = Object.assign({}, config.mcp || {}, { peer_id: peerId });
+fs.writeFileSync(path, JSON.stringify(config, null, 2) + "\n");
+NODE
+
 (
   cd "$ROOT_DIR"
   env \
@@ -358,20 +398,6 @@ sleep 1
 ) > "$LOG_DIR/runtime-2.log" 2>&1 &
 RUNTIME_PID=$!
 wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 2"
-
-node "$UNIFIED_HELPER" runtime-register-request \
-  "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
-  "$RUNTIME_2_MACHINE_ID" \
-  "$RUNTIME_2_PEER_ID" \
-  "darwin" \
-  "1.6.0" \
-  "http://127.0.0.1:8080" > "$TMP_DIR/runtime-2-register.json"
-
-curl -sS -f \
-  -H "X-API-Key: $PROOF_RAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d @"$TMP_DIR/runtime-2-register.json" \
-  "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-2-register-response.json"
 
 psql "$DB_URL" -X -q <<SQL >/dev/null
 UPDATE runtime_instances
@@ -430,7 +456,7 @@ query_json "SELECT json_build_object(
 ) FROM wal_checkpoints
 WHERE task_id = '$TASK_ID'::uuid;" "$TMP_DIR/db-wal-checkpoints.json"
 
-node - <<'NODE' "$TMP_DIR/task-steps-after-checkpoint.json" "$TMP_DIR/task-steps-after-recovery.json" "$TMP_DIR/task-after-verify.json" "$TMP_DIR/proof-receipt-verify-response.json" "$TMP_DIR/db-wal-checkpoints.json" "$RUNTIME_1_PEER_ID" "$RUNTIME_2_PEER_ID"
+node - <<'NODE' "$TMP_DIR/task-steps-after-checkpoint.json" "$TMP_DIR/task-steps-after-recovery.json" "$TMP_DIR/task-after-verify.json" "$TMP_DIR/proof-receipt-verify-response.json" "$TMP_DIR/db-wal-checkpoints.json" "$RUNTIME_1_REGISTRY_ID" "$RUNTIME_2_REGISTRY_ID"
 const fs = require("fs");
 const [beforePath, afterPath, taskPath, verifyPath, walPath, runtime1, runtime2] = process.argv.slice(2);
 const before = JSON.parse(fs.readFileSync(beforePath, "utf8"));
@@ -470,7 +496,7 @@ node "$ACTION_HELPER" verify-action-evidence \
 
 echo "[11/11] Action Task V1 recovery proof succeeded"
 echo "    task_id:                  $TASK_ID"
-echo "    runtime split:            steps 0-1=$RUNTIME_1_PEER_ID, step 2=$RUNTIME_2_PEER_ID"
+echo "    runtime split:            steps 0-1=$RUNTIME_1_REGISTRY_ID, step 2=$RUNTIME_2_REGISTRY_ID"
 echo "    HTTP /process calls:      $HTTP_COUNT_AFTER"
 echo "    DB rows for task:         $DB_ROW_COUNT_AFTER"
 echo "    db row id:                $DB_ROW_ID"
