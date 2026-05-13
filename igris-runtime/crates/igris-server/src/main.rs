@@ -4032,7 +4032,10 @@ async fn main() -> anyhow::Result<()> {
                                 .collect()
                         })
                         .unwrap_or_default();
-                reg.register(Arc::new(DatabaseWriteTool::new(gateway_url, allowed_prefixes)));
+                reg.register(Arc::new(DatabaseWriteTool::new(
+                    gateway_url,
+                    allowed_prefixes,
+                )));
             }
         }
 
