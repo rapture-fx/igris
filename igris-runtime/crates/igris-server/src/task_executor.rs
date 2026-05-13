@@ -5501,7 +5501,7 @@ mod tests {
         evaluate_robotics_safety_gate, initialize_graph_blackboard, materialize_execution_graph,
         normalize_agent_mode, permission_failure_for_step, persist_task_status_index,
         resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
-        should_checkpoint_agent_workflow, stream_durability_metadata, task_status_key, unix_now_ms,
+        should_checkpoint_after_steps, stream_durability_metadata, task_status_key, unix_now_ms,
         update_graph_blackboard, validate_task_permission_envelope, verified_resume_start_step,
         AgentApprovalOptions, AgentExecutionMode, AgentIdentity, AgentMemoryOptions,
         BehaviorTreeStep, CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode,
