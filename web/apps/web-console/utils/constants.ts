@@ -151,8 +151,8 @@ export const ROUTES = {
   EXECUTION_TASKS: '/execution/tasks',
   EXECUTION_AGENTS: '/execution/agents',
 
-  // Fleet
-  FLEET_DEVICES: '/fleet/devices',
+  // Infrastructure
+  INFRASTRUCTURE_RUNTIMES: '/infrastructure/runtimes',
 
   // Models
   MODELS_ROUTING: '/models/routing',
