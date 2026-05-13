@@ -2358,6 +2358,40 @@ func (s *CheckpointStore) GetAllTaskSteps(taskID uuid.UUID) ([]WalEntry, error) 
 	return all, nil
 }
 
+// GetAllCheckpoints returns every persisted checkpoint payload for a task in
+// ascending step order. Checkpoints are delta-based, so callers that need a
+// complete action-evidence view can merge safe summaries across payload
+// metadata without changing the task's latest checkpoint.
+func (s *CheckpointStore) GetAllCheckpoints(taskID uuid.UUID) ([]*CheckpointPayload, error) {
+	rows, err := s.db.Query(`
+		SELECT wal_entries FROM wal_checkpoints
+		WHERE task_id = $1
+		ORDER BY step_index ASC`,
+		taskID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var checkpoints []*CheckpointPayload
+	for rows.Next() {
+		var cpBytes []byte
+		if err := rows.Scan(&cpBytes); err != nil {
+			return nil, err
+		}
+		var cp CheckpointPayload
+		if err := json.Unmarshal(cpBytes, &cp); err != nil {
+			return nil, err
+		}
+		checkpoints = append(checkpoints, &cp)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return checkpoints, nil
+}
+
 // GetRecoveringTasks returns tasks in RECOVERING state with their last checkpoints.
 func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 	rows, err := s.db.Query(`
