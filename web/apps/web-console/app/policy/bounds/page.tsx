@@ -376,15 +376,15 @@ export default function PolicyBoundsPage() {
                       checked={selectedAgentIds.has(agent.id)}
                       onCheckedChange={() => toggleAgent(agent.id)}
                     />
-                    <label htmlFor={`agent-${agent.id}`} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                      <span className="text-xs font-mono text-muted-foreground truncate">{agent.id}</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{agent.namespace}</span>
-                      <span className={`ml-auto shrink-0 text-[10px] px-1.5 py-0.5 rounded border ${
-                        agent.state === 'RUNNING' || agent.state === 'ACTIVE'
-                          ? 'bg-green-50 text-green-600 border-green-200'
-                          : 'bg-gray-50 text-gray-500 border-gray-200'
-                      }`}>{agent.state}</span>
-                    </label>
+                     <label htmlFor={`agent-${agent.id}`} className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                       <span className="text-xs font-mono text-foreground truncate">{agent.id}</span>
+                       <span className="text-[10px] text-foreground shrink-0">{agent.namespace}</span>
+                       <span className={`ml-auto shrink-0 text-[10px] px-1.5 py-0.5 rounded border ${
+                         agent.state === 'RUNNING' || agent.state === 'ACTIVE'
+                           ? 'bg-green-50 text-green-600 border-green-200'
+                           : 'bg-gray-50 text-gray-600 border-gray-200'
+                       }`}>{agent.state.toLowerCase()}</span>
+                     </label>
                   </div>
                 ))}
               </div>
