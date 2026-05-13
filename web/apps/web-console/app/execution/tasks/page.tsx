@@ -29,6 +29,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { type Task, useTask, useTasks, useTaskSteps } from '@/hooks/useTasks';
+import { useTenant } from '@/hooks/useTenant';
 import {
   CopyButton,
   ExecutionStatusBadge,
@@ -36,6 +37,7 @@ import {
   KeyValueGrid,
 } from '@/components/execution/shared';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
+import { API_BASE_URL } from '@/utils/constants';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -138,6 +140,7 @@ function ExecutionTasksContent() {
   const { data, isLoading } = useTasks({ limit: 100 });
   const { data: selectedTask } = useTask(selectedTaskId);
   const { data: selectedSteps } = useTaskSteps(selectedTaskId);
+  const { data: tenant } = useTenant();
 
   const tasks = data?.tasks ?? [];
 
@@ -461,34 +464,16 @@ function ExecutionTasksContent() {
                 ))}
               </div>
             ) : filteredTasks.length === 0 ? (
-              <div className="px-4 py-16 text-center">
+              <div className="px-4 py-12 text-center">
                 {tasks.length === 0 ? (
-                  /* Truly empty workspace - show demo CTA */
-                  <div className="space-y-4">
-                    <div className="text-sm font-medium text-foreground">No tasks yet</div>
-                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                      Run the Action Task V1 demo to create a task that reads a file, calls an API, 
-                      writes a database row, and verifies proof.
-                    </p>
-                    <div className="pt-2">
-                      <code className="inline-block px-3 py-2 bg-muted rounded text-[10px] font-mono text-muted-foreground">
-                        scripts/action_task_v1_proof_demo.sh
-                      </code>
-                      <p className="text-[10px] text-muted-foreground mt-2">
-                        Or with console URL:{' '}
-                        <code className="text-[10px] font-mono">
-                          CONSOLE_URL=http://localhost:3000 scripts/action_task_v1_proof_demo.sh
-                        </code>
-                      </p>
-                    </div>
+                  /* Truly empty workspace */
+                  <div className="text-xs text-muted-foreground">
+                    No tasks yet
                   </div>
                 ) : (
                   /* Filters are hiding tasks */
-                  <div className="space-y-1">
-                    <div className="text-sm font-medium text-foreground">No tasks match this filter</div>
-                    <p className="text-xs text-muted-foreground">
-                      Try adjusting your search or filter criteria.
-                    </p>
+                  <div className="text-xs text-muted-foreground">
+                    No tasks match this filter
                   </div>
                 )}
               </div>
