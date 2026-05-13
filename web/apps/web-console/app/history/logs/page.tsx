@@ -937,7 +937,7 @@ function LogsContent() {
                     )}
                     {selected.device_id && (
                       <a
-                        href={`/fleet/devices?device=${selected.device_id}`}
+                        href={`/infrastructure/runtimes?device=${selected.device_id}`}
                         className="flex items-center gap-2 px-3 py-2 rounded border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
