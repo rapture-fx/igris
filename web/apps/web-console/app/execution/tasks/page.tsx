@@ -112,6 +112,18 @@ function ProofBadge({ task }: { task: Task }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+// Helper to find the latest Action Task V1 task
+function findLatestActionTask(tasks: Task[]): Task | null {
+  const actionTasks = tasks.filter(
+    (t) => t.task_type === 'action_workflow' || (t.action_evidence && t.action_evidence.length > 0)
+  );
+  if (actionTasks.length === 0) return null;
+  // Sort by created_at desc and return the first
+  return actionTasks.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )[0];
+}
+
 export default function ExecutionTasksPage() {
   return (
     <Suspense fallback={null}>
@@ -166,12 +178,18 @@ function ExecutionTasksContent() {
   const stats = useMemo(() => {
     const completed    = tasks.filter((t) => t.status === 'completed').length;
     const active       = tasks.filter((t) => ['pending','dispatched','checkpointed','recovering'].includes(t.status)).length;
-    const verifiedProof = tasks.filter((t) => t.proof?.status === 'verified').length;
+    const verifiedProof = tasks.filter((t) => t.proof?.status === 'verified' || t.proof?.verified === true).length;
     const pendingProof  = tasks.filter((t) => t.proof?.status === 'pending' || (t.proof?.status === undefined && !!t.execution_receipt)).length;
     const mismatchProof = tasks.filter((t) => t.proof?.status === 'mismatch').length;
     const missingProof  = tasks.filter((t) => t.proof?.status === 'missing' || proofBucket(t) === 'none').length;
     const unresolvedProof = tasks.filter(isUnresolvedTask).length;
-    return { completed, active, verifiedProof, pendingProof, mismatchProof, missingProof, unresolvedProof };
+    const needsReview = tasks.filter((t) => 
+      t.proof?.status === 'mismatch' || 
+      t.proof?.status === 'missing' || 
+      t.proof?.status === 'pending' ||
+      isUnresolvedTask(t)
+    ).length;
+    return { completed, active, verifiedProof, pendingProof, mismatchProof, missingProof, unresolvedProof, needsReview };
   }, [tasks]);
 
   const selectedFilteredIndex = useMemo(
@@ -286,7 +304,12 @@ function ExecutionTasksContent() {
       <div className="space-y-6">
 
         {/* ── Page Header ─────────────────────────────────────────────────── */}
-        <h1 className="text-base font-semibold text-foreground">Durable Tasks</h1>
+        <div className="space-y-1">
+          <h1 className="text-base font-semibold text-foreground">Agent Tasks</h1>
+          <p className="text-xs text-muted-foreground">
+            Tasks run through Igris with action evidence, recovery state, and verifiable proof.
+          </p>
+        </div>
 
         {/* ── Stat Cards ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -396,15 +419,15 @@ function ExecutionTasksContent() {
                     key={pill.value}
                     type="button"
                     onClick={() => updateProofFilter(pill.value, pill.prioritize ?? false)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors ${
                       active
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
                         : 'bg-white border border-black/[0.08] dark:border-white/[0.08] text-muted-foreground hover:border-gray-300 hover:text-foreground'
                     }`}
                   >
                     {pill.label}
-                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] leading-none ${
-                      active ? 'bg-white/20 text-white' : 'bg-muted text-muted-foreground'
+                    <span className={`rounded-lg px-1.5 py-0.5 text-[10px] leading-none ${
+                      active ? 'bg-white/40 text-foreground' : 'bg-muted text-muted-foreground'
                     }`}>
                       {isLoading ? '—' : pill.count}
                     </span>
