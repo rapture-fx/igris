@@ -3103,6 +3103,7 @@ func TestBuildTaskSubmitRequestCompilesActionTask(t *testing.T) {
 		"task_type": "action_workflow",
 		"action_task": {
 			"name": "action-task-v1-proof",
+			"checkpoint_after_steps": 2,
 			"steps": [
 				{"action": "read_file", "path": "/tmp/igris-action-proof/input.txt"},
 				{"action": "http_call", "method": "POST", "url": "http://127.0.0.1:18099/process", "body": "{}"},
@@ -3119,12 +3120,14 @@ func TestBuildTaskSubmitRequestCompilesActionTask(t *testing.T) {
 	require.Equal(t, "action-task-v1-abc", req.IdempotencyKey)
 
 	var definition struct {
-		Graph struct {
+		CheckpointAfterSteps uint32 `json:"checkpoint_after_steps"`
+		Graph                struct {
 			GraphID string           `json:"graph_id"`
 			Nodes   []map[string]any `json:"nodes"`
 		} `json:"graph"`
 	}
 	require.NoError(t, json.Unmarshal(req.TaskDefinition, &definition))
+	require.Equal(t, uint32(2), definition.CheckpointAfterSteps)
 	require.Equal(t, "action-task-v1-proof", definition.Graph.GraphID)
 	require.Len(t, definition.Graph.Nodes, 3)
 
