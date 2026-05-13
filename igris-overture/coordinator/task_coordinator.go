@@ -1351,6 +1351,9 @@ func validateTaskDefinition(taskType string, definition map[string]json.RawMessa
 			return invalidTaskDefinition("behavior_tree.tree is required")
 		}
 	case "execution_graph":
+		if err := validateOptionalPositiveUint32Field(definition, "checkpoint_after_steps"); err != nil {
+			return err
+		}
 		if err := validateExecutionGraph(definition); err != nil {
 			return err
 		}
