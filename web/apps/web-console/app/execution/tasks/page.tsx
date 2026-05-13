@@ -48,7 +48,8 @@ function proofBucket(task: Task): string {
 
 function isUnresolvedTask(task: Task): boolean {
   const bucket = proofBucket(task);
-  return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope';
+  // "Needs review" includes: pending, missing, mismatch, or signed/envelope (not yet verified)
+  return bucket === 'pending' || bucket === 'missing' || bucket === 'mismatch' || bucket === 'signed' || bucket === 'envelope' || bucket === 'none';
 }
 
 function findRelativeTaskByBuckets(
@@ -72,7 +73,8 @@ function findRelativeTaskByBuckets(
 
 function ProofBadge({ task }: { task: Task }) {
   const bucket = proofBucket(task);
-  if (bucket === 'verified') return (
+  // Show verified when proof.verified is true OR status is explicitly 'verified'
+  if (bucket === 'verified' || task.proof?.verified === true) return (
     <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
       <Shield className="h-3 w-3" /> Verified
     </span>
@@ -87,24 +89,14 @@ function ProofBadge({ task }: { task: Task }) {
       <Clock3 className="h-3 w-3" /> Pending
     </span>
   );
-  if (bucket === 'missing') return (
+  if (bucket === 'missing' || bucket === 'none') return (
     <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-medium text-gray-600">
       <Shield className="h-3 w-3" /> Missing
     </span>
   );
-  if (bucket === 'present') return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-      <Shield className="h-3 w-3" /> Proof
-    </span>
-  );
-  if (bucket === 'signed') return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700">
-      <Shield className="h-3 w-3" /> Signed
-    </span>
-  );
-  if (bucket === 'envelope') return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
-      <Shield className="h-3 w-3" /> Envelope
+  if (bucket === 'signed' || bucket === 'envelope') return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+      <Clock3 className="h-3 w-3" /> Pending
     </span>
   );
   return <span className="text-muted-foreground">—</span>;
@@ -292,11 +284,11 @@ function ExecutionTasksContent() {
 
   const FILTER_PILLS: { label: string; value: typeof proofFilter; count: number; prioritize?: boolean }[] = [
     { label: 'All',          value: 'all',        count: tasks.length },
-    { label: 'Needs Review', value: 'unresolved', count: stats.unresolvedProof, prioritize: true },
+    { label: 'Needs Review', value: 'unresolved', count: stats.needsReview, prioritize: true },
     { label: 'Verified',     value: 'verified',   count: stats.verifiedProof },
+    { label: 'Pending',      value: 'pending',    count: stats.pendingProof, prioritize: true },
     { label: 'Mismatch',     value: 'mismatch',   count: stats.mismatchProof, prioritize: true },
     { label: 'Missing',      value: 'missing',    count: stats.missingProof, prioritize: true },
-    { label: 'Pending',      value: 'pending',    count: stats.pendingProof, prioritize: true },
   ];
 
   return (
@@ -317,7 +309,7 @@ function ExecutionTasksContent() {
           <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
             <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-              Active
+              Running
             </div>
             <div className="bg-white px-4 pt-4 pb-5">
               {isLoading ? <Skeleton className="h-8 w-12" /> : (
@@ -341,7 +333,7 @@ function ExecutionTasksContent() {
           <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
             <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-              Verified Proof
+              Verified
             </div>
             <div className="bg-white px-4 pt-4 pb-5">
               {isLoading ? <Skeleton className="h-8 w-12" /> : (
@@ -353,11 +345,11 @@ function ExecutionTasksContent() {
           <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
             <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
               <Clock3 className="h-3.5 w-3.5 text-muted-foreground" />
-              Pending Proof
+              Needs Review
             </div>
             <div className="bg-white px-4 pt-4 pb-5">
               {isLoading ? <Skeleton className="h-8 w-12" /> : (
-                <div className="text-3xl font-bold text-foreground tabular-nums">{stats.pendingProof}</div>
+                <div className="text-3xl font-bold text-foreground tabular-nums">{stats.needsReview}</div>
               )}
             </div>
           </div>
@@ -369,7 +361,27 @@ function ExecutionTasksContent() {
 
           {/* Card header with search + controls */}
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-sm font-medium text-foreground">Task Activity</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-foreground">Task Activity</span>
+              {/* Demo affordance: Open latest Action Task */}
+              {!isLoading && tasks.length > 0 && (
+                (() => {
+                  const latestActionTask = findLatestActionTask(tasks);
+                  if (latestActionTask) {
+                    return (
+                      <Link
+                        href={`/execution/tasks/${encodeURIComponent(latestActionTask.task_id)}`}
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Open latest Action Task
+                        <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    );
+                  }
+                  return null;
+                })()
+              )}
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -449,23 +461,49 @@ function ExecutionTasksContent() {
                 ))}
               </div>
             ) : filteredTasks.length === 0 ? (
-              <div className="px-4 py-16 text-center text-xs text-foreground">
-                No tasks matched this filter.
+              <div className="px-4 py-16 text-center">
+                {tasks.length === 0 ? (
+                  /* Truly empty workspace - show demo CTA */
+                  <div className="space-y-4">
+                    <div className="text-sm font-medium text-foreground">No tasks yet</div>
+                    <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                      Run the Action Task V1 demo to create a task that reads a file, calls an API, 
+                      writes a database row, and verifies proof.
+                    </p>
+                    <div className="pt-2">
+                      <code className="inline-block px-3 py-2 bg-muted rounded text-[10px] font-mono text-muted-foreground">
+                        scripts/action_task_v1_proof_demo.sh
+                      </code>
+                      <p className="text-[10px] text-muted-foreground mt-2">
+                        Or with console URL:{' '}
+                        <code className="text-[10px] font-mono">
+                          CONSOLE_URL=http://localhost:3000 scripts/action_task_v1_proof_demo.sh
+                        </code>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  /* Filters are hiding tasks */
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-foreground">No tasks match this filter</div>
+                    <p className="text-xs text-muted-foreground">
+                      Try adjusting your search or filter criteria.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
-                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Task ID</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Status</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Task</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Type</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Mode</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Strategy</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Status</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Proof</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Runtime</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Updated</th>
-                      <th className="px-4 py-2.5 text-right font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Inspect</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Last Activity</th>
+                      <th className="px-4 py-2.5 text-right font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -476,17 +514,22 @@ function ExecutionTasksContent() {
                         onClick={() => updateSelectedTask(task.task_id)}
                       >
                         <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-1 font-mono text-muted-foreground">
-                            <span>{truncateText(task.task_id, 18)}</span>
-                            <CopyButton value={task.task_id} />
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1 font-mono text-muted-foreground">
+                              <span>{truncateText(task.task_id, 18)}</span>
+                              <CopyButton value={task.task_id} />
+                            </div>
+                            {task.task_type === 'action_workflow' && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                Action task
+                              </span>
+                            )}
                           </div>
                         </td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{task.task_type ?? '—'}</td>
                         <td className="px-4 py-2.5">
                           <ExecutionStatusBadge status={task.status.toUpperCase()} />
                         </td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{task.task_type ?? '—'}</td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{task.requested_mode ?? '—'}</td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{task.resolved_strategy ?? '—'}</td>
                         <td className="px-4 py-2.5">
                           <div className="space-y-0.5">
                             <ProofBadge task={task} />
@@ -509,7 +552,7 @@ function ExecutionTasksContent() {
                             onClick={(e) => e.stopPropagation()}
                             className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium"
                           >
-                            Inspect
+                            Open task
                             <ExternalLink className="h-3 w-3" />
                           </Link>
                         </td>
