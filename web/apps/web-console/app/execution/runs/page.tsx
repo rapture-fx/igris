@@ -36,13 +36,11 @@ const TIME_OPTIONS = [
 function StatCard({
   label,
   value,
-  sub,
   icon: Icon,
   loading,
 }: {
   label: string;
   value: string | number;
-  sub: string;
   icon: typeof Activity;
   loading: boolean;
 }) {
@@ -52,7 +50,7 @@ function StatCard({
         <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-muted/50 border-t border-border px-4 pt-4 pb-5">
+      <div className="bg-white border-t border-border px-4 pt-4 pb-5">
         {loading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
@@ -145,10 +143,10 @@ export default function ExecutionRunsPage() {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard label="Running" value={stats.running} sub="active now" icon={Activity} loading={isLoading} />
-          <StatCard label="Completed" value={stats.completed} sub="last 24 hours" icon={CheckCircle2} loading={isLoading} />
-          <StatCard label="Violations" value={stats.violations} sub="last 24 hours" icon={AlertTriangle} loading={isLoading} />
-          <StatCard label="Avg Duration" value={stats.avgDuration} sub="completed runs" icon={Timer} loading={isLoading} />
+          <StatCard label="Running" value={stats.running} icon={Activity} loading={isLoading} />
+          <StatCard label="Completed" value={stats.completed} icon={CheckCircle2} loading={isLoading} />
+          <StatCard label="Violations" value={stats.violations} icon={AlertTriangle} loading={isLoading} />
+          <StatCard label="Avg Duration" value={stats.avgDuration} icon={Timer} loading={isLoading} />
         </div>
 
         <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
@@ -191,7 +189,7 @@ export default function ExecutionRunsPage() {
             </div>
           </div>
 
-          <div className="bg-muted/50 border-t border-border overflow-hidden">
+          <div className="bg-white border-t border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
