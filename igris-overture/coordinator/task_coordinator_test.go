@@ -336,6 +336,39 @@ func TestNormalizePublicTaskDefinitionRejectsInvalidAgentWorkflowCheckpointAfter
 	require.Contains(t, err.Error(), "checkpoint_after_steps must be a positive integer")
 }
 
+func TestNormalizePublicTaskDefinitionAcceptsExecutionGraphCheckpointAfterSteps(t *testing.T) {
+	t.Parallel()
+
+	normalized, err := normalizePublicTaskDefinition("execution_graph", json.RawMessage(`{
+		"checkpoint_after_steps": 2,
+		"graph": {
+			"nodes": [
+				{"kind":"tool","node_id":"http_call-1","tool_name":"http_request"}
+			]
+		}
+	}`))
+	require.NoError(t, err)
+
+	var definition map[string]any
+	require.NoError(t, json.Unmarshal(normalized, &definition))
+	require.Equal(t, float64(2), definition["checkpoint_after_steps"])
+}
+
+func TestNormalizePublicTaskDefinitionRejectsInvalidExecutionGraphCheckpointAfterSteps(t *testing.T) {
+	t.Parallel()
+
+	_, err := normalizePublicTaskDefinition("execution_graph", json.RawMessage(`{
+		"checkpoint_after_steps": 0,
+		"graph": {
+			"nodes": [
+				{"kind":"tool","node_id":"http_call-1","tool_name":"http_request"}
+			]
+		}
+	}`))
+	require.ErrorIs(t, err, ErrInvalidTaskDefinition)
+	require.Contains(t, err.Error(), "checkpoint_after_steps must be a positive integer")
+}
+
 func TestNormalizePublicTaskDefinitionRejectsStreamingSingleInference(t *testing.T) {
 	t.Parallel()
 
