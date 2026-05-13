@@ -387,6 +387,11 @@ pub enum TaskType {
     },
     ExecutionGraph {
         graph: ExecutionGraph,
+        /// Return an Overture-visible checkpoint when total completed steps
+        /// first reaches this threshold. Used by compiled Action Task V1
+        /// graphs to prove recovery without replaying committed actions.
+        #[serde(default)]
+        checkpoint_after_steps: Option<u32>,
     },
     SingleInference {
         model: String,
@@ -1150,7 +1155,10 @@ pub async fn handle_task_submit(
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (
                 StatusCode::OK,
-                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
             )
                 .into_response();
         }
@@ -1175,7 +1183,10 @@ pub async fn handle_task_submit(
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (
                 StatusCode::OK,
-                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
             )
                 .into_response();
         }
@@ -1217,7 +1228,10 @@ pub async fn handle_task_submit(
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (
                 StatusCode::OK,
-                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
             )
                 .into_response();
         }
@@ -1345,7 +1359,10 @@ pub async fn handle_task_submit(
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
                 return (
                     StatusCode::OK,
-                    Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                    Json(task_submit_response_with_step_receipts(
+                        response,
+                        &step_receipts,
+                    )),
                 )
                     .into_response();
             }
@@ -1374,7 +1391,10 @@ pub async fn handle_task_submit(
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (
                 StatusCode::OK,
-                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
             )
                 .into_response();
         }
@@ -1423,7 +1443,10 @@ pub async fn handle_task_submit(
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (
                 StatusCode::OK,
-                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
             )
                 .into_response();
         }
@@ -1504,7 +1527,7 @@ pub async fn handle_task_submit(
         }
         last_receipt = execution_receipt;
 
-        if should_checkpoint_agent_workflow(&req.task_type, start_step, steps_completed) {
+        if should_checkpoint_after_steps(&req.task_type, start_step, steps_completed) {
             let payload = match build_checkpoint(
                 &wal,
                 req.task_id,
@@ -1542,7 +1565,10 @@ pub async fn handle_task_submit(
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
             return (
                 StatusCode::OK,
-                Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
             )
                 .into_response();
         }
@@ -1612,7 +1638,10 @@ pub async fn handle_task_submit(
 
     (
         StatusCode::OK,
-        Json(task_submit_response_with_step_receipts(response, &step_receipts)),
+        Json(task_submit_response_with_step_receipts(
+            response,
+            &step_receipts,
+        )),
     )
         .into_response()
 }
@@ -2138,17 +2167,21 @@ fn build_checkpoint(
     })
 }
 
-fn should_checkpoint_agent_workflow(
+fn should_checkpoint_after_steps(
     task_type: &TaskType,
     start_step: u32,
     steps_completed: u32,
 ) -> bool {
-    let TaskType::AgentWorkflow {
-        checkpoint_after_steps: Some(checkpoint_after_steps),
-        ..
-    } = task_type
-    else {
-        return false;
+    let checkpoint_after_steps = match task_type {
+        TaskType::AgentWorkflow {
+            checkpoint_after_steps: Some(checkpoint_after_steps),
+            ..
+        }
+        | TaskType::ExecutionGraph {
+            checkpoint_after_steps: Some(checkpoint_after_steps),
+            ..
+        } => checkpoint_after_steps,
+        _ => return false,
     };
     if *checkpoint_after_steps == 0 {
         return false;
@@ -2413,7 +2446,7 @@ fn normalize_agent_mode(mode: Option<&str>) -> anyhow::Result<AgentExecutionMode
 
 fn materialize_execution_graph(task_type: &TaskType) -> anyhow::Result<ExecutionGraph> {
     match task_type {
-        TaskType::ExecutionGraph { graph } => Ok(graph.clone()),
+        TaskType::ExecutionGraph { graph, .. } => Ok(graph.clone()),
         TaskType::AgentWorkflow { steps, .. } => Ok(ExecutionGraph {
             graph_id: Some("agent_workflow".to_string()),
             blackboard: None,
@@ -5601,6 +5634,7 @@ mod tests {
                     blackboard: None,
                     nodes: vec![],
                 },
+                checkpoint_after_steps: None,
             },
             containment: None,
             resume_from: None,
@@ -5626,7 +5660,7 @@ mod tests {
     }
 
     #[test]
-    fn agent_workflow_checkpoint_after_steps_deserializes() {
+    fn checkpoint_after_steps_deserializes_for_workflows_and_graphs() {
         let raw = serde_json::json!({
             "type": "agent_workflow",
             "checkpoint_after_steps": 1,
@@ -5647,25 +5681,61 @@ mod tests {
         };
         assert_eq!(checkpoint_after_steps, Some(1));
         assert_eq!(steps.len(), 1);
+
+        let raw_graph = serde_json::json!({
+            "type": "execution_graph",
+            "checkpoint_after_steps": 2,
+            "graph": {
+                "nodes": [{
+                    "kind": "tool",
+                    "node_id": "http_call-1",
+                    "tool_name": "http_request",
+                    "args": {"method": "POST", "url": "http://127.0.0.1:18091/process"}
+                }]
+            }
+        });
+        let graph_type: TaskType =
+            serde_json::from_value(raw_graph).expect("execution graph task type");
+        let TaskType::ExecutionGraph {
+            checkpoint_after_steps,
+            graph,
+        } = graph_type
+        else {
+            panic!("expected execution graph");
+        };
+        assert_eq!(checkpoint_after_steps, Some(2));
+        assert_eq!(graph.nodes.len(), 1);
     }
 
     #[test]
-    fn agent_workflow_checkpoint_after_steps_triggers_only_after_new_steps() {
+    fn checkpoint_after_steps_triggers_only_after_new_steps() {
         let task_type = TaskType::AgentWorkflow {
             checkpoint_after_steps: Some(2),
             steps: Vec::new(),
         };
 
-        assert!(!should_checkpoint_agent_workflow(&task_type, 0, 1));
-        assert!(should_checkpoint_agent_workflow(&task_type, 0, 2));
-        assert!(!should_checkpoint_agent_workflow(&task_type, 2, 3));
-        assert!(!should_checkpoint_agent_workflow(&task_type, 2, 4));
+        assert!(!should_checkpoint_after_steps(&task_type, 0, 1));
+        assert!(should_checkpoint_after_steps(&task_type, 0, 2));
+        assert!(!should_checkpoint_after_steps(&task_type, 2, 3));
+        assert!(!should_checkpoint_after_steps(&task_type, 2, 4));
+
+        let graph_task_type = TaskType::ExecutionGraph {
+            checkpoint_after_steps: Some(2),
+            graph: ExecutionGraph {
+                graph_id: Some("action-task-v1".to_string()),
+                blackboard: None,
+                nodes: Vec::new(),
+            },
+        };
+        assert!(!should_checkpoint_after_steps(&graph_task_type, 0, 1));
+        assert!(should_checkpoint_after_steps(&graph_task_type, 0, 2));
+        assert!(!should_checkpoint_after_steps(&graph_task_type, 2, 3));
 
         let disabled = TaskType::AgentWorkflow {
             checkpoint_after_steps: Some(0),
             steps: Vec::new(),
         };
-        assert!(!should_checkpoint_agent_workflow(&disabled, 0, 1));
+        assert!(!should_checkpoint_after_steps(&disabled, 0, 1));
     }
 
     #[test]
@@ -5688,6 +5758,7 @@ mod tests {
                     blackboard: None,
                     nodes: vec![],
                 },
+                checkpoint_after_steps: None,
             },
             containment: None,
             resume_from: None,
@@ -5738,6 +5809,7 @@ mod tests {
                         write_slot: None,
                     }],
                 },
+                checkpoint_after_steps: None,
             },
             containment: None,
             resume_from: None,
