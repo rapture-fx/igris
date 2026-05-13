@@ -66,8 +66,8 @@ const nextConfig = {
   async redirects() {
     return [
       // Old dashboard sub-routes → new sidebar routes
-      { source: '/dashboard/fleet',               destination: '/fleet/devices',      permanent: true },
-      { source: '/dashboard/fleet/:path*',        destination: '/fleet/devices',      permanent: true },
+      { source: '/dashboard/fleet',               destination: '/infrastructure/runtimes', permanent: true },
+      { source: '/dashboard/fleet/:path*',        destination: '/infrastructure/runtimes', permanent: true },
       { source: '/dashboard/providers',           destination: '/models/providers',   permanent: true },
       { source: '/dashboard/providers/:path*',    destination: '/models/providers',   permanent: true },
       { source: '/dashboard/usage',               destination: '/history/metrics',    permanent: true },
@@ -78,8 +78,11 @@ const nextConfig = {
       { source: '/dashboard/settings/:path*',     destination: '/settings/general',   permanent: true },
       { source: '/dashboard/agents',              destination: '/execution/agents',   permanent: true },
       { source: '/dashboard/agents/:path*',       destination: '/execution/agents',   permanent: true },
-      { source: '/dashboard/runtime',             destination: '/fleet/devices',      permanent: true },
-      { source: '/dashboard/runtime/:path*',      destination: '/fleet/devices',      permanent: true },
+      { source: '/dashboard/runtime',             destination: '/infrastructure/runtimes', permanent: true },
+      { source: '/dashboard/runtime/:path*',      destination: '/infrastructure/runtimes', permanent: true },
+      // Renamed: /fleet/devices → /infrastructure/runtimes (preserve [id]/ros-monitor sub-paths)
+      { source: '/fleet/devices',                 destination: '/infrastructure/runtimes', permanent: true },
+      { source: '/fleet/devices/:path*',          destination: '/infrastructure/runtimes/:path*', permanent: true },
       { source: '/dashboard/overture',            destination: '/models/routing',     permanent: true },
       { source: '/dashboard/overture/:path*',     destination: '/models/routing',     permanent: true },
       { source: '/dashboard/observability',       destination: '/history/logs',       permanent: true },
