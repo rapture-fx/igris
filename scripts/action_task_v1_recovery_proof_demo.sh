@@ -121,10 +121,10 @@ if [[ -z "$DB_URL" ]]; then
   exit 1
 fi
 
-TASK_RECORDS_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.task_records')" 2>/dev/null | tr -d '[:space:]')
-WAL_CHECKPOINTS_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.wal_checkpoints')" 2>/dev/null | tr -d '[:space:]')
-EXECUTION_CONTEXT_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.execution_context')" 2>/dev/null | tr -d '[:space:]')
-EXECUTION_LINEAGE_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.execution_lineage')" 2>/dev/null | tr -d '[:space:]')
+TASK_RECORDS_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.task_records')" 2>/dev/null | tr -d '[:space:]' || true)
+WAL_CHECKPOINTS_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.wal_checkpoints')" 2>/dev/null | tr -d '[:space:]' || true)
+EXECUTION_CONTEXT_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.execution_context')" 2>/dev/null | tr -d '[:space:]' || true)
+EXECUTION_LINEAGE_TABLE=$(psql "$DB_URL" -tAc "SELECT to_regclass('public.execution_lineage')" 2>/dev/null | tr -d '[:space:]' || true)
 if [[ "$TASK_RECORDS_TABLE" != "task_records" || "$WAL_CHECKPOINTS_TABLE" != "wal_checkpoints" || "$EXECUTION_CONTEXT_TABLE" != "execution_context" || "$EXECUTION_LINEAGE_TABLE" != "execution_lineage" ]]; then
   echo "required tables (task_records, wal_checkpoints, execution_context, execution_lineage) are not all present; apply durable-task + execution-context migrations first" >&2
   exit 1
