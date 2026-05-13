@@ -30,10 +30,10 @@ export default function Hero() {
             {/* Title row — on desktop: title left + description right */}
             <div className="flex flex-col gap-2 mb-4 md:mb-10">
               <h1 className="text-xl md:text-2xl lg:text-3xl leading-tight text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-                Run AI tasks with verifiable execution.
+                Run AI tasks that survive failure and prove what happened.
               </h1>
-              <p className="text-lg text-left text-gray-600 dark:text-[#a8a898] max-w-[500px]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                Igris gives AI systems a governed execution layer for controlled runs, fallback paths, and signed records of what happened.
+              <p className="text-lg text-left text-gray-600 dark:text-[#a8a898] max-w-[560px]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
+                Igris is the execution assurance layer for AI agents that touch real systems. Runs recover from failure and produce a signed record of what happened.
               </p>
               <div className="flex gap-3">
                 <a href="/core" className="inline-flex items-center justify-center px-4 py-2 mt-4 text-sm font-medium rounded-xl bg-[#1b1912] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#1b1912] cursor-pointer transition-opacity hover:opacity-80" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
