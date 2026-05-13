@@ -45,29 +45,10 @@ interface NavigationGroup {
 
 const navigationGroups: NavigationGroup[] = [
   {
-    title: 'OBSERVABILITY',
-    items: [
-      { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
-      { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
-    ],
-  },
-  {
-    title: 'MODELS',
-    items: [
-      { name: 'Providers', href: '/models/providers', icon: TokensIcon },
-    ],
-  },
-  {
-    title: 'FLEET',
-    items: [
-      { name: 'Devices', href: '/fleet/devices', icon: MarginIcon },
-    ],
-  },
-  {
     title: 'EXECUTION',
     items: [
-      { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
       { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
+      { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
       { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
     ],
   },
@@ -81,8 +62,22 @@ const navigationGroups: NavigationGroup[] = [
   {
     title: 'POLICY',
     items: [
-      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
       { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
+      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
+    ],
+  },
+  {
+    title: 'INFRASTRUCTURE',
+    items: [
+      { name: 'Providers', href: '/models/providers', icon: TokensIcon },
+      { name: 'Runtimes', href: '/fleet/devices', icon: MarginIcon },
+    ],
+  },
+  {
+    title: 'OBSERVABILITY',
+    items: [
+      { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
+      { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
     ],
   },
 ];
@@ -130,7 +125,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     { title: 'Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
     { title: 'Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
     { title: 'Providers', path: '/models/providers', keywords: 'providers endpoints keys models health infrastructure' },
-    { title: 'Devices', path: '/fleet/devices', keywords: 'devices runtime nodes online policy sync infrastructure' },
+    { title: 'Runtimes', path: '/fleet/devices', keywords: 'runtimes devices runtime nodes online policy sync infrastructure' },
     { title: 'Logs', path: '/history/logs', keywords: 'logs events runtime stream traces history' },
     { title: 'Metrics', path: '/history/metrics', keywords: 'metrics performance charts throughput latency history' },
     { title: 'Settings › General', path: '/settings/general', keywords: 'settings general configuration security api keys roles' },
