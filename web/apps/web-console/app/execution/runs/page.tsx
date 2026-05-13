@@ -47,18 +47,17 @@ function StatCard({
   loading: boolean;
 }) {
   return (
-    <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-black flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-gray-400" />
+    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
+      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
         {label}
       </div>
-      <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl px-4 pt-5 pb-6">
+      <div className="bg-muted/50 border-t border-border px-4 pt-4 pb-5">
         {loading ? (
-          <Skeleton className="h-9 w-16" />
+          <Skeleton className="h-8 w-24" />
         ) : (
-          <div className="text-3xl font-bold text-gray-900 tabular-nums">{value}</div>
+          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
         )}
-        <p className="text-xs text-black mt-1 text-right">{sub}</p>
       </div>
     </div>
   );
@@ -134,8 +133,8 @@ export default function ExecutionRunsPage() {
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-base font-semibold text-gray-900">Runs</h1>
-            <p className="text-xs text-black mt-0.5">
+            <h1 className="text-base font-semibold text-foreground">Runs</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
               Execution records for governed AI work, receipts, and enforcement outcomes.
             </p>
           </div>
@@ -152,12 +151,12 @@ export default function ExecutionRunsPage() {
           <StatCard label="Avg Duration" value={stats.avgDuration} sub="completed runs" icon={Timer} loading={isLoading} />
         </div>
 
-        <div className="border border-gray-200 shadow rounded-3xl overflow-hidden bg-white">
+        <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-xs font-medium text-black">Execution Records</span>
+            <span className="text-xs font-medium text-foreground">Execution Records</span>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
                   placeholder="run id · agent · device"
                   className="pl-8 h-7 text-xs w-52"
@@ -192,27 +191,27 @@ export default function ExecutionRunsPage() {
             </div>
           </div>
 
-          <div className="bg-gray-50 border-t border-gray-200 rounded-t-3xl overflow-hidden">
+          <div className="bg-muted/50 border-t border-border overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Run ID</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Agent</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Device</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Model</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Started</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Duration</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Status</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Violation</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Receipt</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-black whitespace-nowrap">Record</th>
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Run ID</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Agent</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Device</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Model</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Started</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Duration</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Status</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Violation</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Receipt</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Record</th>
                   </tr>
                 </thead>
                 <tbody>
                   {isLoading ? (
                     Array.from({ length: 8 }).map((_, rowIndex) => (
-                      <tr key={rowIndex} className="border-b border-gray-100">
+                      <tr key={rowIndex} className="border-b border-border/50">
                         {Array.from({ length: 10 }).map((_, cellIndex) => (
                           <td key={cellIndex} className="px-4 py-2.5">
                             <Skeleton className="h-3.5 w-16" />
@@ -222,31 +221,31 @@ export default function ExecutionRunsPage() {
                     ))
                   ) : filteredRuns.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-4 py-16 text-center text-black">
+                      <td colSpan={10} className="px-4 py-16 text-center text-muted-foreground">
                         No runs found for the selected filters.
                       </td>
                     </tr>
                   ) : (
                     filteredRuns.map((run) => (
-                      <tr key={run.id} className="border-b border-gray-100 hover:bg-gray-100/50 transition-colors">
+                      <tr key={run.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-1">
-                            <span className="text-gray-700">{truncateText(run.id, 18)}</span>
+                            <span className="text-foreground">{truncateText(run.id, 18)}</span>
                             <CopyButton value={run.id} />
                           </div>
                         </td>
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-1">
-                            <span className="text-gray-700">{truncateText(run.agent_id, 14)}</span>
+                            <span className="text-foreground">{truncateText(run.agent_id, 14)}</span>
                             <CopyButton value={run.agent_id} />
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 text-gray-600">
+                        <td className="px-4 py-2.5 text-muted-foreground">
                           {run.runtime_id || run.device_id ? truncateText(run.runtime_id ?? run.device_id, 14) : '—'}
                         </td>
-                        <td className="px-4 py-2.5 text-gray-600">{run.model ?? '—'}</td>
-                        <td className="px-4 py-2.5 text-gray-500 tabular-nums">{getRelativeTime(run.started_at)}</td>
-                        <td className="px-4 py-2.5 text-gray-500 tabular-nums">
+                        <td className="px-4 py-2.5 text-muted-foreground">{run.model ?? '—'}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground tabular-nums">{getRelativeTime(run.started_at)}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
                           {run.duration_ms != null ? formatDurationMs(run.duration_ms) : '—'}
                         </td>
                         <td className="px-4 py-2.5">
@@ -255,13 +254,13 @@ export default function ExecutionRunsPage() {
                         <td className="px-4 py-2.5">
                           <ViolationBadge hasViolation={run.has_violation} />
                         </td>
-                        <td className="px-4 py-2.5 text-gray-600">
+                        <td className="px-4 py-2.5 text-muted-foreground">
                           {run.receipt_hash || run.receipt_signature ? 'Available' : 'Pending'}
                         </td>
                         <td className="px-4 py-2.5">
                           <Link
                             href={`/execution/runs/${run.id}`}
-                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800"
+                            className="inline-flex items-center gap-1 text-primary hover:text-primary/80"
                           >
                             Open
                             <ChevronRight className="h-3 w-3" />
@@ -274,8 +273,8 @@ export default function ExecutionRunsPage() {
               </table>
             </div>
 
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-              <span className="text-xs text-black">
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">
                 Page {page + 1} · {filteredRuns.length} records
               </span>
               <div className="flex items-center gap-2">
