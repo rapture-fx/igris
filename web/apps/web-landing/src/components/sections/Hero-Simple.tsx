@@ -50,7 +50,7 @@ export default function Hero() {
 
             {/* Description — mobile only */}
             <p className="md:hidden mt-4 text-xs text-center text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-              Igris gives AI systems a governed execution layer for controlled runs, fallback paths, and signed records of what happened.
+              Igris is the execution assurance layer for AI agents that touch real systems. Runs recover from failure and produce a signed record of what happened.
             </p>
 
           </div>
