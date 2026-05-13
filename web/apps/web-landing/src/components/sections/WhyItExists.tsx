@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { useTheme } from 'next-themes'
 
-const INSTALL_CMD = 'curl -sSL https://igris.sh/install | bash'
+const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
 const POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_-+={}|;<>?/'
 const LINE_MS = 900
 
