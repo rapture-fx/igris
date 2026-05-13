@@ -878,7 +878,12 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 			}
 		}
 
-		return c.JSON(buildTaskResponse(task))
+		allSteps, _ := tc.Store().GetAllTaskSteps(taskID)
+		allCheckpoints, _ := tc.Store().GetAllCheckpoints(taskID)
+		return c.JSON(buildTaskResponse(task, actionEvidenceSource{
+			walEntries:      allSteps,
+			blackboardNodes: actionEvidenceNodesFromCheckpoints(allCheckpoints),
+		}))
 	}
 }
 
@@ -966,7 +971,12 @@ func handleTaskProofReadiness(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
-func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
+type actionEvidenceSource struct {
+	walEntries      []coordinator.WalEntry
+	blackboardNodes map[string]map[string]interface{}
+}
+
+func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSource) fiber.Map {
 	resp := fiber.Map{
 		"task_id":       task.TaskID,
 		"status":        task.Status,
@@ -1011,7 +1021,7 @@ func buildTaskResponse(task *coordinator.TaskRecord) fiber.Map {
 		resp["proof"] = proof
 	}
 
-	if evidence := buildActionEvidence(task); len(evidence) > 0 {
+	if evidence := buildActionEvidence(task, sources...); len(evidence) > 0 {
 		resp["action_evidence"] = evidence
 	}
 
@@ -1716,7 +1726,7 @@ var actionToolForType = map[string]string{
 //     structured fields only: bytes read, HTTP status code, written row id)
 //
 // Returns nil for anything that is not an Action Task V1 graph.
-func buildActionEvidence(task *coordinator.TaskRecord) []fiber.Map {
+func buildActionEvidence(task *coordinator.TaskRecord, sources ...actionEvidenceSource) []fiber.Map {
 	if task == nil || len(task.TaskDefinition) == 0 {
 		return nil
 	}
@@ -1774,7 +1784,14 @@ func buildActionEvidence(task *coordinator.TaskRecord) []fiber.Map {
 	}
 
 	walByIndex := map[uint32]coordinator.WalEntry{}
-	if task.LastCheckpoint != nil {
+	if len(sources) > 0 && len(sources[0].walEntries) > 0 {
+		for _, e := range sources[0].walEntries {
+			existing, ok := walByIndex[e.StepIndex]
+			if !ok || (existing.OutputDigest == nil && e.OutputDigest != nil) {
+				walByIndex[e.StepIndex] = e
+			}
+		}
+	} else if task.LastCheckpoint != nil {
 		for _, e := range task.LastCheckpoint.WalEntries {
 			existing, ok := walByIndex[e.StepIndex]
 			if !ok || (existing.OutputDigest == nil && e.OutputDigest != nil) {
@@ -1784,7 +1801,9 @@ func buildActionEvidence(task *coordinator.TaskRecord) []fiber.Map {
 	}
 
 	blackboardNodes := map[string]map[string]interface{}{}
-	if task.LastCheckpoint != nil && len(task.LastCheckpoint.Metadata) > 0 {
+	if len(sources) > 0 && len(sources[0].blackboardNodes) > 0 {
+		blackboardNodes = sources[0].blackboardNodes
+	} else if task.LastCheckpoint != nil && len(task.LastCheckpoint.Metadata) > 0 {
 		var meta struct {
 			GraphBlackboard struct {
 				Nodes map[string]map[string]interface{} `json:"nodes"`
@@ -1833,6 +1852,27 @@ func buildActionEvidence(task *coordinator.TaskRecord) []fiber.Map {
 		out = append(out, row)
 	}
 	return out
+}
+
+func actionEvidenceNodesFromCheckpoints(checkpoints []*coordinator.CheckpointPayload) map[string]map[string]interface{} {
+	nodes := map[string]map[string]interface{}{}
+	for _, cp := range checkpoints {
+		if cp == nil || len(cp.Metadata) == 0 {
+			continue
+		}
+		var meta struct {
+			GraphBlackboard struct {
+				Nodes map[string]map[string]interface{} `json:"nodes"`
+			} `json:"graph_blackboard"`
+		}
+		if err := json.Unmarshal(cp.Metadata, &meta); err != nil || meta.GraphBlackboard.Nodes == nil {
+			continue
+		}
+		for nodeID, node := range meta.GraphBlackboard.Nodes {
+			nodes[nodeID] = node
+		}
+	}
+	return nodes
 }
 
 // summarizeActionTarget returns a short, human-readable description of *what* an
