@@ -1188,6 +1188,11 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			continue
 		}
 		task.RuntimeEndpoint = &newRuntime.Endpoint
+		// The persisted permission envelope is bound to the runtime that first
+		// received the task. Recovery must rebuild it after MarkDispatched updates
+		// task.RuntimeID, otherwise the replacement runtime correctly rejects the
+		// resume request as a runtime-binding mismatch.
+		task.PermissionEnvelope = nil
 
 		log.Info().
 			Str("task_id", taskID.String()).
