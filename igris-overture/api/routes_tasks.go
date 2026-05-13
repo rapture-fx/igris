@@ -688,8 +688,9 @@ func buildRoboticsExecutionGraphDefinition(mission *publicRoboticsMission) (json
 //	db_write   -> kind=tool tool_name=database_write  args={table, record}
 //
 // Node ids are `<action>-<index>` so the action sequence is visible in task
-// detail and the WAL step list. checkpoint_after_steps is accepted but not
-// threaded through to the runtime in v1 (action graphs run to completion).
+// detail and the WAL step list. checkpoint_after_steps is threaded through to
+// the runtime execution_graph path so recovery proofs can checkpoint after a
+// committed action and resume without replaying that side effect.
 func buildActionWorkflowDefinition(task *publicActionTask) (json.RawMessage, error) {
 	if task == nil {
 		return nil, fmt.Errorf("%w: action_task is required", coordinator.ErrInvalidTaskDefinition)
@@ -750,7 +751,7 @@ func buildActionWorkflowDefinition(task *publicActionTask) (json.RawMessage, err
 		}
 		nodes = append(nodes, node)
 	}
-	return buildExecutionGraphDefinition(name, nodes)
+	return buildExecutionGraphDefinition(name, nodes, task.CheckpointAfterSteps)
 }
 
 func buildTaskApproval(approvalConfig *publicApproval, taskName, action string, waypointIndex int) map[string]interface{} {
@@ -816,16 +817,20 @@ func unwrapTaskDefinitionError(err error) string {
 	return strings.TrimPrefix(err.Error(), prefix)
 }
 
-func buildExecutionGraphDefinition(name string, nodes []map[string]interface{}) (json.RawMessage, error) {
+func buildExecutionGraphDefinition(name string, nodes []map[string]interface{}, checkpointAfterSteps ...*uint32) (json.RawMessage, error) {
 	graph := map[string]interface{}{
 		"nodes": nodes,
 	}
 	if name != "" {
 		graph["graph_id"] = name
 	}
-	definition, err := json.Marshal(map[string]interface{}{
+	def := map[string]interface{}{
 		"graph": graph,
-	})
+	}
+	if len(checkpointAfterSteps) > 0 && checkpointAfterSteps[0] != nil {
+		def["checkpoint_after_steps"] = *checkpointAfterSteps[0]
+	}
+	definition, err := json.Marshal(def)
 	if err != nil {
 		return nil, fmt.Errorf("%w: could not encode execution_graph", coordinator.ErrInvalidTaskDefinition)
 	}
