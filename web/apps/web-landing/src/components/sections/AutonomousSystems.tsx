@@ -30,7 +30,7 @@ export default function AutonomousSystems() {
               Extendable to local environments.
             </h2>
             <p className="text-sm md:text-base text-[#000000] dark:text-[#f6f6f4] max-w-md md:text-right" style={{ fontFamily }}>
-              Igris gives AI systems one governed execution model across hosted, local, and hybrid environments, with specialized surfaces available where teams need them.
+              The same execution path — Run, Recover, Verify — works whether the task runs in the cloud or close to the device. One model, the same receipts.
             </p>
           </div>
         </div>
