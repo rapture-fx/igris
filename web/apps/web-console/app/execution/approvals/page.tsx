@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api } from '@/lib/apiClient';
 import { toast } from '@/components/ui/use-toast';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
-import { UserCheck, UserX, Clock, CheckCircle2, AlertTriangle, RefreshCw, ChevronDown, ChevronRight, GitBranch } from 'lucide-react';
+import { Clock, CheckCircle2, AlertTriangle, RefreshCw, ChevronDown, ChevronRight, GitBranch } from 'lucide-react';
 
 interface PausedRun {
   id: string;
@@ -125,11 +125,11 @@ export default function ApprovalsPage() {
                   <span className="text-xs text-muted-foreground">{selectedIds.size} selected</span>
                   <Button
                     size="sm"
-                    className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white"
+                    variant="outline"
+                    className="h-7 text-xs"
                     onClick={() => bulkApproveMutation.mutate(Array.from(selectedIds))}
                     disabled={bulkApproveMutation.isPending}
                   >
-                    <UserCheck className="h-3 w-3" />
                     Approve All
                   </Button>
                   <Button
