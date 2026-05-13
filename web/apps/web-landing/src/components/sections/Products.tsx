@@ -460,10 +460,10 @@ export default function Products() {
                   Models decide. Igris executes.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                  Igris gives AI systems a governed path for turning model output into controlled action. Define boundaries, handle failure paths, and generate signed records of what happened during execution.
+                  AI agents now touch APIs, databases, workflows, and live infrastructure. Igris turns model decisions into controlled action — with bounded execution, recovery when a step fails, and a signed receipt of what actually happened.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: SANS }}>
-                  Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
+                  Built for teams running AI beyond chat — where every task needs to be inspected, recovered, and verified across cloud, edge, and local environments.
                 </p>
               </div>
             </div>
@@ -494,10 +494,10 @@ export default function Products() {
                   Models decide. Igris executes.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-3" style={{ fontFamily: SANS }}>
-                  Igris gives AI systems a governed path for turning model output into controlled action. Define boundaries, handle failure paths, and generate signed records of what happened during execution.
+                  AI agents now touch APIs, databases, workflows, and live infrastructure. Igris turns model decisions into controlled action — with bounded execution, recovery when a step fails, and a signed receipt of what actually happened.
                 </p>
                 <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed" style={{ fontFamily: SANS }}>
-                  Built for teams running AI beyond simple prompts — where tasks need to be inspected, constrained, and verified across cloud, edge, and local environments.
+                  Built for teams running AI beyond chat — where every task needs to be inspected, recovered, and verified across cloud, edge, and local environments.
                 </p>
               </div>
             </div>
