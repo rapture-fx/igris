@@ -29,10 +29,10 @@ export default function HomePage() {
           <ScrollReveal><Hero /></ScrollReveal>
           <ScrollReveal delay={0.1}><Products /></ScrollReveal>
           <ScrollReveal delay={0.1}><HowItWorks /></ScrollReveal>
+          <ScrollReveal delay={0.1}><MultiTenancy /></ScrollReveal>
+          <ScrollReveal delay={0.1}><CoreCapabilities /></ScrollReveal>
           <ScrollReveal delay={0.1}><AutonomousSystems /></ScrollReveal>
           <ScrollReveal delay={0.1}><SDKs /></ScrollReveal>
-          <ScrollReveal delay={0.1}><CoreCapabilities /></ScrollReveal>
-          <ScrollReveal delay={0.1}><MultiTenancy /></ScrollReveal>
           <ScrollReveal delay={0.1}><WhyItExists /></ScrollReveal>
           <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
         </main>
