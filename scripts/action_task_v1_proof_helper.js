@@ -22,7 +22,7 @@
 //       pins the runtime's peer id so it matches the registered runtime_id (so
 //       the signed permission envelope's runtime binding verifies).
 //
-//   build-action-task-request <out.json> <task-id> <input-file> <process-url> <table>
+//   build-action-task-request <out.json> <task-id> <input-file> <process-url> <table> [checkpoint_after_steps]
 //       Writes the customer-facing `action_task` submit body.
 //
 //   verify-receipt-chain <receipts.jsonl> [min-count]
@@ -180,7 +180,7 @@ function commandInjectToolsConfig(configPath, allowedFsPath, allowedHttpHost, db
 
 // ── build-action-task-request ────────────────────────────────────────────────
 
-function commandBuildActionTaskRequest(outPath, taskId, inputFile, processUrl, table) {
+function commandBuildActionTaskRequest(outPath, taskId, inputFile, processUrl, table, checkpointAfterStepsArg) {
   if (!outPath || !taskId || !inputFile || !processUrl || !table) {
     fail("usage: build-action-task-request <out.json> <task-id> <input-file> <process-url> <table>");
   }
@@ -207,6 +207,13 @@ function commandBuildActionTaskRequest(outPath, taskId, inputFile, processUrl, t
     },
     idempotency_key: `action-task-v1-${String(taskId).slice(0, 8)}`,
   };
+  if (checkpointAfterStepsArg !== undefined) {
+    const checkpointAfterSteps = Number(checkpointAfterStepsArg);
+    if (!Number.isInteger(checkpointAfterSteps) || checkpointAfterSteps <= 0) {
+      fail("checkpoint_after_steps must be a positive integer");
+    }
+    body.action_task.checkpoint_after_steps = checkpointAfterSteps;
+  }
   fs.writeFileSync(outPath, JSON.stringify(body, null, 2));
   console.log(outPath);
 }
@@ -429,7 +436,7 @@ function main() {
     case "inject-tools-config":
       return commandInjectToolsConfig(args[0], args[1], args[2], args[3], args[4]);
     case "build-action-task-request":
-      return commandBuildActionTaskRequest(args[0], args[1], args[2], args[3], args[4]);
+      return commandBuildActionTaskRequest(args[0], args[1], args[2], args[3], args[4], args[5]);
     case "verify-receipt-chain":
       return commandVerifyReceiptChain(args[0], args[1]);
     case "verify-action-evidence":
