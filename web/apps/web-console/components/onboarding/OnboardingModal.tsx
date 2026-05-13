@@ -377,7 +377,7 @@ function StepDone({
         </p>
         <div className="grid grid-cols-1 gap-1.5">
           {[
-            { label: 'View your fleet', href: '/fleet/devices', sub: 'Monitor connected runtime nodes' },
+            { label: 'View your runtimes', href: '/infrastructure/runtimes', sub: 'Monitor connected runtime nodes' },
             { label: 'Set up policies', href: '/policy/bounds', sub: 'Define governance bounds for agents' },
             { label: 'Manage API keys', href: '/settings/keys', sub: 'Add provider and vault keys' },
           ].map((link) => (
