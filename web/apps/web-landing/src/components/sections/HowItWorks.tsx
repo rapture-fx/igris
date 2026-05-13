@@ -7,21 +7,21 @@ const borderStyle = 'var(--section-border)'
 const stages = [
   {
     number: '01',
-    title: 'Request',
-    body: 'Send an AI task through one Igris API surface.',
-    supporting: ['chat', 'tasks', 'tools'],
+    title: 'Run',
+    body: 'Submit a task. Igris executes it against real systems with limits, permissions, and stop conditions applied before any side effect.',
+    supporting: ['tasks', 'tools', 'boundaries'],
   },
   {
     number: '02',
-    title: 'Execute',
-    body: 'Igris routes the task, applies boundaries, and handles configured failure paths.',
-    supporting: ['route', 'govern', 'observe'],
+    title: 'Recover',
+    body: 'When a step fails, Igris checkpoints progress and falls back to a recovery path. The run keeps moving instead of failing silently.',
+    supporting: ['checkpoint', 'fallback', 'resume'],
   },
   {
     number: '03',
     title: 'Verify',
-    body: 'Receive execution metadata and signed records that can be inspected after the run.',
-    supporting: ['metadata', 'receipt', 'verification'],
+    body: 'Every run produces a signed receipt with action evidence and a verifiable chain you can inspect after the fact.',
+    supporting: ['receipt', 'evidence', 'chain'],
   },
 ]
 
@@ -45,10 +45,10 @@ export default function HowItWorks() {
             {/* Title and subtext */}
             <div className="mb-8">
               <h2 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: SANS }}>
-                How it works
+                Run. Recover. Verify.
               </h2>
               <p className="text-sm md:text-base text-gray-600 dark:text-[#a8a898] mt-2" style={{ fontFamily: SANS }}>
-                From model output to verified execution.
+                The execution path for AI tasks that have to land — and prove it.
               </p>
             </div>
 
