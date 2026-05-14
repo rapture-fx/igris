@@ -1033,6 +1033,85 @@ func TestDispatchToRuntimeAttachesSignedTaskPermissionEnvelope(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestDispatchToRuntimeRecoveryRegeneratesPermissionEnvelopeForReplacementRuntime(t *testing.T) {
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY_VERSION", "capability-key")
+
+	taskID := uuid.New()
+	runtimeID := "runtime-ai-replacement"
+	tenantID := "tenant-ai-recovery"
+	var gotBody struct {
+		ResumeFrom           ResumeToken            `json:"resume_from"`
+		PermissionEnvelope   TaskPermissionEnvelope `json:"permission_envelope"`
+		RequiredCapabilities []string               `json:"required_capabilities"`
+	}
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		values: []driver.Value{`{
+			"policy_version":"capabilities-policy.test",
+			"allowed_capabilities":["tools.github.issues.write"]
+		}`},
+	}},
+		queuedExecExpectation{rowsAffected: 1},
+		queuedExecExpectation{rowsAffected: 1},
+	)
+
+	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(body, &gotBody))
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})}
+
+	checkpoint := &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: 1,
+			CheckpointDigest:  "digest-1",
+			RuntimeID:         "runtime-ai-failed",
+		},
+		WalEntries: []WalEntry{{EntryID: uuid.New(), TaskID: taskID, StepIndex: 1, RuntimeID: "runtime-ai-failed"}},
+	}
+	tc := &TaskCoordinator{httpClient: client, db: db}
+	tc.dispatchToRuntime(context.Background(), &TaskRecord{
+		TaskID:          taskID,
+		TenantID:        tenantID,
+		RuntimeID:       &runtimeID,
+		RuntimeEndpoint: ptrString("http://runtime.test"),
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{"kind":"tool","node_id":"github-write","tool_name":"github.issues.write"}]}
+		}`),
+		AgentIdentity: AgentIdentity{
+			AgentID:          "agent-researcher",
+			PrincipalID:      "user-123",
+			SubmittedBy:      "user-123",
+			ActingOnBehalfOf: "user-123",
+			DelegationChain:  []string{"user-123", "agent-researcher"},
+		},
+		RequiredCapabilities: []string{"tools.github.issues.write"},
+		IdempotencyKey:       "idem-ai-recovery",
+	}, checkpoint)
+
+	require.Equal(t, uint32(1), gotBody.ResumeFrom.LastCommittedStep)
+	require.Equal(t, []string{"tools.github.issues.write"}, gotBody.RequiredCapabilities)
+	require.Equal(t, runtimeID, *gotBody.PermissionEnvelope.RuntimeID)
+	require.Equal(t, taskID.String(), gotBody.PermissionEnvelope.TaskID)
+	canonical, err := json.Marshal(canonicalTaskPermissionEnvelope(gotBody.PermissionEnvelope))
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	signature, err := base64.StdEncoding.DecodeString(gotBody.PermissionEnvelope.Signature)
+	require.NoError(t, err)
+	require.True(t, ed25519.Verify(publicKey, sum[:], signature))
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestDispatchToRuntimeDeniesCapabilityPolicyBeforeHTTP(t *testing.T) {
 	_, privateKey, err := ed25519.GenerateKey(nil)
 	require.NoError(t, err)
@@ -2474,6 +2553,13 @@ func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, f
 
 		resumeCheckpoint, ok := gotBody["resume_checkpoint"].(map[string]any)
 		require.True(t, ok)
+		walEntries, ok := resumeCheckpoint["wal_entries"].([]any)
+		require.True(t, ok)
+		require.NotEmpty(t, walEntries)
+		lastWalEntry, ok := walEntries[len(walEntries)-1].(map[string]any)
+		require.True(t, ok)
+		require.Equal(t, wantStep, lastWalEntry["step_index"])
+		require.Equal(t, failedRuntimeID, lastWalEntry["runtime_id"])
 		metadata, ok := resumeCheckpoint["metadata"].(map[string]any)
 		require.True(t, ok)
 		require.Equal(t, wantTickCount, metadata["tick_count"])
