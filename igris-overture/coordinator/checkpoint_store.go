@@ -90,6 +90,7 @@ const (
 
 var ErrTaskTransitionRejected = errors.New("task transition rejected")
 var ErrCredentialReferenceRevoked = errors.New("credential reference revoked")
+var ErrInvalidCumulativeCheckpoint = errors.New("invalid cumulative checkpoint")
 
 type TaskProofState struct {
 	ExecutionID  string     `json:"execution_id,omitempty"`
@@ -2338,6 +2339,95 @@ func (s *CheckpointStore) GetLastCheckpoint(taskID uuid.UUID) (*CheckpointPayloa
 		return nil, err
 	}
 	return &cp, nil
+}
+
+// GetCumulativeRecoveryCheckpoint reconstructs the committed WAL prefix for a
+// task from every persisted checkpoint row. Runtime checkpoints are delta-based:
+// each row carries entries since the prior checkpoint, while the resume token
+// digest covers all committed entries. Clean-host recovery therefore needs a
+// cumulative checkpoint payload so an empty replacement runtime can seed its WAL
+// and verify the latest resume token.
+func (s *CheckpointStore) GetCumulativeRecoveryCheckpoint(taskID uuid.UUID) (*CheckpointPayload, error) {
+	checkpoints, err := s.GetAllCheckpoints(taskID)
+	if err != nil {
+		return nil, err
+	}
+	return BuildCumulativeRecoveryCheckpoint(taskID, checkpoints)
+}
+
+func BuildCumulativeRecoveryCheckpoint(taskID uuid.UUID, checkpoints []*CheckpointPayload) (*CheckpointPayload, error) {
+	if taskID == uuid.Nil {
+		return nil, fmt.Errorf("%w: task_id is required", ErrInvalidCumulativeCheckpoint)
+	}
+	if len(checkpoints) == 0 {
+		return nil, nil
+	}
+
+	var latest *CheckpointPayload
+	entriesByStep := make(map[uint32]WalEntry)
+	for _, cp := range checkpoints {
+		if cp == nil {
+			continue
+		}
+		if cp.TaskID != taskID {
+			return nil, fmt.Errorf("%w: checkpoint task_id mismatch", ErrInvalidCumulativeCheckpoint)
+		}
+		if latest == nil || TaskCheckpointAdvances(latest, cp) {
+			latest = cp
+		}
+		for _, entry := range cp.WalEntries {
+			if entry.TaskID != taskID {
+				return nil, fmt.Errorf("%w: WAL entry task_id mismatch", ErrInvalidCumulativeCheckpoint)
+			}
+			if normalizeWalStatus(entry.Status) != "committed" {
+				continue
+			}
+			existing, ok := entriesByStep[entry.StepIndex]
+			if ok {
+				if !walEntriesEquivalent(existing, entry) {
+					return nil, fmt.Errorf("%w: conflicting duplicate step %d", ErrInvalidCumulativeCheckpoint, entry.StepIndex)
+				}
+				continue
+			}
+			entriesByStep[entry.StepIndex] = entry
+		}
+	}
+	if latest == nil {
+		return nil, nil
+	}
+	if !TaskRecoveryCheckpointUsable(taskID, latest) {
+		return nil, fmt.Errorf("%w: latest checkpoint is not usable", ErrInvalidCumulativeCheckpoint)
+	}
+
+	lastStep := latest.ResumeToken.LastCommittedStep
+	entries := make([]WalEntry, 0, len(entriesByStep))
+	for step := uint32(0); step <= lastStep; step++ {
+		entry, ok := entriesByStep[step]
+		if !ok {
+			return nil, fmt.Errorf("%w: missing committed step %d", ErrInvalidCumulativeCheckpoint, step)
+		}
+		entries = append(entries, entry)
+		if step == ^uint32(0) {
+			break
+		}
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].StepIndex < entries[j].StepIndex
+	})
+
+	return &CheckpointPayload{
+		TaskID:      latest.TaskID,
+		ResumeToken: latest.ResumeToken,
+		WalEntries:  entries,
+		Metadata:    latest.Metadata,
+		CapturedAt:  latest.CapturedAt,
+	}, nil
+}
+
+func walEntriesEquivalent(a, b WalEntry) bool {
+	aBytes, aErr := json.Marshal(a)
+	bBytes, bErr := json.Marshal(b)
+	return aErr == nil && bErr == nil && bytes.Equal(aBytes, bBytes)
 }
 
 // GetAllTaskSteps aggregates WAL entries across all checkpoint rows for a task,
