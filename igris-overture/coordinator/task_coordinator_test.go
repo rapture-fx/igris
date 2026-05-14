@@ -2008,6 +2008,10 @@ func TestRecoverRuntimeRetryUsesNewestCheckpointOnNextAttempt(t *testing.T) {
 		CapturedAt: time.Unix(1_900_000_209, 0).UTC(),
 	}
 
+	initialWalCheckpoint = cumulativeRecoveryTestCheckpoint(taskID, failedRuntimeID, initialWalCheckpoint)
+	initialTaskCheckpoint = cumulativeRecoveryTestCheckpointRange(taskID, failedRuntimeID, initialTaskCheckpoint, initialWalCheckpoint.ResumeToken.LastCommittedStep+1)
+	retryWalCheckpoint = cumulativeRecoveryTestCheckpoint(taskID, retryRuntimeID, retryWalCheckpoint)
+
 	initialWalCheckpointBytes, err := json.Marshal(initialWalCheckpoint)
 	require.NoError(t, err)
 	retryWalCheckpointBytes, err := json.Marshal(retryWalCheckpoint)
@@ -2288,6 +2292,7 @@ func TestRecoverRuntimeMarksFailedOnRedispatchConflictResponse(t *testing.T) {
 		Metadata:   json.RawMessage(`{"tick_count": 11}`),
 		CapturedAt: time.Unix(1_900_000_261, 0).UTC(),
 	}
+	checkpoint = cumulativeRecoveryTestCheckpoint(taskID, failedRuntimeID, checkpoint)
 	checkpointBytes, err := json.Marshal(checkpoint)
 	require.NoError(t, err)
 
@@ -2471,6 +2476,10 @@ func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, f
 		"type":"behavior_tree",
 		"tree":{"root":{"type":"sequence","children":[]}}
 	}`)
+	walCheckpoint = cumulativeRecoveryTestCheckpoint(taskID, failedRuntimeID, walCheckpoint)
+	if TaskCheckpointAdvances(walCheckpoint, lastCheckpoint) {
+		lastCheckpoint = cumulativeRecoveryTestCheckpointRange(taskID, failedRuntimeID, lastCheckpoint, walCheckpoint.ResumeToken.LastCommittedStep+1)
+	}
 
 	walCheckpointBytes, err := json.Marshal(walCheckpoint)
 	require.NoError(t, err)
@@ -2569,6 +2578,82 @@ func runRecoverRuntimeRedispatchCheckpointTest(t *testing.T, taskID uuid.UUID, f
 
 	require.Equal(t, 0, queued.remainingExecs())
 	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func cumulativeRecoveryTestCheckpoint(taskID uuid.UUID, runtimeID string, checkpoint *CheckpointPayload) *CheckpointPayload {
+	if checkpoint == nil {
+		return nil
+	}
+	entriesByStep := make(map[uint32]WalEntry, len(checkpoint.WalEntries))
+	for _, entry := range checkpoint.WalEntries {
+		entriesByStep[entry.StepIndex] = entry
+	}
+	entries := make([]WalEntry, 0, int(checkpoint.ResumeToken.LastCommittedStep)+1)
+	for step := uint32(0); step <= checkpoint.ResumeToken.LastCommittedStep; step++ {
+		if entry, ok := entriesByStep[step]; ok {
+			entry.Status = "committed"
+			if entry.OutputDigest == nil {
+				entry.OutputDigest = ptrString(fmt.Sprintf("%064x", step+1))
+			}
+			entries = append(entries, entry)
+		} else {
+			entries = append(entries, WalEntry{
+				EntryID:      uuid.New(),
+				TaskID:       taskID,
+				StepIndex:    step,
+				StepType:     map[string]any{"kind": "test"},
+				Status:       "committed",
+				InputDigest:  fmt.Sprintf("%064x", step+1),
+				OutputDigest: ptrString(fmt.Sprintf("%064x", step+101)),
+				TimestampMs:  uint64(1_900_000_000 + step),
+				RuntimeID:    runtimeID,
+			})
+		}
+		if step == ^uint32(0) {
+			break
+		}
+	}
+	next := *checkpoint
+	next.WalEntries = entries
+	return &next
+}
+
+func cumulativeRecoveryTestCheckpointRange(taskID uuid.UUID, runtimeID string, checkpoint *CheckpointPayload, firstStep uint32) *CheckpointPayload {
+	if checkpoint == nil {
+		return nil
+	}
+	entriesByStep := make(map[uint32]WalEntry, len(checkpoint.WalEntries))
+	for _, entry := range checkpoint.WalEntries {
+		entriesByStep[entry.StepIndex] = entry
+	}
+	entries := make([]WalEntry, 0, int(checkpoint.ResumeToken.LastCommittedStep-firstStep)+1)
+	for step := firstStep; step <= checkpoint.ResumeToken.LastCommittedStep; step++ {
+		if entry, ok := entriesByStep[step]; ok {
+			entry.Status = "committed"
+			if entry.OutputDigest == nil {
+				entry.OutputDigest = ptrString(fmt.Sprintf("%064x", step+1))
+			}
+			entries = append(entries, entry)
+		} else {
+			entries = append(entries, WalEntry{
+				EntryID:      uuid.New(),
+				TaskID:       taskID,
+				StepIndex:    step,
+				StepType:     map[string]any{"kind": "test"},
+				Status:       "committed",
+				InputDigest:  fmt.Sprintf("%064x", step+1),
+				OutputDigest: ptrString(fmt.Sprintf("%064x", step+101)),
+				TimestampMs:  uint64(1_900_000_000 + step),
+				RuntimeID:    runtimeID,
+			})
+		}
+		if step == ^uint32(0) {
+			break
+		}
+	}
+	next := *checkpoint
+	next.WalEntries = entries
+	return &next
 }
 
 func testRecoverRuntimeSkipsTerminalTaskBeforeRedispatch(t *testing.T, terminalStatus TaskRecordStatus, failureReason *string) {
