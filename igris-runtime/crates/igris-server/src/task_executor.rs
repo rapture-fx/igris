@@ -1539,7 +1539,7 @@ pub async fn handle_task_submit(
         }
         last_receipt = execution_receipt;
 
-        if should_checkpoint_after_steps(&req.task_type, start_step, steps_completed) {
+        if should_checkpoint_after_steps(&req.task_type, start_step, steps_completed, steps_total) {
             let payload = match build_checkpoint(
                 &wal,
                 req.task_id,
@@ -2183,6 +2183,7 @@ fn should_checkpoint_after_steps(
     task_type: &TaskType,
     start_step: u32,
     steps_completed: u32,
+    steps_total: u32,
 ) -> bool {
     let checkpoint_after_steps = match task_type {
         TaskType::AgentWorkflow {
@@ -2198,7 +2199,13 @@ fn should_checkpoint_after_steps(
     if *checkpoint_after_steps == 0 {
         return false;
     }
-    steps_completed > start_step && steps_completed % *checkpoint_after_steps == 0
+    if steps_completed <= start_step || steps_completed >= steps_total {
+        return false;
+    }
+    if start_step < *checkpoint_after_steps && steps_completed >= *checkpoint_after_steps {
+        return true;
+    }
+    *checkpoint_after_steps > 1 && steps_completed % *checkpoint_after_steps == 0
 }
 
 fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
@@ -5920,10 +5927,28 @@ mod tests {
             steps: Vec::new(),
         };
 
-        assert!(!should_checkpoint_after_steps(&task_type, 0, 1));
-        assert!(should_checkpoint_after_steps(&task_type, 0, 2));
-        assert!(!should_checkpoint_after_steps(&task_type, 2, 3));
-        assert!(should_checkpoint_after_steps(&task_type, 2, 4));
+        assert!(!should_checkpoint_after_steps(&task_type, 0, 1, 5));
+        assert!(should_checkpoint_after_steps(&task_type, 0, 2, 5));
+        assert!(!should_checkpoint_after_steps(&task_type, 2, 3, 5));
+        assert!(should_checkpoint_after_steps(&task_type, 2, 4, 5));
+        assert!(!should_checkpoint_after_steps(&task_type, 2, 4, 4));
+
+        let single_step_checkpoint = TaskType::AgentWorkflow {
+            checkpoint_after_steps: Some(1),
+            steps: Vec::new(),
+        };
+        assert!(should_checkpoint_after_steps(
+            &single_step_checkpoint,
+            0,
+            1,
+            8
+        ));
+        assert!(!should_checkpoint_after_steps(
+            &single_step_checkpoint,
+            1,
+            2,
+            8
+        ));
 
         let graph_task_type = TaskType::ExecutionGraph {
             checkpoint_after_steps: Some(2),
@@ -5933,16 +5958,16 @@ mod tests {
                 nodes: Vec::new(),
             },
         };
-        assert!(!should_checkpoint_after_steps(&graph_task_type, 0, 1));
-        assert!(should_checkpoint_after_steps(&graph_task_type, 0, 2));
-        assert!(!should_checkpoint_after_steps(&graph_task_type, 2, 3));
-        assert!(should_checkpoint_after_steps(&graph_task_type, 2, 4));
+        assert!(!should_checkpoint_after_steps(&graph_task_type, 0, 1, 5));
+        assert!(should_checkpoint_after_steps(&graph_task_type, 0, 2, 5));
+        assert!(!should_checkpoint_after_steps(&graph_task_type, 2, 3, 5));
+        assert!(should_checkpoint_after_steps(&graph_task_type, 2, 4, 5));
 
         let disabled = TaskType::AgentWorkflow {
             checkpoint_after_steps: Some(0),
             steps: Vec::new(),
         };
-        assert!(!should_checkpoint_after_steps(&disabled, 0, 1));
+        assert!(!should_checkpoint_after_steps(&disabled, 0, 1, 5));
     }
 
     #[test]
