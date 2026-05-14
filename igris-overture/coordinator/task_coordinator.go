@@ -1128,10 +1128,9 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 	log.Warn().Str("runtime_id", runtimeID).Int("tasks", len(taskIDs)).Msg("[Coordinator] Recovering tasks from failed runtime")
 
 	for _, taskID := range taskIDs {
-		cp, err := tc.store.GetLastCheckpoint(taskID)
-		if err != nil {
-			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Get checkpoint for recovery")
-			continue
+		cp, checkpointErr := tc.store.GetCumulativeRecoveryCheckpoint(taskID)
+		if checkpointErr != nil {
+			log.Error().Err(checkpointErr).Str("task_id", taskID.String()).Msg("[Coordinator] Get checkpoint for recovery")
 		}
 
 		// We need tenant_id to find a runtime — get it from the task record.
@@ -1150,10 +1149,24 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not hydrate task governance for recovery")
 			continue
 		}
-		cp = selectRecoveryCheckpoint(cp, task.LastCheckpoint)
 		if skipReason := TaskRecoverySkipReason(task); skipReason != "" {
 			tc.handleRecoverySkip(taskID, task, skipReason)
 			continue
+		}
+
+		if checkpointErr != nil {
+			if errors.Is(checkpointErr, ErrInvalidCumulativeCheckpoint) {
+				_ = tc.store.MarkFailedWithDetails(taskID, TaskFailureReasonInvalidRecoveryCheckpoint, overtureTaskFailureDetails("recovery", "invalid_recovery_checkpoint", TaskFailureReasonInvalidRecoveryCheckpoint))
+			}
+			continue
+		}
+		if task.LastCheckpoint != nil && TaskCheckpointAdvances(cp, task.LastCheckpoint) {
+			cp, checkpointErr = BuildCumulativeRecoveryCheckpoint(taskID, []*CheckpointPayload{cp, task.LastCheckpoint})
+			if checkpointErr != nil {
+				log.Error().Err(checkpointErr).Str("task_id", taskID.String()).Msg("[Coordinator] Merge task checkpoint for recovery")
+				_ = tc.store.MarkFailedWithDetails(taskID, TaskFailureReasonInvalidRecoveryCheckpoint, overtureTaskFailureDetails("recovery", "invalid_recovery_checkpoint", TaskFailureReasonInvalidRecoveryCheckpoint))
+				continue
+			}
 		}
 		if cp != nil && !TaskRecoveryCheckpointUsable(taskID, cp) {
 			log.Error().
