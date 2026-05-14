@@ -125,3 +125,19 @@ jobs:
 
       - name: Run heavy cumulative proof gate
         run: scripts/ci_proof_gate.sh heavy
+
+  heavy-proof-gate-status:
+    name: heavy proof gate status
+    runs-on: ubuntu-latest
+    needs:
+      - cumulative-clean-host-proof
+    if: always() && (github.event_name == 'workflow_dispatch' && inputs.proof_tier == 'heavy' || github.event_name == 'schedule' || github.event_name == 'push')
+
+    steps:
+      - name: Require heavy proof gate success
+        run: |
+          if [ "${{ needs.cumulative-clean-host-proof.result }}" != "success" ]; then
+            echo "heavy cumulative clean-host proof did not pass: ${{ needs.cumulative-clean-host-proof.result }}"
+            exit 1
+          fi
+          echo "heavy cumulative clean-host proof passed"
