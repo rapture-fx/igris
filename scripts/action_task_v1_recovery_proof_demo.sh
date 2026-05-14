@@ -6,9 +6,10 @@
 #   read_file -> http_call -> db_write
 #
 # Runtime 1 commits read_file + http_call, returns a real
-# checkpoint_after_steps checkpoint, and is interrupted. Runtime 2 starts with
-# the same WAL store. Overture redispatches from the persisted checkpoint, so
-# Runtime 2 resumes at db_write. The script asserts HTTP and DB side effects are
+# checkpoint_after_steps checkpoint, and is interrupted. By default Runtime 2
+# starts with the same WAL store. Set ACTION_TASK_CLEAN_HOST_RECOVERY=true to
+# require a distinct empty Runtime 2 WAL store and resume only from Overture's
+# persisted checkpoint payload. The script asserts HTTP and DB side effects are
 # not duplicated, WAL step indexes are unique, and receipts remain verifiable.
 
 set -euo pipefail
@@ -20,6 +21,7 @@ ACTION_HELPER="$SCRIPT_DIR/action_task_v1_proof_helper.js"
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/igris-action-v1-recovery-proof.XXXXXX")
 LOG_DIR="$TMP_DIR/logs"
 mkdir -p "$LOG_DIR"
+CLEAN_HOST_MODE="${ACTION_TASK_CLEAN_HOST_RECOVERY:-false}"
 
 ACTION_TARGET_PORT=18091
 ACTION_TABLE="action_task_events"
@@ -158,7 +160,13 @@ PROOF_API_KEY_PREFIX=$(node -e 'process.stdout.write(JSON.parse(require("fs").re
 
 AUTH_ARGS=(-H "Cookie: better-auth.session_token=$PROOF_SESSION_TOKEN")
 TASK_ID=$(node -e 'process.stdout.write(require("crypto").randomUUID())')
-RUNTIME_SHARED_DB="$TMP_DIR/runtime-shared.db"
+if [[ "$CLEAN_HOST_MODE" == "true" ]]; then
+  RUNTIME_1_DB="$TMP_DIR/runtime-1-clean-host.db"
+  RUNTIME_2_DB="$TMP_DIR/runtime-2-clean-host.db"
+else
+  RUNTIME_1_DB="$TMP_DIR/runtime-shared.db"
+  RUNTIME_2_DB="$RUNTIME_1_DB"
+fi
 RUNTIME_1_PEER_ID="action-recovery-runtime-1"
 RUNTIME_2_PEER_ID="action-recovery-runtime-2"
 RUNTIME_1_MACHINE_ID="$DEVICE_ID"
@@ -168,12 +176,12 @@ RUNTIME_2_CONFIG="$TMP_DIR/runtime-2-config.json5"
 INPUT_FILE="$TMP_DIR/igris-action-input.txt"
 printf 'igris action task recovery proof input payload-token=%s\n' "$(node -e 'process.stdout.write(require("crypto").randomBytes(8).toString("hex"))')" > "$INPUT_FILE"
 
-node - <<'NODE' "$TMP_DIR/runtime-config.json5" "$RUNTIME_SHARED_DB" "$RUNTIME_1_CONFIG" "$RUNTIME_2_CONFIG" "$RUNTIME_1_PEER_ID" "$RUNTIME_2_PEER_ID" "$TMP_DIR" "$DB_WRITE_GATEWAY_URL"
+node - <<'NODE' "$TMP_DIR/runtime-config.json5" "$RUNTIME_1_DB" "$RUNTIME_2_DB" "$RUNTIME_1_CONFIG" "$RUNTIME_2_CONFIG" "$RUNTIME_1_PEER_ID" "$RUNTIME_2_PEER_ID" "$TMP_DIR" "$DB_WRITE_GATEWAY_URL" > "$TMP_DIR/runtime-config-paths.json"
 const fs = require("fs");
-const [basePath, storagePath, out1, out2, peer1, peer2, allowedFsPath, dbGatewayUrl] = process.argv.slice(2);
+const [basePath, storage1, storage2, out1, out2, peer1, peer2, allowedFsPath, dbGatewayUrl] = process.argv.slice(2);
 const base = JSON.parse(fs.readFileSync(basePath, "utf8"));
 
-function build(peerId) {
+function build(peerId, storagePath) {
   const next = JSON.parse(JSON.stringify(base));
   next.storage.path = storagePath;
   next.mcp = Object.assign({}, next.mcp || {}, { peer_id: peerId });
@@ -192,9 +200,9 @@ function build(peerId) {
   return `${JSON.stringify(next, null, 2)}\n`;
 }
 
-fs.writeFileSync(out1, build(peer1));
-fs.writeFileSync(out2, build(peer2));
-console.log(JSON.stringify({ storage_path: storagePath, db_write_gateway_url: dbGatewayUrl }));
+fs.writeFileSync(out1, build(peer1, storage1));
+fs.writeFileSync(out2, build(peer2, storage2));
+console.log(JSON.stringify({ runtime_1_storage_path: storage1, runtime_2_storage_path: storage2, db_write_gateway_url: dbGatewayUrl }));
 NODE
 
 node "$ACTION_HELPER" build-action-task-request \
@@ -210,6 +218,13 @@ echo "    tenant_id: $PROOF_TENANT_ID"
 echo "    checkpoint_after_steps: 2"
 echo "    runtime 1 peer_id: $RUNTIME_1_PEER_ID"
 echo "    runtime 2 peer_id: $RUNTIME_2_PEER_ID"
+echo "    recovery mode: ${CLEAN_HOST_MODE}"
+echo "    runtime 1 WAL store: $(basename "$RUNTIME_1_DB")"
+echo "    runtime 2 WAL store: $(basename "$RUNTIME_2_DB")"
+if [[ "$CLEAN_HOST_MODE" == "true" && "$RUNTIME_1_DB" == "$RUNTIME_2_DB" ]]; then
+  echo "clean-host proof requires distinct runtime WAL stores" >&2
+  exit 1
+fi
 
 echo "[2/11] Building Runtime binary"
 RUNTIME_BIN="$ROOT_DIR/igris-runtime/target/debug/igris-runtime"
@@ -352,6 +367,21 @@ kill "$RUNTIME_PID" >/dev/null 2>&1 || true
 wait "$RUNTIME_PID" >/dev/null 2>&1 || true
 RUNTIME_PID=""
 sleep 1
+if [[ "$CLEAN_HOST_MODE" == "true" ]]; then
+  if [[ "$RUNTIME_1_DB" == "$RUNTIME_2_DB" ]]; then
+    echo "clean-host proof requires distinct Runtime WAL paths" >&2
+    exit 1
+  fi
+  if [[ ! -e "$RUNTIME_1_DB" ]]; then
+    echo "Runtime 1 WAL store was not created before recovery" >&2
+    exit 1
+  fi
+  if [[ -e "$RUNTIME_2_DB" ]]; then
+    echo "Runtime 2 WAL store must be empty before clean-host resume" >&2
+    exit 1
+  fi
+  echo "    clean-host WAL stores: runtime1=$(basename "$RUNTIME_1_DB") runtime2=$(basename "$RUNTIME_2_DB")"
+fi
 
 node "$UNIFIED_HELPER" runtime-register-request \
   "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
@@ -398,6 +428,19 @@ NODE
 ) > "$LOG_DIR/runtime-2.log" 2>&1 &
 RUNTIME_PID=$!
 wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 2"
+if [[ "$CLEAN_HOST_MODE" == "true" ]]; then
+  curl -sS -f \
+    -H "X-API-Key: $RUNTIME_SECRET" \
+    "http://127.0.0.1:8080/v1/runtime/task/$TASK_ID/wal" > "$TMP_DIR/runtime-2-wal-before-resume.json"
+  node - <<'NODE' "$TMP_DIR/runtime-2-wal-before-resume.json"
+const fs = require("fs");
+const body = JSON.parse(fs.readFileSync(process.argv[2], "utf8"));
+const entries = Array.isArray(body.entries) ? body.entries : [];
+if (entries.length !== 0) {
+  throw new Error(`Runtime 2 WAL was not empty before resume: ${entries.length} entries`);
+}
+NODE
+fi
 
 psql "$DB_URL" -X -q <<SQL >/dev/null
 UPDATE runtime_instances
