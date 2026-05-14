@@ -205,7 +205,7 @@ export default function PolicyBoundsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
+      <div className="space-y-5 max-w-[900px] mx-auto">
         <div className="flex items-center justify-end gap-4">
           {isDirty && (
             <span className="text-[11px] text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full border border-yellow-200 whitespace-nowrap">
