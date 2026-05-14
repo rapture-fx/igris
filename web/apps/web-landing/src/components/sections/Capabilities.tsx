@@ -10,89 +10,126 @@ const borderStyle = 'var(--section-border)'
 // CARD 01 · Run · action evidence ledger
 // ─────────────────────────────────────────────────────────────
 function RunVisual() {
+  // Three tools, each with input + output streams flowing through a sandbox
   const tools = [
-    { op: 'read_file', io: ['policy.json', '2,148 B'] },
-    { op: 'http_call', io: ['POST /v1/process', '200 OK'] },
-    { op: 'db_write',  io: ['audit_events',     '1 row'] },
+    { op: 'read_file', input: 'policy.json',      output: '2,148 B · sha256 4a91…' },
+    { op: 'http_call', input: 'POST /v1/process', output: '200 OK · digest 7c08…' },
+    { op: 'db_write',  input: 'audit_events',     output: 'row #42 · 1 written'   },
   ]
   return (
     <div className="w-full" style={{ fontFamily: MONO }}>
-      <div className="flex items-baseline justify-between mb-4 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
+      <div className="flex items-baseline justify-between mb-3 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
         <span>ACTION&nbsp;FLOW</span>
         <span className="text-emerald-700 dark:text-emerald-400">3 / 3&nbsp;COMMITTED</span>
       </div>
 
-      <svg viewBox="0 0 320 170" className="w-full" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 360 210" className="w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <marker id="run-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fillOpacity="0.55" />
+          <marker id="run-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fillOpacity="0.6" />
           </marker>
+          <pattern id="run-grid" width="12" height="12" patternUnits="userSpaceOnUse">
+            <path d="M 12 0 L 0 0 0 12" fill="none" stroke="currentColor" strokeOpacity="0.04" strokeWidth="0.3" />
+          </pattern>
         </defs>
 
-        {/* Input node */}
-        <g>
-          <rect x="4" y="68" width="44" height="34" fill="none" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.9" />
-          <text x="26" y="82" fontSize="8" textAnchor="middle" fill="currentColor" fillOpacity="0.6" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>TASK</text>
-          <text x="26" y="94" fontSize="7" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO }}>019de343</text>
-        </g>
+        {/* Subtle background grid */}
+        <rect x="0" y="0" width="360" height="210" fill="url(#run-grid)" />
 
-        {/* Three tool boxes */}
+        {/* Sandbox boundary */}
+        <rect
+          x="6" y="38" width="348" height="148"
+          fill="none"
+          stroke="currentColor"
+          strokeOpacity="0.18"
+          strokeWidth="0.6"
+          strokeDasharray="3 2"
+          rx="3"
+        />
+        <text x="14" y="32" fontSize="7" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+          SANDBOX&nbsp;BOUNDARY
+        </text>
+        <text x="346" y="32" fontSize="7" textAnchor="end" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          task_019de343
+        </text>
+
+        {/* Spine line */}
+        <line x1="22" y1="112" x2="338" y2="112" stroke="currentColor" strokeOpacity="0.2" strokeWidth="0.6" />
+
+        {/* Task input dot */}
+        <circle cx="22" cy="112" r="3" fill="currentColor" fillOpacity="0.55" />
+        <text x="22" y="146" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          TASK
+        </text>
+
+        {/* Three tools */}
         {tools.map((t, i) => {
-          const x = 72 + i * 76
+          const cx = 88 + i * 88
           return (
             <g key={t.op}>
-              {/* Connector from previous to this */}
-              <line
-                x1={i === 0 ? 48 : x - 4 - 28}
-                y1="85"
-                x2={x - 2}
-                y2="85"
-                stroke="currentColor"
-                strokeOpacity="0.4"
-                strokeWidth="0.9"
-                markerEnd="url(#run-arrow)"
+              {/* Input stub above */}
+              <line x1={cx} y1={62} x2={cx} y2={86} stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" />
+              <text x={cx} y={56} fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO }}>
+                {t.input}
+              </text>
+
+              {/* Box body */}
+              <rect
+                x={cx - 32} y={86}
+                width={64} height={52}
+                className="fill-emerald-700 dark:fill-emerald-500"
+                rx="2"
               />
-              {/* Tool box (filled emerald) */}
-              <rect x={x} y="62" width="64" height="46" className="fill-emerald-700 dark:fill-emerald-500" />
-              {/* Step number tab */}
-              <rect x={x} y="52" width="14" height="10" className="fill-emerald-800 dark:fill-emerald-600" />
-              <text x={x + 7} y="60" fontSize="7" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
+              {/* Step tab */}
+              <rect x={cx - 32} y={78} width={18} height={10} className="fill-emerald-800 dark:fill-emerald-600" rx="1" />
+              <text x={cx - 23} y={86} fontSize="7" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO, letterSpacing: '0.1em' }}>
                 {`0${i + 1}`}
               </text>
-              {/* Op name */}
-              <text x={x + 32} y="80" fontSize="9" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
+              {/* Op */}
+              <text x={cx} y={106} fontSize="9.5" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
                 {t.op}
               </text>
-              {/* I/O hint */}
-              <text x={x + 32} y="98" fontSize="6.5" textAnchor="middle" fill="#fff" fillOpacity="0.8" style={{ fontFamily: MONO }}>
-                {t.io[0]}
-              </text>
-              {/* Result below box */}
-              <text x={x + 32} y="124" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.1em' }}>
-                {t.io[1]}
-              </text>
-              <text x={x + 32} y="135" fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+              {/* Status bar inside */}
+              <line x1={cx - 24} y1={114} x2={cx + 24} y2={114} stroke="#fff" strokeOpacity="0.25" strokeWidth="0.5" />
+              <text x={cx} y={126} fontSize="6.5" textAnchor="middle" fill="#fff" fillOpacity="0.85" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
                 COMMITTED
               </text>
+
+              {/* Output stub below */}
+              <line x1={cx} y1={138} x2={cx} y2={158} stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" />
+              <text x={cx} y={168} fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO }}>
+                {t.output}
+              </text>
+              <text x={cx} y={178} fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+                EVIDENCE
+              </text>
+
+              {/* Connector to next */}
+              {i < tools.length - 1 && (
+                <line
+                  x1={cx + 32} y1={112}
+                  x2={cx + 56} y2={112}
+                  stroke="currentColor"
+                  strokeOpacity="0.5"
+                  strokeWidth="0.9"
+                  markerEnd="url(#run-arrow)"
+                />
+              )}
             </g>
           )
         })}
 
-        {/* Arrow to receipt */}
-        <line x1="296" y1="85" x2="308" y2="85" stroke="currentColor" strokeOpacity="0.4" strokeWidth="0.9" markerEnd="url(#run-arrow)" />
+        {/* Tail line into receipt */}
+        <line x1={88 + 2 * 88 + 32} y1="112" x2="332" y2="112" stroke="currentColor" strokeOpacity="0.5" strokeWidth="0.9" markerEnd="url(#run-arrow)" />
 
-        {/* Receipt node */}
+        {/* Receipt seal */}
         <g>
-          <rect x="284" y="68" width="34" height="34" fill="none" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.9" strokeDasharray="2 1.5" />
-          <text x="301" y="83" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>RCPT</text>
-          <text x="301" y="94" fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO }}>signed</text>
+          <circle cx="338" cy="112" r="9" fill="none" stroke="currentColor" strokeOpacity="0.4" strokeWidth="0.8" strokeDasharray="2 1.5" />
+          <circle cx="338" cy="112" r="3.5" className="fill-emerald-700 dark:fill-emerald-500" />
+          <text x="338" y="146" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+            RECEIPT
+          </text>
         </g>
-
-        {/* Top label */}
-        <text x="160" y="34" fontSize="7" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
-          CONTROLLED&nbsp;EXECUTION&nbsp;PATH
-        </text>
-        <line x1="60" y1="42" x2="260" y2="42" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.4" strokeDasharray="1 2" />
       </svg>
     </div>
   )
@@ -104,94 +141,138 @@ function RunVisual() {
 function RecoverVisual() {
   return (
     <div className="w-full" style={{ fontFamily: MONO }}>
-      <div className="flex items-baseline justify-between mb-4 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
+      <div className="flex items-baseline justify-between mb-3 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
         <span>RUNTIME&nbsp;HANDOFF</span>
         <span className="text-emerald-700 dark:text-emerald-400">0&nbsp;DUPLICATES</span>
       </div>
 
-      <svg viewBox="0 0 320 170" className="w-full" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 360 210" className="w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <marker id="rec-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fillOpacity="0.55" />
+          <marker id="rec-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fillOpacity="0.6" />
           </marker>
+          <marker id="rec-arrow-up" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fillOpacity="0.45" />
+          </marker>
+          <pattern id="rec-grid" width="12" height="12" patternUnits="userSpaceOnUse">
+            <path d="M 12 0 L 0 0 0 12" fill="none" stroke="currentColor" strokeOpacity="0.04" strokeWidth="0.3" />
+          </pattern>
         </defs>
 
-        {/* Lane labels (small, on left) */}
-        <text x="6" y="48" fontSize="6.5" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>R/T 01</text>
-        <text x="6" y="132" fontSize="6.5" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>R/T 02</text>
+        <rect x="0" y="0" width="360" height="210" fill="url(#rec-grid)" />
 
-        {/* Lane rails */}
-        <line x1="44" y1="52" x2="304" y2="52" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.5" />
-        <line x1="44" y1="136" x2="304" y2="136" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.5" />
+        {/* Lane A header */}
+        <text x="14" y="22" fontSize="7" fill="currentColor" fillOpacity="0.6" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+          RUNTIME&nbsp;A
+        </text>
+        <text x="346" y="22" fontSize="6.5" textAnchor="end" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          T+00s … T+04s
+        </text>
+        <line x1="14" y1="32" x2="346" y2="32" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.4" />
 
-        {/* RUNTIME 01 — three committed steps then halt */}
+        {/* Lane A rail */}
+        <line x1="22" y1="56" x2="338" y2="56" stroke="currentColor" strokeOpacity="0.2" strokeWidth="0.6" />
+
+        {/* RUNTIME A — three committed steps */}
         {[0, 1, 2].map((i) => {
-          const cx = 60 + i * 36
+          const cx = 50 + i * 56
           return (
             <g key={`a-${i}`}>
-              <rect x={cx - 10} y={42} width={20} height={20} className="fill-emerald-700 dark:fill-emerald-500" />
-              <text x={cx} y={56} fontSize="8" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
+              <rect x={cx - 20} y={42} width={40} height={28} className="fill-emerald-700 dark:fill-emerald-500" rx="2" />
+              <text x={cx} y={56} fontSize="7" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO, letterSpacing: '0.05em' }}>
+                {['read_file','http_call','db_write'][i]}
+              </text>
+              <text x={cx} y={66} fontSize="6" textAnchor="middle" fill="#fff" fillOpacity="0.8" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
                 {`0${i + 1}`}
               </text>
-              {i < 2 && <line x1={cx + 10} y1={52} x2={cx + 26} y2={52} stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" />}
+              {i < 2 && <line x1={cx + 20} y1={56} x2={cx + 36} y2={56} stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.7" markerEnd="url(#rec-arrow-up)" />}
+              {/* Down-arrow into persisted state */}
+              <line x1={cx} y1={70} x2={cx} y2={92} stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" markerEnd="url(#rec-arrow-up)" />
             </g>
           )
         })}
 
-        {/* Halt marker */}
+        {/* HALT marker (where step 04 would have been) */}
         <g>
-          <line x1="178" y1="42" x2="178" y2="62" stroke="#d97706" strokeWidth="1.2" />
-          <line x1="172" y1="46" x2="184" y2="58" stroke="#d97706" strokeWidth="1.4" />
-          <line x1="184" y1="46" x2="172" y2="58" stroke="#d97706" strokeWidth="1.4" />
-          <text x="178" y="36" fontSize="7" textAnchor="middle" fill="#d97706" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>HALT</text>
-        </g>
-
-        {/* Persisted state band (between lanes) */}
-        <g>
-          <rect x="44" y="78" width="260" height="32" fill="currentColor" fillOpacity="0.04" />
-          <text x="174" y="90" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
-            PERSISTED&nbsp;STATE
+          <line x1="218" y1="56" x2="234" y2="56" stroke="#d97706" strokeOpacity="0.6" strokeWidth="0.7" strokeDasharray="2 1.5" />
+          <circle cx="248" cy="56" r="11" fill="none" stroke="#d97706" strokeWidth="1" strokeDasharray="2 1.5" />
+          <line x1="242" y1="50" x2="254" y2="62" stroke="#d97706" strokeWidth="1.4" />
+          <line x1="254" y1="50" x2="242" y2="62" stroke="#d97706" strokeWidth="1.4" />
+          <text x="248" y="38" fontSize="7" textAnchor="middle" fill="#d97706" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+            HALT
           </text>
-          <text x="174" y="102" fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO }}>
-            actions 01 · 02 · 03 already committed
+          <text x="248" y="80" fontSize="6" textAnchor="middle" fill="#d97706" fillOpacity="0.7" style={{ fontFamily: MONO }}>
+            runtime gone
           </text>
         </g>
 
-        {/* Curved arrow from halt down into runtime 2 */}
+        {/* Persisted state — central store */}
+        <g>
+          <rect x="22" y="92" width="316" height="34" fill="currentColor" fillOpacity="0.05" rx="2" />
+          <rect x="22" y="92" width="316" height="34" fill="none" stroke="currentColor" strokeOpacity="0.18" strokeWidth="0.5" strokeDasharray="3 2" rx="2" />
+          <text x="36" y="106" fontSize="7" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+            PERSISTED&nbsp;STORE
+          </text>
+          <text x="36" y="118" fontSize="6.5" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO }}>
+            committed: 01 read_file · 02 http_call · 03 db_write
+          </text>
+          <text x="326" y="118" fontSize="6.5" textAnchor="end" fill="currentColor" fillOpacity="0.4" className="dark:fill-emerald-400" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+            CHAIN&nbsp;INTACT
+          </text>
+        </g>
+
+        {/* Handoff arrow from store down into Runtime B */}
         <path
-          d="M 178 64 C 178 86 200 110 218 122"
+          d="M 180 126 C 180 142 200 152 218 158"
           fill="none"
           stroke="currentColor"
           strokeOpacity="0.55"
-          strokeWidth="0.9"
+          strokeWidth="1"
           strokeDasharray="2 1.5"
           markerEnd="url(#rec-arrow)"
         />
+        <text x="186" y="144" fontSize="6.5" fill="currentColor" fillOpacity="0.5" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          REHYDRATE
+        </text>
 
-        {/* RUNTIME 02 — skipped 01, 02, 03 (ghosted) then resumed 04 (filled) */}
+        {/* Lane B header */}
+        <line x1="14" y1="138" x2="346" y2="138" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.4" />
+        <text x="14" y="152" fontSize="7" fill="currentColor" fillOpacity="0.6" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+          RUNTIME&nbsp;B
+        </text>
+        <text x="346" y="152" fontSize="6.5" textAnchor="end" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          T+04s … T+18s
+        </text>
+
+        {/* Lane B rail */}
+        <line x1="22" y1="176" x2="338" y2="176" stroke="currentColor" strokeOpacity="0.2" strokeWidth="0.6" />
+
+        {/* Three ghosted (not replayed) */}
         {[0, 1, 2].map((i) => {
-          const cx = 226 + i * 22
+          const cx = 226 + i * 30
           return (
             <g key={`b-${i}`}>
-              <rect x={cx - 7} y={126} width={14} height={20} fill="none" stroke="currentColor" strokeOpacity="0.4" strokeWidth="0.8" strokeDasharray="2 1.5" />
-              <text x={cx} y={140} fontSize="7" textAnchor="middle" fill="currentColor" fillOpacity="0.4" style={{ fontFamily: MONO }}>
+              <rect x={cx - 12} y={164} width={24} height={24} fill="none" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" strokeDasharray="2 1.5" rx="2" />
+              <text x={cx} y={180} fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO }}>
                 {`0${i + 1}`}
               </text>
             </g>
           )
         })}
-        <line x1="293" y1="136" x2="296" y2="136" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" />
-        <g>
-          <rect x="296" y={126} width={20} height={20} className="fill-emerald-700 dark:fill-emerald-500" />
-          <text x="306" y={140} fontSize="8" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>04</text>
-        </g>
-
-        {/* Bottom legend */}
-        <text x="148" y="162" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
-          NOT REPLAYED
+        <text x="256" y="200" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          NOT&nbsp;REPLAYED
         </text>
-        <text x="276" y="162" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6" className="text-emerald-700 dark:text-emerald-400" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
-          NEW STEP
+
+        {/* New step 04 — resumed */}
+        <line x1="298" y1="176" x2="312" y2="176" stroke="currentColor" strokeOpacity="0.5" strokeWidth="0.9" markerEnd="url(#rec-arrow)" />
+        <g>
+          <rect x="316" y="164" width={28} height={24} className="fill-emerald-700 dark:fill-emerald-500" rx="2" />
+          <text x="330" y="180" fontSize="7" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
+            04
+          </text>
+        </g>
+        <text x="330" y="200" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6" className="dark:fill-emerald-400" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          RESUMED
         </text>
       </svg>
     </div>
