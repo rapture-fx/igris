@@ -103,6 +103,25 @@ impl WalLog {
         Ok(())
     }
 
+    /// Import externally persisted WAL entries for this task.
+    ///
+    /// Used during clean-host recovery: the replacement runtime has an empty
+    /// local WAL, but Overture can provide the last durable checkpoint payload.
+    /// Entries are persisted as-is so their original runtime_id and signature
+    /// remain intact for audit and action-evidence visibility.
+    pub fn import_entries(&self, entries: &[WalEntry]) -> Result<(), WalError> {
+        for entry in entries {
+            if entry.task_id != self.task_id {
+                return Err(WalError::NotFound(format!(
+                    "checkpoint entry task_id {} does not match {}",
+                    entry.task_id, self.task_id
+                )));
+            }
+            self.persist(entry)?;
+        }
+        Ok(())
+    }
+
     // ── Reads ───────────────────────────────────────────────────────────────
 
     /// Read all entries for this task with `step_index >= from_step`, ordered
