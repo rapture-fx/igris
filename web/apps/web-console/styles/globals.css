@@ -65,6 +65,18 @@
 }
 
 @layer utilities {
+  /* Global scrollbar hide - apply to all elements */
+  html, body, * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+  }
+
   .bleeding-cross-tl {
     position: relative;
   }
@@ -106,7 +118,6 @@
 
   /* Overscroll background */
   html {
-    scrollbar-gutter: stable;
     background-color: #f3f3f6;
   }
   html.dark {
