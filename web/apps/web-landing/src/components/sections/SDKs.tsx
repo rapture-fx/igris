@@ -142,149 +142,6 @@ const codeExamples: Record<Language, string[]> = {
   ],
 }
 
-const btreeExamples: Record<Language, string[]> = {
-  curl: [
-    '# Deploy a behavior tree',
-    'curl -X POST http://localhost:8080/v1/btree/deploy \\',
-    '  -H "Content-Type: application/json" \\',
-    '  -d \'{',
-    '    "name": "patrol",',
-    '    "tree": {',
-    '      "type": "sequence",',
-    '      "name": "patrol",',
-    '      "children": [',
-    '        {"type":"action","name":"scan","tool":"lidar_scan","args":{}},',
-    '        {"type":"action","name":"nav","tool":"move_to",',
-    '         "args":{"waypoint":"alpha"}}',
-    '      ]',
-    '    }',
-    '  }\'',
-    '',
-    '# Validate a tree definition',
-    'curl -X POST http://localhost:8080/v1/btree/validate \\',
-    '  -H "Content-Type: application/json" \\',
-    '  -d \'{"tree": {"type":"sequence","name":"root","children":[]}}\'',
-    '',
-    '# Execute a tree inline',
-    'curl -X POST http://localhost:8080/v1/btree/run \\',
-    '  -H "Content-Type: application/json" \\',
-    '  -d \'{"tree": {...}, "context": {"battery_level": 80}}\'',
-  ],
-  javascript: [
-    "import { Runtime, BehaviorTree,",
-    "  SequenceNode, ActionNode } from '@igris-inertial/sdk';",
-    '',
-    'const runtime = new Runtime({',
-    "  localUrl: 'http://localhost:8080',",
-    '});',
-    '',
-    "const tree = BehaviorTree.fromJson(",
-    "  new SequenceNode('patrol', [",
-    "    new ActionNode('scan_area', 'lidar_scan', { mode: 'full' }),",
-    "    new ActionNode('navigate', 'move_to', { waypoint: 'alpha' }),",
-    "    new ActionNode('report_status', 'log_status'),",
-    '  ]).toJSON(),',
-    '  runtime,',
-    ');',
-    '',
-    'const result = await tree.validate();',
-    "// { valid: true, root_type: 'sequence' }",
-    '',
-    'const execution = await tree.run();',
-    "// { status: 'success', tick_count: 3 }",
-  ],
-  python: [
-    'from igris import Runtime, RuntimeConfig',
-    'from igris.btree import BehaviorTree, Sequence, Action',
-    '',
-    'runtime = Runtime(RuntimeConfig(',
-    '    local_url="http://localhost:8080",',
-    '))',
-    '',
-    'tree = BehaviorTree.from_nodes(',
-    '    Sequence("patrol", [',
-    '        Action("scan_area", "lidar_scan", {"mode": "full"}),',
-    '        Action("navigate", "move_to", {"waypoint": "alpha"}),',
-    '        Action("report_status", "log_status"),',
-    '    ]),',
-    '    runtime,',
-    ')',
-    '',
-    'result = tree.validate()',
-    '# {\'valid\': True, \'root_type\': \'sequence\'}',
-    '',
-    'execution = tree.run()',
-    '# {\'status\': \'success\', \'tick_count\': 3}',
-  ],
-  go: [
-    'package main',
-    '',
-    'import (',
-    '    "context"',
-    '    "fmt"',
-    '    "log"',
-    '    igris "github.com/igris-inertial/go-sdk"',
-    ')',
-    '',
-    'func main() {',
-    '    ctx := context.Background()',
-    '    runtime := igris.NewRuntime("http://localhost:8080")',
-    '',
-    '    tree := igris.NewBehaviorTree(',
-    '        igris.NewSequenceNode("patrol",',
-    '            igris.NewActionNode("scan_area", "lidar_scan",',
-    '                map[string]interface{}{"mode": "full"}),',
-    '            igris.NewActionNode("navigate", "move_to",',
-    '                map[string]interface{}{"waypoint": "alpha"}),',
-    '            igris.NewActionNode("report_status", "log_status", nil),',
-    '        ),',
-    '        runtime,',
-    '    )',
-    '',
-    '    result, err := tree.Validate(ctx)',
-    '    if err != nil {',
-    '        log.Fatal(err)',
-    '    }',
-    '    fmt.Println(result.Valid)',
-    '',
-    '    execution, err := tree.Run(ctx, nil)',
-    '    if err != nil {',
-    '        log.Fatal(err)',
-    '    }',
-    '    fmt.Println(execution.Status)',
-    '}',
-  ],
-  rust: [
-    'use igris_inertial::{BehaviorTree, BTreeRunOptions, Runtime};',
-    'use igris_inertial::btree::{action_node, sequence_node};',
-    '',
-    '#[tokio::main]',
-    'async fn main() -> Result<(), Box<dyn std::error::Error>> {',
-    '    let runtime = Runtime::builder("http://localhost:8080")',
-    '        .build()?;',
-    '',
-    '    let tree = BehaviorTree::new(',
-    '        sequence_node("patrol", vec![',
-    '            action_node("scan_area", "lidar_scan",',
-    '                serde_json::json!({"mode": "full"})),',
-    '            action_node("navigate", "move_to",',
-    '                serde_json::json!({"waypoint": "alpha"})),',
-    '            action_node("report_status", "log_status",',
-    '                serde_json::json!({})),',
-    '        ]),',
-    '        &runtime,',
-    '    );',
-    '',
-    '    let result = tree.validate().await?;',
-    '    println!("{:?}", result.valid);',
-    '',
-    '    let execution = tree.run(BTreeRunOptions::default()).await?;',
-    '    println!("{}", execution.status);',
-    '    Ok(())',
-    '}',
-  ],
-}
-
 function CopyButton({ code }: { code: string[] }) {
   const [copied, setCopied] = useState(false)
 
@@ -441,138 +298,139 @@ export default function SDKs() {
     setAnimKey(k => k + 1)
   }, [])
 
+  const MONO_FAMILY = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
+  const listingIdx = languages.indexOf(selectedLang)
+  const listingLetter = String.fromCharCode(65 + (listingIdx >= 0 ? listingIdx : 0))
+
   return (
     <section ref={sectionRef} className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
-          {/* Title */}
-          <div className="text-left py-6 md:py-12">
-            <h3 className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily }}>
-              Connect your stack
-            </h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Full-width border between rows */}
       <div style={{ borderTop: borderStyle }} />
 
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
-          {/* Row 1 - API SDK */}
-          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
-            {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
-              <div className="max-w-md">
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  {languages.map((lang, i) => (
-                    <React.Fragment key={lang}>
-                      {i > 0 && i < languages.length - 1 && ', '}
-                      {i === languages.length - 1 && ', '}
-                      <button
-                        onClick={() => handleLangChange(lang)}
-                        className={`underline decoration-dotted underline-offset-2 transition-colors cursor-pointer ${
-                          selectedLang === lang
-                            ? 'text-gray-900 dark:text-white'
-                            : 'text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-white'
-                        }`}
-                      >
-                        {languageLabels[lang]}
-                      </button>
-                    </React.Fragment>
-                  ))}.
-                </p>
+          {/* Section anchor */}
+          <div className="flex items-baseline justify-between pt-10 md:pt-14 pb-3">
+            <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO_FAMILY }}>
+              05&nbsp;&nbsp;INTERFACE
+            </span>
+            <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO_FAMILY }}>
+              FIG.05
+            </span>
+          </div>
 
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  One API for governed AI execution.
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  Send AI tasks from your existing codebase and receive structured responses with execution metadata, signed records, and verification-ready artifacts.
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  Point the client at the execution surface you use. The request shape stays consistent.
-                </p>
-                <div>
-                  <a
-                    href="https://docs.igrisinertial.com/docs/sdk/"
-                    className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    style={{ fontFamily }}
-                  >
-                    View SDKs
-                  </a>
-                </div>
-              </div>
+          {/* Headline + caption */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 md:gap-x-12 pt-10 md:pt-16 pb-10 md:pb-12">
+            <div className="md:col-span-7">
+              <h2
+                className="text-[#000000] dark:text-[#f6f6f4]"
+                style={{
+                  fontFamily,
+                  fontWeight: 500,
+                  fontSize: 'clamp(2rem, 5.2vw, 3.75rem)',
+                  lineHeight: 1.02,
+                  letterSpacing: '-0.025em',
+                }}
+              >
+                One request.
+                <br />
+                Same shape,
+                <br />
+                every surface.
+              </h2>
             </div>
-            {/* Col 2 - Code */}
-            <div className="relative min-h-[320px] md:min-h-0">
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col">
-                <div className="px-4 pt-2.5 pb-2 flex items-center justify-between shrink-0" style={{ fontFamily }}>
-                  <span className="text-xs font-medium text-black dark:text-[#f6f6f4]">{languageLabels[selectedLang]}</span>
+            <div className="md:col-span-5 md:pt-3">
+              <p
+                className="text-gray-700 dark:text-[#c8c8b8] max-w-[34ch]"
+                style={{ fontFamily, fontSize: '0.95rem', lineHeight: 1.65 }}
+              >
+                Send AI tasks from your existing codebase and receive structured
+                responses with execution metadata, signed records, and
+                verification-ready artifacts.
+              </p>
+              <a
+                href="https://docs.igrisinertial.com/docs/sdk/"
+                className="group mt-6 inline-flex items-baseline gap-2 text-[#000000] dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+                style={{ fontFamily: MONO_FAMILY, fontSize: '12px', letterSpacing: '0.22em' }}
+              >
+                <span aria-hidden className="inline-block w-5 border-t border-current translate-y-[-3px]" />
+                VIEW&nbsp;ALL&nbsp;SDKs
+                <span aria-hidden className="ml-1 transition-transform group-hover:translate-x-0.5">↗</span>
+              </a>
+            </div>
+          </div>
+
+          <div style={{ borderTop: borderStyle }} />
+
+          {/* Listing header */}
+          <div className="flex flex-wrap items-baseline gap-y-3 justify-between gap-x-6 pt-6 md:pt-8 pb-3">
+            <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO_FAMILY }}>
+              LISTING&nbsp;05.{listingLetter}
+              <span className="mx-2 text-gray-300 dark:text-[#3a3a32]">·</span>
+              {languageLabels[selectedLang].toUpperCase()}
+            </span>
+
+            {/* language switcher */}
+            <div
+              className="flex items-baseline gap-x-4 gap-y-2 flex-wrap"
+              style={{ fontFamily: MONO_FAMILY, fontSize: '11px', letterSpacing: '0.22em' }}
+            >
+              {languages.map((lang) => {
+                const active = lang === selectedLang
+                return (
+                  <button
+                    key={lang}
+                    onClick={() => handleLangChange(lang)}
+                    className={`transition-colors ${
+                      active
+                        ? 'text-[#000000] dark:text-[#f6f6f4]'
+                        : 'text-gray-400 dark:text-[#5a5a52] hover:text-gray-700 dark:hover:text-[#c8c8b8]'
+                    }`}
+                    style={{
+                      paddingBottom: '2px',
+                      borderBottom: active ? '1px solid currentColor' : '1px solid transparent',
+                    }}
+                  >
+                    {languageLabels[lang].toUpperCase()}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Code listing — hairline framed */}
+          <div className="pb-10 md:pb-16">
+            <div style={{ borderTop: borderStyle, borderBottom: borderStyle }}>
+              <div className="relative">
+                <div className="absolute top-2 right-3 z-10">
                   <CopyButton code={codeExamples[selectedLang]} />
                 </div>
-                <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-6 py-4 flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div
+                  className="px-5 md:px-8 py-5 md:py-7 overflow-x-auto"
+                  style={{ background: 'transparent' }}
+                >
                   <AnimatedCodeBlock code={codeExamples[selectedLang]} animKey={animKey} />
                 </div>
               </div>
             </div>
+
+            {/* Footer assertion */}
+            <div
+              className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-3 pt-5"
+              style={{ fontFamily: MONO_FAMILY, fontSize: '11px', letterSpacing: '0.22em' }}
+            >
+              <span className="text-gray-900 dark:text-[#f6f6f4]">
+                REQUEST&nbsp;SHAPE&nbsp;—&nbsp;INVARIANT
+                <span className="mx-3 text-gray-400 dark:text-[#5a5a52]">·</span>
+                METADATA&nbsp;+&nbsp;RECEIPT&nbsp;ATTACHED
+              </span>
+              <span className="text-gray-500 dark:text-[#8a8a7a]">5&nbsp;LANGUAGES&nbsp;·&nbsp;1&nbsp;API</span>
+            </div>
           </div>
+
         </div>
       </div>
 
-      {/* Full-width border between rows */}
-      <div style={{ borderTop: borderStyle }} />
-
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
-          {/* Row 2 - Behavior Trees */}
-          <div className="grid grid-cols-1 md:grid-cols-2 md:[min-height:280px]">
-            {/* Col 1 - Text */}
-            <div className="flex flex-col justify-start pt-6 pb-8 pr-4 border-b md:border-b-0 md:border-r border-[rgba(209,213,219,0.2)] dark:border-[rgba(246,246,244,0.06)]">
-              <div className="max-w-md">
-                <h4 className="text-lg md:text-xl lg:text-2xl text-[#000000] dark:text-[#f6f6f4] mb-4" style={{ fontFamily }}>
-                  Structured execution
-                </h4>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  Define how AI output becomes action.
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-4" style={{ fontFamily }}>
-                  Use structured paths to coordinate multi-step tasks, approvals, tool calls, and recovery logic. Keep model reasoning flexible while execution stays bounded, inspectable, and reviewable.
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  For teams building long-running agents, approvals, and tool-driven workflows that need clear execution boundaries.
-                </p>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-[#a8a898] leading-relaxed mb-6" style={{ fontFamily }}>
-                  These examples target a local Igris Runtime at <code className="text-[0.95em]">http://localhost:8080</code>, not the hosted Overture API.
-                </p>
-                <div>
-                  <a
-                    href="https://docs.igrisinertial.com/docs/behavior-trees/"
-                    className="text-sm text-gray-900 dark:text-[#f6f6f4] underline decoration-dotted underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                    style={{ fontFamily }}
-                  >
-                    View execution model
-                  </a>
-                </div>
-              </div>
-            </div>
-            {/* Col 2 - Code */}
-            <div className="relative min-h-[320px] md:min-h-0">
-              <div className="absolute top-2 bottom-2 left-2 right-0 rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col">
-                <div className="px-4 pt-2.5 pb-2 flex items-center justify-between shrink-0" style={{ fontFamily }}>
-                  <span className="text-xs font-medium text-black dark:text-[#f6f6f4]">{languageLabels[selectedLang]}</span>
-                  <CopyButton code={btreeExamples[selectedLang]} />
-                </div>
-                <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-6 py-4 flex-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  <AnimatedCodeBlock code={btreeExamples[selectedLang]} animKey={animKey} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Full-width bottom border */}
       <div style={{ borderTop: borderStyle }} />
     </section>
   )
