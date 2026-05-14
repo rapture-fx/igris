@@ -102,90 +102,98 @@ function RunVisual() {
 // CARD 02 · Recover · recovery sparkline
 // ─────────────────────────────────────────────────────────────
 function RecoverVisual() {
-  // 4 committed boxes → halt → 3 skipped boxes → 1 resumed box
-  const cells = [
-    { kind: 'commit' as const, label: '01' },
-    { kind: 'commit' as const, label: '02' },
-    { kind: 'commit' as const, label: '03' },
-    { kind: 'halt'   as const, label: 'halt' },
-    { kind: 'skip'   as const, label: '01' },
-    { kind: 'skip'   as const, label: '02' },
-    { kind: 'skip'   as const, label: '03' },
-    { kind: 'resume' as const, label: '04' },
-  ]
-  const cellSize = 28
-  const gap = 6
-  const total = cells.length
-  const width = total * cellSize + (total - 1) * gap
   return (
     <div className="w-full" style={{ fontFamily: MONO }}>
       <div className="flex items-baseline justify-between mb-4 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
-        <span>STEP&nbsp;LEDGER</span>
+        <span>RUNTIME&nbsp;HANDOFF</span>
         <span className="text-emerald-700 dark:text-emerald-400">0&nbsp;DUPLICATES</span>
       </div>
 
-      <svg
-        viewBox={`0 0 ${width} 56`}
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full"
-        style={{ maxHeight: '110px' }}
-      >
-        {cells.map((c, i) => {
-          const x = i * (cellSize + gap)
-          if (c.kind === 'commit' || c.kind === 'resume') {
-            return (
-              <g key={i}>
-                <rect x={x} y={6} width={cellSize} height={cellSize} className="fill-emerald-700 dark:fill-emerald-500" />
-                <text x={x + cellSize / 2} y={6 + cellSize / 2 + 3.5} fontSize="10" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
-                  {c.label}
-                </text>
-                <text x={x + cellSize / 2} y={50} fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.6" style={{ fontFamily: MONO, letterSpacing: '0.15em' }}>
-                  {c.kind === 'commit' ? 'COMMIT' : 'RESUME'}
-                </text>
-              </g>
-            )
-          }
-          if (c.kind === 'halt') {
-            return (
-              <g key={i}>
-                <rect x={x + 2} y={8} width={cellSize - 4} height={cellSize - 4} fill="none" stroke="#d97706" strokeWidth="1.2" strokeDasharray="2 1.5" />
-                <line x1={x + 6} y1={12} x2={x + cellSize - 6} y2={cellSize - 4 + 8} stroke="#d97706" strokeWidth="1.4" />
-                <line x1={x + cellSize - 6} y1={12} x2={x + 6} y2={cellSize - 4 + 8} stroke="#d97706" strokeWidth="1.4" />
-                <text x={x + cellSize / 2} y={50} fontSize="6" textAnchor="middle" fill="#d97706" style={{ fontFamily: MONO, letterSpacing: '0.15em' }}>
-                  HALT
-                </text>
-              </g>
-            )
-          }
-          // skipped
+      <svg viewBox="0 0 320 170" className="w-full" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <marker id="rec-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fillOpacity="0.55" />
+          </marker>
+        </defs>
+
+        {/* Lane labels (small, on left) */}
+        <text x="6" y="48" fontSize="6.5" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>R/T 01</text>
+        <text x="6" y="132" fontSize="6.5" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>R/T 02</text>
+
+        {/* Lane rails */}
+        <line x1="44" y1="52" x2="304" y2="52" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.5" />
+        <line x1="44" y1="136" x2="304" y2="136" stroke="currentColor" strokeOpacity="0.15" strokeWidth="0.5" />
+
+        {/* RUNTIME 01 — three committed steps then halt */}
+        {[0, 1, 2].map((i) => {
+          const cx = 60 + i * 36
           return (
-            <g key={i}>
-              <rect x={x} y={6} width={cellSize} height={cellSize} fill="none" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.8" strokeDasharray="2 1.5" />
-              <text x={x + cellSize / 2} y={6 + cellSize / 2 + 3.5} fontSize="10" textAnchor="middle" fill="currentColor" fillOpacity="0.4" style={{ fontFamily: MONO }}>
-                {c.label}
+            <g key={`a-${i}`}>
+              <rect x={cx - 10} y={42} width={20} height={20} className="fill-emerald-700 dark:fill-emerald-500" />
+              <text x={cx} y={56} fontSize="8" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>
+                {`0${i + 1}`}
               </text>
-              <text x={x + cellSize / 2} y={50} fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.15em' }}>
-                SKIP
+              {i < 2 && <line x1={cx + 10} y1={52} x2={cx + 26} y2={52} stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" />}
+            </g>
+          )
+        })}
+
+        {/* Halt marker */}
+        <g>
+          <line x1="178" y1="42" x2="178" y2="62" stroke="#d97706" strokeWidth="1.2" />
+          <line x1="172" y1="46" x2="184" y2="58" stroke="#d97706" strokeWidth="1.4" />
+          <line x1="184" y1="46" x2="172" y2="58" stroke="#d97706" strokeWidth="1.4" />
+          <text x="178" y="36" fontSize="7" textAnchor="middle" fill="#d97706" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>HALT</text>
+        </g>
+
+        {/* Persisted state band (between lanes) */}
+        <g>
+          <rect x="44" y="78" width="260" height="32" fill="currentColor" fillOpacity="0.04" />
+          <text x="174" y="90" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+            PERSISTED&nbsp;STATE
+          </text>
+          <text x="174" y="102" fontSize="6" textAnchor="middle" fill="currentColor" fillOpacity="0.35" style={{ fontFamily: MONO }}>
+            actions 01 · 02 · 03 already committed
+          </text>
+        </g>
+
+        {/* Curved arrow from halt down into runtime 2 */}
+        <path
+          d="M 178 64 C 178 86 200 110 218 122"
+          fill="none"
+          stroke="currentColor"
+          strokeOpacity="0.55"
+          strokeWidth="0.9"
+          strokeDasharray="2 1.5"
+          markerEnd="url(#rec-arrow)"
+        />
+
+        {/* RUNTIME 02 — skipped 01, 02, 03 (ghosted) then resumed 04 (filled) */}
+        {[0, 1, 2].map((i) => {
+          const cx = 226 + i * 22
+          return (
+            <g key={`b-${i}`}>
+              <rect x={cx - 7} y={126} width={14} height={20} fill="none" stroke="currentColor" strokeOpacity="0.4" strokeWidth="0.8" strokeDasharray="2 1.5" />
+              <text x={cx} y={140} fontSize="7" textAnchor="middle" fill="currentColor" fillOpacity="0.4" style={{ fontFamily: MONO }}>
+                {`0${i + 1}`}
               </text>
             </g>
           )
         })}
-      </svg>
+        <line x1="293" y1="136" x2="296" y2="136" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.7" />
+        <g>
+          <rect x="296" y={126} width={20} height={20} className="fill-emerald-700 dark:fill-emerald-500" />
+          <text x="306" y={140} fontSize="8" textAnchor="middle" fill="#fff" style={{ fontFamily: MONO }}>04</text>
+        </g>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
-        <div>
-          <span className="inline-block w-2 h-2 mr-2 align-middle bg-emerald-700 dark:bg-emerald-500" />
-          COMMITTED
-        </div>
-        <div>
-          <span className="inline-block w-2 h-2 mr-2 align-middle border border-current opacity-40" style={{ borderStyle: 'dashed' }} />
+        {/* Bottom legend */}
+        <text x="148" y="162" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
           NOT REPLAYED
-        </div>
-        <div className="text-amber-600 dark:text-amber-400">
-          <span className="inline-block w-2 h-2 mr-2 align-middle border border-current" style={{ borderStyle: 'dashed' }} />
-          HALT
-        </div>
-      </div>
+        </text>
+        <text x="276" y="162" fontSize="6.5" textAnchor="middle" fill="currentColor" fillOpacity="0.6" className="text-emerald-700 dark:text-emerald-400" style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          NEW STEP
+        </text>
+      </svg>
     </div>
   )
 }
