@@ -2,6 +2,7 @@ package coordinator
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -649,6 +650,34 @@ func TestTaskCheckpointEntriesHaveStableIDs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWalEntryUnmarshalPreservesBase64DigestBytesAsHex(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	inputDigest := [32]byte{0x01, 0x23, 0x45, 0x67}
+	outputDigest := [32]byte{0x89, 0xab, 0xcd, 0xef}
+	raw := map[string]any{
+		"entry_id":      uuid.New().String(),
+		"task_id":       taskID.String(),
+		"step_index":    1,
+		"step_type":     map[string]any{"ToolCall": map[string]any{"tool_name": "http_request"}},
+		"status":        "Committed",
+		"input_digest":  base64.StdEncoding.EncodeToString(inputDigest[:]),
+		"output_digest": base64.StdEncoding.EncodeToString(outputDigest[:]),
+		"timestamp_ms":  uint64(1_900_000_000_000),
+		"runtime_id":    "runtime-1",
+	}
+	data, err := json.Marshal(raw)
+	require.NoError(t, err)
+
+	var entry WalEntry
+	require.NoError(t, json.Unmarshal(data, &entry))
+
+	require.Equal(t, "0123456700000000000000000000000000000000000000000000000000000000", entry.InputDigest)
+	require.NotNil(t, entry.OutputDigest)
+	require.Equal(t, "89abcdef00000000000000000000000000000000000000000000000000000000", *entry.OutputDigest)
 }
 
 func TestTaskRecoveryCheckpointUsable(t *testing.T) {
