@@ -2198,7 +2198,7 @@ fn should_checkpoint_after_steps(
     if *checkpoint_after_steps == 0 {
         return false;
     }
-    start_step < *checkpoint_after_steps && steps_completed >= *checkpoint_after_steps
+    steps_completed > start_step && steps_completed % *checkpoint_after_steps == 0
 }
 
 fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
@@ -5914,7 +5914,7 @@ mod tests {
     }
 
     #[test]
-    fn checkpoint_after_steps_triggers_only_after_new_steps() {
+    fn checkpoint_after_steps_triggers_on_each_completed_interval() {
         let task_type = TaskType::AgentWorkflow {
             checkpoint_after_steps: Some(2),
             steps: Vec::new(),
@@ -5923,7 +5923,7 @@ mod tests {
         assert!(!should_checkpoint_after_steps(&task_type, 0, 1));
         assert!(should_checkpoint_after_steps(&task_type, 0, 2));
         assert!(!should_checkpoint_after_steps(&task_type, 2, 3));
-        assert!(!should_checkpoint_after_steps(&task_type, 2, 4));
+        assert!(should_checkpoint_after_steps(&task_type, 2, 4));
 
         let graph_task_type = TaskType::ExecutionGraph {
             checkpoint_after_steps: Some(2),
@@ -5936,6 +5936,7 @@ mod tests {
         assert!(!should_checkpoint_after_steps(&graph_task_type, 0, 1));
         assert!(should_checkpoint_after_steps(&graph_task_type, 0, 2));
         assert!(!should_checkpoint_after_steps(&graph_task_type, 2, 3));
+        assert!(should_checkpoint_after_steps(&graph_task_type, 2, 4));
 
         let disabled = TaskType::AgentWorkflow {
             checkpoint_after_steps: Some(0),
