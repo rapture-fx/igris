@@ -2514,6 +2514,14 @@ fn decode_hex_or_base64_bytes(raw: &str) -> anyhow::Result<Vec<u8>> {
         .or_else(|_| base64::engine::general_purpose::STANDARD_NO_PAD.decode(trimmed))
         .or_else(|_| base64::engine::general_purpose::URL_SAFE.decode(trimmed))
         .or_else(|_| base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(trimmed))
+        .or_else(|_| {
+            let forgiving = base64::engine::GeneralPurpose::new(
+                &base64::alphabet::STANDARD,
+                base64::engine::general_purpose::GeneralPurposeConfig::new()
+                    .with_decode_allow_trailing_bits(true),
+            );
+            forgiving.decode(trimmed)
+        })
         .map_err(Into::into)
 }
 
