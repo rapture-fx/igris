@@ -7,13 +7,21 @@ import { useTheme } from 'next-themes';
 type DropdownKey = 'product' | 'docs' | 'usecases' | 'resources' | null;
 
 const NAV_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const MONO_FONT = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace';
 
 const NAV_ITEM_CLS = (active: boolean) =>
-  `px-3 py-1.5 text-sm font-medium flex items-center gap-1 transition-all duration-200 rounded-md ${
+  `px-2.5 py-1.5 flex items-center gap-1 transition-colors duration-200 ${
     active
-      ? 'text-gray-900 dark:text-[#f6f6f4] bg-black/[0.05] dark:bg-white/[0.08]'
-      : 'text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+      ? 'text-[#000000] dark:text-[#f6f6f4]'
+      : 'text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4]'
   }`;
+
+const NAV_ITEM_STYLE: React.CSSProperties = {
+  fontFamily: MONO_FONT,
+  fontSize: '11px',
+  letterSpacing: '0.22em',
+  textTransform: 'uppercase',
+};
 
 interface DropdownItem {
   label: string;
@@ -124,7 +132,7 @@ export default function Header() {
     { label: 'Governed Runs', description: 'Apply boundaries, permissions, and controlled task execution.', href: '/#how-it-works' },
     { label: 'Failure-Aware Execution', description: 'Make fallback paths and failures visible.', href: '/#how-it-works' },
     { label: 'Structured Execution', description: 'Use defined paths for agents, workflows, and edge systems.', href: '/#how-it-works' },
-    { label: 'Edge & Local Execution', description: 'Run through configured local and edge execution surfaces.', href: '/#use-cases' },
+    { label: 'Edge & Local Execution', description: 'Run through configured local and edge execution surfaces.', href: '/use-cases' },
     { label: 'Signed Receipts', description: 'Verify what happened after a critical run.', href: '/#product' },
   ];
 
@@ -132,7 +140,6 @@ export default function Header() {
     { label: 'Getting Started', description: 'Run your first verified execution path.', href: `https://docs.igrisinertial.com/docs/`, external: true },
     { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: `https://docs.igrisinertial.com/docs/api-reference/`, external: true },
     { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: `https://docs.igrisinertial.com/docs/sdk/`, external: true },
-    { label: 'Proof Demo', description: 'Run the unified execution proof locally.', href: `https://docs.igrisinertial.com/docs/first-verified-run/`, external: true },
     { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: `https://docs.igrisinertial.com/docs/verification/`, external: true },
     { label: 'Architecture', description: 'How Igris governs execution across environments.', href: `https://docs.igrisinertial.com/docs/architecture/`, external: true },
   ];
@@ -147,7 +154,6 @@ export default function Header() {
 
   const resourcesItems: DropdownItem[] = [
     { label: 'Proof Status', description: 'What is proven today and what is still in progress.', href: `https://docs.igrisinertial.com/docs/proof-status/`, external: true },
-    { label: 'Private Demo', description: 'See Igris run a verified execution path.', href: '/#how-it-works' },
     { label: 'Roadmap', description: 'What is being validated next.', href: `https://docs.igrisinertial.com/docs/proof-status/#in-development`, external: true },
     { label: 'Changelog', description: 'Product updates and proof milestones.', href: `https://docs.igrisinertial.com/docs/changelog/`, external: true },
     { label: 'Blog', description: 'Technical notes and implementation updates.', href: '/blog' },
@@ -159,12 +165,22 @@ export default function Header() {
     const inner = (
       <div className="flex items-start gap-2.5">
         <div>
-          <span className="block text-xs font-medium text-[#1b1912] dark:text-[#f6f6f4] mb-0.5 group-hover:text-gray-700 dark:group-hover:text-[#e8e8e0] transition-colors" style={{ fontFamily: NAV_FONT }}>{item.label}</span>
-          <span className="block text-xs text-gray-500 dark:text-[#a8a898] leading-snug" style={{ fontFamily: NAV_FONT }}>{item.description}</span>
+          <span
+            className="block text-[13px] text-[#000000] dark:text-[#f6f6f4] mb-0.5 group-hover:opacity-70 transition-opacity"
+            style={{ fontFamily: NAV_FONT, fontWeight: 500, letterSpacing: '-0.005em' }}
+          >
+            {item.label}
+          </span>
+          <span
+            className="block text-xs text-gray-500 dark:text-[#a8a898] leading-snug"
+            style={{ fontFamily: NAV_FONT }}
+          >
+            {item.description}
+          </span>
         </div>
       </div>
     );
-    const cls = 'group block rounded-lg px-3 py-2.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors';
+    const cls = 'group block px-4 py-3 transition-colors';
     if (item.external) {
       return (
         <a key={item.label} href={item.href} className={cls} onClick={() => setActiveDropdown(null)}>
@@ -180,20 +196,50 @@ export default function Header() {
   };
 
   const renderGrid = (items: DropdownItem[]) => (
-    <div className="p-4 grid grid-cols-2 gap-x-3 gap-y-0.5">
-      {items.map(renderDropdownItem)}
+    <div className="grid grid-cols-2">
+      {items.map((item, i) => (
+        <div
+          key={item.label}
+          style={{
+            borderRight: i % 2 === 0 ? 'var(--section-border)' : 'none',
+            borderBottom: i < items.length - 2 ? 'var(--section-border)' : 'none',
+          }}
+        >
+          {renderDropdownItem(item)}
+        </div>
+      ))}
     </div>
   );
 
+  const overHero = !isScrolled
+
   return (
     <>
-      <header className="fixed top-0 left-0 w-full z-50">
+      <style>{`
+        /* When the header floats over the dark hero, force white text on all nav elements */
+        .igris-header[data-over-hero="true"] a,
+        .igris-header[data-over-hero="true"] button {
+          color: rgba(255, 255, 255, 0.72);
+        }
+        .igris-header[data-over-hero="true"] a:hover,
+        .igris-header[data-over-hero="true"] button:hover {
+          color: #ffffff;
+        }
+        .igris-header[data-over-hero="true"] svg {
+          color: rgba(255, 255, 255, 0.72);
+        }
+        .igris-header[data-over-hero="true"] a:hover svg,
+        .igris-header[data-over-hero="true"] button:hover svg {
+          color: #ffffff;
+        }
+      `}</style>
+      <header className="igris-header fixed top-0 left-0 w-full z-50" data-over-hero={overHero ? 'true' : 'false'}>
         {/* Full-width background */}
         <div
           className={`absolute inset-0 transition-all duration-300 ${
             isScrolled
               ? 'backdrop-blur-md bg-[rgba(255,255,255,0.85)] dark:bg-[rgba(17,15,15,0.85)]'
-              : 'bg-white dark:bg-[#110f0f]'
+              : 'bg-transparent'
           }`}
           style={{ borderBottom: 'none' }}
         />
@@ -218,7 +264,7 @@ export default function Header() {
                 </div>
 
                 {/* Desktop center nav */}
-                <div className="hidden md:flex items-center space-x-1 absolute left-1/2 -translate-x-1/2">
+                <div className="hidden md:flex items-center gap-x-1 absolute left-1/2 -translate-x-1/2">
                   {(
                     [
                       { key: 'product', label: 'Product' },
@@ -231,10 +277,10 @@ export default function Header() {
                       key={key}
                       onMouseEnter={() => openDropdown(key)}
                       className={NAV_ITEM_CLS(activeDropdown === key)}
-                      style={{ fontFamily: NAV_FONT }}
+                      style={NAV_ITEM_STYLE}
                     >
                       {label}
-                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${activeDropdown === key ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${activeDropdown === key ? 'rotate-180' : ''}`} />
                     </button>
                   ))}
 
@@ -242,33 +288,29 @@ export default function Header() {
                     href="/pricing"
                     prefetch={false}
                     onMouseEnter={scheduleClose}
-                    className="px-3 py-1.5 text-gray-600 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all duration-200 font-medium text-sm rounded-md"
-                    style={{ fontFamily: NAV_FONT }}
+                    className="px-2.5 py-1.5 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors duration-200"
+                    style={NAV_ITEM_STYLE}
                   >
                     Pricing
                   </Link>
                 </div>
 
                 {/* Desktop right */}
-                <div className="hidden md:flex items-center space-x-3">
+                <div className="hidden md:flex items-center gap-4">
                   <button
                     type="button"
                     onClick={() => setTheme(isDark ? 'light' : 'dark')}
-                    className="p-2 rounded-md hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors duration-200"
+                    className="p-1.5 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors duration-200"
                     aria-label="Toggle theme"
                   >
-                    {isDark ? (
-                      <Sun className="h-4 w-4 text-[#f6f6f4]" />
-                    ) : (
-                      <Moon className="h-4 w-4 text-[#1b1912]" />
-                    )}
+                    {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
                   </button>
 
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow rounded-xl border bg-white dark:bg-[rgba(246,246,244,0.08)] text-[#1b1912] dark:text-[#f6f6f4] border-[rgba(20,18,10,0.1)] dark:border-[rgba(246,246,244,0.12)]"
-                    style={{ fontFamily: NAV_FONT }}
+                    className="text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                    style={NAV_ITEM_STYLE}
                   >
                     Sign In
                   </a>
@@ -276,10 +318,12 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="inline-flex items-center justify-center px-3 py-1.5 hover:opacity-80 transition-all duration-200 text-xs font-medium shadow-lg rounded-xl bg-[#1b1912] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#1b1912]"
-                    style={{ fontFamily: NAV_FONT }}
+                    className="group inline-flex items-baseline gap-1.5 text-[#000000] dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+                    style={NAV_ITEM_STYLE}
                   >
+                    <span aria-hidden className="inline-block w-3 border-t border-current translate-y-[-3px]" />
                     Get Started
+                    <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
                   </a>
                 </div>
 
@@ -300,19 +344,39 @@ export default function Header() {
             {renderedDropdown && (
               <div
                 className="hidden md:block overflow-hidden absolute left-1/2 -translate-x-1/2"
-                style={{ maxWidth: '600px', width: '100%', zIndex: 50, paddingTop: '8px' }}
+                style={{ maxWidth: '640px', width: '100%', zIndex: 50, paddingTop: '4px' }}
                 onMouseEnter={cancelClose}
               >
                 <div
-                  className={`border shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-xl transition-all duration-300 ease-out ${
-                    isDropdownVisible ? 'opacity-100 max-h-[400px]' : 'opacity-0 max-h-0'
+                  className={`transition-all duration-300 ease-out ${
+                    isDropdownVisible ? 'opacity-100 max-h-[480px]' : 'opacity-0 max-h-0'
                   }`}
                   style={{
                     overflow: 'hidden',
-                    backgroundColor: isDark ? '#161515' : '#f9f9fa',
-                    borderColor: isDark ? 'rgba(246, 246, 244, 0.08)' : 'rgba(229, 231, 235, 1)',
+                    backgroundColor: isDark ? '#110f0f' : '#ffffff',
+                    borderTop: 'var(--section-border)',
+                    borderBottom: 'var(--section-border)',
+                    borderLeft: 'var(--section-border)',
+                    borderRight: 'var(--section-border)',
                   }}
                 >
+                  <div className="flex items-baseline justify-between px-4 py-2" style={{ borderBottom: 'var(--section-border)' }}>
+                    <span
+                      className="text-gray-500 dark:text-[#8a8a7a]"
+                      style={{ fontFamily: MONO_FONT, fontSize: '10px', letterSpacing: '0.22em' }}
+                    >
+                      {renderedDropdown === 'product' && 'PRODUCT · INDEX'}
+                      {renderedDropdown === 'docs' && 'DOCS · INDEX'}
+                      {renderedDropdown === 'usecases' && 'USE CASES · INDEX'}
+                      {renderedDropdown === 'resources' && 'RESOURCES · INDEX'}
+                    </span>
+                    <span
+                      className="text-gray-400 dark:text-[#5a5a52]"
+                      style={{ fontFamily: MONO_FONT, fontSize: '10px', letterSpacing: '0.22em' }}
+                    >
+                      ↵ ESC
+                    </span>
+                  </div>
                   {renderedDropdown === 'product' && renderGrid(productItems)}
                   {renderedDropdown === 'docs' && renderGrid(docsItems)}
                   {renderedDropdown === 'usecases' && renderGrid(useCasesItems)}
