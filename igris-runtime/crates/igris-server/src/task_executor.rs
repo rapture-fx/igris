@@ -31,7 +31,7 @@ use igris_btree::{
 };
 use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
 use igris_safety::{Bounds as SafetyBounds, ContainmentGuard};
-use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog};
+use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog, WalStatus};
 use std::sync::Arc;
 
 use crate::receipt::ExecutionReceipt;
@@ -900,14 +900,13 @@ pub async fn handle_task_submit(
     let (_cancel_guard, mut cancel_rx) = register_task_cancellation(&state, req.task_id);
 
     let start_step = if let Some(ref token) = req.resume_from {
-        match wal.committed_state() {
-            Ok((local_last_step, local_digest)) => {
-                if let Some(start_step) =
-                    verified_resume_start_step(token, local_last_step, local_digest)
-                {
-                    info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
-                    start_step
-                } else {
+        match verified_resume_start_step_from_local_or_checkpoint(&wal, &req, token) {
+            Ok(Some(start_step)) => {
+                info!(task_id = %req.task_id, "Resume verified at step {}", token.last_committed_step);
+                start_step
+            }
+            Ok(None) => match wal.committed_state() {
+                Ok((local_last_step, local_digest)) => {
                     warn!(task_id = %req.task_id, "Checkpoint digest mismatch on resume");
                     return (
                         StatusCode::CONFLICT,
@@ -921,13 +920,26 @@ pub async fn handle_task_submit(
                     )
                         .into_response();
                 }
-            }
+                Err(e) => {
+                    error!(task_id = %req.task_id, "WAL digest computation failed: {}", e);
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({
+                            "error": { "message": "WAL error", "type": "wal_error" }
+                        })),
+                    )
+                        .into_response();
+                }
+            },
             Err(e) => {
-                error!(task_id = %req.task_id, "WAL digest computation failed: {}", e);
+                error!(task_id = %req.task_id, "Resume checkpoint verification failed: {}", e);
                 return (
-                    StatusCode::INTERNAL_SERVER_ERROR,
+                    StatusCode::CONFLICT,
                     Json(serde_json::json!({
-                        "error": { "message": "WAL error", "type": "wal_error" }
+                        "error": {
+                            "message": e.to_string(),
+                            "type": "checkpoint_mismatch"
+                        }
                     })),
                 )
                     .into_response();
@@ -2320,6 +2332,189 @@ fn verified_resume_start_step(
         return None;
     }
     Some(requested_resume_from.last_committed_step + 1)
+}
+
+fn verified_resume_start_step_from_local_or_checkpoint(
+    wal: &WalLog,
+    req: &TaskSubmitRequest,
+    requested_resume_from: &ResumeToken,
+) -> anyhow::Result<Option<u32>> {
+    let (local_last_step, local_digest) = wal.committed_state()?;
+    if let Some(start_step) =
+        verified_resume_start_step(requested_resume_from, local_last_step, local_digest)
+    {
+        return Ok(Some(start_step));
+    }
+
+    // Clean-host recovery: if the replacement runtime has no committed local
+    // WAL state, seed it from the externally persisted checkpoint that Overture
+    // forwards in resume_checkpoint. Non-empty divergent WAL remains a hard
+    // mismatch and is not overwritten.
+    if local_last_step.is_some() {
+        return Ok(None);
+    }
+
+    let Some(resume_checkpoint) = req.resume_checkpoint.as_ref() else {
+        return Ok(None);
+    };
+    let checkpoint: CheckpointPayload = serde_json::from_value(
+        normalize_external_resume_checkpoint_value(resume_checkpoint.clone())?,
+    )?;
+    validate_external_resume_checkpoint(req.task_id, requested_resume_from, &checkpoint)?;
+    wal.import_entries(&checkpoint.wal_entries)?;
+
+    let (seeded_last_step, seeded_digest) = wal.committed_state()?;
+    Ok(verified_resume_start_step(
+        requested_resume_from,
+        seeded_last_step,
+        seeded_digest,
+    ))
+}
+
+fn validate_external_resume_checkpoint(
+    task_id: Uuid,
+    requested_resume_from: &ResumeToken,
+    checkpoint: &CheckpointPayload,
+) -> anyhow::Result<()> {
+    if checkpoint.task_id != task_id {
+        anyhow::bail!("resume checkpoint task_id mismatch");
+    }
+    if checkpoint.resume_token.last_committed_step != requested_resume_from.last_committed_step
+        || checkpoint.resume_token.checkpoint_digest != requested_resume_from.checkpoint_digest
+    {
+        anyhow::bail!("resume checkpoint token mismatch");
+    }
+    if checkpoint.wal_entries.is_empty() {
+        anyhow::bail!("resume checkpoint has no WAL entries");
+    }
+
+    let mut committed: Vec<&WalEntry> = checkpoint
+        .wal_entries
+        .iter()
+        .filter(|entry| matches!(entry.status, WalStatus::Committed))
+        .collect();
+    committed.sort_by_key(|entry| (entry.step_index, entry.entry_id));
+
+    let mut hasher = Sha256::new();
+    let mut last_step = None;
+    for entry in committed {
+        if entry.task_id != task_id {
+            anyhow::bail!("resume checkpoint WAL entry task_id mismatch");
+        }
+        if let Some(output_digest) = entry.output_digest.as_ref() {
+            hasher.update(output_digest);
+            last_step = Some(entry.step_index);
+        }
+    }
+    if last_step != Some(requested_resume_from.last_committed_step) {
+        anyhow::bail!("resume checkpoint last committed step mismatch");
+    }
+    let digest: [u8; 32] = hasher.finalize().into();
+    if digest != requested_resume_from.checkpoint_digest {
+        anyhow::bail!("resume checkpoint digest mismatch");
+    }
+
+    Ok(())
+}
+
+fn normalize_external_resume_checkpoint_value(
+    mut value: serde_json::Value,
+) -> anyhow::Result<serde_json::Value> {
+    let Some(entries) = value
+        .get_mut("wal_entries")
+        .and_then(serde_json::Value::as_array_mut)
+    else {
+        return Ok(value);
+    };
+
+    for entry in entries {
+        normalize_fixed_digest_field(entry, "input_digest")?;
+        normalize_fixed_digest_field(entry, "output_digest")?;
+        normalize_binary_field(entry, "signature")?;
+        normalize_wal_status_field(entry);
+    }
+    Ok(value)
+}
+
+fn normalize_fixed_digest_field(entry: &mut serde_json::Value, field: &str) -> anyhow::Result<()> {
+    let Some(slot) = entry.get_mut(field) else {
+        return Ok(());
+    };
+    if slot.is_null() || slot.is_array() {
+        return Ok(());
+    }
+    let Some(raw) = slot.as_str() else {
+        return Ok(());
+    };
+    let bytes = decode_hex_or_base64_bytes(raw)?;
+    if bytes.len() != 32 {
+        anyhow::bail!("{field} must decode to 32 bytes");
+    }
+    *slot = serde_json::Value::Array(
+        bytes
+            .into_iter()
+            .map(|byte| serde_json::Value::Number(byte.into()))
+            .collect(),
+    );
+    Ok(())
+}
+
+fn normalize_binary_field(entry: &mut serde_json::Value, field: &str) -> anyhow::Result<()> {
+    let Some(slot) = entry.get_mut(field) else {
+        return Ok(());
+    };
+    if slot.is_null() || slot.is_array() {
+        return Ok(());
+    }
+    let Some(raw) = slot.as_str() else {
+        return Ok(());
+    };
+    let bytes = decode_hex_or_base64_bytes(raw)?;
+    *slot = serde_json::Value::Array(
+        bytes
+            .into_iter()
+            .map(|byte| serde_json::Value::Number(byte.into()))
+            .collect(),
+    );
+    Ok(())
+}
+
+fn normalize_wal_status_field(entry: &mut serde_json::Value) {
+    let Some(slot) = entry.get_mut("status") else {
+        return;
+    };
+    let Some(raw) = slot.as_str() else {
+        return;
+    };
+    let normalized = match raw.trim().to_ascii_lowercase().as_str() {
+        "intent" => "Intent",
+        "executing" => "Executing",
+        "committed" | "completed" => "Committed",
+        other => {
+            if other == raw {
+                return;
+            }
+            raw
+        }
+    };
+    *slot = serde_json::Value::String(normalized.to_string());
+}
+
+fn decode_hex_or_base64_bytes(raw: &str) -> anyhow::Result<Vec<u8>> {
+    let trimmed = raw.trim();
+    if trimmed.len() % 2 == 0 && trimmed.chars().all(|ch| ch.is_ascii_hexdigit()) {
+        let bytes = (0..trimmed.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&trimmed[i..i + 2], 16))
+            .collect::<Result<Vec<_>, _>>()?;
+        return Ok(bytes);
+    }
+    base64::engine::general_purpose::STANDARD
+        .decode(trimmed)
+        .or_else(|_| base64::engine::general_purpose::STANDARD_NO_PAD.decode(trimmed))
+        .or_else(|_| base64::engine::general_purpose::URL_SAFE.decode(trimmed))
+        .or_else(|_| base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(trimmed))
+        .map_err(Into::into)
 }
 
 /// Serialize a `TaskSubmitResponse` and attach the per-step receipt chain under
@@ -5502,21 +5697,24 @@ mod tests {
         normalize_agent_mode, permission_failure_for_step, persist_task_status_index,
         resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
         should_checkpoint_after_steps, stream_durability_metadata, task_status_key, unix_now_ms,
-        update_graph_blackboard, validate_task_permission_envelope, verified_resume_start_step,
-        AgentApprovalOptions, AgentExecutionMode, AgentIdentity, AgentMemoryOptions,
-        BehaviorTreeStep, CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode,
-        GovernedAction, GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep,
-        RuntimeTaskStep, StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope,
-        TaskStatus, TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
+        update_graph_blackboard, validate_external_resume_checkpoint,
+        validate_task_permission_envelope, verified_resume_start_step,
+        verified_resume_start_step_from_local_or_checkpoint, AgentApprovalOptions,
+        AgentExecutionMode, AgentIdentity, AgentMemoryOptions, BehaviorTreeStep,
+        CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode, GovernedAction,
+        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+        StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope, TaskStatus,
+        TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
     use base64::Engine;
     use ed25519_dalek::{Signer, SigningKey};
     use igris_core::storage::{RedbStorage, TASK_SUBMISSION_STATUS_BY_TASK_ID};
-    use igris_wal::{CheckpointPayload, ResumeToken};
+    use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog, WalStatus};
     use sha2::{Digest, Sha256};
     use std::env;
+    use std::sync::Arc;
     use uuid::Uuid;
 
     #[test]
@@ -6625,6 +6823,177 @@ mod tests {
             None
         );
         assert_eq!(verified_resume_start_step(&token, None, [0x33u8; 32]), None);
+    }
+
+    fn committed_checkpoint_entry(task_id: Uuid, step_index: u32, output_byte: u8) -> WalEntry {
+        WalEntry {
+            entry_id: Uuid::new_v4(),
+            task_id,
+            step_index,
+            step_type: StepType::ToolCall {
+                tool_name: format!("tool-{step_index}"),
+            },
+            status: WalStatus::Committed,
+            input_digest: [step_index as u8; 32],
+            output_digest: Some([output_byte; 32]),
+            timestamp_ms: 1_900_000_000_000 + u64::from(step_index),
+            runtime_id: "runtime-1".to_string(),
+            signature: Some(vec![output_byte; 64]),
+        }
+    }
+
+    fn checkpoint_digest(entries: &[WalEntry]) -> [u8; 32] {
+        let mut committed: Vec<&WalEntry> = entries
+            .iter()
+            .filter(|entry| matches!(entry.status, WalStatus::Committed))
+            .collect();
+        committed.sort_by_key(|entry| (entry.step_index, entry.entry_id));
+
+        let mut hasher = Sha256::new();
+        for entry in committed {
+            if let Some(output_digest) = entry.output_digest.as_ref() {
+                hasher.update(output_digest);
+            }
+        }
+        hasher.finalize().into()
+    }
+
+    fn hex_bytes(bytes: &[u8]) -> String {
+        bytes
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    }
+
+    #[test]
+    fn external_resume_checkpoint_validates_committed_digest() {
+        let task_id = Uuid::new_v4();
+        let wal_entries = vec![
+            committed_checkpoint_entry(task_id, 0, 0x11),
+            committed_checkpoint_entry(task_id, 1, 0x22),
+        ];
+        let digest = checkpoint_digest(&wal_entries);
+        let token = ResumeToken {
+            last_committed_step: 1,
+            checkpoint_digest: digest,
+            runtime_id: "runtime-1".to_string(),
+        };
+        let checkpoint = CheckpointPayload {
+            task_id,
+            resume_token: token.clone(),
+            wal_entries,
+            metadata: None,
+        };
+
+        validate_external_resume_checkpoint(task_id, &token, &checkpoint)
+            .expect("valid externally persisted checkpoint");
+    }
+
+    #[test]
+    fn external_resume_checkpoint_rejects_digest_mismatch() {
+        let task_id = Uuid::new_v4();
+        let wal_entries = vec![
+            committed_checkpoint_entry(task_id, 0, 0x11),
+            committed_checkpoint_entry(task_id, 1, 0x22),
+        ];
+        let digest = checkpoint_digest(&wal_entries);
+        let requested = ResumeToken {
+            last_committed_step: 1,
+            checkpoint_digest: [0x44; 32],
+            runtime_id: "runtime-1".to_string(),
+        };
+        let checkpoint = CheckpointPayload {
+            task_id,
+            resume_token: ResumeToken {
+                checkpoint_digest: digest,
+                ..requested.clone()
+            },
+            wal_entries,
+            metadata: None,
+        };
+
+        let err = validate_external_resume_checkpoint(task_id, &requested, &checkpoint)
+            .expect_err("mismatched token digest should be rejected");
+        assert!(err.to_string().contains("token mismatch"));
+    }
+
+    #[test]
+    fn checkpoint_after_steps_clean_host_resume_seeds_empty_wal_from_checkpoint() {
+        let task_id = Uuid::new_v4();
+        let wal_entries = vec![
+            committed_checkpoint_entry(task_id, 0, 0x11),
+            committed_checkpoint_entry(task_id, 1, 0x22),
+        ];
+        let digest = checkpoint_digest(&wal_entries);
+        let token = ResumeToken {
+            last_committed_step: 1,
+            checkpoint_digest: digest,
+            runtime_id: "runtime-1".to_string(),
+        };
+        let checkpoint = CheckpointPayload {
+            task_id,
+            resume_token: token.clone(),
+            wal_entries,
+            metadata: None,
+        };
+        let mut checkpoint_value = serde_json::to_value(&checkpoint).expect("checkpoint json");
+        for (index, entry) in checkpoint_value["wal_entries"]
+            .as_array_mut()
+            .expect("wal entries")
+            .iter_mut()
+            .enumerate()
+        {
+            let output_byte = if index == 0 { 0x11u8 } else { 0x22u8 };
+            entry["status"] = serde_json::Value::String("committed".to_string());
+            entry["input_digest"] = serde_json::Value::String(hex_bytes(&[index as u8; 32]));
+            entry["output_digest"] = serde_json::Value::String(
+                base64::engine::general_purpose::STANDARD.encode([output_byte; 32]),
+            );
+            entry["signature"] = serde_json::Value::String(
+                base64::engine::general_purpose::STANDARD.encode([output_byte; 64]),
+            );
+        }
+        let storage_path = env::temp_dir().join(format!("igris-clean-host-{task_id}.redb"));
+        let _ = std::fs::remove_file(&storage_path);
+        let storage = Arc::new(RedbStorage::new(&storage_path).expect("redb test storage"));
+        let wal = WalLog::new(storage, task_id, "runtime-2".to_string());
+        let req = TaskSubmitRequest {
+            task_id,
+            task_type: TaskType::ExecutionGraph {
+                graph: ExecutionGraph {
+                    graph_id: Some("action-task-v1-clean-host".to_string()),
+                    blackboard: None,
+                    nodes: Vec::new(),
+                },
+                checkpoint_after_steps: Some(2),
+            },
+            containment: None,
+            resume_from: Some(token.clone()),
+            resume_checkpoint: Some(checkpoint_value),
+            idempotency_key: "idem-clean-host".to_string(),
+            tenant_id: "tenant-clean-host".to_string(),
+            agent_identity: None,
+            required_capabilities: Vec::new(),
+            permission_envelope: None,
+            credential_refs: Vec::new(),
+            signed_policy_decisions: Vec::new(),
+            deadline_ms: None,
+        };
+
+        let start_step = verified_resume_start_step_from_local_or_checkpoint(&wal, &req, &token)
+            .expect("clean-host resume state should import");
+
+        assert_eq!(start_step, Some(2));
+        let entries = wal.read_from_step(0).expect("seeded WAL entries");
+        assert_eq!(
+            entries
+                .iter()
+                .map(|entry| entry.step_index)
+                .collect::<Vec<_>>(),
+            vec![0, 1]
+        );
+        assert!(entries.iter().all(|entry| entry.runtime_id == "runtime-1"));
+        let _ = std::fs::remove_file(storage_path);
     }
 
     #[test]
