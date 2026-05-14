@@ -106,6 +106,43 @@ wait_for_task_status() {
   exit 1
 }
 
+wait_for_task_checkpoint_step() {
+  local task_id="$1"
+  local wanted_step="$2"
+  local out_path="$3"
+  local attempts="${4:-90}"
+  local sleep_s="${5:-1}"
+
+  for _ in $(seq 1 "$attempts"); do
+    curl -sS "${AUTH_ARGS[@]}" "http://127.0.0.1:8081/v1/tasks/$task_id" > "$out_path"
+    local result
+    result=$(node -e '
+const fs = require("fs");
+const body = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const status = String(body.status || "");
+const step = Number(body.last_step ?? (body.checkpoint_summary || {}).last_committed_step ?? -1);
+process.stdout.write(JSON.stringify({ status, step }));
+' "$out_path")
+    local task_state
+    task_state=$(node -e 'const body=JSON.parse(process.argv[1]); process.stdout.write(body.status);' "$result")
+    local step
+    step=$(node -e 'const body=JSON.parse(process.argv[1]); process.stdout.write(String(body.step));' "$result")
+    if [[ "$task_state" == "failed" ]]; then
+      echo "task $task_id failed while waiting for checkpoint step=$wanted_step" >&2
+      cat "$out_path" >&2
+      exit 1
+    fi
+    if [[ "$step" == "$wanted_step" ]]; then
+      return 0
+    fi
+    sleep "$sleep_s"
+  done
+
+  echo "task $task_id did not reach checkpoint step=$wanted_step in time" >&2
+  cat "$out_path" >&2
+  exit 1
+}
+
 query_json() {
   local sql="$1"
   local out_path="$2"
@@ -449,7 +486,7 @@ NODE
       RUNTIME_MOCK_KEY=dummy \
       IGRIS_ALLOW_INSECURE_DEV_MODE=true \
       IGRIS_CONFIG="$RUNTIME_1_CONFIG" \
-      IGRIS_DEVICE_ID="$RUNTIME_1B_MACHINE_ID" \
+      IGRIS_DEVICE_ID="$DEVICE_ID" \
       IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
       IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
       IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
@@ -469,7 +506,7 @@ WHERE tenant_id = '$PROOF_TENANT_ID'
   AND machine_id = '$RUNTIME_1_MACHINE_ID';
 SQL
 
-  wait_for_task_status "$TASK_ID" "checkpointed" "$TMP_DIR/task-after-second-checkpoint.json" 90 1
+  wait_for_task_checkpoint_step "$TASK_ID" 3 "$TMP_DIR/task-after-second-checkpoint.json" 90 1
   curl -sS -f "${AUTH_ARGS[@]}" "http://127.0.0.1:8081/v1/tasks/$TASK_ID/steps" > "$TMP_DIR/task-steps-after-second-checkpoint.json"
 
   HTTP_COUNT_SECOND_CHECKPOINT=$(grep -c '"event":"process"' "$LOG_DIR/action-target.log" || true)
