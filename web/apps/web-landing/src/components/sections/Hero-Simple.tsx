@@ -1,61 +1,182 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
-import { useTheme } from 'next-themes'
+import React, { useEffect, useState } from 'react'
 
-const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
 
 export default function Hero() {
-  const { theme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const copy = useCallback(() => {
-    navigator.clipboard.writeText(INSTALL_CMD)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [])
+  useEffect(() => setMounted(true), [])
 
   return (
-    <section className="pb-0 bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] relative overflow-visible transition-colors duration-200" style={{ marginTop: '48px' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden flex flex-col justify-center min-h-[auto] md:min-h-[calc(100vh-52px)]" style={{ marginBottom: '2rem' }}>
-          <div className="max-w-[1200px] mx-auto w-full relative z-10 pb-6 md:pb-10 pt-0 px-4 md:px-8 lg:px-12">
-            
-            {/* Title row — on desktop: title left + description right */}
-            <div className="flex flex-col gap-2 mb-4 md:mb-10">
-              <h1 className="text-xl md:text-2xl lg:text-3xl leading-tight text-[#000000] dark:text-[#f6f6f4]" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}>
-                Run AI tasks that survive failure and prove what happened.
-              </h1>
-              <p className="text-lg text-left text-gray-600 dark:text-[#a8a898] max-w-[560px]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-                Igris is the execution assurance layer for AI agents that touch real systems. Runs recover from failure and produce a signed record of what happened.
-              </p>
-              <div className="flex gap-3">
-                <a href="/core" className="inline-flex items-center justify-center px-4 py-2 mt-4 text-sm font-medium rounded-xl bg-[#1b1912] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#1b1912] cursor-pointer transition-opacity hover:opacity-80" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  Get Started
-                </a>
-                <a href="https://docs.igrisinertial.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-4 py-2 mt-4 text-sm font-medium rounded-xl border border-gray-300 dark:border-gray-600 text-[#000000] dark:text-[#f6f6f4] cursor-pointer transition-opacity hover:opacity-80" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                  View Docs
-                </a>
-              </div>
+    <section
+      className="relative w-full overflow-hidden bg-[#0a0a0c]"
+      style={{
+        marginTop: '0',
+        minHeight: 'clamp(720px, 92vh, 980px)',
+      }}
+    >
+      {/* ── Full-bleed cinematic backdrop ─────────────── */}
+      <div className="absolute inset-0">
+        <img
+          src="/SF.jpeg"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover"
+          style={{ filter: 'brightness(0.78)' }}
+        />
+        {/* Bottom-up gradient so content reads on any image */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(10,10,12,0.45) 0%, rgba(10,10,12,0.0) 28%, rgba(10,10,12,0.0) 45%, rgba(10,10,12,0.55) 85%, rgba(10,10,12,0.88) 100%)',
+          }}
+        />
+        {/* Subtle left-side darkening for legibility */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(10,10,12,0.55) 0%, rgba(10,10,12,0.1) 38%, rgba(10,10,12,0.0) 60%)',
+          }}
+        />
+      </div>
+
+      {/* ── Top mono strip — overlaid on image ────────── */}
+      <div className="relative z-10 pt-24 md:pt-28">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+          <div className="px-4 md:px-8 lg:px-12">
+            <div className="flex items-baseline justify-between">
+              <span
+                className="text-[10px] md:text-[11px] tracking-[0.22em] text-white/60"
+                style={{ fontFamily: MONO }}
+              >
+                IGRIS&nbsp;INERTIAL
+                <span className="mx-2 text-white/25">/</span>
+                RUN&nbsp;·&nbsp;RECOVER&nbsp;·&nbsp;VERIFY
+              </span>
+              <span
+                className="hidden sm:inline text-[10px] md:text-[11px] tracking-[0.22em] text-white/60"
+                style={{ fontFamily: MONO }}
+              >
+                V1&nbsp;/&nbsp;2026
+              </span>
             </div>
-
-            {/* Image with frame */}
-            <img src={mounted && theme === 'dark' ? '/lhjk.png' : '/hfrfz.png'} alt="Hero" className="h-full w-full object-cover rounded-xl min-h-[200px] md:min-h-[400px]" style={{ maxHeight: '1000px', width: '100%', height: 'auto' }} />
-
-            {/* Description — mobile only */}
-            <p className="md:hidden mt-4 text-xs text-center text-gray-600 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', fontWeight: 400 }}>
-              Igris is the execution assurance layer for AI agents that touch real systems. Runs recover from failure and produce a signed record of what happened.
-            </p>
-
           </div>
         </div>
       </div>
+
+      {/* ── Bottom-left overlaid content ──────────────── */}
+      <div className="relative z-10" style={{ minHeight: 'clamp(540px, 70vh, 760px)' }}>
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 h-full">
+          <div className="px-4 md:px-8 lg:px-12 h-full">
+            <div className="flex flex-col justify-end h-full pt-32 md:pt-40 pb-20 md:pb-24">
+
+              <h1
+                className="text-white"
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 500,
+                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                  lineHeight: 1.0,
+                  letterSpacing: '-0.03em',
+                  maxWidth: '22ch',
+                }}
+              >
+                Run agent tasks that recover and prove what happened.
+              </h1>
+
+              <p
+                className="mt-6 md:mt-7 text-white/72 max-w-[58ch]"
+                style={{
+                  fontFamily: SANS,
+                  fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)',
+                  lineHeight: 1.55,
+                }}
+              >
+                Igris gives AI agents a controlled execution layer for real-world
+                work&nbsp;— files, APIs, databases, workflows, and systems that
+                cannot fail silently.
+              </p>
+
+              {/* Run · Recover · Verify pill row */}
+              <div className="mt-7 md:mt-8 flex flex-wrap items-baseline gap-x-6 gap-y-2">
+                {[
+                  { k: '01', label: 'Run' },
+                  { k: '02', label: 'Recover' },
+                  { k: '03', label: 'Verify' },
+                ].map((p) => (
+                  <span
+                    key={p.k}
+                    className="inline-flex items-baseline gap-2 text-white/80"
+                    style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+                  >
+                    <span className="text-white/40" style={{ fontVariantNumeric: 'tabular-nums' }}>{p.k}</span>
+                    <span className="uppercase tracking-[0.22em]">{p.label}</span>
+                  </span>
+                ))}
+              </div>
+
+              <div className="mt-9 md:mt-10 flex flex-wrap items-center gap-x-3 gap-y-3">
+                <a
+                  href="https://console.igrisinertial.com/auth?mode=signup"
+                  className="group inline-flex items-center gap-3 px-4 py-2.5 text-white border border-white/30 hover:border-white hover:bg-white/[0.06] transition-all duration-200"
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: '11px',
+                    letterSpacing: '0.22em',
+                  }}
+                >
+                  GET&nbsp;STARTED
+                  <span aria-hidden className="text-white/70 group-hover:text-white transition-colors">{'>'}</span>
+                </a>
+                <a
+                  href="https://docs.igrisinertial.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center gap-3 px-4 py-2.5 text-white/80 border border-white/20 hover:border-white/60 hover:text-white transition-all duration-200"
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: '11px',
+                    letterSpacing: '0.22em',
+                  }}
+                >
+                  READ&nbsp;THE&nbsp;DOCS
+                  <span aria-hidden className="text-white/50 group-hover:text-white/80 transition-colors">{'↗'}</span>
+                </a>
+              </div>
+
+              {/* Status strip — measured, not aspirational */}
+              <div className="mt-12 md:mt-14 flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-2">
+                <span
+                  className="text-white/55"
+                  style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+                >
+                  <span className="text-emerald-400">●</span>&nbsp;&nbsp;ACTION&nbsp;TASK&nbsp;V1
+                  <span className="mx-2 text-white/25">/</span>
+                  READ&nbsp;FILE&nbsp;·&nbsp;CALL&nbsp;API&nbsp;·&nbsp;WRITE&nbsp;ROW
+                </span>
+                <span
+                  className="text-white/55"
+                  style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+                >
+                  RECEIPT&nbsp;CHAIN
+                  <span className="mx-2 text-white/25">/</span>
+                  VERIFIED&nbsp;END&nbsp;TO&nbsp;END
+                </span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hairline divider at bottom of hero, against the dark */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
     </section>
   )
 }
