@@ -137,6 +137,118 @@ func TestTaskProofNeedsRefresh(t *testing.T) {
 	}
 }
 
+func TestBuildCumulativeRecoveryCheckpointAggregatesMultipleRows(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	checkpoints := []*CheckpointPayload{
+		cumulativeCheckpointTestPayload(taskID, 1, "digest-1", []WalEntry{
+			cumulativeCheckpointTestEntry(taskID, 0, "aaa0"),
+			cumulativeCheckpointTestEntry(taskID, 1, "aaa1"),
+		}),
+		cumulativeCheckpointTestPayload(taskID, 3, "digest-3", []WalEntry{
+			cumulativeCheckpointTestEntry(taskID, 2, "aaa2"),
+			cumulativeCheckpointTestEntry(taskID, 3, "aaa3"),
+		}),
+	}
+
+	got, err := BuildCumulativeRecoveryCheckpoint(taskID, checkpoints)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Equal(t, uint32(3), got.ResumeToken.LastCommittedStep)
+	require.Equal(t, "digest-3", got.ResumeToken.CheckpointDigest)
+	require.Len(t, got.WalEntries, 4)
+	require.Equal(t, []uint32{0, 1, 2, 3}, []uint32{
+		got.WalEntries[0].StepIndex,
+		got.WalEntries[1].StepIndex,
+		got.WalEntries[2].StepIndex,
+		got.WalEntries[3].StepIndex,
+	})
+}
+
+func TestBuildCumulativeRecoveryCheckpointDeduplicatesSameStep(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	step0 := cumulativeCheckpointTestEntry(taskID, 0, "aaa0")
+	step1 := cumulativeCheckpointTestEntry(taskID, 1, "aaa1")
+	checkpoints := []*CheckpointPayload{
+		cumulativeCheckpointTestPayload(taskID, 0, "digest-0", []WalEntry{step0}),
+		cumulativeCheckpointTestPayload(taskID, 1, "digest-1", []WalEntry{step0, step1}),
+	}
+
+	got, err := BuildCumulativeRecoveryCheckpoint(taskID, checkpoints)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Len(t, got.WalEntries, 2)
+	require.Equal(t, []uint32{0, 1}, []uint32{got.WalEntries[0].StepIndex, got.WalEntries[1].StepIndex})
+}
+
+func TestBuildCumulativeRecoveryCheckpointRejectsConflictingDuplicateStep(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	checkpoints := []*CheckpointPayload{
+		cumulativeCheckpointTestPayload(taskID, 0, "digest-0", []WalEntry{
+			cumulativeCheckpointTestEntry(taskID, 0, "aaa0"),
+		}),
+		cumulativeCheckpointTestPayload(taskID, 1, "digest-1", []WalEntry{
+			cumulativeCheckpointTestEntry(taskID, 0, "bbbb"),
+			cumulativeCheckpointTestEntry(taskID, 1, "aaa1"),
+		}),
+	}
+
+	got, err := BuildCumulativeRecoveryCheckpoint(taskID, checkpoints)
+	require.ErrorIs(t, err, ErrInvalidCumulativeCheckpoint)
+	require.Nil(t, got)
+}
+
+func TestBuildCumulativeRecoveryCheckpointRejectsMissingStepGap(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	checkpoints := []*CheckpointPayload{
+		cumulativeCheckpointTestPayload(taskID, 0, "digest-0", []WalEntry{
+			cumulativeCheckpointTestEntry(taskID, 0, "aaa0"),
+		}),
+		cumulativeCheckpointTestPayload(taskID, 2, "digest-2", []WalEntry{
+			cumulativeCheckpointTestEntry(taskID, 2, "aaa2"),
+		}),
+	}
+
+	got, err := BuildCumulativeRecoveryCheckpoint(taskID, checkpoints)
+	require.ErrorIs(t, err, ErrInvalidCumulativeCheckpoint)
+	require.Nil(t, got)
+}
+
+func cumulativeCheckpointTestPayload(taskID uuid.UUID, lastStep uint32, digest string, entries []WalEntry) *CheckpointPayload {
+	return &CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: ResumeToken{
+			LastCommittedStep: lastStep,
+			CheckpointDigest:  digest,
+			RuntimeID:         "runtime-test",
+		},
+		WalEntries: entries,
+		Metadata:   json.RawMessage(`{"test":true}`),
+		CapturedAt: time.Unix(1_800_000_000+int64(lastStep), 0).UTC(),
+	}
+}
+
+func cumulativeCheckpointTestEntry(taskID uuid.UUID, step uint32, outputDigest string) WalEntry {
+	return WalEntry{
+		EntryID:      uuid.New(),
+		TaskID:       taskID,
+		StepIndex:    step,
+		StepType:     map[string]interface{}{"kind": "tool"},
+		Status:       "committed",
+		InputDigest:  fmt.Sprintf("%064s", "1"),
+		OutputDigest: ptrString(fmt.Sprintf("%064s", outputDigest)),
+		TimestampMs:  uint64(1_800_000_000 + step),
+		RuntimeID:    "runtime-test",
+	}
+}
+
 func TestTaskProofNeedsReadReconciliation(t *testing.T) {
 	t.Parallel()
 
