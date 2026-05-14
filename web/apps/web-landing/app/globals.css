@@ -8,6 +8,9 @@
   --landing-surface-border-strong: rgba(209, 213, 219, 0.9);
   --landing-surface-text: #000000;
   --landing-surface-muted-text: #4b5563;
+  /* Dotted grain texture — extremely subtle, sits across the page background */
+  --grain-color: rgba(0, 0, 0, 0.06);
+  --grain-size: 22px;
 }
 
 html.dark {
@@ -17,6 +20,15 @@ html.dark {
   --landing-surface-border-strong: rgba(246, 246, 244, 0.15);
   --landing-surface-text: #f6f6f4;
   --landing-surface-muted-text: #a8a898;
+  --grain-color: rgba(255, 255, 255, 0.045);
+  --grain-size: 22px;
+}
+
+/* Dotted grain — applied via a wrapper class to avoid clashing with !important body rules */
+.igris-grain {
+  background-image: radial-gradient(circle, var(--grain-color) 0.6px, transparent 0.6px);
+  background-size: var(--grain-size) var(--grain-size);
+  background-attachment: fixed;
 }
 
 @tailwind base;
