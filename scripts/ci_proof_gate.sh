@@ -141,7 +141,11 @@ preflight_durable_task_schema() {
 
 run_fast_gate() {
   echo "[fast] Running focused backend tests"
-  go test ./igris-overture/api ./igris-overture/coordinator ./cmd/igris-overture/handlers ./igris-overture/internal -count=1 -timeout=180s
+  PROVIDER_MODE=mock \
+    ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
+    PROVIDER_TEST_MODE=true \
+    VALIDATE_KEYS_ON_STARTUP=false \
+    go test ./igris-overture/api ./igris-overture/coordinator ./cmd/igris-overture/handlers ./igris-overture/internal -count=1 -timeout=180s
 }
 
 run_heavy_gate() {
