@@ -317,7 +317,12 @@ func unmarshalHexByteArrayField(data []byte, expectedLen int) (string, error) {
 		if value == "" {
 			return "", nil
 		}
-		_, _ = hex.DecodeString(value)
+		if decoded, err := hex.DecodeString(value); err == nil && (expectedLen <= 0 || len(decoded) == expectedLen) {
+			return strings.ToLower(value), nil
+		}
+		if decoded, ok := decodeBase64ByteArrayField(value, expectedLen); ok {
+			return hex.EncodeToString(decoded), nil
+		}
 		return strings.ToLower(value), nil
 	}
 
@@ -329,6 +334,26 @@ func unmarshalHexByteArrayField(data []byte, expectedLen int) (string, error) {
 		return "", fmt.Errorf("expected %d bytes, got %d", expectedLen, len(raw))
 	}
 	return hex.EncodeToString(raw), nil
+}
+
+func decodeBase64ByteArrayField(value string, expectedLen int) ([]byte, bool) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return nil, false
+	}
+	encodings := []*base64.Encoding{
+		base64.StdEncoding,
+		base64.RawStdEncoding,
+		base64.URLEncoding,
+		base64.RawURLEncoding,
+	}
+	for _, encoding := range encodings {
+		decoded, err := encoding.DecodeString(trimmed)
+		if err == nil && (expectedLen <= 0 || len(decoded) == expectedLen) {
+			return decoded, true
+		}
+	}
+	return nil, false
 }
 
 func unmarshalOptionalHexByteArrayField(data []byte, expectedLen int) (*string, error) {
