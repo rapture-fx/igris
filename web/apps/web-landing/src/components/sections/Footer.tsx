@@ -4,6 +4,65 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 
+const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
+const borderStyle = 'var(--section-border)'
+
+type FooterLink = { label: string; href: string; external?: boolean }
+
+const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
+  {
+    heading: 'PRODUCT',
+    ref: '01',
+    links: [
+      { label: 'Verifiable Execution', href: '/core' },
+      { label: 'Governed AI Tasks', href: '/core' },
+      { label: 'Failure Recovery', href: '/core' },
+      { label: 'Signed Receipts', href: '/core' },
+      { label: 'Local Execution', href: '/core' },
+    ],
+  },
+  {
+    heading: 'DEVELOPERS',
+    ref: '02',
+    links: [
+      { label: 'Quickstart', href: '/core' },
+      { label: 'SDKs', href: '/core' },
+      { label: 'API Reference', href: '/core' },
+      { label: 'Docs', href: 'https://docs.igrisinertial.com', external: true },
+    ],
+  },
+  {
+    heading: 'USE CASES',
+    ref: '03',
+    links: [
+      { label: 'AI Agents', href: '/use-cases' },
+      { label: 'Internal Automation', href: '/use-cases' },
+      { label: 'Edge AI', href: '/use-cases' },
+      { label: 'Specialized Environments', href: '/use-cases' },
+    ],
+  },
+  {
+    heading: 'COMPANY',
+    ref: '04',
+    links: [
+      { label: 'Pricing', href: '/pricing' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Contact', href: 'mailto:support@igrisinertial.com', external: true },
+    ],
+  },
+  {
+    heading: 'SOCIAL',
+    ref: '05',
+    links: [
+      { label: 'GitHub', href: 'https://github.com/igrisinertial', external: true },
+      { label: 'X (Twitter)', href: 'https://x.com/igrisinertial', external: true },
+      { label: 'LinkedIn', href: 'https://www.linkedin.com/company/igrisinertial', external: true },
+      { label: 'Discord', href: 'https://discord.com', external: true },
+    ],
+  },
+]
+
 export default function Footer() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -13,155 +72,166 @@ export default function Footer() {
   }, [])
 
   return (
-     <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-all duration-200">
+    <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <div style={{ borderTop: borderStyle }} />
+
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className="px-4 md:px-8 lg:px-12 text-gray-900 dark:text-[#f6f6f4]" style={{ backgroundColor: 'transparent' }}>
-{/* Main footer content */}
-          <div className="py-8 md:py-16">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-              {/* Left side - Company + Features + Resources + Social */}
-              <div className="grid grid-cols-2 gap-6 md:flex md:gap-12">
-                {/* Product */}
-                <div className="flex flex-col gap-2 text-left">
-                  <span className="text-sm text-[#000000] dark:text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Product
-                  </span>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Verifiable Execution
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Governed AI Tasks
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Failure Recovery
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Signed Receipts
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Local Execution
-                  </Link>
-                </div>
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
-                {/* Developers */}
-                <div className="flex flex-col gap-2 text-left">
-                  <span className="text-sm text-[#000000] dark:text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Developers
-                  </span>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Quickstart
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    SDKs
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    API Reference
-                  </Link>
-                  <Link href="/core" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Demo
-                  </Link>
-                  <a href="https://docs.igrisinertial.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Docs
-                  </a>
-                </div>
+          {/* Section anchor */}
+          <div className="pt-12 md:pt-16 pb-6">
+            <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
+              INDEX&nbsp;·&nbsp;IGRIS&nbsp;INERTIAL&nbsp;·&nbsp;2026
+            </span>
+          </div>
 
-                {/* Use Cases */}
-                <div className="flex flex-col gap-2 text-left">
-                  <span className="text-sm text-[#000000] dark:text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Use Cases
-                  </span>
-                  <Link href="/use-cases" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    AI Agents
-                  </Link>
-                  <Link href="/use-cases" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Internal Automation
-                  </Link>
-                  <Link href="/use-cases" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Edge AI
-                  </Link>
-                  <Link href="/use-cases" prefetch={false} className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Robotics Research
-                  </Link>
-                </div>
-
-                {/* Company links */}
-                <div className="flex flex-col gap-2 text-left">
-                  <span className="text-sm text-[#000000] dark:text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Company
-                  </span>
-                  <Link href="/pricing" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Pricing
-                  </Link>
-                  <Link href="/blog" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Blog
-                  </Link>
-                  <a href="mailto:support@igrisinertial.com" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Contact
-                  </a>
-                </div>
-
-                {/* Social links */}
-                <div className="flex flex-col gap-2 text-left">
-                  <span className="text-sm text-[#000000] dark:text-[#f6f6f4] font-medium mb-1" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Social
-                  </span>
-                  <a href="https://github.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    GitHub
-                  </a>
-                  <a href="https://x.com/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    X (Twitter)
-                  </a>
-                  <a href="https://www.linkedin.com/company/igrisinertial" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    LinkedIn
-                  </a>
-                  <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-                    Discord
-                  </a>
-                </div>
-              </div>
-
-              {/* Logo - on right top for desktop, centered for mobile */}
-              <div className="flex justify-start md:justify-end">
-                <img
-                  src={mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png'}
-                  alt="Igris Inertial"
-                  className="h-9 w-auto rounded-lg"
+          {/* Wordmark + tagline */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 md:gap-x-12 pt-10 md:pt-16 pb-10 md:pb-14">
+            <div className="md:col-span-7">
+              <h3
+                className="text-[#000000] dark:text-[#f6f6f4]"
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 500,
+                  fontSize: 'clamp(1.75rem, 4.4vw, 3rem)',
+                  lineHeight: 1.02,
+                  letterSpacing: '-0.025em',
+                }}
+              >
+                Igris Inertial.
+              </h3>
+              <p
+                className="text-gray-600 dark:text-[#a8a898] mt-3 max-w-[44ch]"
+                style={{ fontFamily: SANS, fontSize: '0.925rem', lineHeight: 1.6 }}
+              >
+                Execution assurance for AI agents that touch real systems.
+              </p>
+            </div>
+            <div className="md:col-span-5 md:pt-3 flex flex-col gap-2">
+              <span
+                className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
+                style={{ fontFamily: MONO }}
+              >
+                STATUS
+              </span>
+              <span
+                className="text-[#166534] dark:text-[#16a34a] flex items-center gap-2 text-[11px] tracking-[0.22em]"
+                style={{ fontFamily: MONO }}
+              >
+                <span
+                  className="inline-block"
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: 'currentColor',
+                  }}
                 />
-              </div>
+                ALL&nbsp;SYSTEMS&nbsp;OPERATIONAL
+              </span>
+              <a
+                href="mailto:support@igrisinertial.com"
+                className="mt-2 text-gray-700 dark:text-[#c8c8b8] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                style={{ fontFamily: SANS, fontSize: '0.925rem' }}
+              >
+                support@igrisinertial.com
+              </a>
             </div>
           </div>
 
-          {/* Copyright at very bottom */}
-          <div style={{ marginTop: '4rem' }} className="pb-6 flex items-center justify-between">
-            <span className="text-sm text-gray-500 dark:text-[#a8a898]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif' }}>
-              © 2026 Igris Inertial.
-            </span>
-            {mounted && (
-              <button
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                aria-label="Toggle dark mode"
-                className="flex items-center justify-center w-7 h-7 rounded-md text-gray-400 dark:text-[#a8a898] hover:text-gray-700 dark:hover:text-[#f6f6f4] hover:bg-black/[0.05] dark:hover:bg-white/[0.07] transition-colors duration-200"
-              >
-                {theme === 'dark' ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="23" />
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                    <line x1="1" y1="12" x2="3" y2="12" />
-                    <line x1="21" y1="12" x2="23" y2="12" />
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                  </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
-                )}
-              </button>
-            )}
+          <div style={{ borderTop: borderStyle }} />
+
+          {/* Link index */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-y-10 gap-x-6 pt-10 md:pt-12 pb-12 md:pb-16">
+            {columns.map((col) => (
+              <div key={col.heading} className="flex flex-col gap-3">
+                <div className="flex items-baseline justify-between pb-2" style={{ borderBottom: borderStyle }}>
+                  <span
+                    className="text-[10px] tracking-[0.22em] text-[#000000] dark:text-[#f6f6f4]"
+                    style={{ fontFamily: MONO, fontWeight: 500 }}
+                  >
+                    {col.heading}
+                  </span>
+                  <span
+                    className="text-[10px] tracking-[0.22em] text-gray-400 dark:text-[#5a5a52]"
+                    style={{ fontFamily: MONO, fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {col.ref}
+                  </span>
+                </div>
+                <ul className="flex flex-col gap-1.5">
+                  {col.links.map((link) =>
+                    link.external ? (
+                      <li key={link.label}>
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                          style={{ fontFamily: SANS, fontSize: '0.875rem' }}
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    ) : (
+                      <li key={link.label}>
+                        <Link
+                          href={link.href}
+                          prefetch={false}
+                          className="text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                          style={{ fontFamily: SANS, fontSize: '0.875rem' }}
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            ))}
           </div>
+
+          <div style={{ borderTop: borderStyle }} />
+
+          {/* Bottom strip */}
+          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-3 py-6 md:py-7">
+            <div
+              className="flex flex-wrap items-baseline gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
+              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+            >
+              <span>© 2026 IGRIS INERTIAL</span>
+              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
+              <Link href="/privacy" className="hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors">
+                PRIVACY
+              </Link>
+              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
+              <Link href="/terms" className="hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors">
+                TERMS
+              </Link>
+              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
+              <Link href="/security" className="hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors">
+                SECURITY
+              </Link>
+            </div>
+
+            <div
+              className="flex items-center gap-4"
+              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+            >
+              <span className="text-gray-500 dark:text-[#8a8a7a]">BUILD&nbsp;2026.05</span>
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  aria-label="Toggle theme"
+                  className="inline-flex items-baseline gap-1.5 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                >
+                  <span aria-hidden className="inline-block w-3 border-t border-current translate-y-[-3px]" />
+                  {theme === 'dark' ? 'LIGHT' : 'DARK'}
+                </button>
+              )}
+            </div>
+          </div>
+
         </div>
       </div>
     </footer>
