@@ -1,0 +1,127 @@
+name: Proof Gate
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/proof-gate.yml"
+      - "cmd/igris-overture/**"
+      - "igris-overture/**"
+      - "igris-runtime/**"
+      - "scripts/**proof*.sh"
+      - "scripts/ci_proof_gate.sh"
+      - "go.mod"
+      - "go.sum"
+  merge_group:
+  workflow_dispatch:
+    inputs:
+      proof_tier:
+        description: "Proof tier to run"
+        required: true
+        default: "heavy"
+        type: choice
+        options:
+          - fast
+          - heavy
+  schedule:
+    - cron: "17 9 * * *"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".github/workflows/proof-gate.yml"
+      - "cmd/igris-overture/**"
+      - "igris-overture/**"
+      - "igris-runtime/**"
+      - "scripts/**proof*.sh"
+      - "scripts/ci_proof_gate.sh"
+      - "go.mod"
+      - "go.sum"
+
+jobs:
+  fast-proof-gate:
+    name: fast deterministic proof gate
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: igris_overture_proof
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d igris_overture_proof"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/igris_overture_proof?sslmode=disable
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run fast proof gate
+        run: scripts/ci_proof_gate.sh fast
+
+  cumulative-clean-host-proof:
+    name: heavy cumulative clean-host proof
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.proof_tier == 'heavy' || github.event_name == 'schedule' || github.event_name == 'push'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: igris_overture_proof
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d igris_overture_proof"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      POSTGRES_URL: postgres://postgres:postgres@localhost:5432/igris_overture_proof?sslmode=disable
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install proof dependencies
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client lsof
+
+      - name: Run heavy cumulative proof gate
+        run: scripts/ci_proof_gate.sh heavy
