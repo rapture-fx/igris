@@ -38,48 +38,18 @@ interface NavigationItem {
   icon: any;
 }
 
-interface NavigationGroup {
-  title: string;
-  items: NavigationItem[];
-}
-
-const navigationGroups: NavigationGroup[] = [
-  {
-    title: 'EXECUTION',
-    items: [
-      { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
-      { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
-      { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
-    ],
-  },
-  {
-    title: 'PROOF',
-    items: [
-      { name: 'Receipts', href: '/proof/receipts', icon: ReaderIcon },
-      { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
-    ],
-  },
-  {
-    title: 'POLICY',
-    items: [
-      { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
-      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
-    ],
-  },
-  {
-    title: 'INFRASTRUCTURE',
-    items: [
-      { name: 'Providers', href: '/models/providers', icon: TokensIcon },
-      { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
-    ],
-  },
-  {
-    title: 'OBSERVABILITY',
-    items: [
-      { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
-      { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
-    ],
-  },
+const navigationItems: NavigationItem[] = [
+  { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
+  { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
+  { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
+  { name: 'Receipts', href: '/proof/receipts', icon: ReaderIcon },
+  { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
+  { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
+  { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
+  { name: 'Providers', href: '/models/providers', icon: TokensIcon },
+  { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
+  { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
+  { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
 ];
 
 const settingsNavigation = [
@@ -250,44 +220,33 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 </Link>
               </li>
 
-              {/* Category groups */}
-              {navigationGroups.map((group) => (
-                <li key={group.title} className="pt-4">
-                  <div className="px-1.5 mb-1.5">
-                    <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                      {group.title}
-                    </span>
-                  </div>
-                  <ul className="space-y-0.5">
-                    {group.items.map((item) => {
-                      const active = isActive(item.href);
-                      return (
-                        <li key={item.name}>
-                          <Link
-                            href={item.href}
-                            onClick={onClose}
-                            className={cn(
-                              'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
-                              active
-                                ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                                : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
-                            )}
-                          >
-                            <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
-                            {item.name}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </li>
-              ))}
+              {/* Navigation items */}
+              {navigationItems.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      className={cn(
+                        'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
+                        active
+                          ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                          : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
               
               {/* Settings dropdown */}
-              <li className="pt-4">
+              <li>
                 <button
                   onClick={toggleSettings}
-                  className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-2 text-base font-medium transition-colors text-foreground/90 hover:text-foreground hover:bg-muted/60"
+                  className="w-full flex items-center justify-between gap-3 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors text-foreground/90 hover:text-foreground hover:bg-muted/60"
                 >
                   <div className="flex items-center gap-2">
                     <MixerHorizontalIcon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
