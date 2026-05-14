@@ -76,7 +76,7 @@ export function DashboardLayout({ children, fullWidth = false }: DashboardLayout
               </div>
             )}
 
-            <main className={`flex-1 overflow-y-auto ${fullWidth ? 'flex flex-col' : ''}`}>
+            <main className={`flex-1 overflow-y-auto scrollbar-hide ${fullWidth ? 'flex flex-col' : ''}`}>
               <div className={`console-cardscope ${fullWidth ? 'w-full px-4 sm:px-5 pt-5 flex-1 flex flex-col min-h-0' : 'max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6'}`}>
                 {children}
               </div>
