@@ -1030,7 +1030,7 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 		resp["checkpoint_digest"] = task.LastCheckpoint.ResumeToken.CheckpointDigest
 		resp["checkpoint_runtime_id"] = task.LastCheckpoint.ResumeToken.RuntimeID
 		resp["checkpoint_summary"] = buildTaskCheckpointSummaryResponse(task)
-		if len(task.LastCheckpoint.Metadata) > 0 {
+		if len(task.LastCheckpoint.Metadata) > 0 && !isActionTaskDefinition(task.TaskDefinition) {
 			resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
 			if requestedMode, resolvedStrategy := extractModeSemantics(task.LastCheckpoint.Metadata); requestedMode != "" || resolvedStrategy != "" {
 				if requestedMode != "" {
@@ -1053,6 +1053,35 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 	}
 
 	return resp
+}
+
+func isActionTaskDefinition(taskDefinition json.RawMessage) bool {
+	if len(taskDefinition) == 0 {
+		return false
+	}
+	var def struct {
+		Type  string `json:"type"`
+		Graph struct {
+			Nodes []struct {
+				Kind     string `json:"kind"`
+				NodeID   string `json:"node_id"`
+				ToolName string `json:"tool_name"`
+			} `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(taskDefinition, &def); err != nil {
+		return false
+	}
+	if def.Type != "execution_graph" || len(def.Graph.Nodes) == 0 {
+		return false
+	}
+	for _, node := range def.Graph.Nodes {
+		actionType, ok := actionToolForType[node.ToolName]
+		if node.Kind != "tool" || !ok || !strings.HasPrefix(node.NodeID, actionType+"-") {
+			return false
+		}
+	}
+	return true
 }
 
 func buildTaskCheckpointSummaryResponse(task *coordinator.TaskRecord) fiber.Map {
