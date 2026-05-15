@@ -20,7 +20,7 @@ export default function Hero() {
       {/* ── Full-bleed cinematic backdrop ─────────────── */}
       <div className="absolute inset-0">
         <img
-          src="/SF.jpeg"
+          src="/SF.png"
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover"
@@ -59,12 +59,7 @@ export default function Hero() {
                 <span className="mx-2 text-white/25">/</span>
                 RUN&nbsp;·&nbsp;RECOVER&nbsp;·&nbsp;VERIFY
               </span>
-              <span
-                className="hidden sm:inline text-[10px] md:text-[11px] tracking-[0.22em] text-white/60"
-                style={{ fontFamily: MONO }}
-              >
-                V1&nbsp;/&nbsp;2026
-              </span>
+              
             </div>
           </div>
         </div>
@@ -81,10 +76,10 @@ export default function Hero() {
                 style={{
                   fontFamily: SANS,
                   fontWeight: 500,
-                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+                  fontSize: 'clamp(2rem, 5vw, 4rem)',
                   lineHeight: 1.0,
                   letterSpacing: '-0.03em',
-                  maxWidth: '22ch',
+                  maxWidth: '24ch',
                 }}
               >
                 Run agent tasks that recover and prove what happened.
@@ -103,25 +98,7 @@ export default function Hero() {
                 cannot fail silently.
               </p>
 
-              {/* Run · Recover · Verify pill row */}
-              <div className="mt-7 md:mt-8 flex flex-wrap items-baseline gap-x-6 gap-y-2">
-                {[
-                  { k: '01', label: 'Run' },
-                  { k: '02', label: 'Recover' },
-                  { k: '03', label: 'Verify' },
-                ].map((p) => (
-                  <span
-                    key={p.k}
-                    className="inline-flex items-baseline gap-2 text-white/80"
-                    style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
-                  >
-                    <span className="text-white/40" style={{ fontVariantNumeric: 'tabular-nums' }}>{p.k}</span>
-                    <span className="uppercase tracking-[0.22em]">{p.label}</span>
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-9 md:mt-10 flex flex-wrap items-center gap-x-3 gap-y-3">
+              <div className="mt-7 md:mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
                 <a
                   href="https://console.igrisinertial.com/auth?mode=signup"
                   className="group inline-flex items-center gap-3 px-4 py-2.5 text-white border border-white/30 hover:border-white hover:bg-white/[0.06] transition-all duration-200"
@@ -150,27 +127,7 @@ export default function Hero() {
                 </a>
               </div>
 
-              {/* Status strip — measured, not aspirational */}
-              <div className="mt-12 md:mt-14 flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-2">
-                <span
-                  className="text-white/55"
-                  style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
-                >
-                  <span className="text-emerald-400">●</span>&nbsp;&nbsp;ACTION&nbsp;TASK&nbsp;V1
-                  <span className="mx-2 text-white/25">/</span>
-                  READ&nbsp;FILE&nbsp;·&nbsp;CALL&nbsp;API&nbsp;·&nbsp;WRITE&nbsp;ROW
-                </span>
-                <span
-                  className="text-white/55"
-                  style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
-                >
-                  RECEIPT&nbsp;CHAIN
-                  <span className="mx-2 text-white/25">/</span>
-                  VERIFIED&nbsp;END&nbsp;TO&nbsp;END
-                </span>
               </div>
-
-            </div>
           </div>
         </div>
       </div>
