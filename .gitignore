@@ -320,3 +320,10 @@ igris-overture-windows.exe
 *.test
 # Go local build cache placed at repo root
 .gocache/
+
+# Re-include web app source `lib/` directories — the broad Python `lib/`
+# rule above otherwise excludes them and breaks Cloudflare/CI builds.
+!web/apps/*/src/lib/
+!web/apps/*/src/lib/**
+!web/apps/*/lib/
+!web/apps/*/lib/**
