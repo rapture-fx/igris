@@ -71,7 +71,7 @@ module.exports = nextConfig
    Branch: main
    Root directory: web
    Build command: cd apps/web-landing && pnpm build
-   Build output directory: apps/web-landing/.next
+   Build output directory: apps/web-landing/out
    ```
 
 3. **Environment Variables** (if needed)
@@ -106,7 +106,7 @@ If you prefer manual deployment:
 
 4. **Deploy**
    ```bash
-   wrangler pages deploy .next --project-name=igris-web-landing
+   wrangler pages deploy out --project-name=igris-web-landing
    ```
 
 ## Build Process Details
@@ -125,12 +125,10 @@ If you prefer manual deployment:
 
 3. **Output Structure**
    ```
-   .next/
+   out/
    ├── static/          # Static assets
-   ├── server/          # Server-side code
-   │   ├── app/         # App router pages
-   │   └── chunks/      # Code chunks
-   └── standalone/      # Standalone server files
+   ├── _next/           # Next.js client chunks
+   └── index.html       # Static export entry point
    ```
 
 ### Build Output Summary
@@ -167,7 +165,7 @@ Route (app)                                 Size  First Load JS
 
 #### 2. Workspace Dependencies Not Found
 **Error**: Cannot find module `@igris-inertial/config`
-**Solution**: Ensure `Root directory` is set to `web` (not `web/apps/web-landing`)
+**Solution**: Ensure `Root directory` is set to `web`, so Cloudflare uses the workspace lockfile at `web/pnpm-lock.yaml`.
 
 #### 3. Build Timeout
 **Error**: Build exceeds time limit

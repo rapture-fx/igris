@@ -41,50 +41,50 @@ interface TraceRow {
 }
 
 const ALL_EVENTS: EventRow[] = [
-  { id: '1',  time: '14:07:42', severity: 'info',    event_type: 'ExecutionStarted',    message: 'task_019de343 started',                          exec_id: 'task_019de343' },
-  { id: '2',  time: '14:07:42', severity: 'info',    event_type: 'ProviderSelected',    message: 'routed to fra1-a · 23ms',                        exec_id: 'task_019de343', latency_ms: 23 },
-  { id: '3',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'read approved file',                             exec_id: 'task_019de343', latency_ms: 12 },
-  { id: '4',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'call approved API · partner.sync',               exec_id: 'task_019de343', latency_ms: 38 },
-  { id: '5',  time: '14:07:42', severity: 'warning', event_type: 'ToolCall',            message: 'api retry · backoff 250ms',                      exec_id: 'task_019de343', latency_ms: 250 },
-  { id: '6',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'api succeeded on retry',                         exec_id: 'task_019de343', latency_ms: 42 },
-  { id: '7',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'write approved record',                          exec_id: 'task_019de343', latency_ms: 18 },
-  { id: '8',  time: '14:07:43', severity: 'info',    event_type: 'ReceiptSigned',       message: 'receipt issued · signed',                        exec_id: 'task_019de343' },
-  { id: '9',  time: '14:07:43', severity: 'info',    event_type: 'ExecutionTerminated', message: 'chain · valid · 5 actions · 185 ms',             exec_id: 'task_019de343' },
-  { id: '10', time: '14:07:44', severity: 'info',    event_type: 'ExecutionStarted',    message: 'task_019de421 started',                          exec_id: 'task_019de421' },
-  { id: '11', time: '14:07:44', severity: 'info',    event_type: 'ToolCall',            message: 'read approved file',                             exec_id: 'task_019de421', latency_ms: 9 },
-  { id: '12', time: '14:07:44', severity: 'info',    event_type: 'ToolCall',            message: 'call approved API · partner.sync',               exec_id: 'task_019de421', latency_ms: 31 },
-  { id: '13', time: '14:07:44', severity: 'info',    event_type: 'ToolCall',            message: 'write approved record',                          exec_id: 'task_019de421', latency_ms: 14 },
-  { id: '14', time: '14:07:45', severity: 'info',    event_type: 'ReceiptSigned',       message: 'receipt issued · signed',                        exec_id: 'task_019de421' },
+  { id: '1',  time: '14:07:42', severity: 'info',    event_type: 'ExecutionStarted',    message: 'task_019de343 created · 3 actions queued',                       exec_id: 'task_019de343' },
+  { id: '2',  time: '14:07:42', severity: 'info',    event_type: 'ProviderSelected',    message: 'selected runtime fra1-a · eu-west · pool warm',                  exec_id: 'task_019de343', latency_ms: 23 },
+  { id: '3',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'read /uploads/policy-v3.pdf · 1.2KB · cache hit',                exec_id: 'task_019de343', latency_ms: 12 },
+  { id: '4',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'POST api.partner.com/v3/sync · 200 OK · 2.1KB resp',             exec_id: 'task_019de343', latency_ms: 38 },
+  { id: '5',  time: '14:07:42', severity: 'warning', event_type: 'ToolCall',            message: 'POST api.partner.com/v3/sync · 503 · retry 1/3 · backoff 250ms', exec_id: 'task_019de343', latency_ms: 250 },
+  { id: '6',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'POST api.partner.com/v3/sync · 200 · retry 2 succeeded',         exec_id: 'task_019de343', latency_ms: 42 },
+  { id: '7',  time: '14:07:42', severity: 'info',    event_type: 'ToolCall',            message: 'INSERT orders_fulfilled · row r_8421 · 1 row affected',          exec_id: 'task_019de343', latency_ms: 18 },
+  { id: '8',  time: '14:07:43', severity: 'info',    event_type: 'ReceiptSigned',       message: 'receipt signed · chain assembled · 3 commits',                   exec_id: 'task_019de343' },
+  { id: '9',  time: '14:07:43', severity: 'info',    event_type: 'ExecutionTerminated', message: 'chain valid · 3 actions · 185ms · 0 replays',                    exec_id: 'task_019de343' },
+  { id: '10', time: '14:07:44', severity: 'info',    event_type: 'ExecutionStarted',    message: 'task_019de421 created · 3 actions queued',                       exec_id: 'task_019de421' },
+  { id: '11', time: '14:07:44', severity: 'info',    event_type: 'ToolCall',            message: 'read /uploads/order-batch-12.csv · 4.8KB',                       exec_id: 'task_019de421', latency_ms: 9 },
+  { id: '12', time: '14:07:44', severity: 'info',    event_type: 'ToolCall',            message: 'POST api.partner.com/v3/sync · 200 OK',                          exec_id: 'task_019de421', latency_ms: 31 },
+  { id: '13', time: '14:07:44', severity: 'info',    event_type: 'ToolCall',            message: 'INSERT orders_fulfilled · row r_8422',                           exec_id: 'task_019de421', latency_ms: 14 },
+  { id: '14', time: '14:07:45', severity: 'info',    event_type: 'ReceiptSigned',       message: 'receipt signed · chain assembled · 3 commits',                   exec_id: 'task_019de421' },
 ]
 
 const ALL_TRACES: TraceRow[] = [
-  { id: 't1', time: '14:07:42', provider: 'anthropic', model: 'claude-sonnet-4-6',   status: 200, latency_ms: 892,  tokens: 2104, cost: 0.054, tag: null },
-  { id: 't2', time: '14:07:41', provider: 'openai',    model: 'gpt-4o',              status: 200, latency_ms: 1240, tokens: 4318, cost: 0.073, tag: 'cache' },
-  { id: 't3', time: '14:07:39', provider: 'anthropic', model: 'claude-haiku-4-5',    status: 200, latency_ms: 240,  tokens: 612,  cost: 0.003, tag: 'cache' },
-  { id: 't4', time: '14:07:35', provider: 'openai',    model: 'gpt-4o-mini',         status: 200, latency_ms: 430,  tokens: 1002, cost: 0.008, tag: null },
-  { id: 't5', time: '14:07:30', provider: 'openai',    model: 'gpt-4o',              status: 429, latency_ms: 120,  tokens: null, cost: null,  tag: null },
-  { id: 't6', time: '14:07:28', provider: 'anthropic', model: 'claude-sonnet-4-6',   status: 200, latency_ms: 1410, tokens: 6442, cost: 0.108, tag: 'spec' },
-  { id: 't7', time: '14:07:20', provider: 'anthropic', model: 'claude-opus-4-7',     status: 200, latency_ms: 980,  tokens: 3250, cost: 0.062, tag: null },
-  { id: 't8', time: '14:07:14', provider: 'openai',    model: 'gpt-4o-mini',         status: 200, latency_ms: 312,  tokens: 904,  cost: 0.007, tag: 'cache' },
+  { id: 't1', time: '14:07:42', provider: 'anthropic', model: 'claude-opus-4-7',  status: 200, latency_ms: 1240, tokens: 4318, cost: 0.073, tag: null    },
+  { id: 't2', time: '14:07:41', provider: 'openai',    model: 'gpt-5.5',          status: 200, latency_ms: 892,  tokens: 2104, cost: 0.054, tag: 'cache' },
+  { id: 't3', time: '14:07:39', provider: 'moonshot',  model: 'kimi-k2.6',        status: 200, latency_ms: 612,  tokens: 1820, cost: 0.012, tag: null    },
+  { id: 't4', time: '14:07:35', provider: 'openai',    model: 'gpt-codex',        status: 200, latency_ms: 430,  tokens: 1002, cost: 0.008, tag: 'cache' },
+  { id: 't5', time: '14:07:30', provider: 'xai',       model: 'grok-4',           status: 429, latency_ms: 120,  tokens: null, cost: null,  tag: null    },
+  { id: 't6', time: '14:07:28', provider: 'deepseek',  model: 'deepseek-r2',      status: 200, latency_ms: 980,  tokens: 3250, cost: 0.018, tag: null    },
+  { id: 't7', time: '14:07:20', provider: 'anthropic', model: 'claude-haiku-4-5', status: 200, latency_ms: 240,  tokens: 612,  cost: 0.003, tag: 'cache' },
+  { id: 't8', time: '14:07:14', provider: 'openai',    model: 'gpt-5.5-mini',     status: 200, latency_ms: 312,  tokens: 904,  cost: 0.007, tag: 'spec'  },
 ]
 
 function sevDotClass(s: Severity) {
-  return s === 'critical' ? 'bg-red-500'
-       : s === 'error'    ? 'bg-orange-500'
-       : s === 'warning'  ? 'bg-yellow-500'
+  return s === 'critical' ? 'bg-red-700'
+       : s === 'error'    ? 'bg-red-500'
+       : s === 'warning'  ? 'bg-orange-600'
        :                    'bg-green-500'
 }
 function sevTextClass(s: Severity) {
-  return s === 'critical' ? 'text-red-600 dark:text-red-400'
-       : s === 'error'    ? 'text-orange-600 dark:text-orange-400'
-       : s === 'warning'  ? 'text-yellow-700 dark:text-yellow-400'
+  return s === 'critical' ? 'text-red-700 dark:text-red-400'
+       : s === 'error'    ? 'text-red-600 dark:text-red-400'
+       : s === 'warning'  ? 'text-orange-700 dark:text-orange-400'
        :                    'text-green-700 dark:text-green-500'
 }
 function rowTintClass(s: Severity) {
   // Subtle tint only for non-info severities, so anomalies pop.
   return s === 'critical' ? 'bg-red-50/40 dark:bg-red-500/[0.04]'
-       : s === 'error'    ? 'bg-orange-50/40 dark:bg-orange-500/[0.04]'
-       : s === 'warning'  ? 'bg-yellow-50/40 dark:bg-yellow-500/[0.04]'
+       : s === 'error'    ? 'bg-red-50/30 dark:bg-red-500/[0.03]'
+       : s === 'warning'  ? 'bg-orange-50/40 dark:bg-orange-500/[0.04]'
        :                    ''
 }
 
@@ -199,7 +199,7 @@ function EventStreamView() {
             </span>
 
             {/* event type */}
-            <span className="text-[11.5px] text-violet-600 dark:text-violet-400 w-[176px] flex-shrink-0 truncate select-none">
+            <span className="text-[11.5px] text-blue-600 dark:text-blue-400 w-[176px] flex-shrink-0 truncate select-none">
               {e.event_type}
             </span>
 
@@ -298,7 +298,7 @@ function TimelineView() {
                   <span className="text-[11px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap w-[68px] flex-shrink-0 select-none">
                     {e.time}
                   </span>
-                  <span className="text-[11px] text-violet-600 dark:text-violet-400 w-[170px] flex-shrink-0 truncate select-none">
+                  <span className="text-[11px] text-blue-600 dark:text-blue-400 w-[170px] flex-shrink-0 truncate select-none">
                     {e.event_type}
                   </span>
                   <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 truncate">
@@ -445,14 +445,6 @@ export default function Products() {
 
           {/* Terminal */}
           <div className="pb-24 md:pb-32">
-            <div className="flex items-baseline justify-between pb-4">
-              <span className="text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-                FIG.1
-              </span>
-              <span className="text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-                CUSTOMER&nbsp;FLOW&nbsp;·&nbsp;SUBMIT&nbsp;EXECUTE&nbsp;VERIFY
-              </span>
-            </div>
             <ExecutionPreview />
           </div>
 
