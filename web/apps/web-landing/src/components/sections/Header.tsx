@@ -197,14 +197,8 @@ export default function Header() {
 
   const renderGrid = (items: DropdownItem[]) => (
     <div className="grid grid-cols-2">
-      {items.map((item, i) => (
-        <div
-          key={item.label}
-          style={{
-            borderRight: i % 2 === 0 ? 'var(--section-border)' : 'none',
-            borderBottom: i < items.length - 2 ? 'var(--section-border)' : 'none',
-          }}
-        >
+      {items.map((item) => (
+        <div key={item.label}>
           {renderDropdownItem(item)}
         </div>
       ))}
@@ -309,7 +303,7 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border border-[#000000] dark:border-[#f6f6f4] hover:opacity-60 transition-opacity rounded-md text-sm"
                     style={NAV_ITEM_STYLE}
                   >
                     Sign In
@@ -318,12 +312,10 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="group inline-flex items-baseline gap-1.5 text-[#000000] dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border border-[#000000] dark:border-[#f6f6f4] hover:opacity-60 transition-opacity rounded-md text-sm"
                     style={NAV_ITEM_STYLE}
                   >
-                    <span aria-hidden className="inline-block w-3 border-t border-current translate-y-[-3px]" />
                     Get Started
-                    <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
                   </a>
                 </div>
 
@@ -365,10 +357,10 @@ export default function Header() {
                       className="text-gray-500 dark:text-[#8a8a7a]"
                       style={{ fontFamily: MONO_FONT, fontSize: '10px', letterSpacing: '0.22em' }}
                     >
-                      {renderedDropdown === 'product' && 'PRODUCT · INDEX'}
-                      {renderedDropdown === 'docs' && 'DOCS · INDEX'}
-                      {renderedDropdown === 'usecases' && 'USE CASES · INDEX'}
-                      {renderedDropdown === 'resources' && 'RESOURCES · INDEX'}
+                      {renderedDropdown === 'product' && 'PRODUCT'}
+                      {renderedDropdown === 'docs' && 'DOCS'}
+                      {renderedDropdown === 'usecases' && 'USE CASES'}
+                      {renderedDropdown === 'resources' && 'RESOURCES'}
                     </span>
                     <span
                       className="text-gray-400 dark:text-[#5a5a52]"
