@@ -38,7 +38,7 @@ function RunVisual() {
                 style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
             AGENT
           </text>
-          <rect x="8" y="42" width="68" height="80" fill="none"
+          <rect x="0" y="42" width="84" height="80" fill="none"
                 stroke="currentColor" strokeOpacity="0.32"
                 strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
           {/* two agent tiles */}
@@ -58,7 +58,7 @@ function RunVisual() {
         </g>
 
         {/* AGENT → request callout (curved) */}
-        <path d="M 76 82 Q 88 82 100 82"
+        <path d="M 84 82 Q 92 82 100 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
 
