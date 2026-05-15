@@ -7,13 +7,6 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Inline workspace packages into the bundle
-  transpilePackages: [
-    '@igris-inertial/ui',
-    '@igris-inertial/types',
-    '@igris-inertial/javascript-sdk',
-  ],
-
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
   },
