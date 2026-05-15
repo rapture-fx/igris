@@ -303,7 +303,7 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border border-[#000000] dark:border-[#f6f6f4] hover:opacity-60 transition-opacity rounded-md text-sm"
+                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border-2 border-[#000000] dark:border-[#f6f6f4] hover:opacity-60 transition-opacity rounded-md text-sm"
                     style={NAV_ITEM_STYLE}
                   >
                     Sign In
@@ -312,7 +312,7 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border border-[#000000] dark:border-[#f6f6f4] hover:opacity-60 transition-opacity rounded-md text-sm"
+                    className="px-4 py-2 bg-[#000000] dark:bg-[#f6f6f4] text-[#f6f6f4] dark:text-[#000000] hover:opacity-80 transition-opacity rounded-md text-sm"
                     style={NAV_ITEM_STYLE}
                   >
                     Get Started
