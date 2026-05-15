@@ -46,30 +46,11 @@ export default function Hero() {
         />
       </div>
 
-      {/* ── Top mono strip — overlaid on image ────────── */}
-      <div className="relative z-10 pt-24 md:pt-28">
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-          <div className="px-4 md:px-8 lg:px-12">
-            <div className="flex items-baseline justify-between">
-              <span
-                className="text-[10px] md:text-[11px] tracking-[0.22em] text-white/60"
-                style={{ fontFamily: MONO }}
-              >
-                IGRIS&nbsp;INERTIAL
-                <span className="mx-2 text-white/25">/</span>
-                RUN&nbsp;·&nbsp;RECOVER&nbsp;·&nbsp;VERIFY
-              </span>
-              
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Bottom-left overlaid content ──────────────── */}
+{/* ── Bottom-left overlaid content ──────────────── */}
       <div className="relative z-10" style={{ minHeight: 'clamp(540px, 70vh, 760px)' }}>
         <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 h-full">
           <div className="px-4 md:px-8 lg:px-12 h-full">
-            <div className="flex flex-col justify-end h-full pt-32 md:pt-40 pb-20 md:pb-24">
+            <div className="flex flex-col justify-end h-full pt-40 md:pt-56 pb-12 md:pb-16">
 
               <h1
                 className="text-white"
@@ -132,8 +113,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Hairline divider at bottom of hero, against the dark */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-white/10" />
     </section>
   )
 }
