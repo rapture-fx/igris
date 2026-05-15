@@ -1,7 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ReactNode, useRef } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 
 interface ScrollRevealProps {
   children: ReactNode
@@ -10,18 +9,58 @@ interface ScrollRevealProps {
 }
 
 export default function ScrollReveal({ children, delay = 0, className = '' }: ScrollRevealProps) {
-  const ref = useRef(null)
+  const ref = useRef<HTMLDivElement | null>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) {
+      setVisible(true)
+      return
+    }
+
+    // If already in view at mount (e.g., above-the-fold section, fast scroll),
+    // reveal immediately so we never get stuck invisible.
+    const rect = el.getBoundingClientRect()
+    const vh = window.innerHeight || document.documentElement.clientHeight
+    if (rect.top < vh - 80 && rect.bottom > 0) {
+      setVisible(true)
+      return
+    }
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setVisible(true)
+            obs.disconnect()
+            break
+          }
+        }
+      },
+      { rootMargin: '-80px 0px -80px 0px', threshold: 0.01 },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-80px' }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay }}
       className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(40px)',
+        transition: `opacity 700ms cubic-bezier(.22,1,.36,1) ${delay}s, transform 700ms cubic-bezier(.22,1,.36,1) ${delay}s`,
+        willChange: 'opacity, transform',
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }
