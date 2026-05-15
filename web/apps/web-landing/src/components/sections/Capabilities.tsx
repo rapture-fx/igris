@@ -116,7 +116,7 @@ function RunVisual() {
         </g>
 
         {/* DISPATCH → RECEIPTS (curved) */}
-        <path d="M 278 82 Q 284 82 290 82"
+        <path d="M 278 82 Q 283 82 288 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
 
@@ -128,7 +128,7 @@ function RunVisual() {
                 style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
             RECEIPTS
           </text>
-          <rect x="290" y="42" width="66" height="80" rx="3" fill="none"
+          <rect x="288" y="42" width="72" height="80" rx="3" fill="none"
                 className="stroke-emerald-700 dark:stroke-emerald-400"
                 strokeOpacity="0.45" strokeWidth="0.6" strokeDasharray="3 3" />
           <g className="stroke-emerald-700 dark:stroke-emerald-400" fill="none" strokeWidth="0.6">
