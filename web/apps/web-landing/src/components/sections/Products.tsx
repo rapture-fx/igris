@@ -68,20 +68,24 @@ const ALL_TRACES: TraceRow[] = [
   { id: 't8', time: '14:07:14', provider: 'openai',    model: 'gpt-4o-mini',         status: 200, latency_ms: 312,  tokens: 904,  cost: 0.007, tag: 'cache' },
 ]
 
-function sevLabel(s: Severity) {
-  return s === 'critical' ? 'CRIT' : s.slice(0, 4).toUpperCase()
+function sevDotClass(s: Severity) {
+  return s === 'critical' ? 'bg-red-500'
+       : s === 'error'    ? 'bg-orange-500'
+       : s === 'warning'  ? 'bg-yellow-500'
+       :                    'bg-green-500'
 }
 function sevTextClass(s: Severity) {
-  return s === 'critical' ? 'text-red-500'
-       : s === 'error'    ? 'text-orange-500'
-       : s === 'warning'  ? 'text-yellow-600 dark:text-yellow-400'
-       :                    'text-green-600 dark:text-green-500'
+  return s === 'critical' ? 'text-red-600 dark:text-red-400'
+       : s === 'error'    ? 'text-orange-600 dark:text-orange-400'
+       : s === 'warning'  ? 'text-yellow-700 dark:text-yellow-400'
+       :                    'text-green-700 dark:text-green-500'
 }
-function sevBorderClass(s: Severity) {
-  return s === 'critical' ? 'border-l-red-500'
-       : s === 'error'    ? 'border-l-orange-500'
-       : s === 'warning'  ? 'border-l-yellow-400'
-       :                    'border-l-transparent'
+function rowTintClass(s: Severity) {
+  // Subtle tint only for non-info severities, so anomalies pop.
+  return s === 'critical' ? 'bg-red-50/40 dark:bg-red-500/[0.04]'
+       : s === 'error'    ? 'bg-orange-50/40 dark:bg-orange-500/[0.04]'
+       : s === 'warning'  ? 'bg-yellow-50/40 dark:bg-yellow-500/[0.04]'
+       :                    ''
 }
 
 type Tab = 'event_stream' | 'execution_timeline' | 'request_traces'
@@ -89,27 +93,19 @@ type Tab = 'event_stream' | 'execution_timeline' | 'request_traces'
 function ExecutionPreview() {
   const [tab, setTab] = useState<Tab>('event_stream')
 
-  const tabs: { k: Tab; label: string }[] = [
-    { k: 'event_stream',       label: 'Event Stream' },
-    { k: 'execution_timeline', label: 'Execution Timeline' },
-    { k: 'request_traces',     label: 'Request Traces' },
+  const tabs: { k: Tab; label: string; n: number }[] = [
+    { k: 'event_stream',       label: 'Event Stream',       n: ALL_EVENTS.length },
+    { k: 'execution_timeline', label: 'Execution Timeline', n: 2 },
+    { k: 'request_traces',     label: 'Request Traces',     n: ALL_TRACES.length },
   ]
-
-  const counts = {
-    events:  ALL_EVENTS.length,
-    warn:    ALL_EVENTS.filter((e) => e.severity === 'warning').length,
-    err:     ALL_EVENTS.filter((e) => e.severity === 'error' || e.severity === 'critical').length,
-    traces:  ALL_TRACES.length,
-    fail:    ALL_TRACES.filter((t) => t.status !== 200).length,
-  }
 
   return (
     <div
-      className="bg-white dark:bg-[#0f0f0d] border border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden flex flex-col"
-      style={{ fontFamily: MONO, minHeight: 560 }}
+      className="bg-white dark:bg-[#0d0d0c] border border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden flex flex-col"
+      style={{ fontFamily: MONO, minHeight: 600 }}
     >
-      {/* ── Tabs + live indicator ─────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-black/[0.08] dark:border-white/[0.08] bg-gray-50/60 dark:bg-white/[0.02]">
+      {/* ── Chrome: tabs (left) + utilities + live clock (right) ──────────── */}
+      <div className="flex items-center justify-between gap-4 px-3 py-2 border-b border-black/[0.08] dark:border-white/[0.08]">
         <div className="flex items-center gap-0.5">
           {tabs.map((t) => {
             const active = tab === t.k
@@ -117,71 +113,50 @@ function ExecutionPreview() {
               <button
                 key={t.k}
                 onClick={() => setTab(t.k)}
+                type="button"
                 className={
                   active
-                    ? 'px-2.5 py-1 text-[11px] rounded-md bg-white dark:bg-white/[0.06] text-gray-900 dark:text-[#f6f6f4] font-medium shadow-[0_1px_0_rgba(0,0,0,0.04)] cursor-pointer'
-                    : 'px-2.5 py-1 text-[11px] text-gray-500 dark:text-[#8a8a7a] hover:text-gray-900 dark:hover:text-[#f6f6f4] cursor-pointer transition-colors'
+                    ? 'flex items-center gap-1.5 px-2.5 py-1 text-[11.5px] rounded-md bg-gray-100 dark:bg-white/[0.06] text-gray-900 dark:text-[#f6f6f4] font-medium cursor-pointer'
+                    : 'flex items-center gap-1.5 px-2.5 py-1 text-[11.5px] text-gray-500 dark:text-[#8a8a7a] hover:text-gray-900 dark:hover:text-[#f6f6f4] cursor-pointer transition-colors'
                 }
-                style={{ fontFamily: 'inherit', letterSpacing: '0.02em' }}
-                type="button"
+                style={{ fontFamily: 'inherit', letterSpacing: '0.01em' }}
               >
                 {t.label}
+                <span className={
+                  active
+                    ? 'text-[10px] tabular-nums px-1 rounded bg-white dark:bg-white/[0.08] text-gray-500 dark:text-[#8a8a7a]'
+                    : 'text-[10px] tabular-nums text-gray-400 dark:text-[#5a5a52]'
+                }>
+                  {t.n}
+                </span>
               </button>
             )
           })}
         </div>
 
-        <div className="flex items-center gap-3 text-[10.5px] text-gray-400 dark:text-[#6a6a5e]">
-          <span className="tabular-nums">
-            {tab === 'request_traces' ? `${counts.traces} traces` : `${counts.events} events`}
+        <div className="flex items-center gap-3 text-[10.5px] text-gray-400 dark:text-[#6a6a5e]" style={{ fontFamily: MONO }}>
+          {/* refresh — keystroke hint */}
+          <span className="hidden md:flex items-center gap-1.5">
+            <span className="text-gray-300 dark:text-[#3a3a32]">⌘</span>
+            <span>R</span>
+            <span className="text-gray-300 dark:text-[#3a3a32]">refresh</span>
           </span>
-          <span className="flex items-center gap-1 text-green-600 dark:text-green-500">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            live
+          {/* live indicator */}
+          <span className="flex items-center gap-1.5 text-green-600 dark:text-green-500">
+            <span className="relative inline-flex">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="absolute inset-0 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-ping opacity-75" />
+            </span>
+            <span className="tabular-nums">14:07:45</span>
           </span>
-          <span className="tabular-nums">14:07:45</span>
         </div>
       </div>
 
-      {/* ── Tab content ───────────────────────────────────────── */}
+      {/* ── Tab content ───────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-0">
         {tab === 'event_stream' && <EventStreamView />}
         {tab === 'execution_timeline' && <TimelineView />}
         {tab === 'request_traces' && <TracesView />}
-      </div>
-
-      {/* ── Foot strip ────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-2 border-t border-black/[0.08] dark:border-white/[0.08] bg-gray-50/60 dark:bg-white/[0.02] text-[10.5px] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-        {tab === 'request_traces' ? (
-          <>
-            <div className="flex items-center gap-3">
-              <span className="tabular-nums">{counts.traces} traces</span>
-              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
-              <span className="tabular-nums">{counts.fail} non-200</span>
-              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
-              <span className="tabular-nums">last hour</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 dark:text-[#6a6a5e]">export</span>
-              <span className="text-blue-500/80 dark:text-blue-400/70">json</span>
-              <span className="text-gray-400 dark:text-[#6a6a5e]">→</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-3">
-              <span className="tabular-nums">{counts.events} events</span>
-              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
-              <span className="tabular-nums">{counts.warn} warnings</span>
-              <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
-              <span className="tabular-nums">{counts.err} errors</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-blue-500/80 dark:text-blue-400/70">2 executions</span>
-              <span className="text-gray-400 dark:text-[#6a6a5e]">→</span>
-            </div>
-          </>
-        )}
       </div>
     </div>
   )
@@ -192,33 +167,66 @@ function ExecutionPreview() {
 /* ────────────────────────────────────────────────────────────── */
 function EventStreamView() {
   return (
-    <div className="flex flex-col">
-      {/* column header */}
-      <div className="flex items-baseline px-4 py-2 border-b border-black/[0.08] dark:border-white/[0.08] text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-[#6a6a5e] font-medium" style={{ fontFamily: MONO }}>
-        <span className="w-[68px] pr-3 flex-shrink-0">Time</span>
-        <span className="w-[58px] pr-3 flex-shrink-0">Level</span>
-        <span className="w-[176px] pr-3 flex-shrink-0">Event Type</span>
-        <span className="flex-1">Message</span>
-        <span className="w-[120px] text-right">Exec</span>
-      </div>
-
-      {/* rows */}
-      <div>
-        {ALL_EVENTS.map((e) => (
+    <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+      {ALL_EVENTS.map((e, i) => {
+        const isNotInfo = e.severity !== 'info'
+        return (
           <div
             key={e.id}
-            className={`flex items-baseline gap-0 px-4 py-[5px] border-l-[3px] ${sevBorderClass(e.severity)} border-b border-gray-100 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.025] transition-colors cursor-default group`}
+            className={`group flex items-center gap-3 px-4 py-[7px] cursor-pointer transition-colors
+                        ${rowTintClass(e.severity)}
+                        hover:bg-gray-50 dark:hover:bg-white/[0.025]
+                        ${i < ALL_EVENTS.length - 1 ? 'border-b border-gray-100 dark:border-white/[0.03]' : ''}`}
           >
-            <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap pr-3 w-[68px] flex-shrink-0 select-none">{e.time}</span>
-            <span className={`text-[11px] font-bold uppercase pr-3 w-[58px] flex-shrink-0 select-none ${sevTextClass(e.severity)}`} style={{ letterSpacing: '0.06em' }}>{sevLabel(e.severity)}</span>
-            <span className="text-[11.5px] text-violet-600 dark:text-violet-400 pr-3 w-[176px] flex-shrink-0 truncate select-none">{e.event_type}</span>
-            <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 break-words leading-[1.6]">{e.message}</span>
-            <span className="text-[11px] text-blue-500/70 dark:text-blue-400/70 w-[120px] text-right flex-shrink-0 pl-3 opacity-50 group-hover:opacity-100 transition-opacity truncate select-none">
+            {/* severity dot */}
+            <span
+              className={`flex-shrink-0 rounded-full ${sevDotClass(e.severity)}`}
+              style={{ width: 5, height: 5 }}
+              aria-label={e.severity}
+            />
+
+            {/* time */}
+            <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap w-[68px] flex-shrink-0 select-none">
+              {e.time}
+            </span>
+
+            {/* severity label — only when not info */}
+            <span
+              className={`text-[10.5px] font-semibold uppercase w-[42px] flex-shrink-0 select-none ${isNotInfo ? sevTextClass(e.severity) : 'text-transparent'}`}
+              style={{ letterSpacing: '0.08em' }}
+            >
+              {isNotInfo ? (e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()) : '·'}
+            </span>
+
+            {/* event type */}
+            <span className="text-[11.5px] text-violet-600 dark:text-violet-400 w-[176px] flex-shrink-0 truncate select-none">
+              {e.event_type}
+            </span>
+
+            {/* message */}
+            <span className="text-[12px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 truncate">
+              {e.message}
+            </span>
+
+            {/* latency (if present) */}
+            {e.latency_ms != null && (
+              <span className="text-[10.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums flex-shrink-0 w-[44px] text-right select-none">
+                {e.latency_ms}ms
+              </span>
+            )}
+
+            {/* exec id (always visible, faint blue) */}
+            <span className="text-[11px] text-blue-500/80 dark:text-blue-400/70 w-[110px] text-right flex-shrink-0 truncate select-none">
               {e.exec_id ? `${e.exec_id.slice(0, 14)}…` : ''}
             </span>
+
+            {/* drill-in chevron, reveals on hover */}
+            <span className="text-[12px] text-gray-300 dark:text-[#3a3a32] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity select-none">
+              ›
+            </span>
           </div>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }
@@ -227,7 +235,6 @@ function EventStreamView() {
 /*  Tab 2 · Execution Timeline                                    */
 /* ────────────────────────────────────────────────────────────── */
 function TimelineView() {
-  // Group events by exec_id
   const groups = new Map<string, EventRow[]>()
   for (const e of ALL_EVENTS) {
     if (!e.exec_id) continue
@@ -237,20 +244,33 @@ function TimelineView() {
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3">
+    <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ scrollbarWidth: 'thin' }}>
       {Array.from(groups.entries()).map(([execId, evts]) => {
         const hasWarn = evts.some((e) => e.severity === 'warning')
+        const hasErr = evts.some((e) => e.severity === 'error' || e.severity === 'critical')
         const firstT = evts[0]?.time
         const lastT  = evts[evts.length - 1]?.time
+
         return (
-          <div key={execId} className="rounded-md border border-gray-200 dark:border-white/[0.06] overflow-hidden">
+          <div
+            key={execId}
+            className="rounded-md border border-gray-200 dark:border-white/[0.06] overflow-hidden bg-white dark:bg-white/[0.01]"
+          >
             {/* group header */}
-            <div className="flex items-center justify-between gap-3 px-3 py-2 bg-gray-50 dark:bg-white/[0.03] border-b border-gray-100 dark:border-white/[0.04]">
+            <div className="flex items-center justify-between gap-3 px-3 py-2 border-b border-gray-100 dark:border-white/[0.04]">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500/70 flex-shrink-0" />
-                <span className="text-[11.5px] text-blue-600 dark:text-blue-400 truncate" style={{ fontFamily: MONO }}>{execId}</span>
-                {hasWarn && (
-                  <span className="text-[10px] font-bold uppercase text-yellow-600 dark:text-yellow-400 tracking-wider">warn</span>
+                <span
+                  className={`flex-shrink-0 rounded-full ${hasErr ? 'bg-orange-500' : hasWarn ? 'bg-yellow-500' : 'bg-blue-500'}`}
+                  style={{ width: 6, height: 6 }}
+                />
+                <span className="text-[11.5px] text-blue-600 dark:text-blue-400 truncate" style={{ fontFamily: MONO }}>
+                  {execId}
+                </span>
+                {hasErr && (
+                  <span className="text-[10px] font-semibold uppercase text-orange-600 dark:text-orange-400 tracking-wider">err</span>
+                )}
+                {!hasErr && hasWarn && (
+                  <span className="text-[10px] font-semibold uppercase text-yellow-700 dark:text-yellow-400 tracking-wider">warn</span>
                 )}
               </div>
               <div className="flex items-center gap-3 flex-shrink-0 text-[10.5px] text-gray-400 dark:text-[#6a6a5e]">
@@ -258,19 +278,36 @@ function TimelineView() {
                 {firstT && lastT && firstT !== lastT && (
                   <span className="tabular-nums">{firstT} → {lastT}</span>
                 )}
+                <span className="text-gray-300 dark:text-[#3a3a32]">›</span>
               </div>
             </div>
 
             {/* group body */}
-            <div className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-              {evts.map((e) => (
-                <div key={e.id} className="flex items-baseline gap-0 px-3 py-[4px]">
-                  <span className="text-[11px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap pr-3 w-[68px] flex-shrink-0 select-none">{e.time}</span>
-                  <span className={`text-[11px] font-bold uppercase pr-3 w-[52px] flex-shrink-0 select-none ${sevTextClass(e.severity)}`} style={{ letterSpacing: '0.06em' }}>{sevLabel(e.severity)}</span>
-                  <span className="text-[11px] text-violet-600 dark:text-violet-400 pr-3 w-[160px] flex-shrink-0 truncate select-none">{e.event_type}</span>
-                  <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0">{e.message}</span>
+            <div>
+              {evts.map((e, i) => (
+                <div
+                  key={e.id}
+                  className={`group flex items-center gap-3 px-3 py-[5px] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer
+                              ${i < evts.length - 1 ? 'border-b border-gray-50 dark:border-white/[0.025]' : ''}
+                              ${rowTintClass(e.severity)}`}
+                >
+                  <span
+                    className={`flex-shrink-0 rounded-full ${sevDotClass(e.severity)}`}
+                    style={{ width: 4, height: 4 }}
+                  />
+                  <span className="text-[11px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap w-[68px] flex-shrink-0 select-none">
+                    {e.time}
+                  </span>
+                  <span className="text-[11px] text-violet-600 dark:text-violet-400 w-[170px] flex-shrink-0 truncate select-none">
+                    {e.event_type}
+                  </span>
+                  <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 truncate">
+                    {e.message}
+                  </span>
                   {e.latency_ms != null && (
-                    <span className="text-[11px] text-gray-400 dark:text-[#6a6a5e] tabular-nums flex-shrink-0 pl-3 select-none">{e.latency_ms}ms</span>
+                    <span className="text-[10.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums flex-shrink-0 select-none">
+                      {e.latency_ms}ms
+                    </span>
                   )}
                 </div>
               ))}
@@ -286,60 +323,66 @@ function TimelineView() {
 /*  Tab 3 · Request Traces                                        */
 /* ────────────────────────────────────────────────────────────── */
 function TracesView() {
-  function statusClass(s: number) {
-    return s === 200 ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
-         : s === 429 ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20'
-         :             'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
+  function statusDot(s: number) {
+    return s === 200 ? 'bg-green-500'
+         : s === 429 ? 'bg-yellow-500'
+         :             'bg-red-500'
   }
-  const fmtLatency = (ms: number) => ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
-  const fmtCost = (c: number | null) => c == null ? '—' : `$${c.toFixed(3)}`
+  function statusText(s: number) {
+    return s === 200 ? 'text-green-700 dark:text-green-500'
+         : s === 429 ? 'text-yellow-700 dark:text-yellow-400'
+         :             'text-red-600 dark:text-red-400'
+  }
+  const fmtLatency = (ms: number) => (ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`)
+  const fmtCost = (c: number | null) => (c == null ? '—' : `$${c.toFixed(3)}`)
 
   return (
-    <div className="flex flex-col">
-      {/* column header */}
-      <div className="grid items-baseline px-4 py-2 border-b border-black/[0.08] dark:border-white/[0.08] text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-[#6a6a5e] font-medium"
-        style={{ fontFamily: MONO, gridTemplateColumns: '80px 100px 1fr 64px 80px 80px 72px 64px' }}
+    <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+      {/* compact column header (single subtle row) */}
+      <div
+        className="grid items-baseline px-4 py-2 text-[9.5px] uppercase tracking-[0.2em] text-gray-400 dark:text-[#5a5a52] border-b border-gray-100 dark:border-white/[0.04]"
+        style={{ fontFamily: MONO, gridTemplateColumns: '12px 72px 110px 1fr 60px 78px 78px 64px 64px' }}
       >
-        <span>Time</span>
-        <span>Provider</span>
-        <span>Model</span>
-        <span>Status</span>
-        <span>Latency</span>
-        <span>Tokens</span>
-        <span>Cost</span>
-        <span>Tag</span>
+        <span />
+        <span>time</span>
+        <span>provider</span>
+        <span>model</span>
+        <span className="text-right">status</span>
+        <span className="text-right">latency</span>
+        <span className="text-right">tokens</span>
+        <span className="text-right">cost</span>
+        <span className="text-right">tag</span>
       </div>
 
-      {/* rows */}
-      <div>
-        {ALL_TRACES.map((t) => (
-          <div
-            key={t.id}
-            className="grid items-baseline px-4 py-[6px] border-b border-gray-100 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.025] transition-colors cursor-default"
-            style={{ gridTemplateColumns: '80px 100px 1fr 64px 80px 80px 72px 64px' }}
-          >
-            <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums font-mono select-none">{t.time}</span>
-            <span className="text-[11.5px] text-gray-800 dark:text-[#dadaca] truncate">{t.provider}</span>
-            <span className="text-[11.5px] text-gray-600 dark:text-[#9a9a8a] truncate" title={t.model}>{t.model}</span>
-            <span>
-              <span className={`inline-flex px-1.5 py-px rounded text-[10.5px] font-medium border ${statusClass(t.status)}`}>
-                {t.status}
-              </span>
-            </span>
-            <span className="text-[11.5px] tabular-nums text-gray-600 dark:text-[#9a9a8a]">{fmtLatency(t.latency_ms)}</span>
-            <span className="text-[11.5px] tabular-nums text-gray-600 dark:text-[#9a9a8a]">{t.tokens?.toLocaleString() ?? '—'}</span>
-            <span className="text-[11.5px] tabular-nums text-gray-600 dark:text-[#9a9a8a]">{fmtCost(t.cost)}</span>
-            <span>
-              {t.tag === 'cache' && (
-                <span className="inline-flex px-1 py-px rounded text-[10px] bg-sky-50 text-sky-600 border border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20">cache</span>
-              )}
-              {t.tag === 'spec' && (
-                <span className="inline-flex px-1 py-px rounded text-[10px] bg-violet-50 text-violet-600 border border-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:border-violet-500/20">spec</span>
-              )}
-            </span>
-          </div>
-        ))}
-      </div>
+      {ALL_TRACES.map((t, i) => (
+        <div
+          key={t.id}
+          className={`group grid items-center gap-x-3 px-4 py-[8px] cursor-pointer transition-colors
+                      hover:bg-gray-50 dark:hover:bg-white/[0.025]
+                      ${i < ALL_TRACES.length - 1 ? 'border-b border-gray-100 dark:border-white/[0.03]' : ''}`}
+          style={{ gridTemplateColumns: '12px 72px 110px 1fr 60px 78px 78px 64px 64px' }}
+        >
+          <span
+            className={`flex-shrink-0 rounded-full ${statusDot(t.status)}`}
+            style={{ width: 5, height: 5 }}
+          />
+          <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums select-none">{t.time}</span>
+          <span className="text-[11.5px] text-gray-800 dark:text-[#dadaca] truncate">{t.provider}</span>
+          <span className="text-[11.5px] text-gray-600 dark:text-[#9a9a8a] truncate" title={t.model}>{t.model}</span>
+          <span className={`text-[11px] font-semibold tabular-nums text-right ${statusText(t.status)}`}>{t.status}</span>
+          <span className="text-[11.5px] tabular-nums text-gray-700 dark:text-[#c8c8b8] text-right">{fmtLatency(t.latency_ms)}</span>
+          <span className="text-[11.5px] tabular-nums text-gray-600 dark:text-[#9a9a8a] text-right">{t.tokens?.toLocaleString() ?? '—'}</span>
+          <span className="text-[11.5px] tabular-nums text-gray-600 dark:text-[#9a9a8a] text-right">{fmtCost(t.cost)}</span>
+          <span className="text-right">
+            {t.tag === 'cache' && (
+              <span className="inline-flex px-1.5 py-px rounded text-[10px] text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10">cache</span>
+            )}
+            {t.tag === 'spec' && (
+              <span className="inline-flex px-1.5 py-px rounded text-[10px] text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10">spec</span>
+            )}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }
