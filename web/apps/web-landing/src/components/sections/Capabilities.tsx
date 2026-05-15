@@ -38,7 +38,7 @@ function RunVisual() {
                 style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
             AGENT
           </text>
-          <rect x="14" y="42" width="56" height="80" fill="none"
+          <rect x="8" y="42" width="68" height="80" fill="none"
                 stroke="currentColor" strokeOpacity="0.32"
                 strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
           {/* two agent tiles */}
@@ -50,7 +50,7 @@ function RunVisual() {
             <circle cx="53" cy="62" r="2.3" />
             <path d="M 48 70 q 5 -4 10 0" strokeWidth="0.55" />
           </g>
-          <text x="42" y="92" textAnchor="middle" fontSize="6"
+          <text x="42" y="115" textAnchor="middle" fontSize="6"
                 fill="currentColor" fillOpacity="0.5"
                 style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
             decides &amp; submits
@@ -58,13 +58,13 @@ function RunVisual() {
         </g>
 
         {/* AGENT → request callout (curved) */}
-        <path d="M 70 82 Q 88 82 100 82"
+        <path d="M 76 82 Q 88 82 100 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
 
         {/* ── Request callout ───────────────────────────────────── */}
         <g>
-          <rect x="100" y="58" width="76" height="50" rx="6"
+          <rect x="100" y="58" width="72" height="50" rx="6"
                 fill="none" stroke="currentColor" strokeOpacity="0.4"
                 strokeWidth="0.5" strokeDasharray="3 2" />
           <text x="106" y="71" fontSize="7" fill="currentColor" fillOpacity="0.78"
@@ -86,7 +86,7 @@ function RunVisual() {
         </g>
 
         {/* request callout → DISPATCH (curved) */}
-        <path d="M 176 82 Q 198 82 208 82"
+        <path d="M 172 82 Q 188 82 200 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
 
@@ -97,7 +97,7 @@ function RunVisual() {
                 style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
             DISPATCH
           </text>
-          <rect x="208" y="42" width="62" height="80" fill="none"
+          <rect x="200" y="42" width="78" height="80" fill="none"
                 stroke="currentColor" strokeOpacity="0.32"
                 strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
           <g stroke="currentColor" strokeOpacity="0.65" strokeWidth="0.6" fill="none">
@@ -108,7 +108,7 @@ function RunVisual() {
             <rect x="218" y="86" width="42" height="14" rx="1.5" />
             <path d="M 224 93 l 3 3 6 -6" strokeWidth="0.7" />
           </g>
-          <text x="239" y="112" textAnchor="middle" fontSize="6"
+          <text x="239" y="115" textAnchor="middle" fontSize="6"
                 fill="currentColor" fillOpacity="0.5"
                 style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
             3&nbsp;controlled&nbsp;tools
@@ -116,7 +116,7 @@ function RunVisual() {
         </g>
 
         {/* DISPATCH → RECEIPTS (curved) */}
-        <path d="M 270 82 Q 290 82 300 82"
+        <path d="M 278 82 Q 284 82 290 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
 
@@ -128,7 +128,7 @@ function RunVisual() {
                 style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
             RECEIPTS
           </text>
-          <rect x="300" y="42" width="46" height="80" rx="3" fill="none"
+          <rect x="290" y="42" width="66" height="80" rx="3" fill="none"
                 className="stroke-emerald-700 dark:stroke-emerald-400"
                 strokeOpacity="0.45" strokeWidth="0.6" strokeDasharray="3 3" />
           <g className="stroke-emerald-700 dark:stroke-emerald-400" fill="none" strokeWidth="0.6">
@@ -142,7 +142,7 @@ function RunVisual() {
             <line x1="312" y1="94" x2="324" y2="94" strokeOpacity="0.55" />
             <line x1="312" y1="98" x2="320" y2="98" strokeOpacity="0.45" />
           </g>
-          <text x="323" y="112" textAnchor="middle" fontSize="6"
+          <text x="323" y="115" textAnchor="middle" fontSize="6"
                 className="fill-emerald-700 dark:fill-emerald-400"
                 fillOpacity="0.65"
                 style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
