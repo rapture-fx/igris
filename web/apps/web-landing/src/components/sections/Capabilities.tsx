@@ -7,94 +7,188 @@ const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", u
 const borderStyle = 'var(--section-border)'
 
 // ─────────────────────────────────────────────────────────────
-// CARD 01 · Run · mock console UI (product-screenshot feel)
+// CARD 01 · Run · architecture diagram (grouped bounding boxes)
+// Visual language inspired by Cloudflare's "platforms" diagram:
+// dashed labeled bounding-box groups + tile glyphs + dashed arcs.
 // ─────────────────────────────────────────────────────────────
 function RunVisual() {
-  const actions: { n: string; name: string; state: 'signed' | 'valid' }[] = [
-    { n: '01', name: 'read approved file',     state: 'signed' },
-    { n: '02', name: 'call approved API',      state: 'signed' },
-    { n: '03', name: 'write approved record',  state: 'signed' },
-    { n: '04', name: 'receipt issued',         state: 'signed' },
-    { n: '05', name: 'verify chain',           state: 'valid'  },
-  ]
-
+  // Palette — uses currentColor for ink, plus muted accent tints.
+  // Stroke weights kept hairline (0.5–0.8px) per the thin-lines language.
   return (
     <div className="w-full" style={{ fontFamily: MONO }}>
+      <svg viewBox="0 0 360 220" className="w-full" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          {/* arrowhead used on the dashed connector arcs */}
+          <marker id="run-arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 2 L 6 4 L 0 6 z" fill="currentColor" fillOpacity="0.6" />
+          </marker>
+        </defs>
 
-      {/* ── Header strip — looks like product chrome ─────────────── */}
-      <div className="flex items-baseline justify-between mb-4 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]">
-        <span>
-          igris&nbsp;/&nbsp;
-          <span className="text-gray-900 dark:text-[#f6f6f4]">action-task</span>
-        </span>
-        <span className="text-gray-400 dark:text-[#5a5a52]">v1</span>
-      </div>
+        {/* ── Title row ──────────────────────────────────────────── */}
+        <text x="14" y="14" fontSize="7" fill="currentColor" fillOpacity="0.55"
+              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
+          CONTROLLED&nbsp;·&nbsp;TASK
+        </text>
+        <text x="346" y="14" textAnchor="end" fontSize="7"
+              className="fill-emerald-700 dark:fill-emerald-400"
+              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
+          5&nbsp;ACTIONS&nbsp;·&nbsp;VERIFIED
+        </text>
 
-      {/* ── Primary action panel ─────────────────────────────────── */}
-      <div
-        className="border border-gray-300 dark:border-[#3a3a32] mb-4 flex items-center justify-center
-                   bg-black/[0.02] dark:bg-white/[0.025]"
-        style={{ padding: '10px 14px' }}
-      >
-        <span
-          className="text-gray-900 dark:text-[#f6f6f4]"
-          style={{ fontSize: '11.5px', letterSpacing: '0.22em' }}
-        >
-          [&nbsp;&nbsp;Submit&nbsp;task&nbsp;&nbsp;]
-        </span>
-      </div>
+        {/* ── Group A: AGENT (left, orange-ish ink) ─────────────── */}
+        <g>
+          <text x="22" y="36" fontSize="7" fill="currentColor" fillOpacity="0.55"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+            AGENT
+          </text>
+          <rect x="14" y="42" width="56" height="80" fill="none"
+                stroke="currentColor" strokeOpacity="0.32"
+                strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
+          {/* tile glyphs — two small agent boxes */}
+          <g stroke="currentColor" strokeOpacity="0.65" strokeWidth="0.6" fill="none">
+            <rect x="22" y="56" width="18" height="18" rx="1.5" />
+            <circle cx="31" cy="62" r="2.3" />
+            <path d="M 26 70 q 5 -4 10 0" strokeWidth="0.55" />
+            <rect x="44" y="56" width="18" height="18" rx="1.5" />
+            <circle cx="53" cy="62" r="2.3" />
+            <path d="M 48 70 q 5 -4 10 0" strokeWidth="0.55" />
+          </g>
+          <text x="42" y="116" textAnchor="middle" fontSize="6"
+                fill="currentColor" fillOpacity="0.5"
+                style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
+            decides &amp; submits
+          </text>
+        </g>
 
-      {/* ── Action rows ──────────────────────────────────────────── */}
-      <div>
-        {actions.map((a) => {
-          const accent = a.state === 'valid'
-          return (
-            <div
-              key={a.n}
-              className="grid items-baseline border-b border-dashed border-gray-200 dark:border-[#2a2a22]"
-              style={{
-                gridTemplateColumns: '32px 1fr auto',
-                gap: 12,
-                padding: '6px 0',
-                fontSize: '11.5px',
-              }}
-            >
-              <span
-                className="text-gray-400 dark:text-[#5a5a52]"
-                style={{ letterSpacing: '0.18em', fontVariantNumeric: 'tabular-nums' }}
-              >
-                {a.n}
-              </span>
-              <span className="text-gray-800 dark:text-[#dadaca]">
-                {a.name}
-              </span>
-              <span
-                className={
-                  accent
-                    ? 'text-emerald-700 dark:text-emerald-400'
-                    : 'text-gray-500 dark:text-[#8a8a7a]'
-                }
-                style={{ fontSize: '10.5px', letterSpacing: '0.2em' }}
-              >
-                {a.state}
-              </span>
-            </div>
-          )
-        })}
-      </div>
+        {/* ── Connector: agent → request callout ────────────────── */}
+        <path d="M 70 82 Q 88 82 100 82"
+              fill="none" stroke="currentColor" strokeOpacity="0.45"
+              strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
 
-      {/* ── Footer meta row ──────────────────────────────────────── */}
-      <div
-        className="mt-3 flex items-baseline justify-between text-[10px] tracking-[0.18em] text-gray-500 dark:text-[#8a8a7a]"
-      >
-        <span>
-          <span className="text-gray-800 dark:text-[#dadaca]" style={{ letterSpacing: '0.04em' }}>
-            task_019de343
-          </span>
-          &nbsp;·&nbsp;5&nbsp;actions&nbsp;·&nbsp;185&nbsp;ms
-        </span>
-        <span className="text-emerald-700 dark:text-emerald-400">inspect&nbsp;→</span>
-      </div>
+        {/* ── Request callout in the middle (rounded dashed box) ─ */}
+        <g>
+          <rect x="100" y="58" width="76" height="50"
+                fill="none" stroke="currentColor" strokeOpacity="0.4"
+                strokeWidth="0.5" strokeDasharray="3 2" rx="6" />
+          <text x="106" y="72" fontSize="7" fill="currentColor" fillOpacity="0.78"
+                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
+            POST&nbsp;/tasks
+          </text>
+          <text x="106" y="84" fontSize="6.5" fill="currentColor" fillOpacity="0.55"
+                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
+            read_file
+          </text>
+          <text x="106" y="94" fontSize="6.5" fill="currentColor" fillOpacity="0.55"
+                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
+            http_call
+          </text>
+          <text x="106" y="104" fontSize="6.5" fill="currentColor" fillOpacity="0.55"
+                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
+            db_write
+          </text>
+        </g>
+
+        {/* ── Connector: request → dispatch ─────────────────────── */}
+        <path d="M 176 82 Q 198 82 208 82"
+              fill="none" stroke="currentColor" strokeOpacity="0.45"
+              strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
+
+        {/* ── Group B: DISPATCH (3 stacked action workers) ──────── */}
+        <g>
+          <text x="216" y="36" fontSize="7" fill="currentColor" fillOpacity="0.55"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+            DISPATCH
+          </text>
+          <rect x="208" y="42" width="62" height="80" fill="none"
+                stroke="currentColor" strokeOpacity="0.32"
+                strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
+          {/* three worker tiles */}
+          <g stroke="currentColor" strokeOpacity="0.65" strokeWidth="0.6" fill="none">
+            <rect x="218" y="50" width="42" height="14" rx="1.5" />
+            <path d="M 224 57 l 3 3 6 -6" strokeWidth="0.7" />
+            <rect x="218" y="68" width="42" height="14" rx="1.5" />
+            <path d="M 224 75 l 3 3 6 -6" strokeWidth="0.7" />
+            <rect x="218" y="86" width="42" height="14" rx="1.5" />
+            <path d="M 224 93 l 3 3 6 -6" strokeWidth="0.7" />
+          </g>
+          <text x="239" y="116" textAnchor="middle" fontSize="6"
+                fill="currentColor" fillOpacity="0.5"
+                style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
+            3 controlled tools
+          </text>
+        </g>
+
+        {/* ── Connector: dispatch → records ─────────────────────── */}
+        <path d="M 270 82 Q 290 82 300 82"
+              fill="none" stroke="currentColor" strokeOpacity="0.45"
+              strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
+
+        {/* ── Group C: RECORDS (right, emerald-tinted) ─────────── */}
+        <g>
+          <text x="308" y="36" textAnchor="end" fontSize="7"
+                className="fill-emerald-700 dark:fill-emerald-400"
+                fillOpacity="0.7"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
+            RECEIPTS
+          </text>
+          <rect x="300" y="42" width="46" height="80" fill="none"
+                className="stroke-emerald-700 dark:stroke-emerald-400"
+                strokeOpacity="0.45" strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
+          {/* three small receipt tiles */}
+          <g className="stroke-emerald-700 dark:stroke-emerald-400" fill="none" strokeWidth="0.6">
+            <rect x="308" y="52" width="30" height="14" rx="1.5" />
+            <line x1="312" y1="58" x2="324" y2="58" strokeOpacity="0.55" />
+            <line x1="312" y1="62" x2="320" y2="62" strokeOpacity="0.45" />
+            <rect x="308" y="70" width="30" height="14" rx="1.5" />
+            <line x1="312" y1="76" x2="324" y2="76" strokeOpacity="0.55" />
+            <line x1="312" y1="80" x2="320" y2="80" strokeOpacity="0.45" />
+            <rect x="308" y="88" width="30" height="14" rx="1.5" />
+            <line x1="312" y1="94" x2="324" y2="94" strokeOpacity="0.55" />
+            <line x1="312" y1="98" x2="320" y2="98" strokeOpacity="0.45" />
+          </g>
+          <text x="323" y="116" textAnchor="middle" fontSize="6"
+                className="fill-emerald-700 dark:fill-emerald-400"
+                fillOpacity="0.6"
+                style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
+            one per commit
+          </text>
+        </g>
+
+        {/* ── Lower group: VERIFY (spans below all groups) ──────── */}
+        <g>
+          {/* dashed return arcs from each group to verify ring */}
+          <path d="M 42 122 Q 42 158 180 168"
+                fill="none" stroke="currentColor" strokeOpacity="0.32"
+                strokeWidth="0.5" strokeDasharray="2 3" />
+          <path d="M 239 122 Q 239 158 180 168"
+                fill="none" stroke="currentColor" strokeOpacity="0.32"
+                strokeWidth="0.5" strokeDasharray="2 3" />
+          <path d="M 323 122 Q 323 158 180 168"
+                fill="none" className="stroke-emerald-700 dark:stroke-emerald-400"
+                strokeOpacity="0.5" strokeWidth="0.5" strokeDasharray="2 3" />
+
+          {/* verify capsule */}
+          <rect x="138" y="160" width="84" height="22" rx="11"
+                fill="none" className="stroke-emerald-700 dark:stroke-emerald-400"
+                strokeOpacity="0.7" strokeWidth="0.7" />
+          <text x="180" y="175" textAnchor="middle" fontSize="8"
+                className="fill-emerald-700 dark:fill-emerald-400"
+                style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
+            CHAIN&nbsp;·&nbsp;VALID
+          </text>
+        </g>
+
+        {/* ── Footer annotations ─────────────────────────────────── */}
+        <text x="14" y="206" fontSize="6.5" fill="currentColor" fillOpacity="0.4"
+              style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
+          one&nbsp;agent&nbsp;·&nbsp;controlled&nbsp;tools
+        </text>
+        <text x="346" y="206" textAnchor="end" fontSize="6.5"
+              fill="currentColor" fillOpacity="0.4"
+              style={{ fontFamily: MONO, letterSpacing: '0.14em', fontStyle: 'italic' }}>
+          every commit becomes evidence
+        </text>
+      </svg>
     </div>
   )
 }
