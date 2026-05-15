@@ -1,235 +1,175 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React from 'react'
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
 
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
-// Action Task V1 event stream — anchored to read_file → http_call → db_write
-type Line =
-  | { kind: 'cmd';      text: string }
-  | { kind: 'meta';     k: string; v: string }
-  | { kind: 'step';     n: string; op: string; target: string }
-  | { kind: 'detail';   text: string }
-  | { kind: 'commit';   text: string }
-  | { kind: 'sep' }
-  | { kind: 'receipt';  k: string; v: string; ok?: boolean }
-  | { kind: 'final';    text: string }
+// Mirrors the actual web-console Event Stream view (history/logs/page.tsx).
+// Real EventTypes (CamelCase), real severity levels, real column layout.
 
-const STREAM: Line[] = [
-  { kind: 'cmd',     text: 'igris tasks submit ./action_task.yaml' },
-  { kind: 'meta',    k: 'task',    v: 'task_019de343' },
-  { kind: 'meta',    k: 'actions', v: '3 (read_file, http_call, db_write)' },
-  { kind: 'sep' },
-  { kind: 'step',    n: '01', op: 'read_file',  target: 'policy.json' },
-  { kind: 'detail',  text: '  read 2,148 bytes · sha256 4a91f8…d2c0' },
-  { kind: 'commit',  text: '  committed' },
-  { kind: 'step',    n: '02', op: 'http_call',  target: 'POST /v1/process' },
-  { kind: 'detail',  text: '  status 200 · response_digest 7c08ab…91f4' },
-  { kind: 'commit',  text: '  committed' },
-  { kind: 'step',    n: '03', op: 'db_write',   target: 'audit_events row #42' },
-  { kind: 'detail',  text: '  1 row written · table audit_events' },
-  { kind: 'commit',  text: '  committed' },
-  { kind: 'sep' },
-  { kind: 'receipt', k: 'signature',       v: 'valid',         ok: true },
-  { kind: 'receipt', k: 'runtime_identity', v: 'pinned',       ok: true },
-  { kind: 'receipt', k: 'chain_valid',     v: 'true',          ok: true },
-  { kind: 'final',   text: 'receipt verified · 3 / 3 actions committed' },
+type Severity = 'info' | 'warning' | 'error' | 'critical'
+type EventType =
+  | 'ExecutionStarted'
+  | 'ToolCall'
+  | 'ReceiptSigned'
+  | 'ExecutionTerminated'
+
+interface EventRow {
+  id: string
+  time: string       // hh:mm:ss
+  severity: Severity
+  event_type: EventType
+  message: string
+}
+
+const EVENTS: EventRow[] = [
+  { id: 'e1', time: '14:07:42', severity: 'info', event_type: 'ExecutionStarted',    message: 'task_019de343 started' },
+  { id: 'e2', time: '14:07:42', severity: 'info', event_type: 'ToolCall',            message: 'read approved file' },
+  { id: 'e3', time: '14:07:42', severity: 'info', event_type: 'ToolCall',            message: 'call approved API' },
+  { id: 'e4', time: '14:07:42', severity: 'info', event_type: 'ToolCall',            message: 'write approved record' },
+  { id: 'e5', time: '14:07:42', severity: 'info', event_type: 'ReceiptSigned',       message: 'chain assembled · signed' },
+  { id: 'e6', time: '14:07:42', severity: 'info', event_type: 'ExecutionTerminated', message: 'chain · valid · 3 actions · 185 ms' },
 ]
 
-function ExecutionPreview({ isDark }: { isDark: boolean }) {
-  const bg         = isDark ? '#0e0e08' : '#0d0d0d'
-  const chrome     = isDark ? '#1a1a12' : '#1a1a1a'
-  const border     = isDark ? 'rgba(246,246,244,0.08)' : 'rgba(255,255,255,0.08)'
-  const fg         = '#e8e8de'
-  const dim        = '#6a6a5e'
-  const muted      = '#8a8a7a'
-  const accent     = '#16a34a'
-  const accentDim  = 'rgba(22,163,74,0.7)'
+function severityLabel(s: Severity) {
+  return s === 'critical' ? 'CRIT' : s.slice(0, 4).toUpperCase()
+}
 
-  const [visible, setVisible] = useState(0)
-  const ref = useRef<HTMLDivElement>(null)
+function severityTextClass(s: Severity) {
+  return s === 'critical' ? 'text-red-500'
+       : s === 'error'    ? 'text-orange-500'
+       : s === 'warning'  ? 'text-yellow-500'
+       :                    'text-green-600 dark:text-green-500'
+}
 
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const prefersReduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReduced) {
-      setVisible(STREAM.length)
-      return
-    }
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          let n = 0
-          const tick = () => {
-            n += 1
-            setVisible(n)
-            if (n < STREAM.length) setTimeout(tick, 180)
-          }
-          setTimeout(tick, 280)
-          io.disconnect()
-        }
-      },
-      { threshold: 0.2 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
+function severityBorderClass(s: Severity) {
+  return s === 'critical' ? 'border-l-red-500'
+       : s === 'error'    ? 'border-l-orange-500'
+       : s === 'warning'  ? 'border-l-yellow-500'
+       :                    'border-l-transparent'
+}
 
+function ExecutionPreview() {
   return (
     <div
-      ref={ref}
-      style={{
-        background: bg,
-        border: `1px solid ${border}`,
-        borderRadius: '8px',
-        overflow: 'hidden',
-        boxShadow: isDark
-          ? '0 1px 0 rgba(255,255,255,0.03) inset, 0 30px 80px -40px rgba(0,0,0,0.6)'
-          : '0 1px 0 rgba(255,255,255,0.04) inset, 0 30px 80px -40px rgba(0,0,0,0.5)',
-      }}
+      className="bg-white dark:bg-[#0f0f0d] border border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden"
+      style={{ fontFamily: MONO }}
     >
       <style>{`
-        @keyframes term-line-in {
+        @keyframes igris-evt-in {
           from { opacity: 0; transform: translateY(2px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .term-line { animation: term-line-in 220ms cubic-bezier(0.22,0.61,0.36,1) both; }
-        @keyframes term-caret {
-          0%,55% { opacity: 1; } 56%,100% { opacity: 0; }
-        }
-        .term-caret { animation: term-caret 1.1s steps(1,end) infinite; }
+        .igris-evt { opacity: 0; animation: igris-evt-in 240ms cubic-bezier(.22,.61,.36,1) both; }
       `}</style>
 
-      {/* Window chrome */}
+      {/* ── Tabs + live indicator (mimics console chrome) ─────────── */}
       <div
-        style={{
-          background: chrome,
-          padding: '10px 14px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          borderBottom: `1px solid ${border}`,
-        }}
+        className="flex items-center justify-between px-4 py-2 border-b border-black/[0.08] dark:border-white/[0.08] bg-gray-50/60 dark:bg-white/[0.02]"
       >
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.18)' }} />
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)' }} />
-          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <div className="flex items-center gap-0.5">
+          {[
+            { k: 'event_stream',       label: 'Event Stream',       active: true },
+            { k: 'execution_timeline', label: 'Execution Timeline', active: false },
+            { k: 'request_traces',     label: 'Request Traces',     active: false },
+          ].map((t) => (
+            <span
+              key={t.k}
+              className={
+                t.active
+                  ? 'px-2.5 py-1 text-[11px] rounded-md bg-white dark:bg-white/[0.06] text-gray-900 dark:text-[#f6f6f4] font-medium shadow-[0_1px_0_rgba(0,0,0,0.04)]'
+                  : 'px-2.5 py-1 text-[11px] text-gray-500 dark:text-[#8a8a7a]'
+              }
+              style={{ fontFamily: 'inherit', letterSpacing: '0.02em' }}
+            >
+              {t.label}
+            </span>
+          ))}
         </div>
-        <span style={{ fontFamily: MONO, fontSize: '11px', color: muted, letterSpacing: '0.04em', flex: 1, textAlign: 'center' }}>
-          task_019de343 · action_task.yaml
-        </span>
-        <span style={{ fontFamily: MONO, fontSize: '10px', color: dim, letterSpacing: '0.22em' }}>
-          IGRIS
-        </span>
+
+        <div className="flex items-center gap-3 text-[10.5px] text-gray-400 dark:text-[#6a6a5e]">
+          <span className="tabular-nums">{EVENTS.length} events</span>
+          <span className="flex items-center gap-1 text-green-600 dark:text-green-500">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            live
+          </span>
+          <span className="tabular-nums">14:07:42</span>
+        </div>
       </div>
 
-      {/* Stream body */}
+      {/* ── Column header row (TIME / LEVEL / EVENT TYPE / MESSAGE) ─ */}
       <div
-        style={{
-          padding: '20px 22px 22px',
-          minHeight: '520px',
-          background: bg,
-          fontFamily: MONO,
-          fontSize: '13px',
-          lineHeight: 1.7,
-          color: fg,
-        }}
+        className="flex items-baseline px-4 py-2 border-b border-black/[0.08] dark:border-white/[0.08]
+                   text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-[#6a6a5e]
+                   font-medium"
+        style={{ fontFamily: MONO }}
       >
-        {STREAM.slice(0, visible).map((l, i) => {
-          const styleBase: React.CSSProperties = { animationDelay: `${i * 10}ms` }
-          if (l.kind === 'cmd') {
-            return (
-              <div key={i} className="term-line" style={styleBase}>
-                <span style={{ color: dim }}>$</span>{' '}
-                <span style={{ color: fg }}>{l.text}</span>
-              </div>
-            )
-          }
-          if (l.kind === 'meta') {
-            return (
-              <div key={i} className="term-line" style={styleBase}>
-                <span style={{ color: dim }}>{l.k.padEnd(8, ' ')}</span>
-                <span style={{ color: muted }}>  {l.v}</span>
-              </div>
-            )
-          }
-          if (l.kind === 'sep') {
-            return (
-              <div key={i} className="term-line" style={{ ...styleBase, color: dim, opacity: 0.5 }}>
-                ────────────────────────────────────────────
-              </div>
-            )
-          }
-          if (l.kind === 'step') {
-            return (
-              <div key={i} className="term-line" style={styleBase}>
-                <span style={{ color: dim }}>[{l.n}]</span>{' '}
-                <span style={{ color: fg }}>{l.op}</span>
-                <span style={{ color: muted }}>  {l.target}</span>
-              </div>
-            )
-          }
-          if (l.kind === 'detail') {
-            return (
-              <div key={i} className="term-line" style={{ ...styleBase, color: muted }}>
-                {l.text}
-              </div>
-            )
-          }
-          if (l.kind === 'commit') {
-            return (
-              <div key={i} className="term-line" style={{ ...styleBase, color: accentDim }}>
-                {l.text}
-              </div>
-            )
-          }
-          if (l.kind === 'receipt') {
-            return (
-              <div key={i} className="term-line" style={styleBase}>
-                <span style={{ color: dim }}>{l.k.padEnd(18, ' ')}</span>
-                <span style={{ color: l.ok ? accent : fg }}>{l.v}</span>
-              </div>
-            )
-          }
-          if (l.kind === 'final') {
-            return (
-              <div key={i} className="term-line" style={{ ...styleBase, color: accent, marginTop: '6px' }}>
-                {l.text}
-              </div>
-            )
-          }
-          return null
-        })}
-        {visible < STREAM.length && (
-          <span className="term-caret" style={{ display: 'inline-block', width: '7px', height: '14px', background: fg, verticalAlign: 'text-bottom' }} />
-        )}
+        <span className="w-[68px] pr-3 flex-shrink-0">Time</span>
+        <span className="w-[58px] pr-3 flex-shrink-0">Level</span>
+        <span className="w-[180px] pr-3 flex-shrink-0">Event Type</span>
+        <span className="flex-1">Message</span>
+        <span className="w-[100px] text-right">Exec ID</span>
       </div>
 
-      {/* Footer status bar */}
+      {/* ── Event rows (mirrors history/logs Event Stream) ─────────── */}
+      <div>
+        {EVENTS.map((e, i) => (
+          <div
+            key={e.id}
+            className={`igris-evt flex items-baseline gap-0 px-4 py-[5px] border-l-[3px] ${severityBorderClass(e.severity)}
+                        border-b border-gray-100 dark:border-white/[0.04]
+                        hover:bg-gray-50 dark:hover:bg-white/[0.025] transition-colors cursor-default group`}
+            style={{ animationDelay: `${80 + i * 80}ms` }}
+          >
+            {/* time */}
+            <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap pr-3 w-[68px] flex-shrink-0 select-none">
+              {e.time}
+            </span>
+
+            {/* severity */}
+            <span
+              className={`text-[11px] font-bold uppercase pr-3 w-[58px] flex-shrink-0 select-none ${severityTextClass(e.severity)}`}
+              style={{ letterSpacing: '0.06em' }}
+            >
+              {severityLabel(e.severity)}
+            </span>
+
+            {/* event type — violet, matches console */}
+            <span className="text-[11.5px] text-violet-600 dark:text-violet-400 pr-3 w-[180px] flex-shrink-0 truncate select-none">
+              {e.event_type}
+            </span>
+
+            {/* message */}
+            <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 break-words leading-[1.6]">
+              {e.message}
+            </span>
+
+            {/* exec id — revealed on hover, like console */}
+            <span className="text-[11px] text-blue-500/70 dark:text-blue-400/70 w-[100px] text-right flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap select-none">
+              task_019de…
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Foot strip — counts + drill-in ────────────────────────── */}
       <div
-        style={{
-          background: chrome,
-          borderTop: `1px solid ${border}`,
-          padding: '8px 14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontFamily: MONO,
-          fontSize: '10px',
-          letterSpacing: '0.22em',
-          color: dim,
-        }}
+        className="flex items-center justify-between px-4 py-2 border-t border-black/[0.08] dark:border-white/[0.08]
+                   bg-gray-50/60 dark:bg-white/[0.02]
+                   text-[10.5px] text-gray-500 dark:text-[#8a8a7a]"
+        style={{ fontFamily: MONO }}
       >
-        <span>
-          <span style={{ color: accent }}>●</span>
-          &nbsp;&nbsp;ACTION&nbsp;TASK&nbsp;V1
-        </span>
-        <span>3&nbsp;COMMITTED&nbsp;·&nbsp;0&nbsp;DUPLICATES&nbsp;·&nbsp;CHAIN&nbsp;VALID</span>
+        <div className="flex items-center gap-3">
+          <span className="tabular-nums">{EVENTS.length} events</span>
+          <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
+          <span className="tabular-nums">0 warnings</span>
+          <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
+          <span className="tabular-nums">0 errors</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-blue-500/80 dark:text-blue-400/70">task_019de343</span>
+          <span className="text-gray-400 dark:text-[#6a6a5e]">→</span>
+        </div>
       </div>
     </div>
   )
@@ -237,14 +177,6 @@ function ExecutionPreview({ isDark }: { isDark: boolean }) {
 
 
 export default function Products() {
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const isDark = mounted && theme === 'dark'
   const sectionBorder = 'var(--section-border)'
 
   return (
@@ -273,7 +205,7 @@ export default function Products() {
                 maxWidth: '22ch',
               }}
             >
-              An action task, executed under a controlled path.
+              Submit work once. Igris makes it durable.
             </h2>
             <p
               className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
@@ -283,8 +215,9 @@ export default function Products() {
                 lineHeight: 1.6,
               }}
             >
-              Igris executes the task step by step, records each committed action,
-              and produces a receipt that anyone can verify.
+              Your app sends a task to Igris. The work runs in the configured
+              execution environment, progress is recorded as actions commit, and
+              your team gets a verifiable result through the API or console.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
               <Link
@@ -305,10 +238,10 @@ export default function Products() {
                 FIG.1
               </span>
               <span className="text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-                ACTION&nbsp;TASK&nbsp;V1&nbsp;·&nbsp;LIVE&nbsp;TRACE
+                CUSTOMER&nbsp;FLOW&nbsp;·&nbsp;SUBMIT&nbsp;EXECUTE&nbsp;VERIFY
               </span>
             </div>
-            <ExecutionPreview isDark={isDark} />
+            <ExecutionPreview />
           </div>
 
         </div>
