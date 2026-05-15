@@ -23,7 +23,6 @@
     "three": "^0.182.0"
   },
   "devDependencies": {
-    "@igris-inertial/config": "workspace:*",
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
