@@ -100,7 +100,7 @@ export default function WhyItExists() {
                 maxWidth: '22ch',
               }}
             >
-              One command. Verified runtime.
+              One command. Verified install.
             </h2>
             <p
               className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
