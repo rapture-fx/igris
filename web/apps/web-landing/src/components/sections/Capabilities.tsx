@@ -65,21 +65,21 @@ function RunVisual() {
         {/* ── Request callout ───────────────────────────────────── */}
         <g>
           <rect x="100" y="58" width="72" height="50" rx="6"
-                fill="none" stroke="currentColor" strokeOpacity="0.4"
-                strokeWidth="0.5" strokeDasharray="3 2" />
-          <text x="106" y="71" fontSize="7" fill="currentColor" fillOpacity="0.78"
+                fill="none" stroke="darkorange" strokeOpacity="0.75"
+                strokeWidth="0.6" strokeDasharray="3 2" />
+          <text x="106" y="71" fontSize="7" fill="darkorange" fillOpacity="0.9"
                 style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
             POST&nbsp;/tasks
           </text>
-          <text x="106" y="83" fontSize="6.5" fill="currentColor" fillOpacity="0.55"
+          <text x="106" y="83" fontSize="6.5" fill="darkorange" fillOpacity="0.7"
                 style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
             read_file
           </text>
-          <text x="106" y="93" fontSize="6.5" fill="currentColor" fillOpacity="0.55"
+          <text x="106" y="93" fontSize="6.5" fill="darkorange" fillOpacity="0.7"
                 style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
             http_call
           </text>
-          <text x="106" y="103" fontSize="6.5" fill="currentColor" fillOpacity="0.55"
+          <text x="106" y="103" fontSize="6.5" fill="darkorange" fillOpacity="0.7"
                 style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
             db_write
           </text>
@@ -161,13 +161,13 @@ function RunVisual() {
               fill="none" className="stroke-emerald-700 dark:stroke-emerald-400"
               strokeOpacity="0.5" strokeWidth="0.5" strokeDasharray="2 3" />
 
-        {/* verify capsule */}
-        <rect x="138" y="160" width="84" height="22" rx="11"
-              fill="none" className="stroke-emerald-700 dark:stroke-emerald-400"
-              strokeOpacity="0.7" strokeWidth="0.7" />
-        <text x="180" y="174.5" textAnchor="middle" fontSize="8"
+        {/* verify tag — matches FIG.3 receipt-chain end-of-chain style */}
+        <line x1="180" y1="168" x2="180" y2="176"
+              className="stroke-emerald-700 dark:stroke-emerald-400"
+              strokeOpacity="0.55" strokeWidth="0.5" strokeDasharray="2 3" />
+        <text x="180" y="186" textAnchor="middle" fontSize="6.5"
               className="fill-emerald-700 dark:fill-emerald-400"
-              style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
+              style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
           CHAIN&nbsp;·&nbsp;VALID
         </text>
 
@@ -371,10 +371,11 @@ function ReceiptVisual() {
           const isFinal = i === receipts.length - 1
           return (
             <g key={r.action}>
-              {/* ring on spine */}
+              {/* ring on spine — filled with card bg so the spine line doesn't show through */}
               <circle cx={SPINE_X} cy={y} r={isFinal ? 3.6 : 2.8}
-                      fill="none"
-                      className={isFinal ? 'stroke-emerald-700 dark:stroke-emerald-400' : ''}
+                      className={isFinal
+                        ? 'fill-white dark:fill-dark-bg stroke-emerald-700 dark:stroke-emerald-400'
+                        : 'fill-white dark:fill-dark-bg'}
                       stroke={isFinal ? undefined : 'currentColor'}
                       strokeOpacity={isFinal ? undefined : 0.65}
                       strokeWidth="0.7" />
@@ -557,7 +558,7 @@ const cards: Card[] = [
     fig: 'FIG.2',
     num: '02',
     name: 'Recover',
-    body: 'Resume from recorded progress. When an execution environment stops mid-run, the task does not restart from zero — Igris continues from where it left off.',
+    body: 'Resume after failure without replaying committed actions. When an execution environment stops mid-run, the task does not restart from zero — Igris continues from recorded progress.',
     sublist: [
       { id: '2.1', label: 'Resume from recorded progress' },
       { id: '2.2', label: 'Already-committed actions are not replayed' },
@@ -642,8 +643,8 @@ export default function Capabilities() {
 
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle, borderBottom: borderStyle }}>
 
           {/* Section heading — eyebrow / title / subtext */}
           <div className="pt-20 md:pt-32 pb-10 md:pb-14">
@@ -723,7 +724,7 @@ export default function Capabilities() {
                   borderRight: borderStyle,
                   borderBottom: borderStyle,
                   animationDelay: `${120 + i * 110}ms`,
-                  height: '620px',
+                  height: '740px',
                 }}
               >
                 {/* FIG.N tag */}
@@ -744,8 +745,8 @@ export default function Capabilities() {
 
                 {/* Visual area — fixed height so all four cards align */}
                 <div
-                  className="px-7 md:px-9 pt-4 pb-6 flex items-start justify-center"
-                  style={{ height: '300px' }}
+                  className="px-7 md:px-9 pt-8 pb-10 flex items-center justify-center"
+                  style={{ height: '400px' }}
                 >
                   <div className="w-full">
                     <c.Visual />
@@ -818,6 +819,8 @@ export default function Capabilities() {
               </article>
             ))}
           </div>
+
+          <div className="pb-20 md:pb-32" />
 
         </div>
       </div>
