@@ -86,12 +86,10 @@ export default function Recovery() {
         }
       `}</style>
 
-      <div style={{ borderTop: borderStyle }} />
-
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      
         <div
           className="px-4 md:px-8 lg:px-12"
-          style={{ borderLeft: borderStyle, borderRight: borderStyle }}
+          style={{}}
         >
 
           {/* Section anchor */}
@@ -244,8 +242,7 @@ export default function Recovery() {
         </div>
       </div>
 
-      <div style={{ borderTop: borderStyle }} />
-    </section>
+      
   )
 }
 
