@@ -71,10 +71,8 @@ export default function CoreCapabilities() {
         }
       `}</style>
 
-      <div style={{ borderTop: borderStyle }} />
-
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
+      
+        <div className="px-4 md:px-8 lg:px-12">
 
           {/* FIG marker */}
           <div className="flex items-baseline justify-between pt-8 pb-6 md:pt-10 md:pb-8">
@@ -129,8 +127,7 @@ export default function CoreCapabilities() {
                 {i > 0 && (
                   <span
                     aria-hidden
-                    className="hidden md:block absolute top-0 bottom-0 left-0"
-                    style={{ borderLeft: borderStyle }}
+                    className="hidden md:block absolute top-0 bottom-0 left-0 w-px bg-[var(--section-border)]"
                   />
                 )}
 
@@ -187,7 +184,6 @@ export default function CoreCapabilities() {
         </div>
       </div>
 
-      <div style={{ borderTop: borderStyle }} />
-    </section>
+      
   )
 }
