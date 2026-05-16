@@ -76,10 +76,10 @@ export default function WhyItExists() {
       ref={sectionRef}
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
-      <div style={{ borderTop: borderStyle }} />
+      <div />
 
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
+        <div className="px-4 md:px-8 lg:px-12">
 
           {/* Section heading — eyebrow / title / subtext */}
           <div className="pt-20 md:pt-32 pb-10 md:pb-14">
@@ -115,7 +115,7 @@ export default function WhyItExists() {
           </div>
 
           {/* Install command frame */}
-          <div className="pb-24 md:pb-32">
+          <div className="py-24 md:py-40">
             <div className="flex items-baseline justify-between pb-3">
               <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
                 FIG.6&nbsp;·&nbsp;INSTALL&nbsp;SCRIPT&nbsp;·&nbsp;SHA256&nbsp;PINNED
@@ -190,7 +190,6 @@ export default function WhyItExists() {
         </div>
       </div>
 
-      <div style={{ borderTop: borderStyle }} />
-    </section>
+      
   )
 }
