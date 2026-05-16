@@ -641,7 +641,8 @@ export default function Capabilities() {
         }
       `}</style>
 
-      <div className="px-4 md:px-8 lg:px-12" style={{ borderBottom: borderStyle }}>
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+        <div className="px-4 md:px-8 lg:px-12">
 
           {/* Section heading — eyebrow / title / subtext */}
           <div className="pt-20 md:pt-32 pb-10 md:pb-14">
