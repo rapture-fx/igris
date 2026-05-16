@@ -238,7 +238,7 @@ export default function Header() {
           style={{ borderBottom: 'none' }}
         />
 
-        <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
           {/* Nav bar + dropdown wrapper */}
           <div onMouseLeave={scheduleClose} className="-mx-5">
 
