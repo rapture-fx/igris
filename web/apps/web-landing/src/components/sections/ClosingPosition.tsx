@@ -10,7 +10,7 @@ export default function ClosingPosition() {
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <div
           className="px-4 md:px-8 lg:px-12"
           style={{ borderLeft: borderStyle, borderRight: borderStyle }}
