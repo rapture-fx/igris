@@ -110,7 +110,7 @@ export default function WhenToUseIgris() {
               <article
                 key={card.number}
                 className={`flex flex-col px-7 md:px-8 py-7 md:py-8 ${
-                  card.fullWidth ? 'md:col-span-2 min-h-[260px]' : 'min-h-[300px]'
+                  card.fullWidth ? 'md:col-span-2 min-h-[460px]' : 'min-h-[460px]'
                 }`}
                 style={{ borderRight: borderStyle, borderBottom: borderStyle }}
               >
