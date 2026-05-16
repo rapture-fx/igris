@@ -98,7 +98,7 @@ function ExecutionPreview() {
 
   return (
     <div
-      className="bg-white dark:bg-[#111214] border border-black/[0.08] dark:border-[#323334] dark:border-t-[#5b5c5d] rounded-lg overflow-hidden flex flex-col"
+      className="bg-white dark:bg-[#111214] border border-black/[0.08] dark:border-[#323334] dark:border-t-[#5b5c5d] dark:border-r-[#5b5c5d] rounded-lg overflow-hidden flex flex-col"
       style={{ fontFamily: MONO, minHeight: 600 }}
     >
       {/* ── Chrome: tabs (left) + utilities + live clock (right) ──────────── */}
@@ -384,7 +384,7 @@ export default function Products() {
       <div style={{ borderTop: sectionBorder }} />
 
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: sectionBorder, borderRight: sectionBorder }}>
+        <div className="px-4 md:px-8 lg:px-12">
 
           {/* Section heading — eyebrow / title / subtext */}
           <div className="pt-20 md:pt-32 pb-10 md:pb-14">
