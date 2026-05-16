@@ -8,7 +8,7 @@ const borderStyle = 'var(--section-border)'
 export default function ClosingPosition() {
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <div
           className="px-4 md:px-8 lg:px-12"
           style={{}}
@@ -19,7 +19,7 @@ export default function ClosingPosition() {
               className="pb-5 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO }}
             >
-              04&nbsp;·&nbsp;GET&nbsp;STARTED
+              05&nbsp;·&nbsp;GET&nbsp;STARTED
             </div>
             <h3
               className="text-[#000000] dark:text-[#f6f6f4]"
@@ -67,6 +67,7 @@ export default function ClosingPosition() {
 
         </div>
       </div>
+    </section>
 
       
   )
