@@ -15,11 +15,11 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
     heading: 'PRODUCT',
     ref: '01',
     links: [
-      { label: 'Verifiable Execution', href: '/core' },
-      { label: 'Governed AI Tasks', href: '/core' },
+      { label: 'Action Tasks', href: '/core' },
       { label: 'Failure Recovery', href: '/core' },
       { label: 'Signed Receipts', href: '/core' },
-      { label: 'Local Execution', href: '/core' },
+      { label: 'Proof Verification', href: '/core' },
+      { label: 'Operator Inspection', href: '/core' },
     ],
   },
   {
@@ -38,8 +38,8 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
     links: [
       { label: 'AI Agents', href: '/use-cases' },
       { label: 'Internal Automation', href: '/use-cases' },
-      { label: 'Edge AI', href: '/use-cases' },
-      { label: 'Specialized Environments', href: '/use-cases' },
+      { label: 'Agent Workflows', href: '/use-cases' },
+      { label: 'High-Risk Tool Calls', href: '/use-cases' },
     ],
   },
   {
@@ -75,7 +75,7 @@ export default function Footer() {
     <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div style={{ borderTop: borderStyle }} />
 
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12" style={{ borderLeft: borderStyle, borderRight: borderStyle }}>
 
           {/* Section anchor */}
