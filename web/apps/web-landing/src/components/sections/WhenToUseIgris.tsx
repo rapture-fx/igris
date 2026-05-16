@@ -13,6 +13,7 @@ type Card = {
   detailLines: string[]
   accentWords: string[]
   fullWidth?: boolean
+  visual?: 'cube-network'
 }
 
 const cards: Card[] = [
@@ -22,6 +23,7 @@ const cards: Card[] = [
     body: 'Use Igris when agents read files, call APIs, update records, trigger workflows, or touch deployment paths.',
     detailLines: ['files', 'APIs', 'databases', 'workflows', 'deployments'],
     accentWords: ['real systems'],
+    visual: 'cube-network',
   },
   {
     number: '02',
@@ -39,6 +41,101 @@ const cards: Card[] = [
     fullWidth: true,
   },
 ]
+
+function IsoCube({
+  x,
+  y,
+  size = 44,
+  fill = 'transparent',
+  stroke = 'rgba(255,255,255,0.55)',
+  glow = false,
+}: {
+  x: number
+  y: number
+  size?: number
+  fill?: string
+  stroke?: string
+  glow?: boolean
+}) {
+  const w = size
+  const h = size * 0.5
+  const d = size * 0.5
+  const top = [
+    [x, y - h],
+    [x + w, y],
+    [x, y + h],
+    [x - w, y],
+  ]
+  const left = [
+    [x - w, y],
+    [x, y + h],
+    [x, y + h + d * 2],
+    [x - w, y + d * 2],
+  ]
+  const right = [
+    [x, y + h],
+    [x + w, y],
+    [x + w, y + d * 2],
+    [x, y + h + d * 2],
+  ]
+  const poly = (pts: number[][]) => pts.map((p) => p.join(',')).join(' ')
+  const topFill = fill === 'transparent' ? 'rgba(20,20,28,0.85)' : fill
+  const leftFill = fill === 'transparent' ? 'rgba(14,14,20,0.9)' : fill
+  const rightFill = fill === 'transparent' ? 'rgba(28,28,38,0.85)' : fill
+  return (
+    <g style={glow ? { filter: 'drop-shadow(0 0 14px rgba(120,110,255,0.55))' } : undefined}>
+      <polygon points={poly(left)} fill={leftFill} stroke={stroke} strokeWidth={1} />
+      <polygon points={poly(right)} fill={rightFill} stroke={stroke} strokeWidth={1} />
+      <polygon points={poly(top)} fill={topFill} stroke={stroke} strokeWidth={1} />
+    </g>
+  )
+}
+
+function CubeNetworkVisual() {
+  return (
+    <div
+      className="mt-6"
+      style={{
+        position: 'relative',
+        width: '100%',
+        aspectRatio: '1 / 1',
+        maxWidth: 280,
+        margin: '0 auto',
+      }}
+    >
+      <svg viewBox="0 0 300 300" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+        <g stroke="rgba(170,170,190,0.45)" strokeWidth={0.8} strokeDasharray="3 3" fill="none">
+          <line x1={150} y1={110} x2={80} y2={70} />
+          <line x1={150} y1={110} x2={220} y2={70} />
+          <line x1={150} y1={130} x2={80} y2={170} />
+          <line x1={150} y1={130} x2={220} y2={170} />
+          <line x1={150} y1={70} x2={150} y2={30} />
+          <line x1={150} y1={170} x2={150} y2={260} />
+          <line x1={150} y1={230} x2={105} y2={235} />
+          <line x1={150} y1={230} x2={195} y2={235} />
+        </g>
+        <g fill="rgba(170,170,190,0.6)">
+          <polygon points="150,28 147,34 153,34" />
+          <polygon points="150,262 147,256 153,256" />
+        </g>
+        <IsoCube x={80} y={70} size={22} />
+        <IsoCube x={220} y={70} size={22} />
+        <IsoCube x={70} y={170} size={24} />
+        <IsoCube x={230} y={170} size={24} />
+        <IsoCube x={105} y={235} size={11} />
+        <IsoCube x={195} y={235} size={11} />
+        <IsoCube
+          x={150}
+          y={120}
+          size={28}
+          fill="#6e5cff"
+          stroke="rgba(180,170,255,0.9)"
+          glow
+        />
+      </svg>
+    </div>
+  )
+}
 
 function highlightAccents(text: string, accents: string[]) {
   if (!accents.length) return text
@@ -146,6 +243,8 @@ export default function WhenToUseIgris() {
                 >
                   {highlightAccents(card.body, card.accentWords)}
                 </p>
+
+                {card.visual === 'cube-network' && <CubeNetworkVisual />}
 
                 <ul
                   className={`mt-auto pt-6 flex flex-wrap gap-x-5 gap-y-2 text-gray-600 dark:text-[#a8a898]`}
