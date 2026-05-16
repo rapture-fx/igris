@@ -4,6 +4,7 @@ import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
 import Products from '../src/components/sections/Products'
 import Capabilities from '../src/components/sections/Capabilities'
+import WhenToUseIgris from '../src/components/sections/WhenToUseIgris'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import Footer from '../src/components/sections/Footer'
 import WhyItExists from '../src/components/sections/WhyItExists'
@@ -25,6 +26,7 @@ export default function HomePage() {
           <Hero />
           <ScrollReveal delay={0.1}><Products /></ScrollReveal>
           <ScrollReveal delay={0.1}><Capabilities /></ScrollReveal>
+          <ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal>
           <ScrollReveal delay={0.1}><WhyItExists /></ScrollReveal>
           <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
         </main>
