@@ -87,7 +87,7 @@ export default function WhyItExists() {
               className="pb-5 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO }}
             >
-              03&nbsp;·&nbsp;INSTALL
+              04&nbsp;·&nbsp;INSTALL
             </div>
             <h2
               className="text-[#000000] dark:text-[#f6f6f4]"
@@ -189,6 +189,7 @@ export default function WhyItExists() {
 
         </div>
       </div>
+    </section>
 
       
   )
