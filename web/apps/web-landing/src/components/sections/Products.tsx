@@ -98,7 +98,7 @@ function ExecutionPreview() {
 
   return (
     <div
-      className="bg-white dark:bg-[#0d0d0c] border border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden flex flex-col"
+      className="bg-white dark:bg-[#111214] border border-black/[0.08] dark:border-[#323334] dark:border-t-[#5b5c5d] rounded-lg overflow-hidden flex flex-col"
       style={{ fontFamily: MONO, minHeight: 600 }}
     >
       {/* ── Chrome: tabs (left) + utilities + live clock (right) ──────────── */}
