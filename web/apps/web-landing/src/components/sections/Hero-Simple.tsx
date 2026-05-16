@@ -48,7 +48,7 @@ export default function Hero() {
 
 {/* ── Bottom-left overlaid content ──────────────── */}
       <div className="relative z-10" style={{ minHeight: 'clamp(540px, 70vh, 760px)' }}>
-        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 h-full">
+        <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8 h-full">
           <div className="px-4 md:px-8 lg:px-12 h-full">
             <div className="flex flex-col justify-end h-full pt-40 md:pt-56 pb-12 md:pb-16">
 
