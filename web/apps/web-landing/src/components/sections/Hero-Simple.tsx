@@ -11,7 +11,7 @@ export default function Hero() {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-[#0a0a0c]"
+      className="relative w-full overflow-hidden bg-[#0a0b0b]"
       style={{
         marginTop: '0',
         minHeight: 'clamp(720px, 92vh, 980px)',
@@ -57,10 +57,11 @@ export default function Hero() {
                 style={{
                   fontFamily: SANS,
                   fontWeight: 500,
-                  fontSize: 'clamp(2rem, 5vw, 4rem)',
+                  fontSize: 'clamp(1.75rem, 4vw, 3.25rem)',
                   lineHeight: 1.0,
                   letterSpacing: '-0.03em',
                   maxWidth: '24ch',
+                  marginTop: 'clamp(4rem, 8vh, 6rem)',
                 }}
               >
                 Run agent tasks that recover and prove what happened.
