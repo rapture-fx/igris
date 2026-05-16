@@ -377,12 +377,8 @@ function ProofTrailView() {
 
 
 export default function Products() {
-  const sectionBorder = 'var(--section-border)'
-
   return (
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div style={{ borderTop: sectionBorder }} />
-
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12">
 
