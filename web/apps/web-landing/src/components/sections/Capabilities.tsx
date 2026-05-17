@@ -20,17 +20,6 @@ function RunVisual() {
           </marker>
         </defs>
 
-        {/* ── Title row ──────────────────────────────────────────── */}
-        <text x="14" y="14" fontSize="7" fill="currentColor" fillOpacity="0.55"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          CONTROLLED&nbsp;·&nbsp;TASK
-        </text>
-        <text x="346" y="14" textAnchor="end" fontSize="7"
-              className="fill-emerald-700 dark:fill-emerald-400"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          3&nbsp;ACTIONS&nbsp;·&nbsp;VERIFIED
-        </text>
-
         {/* ── Group A: AGENT ────────────────────────────────────── */}
         <g>
           <text x="42" y="36" textAnchor="middle" fontSize="7"
@@ -207,17 +196,6 @@ function RecoverVisual() {
     <div className="w-full" style={{ fontFamily: MONO }}>
       <svg viewBox="0 0 360 200" className="w-full" preserveAspectRatio="xMidYMid meet">
 
-        {/* ── Title row ──────────────────────────────────────────── */}
-        <text x={X0} y="20" fontSize="7" fill="currentColor" fillOpacity="0.55"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          RECOVERY&nbsp;·&nbsp;CLEAN&nbsp;HOST
-        </text>
-        <text x={X1} y="20" textAnchor="end" fontSize="7"
-              className="fill-emerald-700 dark:fill-emerald-400"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          RESUMED&nbsp;·&nbsp;NO&nbsp;REPLAY
-        </text>
-
         {/* ── Dimension bracket ──────────────────────────────────── */}
         <g stroke="currentColor" strokeOpacity="0.32" strokeWidth="0.5" fill="none" shapeRendering="crispEdges">
           <line x1={X0} y1="48" x2={X1} y2="48" />
@@ -348,17 +326,6 @@ function ReceiptVisual() {
     <div className="w-full" style={{ fontFamily: MONO }}>
       <svg viewBox="0 0 360 200" className="w-full" preserveAspectRatio="xMidYMid meet">
 
-        {/* ── Title row ──────────────────────────────────────────── */}
-        <text x="34" y="20" fontSize="7" fill="currentColor" fillOpacity="0.55"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          RECEIPT&nbsp;·&nbsp;CHAIN
-        </text>
-        <text x="326" y="20" textAnchor="end" fontSize="7"
-              className="fill-emerald-700 dark:fill-emerald-400"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          VERIFIED
-        </text>
-
         {/* ── Vertical spine ─────────────────────────────────────── */}
         <line x1={SPINE_X} y1={Y0 - 8} x2={SPINE_X} y2={lastY + 8}
               stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
@@ -456,16 +423,6 @@ function InspectVisual() {
     <div className="w-full" style={{ fontFamily: MONO }}>
       <svg viewBox="0 0 360 200" className="w-full" preserveAspectRatio="xMidYMid meet">
 
-        {/* ── Title row ──────────────────────────────────────────── */}
-        <text x="34" y="20" fontSize="7" fill="currentColor" fillOpacity="0.55"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          INSPECT&nbsp;·&nbsp;RECORD&nbsp;SHEET
-        </text>
-        <text x="326" y="20" textAnchor="end" fontSize="7"
-              className="fill-emerald-700 dark:fill-emerald-400"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          OPERATOR&nbsp;·&nbsp;READY
-        </text>
 
         {/* ── Sheet header ───────────────────────────────────────── */}
         <text x={COL_K_X} y="42" fontSize="6"
