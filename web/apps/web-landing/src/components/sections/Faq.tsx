@@ -145,11 +145,10 @@ export default function Faq() {
 
   return (
     <>
-      <div style={{ borderTop: 'var(--section-border)' }} />
       <section id="faq" className="bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative px-4 md:px-8 lg:px-12 min-h-0 flex flex-col" style={{ borderLeft: 'var(--section-border)', borderRight: 'var(--section-border)' }}>
-            <div className="flex flex-col items-center" style={{ paddingTop: '3rem', paddingBottom: '3rem' }}>
+        <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative px-2 md:px-4 lg:px-6 min-h-0 flex flex-col">
+            <div className="flex flex-col items-center" style={{ paddingTop: '14rem', paddingBottom: '14rem' }}>
 
               {/* Title */}
               <div className="w-full max-w-[700px] text-left mb-8">
