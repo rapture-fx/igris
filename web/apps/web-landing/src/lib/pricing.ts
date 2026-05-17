@@ -18,13 +18,13 @@ export const PRICING_TIERS: PricingTier[] = [
     name: 'Seed',
     price: '$19',
     period: '/ month',
-    description: 'For builders validating verified AI execution.',
+    description: 'For builders validating recoverable agent actions.',
     features: [
       '1 project',
       '1 execution environment',
-      '2,500 verified runs / month',
-      'Signed execution records',
-      'Execution events',
+      '2,500 agent task runs / month',
+      'Signed receipts',
+      'Action evidence',
       'Basic receipt verification',
       'API + SDK access',
       '7-day retention',
@@ -36,20 +36,20 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     key: 'horizon',
     name: 'Horizon',
-    price: '$79',
+    price: '$149',
     period: '/ month',
-    description: 'For teams running governed AI tasks.',
+    description: 'For teams running recoverable agent tasks.',
     features: [
       '5 projects',
       '10 execution environments',
-      '50,000 verified runs / month',
+      '50,000 agent task runs / month',
       'Everything in Seed',
-      'Failure-path configuration',
+      'Recovery configuration',
       'Tool and permission controls',
       'Team access',
       'Advanced event search',
       '60-day retention',
-      'Priority email support',
+      'Priority support',
     ],
     cta: 'Get Horizon',
     checkoutUrl: 'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
@@ -60,9 +60,9 @@ export const PRICING_TIERS: PricingTier[] = [
     name: 'Infinite',
     price: 'Custom',
     period: '',
-    description: 'For private deployment and advanced governance.',
+    description: 'For private deployment, custom retention, and advanced governance.',
     features: [
-      'Custom execution volume',
+      'Custom task volume',
       'Custom execution environments',
       'Everything in Horizon',
       'Private deployment options',
@@ -80,12 +80,12 @@ export const PRICING_TIERS: PricingTier[] = [
 export const PLAN_INTEREST_OPTIONS = [
   { value: '', label: 'Select a plan' },
   { value: 'seed', label: 'Seed - $19/month' },
-  { value: 'horizon', label: 'Horizon - $79/month' },
+  { value: 'horizon', label: 'Horizon - $149/month' },
   { value: 'infinite', label: 'Infinite - Custom' },
 ] as const;
 
 export const FLEET_GATING_COPY =
-  'The fleet dashboard is included with every paid tier. Seed covers one execution environment with signed execution records, execution events, and baseline operator visibility. Horizon expands to 10 execution environments with team access, advanced event search, failure-path configuration, and tool controls. Infinite adds private deployment options, custom retention policy, advanced audit exports, dedicated onboarding, and security review support.';
+  'The fleet dashboard is included with every paid tier. Seed covers one execution environment with signed receipts, action evidence, and baseline operator visibility. Horizon expands to 10 execution environments with team access, advanced event search, recovery configuration, and tool controls. Infinite adds private deployment options, custom retention policy, advanced audit exports, dedicated onboarding, and security review support.';
 
 export const RUNTIME_PLAN_COPY =
   'Deploy to one execution environment with Seed, expand to 10 environments plus team workflows with Horizon, or move to Infinite for private deployment and custom governance.';
