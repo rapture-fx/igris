@@ -243,8 +243,6 @@ export default function Header() {
                     [
                       { key: 'product', label: 'Product' },
                       { key: 'docs', label: 'Docs' },
-                      { key: 'usecases', label: 'Use Cases' },
-                      { key: 'resources', label: 'Resources' },
                     ] as { key: DropdownKey; label: string }[]
                   ).map(({ key, label }) => (
                     <button
@@ -418,48 +416,6 @@ export default function Header() {
                         <a key={item.label} href={item.href} onClick={closeMobileAll} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: NAV_FONT }}>
                           {item.label}
                         </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Use Cases */}
-                <div>
-                  <button
-                    onClick={() => setMobileUseCasesOpen(!mobileUseCasesOpen)}
-                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
-                    style={{ fontFamily: NAV_FONT }}
-                  >
-                    Use Cases
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileUseCasesOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {mobileUseCasesOpen && (
-                    <div className="ml-4 mt-3 space-y-3">
-                      {useCasesItems.map((item) => (
-                        <Link key={item.label} href={item.href} prefetch={false} onClick={closeMobileAll} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: NAV_FONT }}>
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Resources */}
-                <div>
-                  <button
-                    onClick={() => setMobileResourcesOpen(!mobileResourcesOpen)}
-                    className="w-full flex items-center justify-between text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm"
-                    style={{ fontFamily: NAV_FONT }}
-                  >
-                    Resources
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${mobileResourcesOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  {mobileResourcesOpen && (
-                    <div className="ml-4 mt-3 space-y-3">
-                      {resourcesItems.map((item) => (
-                        <Link key={item.label} href={item.href} prefetch={false} onClick={closeMobileAll} className="block text-gray-700 dark:text-[#c8c8b8] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors duration-200 font-medium text-sm" style={{ fontFamily: NAV_FONT }}>
-                          {item.label}
-                        </Link>
                       ))}
                     </div>
                   )}
