@@ -686,11 +686,10 @@ export default function Capabilities() {
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
               <a
                 href="https://docs.igrisinertial.com"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
-                style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
+                style={{ fontFamily: SANS }}
               >
-                READ&nbsp;THE&nbsp;DOCS
-                <span aria-hidden>{'>'}</span>
+                Read the docs ↗
               </a>
             </div>
           </div>
@@ -783,11 +782,10 @@ export default function Capabilities() {
                       </p>
                       <a
                         href={c.cta.href}
-                        className="group mt-5 inline-flex items-center gap-2.5 px-3 py-2 rounded-md border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
-                        style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em' }}
+                        className="mt-5 self-start inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
+                        style={{ fontFamily: SANS }}
                       >
-                        {c.cta.label}
-                        <span aria-hidden>{'>'}</span>
+                        {c.cta.label} ↗
                       </a>
                     </div>
 
