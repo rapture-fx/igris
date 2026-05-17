@@ -2,8 +2,9 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
+const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO  = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
+const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
 const borderStyle = 'var(--section-border)'
 
 const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
@@ -30,7 +31,6 @@ export default function WhyItExists() {
     clearTimeout(timerRef.current)
     setAnimDone(false)
     let lineStart = -1
-
     function frame(ts: number) {
       if (lineStart < 0) lineStart = ts
       const elapsed = ts - lineStart
@@ -42,7 +42,6 @@ export default function WhyItExists() {
         rafRef.current = requestAnimationFrame(frame)
       }
     }
-
     timerRef.current = setTimeout(() => {
       rafRef.current = requestAnimationFrame(frame)
     }, 100)
@@ -52,9 +51,7 @@ export default function WhyItExists() {
     const el = sectionRef.current
     if (!el) return
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) startAnim()
-      },
+      ([entry]) => { if (entry.isIntersecting) startAnim() },
       { threshold: 0.18 },
     )
     observer.observe(el)
@@ -76,64 +73,61 @@ export default function WhyItExists() {
       ref={sectionRef}
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
-      <div />
-
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12">
 
-          {/* Section heading — eyebrow / title / subtext */}
-          <div className="pt-20 md:pt-32 pb-10 md:pb-14">
+          <div className="pt-10 md:pt-14 pb-6 md:pb-8">
             <div
-              className="pb-5 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-              style={{ fontFamily: MONO }}
+              className="pb-4 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
+              style={{ fontFamily: PIXEL }}
             >
               04&nbsp;·&nbsp;INSTALL
             </div>
             <h2
               className="text-[#000000] dark:text-[#f6f6f4]"
               style={{
-                fontFamily: SANS,
+                fontFamily: PIXEL,
                 fontWeight: 500,
-                fontSize: 'clamp(1.5rem, 2.6vw, 2.25rem)',
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em',
-                maxWidth: '22ch',
+                fontSize: 'clamp(1.4rem, 2.6vw, 2rem)',
+                lineHeight: 1.15,
+                letterSpacing: '-0.005em',
+                maxWidth: '24ch',
               }}
             >
               One command. Verified install.
             </h2>
             <p
-              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
+              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[62ch]"
               style={{
                 fontFamily: SANS,
                 fontSize: 'clamp(0.95rem, 1.05vw, 1rem)',
                 lineHeight: 1.6,
               }}
             >
-              Pinned by SHA256, local or cloud — no interactive prompts.
+              The Igris runtime ships as a single SHA256-pinned install script.
+              It is non-interactive, idempotent, and safe for CI pipelines —
+              verifies its own integrity, fetches the platform binary, and
+              registers the host with the supplied API key.
             </p>
           </div>
 
-          {/* Install command frame */}
-          <div className="py-24 md:py-40">
-            <div className="flex items-baseline justify-between pb-3">
-              <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-                FIG.6&nbsp;·&nbsp;INSTALL&nbsp;SCRIPT&nbsp;·&nbsp;SHA256&nbsp;PINNED
+          <div className="pb-20 md:pb-32">
+            <div className="flex items-baseline justify-between pb-3 gap-4">
+              <span
+                className="text-gray-500 dark:text-[#8a8a7a]"
+                style={{ fontFamily: PIXEL, fontSize: '11px', letterSpacing: '0.18em' }}
+              >
+                ```bash
               </span>
               <span
-                className="text-[10px] md:text-[11px] tracking-[0.22em] text-[#166534] dark:text-[#16a34a] flex items-center gap-1.5"
-                style={{ fontFamily: MONO }}
+                className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400"
+                style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
               >
                 <span
                   className="inline-block"
-                  style={{
-                    width: '5px',
-                    height: '5px',
-                    borderRadius: '50%',
-                    background: 'currentColor',
-                  }}
+                  style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor' }}
                 />
-                SHA256&nbsp;VERIFIED
+                sha256:&nbsp;verified
               </span>
             </div>
 
@@ -142,55 +136,43 @@ export default function WhyItExists() {
                 <div className="flex items-baseline gap-3 md:gap-4 min-w-0 flex-1">
                   <span
                     className="text-gray-400 dark:text-[#5a5a52] select-none shrink-0"
-                    style={{ fontFamily: MONO, fontSize: '14px', letterSpacing: '0.04em' }}
+                    style={{ fontFamily: MONO, fontSize: '14px' }}
                   >
-                    $
                   </span>
-                  <span
+                  <code
                     className="select-all overflow-x-auto whitespace-nowrap text-[#000000] dark:text-[#f6f6f4]"
                     style={{
                       fontFamily: MONO,
-                      fontSize: 'clamp(0.85rem, 1.6vw, 1.05rem)',
-                      letterSpacing: '0.005em',
+                      fontSize: 'clamp(0.85rem, 1.5vw, 1rem)',
+                      letterSpacing: '0',
                       color: animDone ? undefined : '#888',
                       transition: 'color 200ms',
                     }}
                   >
                     {displayCmd}
-                  </span>
+                  </code>
                 </div>
                 <button
                   onClick={copy}
                   className="shrink-0 inline-flex items-baseline gap-2 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
-                  style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+                  style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.02em' }}
                   title={copied ? 'Copied' : 'Copy'}
                 >
-                  <span aria-hidden className="inline-block w-4 border-t border-current translate-y-[-3px]" />
-                  {copied ? 'COPIED' : 'COPY'}
+                  {copied ? '// copied' : '// copy'}
                 </button>
               </div>
             </div>
 
-            {/* Sub-spec line */}
             <div
-              className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-3 pt-5"
-              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+              className="pt-3 text-gray-400 dark:text-[#5a5a52]"
+              style={{ fontFamily: PIXEL, fontSize: '11px', letterSpacing: '0.18em' }}
             >
-              <span className="text-gray-900 dark:text-[#f6f6f4]">
-                LINUX&nbsp;AMD64
-                <span className="mx-3 text-gray-400 dark:text-[#5a5a52]">·</span>
-                LINUX&nbsp;ARM64
-                <span className="mx-3 text-gray-400 dark:text-[#5a5a52]">·</span>
-                MACOS&nbsp;ARM64
-              </span>
-              <span className="text-gray-500 dark:text-[#8a8a7a]">REQUIRES&nbsp;IGRIS_API_KEY</span>
+              ```
             </div>
           </div>
 
         </div>
       </div>
     </section>
-
-      
   )
 }
