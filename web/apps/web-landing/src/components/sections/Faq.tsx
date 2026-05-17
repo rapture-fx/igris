@@ -33,17 +33,17 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "Can I try Igris before committing?",
-        answer: "Seed is the paid developer entry tier for validating verified AI execution. Teams evaluating Igris for production or private deployment can request a guided private preview.",
+        answer: "Seed is the paid developer entry tier for validating recoverable agent actions, signed receipts, and task inspection. Teams evaluating Igris for production or private deployment can request a guided private preview.",
         type: "text"
       },
       {
         question: "Who is Seed for?",
-        answer: "Seed is for individual builders testing one project, one execution environment, signed execution records, execution events, and basic receipt verification.",
+        answer: "Seed is for individual builders testing one project, one execution environment, signed receipts, action evidence, and basic receipt verification.",
         type: "text"
       },
       {
         question: "How is Igris different from using OpenAI or Anthropic directly?",
-        answer: "Direct provider calls are enough for simple chat. Igris is for when AI output starts doing work and you need governed execution, execution events, signed records, and verification-ready receipts.",
+        answer: "Direct provider calls are enough for simple chat or low-risk generation. Igris is for when agent output becomes real work: reading files, calling APIs, updating records, recovering from failure, and proving what happened afterward.",
         type: "text"
       }
     ]
@@ -53,22 +53,27 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "What is an execution environment?",
-        answer: "An execution environment is a configured place where Igris can run or coordinate AI task execution, such as a hosted, local, or hybrid deployment surface.",
+        answer: "An execution environment is a configured place where Igris can run or coordinate agent task execution, such as a hosted, local, or private deployment surface.",
         type: "text"
       },
       {
-        question: "What is a verified run?",
-        answer: "A verified run is an AI task execution that returns inspectable execution metadata and a signed record or receipt that can be checked after the run.",
+        question: "What is an agent task run?",
+        answer: "An agent task run is one submitted task executed through Igris. A run may include multiple committed actions, action evidence, signed receipts, and verification state.",
+        type: "text"
+      },
+      {
+        question: "What is a verified task run?",
+        answer: "A verified task run is a completed run with inspectable execution metadata and a signed receipt that can be checked after execution.",
         type: "text"
       },
       {
         question: "Do I pay for model inference?",
-        answer: "No. Igris pricing does not include provider inference costs. You bring your own provider keys or configured local model path, and provider usage is billed separately by the provider.",
+        answer: "No. Igris pricing does not include provider inference costs. You bring your own provider keys or configured execution path, and provider usage is billed separately by the provider.",
         type: "text"
       },
       {
         question: "Can I upgrade or downgrade?",
-        answer: "Yes. Plan changes can adjust project limits, execution environments, verified run volume, retention, and team access. Downgrades apply according to the billing cycle and current account state.",
+        answer: "Yes. Plan changes can adjust project limits, execution environments, task volume, retention, and team access. Downgrades apply according to the billing cycle and current account state.",
         type: "text"
       },
       {
@@ -83,22 +88,22 @@ const faqSections: FaqSection[] = [
     entries: [
       {
         question: "What does Igris verify?",
-        answer: "Igris helps return execution metadata and signed records for critical runs, so teams can inspect what happened after execution. The exact verification behavior depends on the deployment surface and proof path used.",
+        answer: "Igris produces signed receipts and execution evidence for important task runs, so teams can inspect and verify what happened after execution. Verification behavior depends on the deployment surface and proof path used.",
         type: "text"
       },
       {
         question: "Does Igris make the model smarter?",
-        answer: "No. Igris does not improve model intelligence or text quality. It makes AI execution more governed, inspectable, and verifiable once model output becomes work.",
+        answer: "No. Igris does not improve model intelligence or text quality. It makes agent execution more recoverable, inspectable, and verifiable once model output becomes work.",
         type: "text"
       },
       {
         question: "Does Igris handle fallback automatically?",
-        answer: "Igris supports configured failure paths, but fallback behavior depends on your deployment and proof status. Stronger hosted-to-local or local-model fallback claims should be validated in your environment before relying on them.",
+        answer: "Igris supports configured recovery and failure paths, but behavior depends on your deployment and proof setup. Recovery-sensitive behavior should be validated in your environment before production reliance.",
         type: "text"
       },
       {
         question: "Can I use Igris without the dashboard?",
-        answer: "Yes. Igris can be used through the API or SDK. The console adds operator visibility for execution runs, events, signed records, environment status, and account controls.",
+        answer: "Yes. Igris can be used through the API or SDK. The console adds operator visibility for task runs, action evidence, receipts, verification state, and account controls.",
         type: "text"
       }
     ]
@@ -113,7 +118,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "Is my data sent to the cloud?",
-        answer: "That depends on the execution surface you configure. Provider-backed execution sends requests to the selected provider. Local execution keeps work closer to the configured environment. Igris should be configured according to your data and security requirements.",
+        answer: "That depends on the execution surface you configure. Provider-backed execution sends requests to the selected provider. Local or private execution keeps work closer to the configured environment. Igris should be configured according to your data and security requirements.",
         type: "text"
       },
       {
@@ -123,7 +128,7 @@ const faqSections: FaqSection[] = [
       },
       {
         question: "What security controls are available?",
-        answer: "Igris is designed around governed execution, permission checks, signed records, and operator visibility. Specific controls depend on the deployment mode and plan.",
+        answer: "Igris is designed around controlled execution, permission checks, signed receipts, recovery evidence, and operator visibility. Specific controls depend on the deployment mode and plan.",
         type: "text"
       }
     ]
