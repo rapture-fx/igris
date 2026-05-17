@@ -1,7 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --font-geist-pixel-square: 'Geist Pixel Square', monospace;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-geist-sans: var(--font-inter);
+  --font-geist-mono: var(--font-inter);
+  --font-geist-pixel-square: var(--font-inter);
   --section-border: 0.5px solid rgba(209, 213, 219, 0.35);
   --landing-surface: #f9f9fa;
   --landing-surface-border: rgba(229, 231, 235, 1);
@@ -58,7 +61,7 @@ html.dark {
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
-    font-family: var(--font-geist-pixel-square), 'Geist Pixel Square', monospace !important;
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
     font-weight: 400 !important;
   }
 
