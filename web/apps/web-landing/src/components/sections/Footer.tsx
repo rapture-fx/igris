@@ -13,7 +13,7 @@ type FooterLink = { label: string; href: string; external?: boolean }
 const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
   {
     heading: 'PRODUCT',
-    ref: '01',
+    ref: 'R.1',
     links: [
       { label: 'Action Tasks', href: '/core' },
       { label: 'Failure Recovery', href: '/core' },
@@ -24,7 +24,7 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
   },
   {
     heading: 'DEVELOPERS',
-    ref: '02',
+    ref: 'R.2',
     links: [
       { label: 'Quickstart', href: '/core' },
       { label: 'SDKs', href: '/core' },
@@ -34,7 +34,7 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
   },
   {
     heading: 'USE CASES',
-    ref: '03',
+    ref: 'R.3',
     links: [
       { label: 'AI Agents', href: '/use-cases' },
       { label: 'Internal Automation', href: '/use-cases' },
@@ -44,7 +44,7 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
   },
   {
     heading: 'COMPANY',
-    ref: '04',
+    ref: 'R.4',
     links: [
       { label: 'Pricing', href: '/pricing' },
       { label: 'Blog', href: '/blog' },
@@ -53,7 +53,7 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
   },
   {
     heading: 'SOCIAL',
-    ref: '05',
+    ref: 'R.5',
     links: [
       { label: 'GitHub', href: 'https://github.com/igrisinertial', external: true },
       { label: 'X (Twitter)', href: 'https://x.com/igrisinertial', external: true },
@@ -67,94 +67,23 @@ export default function Footer() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
   return (
     <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12">
 
-          {/* Section anchor */}
-          <div className="pt-12 md:pt-16 pb-6">
-            <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-              INDEX&nbsp;·&nbsp;IGRIS&nbsp;INERTIAL&nbsp;·&nbsp;2026
-            </span>
-          </div>
-
-          {/* Wordmark + tagline */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-y-8 md:gap-x-12 pt-10 md:pt-16 pb-10 md:pb-14">
-            <div className="md:col-span-7">
-              <h3
-                className="text-[#000000] dark:text-[#f6f6f4]"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 500,
-                  fontSize: 'clamp(1.75rem, 4.4vw, 3rem)',
-                  lineHeight: 1.02,
-                  letterSpacing: '-0.025em',
-                }}
-              >
-                Igris Inertial.
-              </h3>
-              <p
-                className="text-gray-600 dark:text-[#a8a898] mt-3 max-w-[44ch]"
-                style={{ fontFamily: SANS, fontSize: '0.925rem', lineHeight: 1.6 }}
-              >
-                Execution assurance for AI agents that touch real systems.
-              </p>
-            </div>
-            <div className="md:col-span-5 md:pt-3 flex flex-col gap-2">
-              <span
-                className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-                style={{ fontFamily: MONO }}
-              >
-                STATUS
-              </span>
-              <span
-                className="text-[#166534] dark:text-[#16a34a] flex items-center gap-2 text-[11px] tracking-[0.22em]"
-                style={{ fontFamily: MONO }}
-              >
-                <span
-                  className="inline-block"
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: 'currentColor',
-                  }}
-                />
-                ALL&nbsp;SYSTEMS&nbsp;OPERATIONAL
-              </span>
-              <a
-                href="mailto:support@igrisinertial.com"
-                className="mt-2 text-gray-700 dark:text-[#c8c8b8] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
-                style={{ fontFamily: SANS, fontSize: '0.925rem' }}
-              >
-                support@igrisinertial.com
-              </a>
-            </div>
-          </div>
-
-          <div style={{ borderTop: borderStyle }} />
-
-          {/* Link index */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-y-10 gap-x-6 pt-10 md:pt-12 pb-12 md:pb-16">
+          {/* Link columns */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-y-10 gap-x-6 pt-10 md:pt-12 pb-12 md:pb-14">
             {columns.map((col) => (
               <div key={col.heading} className="flex flex-col gap-3">
-                <div className="flex items-baseline justify-between pb-2" style={{ borderBottom: borderStyle }}>
+                <div className="pb-2" style={{ borderBottom: borderStyle }}>
                   <span
-                    className="text-[10px] tracking-[0.22em] text-[#000000] dark:text-[#f6f6f4]"
-                    style={{ fontFamily: MONO, fontWeight: 500 }}
+                    className="text-[#000000] dark:text-[#f6f6f4]"
+                    style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em', fontWeight: 500 }}
                   >
                     {col.heading}
-                  </span>
-                  <span
-                    className="text-[10px] tracking-[0.22em] text-gray-400 dark:text-[#5a5a52]"
-                    style={{ fontFamily: MONO, fontVariantNumeric: 'tabular-nums' }}
-                  >
-                    {col.ref}
                   </span>
                 </div>
                 <ul className="flex flex-col gap-1.5">
