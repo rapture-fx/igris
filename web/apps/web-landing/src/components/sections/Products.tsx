@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
@@ -163,14 +163,41 @@ function ExecutionPreview() {
 /*  Tab 1 · Event Stream                                          */
 /* ────────────────────────────────────────────────────────────── */
 function EventStreamView() {
+  const [visibleCount, setVisibleCount] = useState(1)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) {
+      setVisibleCount(ALL_EVENTS.length)
+      return
+    }
+    const id = setInterval(() => {
+      setVisibleCount((c) => {
+        if (c >= ALL_EVENTS.length) return 1
+        return c + 1
+      })
+    }, 650)
+    return () => clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [visibleCount])
+
+  const events = ALL_EVENTS.slice(0, visibleCount)
+
   return (
-    <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-      {ALL_EVENTS.map((e, i) => {
+    <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+      {events.map((e, i) => {
         const isNotInfo = e.severity !== 'info'
         return (
           <div
             key={e.id}
-            className={`group flex items-center gap-3 px-4 py-[7px] cursor-pointer transition-colors
+            className={`group flex items-center gap-3 px-4 py-[7px] cursor-pointer transition-colors animate-fadeInUp
                         ${rowTintClass(e.severity)}
                         hover:bg-gray-50 dark:hover:bg-white/[0.025]`}
           >
