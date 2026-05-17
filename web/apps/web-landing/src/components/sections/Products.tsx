@@ -425,7 +425,7 @@ export default function Products() {
           </div>
 
           {/* Terminal */}
-          <div className="pb-24 md:pb-32">
+          <div className="pb-8 md:pb-12">
             <div className="flex items-baseline justify-between pb-3">
               <span
                 className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
