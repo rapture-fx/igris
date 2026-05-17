@@ -532,6 +532,7 @@ function InspectVisual() {
 // ─────────────────────────────────────────────────────────────
 type Card = {
   fig: string
+  status: string
   num: string
   name: string
   body: string
@@ -542,7 +543,8 @@ type Card = {
 
 const cards: Card[] = [
   {
-    fig: 'FIG.1',
+    fig: 'FIG.1 · THE TASK',
+    status: '3 ACTIONS · VERIFIED',
     num: '01',
     name: 'Run',
     body: 'Turn agent decisions into controlled actions. Igris runs each action through a bounded execution path and records exactly what committed.',
@@ -555,10 +557,11 @@ const cards: Card[] = [
     Visual: RunVisual,
   },
   {
-    fig: 'FIG.2',
+    fig: 'FIG.2 · RECOVERY HANDOFF',
+    status: 'RESUMED · NO REPLAY',
     num: '02',
     name: 'Recover',
-    body: 'Resume after failure without replaying committed actions. When an execution environment stops mid-run, the task does not restart from zero — Igris continues from recorded progress.',
+    body: 'When an execution environment stops mid-run, the task does not restart from zero. Igris continues from recorded progress.',
     sublist: [
       { id: '2.1', label: 'Resume from recorded progress' },
       { id: '2.2', label: 'Already-committed actions are not replayed' },
@@ -568,7 +571,8 @@ const cards: Card[] = [
     Visual: RecoverVisual,
   },
   {
-    fig: 'FIG.3',
+    fig: 'FIG.3 · RECEIPT CHAIN',
+    status: 'CHAIN · VALID',
     num: '03',
     name: 'Verify',
     body: 'Check the receipt chain. Every committed action leaves a signed receipt that can be checked later.',
@@ -581,7 +585,8 @@ const cards: Card[] = [
     Visual: ReceiptVisual,
   },
   {
-    fig: 'FIG.4',
+    fig: 'FIG.4 · OPERATOR RECORD',
+    status: 'OPERATOR · READY',
     num: '04',
     name: 'Inspect',
     body: 'See the evidence without raw payloads. Operators see the outcome, recovery path, evidence trail, and verification state in one place.',
@@ -641,11 +646,11 @@ export default function Capabilities() {
         }
       `}</style>
 
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12">
 
           {/* Section heading — eyebrow / title / subtext */}
-          <div className="pt-20 md:pt-32 pb-10 md:pb-14">
+          <div className="pt-10 md:pt-14 pb-6 md:pb-8">
             <div
               className="pb-5 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO }}
@@ -722,29 +727,29 @@ export default function Capabilities() {
                   borderRight: borderStyle,
                   borderBottom: borderStyle,
                   animationDelay: `${120 + i * 110}ms`,
-                  height: '740px',
+                  height: 'clamp(580px, 60vw, 660px)',
                 }}
               >
-                {/* FIG.N tag */}
-                <div className="px-7 md:px-9 pt-6 pb-3 flex items-baseline justify-between">
+                {/* FIG.N tag · plain-language name + dominant status */}
+                <div className="px-7 md:px-9 pt-6 pb-3 flex items-baseline justify-between gap-4">
                   <span
-                    className="text-gray-500 dark:text-[#8a8a7a]"
+                    className="text-gray-400 dark:text-[#5a5a52] truncate"
                     style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em' }}
                   >
                     {c.fig}
                   </span>
                   <span
-                    className="text-gray-400 dark:text-[#5a5a52]"
-                    style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em' }}
+                    className="text-emerald-700 dark:text-emerald-400 whitespace-nowrap"
+                    style={{ fontFamily: MONO, fontSize: '11.5px', letterSpacing: '0.22em', fontWeight: 500 }}
                   >
-                    {c.name.toUpperCase()}
+                    {c.status}
                   </span>
                 </div>
 
                 {/* Visual area — fixed height so all four cards align */}
                 <div
-                  className="px-7 md:px-9 pt-8 pb-10 flex items-center justify-center"
-                  style={{ height: '400px' }}
+                  className="px-6 md:px-7 pt-6 pb-8 flex items-center justify-center"
+                  style={{ height: 'clamp(260px, 26vw, 320px)' }}
                 >
                   <div className="w-full">
                     <c.Visual />
