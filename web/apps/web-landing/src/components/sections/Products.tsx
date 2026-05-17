@@ -172,8 +172,7 @@ function EventStreamView() {
             key={e.id}
             className={`group flex items-center gap-3 px-4 py-[7px] cursor-pointer transition-colors
                         ${rowTintClass(e.severity)}
-                        hover:bg-gray-50 dark:hover:bg-white/[0.025]
-                        ${i < ALL_EVENTS.length - 1 ? 'border-b border-gray-100 dark:border-white/[0.03]' : ''}`}
+                        hover:bg-gray-50 dark:hover:bg-white/[0.025]`}
           >
             {/* severity dot */}
             <span
@@ -285,7 +284,6 @@ function TimelineView() {
                 <div
                   key={e.id}
                   className={`group flex items-center gap-3 px-3 py-[5px] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer
-                              ${i < evts.length - 1 ? 'border-b border-gray-50 dark:border-white/[0.025]' : ''}
                               ${rowTintClass(e.severity)}`}
                 >
                   <span
@@ -343,8 +341,7 @@ function ProofTrailView() {
           <div
             key={r.id}
             className={`group grid items-center gap-x-3 px-4 py-[8px] cursor-pointer transition-colors
-                        hover:bg-gray-50 dark:hover:bg-white/[0.025]
-                        ${i < ALL_RECEIPTS.length - 1 ? 'border-b border-gray-100 dark:border-white/[0.03]' : ''}`}
+                        hover:bg-gray-50 dark:hover:bg-white/[0.025]`}
             style={{ gridTemplateColumns: cols }}
           >
             <span
@@ -379,11 +376,11 @@ function ProofTrailView() {
 export default function Products() {
   return (
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="px-4 md:px-8 lg:px-12">
 
           {/* Section heading — eyebrow / title / subtext */}
-          <div className="pt-20 md:pt-32 pb-10 md:pb-14">
+          <div className="pt-10 md:pt-14 pb-6 md:pb-8">
             <div
               className="pb-5 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO }}
