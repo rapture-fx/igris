@@ -7,7 +7,6 @@ import Capabilities from '../src/components/sections/Capabilities'
 import WhenToUseIgris from '../src/components/sections/WhenToUseIgris'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import Footer from '../src/components/sections/Footer'
-import WhyItExists from '../src/components/sections/WhyItExists'
 
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
@@ -30,7 +29,6 @@ export default function HomePage() {
           <div className={sectionFrameClass}><ScrollReveal delay={0.1}><Products /></ScrollReveal></div>
           <div className={sectionFrameClass}><ScrollReveal delay={0.1}><Capabilities /></ScrollReveal></div>
           <div className={sectionFrameClass}><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div>
-          <div className={sectionFrameClass}><ScrollReveal delay={0.1}><WhyItExists /></ScrollReveal></div>
           <div className={sectionFrameClass}><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div>
         </main>
         <Footer />
