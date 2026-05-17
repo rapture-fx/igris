@@ -48,21 +48,19 @@ export default function Hero() {
             <div className="mt-9 flex flex-wrap items-center gap-x-3 gap-y-3">
               <a
                 href="https://console.igrisinertial.com/auth?mode=signup"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md border border-gray-900 dark:border-[#f6f6f4] text-[#000000] dark:text-[#f6f6f4] hover:opacity-70 transition-opacity duration-200"
-                style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.04em' }}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                style={{ fontFamily: SANS }}
               >
-                get-started
-                <span aria-hidden>{'>'}</span>
+                Get started
               </a>
               <a
                 href="https://docs.igrisinertial.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md text-gray-700 dark:text-[#c8c8b8] border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-all duration-200"
-                style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.04em' }}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
+                style={{ fontFamily: SANS }}
               >
-                docs
-                <span aria-hidden>{'↗'}</span>
+                Docs ↗
               </a>
             </div>
 
