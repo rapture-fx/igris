@@ -205,16 +205,16 @@ function EventStreamView() {
             {/* loader / status icon */}
             <span className="flex-shrink-0 inline-flex items-center justify-center w-3.5 h-3.5" aria-hidden>
               {isLatest ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="animate-spin text-blue-500 dark:text-blue-400">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.18" strokeWidth="2.5" />
-                  <path
-                    d="M21 12a9 9 0 0 1-9 9"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeDasharray="14 28"
-                  />
-                </svg>
+                <span
+                  className="block w-3 h-3 rounded-full animate-spin"
+                  style={{
+                    background:
+                      'conic-gradient(from 0deg, rgba(96,165,250,0) 0deg, rgba(96,165,250,0.15) 90deg, rgba(96,165,250,0.95) 360deg)',
+                    WebkitMask: 'radial-gradient(circle, transparent 55%, #000 56%)',
+                    mask: 'radial-gradient(circle, transparent 55%, #000 56%)',
+                    animationDuration: '0.9s',
+                  }}
+                />
               ) : e.severity === 'critical' || e.severity === 'error' ? (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-red-500">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" />
@@ -475,11 +475,10 @@ export default function Products() {
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
               <Link
                 href="https://docs.igrisinertial.com/"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
-                style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
+                style={{ fontFamily: SANS }}
               >
-                READ&nbsp;THE&nbsp;DOCS
-                <span aria-hidden>{'>'}</span>
+                Read the docs ↗
               </Link>
             </div>
           </div>
