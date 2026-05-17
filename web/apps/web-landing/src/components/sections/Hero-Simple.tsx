@@ -12,8 +12,8 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
       style={{ minHeight: 'clamp(620px, 84vh, 820px)' }}
     >
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <div className="px-2 md:px-4 lg:px-6">
           <div className="flex flex-col justify-end pt-40 md:pt-56 pb-16 md:pb-24">
 
             <h1
