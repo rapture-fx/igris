@@ -63,12 +63,6 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
       { label: 'Pricing', href: '/pricing' },
       { label: 'Blog', href: '/blog' },
       { label: 'Contact', href: 'mailto:support@igrisinertial.com', external: true },
-    ],
-  },
-  {
-    heading: 'SOCIAL',
-    ref: 'R.5',
-    links: [
       { label: 'GitHub', href: 'https://github.com/igrisinertial', external: true },
       { label: 'X (Twitter)', href: 'https://x.com/igrisinertial', external: true },
       { label: 'LinkedIn', href: 'https://www.linkedin.com/company/igrisinertial', external: true },
@@ -89,8 +83,8 @@ export default function Footer() {
         <div className="px-2 md:px-4 lg:px-6 flex flex-col min-h-[480px]">
 
           {/* Link columns + logo */}
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-12 pt-12 md:pt-16">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-y-10 gap-x-6 flex-1">
+          <div className="flex flex-col md:flex-row md:items-start gap-12 pt-12 md:pt-16">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-10 gap-x-16 w-full max-w-4xl">
             {columns.map((col) => (
               <div key={col.heading} className="flex flex-col gap-3">
                 <div className="pb-2">
@@ -132,7 +126,7 @@ export default function Footer() {
               </div>
             ))}
             </div>
-            <div className="md:pl-6 flex md:justify-end md:items-start shrink-0">
+            <div className="md:pl-12 flex md:justify-end md:items-start shrink-0 ml-auto">
               <div className="h-5"><FooterLogo /></div>
             </div>
           </div>
