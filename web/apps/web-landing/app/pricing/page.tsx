@@ -15,7 +15,7 @@ export default function PricingPage() {
         <main>
           <ScrollReveal>
             <section className="pt-40 pb-6 px-4 sm:px-6 lg:px-8">
-              <div className="max-w-[1100px] mx-auto text-center">
+              <div className="max-w-[1320px] mx-auto text-center">
                 <h1 className="text-xl md:text-3xl lg:text-4xl mb-4 text-[#000000] dark:text-[#f6f6f4] max-w-lg mx-auto" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
                   Pricing
                 </h1>
@@ -26,8 +26,16 @@ export default function PricingPage() {
 
           <ScrollReveal delay={0.1}><Pricing /></ScrollReveal>
           
-          <ScrollReveal delay={0.1}><Faq /></ScrollReveal>
-          <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
+          <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+            <div className="my-3 border border-gray-200 dark:border-[rgba(246,246,244,0.12)] rounded-lg overflow-hidden">
+              <ScrollReveal delay={0.1}><Faq /></ScrollReveal>
+            </div>
+          </div>
+          <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+            <div className="my-3 border border-gray-200 dark:border-[rgba(246,246,244,0.12)] rounded-lg overflow-hidden">
+              <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
+            </div>
+          </div>
         </main>
         <Footer />
       </div>
