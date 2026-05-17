@@ -12,9 +12,9 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
       style={{ minHeight: 'clamp(620px, 84vh, 820px)' }}
     >
-      <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <div className="px-2 md:px-4 lg:px-6">
-          <div className="flex flex-col items-center text-center justify-end pt-40 md:pt-56 pb-16 md:pb-24">
+          <div className="flex flex-col items-center text-center justify-end pt-40 md:pt-56 pb-4 md:pb-6">
 
             <h1
               className="text-[#000000] dark:text-[#f6f6f4]"
@@ -62,6 +62,15 @@ export default function Hero() {
               >
                 Docs ↗
               </a>
+            </div>
+
+            <div className="mt-10 w-full flex justify-center">
+              <img
+                src="/hand.png"
+                alt=""
+                aria-hidden
+                className="block w-full h-auto select-none pointer-events-none"
+              />
             </div>
 
           </div>

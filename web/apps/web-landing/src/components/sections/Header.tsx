@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
-type DropdownKey = 'product' | 'docs' | 'usecases' | 'resources' | null;
+type DropdownKey = 'product' | 'docs' | null;
 
 const NAV_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const MONO_FONT = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace';
@@ -34,8 +34,6 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
   const [mobileDocsOpen, setMobileDocsOpen] = useState(false);
-  const [mobileUseCasesOpen, setMobileUseCasesOpen] = useState(false);
-  const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
 
   const [docsHubUrl, setDocsHubUrl] = useState('https://docs.igrisinertial.com');
   const [consoleUrl, setConsoleUrl] = useState('https://console.igrisinertial.com');
@@ -119,8 +117,6 @@ export default function Header() {
     setMobileMenuOpen(false);
     setMobileProductOpen(false);
     setMobileDocsOpen(false);
-    setMobileUseCasesOpen(false);
-    setMobileResourcesOpen(false);
   };
 
   const isDark = mounted && theme === 'dark';
@@ -128,12 +124,10 @@ export default function Header() {
   // --- Dropdown data ---
 
   const productItems: DropdownItem[] = [
-    { label: 'Verifiable Execution', description: 'Run AI tasks with signed execution records.', href: '/#product' },
-    { label: 'Governed Runs', description: 'Apply boundaries, permissions, and controlled task execution.', href: '/#how-it-works' },
-    { label: 'Failure-Aware Execution', description: 'Make fallback paths and failures visible.', href: '/#how-it-works' },
-    { label: 'Structured Execution', description: 'Use defined paths for agents, workflows, and edge systems.', href: '/#how-it-works' },
-    { label: 'Edge & Local Execution', description: 'Run through configured local and edge execution surfaces.', href: '/use-cases' },
-    { label: 'Signed Receipts', description: 'Verify what happened after a critical run.', href: '/#product' },
+    { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: '/#product' },
+    { label: 'Recover', description: 'Resume from recorded progress — committed actions never replay.', href: '/#product' },
+    { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: '/#product' },
+    { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: '/#product' },
   ];
 
   const docsItems: DropdownItem[] = [
@@ -142,21 +136,6 @@ export default function Header() {
     { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: `https://docs.igrisinertial.com/docs/sdk/`, external: true },
     { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: `https://docs.igrisinertial.com/docs/verification/`, external: true },
     { label: 'Architecture', description: 'How Igris governs execution across environments.', href: `https://docs.igrisinertial.com/docs/architecture/`, external: true },
-  ];
-
-  const useCasesItems: DropdownItem[] = [
-    { label: 'AI Agents', description: 'Control, inspect, and verify tool-calling agents.', href: '/use-cases#ai-agents' },
-    { label: 'Internal Automation', description: 'Add execution records to AI-powered business workflows.', href: '/use-cases#internal-automation' },
-    { label: 'Edge AI', description: 'Run governed AI tasks closer to local environments.', href: '/use-cases#edge-ai' },
-    { label: 'Specialized Environments', description: 'Preview-oriented paths for edge and physical-system workflows.', href: '/use-cases#specialized-environments' },
-    { label: 'Regulated Workflows', description: 'Create auditable records for sensitive AI runs.', href: '/use-cases#regulated-workflows' },
-  ];
-
-  const resourcesItems: DropdownItem[] = [
-    { label: 'Proof Status', description: 'What is proven today and what is still in progress.', href: `https://docs.igrisinertial.com/docs/proof-status/`, external: true },
-    { label: 'Roadmap', description: 'What is being validated next.', href: `https://docs.igrisinertial.com/docs/proof-status/#in-development`, external: true },
-    { label: 'Changelog', description: 'Product updates and proof milestones.', href: `https://docs.igrisinertial.com/docs/changelog/`, external: true },
-    { label: 'Blog', description: 'Technical notes and implementation updates.', href: '/blog' },
   ];
 
   // --- Item renderer ---
@@ -337,8 +316,6 @@ export default function Header() {
                     >
                       {renderedDropdown === 'product' && 'PRODUCT'}
                       {renderedDropdown === 'docs' && 'DOCS'}
-                      {renderedDropdown === 'usecases' && 'USE CASES'}
-                      {renderedDropdown === 'resources' && 'RESOURCES'}
                     </span>
                     <span
                       className="text-gray-400 dark:text-[#5a5a52]"
@@ -349,8 +326,6 @@ export default function Header() {
                   </div>
                   {renderedDropdown === 'product' && renderGrid(productItems)}
                   {renderedDropdown === 'docs' && renderGrid(docsItems)}
-                  {renderedDropdown === 'usecases' && renderGrid(useCasesItems)}
-                  {renderedDropdown === 'resources' && renderGrid(resourcesItems)}
                 </div>
               </div>
             )}
