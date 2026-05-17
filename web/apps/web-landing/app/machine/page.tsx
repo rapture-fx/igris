@@ -179,15 +179,15 @@ export default function MachinePage() {
             <div className="space-y-4">
               <div>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Seed — $19/month</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For builders validating verified AI execution. 1 project. 1 execution environment. 2,500 verified runs per month. Signed execution records. Execution events. Basic receipt verification. 7-day retention.</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For builders validating recoverable agent actions. 1 project. 1 execution environment. 2,500 agent task runs per month. Signed receipts. Action evidence. Basic receipt verification. 7-day retention.</p>
               </div>
               <div>
-                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Horizon — $79/month</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For teams running governed AI tasks. 5 projects. 10 execution environments. 50,000 verified runs per month. Everything in Seed plus failure-path configuration, tool and permission controls, team access, advanced event search, 60-day retention, and priority email support.</p>
+                <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Horizon — $149/month</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For teams running recoverable agent tasks. 5 projects. 10 execution environments. 50,000 agent task runs per month. Everything in Seed plus recovery configuration, tool and permission controls, team access, advanced event search, 60-day retention, and priority support.</p>
               </div>
               <div>
                 <p className="text-[#000000] dark:text-[#f6f6f4] mb-1 font-medium">Infinite — Custom</p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For private deployment and advanced governance. Custom execution volume. Custom execution environments. Everything in Horizon plus private deployment options, custom retention policy, advanced audit exports, dedicated onboarding, and security review support.</p>
+                <p className="text-sm text-gray-600 dark:text-[#a8a898]">For private deployment, custom retention, and advanced governance. Custom task volume. Custom execution environments. Everything in Horizon plus private deployment options, custom retention policy, advanced audit exports, dedicated onboarding, and security review support.</p>
               </div>
             </div>
             <p className="text-sm mt-3 text-gray-600 dark:text-[#a8a898]">
