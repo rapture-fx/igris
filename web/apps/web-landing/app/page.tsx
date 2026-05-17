@@ -14,7 +14,7 @@ import { useProductPopup } from '../src/contexts/ProductPopupContext'
 import ScrollReveal from '../src/components/ui/ScrollReveal'
 
 const frameClass = "border-l border-r border-gray-200 dark:border-[rgba(246,246,244,0.07)]"
-const sectionFrameClass = "border border-gray-200 dark:border-[rgba(246,246,244,0.12)] mx-auto my-3 max-w-[1100px] rounded-lg overflow-hidden"
+const sectionFrameClass = "my-3 border border-gray-200 dark:border-[rgba(246,246,244,0.12)] rounded-lg overflow-hidden"
 
 export default function HomePage() {
 
@@ -24,12 +24,12 @@ export default function HomePage() {
     <>
       <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200">
         <Header />
-        <main className="mx-auto max-w-[1440px]">
+        <main>
           <ScrollReveal delay={0.1}><Hero /></ScrollReveal>
-          <div className={sectionFrameClass}><ScrollReveal delay={0.1}><Products /></ScrollReveal></div>
-          <div className={sectionFrameClass}><ScrollReveal delay={0.1}><Capabilities /></ScrollReveal></div>
-          <div className={sectionFrameClass}><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div>
-          <div className={sectionFrameClass}><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div>
+          <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8"><div className={sectionFrameClass}><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8"><div className={sectionFrameClass}><ScrollReveal delay={0.1}><Capabilities /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8"><div className={sectionFrameClass}><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8"><div className={sectionFrameClass}><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
         </main>
         <Footer />
       </div>
