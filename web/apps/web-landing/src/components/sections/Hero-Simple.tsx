@@ -27,7 +27,7 @@ export default function Hero() {
                 maxWidth: '26ch',
               }}
             >
-              Run agent tasks that recover and prove what happened.
+              Run agent actions that recover and prove what happened.
             </h1>
 
             <p
