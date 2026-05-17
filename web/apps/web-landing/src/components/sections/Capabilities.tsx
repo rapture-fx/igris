@@ -823,7 +823,7 @@ export default function Capabilities() {
             ))}
           </div>
 
-          <div className="pb-20 md:pb-32" />
+          <div className="pb-6 md:pb-10" />
 
         </div>
       </div>
