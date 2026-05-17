@@ -205,29 +205,9 @@ export default function Header() {
     </div>
   );
 
-  const overHero = !isScrolled
-
   return (
     <>
-      <style>{`
-        /* When the header floats over the dark hero, force white text on all nav elements */
-        .igris-header[data-over-hero="true"] a,
-        .igris-header[data-over-hero="true"] button {
-          color: rgba(255, 255, 255, 0.72);
-        }
-        .igris-header[data-over-hero="true"] a:hover,
-        .igris-header[data-over-hero="true"] button:hover {
-          color: #ffffff;
-        }
-        .igris-header[data-over-hero="true"] svg {
-          color: rgba(255, 255, 255, 0.72);
-        }
-        .igris-header[data-over-hero="true"] a:hover svg,
-        .igris-header[data-over-hero="true"] button:hover svg {
-          color: #ffffff;
-        }
-      `}</style>
-      <header className="igris-header fixed top-0 left-0 w-full z-50" data-over-hero={overHero ? 'true' : 'false'}>
+      <header className="igris-header fixed top-0 left-0 w-full z-50">
         {/* Full-width background */}
         <div
           className={`absolute inset-0 transition-all duration-300 ${
@@ -238,7 +218,7 @@ export default function Header() {
           style={{ borderBottom: 'none' }}
         />
 
-        <div className="relative mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           {/* Nav bar + dropdown wrapper */}
           <div onMouseLeave={scheduleClose} className="-mx-5">
 
