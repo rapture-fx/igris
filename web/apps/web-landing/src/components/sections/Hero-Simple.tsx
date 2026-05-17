@@ -48,7 +48,7 @@ export default function Hero() {
             <div className="mt-9 flex flex-wrap items-center gap-x-3 gap-y-3">
               <a
                 href="https://console.igrisinertial.com/auth?mode=signup"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 border border-gray-900 dark:border-[#f6f6f4] text-[#000000] dark:text-[#f6f6f4] hover:opacity-70 transition-opacity duration-200"
+                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md border border-gray-900 dark:border-[#f6f6f4] text-[#000000] dark:text-[#f6f6f4] hover:opacity-70 transition-opacity duration-200"
                 style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.04em' }}
               >
                 get-started
@@ -58,7 +58,7 @@ export default function Hero() {
                 href="https://docs.igrisinertial.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 text-gray-700 dark:text-[#c8c8b8] border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-all duration-200"
+                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md text-gray-700 dark:text-[#c8c8b8] border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-all duration-200"
                 style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.04em' }}
               >
                 docs
