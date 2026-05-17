@@ -281,19 +281,19 @@ export default function Header() {
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signin` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border border-gray-300 dark:border-white/20 hover:border-gray-900 dark:hover:border-[#f6f6f4] transition-colors rounded-md text-sm"
-                    style={NAV_ITEM_STYLE}
+                    className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
+                    style={{ fontFamily: NAV_FONT }}
                   >
-                    Sign In
+                    Sign in
                   </a>
 
                   <a
                     href={consoleUrl ? `${consoleUrl}/auth?mode=signup` : '#'}
                     onMouseEnter={scheduleClose}
-                    className="px-4 py-2 text-[#000000] dark:text-[#f6f6f4] border border-gray-300 dark:border-white/20 hover:border-gray-900 dark:hover:border-[#f6f6f4] transition-colors rounded-md text-sm"
-                    style={NAV_ITEM_STYLE}
+                    className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                    style={{ fontFamily: NAV_FONT }}
                   >
-                    Get Started
+                    Get started
                   </a>
                 </div>
 
