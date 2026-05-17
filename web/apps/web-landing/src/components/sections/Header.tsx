@@ -218,13 +218,13 @@ export default function Header() {
           style={{ borderBottom: 'none' }}
         />
 
-        <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
           {/* Nav bar + dropdown wrapper */}
           <div onMouseLeave={scheduleClose} className="-mx-5">
 
             {/* Nav bar */}
             <div className="w-full px-5 bg-transparent" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
-              <div className="flex items-center justify-between w-full px-4 md:px-8 lg:px-12 relative">
+              <div className="flex items-center justify-between w-full px-2 md:px-4 lg:px-6 relative">
 
                 {/* Logo */}
                 <div className="flex">
