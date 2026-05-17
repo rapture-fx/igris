@@ -4,6 +4,20 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 
+function FooterLogo() {
+  const { theme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  const isDark = mounted && theme === 'dark'
+  return (
+    <img
+      src={isDark ? '/inertiadm.png' : '/inertia.png'}
+      alt="Igris Inertial"
+      className="h-6 w-auto rounded-md"
+    />
+  )
+}
+
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
 const borderStyle = 'var(--section-border)'
@@ -72,13 +86,14 @@ export default function Footer() {
   return (
     <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="px-4 md:px-8 lg:px-12">
+        <div className="px-4 md:px-8 lg:px-12 flex flex-col min-h-[480px]">
 
-          {/* Link columns */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-y-10 gap-x-6 pt-10 md:pt-12 pb-12 md:pb-14">
+          {/* Link columns + logo */}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-12 pt-12 md:pt-16">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-y-10 gap-x-6 flex-1">
             {columns.map((col) => (
               <div key={col.heading} className="flex flex-col gap-3">
-                <div className="pb-2" style={{ borderBottom: borderStyle }}>
+                <div className="pb-2">
                   <span
                     className="text-[#000000] dark:text-[#f6f6f4]"
                     style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em', fontWeight: 500 }}
@@ -116,12 +131,18 @@ export default function Footer() {
                 </ul>
               </div>
             ))}
+            </div>
+            <div className="md:pl-6 flex md:justify-end md:items-start shrink-0">
+              <div className="h-5"><FooterLogo /></div>
+            </div>
           </div>
+
+          <div className="flex-1" />
 
           <div style={{ borderTop: borderStyle }} />
 
           {/* Bottom strip */}
-          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-3 py-6 md:py-7">
+          <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-3 py-8 md:py-10">
             <div
               className="flex flex-wrap items-baseline gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
