@@ -553,7 +553,7 @@ const cards: Card[] = [
       { id: '1.2', label: 'Each committed step becomes durable evidence' },
       { id: '1.3', label: 'Side effects are counted and attributable' },
     ],
-    cta: { label: 'READ THE DOCS', href: 'https://docs.igrisinertial.com/' },
+    cta: { label: 'DOCS', href: 'https://docs.igrisinertial.com/' },
     Visual: RunVisual,
   },
   {
@@ -567,7 +567,7 @@ const cards: Card[] = [
       { id: '2.2', label: 'Already-committed actions are not replayed' },
       { id: '2.3', label: 'Recovery behavior is proven before release' },
     ],
-    cta: { label: 'READ THE DOCS', href: 'https://docs.igrisinertial.com/' },
+    cta: { label: 'DOCS', href: 'https://docs.igrisinertial.com/' },
     Visual: RecoverVisual,
   },
   {
@@ -581,7 +581,7 @@ const cards: Card[] = [
       { id: '3.2', label: 'Execution identity is bound to the proof' },
       { id: '3.3', label: 'Chain validity survives recovery boundaries' },
     ],
-    cta: { label: 'READ THE DOCS', href: 'https://docs.igrisinertial.com/' },
+    cta: { label: 'DOCS', href: 'https://docs.igrisinertial.com/' },
     Visual: ReceiptVisual,
   },
   {
@@ -686,7 +686,7 @@ export default function Capabilities() {
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
               <a
                 href="https://docs.igrisinertial.com"
-                className="group inline-flex items-center gap-3 px-4 py-2.5 border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
+                className="group inline-flex items-center gap-3 px-4 py-2.5 rounded-md border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
                 style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
               >
                 READ&nbsp;THE&nbsp;DOCS
@@ -783,7 +783,7 @@ export default function Capabilities() {
                       </p>
                       <a
                         href={c.cta.href}
-                        className="group mt-5 inline-flex items-center gap-2.5 px-3 py-2 border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
+                        className="group mt-5 inline-flex items-center gap-2.5 px-3 py-2 rounded-md border border-gray-300 dark:border-[#3a3a32] hover:border-gray-900 dark:hover:border-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all duration-200 text-[#000000] dark:text-[#f6f6f4]"
                         style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em' }}
                       >
                         {c.cta.label}
