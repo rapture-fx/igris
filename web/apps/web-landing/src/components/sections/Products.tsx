@@ -98,7 +98,7 @@ function ExecutionPreview() {
 
   return (
     <div
-      className="bg-white dark:bg-[#111214] border border-black/[0.08] dark:border-[#323334] dark:border-t-[#5b5c5d] dark:border-r-[#5b5c5d] rounded-lg overflow-hidden flex flex-col"
+      className="bg-white dark:bg-[#111214] border border-black/[0.08] dark:border-white/[0.10] rounded-lg overflow-hidden flex flex-col"
       style={{ fontFamily: MONO, minHeight: 600 }}
     >
       {/* ── Chrome: tabs (left) + utilities + live clock (right) ──────────── */}
@@ -194,6 +194,7 @@ function EventStreamView() {
     <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
       {events.map((e, i) => {
         const isNotInfo = e.severity !== 'info'
+        const isLatest = i === events.length - 1
         return (
           <div
             key={e.id}
@@ -201,6 +202,38 @@ function EventStreamView() {
                         ${rowTintClass(e.severity)}
                         hover:bg-gray-50 dark:hover:bg-white/[0.025]`}
           >
+            {/* loader / status icon */}
+            <span className="flex-shrink-0 inline-flex items-center justify-center w-3.5 h-3.5" aria-hidden>
+              {isLatest ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="animate-spin text-blue-500 dark:text-blue-400">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.18" strokeWidth="2.5" />
+                  <path
+                    d="M21 12a9 9 0 0 1-9 9"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeDasharray="14 28"
+                  />
+                </svg>
+              ) : e.severity === 'critical' || e.severity === 'error' ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-red-500">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" />
+                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              ) : e.severity === 'warning' ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-orange-500">
+                  <path d="M12 3 22 20H2L12 3z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
+                  <path d="M12 10v4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="currentColor" strokeWidth="1" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-green-600 dark:text-green-500">
+                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.35" strokeWidth="2" />
+                  <path d="M16 9.5 10.5 15 8 12.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </span>
+
             {/* severity dot */}
             <span
               className={`flex-shrink-0 rounded-full ${sevDotClass(e.severity)}`}
