@@ -127,13 +127,9 @@ export default function WhenToUseIgris() {
             ))}
           </div>
 
-          <div
-            className="pt-8 pb-16 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-            style={{ fontFamily: PIXEL }}
-          >
-            Not&nbsp;for&nbsp;every&nbsp;prompt.&nbsp;Built&nbsp;for&nbsp;agent&nbsp;actions&nbsp;with&nbsp;consequences.
+          <div className="pb-6 md:pb-10" />
+
           </div>
-        </div>
       </div>
     </section>
   )
