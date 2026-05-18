@@ -477,9 +477,9 @@ export default function ExecutionTaskInspectorPage() {
                 </Link>
               </Button>
             </div>
-            <h1 className="text-base font-semibold text-gray-900">Task Inspector</h1>
+            <h1 className="text-base font-semibold text-gray-900">Task {truncateText(taskId, 24)}</h1>
             <p className="mt-0.5 text-xs text-gray-500">
-              Controlled action evidence, recovery state, receipt verification, and supporting execution records.
+              Action evidence, recovery path, signed receipt state, and technical records for this task.
             </p>
           </div>
           {taskId && (
@@ -520,6 +520,47 @@ export default function ExecutionTaskInspectorPage() {
                 icon={Hash}
               />
             </div>
+
+            <Card className="border-gray-200 shadow-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold text-gray-900">
+                  Operator Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <KeyValueGrid
+                  rows={[
+                    { label: 'Actions', value: actionEvidence ? String(actionEvidence.rows.length) : 'Not recorded' },
+                    {
+                      label: 'Recovery',
+                      value: recoveryEvidence.recovered
+                        ? 'Runtime handoff recorded'
+                        : recoveryEvidence.hasCheckpoint
+                          ? 'Checkpointed'
+                          : 'Unknown',
+                    },
+                    {
+                      label: 'Proof',
+                      value: effectiveVerified === true
+                        ? 'Verified'
+                        : effectiveVerified === false
+                          ? 'Verification failed'
+                          : task.execution_receipt
+                            ? 'Verification not run yet'
+                            : 'Receipt missing',
+                    },
+                    {
+                      label: 'Chain',
+                      value: effectiveChainValid === true
+                        ? 'Intact'
+                        : effectiveChainValid === false
+                          ? 'Broken'
+                          : 'Unknown',
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
 
             {actionEvidence && (
               <Card className="border-gray-200 shadow-none">
@@ -878,7 +919,9 @@ export default function ExecutionTaskInspectorPage() {
                           value:
                             recoveryEvidence.recovered && !recoveryEvidence.duplicateStepsDetected
                               ? 'No duplicate committed WAL steps detected'
-                              : 'No recovery handoff evidence',
+                              : recoveryEvidence.recovered
+                                ? 'Duplicate step evidence needs review'
+                                : 'Unknown',
                         },
                       ]}
                     />
