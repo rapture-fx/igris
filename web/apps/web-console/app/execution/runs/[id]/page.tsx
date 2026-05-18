@@ -25,7 +25,7 @@ import {
 } from '@/lib/executionRuns';
 import { buildExecutionTimeline } from '@/lib/executionTimeline';
 import { api } from '@/lib/apiClient';
-import { formatDateTime, getRelativeTime } from '@/utils/helpers';
+import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -222,9 +222,9 @@ export default function ExecutionRunDetailPage() {
                 </Link>
               </Button>
             </div>
-            <h1 className="text-base font-semibold text-gray-900">Run record</h1>
+            <h1 className="text-base font-semibold text-gray-900">Execution Record {truncateText(runId, 24)}</h1>
             <p className="mt-0.5 text-xs text-gray-500">
-              Supporting execution record for a task: runtime identity, receipt status, timeline, and enforcement evidence.
+              Runtime events, receipt references, and task linkage for this execution.
             </p>
           </div>
           {runId && (
@@ -325,7 +325,7 @@ export default function ExecutionRunDetailPage() {
                 />
               </Surface>
 
-              <Surface title="Routing metadata" icon={Shield}>
+              <Surface title="Advanced routing metadata" icon={Shield}>
                 <KeyValueGrid
                   rows={[
                     { label: 'Runtime label', value: runtimeLabel },
