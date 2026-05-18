@@ -192,7 +192,12 @@ function ViolationsContent() {
     <DashboardLayout>
       <div className="space-y-5">
         <div className="flex items-center justify-between">
-          <h1 className="text-base font-semibold text-foreground">Policy Violations</h1>
+          <div>
+            <h1 className="text-base font-semibold text-foreground">Bounded Action Violations</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Persisted proof records for task actions that exceeded policy or runtime bounds.
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
@@ -209,7 +214,7 @@ function ViolationsContent() {
         </div>
 
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-          <OverviewCard icon={ShieldAlert} label="Total Violations" value={totalCount} loading={isLoading} />
+          <OverviewCard icon={ShieldAlert} label="Total Records" value={totalCount} loading={isLoading} />
           <OverviewCard icon={AlertCircle} label="Critical" value={criticalCount} loading={isLoading} />
           <OverviewCard icon={AlertTriangle} label="With Bounds Data" value={boundedCount} loading={isLoading} />
           <OverviewCard icon={TrendingUp} label="With Actions" value={recordedActions} loading={isLoading} />
@@ -238,7 +243,7 @@ function ViolationsContent() {
 
         <SurfaceSection
           icon={ShieldOff}
-          title="Violations"
+          title="Violation Evidence"
           bodyClassName="px-0 py-0"
           actions={
             !isLoading ? (
@@ -277,7 +282,7 @@ function ViolationsContent() {
                     ? (
                       <TableRow className="bg-white">
                         <TableCell colSpan={8} className="text-center text-xs text-muted-foreground py-14">
-                          No policy violations were returned for the selected filters.
+                          No bounded action violations were returned for the selected filters.
                         </TableCell>
                       </TableRow>
                     )
