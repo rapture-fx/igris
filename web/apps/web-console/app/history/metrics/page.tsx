@@ -60,7 +60,7 @@ const TIME_OPTIONS: { label: string; value: TimeRange }[] = [
 ];
 
 const AGENTS = ['All Agents'];
-const DEVICES = ['All Devices'];
+const DEVICES = ['All Runtimes'];
 const PROVIDERS = ['All Providers'];
 
 const PROVIDER_COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#3b82f6', '#ef4444', '#06b6d4'];
@@ -135,7 +135,7 @@ export default function HistoryMetricsPage() {
   const chartTheme = useChartTheme();
   const [timeRange, setTimeRange] = useState<TimeRange>('1h');
   const [agent, setAgent] = useState('All Agents');
-  const [device, setDevice] = useState('All Devices');
+  const [device, setDevice] = useState('All Runtimes');
   const [provider, setProvider] = useState('All Providers');
 
   // Fetch filter options from API
@@ -157,7 +157,7 @@ export default function HistoryMetricsPage() {
   });
 
   const agents = ['All Agents', ...(filterOptions?.agents ?? [])];
-  const devices = ['All Devices', ...(filterOptions?.devices ?? [])];
+  const devices = ['All Runtimes', ...(filterOptions?.devices ?? [])];
   const providers = ['All Providers', ...(filterOptions?.providers ?? [])];
 
   const { data: metrics, isLoading, refetch } = useQuery<MetricsData>({
@@ -165,7 +165,7 @@ export default function HistoryMetricsPage() {
     queryFn: async () => {
       const params = new URLSearchParams({ range: timeRange });
       if (agent !== 'All Agents') params.set('agent_id', agent);
-      if (device !== 'All Devices') params.set('device_id', device);
+      if (device !== 'All Runtimes') params.set('device_id', device);
       if (provider !== 'All Providers') params.set('provider', provider);
       return await api.get<MetricsData>(`/v1/history/metrics?${params}`);
     },
@@ -191,8 +191,13 @@ export default function HistoryMetricsPage() {
     <DashboardLayout>
       <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-base font-semibold text-gray-900">Metrics</h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-base font-semibold text-gray-900">Metrics</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Track task throughput, recovery, verification, runtime health, and violation trends.
+            </p>
+          </div>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
           </Button>
@@ -323,10 +328,10 @@ export default function HistoryMetricsPage() {
             )}
           </SurfaceSection>
 
-          {/* Fleet Activity */}
+          {/* Runtime Activity */}
           <SurfaceSection
             icon={Users}
-            title="Fleet Activity"
+            title="Runtime Activity"
             bodyClassName="px-4 pb-4 pt-3"
           >
             {isLoading ? <Skeleton className="h-36 w-full" /> : (
@@ -337,7 +342,7 @@ export default function HistoryMetricsPage() {
                   <YAxis tick={{ fontSize: 10, fill: chartTheme.axis }} axisLine={false} tickLine={false} />
                   <Tooltip {...chartTooltipStyle} />
                   <Legend iconType="circle" iconSize={7} wrapperStyle={{ fontSize: 10 }} />
-                  <Line type="monotone" dataKey="active_devices" stroke="#8b5cf6" strokeWidth={1.5} dot={false} name="Active Devices" />
+                  <Line type="monotone" dataKey="active_devices" stroke="#8b5cf6" strokeWidth={1.5} dot={false} name="Active Runtimes" />
                   <Line type="monotone" dataKey="active_executions" stroke="#f97316" strokeWidth={1.5} dot={false} name="Active Executions" />
                 </LineChart>
               </ClientChart>
@@ -362,7 +367,7 @@ export default function HistoryMetricsPage() {
                   <TableHead className="w-[148px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Metric</TableHead>
                   <TableHead className="w-[100px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Value</TableHead>
                   <TableHead className="w-[118px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Agent</TableHead>
-                  <TableHead className="w-[110px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Device</TableHead>
+                  <TableHead className="w-[110px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Runtime</TableHead>
                   <TableHead className="w-[90px] text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-3 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">Provider</TableHead>
                 </TableRow>
               </TableHeader>
