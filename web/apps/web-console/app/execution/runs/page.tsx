@@ -131,9 +131,9 @@ export default function ExecutionRunsPage() {
       <div className="space-y-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-base font-semibold text-foreground">Runs</h1>
+            <h1 className="text-base font-semibold text-foreground">Execution Records</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Execution records behind agent tasks, including runtime identity, receipts, proof state, and enforcement outcomes.
+              Lower-level execution records behind agent tasks, including runtime identity, events, and receipts.
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
@@ -151,7 +151,10 @@ export default function ExecutionRunsPage() {
 
         <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-xs font-medium text-foreground">Task Execution Records</span>
+            <div>
+              <span className="text-xs font-medium text-foreground">Task Execution Records</span>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">Execution records support task inspection and proof verification.</p>
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
