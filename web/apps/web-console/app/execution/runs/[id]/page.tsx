@@ -35,7 +35,6 @@ import {
   FileText,
   Hash,
   Pause,
-  RotateCcw,
   Shield,
   Terminal,
   XCircle,
@@ -68,10 +67,6 @@ function verificationLabel(status?: string | null): string {
   if (normalized === 'present') return 'Recorded';
   if (normalized === 'missing') return 'Missing';
   return String(status);
-}
-
-function runStatusAllowsReplay(status: string): boolean {
-  return ['COMPLETED', 'ERROR', 'VIOLATION', 'CANCELLED'].includes(status);
 }
 
 function runStatusAllowsPause(status: string): boolean {
@@ -178,15 +173,6 @@ export default function ExecutionRunDetailPage() {
     onError: () => toast({ title: 'Failed to cancel run', variant: 'destructive' }),
   });
 
-  const replayMutation = useMutation({
-    mutationFn: () => api.post(`/v1/execution/runs/${runId}/replay`, {}),
-    onSuccess: async () => {
-      toast({ title: 'Run replay requested' });
-      await refreshExecutionQueries();
-    },
-    onError: () => toast({ title: 'Failed to replay run', variant: 'destructive' }),
-  });
-
   const verifyMutation = useMutation({
     mutationFn: () =>
       api.post<{ verified: boolean; message: string }>('/proof/receipts/verify', {
@@ -238,7 +224,7 @@ export default function ExecutionRunDetailPage() {
             </div>
             <h1 className="text-base font-semibold text-gray-900">Run record</h1>
             <p className="mt-0.5 text-xs text-gray-500">
-              Verified execution metadata, proof status, policy scope, and enforcement evidence.
+              Supporting execution record for a task: runtime identity, receipt status, timeline, and enforcement evidence.
             </p>
           </div>
           {runId && (
@@ -305,12 +291,6 @@ export default function ExecutionRunDetailPage() {
                   Cancel
                 </Button>
               )}
-              {runStatusAllowsReplay(run.status) && (
-                <Button variant="outline" size="sm" className="gap-1.5" disabled={replayMutation.isPending} onClick={() => replayMutation.mutate()}>
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Replay
-                </Button>
-              )}
             </div>
 
             <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
@@ -334,7 +314,6 @@ export default function ExecutionRunDetailPage() {
                     },
                     { label: 'Agent ID', value: run.agent_id, mono: true, copyable: run.agent_id },
                     { label: 'Runtime ID', value: runtimeId || 'Not recorded', mono: true, copyable: runtimeId || undefined },
-                    { label: 'Model', value: run.model ?? '—' },
                     { label: 'Status', value: <ExecutionStatusBadge status={run.status} /> },
                     { label: 'Started', value: formatDateTime(run.started_at) },
                     { label: 'Ended', value: run.ended_at ? formatDateTime(run.ended_at) : '—' },
@@ -346,16 +325,14 @@ export default function ExecutionRunDetailPage() {
                 />
               </Surface>
 
-              <Surface title="Execution path" icon={Shield}>
+              <Surface title="Routing metadata" icon={Shield}>
                 <KeyValueGrid
                   rows={[
+                    { label: 'Runtime label', value: runtimeLabel },
+                    { label: 'Verification status', value: receiptStatus },
                     { label: 'Route decision', value: routeDecision },
                     { label: 'Provider', value: providerDisplay },
                     { label: 'Provider path', value: providerPath },
-                    { label: 'Runtime label', value: runtimeLabel },
-                    { label: 'Fallback used', value: run.fallback_used ? 'Yes' : 'No' },
-                    { label: 'Fallback reason', value: run.fallback_reason ?? '—' },
-                    { label: 'Verification status', value: receiptStatus },
                   ]}
                 />
               </Surface>
