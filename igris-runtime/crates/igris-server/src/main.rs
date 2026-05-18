@@ -31,6 +31,7 @@ use igris_routing::{
     cloud_provider::CloudProvider, council::CouncilRouter, speculative::SpeculativeRouter,
     thompson::ThompsonSamplingRouter, Provider,
 };
+mod cli;
 mod runtime_execute;
 use runtime_execute::{PeerRegistry, ViolationLog};
 // ── Phase 1–4: Deterministic execution hardening ───────────────────────────
@@ -3584,6 +3585,21 @@ async fn main() -> anyhow::Result<()> {
             #[arg(long, default_value = "./download-model.sh")]
             script: String,
         },
+        /// Authenticate the CLI (validate IGRIS_API_KEY).
+        #[command(subcommand)]
+        Auth(cli::AuthSub),
+        /// Submit, inspect, or verify tasks.
+        #[command(subcommand)]
+        Tasks(cli::TasksSub),
+        /// Verify a receipt by execution_id.
+        #[command(subcommand)]
+        Receipts(cli::ReceiptsSub),
+        /// Run a built-in proof demo.
+        #[command(subcommand)]
+        Demo(cli::DemoSub),
+        /// Run the MCP server (stdio transport) exposing task/proof tools.
+        #[command(subcommand)]
+        Mcp(cli::McpSub),
     }
 
     let cli = Cli::parse();
@@ -3742,6 +3758,79 @@ async fn main() -> anyhow::Result<()> {
                 .map_err(|e| anyhow::anyhow!("failed to run download script via bash: {}", e))?;
             if !status.success() {
                 anyhow::bail!("download-model.sh failed with {}", status);
+            }
+            return Ok(());
+        }
+        Command::Auth(sub) => {
+            match sub {
+                cli::AuthSub::Login { api_url } => {
+                    let url = cli::resolve_api_url(&api_url);
+                    cli::auth::run_login(&url).await?
+                }
+            }
+            return Ok(());
+        }
+        Command::Tasks(sub) => {
+            match sub {
+                cli::TasksSub::Submit {
+                    file,
+                    watch,
+                    verify,
+                    api_url,
+                    console_url,
+                } => {
+                    let api = cli::resolve_api_url(&api_url);
+                    let console = cli::resolve_console_url(&console_url);
+                    cli::tasks::run_submit(&api, &console, &file, watch, verify).await?
+                }
+                cli::TasksSub::Inspect {
+                    task_id,
+                    api_url,
+                    console_url,
+                } => {
+                    let api = cli::resolve_api_url(&api_url);
+                    let console = cli::resolve_console_url(&console_url);
+                    cli::tasks::run_inspect(&api, &console, &task_id).await?
+                }
+                cli::TasksSub::Verify { task_id, api_url } => {
+                    let api = cli::resolve_api_url(&api_url);
+                    cli::tasks::run_verify(&api, &task_id).await?
+                }
+            }
+            return Ok(());
+        }
+        Command::Receipts(sub) => {
+            match sub {
+                cli::ReceiptsSub::Verify {
+                    execution_id,
+                    api_url,
+                } => {
+                    let api = cli::resolve_api_url(&api_url);
+                    cli::receipts::run_verify(&api, &execution_id).await?
+                }
+            }
+            return Ok(());
+        }
+        Command::Demo(sub) => {
+            match sub {
+                cli::DemoSub::ActionTask {
+                    script,
+                    watch,
+                    verify,
+                    console_url,
+                } => {
+                    let console = cli::resolve_console_url(&console_url);
+                    cli::demo::run_action_task(&script, watch, verify, &console).await?
+                }
+            }
+            return Ok(());
+        }
+        Command::Mcp(sub) => {
+            match sub {
+                cli::McpSub::Serve { api_url } => {
+                    let api = cli::resolve_api_url(&api_url);
+                    cli::mcp::run_stdio(&api).await?
+                }
             }
             return Ok(());
         }
