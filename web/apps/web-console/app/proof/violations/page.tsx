@@ -193,9 +193,9 @@ function ViolationsContent() {
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-base font-semibold text-foreground">Bounded Action Violations</h1>
+            <h1 className="text-base font-semibold text-foreground">Proof Violations</h1>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Persisted proof records for task actions that exceeded policy or runtime bounds.
+              Review bounded-action violations and proof mismatches backed by persisted execution evidence.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -388,7 +388,7 @@ function ViolationsContent() {
                 { label: 'Timestamp', value: new Date(selected.timestamp).toISOString().replace('T', ' ').slice(0, 19) },
                 { label: 'Execution ID', value: selected.execution_id, copyable: true, copyValue: selected.execution_id },
                 { label: 'Agent ID', value: selected.agent_id || '—', copyable: !!selected.agent_id, copyValue: selected.agent_id },
-                { label: 'Device ID', value: selected.device_id || '—', copyable: !!selected.device_id, copyValue: selected.device_id },
+                { label: 'Runtime ID', value: selected.device_id || '—', copyable: !!selected.device_id, copyValue: selected.device_id },
                 { label: 'Severity', value: <SeverityBadge severity={normalizeSeverity(selected.severity)} /> },
               ]} />
             </DrawerSection>
