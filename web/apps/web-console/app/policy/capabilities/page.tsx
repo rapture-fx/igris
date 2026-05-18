@@ -62,10 +62,10 @@ const TOOL_PERMISSIONS: Array<{
   description: string;
   icon: React.ElementType;
 }> = [
-  { key: 'allow_http', label: 'Allow HTTP Requests', description: 'Permit outbound HTTP requests from executions.', icon: Globe },
-  { key: 'allow_shell', label: 'Allow Shell Execution', description: 'Permit shell command execution during runtime.', icon: Terminal },
-  { key: 'allow_fs_write', label: 'Allow Filesystem Write', description: 'Permit write access to the filesystem.', icon: HardDrive },
-  { key: 'allow_external_api', label: 'Allow External APIs', description: 'Permit connections to external API services.', icon: Zap },
+  { key: 'allow_http', label: 'Allow HTTP Calls', description: 'Permit controlled http_call actions to approved domains.', icon: Globe },
+  { key: 'allow_shell', label: 'Allow Shell Execution', description: 'Permit shell commands only where this internal capability is enabled.', icon: Terminal },
+  { key: 'allow_fs_write', label: 'Allow Filesystem Write', description: 'Permit controlled writes to configured paths.', icon: HardDrive },
+  { key: 'allow_external_api', label: 'Allow External APIs', description: 'Permit API calls through approved endpoints and domains.', icon: Zap },
 ];
 
 const VIOLATION_OPTIONS = [
@@ -291,8 +291,8 @@ export default function PolicyCapabilitiesPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-base font-semibold text-gray-900">Agent Capabilities</h1>
-            <p className="text-xs text-black mt-0.5">Permissions controlling what agents are allowed to do.</p>
+            <h1 className="text-base font-semibold text-gray-900">Capabilities</h1>
+            <p className="text-xs text-black mt-0.5">Review the action surfaces agents are allowed to use.</p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {isDirty && (
@@ -323,7 +323,7 @@ export default function PolicyCapabilitiesPage() {
         <SurfaceSection
           icon={ShieldCheck}
           title="Tool Permissions"
-          description="Permissions granted to agents during execution."
+          description="Action controls for filesystem reads, HTTP calls, database writes, and other execution tools."
         >
           <div className="rounded-2xl border border-gray-200 overflow-hidden bg-white divide-y divide-gray-100">
             {isLoading
@@ -357,7 +357,7 @@ export default function PolicyCapabilitiesPage() {
         <SurfaceSection
           icon={Globe}
           title="Network Restrictions"
-          description="Control which domains agents may reach or are blocked from."
+          description="Control approved domains for http_call actions and block known unsafe targets."
           bodyClassName="px-0 py-0"
         >
           <Tabs defaultValue="allowlist">
@@ -500,7 +500,7 @@ export default function PolicyCapabilitiesPage() {
         <SurfaceSection
           icon={HardDrive}
           title="Filesystem Restrictions"
-          description="Configure path-level read and write access for agents."
+          description="Configure allowed paths for read_file and filesystem write actions."
         >
           {isLoading ? (
             <div className="space-y-5">
