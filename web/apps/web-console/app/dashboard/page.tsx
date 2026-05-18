@@ -9,22 +9,38 @@ import { ErrorState } from '@/components/states/ErrorState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { fetchExecutionReceipts, fetchExecutionRuns, fetchExecutionViolations, type ExecutionReceipt, type ExecutionRun, type ExecutionViolation } from '@/lib/executionRuns';
-import { api } from '@/lib/apiClient';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
-import { useSession } from '@/lib/auth-client';
-import { useTenant } from '@/hooks/useTenant';
+import { type Task, useTasks } from '@/hooks/useTasks';
 import {
   AlertTriangle,
   ArrowRight,
-  Cpu,
   Hash,
+  ListChecks,
   PlayCircle,
-  Shield,
-  XCircle,
+  RotateCcw,
 } from 'lucide-react';
 
-interface OverviewStats {
-  online_devices: number;
+function isActionTask(task: Task): boolean {
+  return task.task_type === 'action_workflow' || Boolean(task.action_evidence?.length);
+}
+
+function proofLabel(task: Task): string {
+  if (task.proof?.verified === true || task.proof?.status === 'verified') return 'Verified';
+  if (task.proof?.status === 'mismatch') return 'Mismatch';
+  if (task.proof?.status === 'missing') return 'Missing';
+  if (task.proof?.status === 'present') return 'Recorded';
+  if (task.execution_receipt || task.proof?.status === 'pending') return 'Pending';
+  return 'Not recorded';
+}
+
+function recoveryLabel(task: Task): string {
+  const evidence = task.action_evidence ?? [];
+  const runtimes = new Set(evidence.map((row) => row.runtime_id).filter(Boolean));
+  if (runtimes.size > 1) return 'Recovered';
+  if (task.status === 'recovering') return 'Recovering';
+  if (task.checkpoint_summary || task.checkpoint_digest) return 'Checkpointed';
+  if (task.recovery?.redispatch_eligible) return 'Ready';
+  return 'No recovery';
 }
 
 function SummaryCard({
@@ -77,15 +93,7 @@ function Surface({
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
-  const { data: tenant } = useTenant();
-  const userName = tenant?.name || session?.user?.name || session?.user?.email?.split('@')[0] || 'User';
-
-  const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useQuery<OverviewStats>({
-    queryKey: ['dashboard-overview'],
-    queryFn: () => api.get<OverviewStats>('/v1/stats/overview', { allowMockFallback: false }),
-    retry: false,
-  });
+  const { data: tasksData, isLoading: tasksLoading, error: tasksError, refetch: refetchTasks } = useTasks({ limit: 50 });
 
   const { data: runs = [], isLoading: runsLoading, error: runsError, refetch: refetchRuns } = useQuery<ExecutionRun[]>({
     queryKey: ['dashboard-runs'],
@@ -105,25 +113,30 @@ export default function DashboardPage() {
     retry: false,
   });
 
+  const tasks = tasksData?.tasks ?? [];
+
   const digest = useMemo(() => {
     const verifiedReceipts = receipts.filter((receipt) => {
       const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
       return status === 'verified';
     }).length;
-    const unverifiedReceipts = receipts.filter((receipt) => {
-      const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
-      return status !== 'verified';
-    }).length;
-    const failedOrStopped = runs.filter((run) => ['ERROR', 'CANCELLED', 'VIOLATION', 'PAUSED'].includes(run.status)).length;
+    const activeTasks = tasks.filter((task) => ['pending', 'dispatched', 'checkpointed', 'recovering'].includes(task.status)).length;
+    const completedTasks = tasks.filter((task) => task.status === 'completed').length;
+    const recoveredTasks = tasks.filter((task) => recoveryLabel(task) === 'Recovered').length;
     return {
-      runs: runs.length,
+      activeTasks,
+      completedTasks,
       verifiedReceipts,
-      unverifiedReceipts,
-      failedOrStopped,
+      recoveredTasks,
       policyViolations: violations.length,
-      connectedDevices: stats?.online_devices ?? 0,
     };
-  }, [receipts, runs, violations, stats]);
+  }, [receipts, tasks, violations]);
+
+  const latestActionTask = useMemo(() => {
+    return [...tasks]
+      .filter(isActionTask)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0] ?? null;
+  }, [tasks]);
 
   const verificationCoverage = useMemo(() => {
     if (!receipts.length) return 0;
@@ -134,7 +147,7 @@ export default function DashboardPage() {
     return Math.round((verified / receipts.length) * 100);
   }, [receipts]);
 
-  const pageError = statsError ?? runsError ?? receiptsError ?? violationsError;
+  const pageError = tasksError ?? runsError ?? receiptsError ?? violationsError;
 
   if (pageError) {
     return (
@@ -144,7 +157,7 @@ export default function DashboardPage() {
           title="Verified execution data is unavailable"
           description="Dashboard metrics are shown only from live backend data on this page."
           onRetry={() => {
-            void refetchStats();
+            void refetchTasks();
             void refetchRuns();
             void refetchReceipts();
             void refetchViolations();
@@ -158,66 +171,76 @@ export default function DashboardPage() {
     <DashboardLayout>
       <OnboardingModal />
       <div className="space-y-6">
-        <h1 className="text-base font-semibold text-foreground">Welcome {userName}</h1>
+        <div className="space-y-1">
+          <h1 className="text-base font-semibold text-foreground">Overview</h1>
+          <p className="text-xs text-muted-foreground">
+            Agent tasks, controlled actions, recovery state, receipt verification, and operator evidence.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
-          <SummaryCard label="Runs" value={digest.runs} icon={PlayCircle} loading={runsLoading} />
+        <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+          <SummaryCard label="Active tasks" value={digest.activeTasks} icon={PlayCircle} loading={tasksLoading} />
+          <SummaryCard label="Completed tasks" value={digest.completedTasks} icon={ListChecks} loading={tasksLoading} />
           <SummaryCard label="Verified receipts" value={digest.verifiedReceipts} icon={Hash} loading={receiptsLoading} />
-          <SummaryCard label="Failed or stopped" value={digest.failedOrStopped} icon={XCircle} loading={runsLoading} />
-          <SummaryCard label="Unverified receipts" value={digest.unverifiedReceipts} icon={Shield} loading={receiptsLoading} />
+          <SummaryCard label="Recovered tasks" value={digest.recoveredTasks} icon={RotateCcw} loading={tasksLoading} />
           <SummaryCard label="Policy violations" value={digest.policyViolations} icon={AlertTriangle} loading={violationsLoading} />
-          <SummaryCard label="Connected devices" value={digest.connectedDevices} icon={Cpu} loading={statsLoading} />
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.75fr] gap-4">
-          <Surface title="Recent runs" link={{ href: '/execution/runs', label: 'All runs' }}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide">Run</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide">Agent</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide">Started</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide">Status</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide">Record</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {runsLoading ? (
-                    Array.from({ length: 6 }).map((_, index) => (
-                      <tr key={index} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
-                        {Array.from({ length: 5 }).map((_, cell) => (
-                          <td key={cell} className="px-4 py-2.5"><Skeleton className="h-4 w-20" /></td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : runs.length === 0 ? (
-                    <tr className="bg-white">
-                      <td colSpan={5} className="px-4 py-10 text-center text-foreground">No run records were returned.</td>
-                    </tr>
-                  ) : (
-                    runs.map((run) => (
-                      <tr key={run.id} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-2.5 text-foreground">{truncateText(run.id, 16)}</td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{truncateText(run.agent_id, 16)}</td>
-                        <td className="px-4 py-2.5 text-foreground">{getRelativeTime(run.started_at)}</td>
-                        <td className="px-4 py-2.5">
-                          <StatusBadge status={run.has_violation ? 'VIOLATION' : run.status} />
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <Link href={`/execution/runs/${run.id}`} className="text-blue-600 hover:text-blue-700">
-                            Open
-                          </Link>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          <Surface title="Latest Action Task" link={{ href: '/execution/tasks', label: 'All tasks' }}>
+            <div className="px-4 py-4 min-h-[250px]">
+              {tasksLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              ) : !latestActionTask ? (
+                <div className="py-12 text-center text-xs text-muted-foreground">
+                  No Action Task has been returned yet.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-xs text-foreground">{truncateText(latestActionTask.task_id, 28)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Last activity {getRelativeTime(latestActionTask.completed_at ?? latestActionTask.dispatched_at ?? latestActionTask.created_at)}
+                      </p>
+                    </div>
+                    <StatusBadge status={latestActionTask.status.toUpperCase()} />
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="rounded-lg border border-gray-200 px-3 py-2.5">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Actions</p>
+                      <p className="mt-1 text-sm font-semibold">{latestActionTask.action_evidence?.length ?? 0}</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 px-3 py-2.5">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Recovery</p>
+                      <p className="mt-1 text-sm font-semibold">{recoveryLabel(latestActionTask)}</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 px-3 py-2.5">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Proof</p>
+                      <p className="mt-1 text-sm font-semibold">{proofLabel(latestActionTask)}</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 px-3 py-2.5">
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Runtime</p>
+                      <p className="mt-1 text-sm font-semibold font-mono">{latestActionTask.runtime_id ? truncateText(latestActionTask.runtime_id, 12) : '—'}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/execution/tasks/${encodeURIComponent(latestActionTask.task_id)}`}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    Open task evidence
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              )}
             </div>
           </Surface>
 
-          <Surface title="Verification coverage" link={{ href: '/proof/receipts', label: 'Receipts' }}>
+          <Surface title="Verify" link={{ href: '/proof/receipts', label: 'Receipts' }}>
             <div className="px-4 py-4 space-y-4">
               <div>
                 <div className="flex items-center justify-between text-xs text-gray-700 mb-2">
@@ -260,7 +283,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-4">
-          <Surface title="Policy violations" link={{ href: '/proof/violations', label: 'Violations' }}>
+          <Surface title="Bounded action violations" link={{ href: '/proof/violations', label: 'Violations' }}>
             <div className="divide-y divide-gray-100 min-h-[280px]">
               {violationsLoading ? (
                 Array.from({ length: 5 }).map((_, index) => (
@@ -289,7 +312,7 @@ export default function DashboardPage() {
             </div>
           </Surface>
 
-          <Surface title="Recent execution outcomes" link={{ href: '/execution/runs', label: 'Runs' }}>
+          <Surface title="Execution records" link={{ href: '/execution/runs', label: 'Runs' }}>
             <div className="px-4 py-4 space-y-3 min-h-[280px]">
               {runsLoading ? (
                 Array.from({ length: 5 }).map((_, index) => (
@@ -310,7 +333,7 @@ export default function DashboardPage() {
                         <StatusBadge status={run.has_violation ? 'VIOLATION' : run.status} />
                       </div>
                       <p className="mt-1 text-[11px] text-gray-600 leading-relaxed">
-                        {truncateText(run.agent_id, 16)} · {run.verification_status || 'verification not recorded'}
+                        {run.runtime_id ? `Runtime ${truncateText(run.runtime_id, 14)}` : truncateText(run.agent_id, 16)} · {run.verification_status || 'verification not recorded'}
                       </p>
                     </div>
                   ))
