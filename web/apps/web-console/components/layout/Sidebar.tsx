@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
-  ActivityLogIcon, BarChartIcon, DashboardIcon, HomeIcon,
+  ActivityLogIcon, BarChartIcon, DashboardIcon,
   ChevronDownIcon, MagnifyingGlassIcon, FileTextIcon,
   EnvelopeClosedIcon, ExitIcon, GearIcon,
   LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
   SunIcon, TokensIcon, ListBulletIcon, CheckCircledIcon,
-  ReaderIcon, CrossCircledIcon, RulerHorizontalIcon, CheckIcon,
-  DesktopIcon, RocketIcon, PieChartIcon, TransformIcon, UpdateIcon, MarginIcon,
+  ReaderIcon, CrossCircledIcon,
+  RocketIcon, TransformIcon, UpdateIcon, MarginIcon,
 } from '@radix-ui/react-icons';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -38,18 +38,48 @@ interface NavigationItem {
   icon: any;
 }
 
-const navigationItems: NavigationItem[] = [
-  { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
-  { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
-  { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
-  { name: 'Receipts', href: '/proof/receipts', icon: ReaderIcon },
-  { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
-  { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
-  { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
-  { name: 'Providers', href: '/models/providers', icon: TokensIcon },
-  { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
-  { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
-  { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
+interface NavigationGroup {
+  label: string;
+  items: NavigationItem[];
+}
+
+const navigationGroups: NavigationGroup[] = [
+  {
+    label: 'Execution',
+    items: [
+      { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
+      { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
+      { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
+    ],
+  },
+  {
+    label: 'Proof',
+    items: [
+      { name: 'Receipts', href: '/proof/receipts', icon: ReaderIcon },
+      { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
+    ],
+  },
+  {
+    label: 'Policy',
+    items: [
+      { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
+      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
+    ],
+  },
+  {
+    label: 'Infrastructure',
+    items: [
+      { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
+      { name: 'Provider Credentials', href: '/models/providers', icon: TokensIcon },
+    ],
+  },
+  {
+    label: 'Observability',
+    items: [
+      { name: 'Logs', href: '/history/logs', icon: ActivityLogIcon },
+      { name: 'Metrics', href: '/history/metrics', icon: BarChartIcon },
+    ],
+  },
 ];
 
 const settingsNavigation = [
@@ -86,18 +116,18 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
   // Build flat search index with rich keywords
   const searchIndex = [
-    { title: 'Dashboard', path: '/dashboard', keywords: 'dashboard overview system stats home' },
-    { title: 'Runs', path: '/execution/runs', keywords: 'execution runs receipts verification logs policy violations' },
-    { title: 'Tasks', path: '/execution/tasks', keywords: 'execution durable tasks wal checkpoints signed envelope receipt' },
-    { title: 'Approvals', path: '/execution/approvals', keywords: 'execution approvals human review pause resume reject' },
-    { title: 'Receipts', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain' },
-    { title: 'Violations', path: '/proof/violations', keywords: 'proof policy violations enforcement bounds alerts' },
-    { title: 'Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps' },
-    { title: 'Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http shell filesystem domains' },
-    { title: 'Providers', path: '/models/providers', keywords: 'providers endpoints keys models health infrastructure' },
-    { title: 'Runtimes', path: '/infrastructure/runtimes', keywords: 'runtimes devices runtime nodes online policy sync infrastructure' },
-    { title: 'Logs', path: '/history/logs', keywords: 'logs events runtime stream traces history' },
-    { title: 'Metrics', path: '/history/metrics', keywords: 'metrics performance charts throughput latency history' },
+    { title: 'Dashboard › Overview', path: '/dashboard', keywords: 'dashboard overview tasks recovery receipts evidence verification runtime' },
+    { title: 'Execution › Tasks', path: '/execution/tasks', keywords: 'agent tasks action evidence recovery checkpoint receipts proof verify' },
+    { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution records task runs receipts verification runtime events' },
+    { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals human review pause resume reject' },
+    { title: 'Proof › Receipts', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain runtime' },
+    { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof policy violations bounded actions evidence' },
+    { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http filesystem domains actions' },
+    { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps actions' },
+    { title: 'Infrastructure › Runtimes', path: '/infrastructure/runtimes', keywords: 'runtimes runtime nodes online policy sync infrastructure' },
+    { title: 'Infrastructure › Provider Credentials', path: '/models/providers', keywords: 'provider credentials endpoints keys infrastructure' },
+    { title: 'Observability › Logs', path: '/history/logs', keywords: 'logs events runtime stream traces history inspect' },
+    { title: 'Observability › Metrics', path: '/history/metrics', keywords: 'metrics performance charts throughput latency history inspect' },
     { title: 'Settings › General', path: '/settings/general', keywords: 'settings general configuration security api keys roles' },
     { title: 'Settings › API Keys', path: '/settings/keys', keywords: 'settings keys vault api provider authentication' },
     { title: 'Settings › License', path: '/settings/license', keywords: 'settings license plan quota activation key' },
@@ -220,27 +250,35 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 </Link>
               </li>
 
-              {/* Navigation items */}
-              {navigationItems.map((item) => {
-                const active = isActive(item.href);
-                return (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      onClick={onClose}
-                      className={cn(
-                        'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
-                        active
-                          ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                          : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
-                      )}
-                    >
-                      <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
-                      {item.name}
-                    </Link>
-                  </li>
-                );
-              })}
+              {navigationGroups.map((group) => (
+                <li key={group.label} className="pt-3 first:pt-2">
+                  <div className="px-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </div>
+                  <ul className="space-y-0.5">
+                    {group.items.map((item) => {
+                      const active = isActive(item.href);
+                      return (
+                        <li key={item.name}>
+                          <Link
+                            href={item.href}
+                            onClick={onClose}
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
+                              active
+                                ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
+                                : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
+                            )}
+                          >
+                            <item.icon className="h-4 w-4 flex-shrink-0 text-foreground" strokeWidth={1.5} />
+                            {item.name}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </li>
+              ))}
               
               {/* Settings dropdown */}
               <li>
