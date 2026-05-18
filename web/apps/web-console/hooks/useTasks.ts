@@ -33,6 +33,22 @@ export interface Task {
     wal_entry_count?: number;
     proof_status?: string;
   };
+  recovery?: {
+    redispatch_eligible?: boolean;
+    skip_reason?: string;
+  };
+  durability?: {
+    class?: string;
+    streaming?: boolean;
+    resume_supported?: boolean;
+  };
+  lifecycle?: {
+    terminal?: boolean;
+    runtime_mutation_allowed?: boolean;
+    dispatch_allowed?: boolean;
+    recovery_redispatch_allowed?: boolean;
+    cancellation_allowed?: boolean;
+  };
   checkpoint_metadata?: unknown;
   failure_reason?: string;
   requested_mode?: string;
@@ -43,6 +59,13 @@ export interface Task {
   action_evidence?: ActionEvidenceRow[];
   execution_envelope?: unknown;
   execution_receipt?: unknown;
+  receipt?: {
+    id?: string;
+    hash?: string;
+    previous_hash?: string;
+    signature?: string;
+    signed?: boolean;
+  };
   proof?: {
     execution_id?: string;
     expected_hash?: string;
