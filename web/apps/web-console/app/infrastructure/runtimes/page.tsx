@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,24 +17,20 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { api } from '@/lib/apiClient';
-import { toast } from '@/components/ui/use-toast';
 import { getRelativeTime, formatDateTime, truncateText } from '@/utils/helpers';
 import Link from 'next/link';
 import { CopyButton, KeyValueGrid, JSONViewer } from '@/components/execution/shared';
 import {
   Wifi, WifiOff, Activity, AlertTriangle, Search, RefreshCw,
-  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap, Radio, Upload,
+  Shield, History, Cpu, CheckCircle2, AlertCircle, Server, Box, Zap,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type RosLifecycleState = 'Unconfigured' | 'Inactive' | 'Active' | 'Finalized' | 'ErrorProcessing';
-type RosAction = 'configure' | 'activate' | 'deactivate' | 'reset';
-
 interface RosNode {
   node_name: string;
   namespace: string;
-  lifecycle_state: RosLifecycleState;
+  lifecycle_state: string;
   air_gapped: boolean;
   last_trace_at?: string;
   cpu_usage_percent?: number;
@@ -68,7 +64,6 @@ interface Device {
 interface ExecutionMini {
   execution_id: string;
   agent_id: string;
-  model: string;
   status: 'running' | 'completed' | 'failed' | 'terminated';
   duration_ms: number;
   timestamp: string;
@@ -130,22 +125,6 @@ function PolicySyncIndicator({
   );
 }
 
-function RosLifecycleBadge({ state, airGapped }: { state: RosLifecycleState; airGapped: boolean }) {
-  const styles: Record<RosLifecycleState, string> = {
-    Active:           'bg-green-50 text-green-700 border-green-200',
-    Inactive:         'bg-gray-100 text-gray-600 border-gray-200',
-    Unconfigured:     'bg-yellow-50 text-yellow-700 border-yellow-200',
-    Finalized:        'bg-blue-50 text-blue-600 border-blue-200',
-    ErrorProcessing:  'bg-red-50 text-red-700 border-red-200',
-  };
-  return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${styles[state]}`}>
-      {airGapped && <span title="Air-gapped">⊘ </span>}
-      {state}
-    </span>
-  );
-}
-
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   return `${(ms / 1000).toFixed(2)}s`;
@@ -158,81 +137,6 @@ function ContainmentBadge({ containment }: { containment?: { enabled: boolean; m
       <Shield className="h-2.5 w-2.5" />
       {containment.mode ?? 'Contained'}
     </span>
-  );
-}
-
-interface TopicActivity {
-  topic: string;
-  msg_type: string;
-  last_message?: string;
-  last_seen?: string;
-  within_envelope: boolean;
-}
-
-function BoundedTopicMonitor({ deviceId }: { deviceId: string }) {
-  const { data: topics = [], isLoading } = useQuery<TopicActivity[]>({
-    queryKey: ['device-topics', deviceId],
-    queryFn: async () => {
-      try {
-        return await api.get<TopicActivity[]>(`/devices/${deviceId}/topics`);
-      } catch {
-        return [];
-      }
-    },
-    staleTime: 10_000,
-    retry: false,
-    refetchInterval: 5_000,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="space-y-1.5">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-full" />
-        ))}
-      </div>
-    );
-  }
-
-  if (topics.length === 0) {
-    return <p className="text-xs text-muted-foreground">No topic activity. Connect ROS bridge to see live topic data.</p>;
-  }
-
-  return (
-    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
-            <th className="text-left px-3 py-2 font-medium text-muted-foreground">Topic</th>
-            <th className="text-left px-3 py-2 font-medium text-muted-foreground">Last Message</th>
-            <th className="text-left px-3 py-2 font-medium text-muted-foreground">Envelope</th>
-          </tr>
-        </thead>
-        <tbody>
-          {topics.map((t) => (
-            <tr key={t.topic} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] last:border-0">
-              <td className="px-3 py-2 font-mono text-teal-600 whitespace-nowrap">{t.topic}</td>
-              <td className="px-3 py-2 text-muted-foreground max-w-[140px] truncate" title={t.last_message}>
-                {t.last_message ? (
-                  <span className="font-mono text-[10px]">{t.last_message.slice(0, 30)}{t.last_message.length > 30 ? '…' : ''}</span>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </td>
-              <td className="px-3 py-2">
-                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${
-                  t.within_envelope
-                    ? 'bg-green-50 text-green-600 border-green-200'
-                    : 'bg-red-50 text-red-600 border-red-200'
-                }`}>
-                  {t.within_envelope ? 'Within' : 'Violated'}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }
 
@@ -253,9 +157,8 @@ function FleetDevicesContent() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
-  const [lifecycleConfirm, setLifecycleConfirm] = useState<{ deviceId: string; action: RosAction } | null>(null);
 
-  // ── Devices list ──
+  // ── Runtimes list ──
   const { data: devices = [], isLoading: devicesLoading, refetch } = useQuery<Device[]>({
     queryKey: ['fleet-devices-v2'],
     queryFn: async () => {
@@ -330,7 +233,7 @@ function FleetDevicesContent() {
     router.push(`?${p.toString()}`, { scroll: false });
   };
 
-  // ── Device detail queries (enabled only when drawer open) ──
+  // ── Runtime detail queries (enabled only when drawer open) ──
   const { data: deviceExecutions = [], isLoading: execLoading } = useQuery<ExecutionMini[]>({
     queryKey: ['device-executions', deviceFromUrl],
     enabled: !!deviceFromUrl,
@@ -372,19 +275,6 @@ function FleetDevicesContent() {
     return () => document.removeEventListener('keydown', handler);
   }, [router, searchParams]);
 
-  // ── ROS 2 Lifecycle ──
-  const rosLifecycleMutation = useMutation({
-    mutationFn: ({ deviceId, action }: { deviceId: string; action: RosAction }) =>
-      api.post('/v1/ros/lifecycle', { device_id: deviceId, action }),
-    onSuccess: (_, { action }) => {
-      toast({ title: 'Lifecycle command sent', description: `Action '${action}' dispatched to node.` });
-      refetch();
-    },
-    onError: () => {
-      toast({ title: 'Command failed', description: 'Could not send lifecycle command.', variant: 'destructive' });
-    },
-  });
-
   // ── Filtered devices ──
   const filtered = useMemo(() => {
     return devices.filter((d) => {
@@ -415,7 +305,7 @@ function FleetDevicesContent() {
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-base font-semibold text-foreground">Devices</h1>
+          <h1 className="text-base font-semibold text-foreground">Runtimes</h1>
 
           {runtimeQuota && (
             <div className="flex-shrink-0 min-w-[200px]">
@@ -460,15 +350,15 @@ function FleetDevicesContent() {
           ))}
         </div>
 
-        {/* ── Devices Table ──────────────────────────────────────────── */}
+        {/* ── Runtimes Table ──────────────────────────────────────────── */}
         <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-sm font-medium text-foreground">Devices</span>
+            <span className="text-sm font-medium text-foreground">Runtimes</span>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Search device_id…"
+                  placeholder="Search runtime_id…"
                   className="pl-8 h-8 text-xs w-48"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -506,7 +396,7 @@ function FleetDevicesContent() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
-                    {['Device ID', 'Status', 'Runtime', 'Last Seen', 'Active Exec', 'Runs (24h)', 'Violations', 'Policy Sync', 'Containment'].map((col) => (
+                    {['Runtime ID', 'Status', 'Version', 'Last Seen', 'Active Exec', 'Runs (24h)', 'Violations', 'Policy Sync', 'Containment'].map((col) => (
                       <th key={col} className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">{col}</th>
                     ))}
                   </tr>
@@ -582,14 +472,14 @@ function FleetDevicesContent() {
             </div>
             <div className="px-4 py-3">
               <span className="text-xs text-foreground">
-                {filtered.length} device{filtered.length !== 1 ? 's' : ''}
+                {filtered.length} runtime{filtered.length !== 1 ? 's' : ''}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Device Detail Drawer ──────────────────────────────────────────────── */}
+      {/* ── Runtime Detail Drawer ──────────────────────────────────────────────── */}
       <Sheet open={!!selectedDevice} onOpenChange={(open) => !open && closeDrawer()}>
         <SheetContent>
           {selectedDevice && (
@@ -605,16 +495,16 @@ function FleetDevicesContent() {
               <SheetBody>
                 <div className="space-y-6">
 
-                  {/* Device Metadata */}
+                  {/* Runtime Metadata */}
                   <section>
                     <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                       <Server className="h-3.5 w-3.5" />
-                      Device Metadata
+                      Runtime Metadata
                     </h3>
                     <KeyValueGrid
                       rows={[
                         {
-                          label: 'Device ID',
+                          label: 'Runtime ID',
                           value: (
                             <span className="font-mono break-all text-gray-900">
                               {selectedDevice.device_id}
@@ -776,14 +666,14 @@ function FleetDevicesContent() {
                         ))}
                       </div>
                     ) : deviceExecutions.length === 0 ? (
-                      <p className="text-xs text-gray-400">No executions recorded for this device.</p>
+                      <p className="text-xs text-gray-400">No executions recorded for this runtime.</p>
                     ) : (
                       <div className="border border-gray-100 rounded-md overflow-hidden">
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="bg-gray-50 border-b border-gray-100">
                               <th className="text-left px-3 py-2 font-medium text-gray-500 whitespace-nowrap">Execution</th>
-                              <th className="text-left px-3 py-2 font-medium text-gray-500">Model</th>
+                              <th className="text-left px-3 py-2 font-medium text-gray-500">Agent</th>
                               <th className="text-left px-3 py-2 font-medium text-gray-500">Status</th>
                               <th className="text-right px-3 py-2 font-medium text-gray-500">Duration</th>
                               <th className="text-right px-3 py-2 font-medium text-gray-500 whitespace-nowrap">Time</th>
@@ -799,7 +689,7 @@ function FleetDevicesContent() {
                                 <td className="px-3 py-2 font-mono text-gray-600 whitespace-nowrap">
                                   {truncateText(ex.execution_id, 16)}
                                 </td>
-                                <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{ex.model}</td>
+                                <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{truncateText(ex.agent_id, 16)}</td>
                                 <td className="px-3 py-2">
                                   <StatusBadge status={ex.status.toUpperCase()} />
                                 </td>
@@ -832,7 +722,7 @@ function FleetDevicesContent() {
                         ))}
                       </div>
                     ) : deviceViolations.length === 0 ? (
-                      <p className="text-xs text-gray-400">No violations recorded for this device.</p>
+                      <p className="text-xs text-gray-400">No violations recorded for this runtime.</p>
                     ) : (
                       <div className="border border-gray-100 rounded-md overflow-hidden">
                         <table className="w-full text-xs">
@@ -876,200 +766,6 @@ function FleetDevicesContent() {
                       </div>
                     )}
                   </section>
-
-                  {selectedDevice.ros_node && (
-                    <>
-                      <Separator />
-
-                      {/* ROS 2 Node */}
-                      <section>
-                        <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <Cpu className="h-3.5 w-3.5" />
-                          ROS 2 Node
-                        </h3>
-                        <div className="mb-3">
-                          <RosLifecycleBadge
-                            state={selectedDevice.ros_node.lifecycle_state}
-                            airGapped={selectedDevice.ros_node.air_gapped}
-                          />
-                        </div>
-                        <KeyValueGrid
-                          rows={[
-                            {
-                              label: 'Node Name',
-                              value: (
-                                <span className="font-mono">{selectedDevice.ros_node.node_name}</span>
-                              ),
-                              copyable: selectedDevice.ros_node.node_name,
-                            },
-                            {
-                              label: 'Namespace',
-                              value: (
-                                <span className="font-mono">{selectedDevice.ros_node.namespace}</span>
-                              ),
-                            },
-                            {
-                              label: 'Lifecycle State',
-                              value: (
-                                <RosLifecycleBadge
-                                  state={selectedDevice.ros_node.lifecycle_state}
-                                  airGapped={false}
-                                />
-                              ),
-                            },
-                            {
-                              label: 'Air-gapped',
-                              value: selectedDevice.ros_node.air_gapped ? 'Yes' : 'No',
-                            },
-                            ...(selectedDevice.ros_node.last_trace_at ? [{
-                              label: 'Last Trace',
-                              value: getRelativeTime(selectedDevice.ros_node.last_trace_at),
-                            }] : []),
-                          ]}
-                        />
-                        <div className="mt-4">
-                          <p className="text-[11px] font-medium text-gray-500 mb-2">Lifecycle Actions</p>
-                          {selectedDevice.status === 'offline' || selectedDevice.ros_node.air_gapped ? (
-                            <p className="text-xs text-gray-400">
-                              {selectedDevice.status === 'offline'
-                                ? 'Device is offline — lifecycle commands unavailable.'
-                                : 'Air-gapped node — lifecycle commands not available remotely.'}
-                            </p>
-                          ) : (
-                            <>
-                            <div className="flex flex-wrap gap-2">
-                              {(['configure', 'activate', 'deactivate', 'reset'] as RosAction[]).map((action) => {
-                                const isPending = rosLifecycleMutation.isPending && rosLifecycleMutation.variables?.action === action;
-                                const disabled = rosLifecycleMutation.isPending;
-                                const styles: Record<RosAction, string> = {
-                                  configure:  'border-gray-200 text-gray-700 hover:bg-gray-50',
-                                  activate:   'border-green-200 text-green-700 hover:bg-green-50',
-                                  deactivate: 'border-yellow-200 text-yellow-700 hover:bg-yellow-50',
-                                  reset:      'border-red-200 text-red-700 hover:bg-red-50',
-                                };
-                                return (
-                                  <Button
-                                    key={action}
-                                    variant="outline"
-                                    size="sm"
-                                    className={`h-7 text-xs capitalize gap-1 ${styles[action]}`}
-                                    disabled={disabled}
-                                    onClick={() => setLifecycleConfirm({ deviceId: selectedDevice.device_id, action })}
-                                  >
-                                    {isPending && <RefreshCw className="h-3 w-3 animate-spin" />}
-                                    {action}
-                                  </Button>
-                                );
-                              })}
-                            </div>
-                            {lifecycleConfirm && lifecycleConfirm.deviceId === selectedDevice.device_id && (
-                              <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-md bg-amber-50 border border-amber-200">
-                                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
-                                <p className="text-xs text-amber-700 flex-1">
-                                  Send <strong className="capitalize">{lifecycleConfirm.action}</strong> to <span className="font-mono">{selectedDevice.ros_node.node_name}</span>?
-                                </p>
-                                <Button
-                                  size="sm"
-                                  className="h-6 text-[11px] bg-amber-600 hover:bg-amber-700 text-white px-2"
-                                  onClick={() => {
-                                    rosLifecycleMutation.mutate(lifecycleConfirm);
-                                    setLifecycleConfirm(null);
-                                  }}
-                                >
-                                  Confirm
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-6 text-[11px] px-2"
-                                  onClick={() => setLifecycleConfirm(null)}
-                                >
-                                  Cancel
-                                </Button>
-                              </div>
-                            )}
-                            </>
-                          )}
-                        </div>
-
-                        {/* Trace Replay */}
-                        <div className="mt-4">
-                          <p className="text-[11px] font-medium text-gray-500 mb-2">ROS Trace Replay</p>
-                          <div className="flex items-center gap-2">
-                            <label className="flex-1">
-                              <input
-                                type="file"
-                                accept=".bag,.db3"
-                                className="hidden"
-                                id={`rosbag-${selectedDevice.device_id}`}
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  const form = new FormData();
-                                  form.append('file', file);
-                                  api.post(`/devices/${selectedDevice.device_id}/ros/replay`, form)
-                                    .then(() => toast({ title: 'Replay started', description: `Replaying ${file.name} against current BT.` }))
-                                    .catch(() => toast({ title: 'Replay failed', variant: 'destructive' }));
-                                }}
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-7 text-xs gap-1 border-teal-200 text-teal-700 hover:bg-teal-50 w-full"
-                                onClick={() => document.getElementById(`rosbag-${selectedDevice.device_id}`)?.click()}
-                                disabled={selectedDevice.status === 'offline'}
-                              >
-                                <Upload className="h-3 w-3" />
-                                Upload .bag for Replay
-                              </Button>
-                            </label>
-                          </div>
-                          <p className="text-[10px] text-gray-400 mt-1.5">
-                            Upload a ROS bag file to replay against the current Behavior Tree.
-                          </p>
-                        </div>
-                      </section>
-                    </>
-                  )}
-
-                  {/* Bounded Topic Monitor */}
-                  {selectedDevice.ros_node && (
-                    <>
-                      <Separator />
-                      <section>
-                        <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                          <Radio className="h-3.5 w-3.5 text-teal-600" />
-                          Bounded Topic Monitor
-                          <span className="ml-1 text-[10px] font-normal text-gray-400 normal-case tracking-normal">
-                            allowed topics
-                          </span>
-                        </h3>
-                        <BoundedTopicMonitor deviceId={selectedDevice.device_id} />
-                      </section>
-                    </>
-                  )}
-
-                  <Separator />
-
-                  {/* ROS Monitor link */}
-                  <section>
-                    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                      <Radio className="h-3.5 w-3.5 text-teal-600" />
-                      ROS2 Monitor
-                    </h3>
-                    <Link
-                      href={`/infrastructure/runtimes/${selectedDevice.device_id}/ros-monitor`}
-                      className="inline-flex items-center gap-1.5 text-xs text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-md px-3 py-1.5 transition-colors font-medium"
-                    >
-                      <Radio className="h-3.5 w-3.5" />
-                      Open ROS Monitor
-                    </Link>
-                    <p className="text-[10px] text-gray-400 mt-1.5">
-                      View discovered topics, publish test messages, and call services.
-                    </p>
-                  </section>
-
-                  <Separator />
 
                   {/* Raw JSON */}
                   <section>
