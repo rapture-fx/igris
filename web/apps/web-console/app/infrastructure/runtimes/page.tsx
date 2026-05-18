@@ -305,7 +305,12 @@ function FleetDevicesContent() {
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
-          <h1 className="text-base font-semibold text-foreground">Runtimes</h1>
+          <div>
+            <h1 className="text-base font-semibold text-foreground">Runtimes</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Monitor connected execution runtimes, identity, health, and signed evidence activity.
+            </p>
+          </div>
 
           {runtimeQuota && (
             <div className="flex-shrink-0 min-w-[200px]">
