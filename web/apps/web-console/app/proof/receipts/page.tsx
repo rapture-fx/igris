@@ -327,7 +327,12 @@ function ReceiptsContent() {
 
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-base font-semibold text-foreground">Execution Receipts</h1>
+          <div>
+            <h1 className="text-base font-semibold text-foreground">Execution Receipts</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Signed task execution receipts with runtime identity, verification status, chain context, and safe exports.
+            </p>
+          </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <TimeRangePicker value={timeRange} onChange={setTimeRange} />
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportJSON}>
@@ -398,7 +403,7 @@ function ReceiptsContent() {
         {/* ── Receipts Table ────────────────────────────────────────────────── */}
         <SurfaceSection
           icon={FileCheck}
-          title="Receipt Log"
+          title="Signed Receipt Log"
           bodyClassName="px-0 py-0"
         >
           <div className="overflow-x-auto">
@@ -517,7 +522,7 @@ function ReceiptsContent() {
         <SurfaceSection
           icon={Shield}
           title="Receipt Verification"
-          description="Inspect the stored receipt hash, signature, and chain link for the selected receipt."
+          description="Inspect the stored receipt hash, signature, and available chain context for the selected receipt."
           actions={selected ? (
             <div className="flex items-center gap-2">
               {verifyResult?.ok && (
