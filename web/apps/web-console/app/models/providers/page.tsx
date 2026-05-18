@@ -63,7 +63,6 @@ const PROVIDER_OPTIONS = [
   { value: 'mistral', label: 'Mistral' },
   { value: 'google_gemini', label: 'Google Gemini' },
   { value: 'custom', label: 'Custom OpenAI-compatible' },
-  { value: 'local', label: 'Local (GGUF)' },
 ];
 
 const EMPTY_FORM: ProviderForm = { kind: '', key_id: '', endpoint: '', default_model: '' };
@@ -222,7 +221,10 @@ export default function ModelsProvidersPage() {
     <DashboardLayout>
       <div className="space-y-5">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-base font-semibold text-foreground">Model Providers</h1>
+          <h1 className="text-base font-semibold text-foreground">Provider Credentials</h1>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Credential and endpoint records available to controlled task execution.
+          </p>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
               <RefreshCw className="h-3.5 w-3.5" /> Refresh
@@ -248,7 +250,7 @@ export default function ModelsProvidersPage() {
           />
           <OverviewCard
             icon={CloudCog}
-            label="Models Available"
+            label="Endpoints Available"
             value={counts.totalModels}
             loading={isLoading}
           />
@@ -262,7 +264,7 @@ export default function ModelsProvidersPage() {
 
         <SurfaceSection
           icon={CloudCog}
-          title="Configured Providers"
+          title="Configured Provider Credentials"
           actions={
             providers.length > 0 ? (
               <span className="text-[11px] text-muted-foreground">{providers.length} configured</span>
@@ -274,7 +276,7 @@ export default function ModelsProvidersPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent bg-white">
-                  {['Provider', 'Status', 'Key Reference', 'Models', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
+                  {['Provider', 'Status', 'Key Reference', 'Endpoints', 'Latency', 'Success Rate', 'Last Checked', ''].map((col) => (
                     <TableHead key={col} className="text-xs font-medium text-muted-foreground uppercase tracking-wide h-9 px-4 bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
                       {col}
                     </TableHead>
