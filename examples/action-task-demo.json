@@ -1,0 +1,22 @@
+{
+  "task_type": "action_workflow",
+  "idempotency_key": "action-task-demo-001",
+  "action_task": {
+    "name": "action-task-demo",
+    "steps": [
+      { "action": "read_file", "path": "./examples/input/order-batch.json" },
+      {
+        "action": "http_call",
+        "method": "POST",
+        "url": "http://127.0.0.1:8089/process",
+        "headers": { "content-type": "application/json" },
+        "body": "{\"note\":\"action-task-demo http step\"}"
+      },
+      {
+        "action": "db_write",
+        "table": "action_task_events",
+        "record": { "status": "processed", "source": "action-task-demo" }
+      }
+    ]
+  }
+}
