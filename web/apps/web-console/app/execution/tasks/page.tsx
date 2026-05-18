@@ -78,6 +78,22 @@ function actionCount(task: Task): number | null {
   return null;
 }
 
+function actionSummary(task: Task): string {
+  if (!Array.isArray(task.action_evidence) || task.action_evidence.length === 0) {
+    return 'Not recorded';
+  }
+  const labels = task.action_evidence
+    .map((row) => row.action_type)
+    .filter(Boolean)
+    .map((action) => {
+      if (action === 'read_file') return 'read_file';
+      if (action === 'http_call') return 'http_call';
+      if (action === 'db_write') return 'db_write';
+      return action;
+    });
+  return labels.slice(0, 3).join(' / ') || 'Recorded';
+}
+
 function runtimeSummary(task: Task): string {
   const runtimeIds = new Set<string>();
   if (task.runtime_id) runtimeIds.add(task.runtime_id);
@@ -348,7 +364,7 @@ function ExecutionTasksContent() {
         <div className="space-y-1">
           <h1 className="text-base font-semibold text-foreground">Agent Tasks</h1>
           <p className="text-xs text-muted-foreground">
-            Tasks that run controlled actions, record recovery state, and produce verifiable proof.
+            Track controlled agent actions, recovery state, proof status, and runtime handoff.
           </p>
         </div>
 
@@ -513,13 +529,14 @@ function ExecutionTasksContent() {
               <div className="px-4 py-12 text-center">
                 {tasks.length === 0 ? (
                   /* Truly empty workspace */
-                  <div className="text-xs text-muted-foreground">
-                    No tasks yet
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <p>No tasks yet. Run the Action Task demo or submit a task to see action evidence, recovery state, and proof.</p>
+                    <p className="font-mono text-[11px] text-gray-500">Try: scripts/action_task_v1_proof_demo.sh</p>
                   </div>
                 ) : (
                   /* Filters are hiding tasks */
                   <div className="text-xs text-muted-foreground">
-                    No tasks match this filter
+                    No tasks match this filter.
                   </div>
                 )}
               </div>
@@ -564,7 +581,12 @@ function ExecutionTasksContent() {
                           <ExecutionStatusBadge status={task.status.toUpperCase()} />
                         </td>
                         <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
-                          {actionCount(task) ?? '—'}
+                          <div className="space-y-0.5">
+                            <div>{actionCount(task) ?? '—'}</div>
+                            {task.task_type === 'action_workflow' && (
+                              <div className="text-[10px] text-muted-foreground">{actionSummary(task)}</div>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-2.5">
                           <RecoveryBadge task={task} />
