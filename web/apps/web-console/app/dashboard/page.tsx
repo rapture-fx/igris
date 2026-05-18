@@ -120,13 +120,22 @@ export default function DashboardPage() {
       const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
       return status === 'verified';
     }).length;
+    const pendingReceipts = receipts.filter((receipt) => {
+      const status = String(receipt.status ?? receipt.verification_status ?? '').toLowerCase();
+      return status !== 'verified';
+    }).length;
     const activeTasks = tasks.filter((task) => ['pending', 'dispatched', 'checkpointed', 'recovering'].includes(task.status)).length;
     const completedTasks = tasks.filter((task) => task.status === 'completed').length;
+    const failedTasks = tasks.filter((task) => ['failed', 'cancelled', 'expired'].includes(task.status)).length;
+    const proofMismatchTasks = tasks.filter((task) => task.proof?.status === 'mismatch').length;
     const recoveredTasks = tasks.filter((task) => recoveryLabel(task) === 'Recovered').length;
     return {
       activeTasks,
       completedTasks,
       verifiedReceipts,
+      pendingReceipts,
+      failedTasks,
+      proofMismatchTasks,
       recoveredTasks,
       policyViolations: violations.length,
     };
@@ -148,6 +157,33 @@ export default function DashboardPage() {
   }, [receipts]);
 
   const pageError = tasksError ?? runsError ?? receiptsError ?? violationsError;
+
+  const attentionItems = [
+    {
+      label: 'Failed tasks',
+      value: digest.failedTasks,
+      href: '/execution/tasks',
+      detail: 'Open failed or cancelled tasks first.',
+    },
+    {
+      label: 'Pending verification',
+      value: digest.pendingReceipts,
+      href: '/proof/receipts',
+      detail: 'Verify receipts before relying on proof state.',
+    },
+    {
+      label: 'Proof mismatch',
+      value: digest.proofMismatchTasks,
+      href: '/execution/tasks?proof=mismatch',
+      detail: 'Review mismatched task proof.',
+    },
+    {
+      label: 'Policy violations',
+      value: digest.policyViolations,
+      href: '/proof/violations',
+      detail: 'Inspect bounded-action evidence.',
+    },
+  ];
 
   if (pageError) {
     return (
@@ -172,9 +208,9 @@ export default function DashboardPage() {
       <OnboardingModal />
       <div className="space-y-6">
         <div className="space-y-1">
-          <h1 className="text-base font-semibold text-foreground">Overview</h1>
+          <h1 className="text-base font-semibold text-foreground">Operator Overview</h1>
           <p className="text-xs text-muted-foreground">
-            Agent tasks, controlled actions, recovery state, receipt verification, and operator evidence.
+            Find tasks that need attention, proof that needs verification, and runtimes that may affect execution.
           </p>
         </div>
 
@@ -185,6 +221,26 @@ export default function DashboardPage() {
           <SummaryCard label="Recovered tasks" value={digest.recoveredTasks} icon={RotateCcw} loading={tasksLoading} />
           <SummaryCard label="Policy violations" value={digest.policyViolations} icon={AlertTriangle} loading={violationsLoading} />
         </div>
+
+        <Surface title="Needs Attention">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 px-4 py-4">
+            {attentionItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-medium text-gray-800">{item.label}</p>
+                  <span className={`text-sm font-semibold tabular-nums ${item.value > 0 ? 'text-amber-700' : 'text-gray-500'}`}>
+                    {item.value}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-gray-500">{item.value > 0 ? item.detail : 'No current records.'}</p>
+              </Link>
+            ))}
+          </div>
+        </Surface>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_0.75fr] gap-4">
           <Surface title="Latest Action Task" link={{ href: '/execution/tasks', label: 'All tasks' }}>
@@ -232,7 +288,7 @@ export default function DashboardPage() {
                     href={`/execution/tasks/${encodeURIComponent(latestActionTask.task_id)}`}
                     className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
                   >
-                    Open task evidence
+                    Open task
                     <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
@@ -281,6 +337,20 @@ export default function DashboardPage() {
             </div>
           </Surface>
         </div>
+
+        <Surface title="Recovery Summary" link={{ href: '/execution/tasks', label: 'Task recovery' }}>
+          <div className="px-4 py-4">
+            <div className="rounded-lg border border-gray-200 bg-white px-3 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium text-gray-800">Recovered tasks</p>
+                <span className="text-sm font-semibold tabular-nums text-gray-900">{digest.recoveredTasks}</span>
+              </div>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Recovery evidence is visible on Task Detail. Clean-host or cumulative recovery status is not inferred here.
+              </p>
+            </div>
+          </div>
+        </Surface>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-4">
           <Surface title="Bounded action violations" link={{ href: '/proof/violations', label: 'Violations' }}>
