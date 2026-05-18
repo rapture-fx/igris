@@ -1,0 +1,8 @@
+{
+  "batch_id": "demo-batch-001",
+  "note": "Synthetic demo input for examples/action-task-demo.json. Safe to commit; contains no real customer data.",
+  "orders": [
+    { "order_id": "demo-order-1", "sku": "demo-sku-a", "qty": 1 },
+    { "order_id": "demo-order-2", "sku": "demo-sku-b", "qty": 2 }
+  ]
+}
