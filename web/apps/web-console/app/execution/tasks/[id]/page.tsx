@@ -61,11 +61,6 @@ function describeStepAction(stepType: unknown): string {
     const model = infer.model;
     return typeof model === 'string' && model ? `Inference · ${model}` : 'Inference';
   }
-  const robotics = inner('RoboticsAction') ?? inner('robotics_action');
-  if (robotics) {
-    const action = robotics.action;
-    return typeof action === 'string' && action ? `Robotics · ${action}` : 'Robotics';
-  }
   if ('BtNode' in obj || 'bt_node' in obj) return 'Behavior tree';
   const key = Object.keys(obj)[0];
   return key ? key : '—';
@@ -484,8 +479,7 @@ export default function ExecutionTaskInspectorPage() {
             </div>
             <h1 className="text-base font-semibold text-gray-900">Task Inspector</h1>
             <p className="mt-0.5 text-xs text-gray-500">
-              Live durable execution state for agent tasks, including graph state, checkpoints,
-              and WAL progression.
+              Controlled action evidence, recovery state, receipt verification, and supporting execution records.
             </p>
           </div>
           {taskId && (
@@ -540,8 +534,8 @@ export default function ExecutionTaskInspectorPage() {
                     Every external action this task performed, in execution order — the controlled
                     target, committed status, recorded result, and durable digest.{' '}
                     {actionEvidence.authoritative
-                      ? 'Sourced from the task API’s safe action evidence (compiled graph, WAL, and checkpoint); raw WAL, graph nodes, and signed artifacts remain below.'
-                      : 'Best-effort view joined from committed WAL steps and graph blackboard nodes — raw WAL, graph nodes, and signed artifacts remain below.'}
+                      ? 'Sourced from safe task evidence; raw WAL, graph nodes, and signed artifacts remain below as secondary records.'
+                      : 'Best-effort view joined from committed WAL steps and graph blackboard nodes; raw records remain below as secondary details.'}
                   </p>
                   {actionEvidence.rows.length === 0 ? (
                     <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -879,6 +873,13 @@ export default function ExecutionTaskInspectorPage() {
                           label: 'Duplicate Steps',
                           value: recoveryEvidence.duplicateStepsDetected ? 'Detected' : 'None detected',
                         },
+                        {
+                          label: 'Committed Actions',
+                          value:
+                            recoveryEvidence.recovered && !recoveryEvidence.duplicateStepsDetected
+                              ? 'No duplicate committed WAL steps detected'
+                              : 'No recovery handoff evidence',
+                        },
                       ]}
                     />
                   </>
@@ -898,7 +899,7 @@ export default function ExecutionTaskInspectorPage() {
                     <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
                       Graph Blackboard
                     </p>
-                    <JSONViewer data={task.graph_blackboard ?? {}} defaultOpen />
+                    <JSONViewer data={task.graph_blackboard ?? {}} defaultOpen={false} />
                   </div>
                   <div>
                     <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
@@ -1000,7 +1001,7 @@ export default function ExecutionTaskInspectorPage() {
                     <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
                       Checkpoint Metadata
                     </p>
-                    <JSONViewer data={task.checkpoint_metadata ?? {}} defaultOpen />
+                    <JSONViewer data={task.checkpoint_metadata ?? {}} defaultOpen={false} />
                   </div>
                   <KeyValueGrid
                     rows={[
