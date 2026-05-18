@@ -93,8 +93,7 @@ pub fn tool_list() -> Value {
         "tools": [
             {
                 "name": "igris_submit_task",
-                "description": "Submit a recoverable Igris task. Accepts an Action Task V1 body. \
-Raw file contents, HTTP bodies/headers, and DB payloads are never returned.",
+                "description": "Submit a recoverable Igris task. Accepts an Action Task V1 body. Raw file contents, HTTP bodies/headers, and DB payloads are never returned.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -108,8 +107,7 @@ Raw file contents, HTTP bodies/headers, and DB payloads are never returned.",
             },
             {
                 "name": "igris_get_task_status",
-                "description": "Get a task's high-level status and progress counters. \
-Returns only safe summary fields — no raw payloads.",
+                "description": "Get a task's high-level status and progress counters. Returns only safe summary fields — no raw payloads.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -120,9 +118,7 @@ Returns only safe summary fields — no raw payloads.",
             },
             {
                 "name": "igris_get_action_evidence",
-                "description": "Return the safe action_evidence array for a task. \
-Each entry includes action_type, status, target_summary, result_digest, and a \
-small whitelisted result_summary. Raw payloads are excluded.",
+                "description": "Return the safe action_evidence array for a task. Each entry includes action_type, status, target_summary, result_digest, and a small whitelisted result_summary. Raw payloads are excluded.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -133,9 +129,7 @@ small whitelisted result_summary. Raw payloads are excluded.",
             },
             {
                 "name": "igris_verify_task",
-                "description": "Run fresh cryptographic + chain verification on a task's signed \
-receipt. Returns verified, hash_valid, signature_matches, runtime_key_found, chain_link_valid, and \
-verification_reason.",
+                "description": "Run fresh cryptographic + chain verification on a task's signed receipt. Returns verified, hash_valid, signature_matches, runtime_key_found, chain_link_valid, and verification_reason.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -146,8 +140,7 @@ verification_reason.",
             },
             {
                 "name": "igris_export_evidence",
-                "description": "Export a task's safe evidence as JSON or Markdown. Raw payloads are \
-never included. Suitable for audit or operator review.",
+                "description": "Export a task's safe evidence as JSON or Markdown. Raw payloads are never included. Suitable for audit or operator review.",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
@@ -198,13 +191,11 @@ async fn tool_submit(client: &Client, args: &Value) -> Result<Value> {
     super::action_task::validate(&body)?;
 
     let resp = client.submit_task(&body).await?;
-    Ok(text_content(
-        json!({
-            "task_id": resp.task_id,
-            "status": resp.status,
-            "summary": format!("Task accepted: {}", resp.task_id)
-        }),
-    ))
+    Ok(text_content(json!({
+        "task_id": resp.task_id,
+        "status": resp.status,
+        "summary": format!("Task accepted: {}", resp.task_id)
+    })))
 }
 
 async fn tool_status(client: &Client, args: &Value) -> Result<Value> {
@@ -411,7 +402,13 @@ fn render_markdown(safe: &Value) -> String {
                 .get("target_summary")
                 .and_then(|v| v.as_str())
                 .unwrap_or("");
-            out.push_str(&format!("{}. **{}** — `{}` → `{}`\n", i + 1, kind, st, target));
+            out.push_str(&format!(
+                "{}. **{}** — `{}` → `{}`\n",
+                i + 1,
+                kind,
+                st,
+                target
+            ));
         }
     }
     out
@@ -464,11 +461,7 @@ async fn handle_request(client: &Client, req: JsonRpcRequest) -> Option<JsonRpcR
         }
         "tools/list" => Some(JsonRpcResponse::ok(id.unwrap_or(Value::Null), tool_list())),
         "tools/call" => {
-            let name = match req
-                .params
-                .get("name")
-                .and_then(|v| v.as_str())
-            {
+            let name = match req.params.get("name").and_then(|v| v.as_str()) {
                 Some(n) => n.to_string(),
                 None => {
                     return Some(JsonRpcResponse::err(
@@ -593,6 +586,24 @@ mod tests {
     }
 
     #[test]
+    fn tool_descriptions_have_no_stray_indentation() {
+        // rustfmt's multi-line string handling once silently injected leading
+        // whitespace into descriptions. Lock against regressions: no
+        // description should contain a run of 2+ spaces, since the source
+        // uses single-line strings now.
+        let list = tool_list();
+        let tools = list.get("tools").and_then(|v| v.as_array()).unwrap();
+        for t in tools {
+            let desc = t.get("description").and_then(|v| v.as_str()).unwrap();
+            assert!(
+                !desc.contains("  "),
+                "description has stray indentation: `{}`",
+                desc
+            );
+        }
+    }
+
+    #[test]
     fn tool_descriptions_state_no_raw_payloads() {
         // Documented contract: tool descriptions must tell clients that raw
         // payloads are not returned. The wording isn't fixed, but the phrase
@@ -635,10 +646,7 @@ mod tests {
         assert!(safe.get("execution_envelope").is_none());
         assert!(safe.get("execution_receipt").is_none());
         assert!(safe.get("task_definition").is_none());
-        assert_eq!(
-            safe.get("task_id").and_then(|v| v.as_str()),
-            Some("t1")
-        );
+        assert_eq!(safe.get("task_id").and_then(|v| v.as_str()), Some("t1"));
     }
 
     #[test]
@@ -659,10 +667,16 @@ mod tests {
         });
         let safe = build_export_payload(&task);
         let entry = &safe.get("action_evidence").unwrap().as_array().unwrap()[0];
-        let rs = entry.get("result_summary").and_then(|v| v.as_object()).unwrap();
+        let rs = entry
+            .get("result_summary")
+            .and_then(|v| v.as_object())
+            .unwrap();
         assert!(rs.contains_key("table"));
         assert!(rs.contains_key("row_id"));
-        assert!(!rs.contains_key("secret_payload"), "exporter must drop unknown result_summary keys");
+        assert!(
+            !rs.contains_key("secret_payload"),
+            "exporter must drop unknown result_summary keys"
+        );
     }
 
     #[test]
