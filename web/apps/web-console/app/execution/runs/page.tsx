@@ -133,7 +133,7 @@ export default function ExecutionRunsPage() {
           <div>
             <h1 className="text-base font-semibold text-foreground">Runs</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Execution records for governed AI work, receipts, and enforcement outcomes.
+              Execution records behind agent tasks, including runtime identity, receipts, proof state, and enforcement outcomes.
             </p>
           </div>
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
@@ -151,12 +151,12 @@ export default function ExecutionRunsPage() {
 
         <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-xs font-medium text-foreground">Execution Records</span>
+            <span className="text-xs font-medium text-foreground">Task Execution Records</span>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="run id · agent · device"
+                  placeholder="run id · agent · runtime"
                   className="pl-8 h-7 text-xs w-52"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -196,8 +196,7 @@ export default function ExecutionRunsPage() {
                   <tr className="border-b border-border">
                     <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Run ID</th>
                     <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Agent</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Device</th>
-                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Model</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Runtime</th>
                     <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Started</th>
                     <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Duration</th>
                     <th className="px-4 py-2.5 text-left font-medium text-foreground whitespace-nowrap">Status</th>
@@ -210,7 +209,7 @@ export default function ExecutionRunsPage() {
                   {isLoading ? (
                     Array.from({ length: 8 }).map((_, rowIndex) => (
                       <tr key={rowIndex} className="border-b border-border/50">
-                        {Array.from({ length: 10 }).map((_, cellIndex) => (
+                        {Array.from({ length: 9 }).map((_, cellIndex) => (
                           <td key={cellIndex} className="px-4 py-2.5">
                             <Skeleton className="h-3.5 w-16" />
                           </td>
@@ -219,7 +218,7 @@ export default function ExecutionRunsPage() {
                     ))
                   ) : filteredRuns.length === 0 ? (
                     <tr>
-                      <td colSpan={10} className="px-4 py-16 text-center text-muted-foreground">
+                      <td colSpan={9} className="px-4 py-16 text-center text-muted-foreground">
                         No runs found for the selected filters.
                       </td>
                     </tr>
@@ -241,7 +240,6 @@ export default function ExecutionRunsPage() {
                         <td className="px-4 py-2.5 text-muted-foreground">
                           {run.runtime_id || run.device_id ? truncateText(run.runtime_id ?? run.device_id, 14) : '—'}
                         </td>
-                        <td className="px-4 py-2.5 text-muted-foreground">{run.model ?? '—'}</td>
                         <td className="px-4 py-2.5 text-muted-foreground tabular-nums">{getRelativeTime(run.started_at)}</td>
                         <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
                           {run.duration_ms != null ? formatDurationMs(run.duration_ms) : '—'}
