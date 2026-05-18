@@ -328,9 +328,9 @@ function ReceiptsContent() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-base font-semibold text-foreground">Execution Receipts</h1>
+            <h1 className="text-base font-semibold text-foreground">Receipts</h1>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Signed task execution receipts with runtime identity, verification status, chain context, and safe exports.
+              Verify signed receipts, chain continuity, runtime identity, and export safe evidence.
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -522,7 +522,7 @@ function ReceiptsContent() {
         <SurfaceSection
           icon={Shield}
           title="Receipt Verification"
-          description="Inspect the stored receipt hash, signature, and available chain context for the selected receipt."
+          description="Inspect the stored receipt hash, signature, and chain context. Chain status remains unknown until verification returns an authoritative result."
           actions={selected ? (
             <div className="flex items-center gap-2">
               {verifyResult?.ok && (
@@ -696,7 +696,7 @@ function ReceiptsContent() {
             <Separator />
 
             {/* Hash Continuity */}
-            <DrawerSection title="Hash Continuity">
+            <DrawerSection title="Hash Continuity Estimate">
               <ChainContinuityBar
                 hash={selected.hash}
                 prevHash={selected.prev_hash}
