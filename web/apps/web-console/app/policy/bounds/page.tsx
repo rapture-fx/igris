@@ -56,6 +56,7 @@ const RESOURCE_NUMBER_FIELDS = [
 function SurfaceSection({
   icon: Icon,
   title,
+  description,
   actions,
   bodyClassName = 'px-4 py-4',
   className = '',
@@ -63,6 +64,7 @@ function SurfaceSection({
 }: {
   icon: LucideIcon;
   title: string;
+  description?: ReactNode;
   actions?: ReactNode;
   bodyClassName?: string;
   className?: string;
@@ -71,9 +73,12 @@ function SurfaceSection({
   return (
     <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
       <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5">
-          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-          <p className="text-xs font-medium text-foreground">{title}</p>
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
+            <p className="text-xs font-medium text-foreground">{title}</p>
+          </div>
+          {description ? <p className="text-[11px] text-muted-foreground">{description}</p> : null}
         </div>
         {actions}
       </div>
@@ -206,30 +211,38 @@ export default function PolicyBoundsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-5 max-w-[900px] mx-auto">
-        <div className="flex items-center justify-end gap-4">
-          {isDirty && (
-            <span className="text-[11px] text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full border border-yellow-200 whitespace-nowrap">
-              Unsaved changes
-            </span>
-          )}
-          <Button
-            variant="outline" size="sm" className="h-8 text-xs gap-1.5"
-            onClick={() => serverBounds && setForm(serverBounds)}
-            disabled={!isDirty}
-          >
-            <RotateCcw className="h-3.5 w-3.5" /> Reset
-          </Button>
-          <Button
-            size="sm" className="h-8 text-xs gap-1.5"
-            onClick={() => mutation.mutate(form)}
-            disabled={!isDirty || mutation.isPending}
-          >
-            {savedIndicator
-              ? <><CheckCircle className="h-3.5 w-3.5" /> Saved</>
-              : mutation.isPending
-              ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving…</>
-              : <><Save className="h-3.5 w-3.5" /> Save Changes</>}
-          </Button>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-base font-semibold text-foreground">Bounds</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Configure limits for controlled execution, retries, targets, and evidence exposure.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {isDirty && (
+              <span className="text-[11px] text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full border border-yellow-200 whitespace-nowrap">
+                Unsaved changes
+              </span>
+            )}
+            <Button
+              variant="outline" size="sm" className="h-8 text-xs gap-1.5"
+              onClick={() => serverBounds && setForm(serverBounds)}
+              disabled={!isDirty}
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Reset
+            </Button>
+            <Button
+              size="sm" className="h-8 text-xs gap-1.5"
+              onClick={() => mutation.mutate(form)}
+              disabled={!isDirty || mutation.isPending}
+            >
+              {savedIndicator
+                ? <><CheckCircle className="h-3.5 w-3.5" /> Saved</>
+                : mutation.isPending
+                ? <><RefreshCw className="h-3.5 w-3.5 animate-spin" /> Saving…</>
+                : <><Save className="h-3.5 w-3.5" /> Save Changes</>}
+            </Button>
+          </div>
         </div>
 
         {mutation.isError && (
@@ -241,6 +254,7 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Zap}
           title="Execution Limits"
+          description="Protect task execution with duration, tick, and step limits."
         >
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -273,6 +287,7 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Cpu}
           title="Resource Limits"
+          description="Limit CPU, memory, and disk writes for controlled actions."
         >
           {isLoading ? (
             <div className="space-y-3">
@@ -361,10 +376,11 @@ export default function PolicyBoundsPage() {
         <SurfaceSection
           icon={Brain}
           title="Apply to Agents"
+          description="Assign this policy version to registered execution agents."
         >
           {agents.length === 0 ? (
             <div className="rounded-lg border border-dashed border-black/[0.08] dark:border-white/[0.08] bg-white px-4 py-5 text-center">
-              <p className="text-xs text-muted-foreground">No agents registered. Deploy a runtime to get started.</p>
+              <p className="text-xs text-muted-foreground">No agents registered. Register a runtime to get started.</p>
             </div>
           ) : (
             <div className="space-y-3">
