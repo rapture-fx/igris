@@ -27,9 +27,9 @@ import {
   Search,
   ShieldCheck,
   Shield,
+  RotateCcw,
 } from 'lucide-react';
 import { type Task, useTask, useTasks, useTaskSteps } from '@/hooks/useTasks';
-import { useTenant } from '@/hooks/useTenant';
 import {
   CopyButton,
   ExecutionStatusBadge,
@@ -37,7 +37,6 @@ import {
   KeyValueGrid,
 } from '@/components/execution/shared';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
-import { API_BASE_URL } from '@/utils/constants';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,6 +68,54 @@ function findRelativeTaskByBuckets(
     if (buckets.includes(proofBucket(tasks[index]))) return tasks[index].task_id;
   }
   return null;
+}
+
+function actionCount(task: Task): number | null {
+  if (Array.isArray(task.action_evidence)) return task.action_evidence.length;
+  if (task.checkpoint_summary?.wal_entry_count !== undefined && task.task_type === 'action_workflow') {
+    return task.checkpoint_summary.wal_entry_count;
+  }
+  return null;
+}
+
+function runtimeSummary(task: Task): string {
+  const runtimeIds = new Set<string>();
+  if (task.runtime_id) runtimeIds.add(task.runtime_id);
+  if (task.checkpoint_runtime_id) runtimeIds.add(task.checkpoint_runtime_id);
+  for (const row of task.action_evidence ?? []) {
+    if (row.runtime_id) runtimeIds.add(row.runtime_id);
+  }
+  if (runtimeIds.size === 0) return '—';
+  if (runtimeIds.size === 1) return truncateText([...runtimeIds][0], 18);
+  return `${runtimeIds.size} runtimes`;
+}
+
+function recoveryState(task: Task): 'Recovered' | 'Recovering' | 'Checkpointed' | 'Ready' | 'No recovery' | 'Unknown' {
+  const runtimeIds = new Set((task.action_evidence ?? []).map((row) => row.runtime_id).filter(Boolean));
+  if (runtimeIds.size > 1) return 'Recovered';
+  if (task.status === 'recovering') return 'Recovering';
+  if (task.checkpoint_summary || task.checkpoint_digest) return 'Checkpointed';
+  if (task.recovery?.redispatch_eligible) return 'Ready';
+  if (!task.dispatched_at && !task.completed_at) return 'Unknown';
+  return 'No recovery';
+}
+
+function RecoveryBadge({ task }: { task: Task }) {
+  const state = recoveryState(task);
+  const cls =
+    state === 'Recovered'
+      ? 'border-green-200 bg-green-50 text-green-700'
+      : state === 'Recovering' || state === 'Ready'
+        ? 'border-amber-200 bg-amber-50 text-amber-700'
+        : state === 'Checkpointed'
+          ? 'border-blue-200 bg-blue-50 text-blue-700'
+          : 'border-gray-200 bg-gray-50 text-gray-600';
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium ${cls}`}>
+      <RotateCcw className="h-3 w-3" />
+      {state}
+    </span>
+  );
 }
 
 // ─── Proof badge ──────────────────────────────────────────────────────────────
@@ -140,7 +187,6 @@ function ExecutionTasksContent() {
   const { data, isLoading } = useTasks({ limit: 100 });
   const { data: selectedTask } = useTask(selectedTaskId);
   const { data: selectedSteps } = useTaskSteps(selectedTaskId);
-  const { data: tenant } = useTenant();
 
   const tasks = data?.tasks ?? [];
 
@@ -302,7 +348,7 @@ function ExecutionTasksContent() {
         <div className="space-y-1">
           <h1 className="text-base font-semibold text-foreground">Agent Tasks</h1>
           <p className="text-xs text-muted-foreground">
-            Tasks run through Igris with action evidence, recovery state, and verifiable proof.
+            Tasks that run controlled actions, record recovery state, and produce verifiable proof.
           </p>
         </div>
 
@@ -485,8 +531,10 @@ function ExecutionTasksContent() {
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Task</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Type</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Status</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Actions</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Recovery</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Proof</th>
-                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Runtime</th>
+                      <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Runtime(s)</th>
                       <th className="px-4 py-2.5 text-left font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Last Activity</th>
                       <th className="px-4 py-2.5 text-right font-medium text-foreground uppercase tracking-wide whitespace-nowrap">Action</th>
                     </tr>
@@ -515,6 +563,12 @@ function ExecutionTasksContent() {
                         <td className="px-4 py-2.5">
                           <ExecutionStatusBadge status={task.status.toUpperCase()} />
                         </td>
+                        <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
+                          {actionCount(task) ?? '—'}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <RecoveryBadge task={task} />
+                        </td>
                         <td className="px-4 py-2.5">
                           <div className="space-y-0.5">
                             <ProofBadge task={task} />
@@ -526,7 +580,7 @@ function ExecutionTasksContent() {
                           </div>
                         </td>
                         <td className="px-4 py-2.5 font-mono text-muted-foreground">
-                          {task.runtime_id ? truncateText(task.runtime_id, 18) : '—'}
+                          {runtimeSummary(task)}
                         </td>
                         <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
                           {getRelativeTime(task.completed_at ?? task.dispatched_at ?? task.created_at)}
