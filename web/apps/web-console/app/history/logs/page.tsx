@@ -239,7 +239,7 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
             <div className="flex items-center gap-2 min-w-0">
               <Activity className="h-3 w-3 text-gray-400 flex-shrink-0" />
               {execId === '__device__' ? (
-                <span className="text-xs text-gray-400">device events</span>
+                <span className="text-xs text-gray-400">runtime events</span>
               ) : (
                 <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-xs text-blue-600 truncate">{execId}</span>
@@ -374,7 +374,7 @@ function LogsContent() {
   // Active chips
   const activeFilters = [
     agentFilter   !== 'all' && { key: 'agent',   label: `agent: ${agentFilter}`,    clear: () => setAgentFilter('all') },
-    deviceFilter  !== 'all' && { key: 'device',  label: `device: ${deviceFilter}`,  clear: () => setDeviceFilter('all') },
+    deviceFilter  !== 'all' && { key: 'runtime', label: `runtime: ${deviceFilter}`, clear: () => setDeviceFilter('all') },
     execFilter              && { key: 'exec',    label: `exec: ${execFilter}`,       clear: () => setExecFilter('') },
     typeFilter    !== 'all' && { key: 'type',    label: typeFilter,                  clear: () => setTypeFilter('all') },
     severityFilter !== 'all' && { key: 'sev',   label: severityFilter,              clear: () => setSeverityFilter('all') },
@@ -406,6 +406,14 @@ function LogsContent() {
   return (
     <DashboardLayout fullWidth>
       <div className="flex flex-col gap-2 flex-1 min-h-0">
+        <div className="flex items-start justify-between gap-4 flex-shrink-0">
+          <div>
+            <h1 className="text-base font-semibold text-foreground">Logs</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Debug raw events after the operator evidence view is not enough.
+            </p>
+          </div>
+        </div>
 
         {/* ── Filter bar ────────────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2 flex-shrink-0">
@@ -417,9 +425,9 @@ function LogsContent() {
             </SelectContent>
           </Select>
           <Select value={deviceFilter} onValueChange={setDeviceFilter}>
-            <SelectTrigger className="h-auto py-2 w-52 text-xs bg-white shadow-none"><SelectValue placeholder="all devices" /></SelectTrigger>
+            <SelectTrigger className="h-auto py-2 w-52 text-xs bg-white shadow-none"><SelectValue placeholder="all runtimes" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all" className="text-xs">all devices</SelectItem>
+              <SelectItem value="all" className="text-xs">all runtimes</SelectItem>
               {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
             </SelectContent>
           </Select>
@@ -879,7 +887,7 @@ function LogsContent() {
                   href: `/execution/runs/${selected.execution_id}`,
                 }] : []),
                 ...(selected.agent_id ? [{ label: 'agent_id',  value: selected.agent_id,  copyable: true, copyValue: selected.agent_id }] : []),
-                ...(selected.device_id ? [{ label: 'device_id', value: selected.device_id, copyable: true, copyValue: selected.device_id }] : []),
+                ...(selected.device_id ? [{ label: 'runtime_id', value: selected.device_id, copyable: true, copyValue: selected.device_id }] : []),
               ]} />
             </DrawerSection>
 
@@ -942,7 +950,7 @@ function LogsContent() {
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         <span className="text-xs text-violet-600 group-hover:text-violet-700 font-mono truncate">{selected.device_id}</span>
-                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Device →</span>
+                        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Runtime →</span>
                       </a>
                     )}
                     {selected.event_type === 'ReceiptSigned' && selected.execution_id && (
