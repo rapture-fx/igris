@@ -59,5 +59,8 @@ jobs:
       - name: Run mandatory governance API Postgres migration tests
         run: go test ./igris-overture/api -run 'TestRoboticsPolicyActivationWithPostgresMigrations|TestExportRoboticsAuditBundleIncludesKeyLifecycleAndReplay|TestHILRoboticsStopAndCancelEvidenceExportsThroughAuditBundle|TestCleanupExpiredRoboticsPolicyCommandNonces' -count=1 -timeout=120s
 
+      - name: Run mandatory API-key auth Postgres migration tests
+        run: go test ./igris-overture/api -run 'TestTenantEmailAlignmentMigration|TestBetterAuth_RealPostgres' -count=1 -timeout=120s
+
       - name: Run mandatory governance coordinator Postgres replay tests
         run: go test ./igris-overture/coordinator -run 'TestRoboticsReceiptReplayWithPostgresMigrations|TestRoboticsPolicyAuthorizationWithPostgresMigrations|TestAIToolReplayPostgres043' -count=1 -timeout=120s
