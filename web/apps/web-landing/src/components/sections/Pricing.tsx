@@ -16,14 +16,14 @@ export default function Pricing() {
 
   return (
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
-      <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+      <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-2 md:px-4 lg:px-6 py-8 bg-white dark:bg-dark-bg z-10">
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {PRICING_TIERS.map((tier, index) => (
                 <div
                   key={index}
-                  className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col min-h-[640px]"
+                  className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col"
                 >
                   {/* Header strip */}
                   <div className="px-5 pt-4 pb-3 flex items-center justify-between" style={{ fontFamily: SANS }}>
@@ -43,7 +43,7 @@ export default function Pricing() {
                   </div>
 
                   {/* Inner nested panel */}
-                  <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-5 pb-6 flex flex-col flex-1">
+                  <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-4 pb-4 flex flex-col flex-1">
                     {/* Price */}
                     <div className="mb-3">
                       <span
@@ -60,12 +60,12 @@ export default function Pricing() {
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-5 leading-relaxed" style={{ fontFamily: SANS }}>
+                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-3 leading-relaxed" style={{ fontFamily: SANS }}>
                       {tier.description}
                     </p>
 
                     {/* Features */}
-                    <ul className="space-y-2 flex-1 mb-6">
+                    <ul className="space-y-1.5 flex-1 mb-4">
                       {tier.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-2">
                           <span className="text-gray-400 dark:text-[#555] text-xs mt-0.5 select-none">–</span>
