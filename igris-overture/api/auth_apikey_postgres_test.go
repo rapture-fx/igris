@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"io"
 	"net/http"
@@ -58,6 +59,47 @@ func ensureTenantEmailColumn(t *testing.T, db *sql.DB) {
 		t.Skip("tenants.tenant_email missing — apply migration 050 (or run scripts/cli_mcp_smoke_demo.sh) and re-run")
 	}
 	require.NoError(t, err)
+}
+
+func TestTenantEmailAlignmentMigration_AddsAndBackfillsColumn(t *testing.T) {
+	db := openPostgresForAuthTest(t)
+	ctx := context.Background()
+	conn, err := db.Conn(ctx)
+	require.NoError(t, err)
+	defer conn.Close()
+
+	schema := "tenant_email_migration_test_" + randomHex16(t)
+	_, err = conn.ExecContext(ctx, `CREATE SCHEMA `+schema)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, _ = db.Exec(`DROP SCHEMA ` + schema + ` CASCADE`)
+	})
+
+	_, err = conn.ExecContext(ctx, `SET search_path TO `+schema+`, public`)
+	require.NoError(t, err)
+	_, err = conn.ExecContext(ctx, `
+		CREATE TABLE tenants (
+			tenant_id text PRIMARY KEY,
+			email text
+		);
+		INSERT INTO tenants (tenant_id, email)
+		VALUES ('migration-test-tenant', 'migration-test@example.test');
+	`)
+	require.NoError(t, err)
+
+	sqlBytes, err := os.ReadFile("../database/migrations/050_tenant_email_alignment.sql")
+	require.NoError(t, err)
+
+	_, err = conn.ExecContext(ctx, string(sqlBytes))
+	require.NoError(t, err, "migration 050 must apply to an older tenants(email) schema")
+
+	var tenantEmail string
+	err = conn.QueryRowContext(ctx, `SELECT tenant_email FROM tenants WHERE tenant_id = 'migration-test-tenant'`).Scan(&tenantEmail)
+	require.NoError(t, err)
+	require.Equal(t, "migration-test@example.test", tenantEmail)
+
+	_, err = conn.ExecContext(ctx, string(sqlBytes))
+	require.NoError(t, err, "migration 050 must remain idempotent")
 }
 
 // seedTestTenant inserts a tenants row with a hashed API key. The cleanup
