@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 
 const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
-const borderStyle = 'var(--section-border)'
+const borderStyle = 'var(--capabilities-border)'
 
 // ─────────────────────────────────────────────────────────────
 // CARD 01 · Run · architecture diagram (grouped bounding boxes)
@@ -603,7 +603,7 @@ export default function Capabilities() {
         }
       `}</style>
 
-      <div className="mx-auto max-w-none px-3 sm:px-4 lg:px-5">
+      <div className="px-0">
         <div className="px-0">
 
           {/* Section heading — eyebrow / title / subtext */}
@@ -651,24 +651,7 @@ export default function Capabilities() {
             </div>
           </div>
 
-          {/* Proof flow strip — anchors the 2x2 below */}
-          <div
-            className="hidden md:flex items-center gap-3 pb-10 text-[10px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-            style={{ fontFamily: MONO }}
-          >
-            {[
-              'CONTROLLED ACTIONS',
-              'RECORDED PROGRESS',
-              'CLEAN-HOST RECOVERY',
-              'SIGNED RECEIPTS',
-              'OPERATOR INSPECTION',
-            ].map((s, i, arr) => (
-              <React.Fragment key={s}>
-                <span className={i === arr.length - 1 ? 'text-emerald-700 dark:text-emerald-400' : ''}>{s}</span>
-                {i < arr.length - 1 && <span className="text-gray-300 dark:text-[#3a3a32]">/</span>}
-              </React.Fragment>
-            ))}
-          </div>
+          
 
           {/* 2×2 card grid */}
           <div
@@ -704,7 +687,7 @@ export default function Capabilities() {
 
                 {/* Visual area — fixed height so all four cards align */}
                 <div
-                  className="px-6 md:px-7 pt-6 pb-8 flex items-center justify-center"
+                  className="px-6 md:px-7 pt-6 pb-8 flex items-center justify-center text-gray-900 dark:text-[#c8c8b8]"
                   style={{ height: 'clamp(260px, 26vw, 320px)' }}
                 >
                   <div className="w-full">
@@ -713,7 +696,7 @@ export default function Capabilities() {
                 </div>
 
                 {/* Title + body + sublist row */}
-                <div className="px-7 md:px-9 pt-6 pb-8 mt-auto flex-1 flex flex-col" style={{ borderTop: borderStyle }}>
+                <div className="px-7 md:px-9 pt-6 pb-8 mt-auto flex-1 flex flex-col">
                   <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-x-8 gap-y-5 items-start">
                     <div>
                       <h3
@@ -739,7 +722,7 @@ export default function Capabilities() {
                       </p>
                       <a
                         href={c.cta.href}
-                        className="mt-5 self-start inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
+                        className="mt-5 self-start inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12] normal-case"
                         style={{ fontFamily: SANS }}
                       >
                         {c.cta.label} ↗
