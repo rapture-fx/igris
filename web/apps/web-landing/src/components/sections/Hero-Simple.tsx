@@ -12,9 +12,9 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
       style={{ minHeight: 'clamp(620px, 84vh, 820px)' }}
     >
-      <div className="relative mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="relative mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
         <div>
-          <div className="flex flex-col items-start text-left justify-end pt-40 md:pt-56 pb-4 md:pb-6">
+          <div className="flex flex-col items-start text-left justify-end pt-8 md:pt-10 pb-4 md:pb-6">
 
             <h1
               className="text-[#000000] dark:text-[#f6f6f4]"
@@ -68,7 +68,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8 mt-10">
+      <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8 mt-10 pb-24 md:pb-32">
         <img
           src="/hand.png"
           alt=""
