@@ -17,7 +17,7 @@ export default function ClosingPosition() {
   }, [])
   return (
     <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-none px-3 sm:px-4 lg:px-5">
+      <div className="px-0">
         <div className="px-0">
 
           <div className="pt-12 md:pt-20 pb-12 md:pb-20 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
