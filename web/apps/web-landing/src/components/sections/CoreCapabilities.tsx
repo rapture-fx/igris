@@ -75,10 +75,7 @@ export default function CoreCapabilities() {
         <div className="px-4 md:px-8 lg:px-12">
 
           {/* FIG marker */}
-          <div className="flex items-baseline justify-between pt-8 pb-6 md:pt-10 md:pb-8">
-            <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: MONO }}>
-              FIG.05
-            </span>
+          <div className="pt-8 pb-6 md:pt-10 md:pb-8">
             <span className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a] text-right" style={{ fontFamily: MONO }}>
               EXECUTION&nbsp;GUARANTEES
             </span>
