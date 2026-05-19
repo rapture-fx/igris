@@ -6,6 +6,7 @@
   --font-geist-mono: var(--font-inter);
   --font-geist-pixel-square: var(--font-inter);
   --section-border: 0.5px solid rgba(209, 213, 219, 0.35);
+  --capabilities-border: 1px solid rgba(0, 0, 0, 0.16);
   --landing-surface: #f9f9fa;
   --landing-surface-border: rgba(229, 231, 235, 1);
   --landing-surface-border-strong: rgba(209, 213, 219, 0.9);
@@ -18,6 +19,7 @@
 
 html.dark {
   --section-border: 0.5px solid rgba(246, 246, 244, 0.07);
+  --capabilities-border: 1px solid rgba(246, 246, 244, 0.18);
   --landing-surface: #161515;
   --landing-surface-border: rgba(246, 246, 244, 0.08);
   --landing-surface-border-strong: rgba(246, 246, 244, 0.15);
