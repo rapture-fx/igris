@@ -93,18 +93,12 @@ export default function Recovery() {
         >
 
           {/* Section anchor */}
-          <div className="flex items-baseline justify-between pt-10 md:pt-14 pb-3">
+          <div className="pt-10 md:pt-14 pb-3">
             <span
               className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO }}
             >
               03&nbsp;&nbsp;CONTINUITY
-            </span>
-            <span
-              className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-              style={{ fontFamily: MONO }}
-            >
-              FIG.03
             </span>
           </div>
 
