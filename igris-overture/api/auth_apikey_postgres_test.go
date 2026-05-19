@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -45,19 +46,49 @@ func openPostgresForAuthTest(t *testing.T) *sql.DB {
 	return db
 }
 
-// ensureTenantEmailColumn asserts that migration 050 (or equivalent) has
-// already been applied. We do not run the migration here — the smoke harness
-// is the canonical applier; tests assert preconditions.
-func ensureTenantEmailColumn(t *testing.T, db *sql.DB) {
+// prepareTenantEmailAuthSchema creates an older tenants(email) table shape,
+// applies migration 050, and pins this test's DB handle to the isolated schema.
+func prepareTenantEmailAuthSchema(t *testing.T, db *sql.DB) {
 	t.Helper()
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+
+	schema := "tenant_email_auth_test_" + randomHex16(t)
+	_, err := db.Exec(`CREATE SCHEMA ` + schema)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, _ = db.Exec(`DROP SCHEMA ` + schema + ` CASCADE`)
+	})
+
+	_, err = db.Exec(`SET search_path TO ` + schema + `, public`)
+	require.NoError(t, err)
+	_, err = db.Exec(`
+		CREATE TABLE tenants (
+			tenant_id text PRIMARY KEY,
+			tenant_name text NOT NULL DEFAULT '',
+			email text,
+			status text NOT NULL DEFAULT 'active',
+			tier text NOT NULL DEFAULT 'seed',
+			api_key_hash text,
+			api_key_prefix varchar(10),
+			is_active boolean NOT NULL DEFAULT true,
+			runtime_limit integer NOT NULL DEFAULT 1,
+			created_at timestamptz NOT NULL DEFAULT NOW(),
+			updated_at timestamptz NOT NULL DEFAULT NOW()
+		);
+	`)
+	require.NoError(t, err)
+
+	sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", "050_tenant_email_alignment.sql"))
+	require.NoError(t, err)
+	_, err = db.Exec(string(sqlBytes))
+	require.NoError(t, err, "migration 050 must apply before real-Postgres API-key auth tests")
+
 	var exists int
-	err := db.QueryRow(`
+	err = db.QueryRow(`
 		SELECT 1 FROM information_schema.columns
-		WHERE table_name = 'tenants' AND column_name = 'tenant_email'
-	`).Scan(&exists)
-	if err == sql.ErrNoRows {
-		t.Skip("tenants.tenant_email missing — apply migration 050 (or run scripts/cli_mcp_smoke_demo.sh) and re-run")
-	}
+		WHERE table_schema = $1 AND table_name = 'tenants' AND column_name = 'tenant_email'
+	`, schema).Scan(&exists)
 	require.NoError(t, err)
 }
 
@@ -134,7 +165,7 @@ func seedTestTenant(t *testing.T, db *sql.DB, rawKey, tenantID, email string, ac
 
 func TestBetterAuth_RealPostgres_APIKey_Bearer_Authenticates(t *testing.T) {
 	db := openPostgresForAuthTest(t)
-	ensureTenantEmailColumn(t, db)
+	prepareTenantEmailAuthSchema(t, db)
 
 	rawKey := "igris_postgres_auth_test_" + randomHex16(t)
 	tenantID := "auth-pgtest-" + randomHex16(t)
@@ -165,7 +196,7 @@ func TestBetterAuth_RealPostgres_APIKey_Bearer_Authenticates(t *testing.T) {
 
 func TestBetterAuth_RealPostgres_InactiveTenant_Rejected(t *testing.T) {
 	db := openPostgresForAuthTest(t)
-	ensureTenantEmailColumn(t, db)
+	prepareTenantEmailAuthSchema(t, db)
 
 	rawKey := "igris_postgres_inactive_" + randomHex16(t)
 	tenantID := "auth-pgtest-inactive-" + randomHex16(t)
@@ -186,7 +217,7 @@ func TestBetterAuth_RealPostgres_InactiveTenant_Rejected(t *testing.T) {
 
 func TestBetterAuth_RealPostgres_UnknownKey_Rejected(t *testing.T) {
 	db := openPostgresForAuthTest(t)
-	ensureTenantEmailColumn(t, db)
+	prepareTenantEmailAuthSchema(t, db)
 
 	app := fiber.New()
 	app.Use(middleware.BetterAuth(db))
