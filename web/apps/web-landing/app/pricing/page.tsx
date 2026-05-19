@@ -9,13 +9,13 @@ import ScrollReveal from '../../src/components/ui/ScrollReveal'
 
 export default function PricingPage() {
   return (
-    <div className="relative min-h-screen bg-white dark:bg-[#110f0f]">
+    <div className="relative min-h-screen bg-white dark:bg-[#110f0f] md:pl-[40rem] pt-14 md:pt-0">
       <div className="relative z-10">
         <Header />
         <main>
           <ScrollReveal>
             <section className="pt-40 pb-6 px-4 sm:px-6 lg:px-8">
-              <div className="max-w-[1320px] mx-auto text-center">
+              <div className="mr-auto max-w-[1000px] text-center">
                 <h1 className="text-xl md:text-3xl lg:text-4xl mb-4 text-[#000000] dark:text-[#f6f6f4] max-w-lg mx-auto" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
                   Pricing
                 </h1>
@@ -26,13 +26,13 @@ export default function PricingPage() {
 
           <ScrollReveal delay={0.1}><Pricing /></ScrollReveal>
           
-          <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
-            <div className="my-3 border border-gray-200 dark:border-[rgba(246,246,244,0.12)] rounded-lg overflow-hidden">
+          <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
+            <div>
               <ScrollReveal delay={0.1}><Faq /></ScrollReveal>
             </div>
           </div>
-          <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
-            <div className="my-3 border border-gray-200 dark:border-[rgba(246,246,244,0.12)] rounded-lg overflow-hidden">
+          <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
+            <div>
               <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
             </div>
           </div>
