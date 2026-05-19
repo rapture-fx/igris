@@ -236,16 +236,9 @@ async fn tool_status(client: &Client, args: &Value) -> Result<Value> {
 async fn tool_evidence(client: &Client, args: &Value) -> Result<Value> {
     let task_id = arg_str(args, "task_id")?;
     let task = client.get_task(&task_id).await?;
-    let evidence = task
-        .get("action_evidence")
-        .cloned()
-        .unwrap_or_else(|| json!([]));
-    // The server already constrains action_evidence entries to the safe
-    // summary fields; we pass the array through unchanged. We do NOT enrich
-    // or re-derive anything client-side — see audit principle.
     Ok(text_content(json!({
         "task_id": task_id,
-        "action_evidence": evidence,
+        "action_evidence": project_safe_action_evidence(&task),
     })))
 }
 
@@ -302,6 +295,20 @@ async fn tool_export(client: &Client, args: &Value) -> Result<Value> {
 /// Anything not explicitly listed here is dropped — this is the same defense
 /// the CLI relies on.
 pub fn build_export_payload(task: &Value) -> Value {
+    let evidence_items = project_safe_action_evidence(task);
+    let proof = project_safe_proof(task);
+
+    json!({
+        "task_id": task.get("task_id").and_then(|v| v.as_str()).unwrap_or(""),
+        "status": task.get("status").and_then(|v| v.as_str()).unwrap_or(""),
+        "task_type": task.get("task_type").and_then(|v| v.as_str()).unwrap_or(""),
+        "runtime_id": task.get("runtime_id").and_then(|v| v.as_str()).unwrap_or(""),
+        "action_evidence": evidence_items,
+        "proof": proof,
+    })
+}
+
+fn project_safe_action_evidence(task: &Value) -> Value {
     let mut evidence_items = vec![];
     if let Some(arr) = task.get("action_evidence").and_then(|v| v.as_array()) {
         for entry in arr {
@@ -338,8 +345,11 @@ pub fn build_export_payload(task: &Value) -> Value {
             evidence_items.push(Value::Object(row));
         }
     }
-    let proof = task
-        .get("proof")
+    Value::Array(evidence_items)
+}
+
+fn project_safe_proof(task: &Value) -> Value {
+    task.get("proof")
         .and_then(|v| v.as_object())
         .map(|p| {
             let mut out = serde_json::Map::new();
@@ -359,16 +369,7 @@ pub fn build_export_payload(task: &Value) -> Value {
             }
             Value::Object(out)
         })
-        .unwrap_or_else(|| json!({}));
-
-    json!({
-        "task_id": task.get("task_id").and_then(|v| v.as_str()).unwrap_or(""),
-        "status": task.get("status").and_then(|v| v.as_str()).unwrap_or(""),
-        "task_type": task.get("task_type").and_then(|v| v.as_str()).unwrap_or(""),
-        "runtime_id": task.get("runtime_id").and_then(|v| v.as_str()).unwrap_or(""),
-        "action_evidence": evidence_items,
-        "proof": proof,
-    })
+        .unwrap_or_else(|| json!({}))
 }
 
 fn render_markdown(safe: &Value) -> String {
@@ -434,10 +435,25 @@ fn text_content_raw(text: String) -> Value {
 }
 
 fn error_content(message: &str) -> Value {
+    let message = redact_mcp_error(message);
     json!({
         "content": [{ "type": "text", "text": message }],
         "isError": true
     })
+}
+
+fn redact_mcp_error(message: &str) -> String {
+    message
+        .split_whitespace()
+        .map(|token| {
+            if token.starts_with("igris_") && token.len() > 8 {
+                "igris_[redacted]"
+            } else {
+                token
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 // ── Top-level method dispatch ──────────────────────────────────────────────
@@ -680,6 +696,46 @@ mod tests {
     }
 
     #[test]
+    fn action_evidence_projection_drops_unknown_fields() {
+        let task = json!({
+            "task_id": "t1",
+            "action_evidence": [{
+                "step_index": 0,
+                "action_type": "http_call",
+                "status": "committed",
+                "target_summary": "POST https://example.test/process",
+                "result_digest": "abc123",
+                "runtime_id": "rt-1",
+                "recorded_at": "2026-05-18T00:00:00Z",
+                "headers": { "authorization": "must-not-leak" },
+                "body": "must-not-leak",
+                "result_summary": {
+                    "status_code": 200,
+                    "response_digest": "def456",
+                    "response_body": "must-not-leak"
+                }
+            }]
+        });
+        let safe = project_safe_action_evidence(&task);
+        let entry = &safe.as_array().unwrap()[0];
+        assert!(entry.get("target_summary").is_some());
+        assert!(entry.get("headers").is_none());
+        assert!(entry.get("body").is_none());
+        let rs = entry.get("result_summary").unwrap().as_object().unwrap();
+        assert!(rs.contains_key("status_code"));
+        assert!(rs.contains_key("response_digest"));
+        assert!(!rs.contains_key("response_body"));
+    }
+
+    #[test]
+    fn mcp_tool_error_redacts_api_keys() {
+        let payload = error_content("upstream rejected igris_abcdefghijklmnop token");
+        let text = payload["content"][0]["text"].as_str().unwrap();
+        assert!(!text.contains("igris_abcdefghijklmnop"));
+        assert!(text.contains("igris_[redacted]"));
+    }
+
+    #[test]
     fn render_markdown_uses_only_whitelisted_fields() {
         let safe = json!({
             "task_id": "t1",
@@ -695,15 +751,6 @@ mod tests {
         assert!(md.contains("Verified: `true`"));
         assert!(md.contains("Chain valid: `true`"));
         assert!(md.contains("read_file"));
-    }
-
-    fn req(method: &str, params: Value, id: i64) -> JsonRpcRequest {
-        JsonRpcRequest {
-            jsonrpc: "2.0".to_string(),
-            id: Some(json!(id)),
-            method: method.to_string(),
-            params,
-        }
     }
 
     #[tokio::test]

@@ -22,7 +22,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200">
+      <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200 md:pl-60 pt-14 md:pt-0">
         <Header />
         <main>
           <ScrollReveal delay={0.1}><Hero /></ScrollReveal>

@@ -187,25 +187,37 @@ GOCACHE="$TMP_DIR/go-cache" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buil
 
 # ── Stage 3: seed tenant + key into Postgres ────────────────────────────────
 
-echo "[4/8] Applying migration 050 and seeding test tenant + API key"
-# Apply the canonical alignment migration. This is idempotent and additive —
-# it only adds `tenant_email` (which `session_auth.go` reads) if missing and
-# backfills from the legacy `email` column. The smoke harness cannot assume
-# the migration has already been applied to the operator's dev DB, so we
-# apply it explicitly here.
+echo "[4/8] Ensuring migration 050 and seeding test tenant + API key"
+# Apply the canonical alignment migration through the repo's
+# schema_migrations convention. This is not a smoke-only schema patch: the SQL
+# file is the production migration, and this harness records it the same way
+# the migration runner does.
 TENANT_EMAIL_MIGRATION="$ROOT_DIR/igris-overture/database/migrations/050_tenant_email_alignment.sql"
 if [[ ! -f "$TENANT_EMAIL_MIGRATION" ]]; then
   echo "missing required migration: $TENANT_EMAIL_MIGRATION" >&2
   exit 1
 fi
-psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$TENANT_EMAIL_MIGRATION" >/dev/null
+psql "$DB_URL" -v ON_ERROR_STOP=1 >/dev/null <<SQL
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    id SERIAL PRIMARY KEY,
+    migration_name VARCHAR(255) UNIQUE NOT NULL,
+    applied_at TIMESTAMP DEFAULT NOW()
+);
+SQL
+MIGRATION_APPLIED=$(psql "$DB_URL" -tAc "SELECT 1 FROM schema_migrations WHERE migration_name='050_tenant_email_alignment'" | tr -d '[:space:]')
+if [[ "$MIGRATION_APPLIED" != "1" ]]; then
+  psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$TENANT_EMAIL_MIGRATION" >/dev/null
+  psql "$DB_URL" -v ON_ERROR_STOP=1 -c "INSERT INTO schema_migrations (migration_name) VALUES ('050_tenant_email_alignment') ON CONFLICT (migration_name) DO NOTHING" >/dev/null
+else
+  echo "    Migration 050 already recorded"
+fi
 
 # Guardrail: fail loudly if the column still doesn't exist after the
-# migration ran. This catches the case where a future schema change drops
-# the column or the migration silently no-ops on an unexpected schema.
+# migration check. This catches the case where a future schema change drops
+# the column or schema_migrations incorrectly marks it applied.
 COL_EXISTS=$(psql "$DB_URL" -tAc "SELECT 1 FROM information_schema.columns WHERE table_name='tenants' AND column_name='tenant_email'" | tr -d '[:space:]')
 if [[ "$COL_EXISTS" != "1" ]]; then
-  echo "tenants.tenant_email column missing after migration 050 — auth will fail" >&2
+  echo "tenants.tenant_email column missing after schema migration 050 — auth will fail" >&2
   exit 1
 fi
 
@@ -451,8 +463,8 @@ fi
 # 4) wait briefly for task to complete, then status/evidence/verify/export.
 # We poll via the CLI's inspect to know when the task is terminal.
 for _ in {1..60}; do
-  status=$("$RUNTIME_BIN" tasks inspect "$MCP_TASK_ID" 2>/dev/null | awk '/^  status:/ {print $2}')
-  if [[ "$status" == "completed" || "$status" == "failed" || "$status" == "canceled" ]]; then
+  task_status=$("$RUNTIME_BIN" tasks inspect "$MCP_TASK_ID" 2>/dev/null | awk '/^  status:/ {print $2}')
+  if [[ "$task_status" == "completed" || "$task_status" == "failed" || "$task_status" == "canceled" ]]; then
     break
   fi
   sleep 1
