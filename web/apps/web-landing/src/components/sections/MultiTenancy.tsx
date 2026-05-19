@@ -77,18 +77,12 @@ export default function MultiTenancy() {
         <div className="px-4 md:px-8 lg:px-12">
 
           {/* Section anchor */}
-          <div className="flex items-baseline justify-between pt-10 md:pt-14 pb-3">
+          <div className="pt-10 md:pt-14 pb-3">
             <span
               className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO }}
             >
               04&nbsp;&nbsp;PROOF&nbsp;MODEL
-            </span>
-            <span
-              className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-              style={{ fontFamily: MONO }}
-            >
-              FIG.04
             </span>
           </div>
 
