@@ -98,7 +98,7 @@ function ExecutionPreview() {
 
   return (
     <div
-      className="bg-white dark:bg-[#111214] border border-black/[0.08] dark:border-white/[0.10] rounded-lg overflow-hidden flex flex-col"
+      className="bg-gray-50 dark:bg-[#111214] border border-black/[0.08] dark:border-white/[0.10] rounded-lg overflow-hidden flex flex-col"
       style={{ fontFamily: MONO, minHeight: 600 }}
     >
       {/* ── Chrome: tabs (left) + utilities + live clock (right) ──────────── */}
@@ -436,7 +436,7 @@ function ProofTrailView() {
 export default function Products() {
   return (
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-none px-3 sm:px-4 lg:px-5">
+      <div className="px-0">
         <div className="px-0">
 
           {/* Section heading — eyebrow / title / subtext */}
@@ -483,22 +483,7 @@ export default function Products() {
             </div>
           </div>
 
-          {/* Terminal */}
           <div className="pb-8 md:pb-12">
-            <div className="flex items-baseline justify-between pb-3">
-              <span
-                className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-                style={{ fontFamily: MONO }}
-              >
-                SUBMISSION&nbsp;TRACE
-              </span>
-              <span
-                className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-400 dark:text-[#5a5a52]"
-                style={{ fontFamily: MONO }}
-              >
-                CUSTOMER&nbsp;FLOW&nbsp;·&nbsp;SUBMIT&nbsp;EXECUTE&nbsp;VERIFY
-              </span>
-            </div>
             <ExecutionPreview />
           </div>
 
