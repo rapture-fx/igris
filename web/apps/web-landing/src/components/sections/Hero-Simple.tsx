@@ -14,7 +14,7 @@ export default function Hero() {
     >
       <div className="relative mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
         <div>
-          <div className="flex flex-col items-start text-left justify-end pt-8 md:pt-10 pb-4 md:pb-6">
+          <div className="flex flex-col items-start text-left justify-end pt-32 md:pt-44 pb-4 md:pb-6">
 
             <h1
               className="text-[#000000] dark:text-[#f6f6f4]"
