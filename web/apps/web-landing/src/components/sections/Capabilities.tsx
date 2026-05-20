@@ -18,158 +18,233 @@ function RunVisual() {
           <marker id="run-arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 0 2 L 6 4 L 0 6 z" fill="currentColor" fillOpacity="0.6" />
           </marker>
+          <pattern id="run-grid" width="8" height="8" patternUnits="userSpaceOnUse">
+            <path d="M 8 0 L 0 0 0 8" fill="none" stroke="currentColor" strokeOpacity="0.05" strokeWidth="0.3" />
+          </pattern>
         </defs>
 
-        {/* ── Group A: AGENT ────────────────────────────────────── */}
+        {/* faint engineering grid */}
+        <rect x="6" y="14" width="348" height="170" fill="url(#run-grid)" />
+
+        {/* ── Group A: AGENT — stacked candidates, one chosen ── */}
         <g>
-          <text x="42" y="36" textAnchor="middle" fontSize="7"
+          <text x="46" y="32" textAnchor="middle" fontSize="7"
                 fill="currentColor" fillOpacity="0.6"
-                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
-            AGENT
-          </text>
-          <rect x="0" y="42" width="84" height="80" fill="none"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>AGENT</text>
+          <rect x="10" y="38" width="74" height="86" fill="none"
                 stroke="currentColor" strokeOpacity="0.32"
                 strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
-          {/* two agent tiles */}
-          <g stroke="currentColor" strokeOpacity="0.65" strokeWidth="0.6" fill="none">
-            <rect x="22" y="56" width="18" height="18" rx="1.5" />
-            <circle cx="31" cy="62" r="2.3" />
-            <path d="M 26 70 q 5 -4 10 0" strokeWidth="0.55" />
-            <rect x="44" y="56" width="18" height="18" rx="1.5" />
-            <circle cx="53" cy="62" r="2.3" />
-            <path d="M 48 70 q 5 -4 10 0" strokeWidth="0.55" />
+
+          {/* 3 candidate cards — top one selected */}
+          <g fill="none">
+            {/* selected card */}
+            <rect x="18" y="46" width="58" height="14" rx="1.2"
+                  stroke="currentColor" strokeOpacity="0.85" strokeWidth="0.7" />
+            <rect x="18" y="46" width="3" height="14"
+                  fill="darkorange" fillOpacity="0.85" stroke="none" />
+            <text x="26" y="55.5" fontSize="6.2" fill="currentColor" fillOpacity="0.9" style={{ fontFamily: MONO }}>
+              read_file
+            </text>
+            <text x="72" y="55.5" textAnchor="end" fontSize="5" fill="darkorange" fillOpacity="0.9"
+                  style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>SEL</text>
+
+            {/* candidate 2 — dimmed */}
+            <rect x="18" y="62" width="58" height="11" rx="1.2"
+                  stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.5" strokeDasharray="2 2" />
+            <text x="26" y="69.5" fontSize="6" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO }}>
+              http_call
+            </text>
+
+            {/* candidate 3 — dimmed */}
+            <rect x="18" y="75" width="58" height="11" rx="1.2"
+                  stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.5" strokeDasharray="2 2" />
+            <text x="26" y="82.5" fontSize="6" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO }}>
+              db_write
+            </text>
+
+            {/* commit arrow */}
+            <line x1="46" y1="90" x2="46" y2="100"
+                  stroke="darkorange" strokeOpacity="0.85" strokeWidth="0.7" />
+            <path d="M 43 97 L 46 101 L 49 97" stroke="darkorange" strokeOpacity="0.85"
+                  strokeWidth="0.7" fill="none" />
           </g>
-          <text x="42" y="115" textAnchor="middle" fontSize="6"
-                fill="currentColor" fillOpacity="0.5"
-                style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-            decides &amp; submits
-          </text>
         </g>
 
-        {/* AGENT → request callout (curved) */}
-        <path d="M 84 82 Q 92 82 100 82"
+        {/* AGENT → request callout */}
+        <path id="run-path-1" d="M 84 82 Q 92 82 100 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
+        <circle r="1.2" fill="darkorange" fillOpacity="0.9">
+          <animateMotion dur="2.6s" repeatCount="indefinite" path="M 84 82 Q 92 82 100 82" />
+        </circle>
 
-        {/* ── Request callout ───────────────────────────────────── */}
+        {/* ── Request callout — API spec card with method chip ── */}
         <g>
-          <rect x="100" y="58" width="72" height="50" rx="6"
+          <rect x="100" y="56" width="72" height="54" rx="2"
                 fill="none" stroke="darkorange" strokeOpacity="0.75"
                 strokeWidth="0.6" strokeDasharray="3 2" />
-          <text x="106" y="71" fontSize="7" fill="darkorange" fillOpacity="0.9"
-                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
-            POST&nbsp;/tasks
-          </text>
-          <text x="106" y="83" fontSize="6.5" fill="darkorange" fillOpacity="0.7"
-                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
-            read_file
-          </text>
-          <text x="106" y="93" fontSize="6.5" fill="darkorange" fillOpacity="0.7"
-                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
-            http_call
-          </text>
-          <text x="106" y="103" fontSize="6.5" fill="darkorange" fillOpacity="0.7"
-                style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
-            db_write
-          </text>
+          {/* dog-eared tab */}
+          <path d="M 164 56 L 172 56 L 172 64 Z" fill="darkorange" fillOpacity="0.14" stroke="none" />
+
+          {/* HTTP method chip */}
+          <rect x="105" y="62" width="16" height="8" rx="1.2"
+                fill="darkorange" fillOpacity="0.85" stroke="none" />
+          <text x="113" y="68.2" textAnchor="middle" fontSize="5"
+                fill="white" style={{ fontFamily: MONO, letterSpacing: '0.14em', fontWeight: 600 }}>POST</text>
+          <text x="124" y="68.5" fontSize="6.5" fill="darkorange" fillOpacity="0.95"
+                style={{ fontFamily: MONO, letterSpacing: '0.02em' }}>/v1/tasks</text>
+
+          <line x1="105" y1="74" x2="167" y2="74" stroke="darkorange" strokeOpacity="0.3" strokeWidth="0.4" />
+
+          {/* body keys with colon-aligned values */}
+          <text x="105" y="84" fontSize="5.8" fill="darkorange" fillOpacity="0.6" style={{ fontFamily: MONO }}>action</text>
+          <text x="167" y="84" textAnchor="end" fontSize="5.8" fill="darkorange" fillOpacity="0.9" style={{ fontFamily: MONO }}>read_file</text>
+          <text x="105" y="93" fontSize="5.8" fill="darkorange" fillOpacity="0.6" style={{ fontFamily: MONO }}>scope</text>
+          <text x="167" y="93" textAnchor="end" fontSize="5.8" fill="darkorange" fillOpacity="0.9" style={{ fontFamily: MONO }}>bounded</text>
+          <text x="105" y="102" fontSize="5.8" fill="darkorange" fillOpacity="0.6" style={{ fontFamily: MONO }}>sig</text>
+          <text x="167" y="102" textAnchor="end" fontSize="5.8" fill="darkorange" fillOpacity="0.9" style={{ fontFamily: MONO }}>ed25519</text>
         </g>
 
-        {/* request callout → DISPATCH (curved) */}
+        {/* → DISPATCH */}
         <path d="M 172 82 Q 188 82 200 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
+        <circle r="1.2" fill="darkorange" fillOpacity="0.9">
+          <animateMotion dur="2.6s" begin="0.5s" repeatCount="indefinite" path="M 172 82 Q 188 82 200 82" />
+        </circle>
 
-        {/* ── Group B: DISPATCH ─────────────────────────────────── */}
+        {/* ── Group B: DISPATCH — policy gate + tools ──────── */}
         <g>
-          <text x="239" y="36" textAnchor="middle" fontSize="7"
+          <text x="239" y="32" textAnchor="middle" fontSize="7"
                 fill="currentColor" fillOpacity="0.6"
-                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
-            DISPATCH
-          </text>
-          <rect x="200" y="42" width="78" height="80" fill="none"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>DISPATCH</text>
+          <rect x="200" y="38" width="78" height="86" fill="none"
                 stroke="currentColor" strokeOpacity="0.32"
                 strokeWidth="0.6" strokeDasharray="3 3" rx="3" />
-          <g stroke="currentColor" strokeOpacity="0.65" strokeWidth="0.6" fill="none">
-            <rect x="218" y="50" width="42" height="14" rx="1.5" />
-            <path d="M 224 57 l 3 3 6 -6" strokeWidth="0.7" />
-            <rect x="218" y="68" width="42" height="14" rx="1.5" />
-            <path d="M 224 75 l 3 3 6 -6" strokeWidth="0.7" />
-            <rect x="218" y="86" width="42" height="14" rx="1.5" />
-            <path d="M 224 93 l 3 3 6 -6" strokeWidth="0.7" />
+
+          {/* policy gate header */}
+          <g fill="none">
+            <rect x="208" y="46" width="62" height="10" rx="1.2"
+                  stroke="currentColor" strokeOpacity="0.55" strokeWidth="0.5" />
+            <path d="M 213 51 l 2 2 4 -4" stroke="currentColor" strokeOpacity="0.85" strokeWidth="0.7" />
+            <text x="223" y="53.6" fontSize="5.5" fill="currentColor" fillOpacity="0.65"
+                  style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>POLICY&nbsp;OK</text>
           </g>
-          <text x="239" y="115" textAnchor="middle" fontSize="6"
-                fill="currentColor" fillOpacity="0.5"
-                style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-            3&nbsp;controlled&nbsp;tools
-          </text>
+
+          {/* three controlled tools — labeled */}
+          <g stroke="currentColor" strokeOpacity="0.65" strokeWidth="0.6" fill="none">
+            {[60, 76, 92].map((y, idx) => (
+              <g key={y}>
+                <rect x="208" y={y} width="62" height="12" rx="1.2" />
+                <path d={`M 213 ${y + 6} l 2 2 4 -4`} strokeWidth="0.7" />
+                <text x="223" y={y + 8} fontSize="6" fill="currentColor" fillOpacity="0.7" style={{ fontFamily: MONO }}>
+                  tool · 0{idx + 1}
+                </text>
+                <text x="266" y={y + 8} textAnchor="end" fontSize="5.5" fill="currentColor" fillOpacity="0.45" style={{ fontFamily: MONO, letterSpacing: '0.1em' }}>
+                  OK
+                </text>
+              </g>
+            ))}
+          </g>
         </g>
 
-        {/* DISPATCH → RECEIPTS (curved) */}
+        {/* DISPATCH → RECEIPTS */}
         <path d="M 278 82 Q 283 82 288 82"
               fill="none" stroke="currentColor" strokeOpacity="0.45"
               strokeWidth="0.5" strokeDasharray="2 2" markerEnd="url(#run-arrow)" />
+        <circle r="1.2" className="fill-emerald-700 dark:fill-emerald-400">
+          <animateMotion dur="2.6s" begin="1s" repeatCount="indefinite" path="M 278 82 Q 283 82 288 82" />
+        </circle>
 
-        {/* ── Group C: RECEIPTS (emerald) ───────────────────────── */}
+        {/* ── Group C: RECEIPTS — perforated + sealed ─────── */}
         <g>
-          <text x="323" y="36" textAnchor="middle" fontSize="7"
-                className="fill-emerald-700 dark:fill-emerald-400"
-                fillOpacity="0.75"
-                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
-            RECEIPTS
-          </text>
-          <rect x="288" y="42" width="72" height="80" rx="3" fill="none"
+          <text x="322" y="32" textAnchor="middle" fontSize="7"
+                className="fill-emerald-700 dark:fill-emerald-400" fillOpacity="0.75"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>RECEIPTS</text>
+          <rect x="288" y="38" width="68" height="86" rx="3" fill="none"
                 className="stroke-emerald-700 dark:stroke-emerald-400"
                 strokeOpacity="0.45" strokeWidth="0.6" strokeDasharray="3 3" />
+
           <g className="stroke-emerald-700 dark:stroke-emerald-400" fill="none" strokeWidth="0.6">
-            <rect x="308" y="52" width="30" height="14" rx="1.5" />
-            <line x1="312" y1="58" x2="324" y2="58" strokeOpacity="0.55" />
-            <line x1="312" y1="62" x2="320" y2="62" strokeOpacity="0.45" />
-            <rect x="308" y="70" width="30" height="14" rx="1.5" />
-            <line x1="312" y1="76" x2="324" y2="76" strokeOpacity="0.55" />
-            <line x1="312" y1="80" x2="320" y2="80" strokeOpacity="0.45" />
-            <rect x="308" y="88" width="30" height="14" rx="1.5" />
-            <line x1="312" y1="94" x2="324" y2="94" strokeOpacity="0.55" />
-            <line x1="312" y1="98" x2="320" y2="98" strokeOpacity="0.45" />
+            {[48, 68, 88].map((y, idx) => (
+              <g key={y}>
+                <rect x="296" y={y} width="52" height="14" rx="1.2" />
+                {/* perforation gaps */}
+                <line x1="296" y1={y + 7} x2="299" y2={y + 7} strokeOpacity="0.55" />
+                <line x1="345" y1={y + 7} x2="348" y2={y + 7} strokeOpacity="0.55" />
+                {/* receipt id */}
+                <text x="300" y={y + 5.5} fontSize="4.5"
+                      className="fill-emerald-700 dark:fill-emerald-400"
+                      fillOpacity="0.85"
+                      style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
+                  r₀{idx + 1}
+                </text>
+                {/* signature wave */}
+                <path d={`M 309 ${y + 5.5} q 1.5 -2 3 0 t 3 0 t 3 0 t 3 0`}
+                      strokeWidth="0.5" strokeOpacity="0.7" />
+                {/* hash glyph row */}
+                <g strokeWidth="0.45" strokeOpacity="0.55">
+                  <line x1="300" y1={y + 10} x2="302" y2={y + 10} />
+                  <line x1="303" y1={y + 10} x2="307" y2={y + 10} />
+                  <line x1="308" y1={y + 10} x2="311" y2={y + 10} />
+                  <line x1="312" y1={y + 10} x2="318" y2={y + 10} />
+                </g>
+                {/* wax seal */}
+                <circle cx="340" cy={y + 7} r="2.4" strokeWidth="0.5" strokeOpacity="0.85" />
+                <circle cx="340" cy={y + 7} r="0.9"
+                        className="fill-emerald-700 dark:fill-emerald-400" stroke="none" />
+                {/* seal rays */}
+                <line x1="340" y1={y + 4.2} x2="340" y2={y + 3.4} strokeWidth="0.4" strokeOpacity="0.7" />
+                <line x1="340" y1={y + 9.8} x2="340" y2={y + 10.6} strokeWidth="0.4" strokeOpacity="0.7" />
+              </g>
+            ))}
           </g>
-          <text x="323" y="115" textAnchor="middle" fontSize="6"
-                className="fill-emerald-700 dark:fill-emerald-400"
-                fillOpacity="0.65"
-                style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-            one&nbsp;per&nbsp;commit
-          </text>
         </g>
 
-        {/* ── Return arcs converging on CHAIN · VALID capsule ───── */}
-        <path d="M 42 122 Q 42 158 180 168"
+        {/* ── Return arcs converging on CHAIN · VALID seal ── */}
+        <path d="M 46 124 Q 46 156 180 166"
               fill="none" stroke="currentColor" strokeOpacity="0.32"
               strokeWidth="0.5" strokeDasharray="2 3" />
-        <path d="M 239 122 Q 239 158 180 168"
+        <path d="M 239 124 Q 239 156 180 166"
               fill="none" stroke="currentColor" strokeOpacity="0.32"
               strokeWidth="0.5" strokeDasharray="2 3" />
-        <path d="M 323 122 Q 323 158 180 168"
+        <path d="M 322 124 Q 322 156 180 166"
               fill="none" className="stroke-emerald-700 dark:stroke-emerald-400"
               strokeOpacity="0.5" strokeWidth="0.5" strokeDasharray="2 3" />
 
-        {/* verify tag — matches FIG.3 receipt-chain end-of-chain style */}
-        <line x1="180" y1="168" x2="180" y2="176"
-              className="stroke-emerald-700 dark:stroke-emerald-400"
-              strokeOpacity="0.55" strokeWidth="0.5" strokeDasharray="2 3" />
+        {/* chain valid seal — official-looking circular stamp with tick marks */}
+        <g>
+          {/* outer ring */}
+          <circle cx="180" cy="168" r="6.5" fill="none"
+                  className="stroke-emerald-700 dark:stroke-emerald-400"
+                  strokeWidth="0.55" strokeOpacity="0.55" />
+          <circle cx="180" cy="168" r="5.2" fill="none"
+                  className="stroke-emerald-700 dark:stroke-emerald-400"
+                  strokeWidth="0.45" strokeOpacity="0.4" />
+          {/* clock-position ticks */}
+          <g className="stroke-emerald-700 dark:stroke-emerald-400" strokeWidth="0.5" strokeOpacity="0.7">
+            <line x1="180" y1="161.5" x2="180" y2="163" />
+            <line x1="180" y1="173" x2="180" y2="174.5" />
+            <line x1="173.5" y1="168" x2="175" y2="168" />
+            <line x1="185" y1="168" x2="186.5" y2="168" />
+            <line x1="175.4" y1="163.4" x2="176.5" y2="164.5" strokeOpacity="0.45" />
+            <line x1="183.5" y1="171.5" x2="184.6" y2="172.6" strokeOpacity="0.45" />
+            <line x1="184.6" y1="163.4" x2="183.5" y2="164.5" strokeOpacity="0.45" />
+            <line x1="176.5" y1="171.5" x2="175.4" y2="172.6" strokeOpacity="0.45" />
+          </g>
+          {/* inner checkmark */}
+          <path d="M 177.2 168 l 1.6 1.6 3.2 -3.2" fill="none"
+                className="stroke-emerald-700 dark:stroke-emerald-400"
+                strokeWidth="0.9" strokeLinecap="round" strokeLinejoin="round">
+            <animate attributeName="stroke-opacity" values="1;0.5;1" dur="2.4s" repeatCount="indefinite" />
+          </path>
+        </g>
         <text x="180" y="186" textAnchor="middle" fontSize="6.5"
               className="fill-emerald-700 dark:fill-emerald-400"
               style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
           CHAIN&nbsp;·&nbsp;VALID
         </text>
 
-        {/* ── Footer annotations ─────────────────────────────────── */}
-        <text x="14" y="206" fontSize="6.5" fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-          one&nbsp;agent&nbsp;·&nbsp;controlled&nbsp;tools
-        </text>
-        <text x="346" y="206" textAnchor="end" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em', fontStyle: 'italic' }}>
-          every commit becomes evidence
-        </text>
       </svg>
     </div>
   )
@@ -181,11 +256,11 @@ function RunVisual() {
 function RecoverVisual() {
   // 5 steps; runtime A owns 01–03, runtime B picks up 04–05.
   const steps = [
-    { name: 'read_file', n: '01', host: 'A' },
-    { name: 'http_call', n: '02', host: 'A' },
-    { name: 'db_write',  n: '03', host: 'A' },
-    { name: 'receipt',   n: '04', host: 'B' },
-    { name: 'verify',    n: '05', host: 'B' },
+    { name: 'read_file', n: '01', host: 'A', ms: '12ms' },
+    { name: 'http_call', n: '02', host: 'A', ms: '34ms' },
+    { name: 'db_write',  n: '03', host: 'A', ms: '47ms' },
+    { name: 'receipt',   n: '04', host: 'B', ms: '52ms' },
+    { name: 'verify',    n: '05', host: 'B', ms: '58ms' },
   ]
   const X0 = 34, X1 = 326, Y = 108
   const tickX = (i: number) => X0 + ((X1 - X0) / (steps.length - 1)) * i
@@ -196,62 +271,106 @@ function RecoverVisual() {
     <div className="w-full" style={{ fontFamily: MONO }}>
       <svg viewBox="0 0 360 200" className="w-full" preserveAspectRatio="xMidYMid meet">
 
-        {/* ── Dimension bracket ──────────────────────────────────── */}
-        <g stroke="currentColor" strokeOpacity="0.32" strokeWidth="0.5" fill="none" shapeRendering="crispEdges">
-          <line x1={X0} y1="48" x2={X1} y2="48" />
-          <line x1={X0} y1="44" x2={X0} y2="52" />
-          <line x1={X1} y1="44" x2={X1} y2="52" />
-        </g>
-        <text x={(X0 + X1) / 2} y="40" textAnchor="middle" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.5"
-              style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
-          5&nbsp;STEPS&nbsp;·&nbsp;1&nbsp;HANDOFF&nbsp;·&nbsp;0&nbsp;DUPLICATES
-        </text>
+        {/* ── Host environment bands ─────────────────────── */}
+        <rect x={X0 - 4} y={Y - 26} width={tickX(2) + 12 - (X0 - 4)} height={48}
+              fill="currentColor" fillOpacity="0.025" stroke="none" />
+        <rect x={tickX(3) - 12} y={Y - 26} width={X1 + 4 - (tickX(3) - 12)} height={48}
+              className="fill-emerald-700 dark:fill-emerald-400"
+              fillOpacity="0.05" stroke="none" />
 
-        {/* ── Runtime spans (thin underlines above the axis) ─────── */}
+        {/* Host A icon — stacked planes (faulted) */}
+        <g transform={`translate(${X0 - 22} ${Y - 8})`}>
+          <g stroke="currentColor" strokeOpacity="0.55" strokeWidth="0.5" fill="none">
+            <path d="M 0 4 L 7 0 L 14 4 L 7 8 Z" />
+            <path d="M 0 8 L 7 4 L 14 8 L 7 12 Z" />
+            <path d="M 0 12 L 7 8 L 14 12 L 7 16 Z" />
+          </g>
+          {/* faulted cross */}
+          <g stroke="darkorange" strokeOpacity="0.9" strokeWidth="0.7" strokeLinecap="round">
+            <line x1="3.5" y1="6" x2="10.5" y2="13" />
+            <line x1="10.5" y1="6" x2="3.5" y2="13" />
+          </g>
+        </g>
+
+        {/* Host B icon — stacked planes (live) */}
+        <g transform={`translate(${X1 + 8} ${Y - 8})`}>
+          <g className="stroke-emerald-700 dark:stroke-emerald-400"
+             strokeOpacity="0.8" strokeWidth="0.5" fill="none">
+            <path d="M 0 4 L 7 0 L 14 4 L 7 8 Z" />
+            <path d="M 0 8 L 7 4 L 14 8 L 7 12 Z" />
+            <path d="M 0 12 L 7 8 L 14 12 L 7 16 Z" />
+          </g>
+          {/* LED dot */}
+          <circle cx="14" cy="0" r="1.4"
+                  className="fill-emerald-700 dark:fill-emerald-400">
+            <animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite" />
+          </circle>
+        </g>
+
+        {/* Runtime span underlines */}
         <line x1={X0} y1={Y - 30} x2={tickX(2) + 6} y2={Y - 30}
-              stroke="currentColor" strokeOpacity="0.32" strokeWidth="0.5" />
+              stroke="currentColor" strokeOpacity="0.4" strokeWidth="0.5" />
         <text x={(X0 + tickX(2)) / 2} y={Y - 34} textAnchor="middle" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.45"
+              fill="currentColor" fillOpacity="0.5"
               style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
           RUNTIME&nbsp;A
         </text>
         <line x1={tickX(3) - 6} y1={Y - 30} x2={X1} y2={Y - 30}
               className="stroke-emerald-700 dark:stroke-emerald-400"
-              strokeOpacity="0.55" strokeWidth="0.5" />
+              strokeOpacity="0.6" strokeWidth="0.5" />
         <text x={(tickX(3) + X1) / 2} y={Y - 34} textAnchor="middle" fontSize="6.5"
               className="fill-emerald-700 dark:fill-emerald-400"
-              fillOpacity="0.7"
+              fillOpacity="0.75"
               style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
           RUNTIME&nbsp;B
         </text>
 
-        {/* ── Primary axis with a break at the handoff ───────────── */}
+        {/* Primary axis with break at the handoff */}
         <line x1={X0} y1={Y} x2={breakX - 6} y2={Y}
               stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
         <line x1={breakX + 6} y1={Y} x2={X1} y2={Y}
-              stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
-        {/* Two diagonal hash marks — drafting "break" symbol */}
-        <line x1={breakX - 5} y1={Y - 4} x2={breakX - 1} y2={Y + 4}
-              stroke="currentColor" strokeOpacity="0.55" strokeWidth="0.5" />
-        <line x1={breakX + 1} y1={Y - 4} x2={breakX + 5} y2={Y + 4}
-              stroke="currentColor" strokeOpacity="0.55" strokeWidth="0.5" />
+              className="stroke-emerald-700 dark:stroke-emerald-400"
+              strokeOpacity="0.6" strokeWidth="0.5" />
+        {/* break: dramatic lightning glyph with surrounding flash */}
+        <circle cx={breakX} cy={Y} r="9" fill="darkorange" fillOpacity="0.08" stroke="none">
+          <animate attributeName="r" values="9;11;9" dur="1.8s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.5;0.15;0.5" dur="1.8s" repeatCount="indefinite" />
+        </circle>
+        <path d={`M ${breakX - 4} ${Y - 7} L ${breakX} ${Y - 1} L ${breakX - 2.5} ${Y - 1} L ${breakX + 2} ${Y + 7} L ${breakX - 1.5} ${Y + 1} L ${breakX + 2} ${Y + 1} Z`}
+              fill="darkorange" fillOpacity="0.85" stroke="darkorange" strokeOpacity="1" strokeWidth="0.5"
+              strokeLinejoin="round" />
         {/* End caps */}
-        <line x1={X0} y1={Y - 4} x2={X0} y2={Y + 4}
-              stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
+        <line x1={X0} y1={Y - 4} x2={X0} y2={Y + 4} stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
         <line x1={X1} y1={Y - 4} x2={X1} y2={Y + 4}
-              stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
+              className="stroke-emerald-700 dark:stroke-emerald-400" strokeOpacity="0.6" strokeWidth="0.5" />
 
-        {/* ── HANDOFF callout from the break ─────────────────────── */}
-        <line x1={breakX} y1={Y + 6} x2={breakX} y2={Y + 28}
-              stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" strokeDasharray="2 3" />
-        <text x={breakX} y={Y + 40} textAnchor="middle" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.55"
+        {/* ── HANDOFF callout from break ──────────────────── */}
+        <line x1={breakX} y1={Y + 8} x2={breakX} y2={Y + 26}
+              stroke="darkorange" strokeOpacity="0.55" strokeWidth="0.5" strokeDasharray="2 3" />
+        <text x={breakX} y={Y + 38} textAnchor="middle" fontSize="6.5"
+              fill="darkorange" fillOpacity="0.85"
               style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
-          HANDOFF
+          HOST&nbsp;FAULT
         </text>
 
-        {/* ── Steps ──────────────────────────────────────────────── */}
+        {/* checkpoint-carry arc above axis from last A step to first B step */}
+        <path d={`M ${tickX(2)} ${Y - 22} Q ${breakX} ${Y - 44} ${tickX(3)} ${Y - 22}`}
+              fill="none" className="stroke-emerald-700 dark:stroke-emerald-400"
+              strokeOpacity="0.55" strokeWidth="0.5" strokeDasharray="2 2" />
+        {/* checkpoint envelope traveling along the carry arc */}
+        <g>
+          <g>
+            <rect x="-3.5" y="-2.4" width="7" height="4.8" rx="0.6"
+                  className="fill-emerald-700 dark:fill-emerald-400"
+                  fillOpacity="0.95" stroke="none" />
+            <path d="M -3.5 -2.4 L 0 0.4 L 3.5 -2.4" fill="none"
+                  stroke="white" strokeOpacity="0.85" strokeWidth="0.5" />
+          </g>
+          <animateMotion dur="2.8s" repeatCount="indefinite"
+                         path={`M ${tickX(2)} ${Y - 22} Q ${breakX} ${Y - 44} ${tickX(3)} ${Y - 22}`} />
+        </g>
+
+        {/* ── Steps ──────────────────────────────────────── */}
         {steps.map((s, i) => {
           const x = tickX(i)
           const isB = s.host === 'B'
@@ -259,27 +378,41 @@ function RecoverVisual() {
           return (
             <g key={s.n}>
               <line x1={x} y1={Y - 5} x2={x} y2={Y + 5}
-                    stroke="currentColor"
-                    strokeOpacity={isFinal ? 0.85 : 0.5} strokeWidth="0.5" />
+                    stroke={isB ? undefined : 'currentColor'}
+                    className={isB ? 'stroke-emerald-700 dark:stroke-emerald-400' : ''}
+                    strokeOpacity={isFinal ? 0.9 : isB ? 0.75 : 0.5} strokeWidth="0.5" />
               <text x={x} y={Y - 14} textAnchor="middle" fontSize="8"
-                    fill="currentColor" fillOpacity={isB ? 0.9 : 0.78}
+                    fill="currentColor" fillOpacity={isB ? 0.92 : 0.78}
                     style={{ fontFamily: MONO }}>
                 {s.name}
               </text>
-              {/* committed mark — same dot for A and B; open ring for final */}
+
+              {/* committed mark + tiny receipt stub */}
               {isFinal ? (
                 <>
-                  <circle cx={x} cy={Y + 18} r="3.2" fill="none"
+                  <circle cx={x} cy={Y + 18} r="3.4" fill="none"
                           className="stroke-emerald-700 dark:stroke-emerald-400"
                           strokeWidth="0.7" />
-                  <circle cx={x} cy={Y + 18} r="1"
-                          className="fill-emerald-700 dark:fill-emerald-400" />
+                  <circle cx={x} cy={Y + 18} r="1.2"
+                          className="fill-emerald-700 dark:fill-emerald-400">
+                    <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite" />
+                  </circle>
                 </>
               ) : (
-                <circle cx={x} cy={Y + 18} r="1.5"
-                        className="fill-emerald-700 dark:fill-emerald-400" />
+                <>
+                  <circle cx={x} cy={Y + 18} r="1.5"
+                          className="fill-emerald-700 dark:fill-emerald-400" />
+                  {/* receipt stub */}
+                  <rect x={x - 5} y={Y + 26} width="10" height="6" rx="0.8"
+                        fill="none"
+                        className="stroke-emerald-700 dark:stroke-emerald-400"
+                        strokeOpacity="0.55" strokeWidth="0.45" />
+                  <line x1={x - 3} y1={Y + 29} x2={x + 3} y2={Y + 29}
+                        className="stroke-emerald-700 dark:stroke-emerald-400"
+                        strokeOpacity="0.4" strokeWidth="0.4" />
+                </>
               )}
-              <text x={x} y={Y + 56} textAnchor="middle" fontSize="6.5"
+              <text x={x} y={Y + 52} textAnchor="middle" fontSize="6"
                     fill="currentColor" fillOpacity="0.45"
                     style={{ fontFamily: MONO, letterSpacing: '0.2em' }}>
                 {s.n}
@@ -287,17 +420,6 @@ function RecoverVisual() {
             </g>
           )
         })}
-
-        {/* ── Footer annotations ─────────────────────────────────── */}
-        <text x={X0} y="186" fontSize="6.5" fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-          progress&nbsp;·&nbsp;imported&nbsp;from&nbsp;checkpoint
-        </text>
-        <text x={X1} y="186" textAnchor="end" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em', fontStyle: 'italic' }}>
-          committed&nbsp;actions&nbsp;never&nbsp;replay
-        </text>
       </svg>
     </div>
   )
@@ -326,47 +448,78 @@ function ReceiptVisual() {
     <div className="w-full" style={{ fontFamily: MONO }}>
       <svg viewBox="0 0 360 200" className="w-full" preserveAspectRatio="xMidYMid meet">
 
-        {/* ── Vertical spine ─────────────────────────────────────── */}
+        {/* ── Vertical spine ─────────────────────────────── */}
         <line x1={SPINE_X} y1={Y0 - 8} x2={SPINE_X} y2={lastY + 8}
               stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
         <line x1={SPINE_X - 4} y1={Y0 - 8} x2={SPINE_X + 4} y2={Y0 - 8}
               stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
 
-        {/* ── Receipts: ring on spine, action label, state ───────── */}
+        {/* interlocking chain-link glyphs between consecutive receipts */}
+        {receipts.map((_, i) => {
+          if (i === 0) return null
+          const mid = (ringY(i - 1) + ringY(i)) / 2
+          return (
+            <g key={`link-${i}`} transform={`translate(${SPINE_X - 14} ${mid})`}>
+              <rect x="-4" y="-4.6" width="8" height="5.4" rx="2.2" fill="none"
+                    className="stroke-emerald-700 dark:stroke-emerald-400"
+                    strokeOpacity="0.55" strokeWidth="0.55" />
+              <rect x="-4" y="-0.8" width="8" height="5.4" rx="2.2" fill="none"
+                    className="stroke-emerald-700 dark:stroke-emerald-400"
+                    strokeOpacity="0.55" strokeWidth="0.55" />
+            </g>
+          )
+        })}
+
+        {/* ── Receipts ──────────────────────────────────── */}
         {receipts.map((r, i) => {
           const y = ringY(i)
           const isFinal = i === receipts.length - 1
+          const idLabel = isFinal ? 'r₀₅' : `r₀${i + 1}`
           return (
             <g key={r.action}>
-              {/* ring on spine — filled with card bg so the spine line doesn't show through */}
-              <circle cx={SPINE_X} cy={y} r={isFinal ? 3.6 : 2.8}
+              {/* id badge on spine left */}
+              <text x={SPINE_X - 24} y={y + 2.4} fontSize="6.5"
+                    fill="currentColor" fillOpacity="0.55"
+                    style={{ fontFamily: MONO, letterSpacing: '0.06em' }}>
+                {idLabel}
+              </text>
+
+              {/* ring on spine */}
+              <circle cx={SPINE_X} cy={y} r={isFinal ? 3.8 : 3}
                       className={isFinal
                         ? 'fill-white dark:fill-dark-bg stroke-emerald-700 dark:stroke-emerald-400'
-                        : 'fill-white dark:fill-dark-bg'}
-                      stroke={isFinal ? undefined : 'currentColor'}
-                      strokeOpacity={isFinal ? undefined : 0.65}
-                      strokeWidth="0.7" />
+                        : 'fill-white dark:fill-dark-bg stroke-emerald-700 dark:stroke-emerald-400'}
+                      strokeOpacity={isFinal ? undefined : 0.7}
+                      strokeWidth={isFinal ? 0.85 : 0.6} />
               {isFinal && (
-                <circle cx={SPINE_X} cy={y} r="1"
-                        className="fill-emerald-700 dark:fill-emerald-400" />
+                <circle cx={SPINE_X} cy={y} r="1.2"
+                        className="fill-emerald-700 dark:fill-emerald-400">
+                  <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite" />
+                </circle>
               )}
 
               {/* branch hairline */}
-              <line x1={SPINE_X + (isFinal ? 5 : 4)} y1={y} x2={SPINE_X + 24} y2={y}
+              <line x1={SPINE_X + (isFinal ? 5 : 4)} y1={y} x2={SPINE_X + 22} y2={y}
                     stroke="currentColor" strokeOpacity="0.4" strokeWidth="0.5" />
 
-              {/* action that produced this receipt */}
-              <text x={SPINE_X + 30} y={y + 2.5} fontSize="8"
-                    fill="currentColor" fillOpacity={isFinal ? 0.9 : 0.82}
+              {/* signature wave glyph */}
+              <path d={`M ${SPINE_X + 24} ${y} q 1.6 -2.4 3.2 0 t 3.2 0 t 3.2 0`}
+                    fill="none"
+                    className="stroke-emerald-700 dark:stroke-emerald-400"
+                    strokeOpacity="0.75" strokeWidth="0.55" strokeLinecap="round" />
+
+              {/* action label */}
+              <text x={SPINE_X + 36} y={y + 2.5} fontSize="8"
+                    fill="currentColor" fillOpacity={isFinal ? 0.92 : 0.82}
                     style={{ fontFamily: MONO }}>
                 {r.action}
               </text>
 
-              {/* state, right-aligned */}
+              {/* state */}
               <text x="326" y={y + 2.5} textAnchor="end" fontSize="7"
                     className={r.state === 'valid' ? 'fill-emerald-700 dark:fill-emerald-400' : ''}
                     fill={r.state === 'valid' ? undefined : 'currentColor'}
-                    fillOpacity={r.state === 'valid' ? undefined : 0.55}
+                    fillOpacity={r.state === 'valid' ? undefined : 0.6}
                     style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
                 {r.state}
               </text>
@@ -374,7 +527,25 @@ function ReceiptVisual() {
           )
         })}
 
-        {/* ── End-of-chain tag ───────────────────────────────────── */}
+        {/* verifier — magnifying glass scanning the chain */}
+        <g transform={`translate(322 ${ringY(0) - 18})`}>
+          <circle cx="0" cy="0" r="4" fill="none"
+                  stroke="currentColor" strokeOpacity="0.6" strokeWidth="0.7" />
+          <line x1="2.8" y1="2.8" x2="6" y2="6"
+                stroke="currentColor" strokeOpacity="0.7" strokeWidth="1" strokeLinecap="round" />
+          <text x="0" y="-7" textAnchor="middle" fontSize="5"
+                fill="currentColor" fillOpacity="0.5"
+                style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>VERIFIER</text>
+        </g>
+        <path d={`M 316 ${ringY(0) - 12} Q 280 ${(Y0 + lastY) / 2} ${SPINE_X + 6} ${lastY}`}
+              fill="none" stroke="currentColor" strokeOpacity="0.22"
+              strokeWidth="0.4" strokeDasharray="1.5 2.5" />
+        <circle r="1" fill="currentColor" fillOpacity="0.7">
+          <animateMotion dur="3.4s" repeatCount="indefinite"
+                         path={`M 316 ${ringY(0) - 12} Q 280 ${(Y0 + lastY) / 2} ${SPINE_X + 6} ${lastY}`} />
+        </circle>
+
+        {/* end-of-chain tag */}
         <line x1={SPINE_X} y1={lastY + 8} x2={SPINE_X} y2={lastY + 16}
               className="stroke-emerald-700 dark:stroke-emerald-400"
               strokeOpacity="0.55" strokeWidth="0.5" strokeDasharray="2 3" />
@@ -382,17 +553,6 @@ function ReceiptVisual() {
               className="fill-emerald-700 dark:fill-emerald-400"
               style={{ fontFamily: MONO, letterSpacing: '0.22em' }}>
           CHAIN&nbsp;·&nbsp;VALID
-        </text>
-
-        {/* ── Footer annotations ─────────────────────────────────── */}
-        <text x="34" y="190" fontSize="6.5" fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-          one&nbsp;receipt&nbsp;per&nbsp;committed&nbsp;action
-        </text>
-        <text x="326" y="190" textAnchor="end" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em', fontStyle: 'italic' }}>
-          verifiable&nbsp;without&nbsp;dashboard&nbsp;trust
         </text>
       </svg>
     </div>
@@ -414,71 +574,78 @@ function InspectVisual() {
     { k: 'DURATION',    v: '185 ms' },
   ]
 
-  const COL_K_X   = 60
-  const COL_V_X   = 168
-  const Y0        = 56
-  const STEP      = 14
+  const COL_K_X = 60
+  const COL_V_X = 168
 
   return (
     <div className="w-full" style={{ fontFamily: MONO }}>
       <svg viewBox="0 0 360 200" className="w-full" preserveAspectRatio="xMidYMid meet">
 
-
-        {/* ── Sheet header ───────────────────────────────────────── */}
-        <text x={COL_K_X} y="42" fontSize="6"
-              fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          FIELD
+        {/* live LED dot */}
+        <circle cx="38" cy="32" r="1.6"
+                className="fill-emerald-700 dark:fill-emerald-400">
+          <animate attributeName="opacity" values="1;0.3;1" dur="1.6s" repeatCount="indefinite" />
+        </circle>
+        <text x="44" y="34" fontSize="6" fill="currentColor" fillOpacity="0.6"
+              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>LIVE</text>
+        <text x="326" y="34" textAnchor="end" fontSize="6" fill="currentColor" fillOpacity="0.45"
+              style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
+          task_019de343
         </text>
-        <text x={COL_V_X} y="42" fontSize="6"
-              fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.24em' }}>
-          VALUE
-        </text>
-        <line x1="34" y1="46" x2="326" y2="46"
-              stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
+        <line x1="34" y1="44" x2="326" y2="44"
+              stroke="currentColor" strokeOpacity="0.32" strokeWidth="0.5" />
 
-        {/* ── Rows ───────────────────────────────────────────────── */}
+        {/* ── Rows ─────────────────────────────────────────── */}
         {rows.map((r, i) => {
-          const y = Y0 + i * STEP
+          const y = 62 + i * 17
           return (
             <g key={r.k}>
+              {/* row accent pill */}
+              {r.accent && (
+                <rect x="34" y={y - 9} width="292" height="13"
+                      className="fill-emerald-700 dark:fill-emerald-400"
+                      fillOpacity="0.06" stroke="none" />
+              )}
               <text x={COL_K_X} y={y} fontSize="7.5"
-                    fill="currentColor" fillOpacity="0.5"
+                    fill="currentColor" fillOpacity="0.55"
                     style={{ fontFamily: MONO, letterSpacing: '0.18em' }}>
                 {r.k}
               </text>
               <text x={COL_V_X} y={y} fontSize="9"
                     fill={r.accent ? undefined : 'currentColor'}
-                    fillOpacity={r.accent ? undefined : 0.88}
+                    fillOpacity={r.accent ? undefined : 0.9}
                     className={r.accent ? 'fill-emerald-700 dark:fill-emerald-400' : ''}
                     style={{ fontFamily: MONO, letterSpacing: '0.04em' }}>
                 {r.v}
               </text>
-              {/* dotted row guideline */}
+
+              {/* right-side flag glyph */}
+              {r.accent ? (
+                <g transform={`translate(316 ${y - 4})`}>
+                  <circle cx="0" cy="0" r="2.2" fill="none"
+                          className="stroke-emerald-700 dark:stroke-emerald-400"
+                          strokeOpacity="0.85" strokeWidth="0.5" />
+                  <path d="M -1 0 l 1 1 2 -2" fill="none"
+                        className="stroke-emerald-700 dark:stroke-emerald-400"
+                        strokeOpacity="0.95" strokeWidth="0.6" />
+                </g>
+              ) : (
+                <circle cx="316" cy={y - 4} r="0.9"
+                        fill="currentColor" fillOpacity="0.35" />
+              )}
+
               {i < rows.length - 1 && (
                 <line x1="34" y1={y + 4} x2="326" y2={y + 4}
-                      stroke="currentColor" strokeOpacity="0.12"
+                      stroke="currentColor" strokeOpacity="0.1"
                       strokeWidth="0.5" strokeDasharray="1 3" />
               )}
             </g>
           )
         })}
 
-        {/* ── Closing rule ───────────────────────────────────────── */}
-        <line x1="34" y1={Y0 + rows.length * STEP + 2} x2="326" y2={Y0 + rows.length * STEP + 2}
-              stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.5" />
-
-        {/* ── Footer annotations ─────────────────────────────────── */}
-        <text x="34" y="190" fontSize="6.5" fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em' }}>
-          one&nbsp;sheet&nbsp;·&nbsp;all&nbsp;the&nbsp;truth
-        </text>
-        <text x="326" y="190" textAnchor="end" fontSize="6.5"
-              fill="currentColor" fillOpacity="0.4"
-              style={{ fontFamily: MONO, letterSpacing: '0.14em', fontStyle: 'italic' }}>
-          no&nbsp;raw&nbsp;payloads&nbsp;exposed
-        </text>
+        {/* closing rule */}
+        <line x1="34" y1={62 + rows.length * 17 - 8} x2="326" y2={62 + rows.length * 17 - 8}
+              stroke="currentColor" strokeOpacity="0.32" strokeWidth="0.5" />
       </svg>
     </div>
   )
@@ -489,7 +656,6 @@ function InspectVisual() {
 // ─────────────────────────────────────────────────────────────
 type Card = {
   fig: string
-  status: string
   num: string
   name: string
   body: string
@@ -501,7 +667,6 @@ type Card = {
 const cards: Card[] = [
   {
     fig: 'FIG.1 · THE TASK',
-    status: '3 ACTIONS · VERIFIED',
     num: '01',
     name: 'Run',
     body: 'Turn agent decisions into controlled actions. Igris runs each action through a bounded execution path and records exactly what committed.',
@@ -515,7 +680,6 @@ const cards: Card[] = [
   },
   {
     fig: 'FIG.2 · RECOVERY HANDOFF',
-    status: 'RESUMED · NO REPLAY',
     num: '02',
     name: 'Recover',
     body: 'When an execution environment stops mid-run, the task does not restart from zero. Igris continues from recorded progress.',
@@ -529,7 +693,6 @@ const cards: Card[] = [
   },
   {
     fig: 'FIG.3 · RECEIPT CHAIN',
-    status: 'CHAIN · VALID',
     num: '03',
     name: 'Verify',
     body: 'Check the receipt chain. Every committed action leaves a signed receipt that can be checked later.',
@@ -543,7 +706,6 @@ const cards: Card[] = [
   },
   {
     fig: 'FIG.4 · OPERATOR RECORD',
-    status: 'OPERATOR · READY',
     num: '04',
     name: 'Inspect',
     body: 'See the evidence without raw payloads. Operators see the outcome, recovery path, evidence trail, and verification state in one place.',
@@ -676,12 +838,6 @@ export default function Capabilities() {
                     style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.22em' }}
                   >
                     {c.fig}
-                  </span>
-                  <span
-                    className="text-emerald-700 dark:text-emerald-400 whitespace-nowrap"
-                    style={{ fontFamily: MONO, fontSize: '11.5px', letterSpacing: '0.22em', fontWeight: 500 }}
-                  >
-                    {c.status}
                   </span>
                 </div>
 
