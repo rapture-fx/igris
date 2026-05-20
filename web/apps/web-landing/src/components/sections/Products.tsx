@@ -98,62 +98,115 @@ function ExecutionPreview() {
 
   return (
     <div
-      className="bg-gray-50 dark:bg-[#111214] border border-black/[0.08] dark:border-white/[0.10] rounded-lg overflow-hidden flex flex-col"
+      className="bg-white dark:bg-[#0c0d0f] border border-black/[0.09] dark:border-white/[0.08] rounded-xl overflow-hidden flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.02),0_30px_60px_-30px_rgba(0,0,0,0.18)] dark:shadow-[0_1px_0_rgba(255,255,255,0.04),0_30px_60px_-30px_rgba(0,0,0,0.6)]"
       style={{ fontFamily: MONO, minHeight: 600 }}
     >
-      {/* ── Chrome: tabs (left) + utilities + live clock (right) ──────────── */}
-      <div className="flex items-center justify-between gap-4 px-3 py-2 border-b border-black/[0.08] dark:border-white/[0.08]">
-        <div className="flex items-center gap-0.5">
-          {tabs.map((t) => {
-            const active = tab === t.k
-            return (
-              <button
-                key={t.k}
-                onClick={() => setTab(t.k)}
-                type="button"
-                className={
-                  active
-                    ? 'flex items-center gap-1.5 px-2.5 py-1 text-[11.5px] rounded-md bg-gray-100 dark:bg-white/[0.06] text-gray-900 dark:text-[#f6f6f4] font-medium cursor-pointer'
-                    : 'flex items-center gap-1.5 px-2.5 py-1 text-[11.5px] text-gray-500 dark:text-[#8a8a7a] hover:text-gray-900 dark:hover:text-[#f6f6f4] cursor-pointer transition-colors'
-                }
-                style={{ fontFamily: 'inherit', letterSpacing: '0.01em' }}
-              >
-                {t.label}
-                <span className={
-                  active
-                    ? 'text-[10px] tabular-nums px-1 rounded bg-white dark:bg-white/[0.08] text-gray-500 dark:text-[#8a8a7a]'
-                    : 'text-[10px] tabular-nums text-gray-400 dark:text-[#5a5a52]'
-                }>
-                  {t.n}
-                </span>
-              </button>
-            )
-          })}
+      {/* ── Titlebar: traffic lights · breadcrumb · live clock ───────────── */}
+      <div className="flex items-center gap-3 px-3.5 py-2.5 border-b border-black/[0.06] dark:border-white/[0.06] bg-gray-50/80 dark:bg-white/[0.015]">
+        {/* macOS-style traffic lights */}
+        <div className="flex items-center gap-1.5">
+          <span className="block w-2.5 h-2.5 rounded-full bg-[#ff5f57] ring-1 ring-inset ring-black/10" />
+          <span className="block w-2.5 h-2.5 rounded-full bg-[#febc2e] ring-1 ring-inset ring-black/10" />
+          <span className="block w-2.5 h-2.5 rounded-full bg-[#28c840] ring-1 ring-inset ring-black/10" />
         </div>
 
-        <div className="flex items-center gap-3 text-[10.5px] text-gray-400 dark:text-[#6a6a5e]" style={{ fontFamily: MONO }}>
-          {/* refresh — keystroke hint */}
-          <span className="hidden md:flex items-center gap-1.5">
-            <span className="text-gray-300 dark:text-[#3a3a32]">⌘</span>
-            <span>R</span>
-            <span className="text-gray-300 dark:text-[#3a3a32]">refresh</span>
+        {/* breadcrumb path — centered identity */}
+        <div className="flex-1 flex items-center justify-center min-w-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.05] text-[10.5px] text-gray-500 dark:text-[#8a8a7a] truncate">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="opacity-60 flex-shrink-0">
+              <path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+            </svg>
+            <span className="truncate">igris</span>
+            <span className="text-gray-300 dark:text-[#3a3a32]">/</span>
+            <span className="truncate">console</span>
+            <span className="text-gray-300 dark:text-[#3a3a32]">/</span>
+            <span className="text-gray-700 dark:text-[#c8c8b8] truncate">history</span>
+          </div>
+        </div>
+
+        {/* live clock */}
+        <div className="flex items-center gap-1.5 text-[10.5px] text-green-700 dark:text-green-500" style={{ fontFamily: MONO }}>
+          <span className="relative inline-flex">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
+            <span className="absolute inset-0 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-ping opacity-75" />
           </span>
-          {/* live indicator */}
-          <span className="flex items-center gap-1.5 text-green-600 dark:text-green-500">
-            <span className="relative inline-flex">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
-              <span className="absolute inset-0 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-ping opacity-75" />
-            </span>
-            <span className="tabular-nums">14:07:45</span>
-          </span>
+          <span className="tabular-nums">14:07:45</span>
         </div>
       </div>
 
+      {/* ── Tab strip ─────────────────────────────────────────────── */}
+      <div className="flex items-stretch border-b border-black/[0.06] dark:border-white/[0.06] bg-gray-50/40 dark:bg-white/[0.008]">
+        {tabs.map((t) => {
+          const active = tab === t.k
+          return (
+            <button
+              key={t.k}
+              onClick={() => setTab(t.k)}
+              type="button"
+              className={
+                'group relative flex items-center gap-2 px-4 py-2.5 text-[11.5px] cursor-pointer transition-colors border-r border-black/[0.05] dark:border-white/[0.04] ' +
+                (active
+                  ? 'text-gray-900 dark:text-[#f6f6f4] bg-white dark:bg-[#0c0d0f]'
+                  : 'text-gray-500 dark:text-[#8a8a7a] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-white/60 dark:hover:bg-white/[0.02]')
+              }
+              style={{ fontFamily: 'inherit', letterSpacing: '0.01em' }}
+            >
+              {/* active underline indicator */}
+              <span
+                aria-hidden
+                className={
+                  'absolute left-3 right-3 -bottom-px h-px transition-opacity ' +
+                  (active ? 'bg-emerald-500/90 opacity-100' : 'opacity-0')
+                }
+              />
+              <span>{t.label}</span>
+              <span
+                className={
+                  'text-[10px] tabular-nums px-1.5 py-px rounded ' +
+                  (active
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-black/[0.04] dark:bg-white/[0.04] text-gray-400 dark:text-[#5a5a52]')
+                }
+              >
+                {t.n}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
       {/* ── Tab content ───────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-[#0c0d0f]">
         {tab === 'event_stream' && <EventStreamView />}
         {tab === 'execution_timeline' && <TimelineView />}
         {tab === 'proof_trail' && <ProofTrailView />}
+      </div>
+
+      {/* ── Statusbar ─────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-4 px-3.5 py-1.5 border-t border-black/[0.06] dark:border-white/[0.06] bg-gray-50/80 dark:bg-white/[0.015] text-[10px] text-gray-500 dark:text-[#7a7a6e]" style={{ letterSpacing: '0.04em' }}>
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="flex items-center gap-1.5">
+            <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="tabular-nums">chain valid</span>
+          </span>
+          <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
+          <span className="tabular-nums">2 tasks</span>
+          <span className="text-gray-300 dark:text-[#3a3a32] hidden sm:inline">·</span>
+          <span className="tabular-nums hidden sm:inline">{ALL_EVENTS.length} events</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="hidden md:flex items-center gap-1">
+            <span className="text-gray-300 dark:text-[#3a3a32]">⌘</span>
+            <span>R</span>
+            <span className="ml-1">refresh</span>
+          </span>
+          <span className="hidden md:flex items-center gap-1">
+            <span className="text-gray-300 dark:text-[#3a3a32]">⌘</span>
+            <span>K</span>
+            <span className="ml-1">filter</span>
+          </span>
+          <span>UTC</span>
+        </div>
       </div>
     </div>
   )
