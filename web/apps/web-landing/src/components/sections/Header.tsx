@@ -68,7 +68,7 @@ export default function Header() {
   const SidebarContent = (
     <div className="flex flex-col h-full w-full">
       {/* Logo */}
-      <div className="pl-5 pr-8 pt-8 md:pt-10 pb-6 flex justify-end">
+      <div className="pl-5 pr-8 pt-32 md:pt-44 pb-6 flex justify-end">
         <Link href="/" prefetch={false} onClick={() => setMobileOpen(false)}>
           <img
             src={isDark ? '/inertiadm.png' : '/inertia.png'}
