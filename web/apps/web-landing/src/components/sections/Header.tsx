@@ -132,7 +132,7 @@ export default function Header() {
     <>
       {/* Desktop sidebar — fixed, doesn't scroll */}
       <aside
-        className="igris-header hidden md:flex fixed top-0 left-0 h-screen w-96 z-40 bg-white dark:bg-[#110f0f] border-r border-black/[0.08] dark:border-white/[0.08]"
+        className="igris-header igris-sidebar hidden md:flex fixed top-0 left-0 h-screen w-96 z-40 bg-white dark:bg-[#110f0f] border-r border-black/[0.08] dark:border-white/[0.08]"
       >
         {SidebarContent}
       </aside>
