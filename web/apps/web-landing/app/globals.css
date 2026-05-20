@@ -36,6 +36,27 @@ html.dark {
   background-attachment: fixed;
 }
 
+/* Centered page shell — the content column is centered in the viewport, with
+   equal margin on both sides. The left margin holds the sidebar + a small gap;
+   the right margin is empty but the same width, so the content reads as centered.
+   Content text itself stays left-aligned. Below the threshold the shift clamps
+   to 0 and narrower screens behave as before. */
+@media (min-width: 768px) {
+  :root {
+    --igris-gutter: 28rem;     /* left margin: sidebar + gap */
+    --igris-content: 1000px;   /* max content column width */
+    --igris-shift: max(0px, calc((100vw - var(--igris-content)) / 2 - var(--igris-gutter)));
+  }
+  .igris-shell {
+    padding-left: calc(var(--igris-shift) + var(--igris-gutter)) !important;
+  }
+  /* Sidebar sits at the start of the left gutter (default w-96 / 24rem). */
+  .igris-sidebar {
+    left: var(--igris-shift) !important;
+    width: 24rem !important;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
