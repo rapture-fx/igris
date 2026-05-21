@@ -120,6 +120,34 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		return nil, fmt.Errorf("no healthy runtime: %w", err)
 	}
 
+	decision := evaluateActionPolicy(actionPolicyInput{
+		TenantID:       task.TenantID,
+		TaskID:         task.TaskID,
+		RuntimeID:      runtime.RuntimeID,
+		TaskDefinition: task.TaskDefinition,
+		AgentIdentity:  task.AgentIdentity,
+		RequiredCaps:   task.RequiredCapabilities,
+	})
+	if err := tc.store.SaveActionPolicyDecision(decision); err != nil {
+		_ = tc.store.MarkFailedWithDetails(taskID, "action policy decision persistence failed", overtureTaskFailureDetails("submit", "policy_decision_persistence_failed", err.Error()))
+		return nil, fmt.Errorf("persist action policy decision: %w", err)
+	}
+	_ = tc.store.SetLatestPolicyDecision(taskID, decision)
+	_ = tc.store.SaveExecutionBoundary(decision, task.TaskDefinition, task.RequiredCapabilities)
+	switch decision.Decision {
+	case ActionDecisionDenied:
+		_ = tc.store.MarkFailedWithDetails(taskID, decision.PolicyReason, overtureTaskFailureDetails("submit", "action_policy_denied", decision.PolicyReason))
+		return nil, fmt.Errorf("%w: %s", ErrTaskCapabilityDenied, decision.PolicyReason)
+	case ActionDecisionApprovalRequired:
+		_ = tc.store.SaveApprovalRequest(decision)
+		if err := tc.store.MarkApprovalRequired(taskID, decision.PolicyReason); err != nil {
+			return nil, fmt.Errorf("mark approval required: %w", err)
+		}
+		task.Status = TaskStatusApprovalRequired
+		task.RuntimeID = &runtime.RuntimeID
+		return task, nil
+	}
+
 	if err := tc.store.MarkDispatched(taskID, runtime.RuntimeID, runtime.Endpoint); err != nil {
 		return nil, fmt.Errorf("mark dispatched: %w", err)
 	}
@@ -1144,6 +1172,16 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not load task state for recovery")
 			continue
 		}
+		step := checkpointLastCommittedStep(cp)
+		_ = tc.store.SaveRecoveryEvent(RecoveryEvent{
+			TenantID:          task.TenantID,
+			TaskID:            taskID,
+			EventType:         "runtime_failed",
+			SourceRuntimeID:   runtimeID,
+			CheckpointDigest:  checkpointDigest(cp),
+			LastCommittedStep: step,
+			Reason:            "runtime heartbeat became stale",
+		})
 		task, err = tc.store.HydrateTaskPermissionEnvelope(task)
 		if err != nil {
 			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Could not hydrate task governance for recovery")
@@ -1183,6 +1221,49 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			continue
 		}
 
+		decision := evaluateActionPolicy(actionPolicyInput{
+			TenantID:        task.TenantID,
+			TaskID:          task.TaskID,
+			RuntimeID:       newRuntime.RuntimeID,
+			TaskDefinition:  task.TaskDefinition,
+			AgentIdentity:   task.AgentIdentity,
+			RequiredCaps:    task.RequiredCapabilities,
+			Checkpoint:      cp,
+			RecoveryAttempt: true,
+		})
+		if err := tc.store.SaveActionPolicyDecision(decision); err != nil {
+			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] Persist recovery action policy decision")
+			_ = tc.store.MarkFailedWithDetails(taskID, "recovery action policy decision persistence failed", overtureTaskFailureDetails("recovery", "policy_decision_persistence_failed", err.Error()))
+			continue
+		}
+		_ = tc.store.SetLatestPolicyDecision(taskID, decision)
+		allowed, handoffReason := RecoveryHandoffAllowed(task, cp, newRuntime.RuntimeID, decision)
+		_ = tc.store.SaveRuntimeHandoffEvent(RuntimeHandoffEvent{
+			TenantID:              task.TenantID,
+			TaskID:                taskID,
+			SourceRuntimeID:       runtimeID,
+			TargetRuntimeID:       newRuntime.RuntimeID,
+			CheckpointDigest:      checkpointDigest(cp),
+			CheckpointPortability: decision.CheckpointPortability,
+			Decision:              mapBoolDecision(allowed),
+			Reason:                handoffReason,
+		})
+		_ = tc.store.SaveRecoveryEvent(RecoveryEvent{
+			TenantID:          task.TenantID,
+			TaskID:            taskID,
+			EventType:         "handoff_" + mapBoolDecision(allowed),
+			SourceRuntimeID:   runtimeID,
+			TargetRuntimeID:   newRuntime.RuntimeID,
+			CheckpointDigest:  checkpointDigest(cp),
+			LastCommittedStep: checkpointLastCommittedStep(cp),
+			ReplayAllowed:     &allowed,
+			Reason:            handoffReason,
+		})
+		if !allowed {
+			_ = tc.store.MarkFailedWithDetails(taskID, handoffReason, overtureTaskFailureDetails("recovery", "runtime_handoff_denied", handoffReason))
+			continue
+		}
+
 		if err := tc.store.MarkDispatched(taskID, newRuntime.RuntimeID, newRuntime.Endpoint); err != nil {
 			log.Info().
 				Str("task_id", taskID.String()).
@@ -1212,6 +1293,18 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			Str("new_runtime", newRuntime.RuntimeID).
 			Msg("[Coordinator] Redispatching recovered task")
 
+		_ = tc.store.SaveExecutionBoundary(decision, task.TaskDefinition, task.RequiredCapabilities)
+		_ = tc.store.SaveRecoveryEvent(RecoveryEvent{
+			TenantID:          task.TenantID,
+			TaskID:            taskID,
+			EventType:         "redispatched",
+			SourceRuntimeID:   runtimeID,
+			TargetRuntimeID:   newRuntime.RuntimeID,
+			CheckpointDigest:  checkpointDigest(cp),
+			LastCommittedStep: checkpointLastCommittedStep(cp),
+			ReplayAllowed:     &allowed,
+			Reason:            "recovery redispatch accepted",
+		})
 		go tc.dispatchToRuntime(ctx, task, cp)
 	}
 }
@@ -1226,6 +1319,28 @@ func (tc *TaskCoordinator) handleRecoverySkip(taskID uuid.UUID, task *TaskRecord
 	if skipReason == "streaming_resume_unsupported" && task.Status == TaskStatusRecovering {
 		_ = tc.store.MarkFailedWithDetails(taskID, TaskFailureReasonStreamingResumeUnsupported, overtureTaskFailureDetails("recovery", "streaming_resume_unsupported", TaskFailureReasonStreamingResumeUnsupported))
 	}
+}
+
+func checkpointDigest(cp *CheckpointPayload) string {
+	if cp == nil {
+		return ""
+	}
+	return cp.ResumeToken.CheckpointDigest
+}
+
+func checkpointLastCommittedStep(cp *CheckpointPayload) *int {
+	if cp == nil {
+		return nil
+	}
+	v := int(cp.ResumeToken.LastCommittedStep)
+	return &v
+}
+
+func mapBoolDecision(allowed bool) string {
+	if allowed {
+		return "allowed"
+	}
+	return "denied"
 }
 
 func overtureTaskFailureDetails(operation, rejectionType, message string) *TaskFailureDetails {
