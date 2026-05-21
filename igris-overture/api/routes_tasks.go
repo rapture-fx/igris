@@ -880,10 +880,12 @@ func handleGetTask(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		allSteps, _ := tc.Store().GetAllTaskSteps(taskID)
 		allCheckpoints, _ := tc.Store().GetAllCheckpoints(taskID)
-		return c.JSON(buildTaskResponse(task, actionEvidenceSource{
+		resp := buildTaskResponse(task, actionEvidenceSource{
 			walEntries:      allSteps,
 			blackboardNodes: actionEvidenceNodesFromCheckpoints(allCheckpoints),
-		}))
+		})
+		appendTaskGovernanceSummaries(resp, tc.Store(), task)
+		return c.JSON(resp)
 	}
 }
 
@@ -1215,6 +1217,80 @@ func buildTaskRecoveryResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 
 	return resp
+}
+
+func appendTaskGovernanceSummaries(resp fiber.Map, store *coordinator.CheckpointStore, task *coordinator.TaskRecord) {
+	if resp == nil || store == nil || task == nil {
+		return
+	}
+	if decision, err := store.LatestActionPolicyDecision(task.TenantID, task.TaskID); err == nil && decision != nil {
+		resp["policy"] = fiber.Map{
+			"decision_id":            decision.DecisionID,
+			"decision":               decision.Decision,
+			"action_name":            decision.ActionName,
+			"risk_level":             decision.RiskLevel,
+			"replay_class":           decision.ReplayClass,
+			"irreversible":           decision.Irreversible,
+			"human_gated":            decision.HumanGated,
+			"policy_version":         decision.PolicyVersion,
+			"reason":                 decision.PolicyReason,
+			"action_digest":          decision.ActionDigest,
+			"checkpoint_portability": decision.CheckpointPortability,
+			"created_at":             decision.CreatedAt,
+		}
+	}
+	if events, err := store.ListRecoveryEvents(task.TenantID, task.TaskID); err == nil && len(events) > 0 {
+		safe := make([]fiber.Map, 0, len(events))
+		for _, event := range events {
+			row := fiber.Map{
+				"event_type":        event.EventType,
+				"source_runtime_id": event.SourceRuntimeID,
+				"target_runtime_id": event.TargetRuntimeID,
+				"checkpoint_digest": event.CheckpointDigest,
+				"reason":            event.Reason,
+				"created_at":        event.CreatedAt,
+			}
+			if event.LastCommittedStep != nil {
+				row["last_committed_step"] = *event.LastCommittedStep
+			}
+			if event.ReplayAllowed != nil {
+				row["replay_allowed"] = *event.ReplayAllowed
+			}
+			safe = append(safe, row)
+		}
+		if recovery, ok := resp["recovery"].(fiber.Map); ok {
+			recovery["events"] = safe
+		} else {
+			resp["recovery"] = fiber.Map{"events": safe}
+		}
+	}
+	if handoff, err := store.LatestRuntimeHandoffEvent(task.TenantID, task.TaskID); err == nil && handoff != nil {
+		resp["runtime_handoff"] = fiber.Map{
+			"source_runtime_id":      handoff.SourceRuntimeID,
+			"target_runtime_id":      handoff.TargetRuntimeID,
+			"checkpoint_digest":      handoff.CheckpointDigest,
+			"checkpoint_portability": handoff.CheckpointPortability,
+			"decision":               handoff.Decision,
+			"reason":                 handoff.Reason,
+			"created_at":             handoff.CreatedAt,
+		}
+	}
+	if boundary, err := store.LatestExecutionBoundary(task.TenantID, task.TaskID); err == nil && boundary != nil {
+		resp["runtime_boundary"] = fiber.Map{
+			"boundary_id":          boundary.BoundaryID,
+			"runtime_id":           boundary.RuntimeID,
+			"environment_label":    boundary.EnvironmentLabel,
+			"allowed_tools":        json.RawMessage(boundary.AllowedTools),
+			"denied_tools":         json.RawMessage(boundary.DeniedTools),
+			"network_scope":        boundary.NetworkScope,
+			"filesystem_scope":     boundary.FilesystemScope,
+			"api_scope":            boundary.APIScope,
+			"resource_limits":      json.RawMessage(boundary.ResourceLimits),
+			"runtime_capabilities": json.RawMessage(boundary.RuntimeCapabilities),
+			"boundary_digest":      boundary.BoundaryDigest,
+			"created_at":           boundary.CreatedAt,
+		}
+	}
 }
 
 func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fiber.Map {
