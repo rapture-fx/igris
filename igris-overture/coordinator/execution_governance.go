@@ -89,6 +89,19 @@ type ExecutionBoundarySummary struct {
 	CreatedAt           time.Time       `json:"created_at"`
 }
 
+type VerificationResultRecord struct {
+	TenantID         string
+	TaskID           uuid.UUID
+	ExecutionID      string
+	PolicyDecisionID *uuid.UUID
+	CheckpointDigest string
+	ActionDigest     string
+	Status           string
+	PolicyCompliant  *bool
+	EvidenceDigest   string
+	Reason           string
+}
+
 type actionPolicyInput struct {
 	TenantID        string
 	TaskID          uuid.UUID
@@ -490,6 +503,32 @@ func (s *CheckpointStore) LatestExecutionBoundary(tenantID string, taskID uuid.U
 		return nil, err
 	}
 	return &b, nil
+}
+
+func (s *CheckpointStore) SaveVerificationResult(record VerificationResultRecord) error {
+	if s == nil || s.db == nil || record.TaskID == uuid.Nil {
+		return nil
+	}
+	if isSQLMockDB(s.db) {
+		return nil
+	}
+	_, err := s.db.Exec(`
+		INSERT INTO verification_results (
+			tenant_id, task_id, execution_id, policy_decision_id, checkpoint_digest,
+			action_digest, status, policy_compliant, evidence_digest, reason
+		) VALUES ($1,$2,NULLIF($3,''),$4,NULLIF($5,''),NULLIF($6,''),$7,$8,NULLIF($9,''),$10)`,
+		record.TenantID,
+		record.TaskID,
+		record.ExecutionID,
+		record.PolicyDecisionID,
+		record.CheckpointDigest,
+		record.ActionDigest,
+		record.Status,
+		record.PolicyCompliant,
+		record.EvidenceDigest,
+		record.Reason,
+	)
+	return err
 }
 
 func RecoveryHandoffAllowed(task *TaskRecord, checkpoint *CheckpointPayload, targetRuntimeID string, decision ActionPolicyDecision) (bool, string) {
