@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -1553,6 +1554,7 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 				proof.ChainLinkValid = &cv
 			}
 		}
+		persistVerificationResult(tc.Store(), task, proof, crypto.Verified(), chain.Valid, reason)
 
 		respProof := buildTaskProofResponse(proof)
 		applyCryptographicProofFields(respProof, crypto)
@@ -1564,6 +1566,65 @@ func handleVerifyTaskProof(tc *coordinator.TaskCoordinator) fiber.Handler {
 			"proof":    respProof,
 		})
 	}
+}
+
+func persistVerificationResult(store *coordinator.CheckpointStore, task *coordinator.TaskRecord, proof *coordinator.TaskProofState, verified bool, chainValid bool, reason string) {
+	if store == nil || task == nil {
+		return
+	}
+	status := "failed_verification"
+	if verified && chainValid {
+		status = "verified"
+	} else if verified {
+		status = "partially_verified"
+	} else if proof == nil || proof.ExecutionID == "" {
+		status = "unverifiable"
+	}
+	var policyDecisionID *uuid.UUID
+	actionDigest := ""
+	policyCompliant := true
+	if decision, err := store.LatestActionPolicyDecision(task.TenantID, task.TaskID); err == nil && decision != nil {
+		id := decision.DecisionID
+		policyDecisionID = &id
+		actionDigest = decision.ActionDigest
+		if decision.Decision == coordinator.ActionDecisionDenied {
+			policyCompliant = false
+			status = "policy_violation"
+		}
+	}
+	executionID := ""
+	if proof != nil {
+		executionID = proof.ExecutionID
+	}
+	checkpointDigest := ""
+	if task.LastCheckpoint != nil {
+		checkpointDigest = task.LastCheckpoint.ResumeToken.CheckpointDigest
+	}
+	if strings.TrimSpace(reason) == "" {
+		reason = "verification completed"
+	}
+	if err := store.SaveVerificationResult(coordinator.VerificationResultRecord{
+		TenantID:         task.TenantID,
+		TaskID:           task.TaskID,
+		ExecutionID:      executionID,
+		PolicyDecisionID: policyDecisionID,
+		CheckpointDigest: checkpointDigest,
+		ActionDigest:     actionDigest,
+		Status:           status,
+		PolicyCompliant:  &policyCompliant,
+		EvidenceDigest:   proofEvidenceDigest(task.ExecutionReceipt),
+		Reason:           reason,
+	}); err != nil {
+		log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("failed to persist verification result")
+	}
+}
+
+func proofEvidenceDigest(receipt json.RawMessage) string {
+	if len(receipt) == 0 {
+		return ""
+	}
+	sum := sha256.Sum256(receipt)
+	return fmt.Sprintf("%x", sum[:])
 }
 
 // verifyTaskChainLink extracts previous_hash from the task's stored receipt
