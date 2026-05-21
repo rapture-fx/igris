@@ -70,13 +70,14 @@ type TaskRecord struct {
 type TaskRecordStatus string
 
 const (
-	TaskStatusPending      TaskRecordStatus = "pending"
-	TaskStatusDispatched   TaskRecordStatus = "dispatched"
-	TaskStatusCheckpointed TaskRecordStatus = "checkpointed"
-	TaskStatusCompleted    TaskRecordStatus = "completed"
-	TaskStatusFailed       TaskRecordStatus = "failed"
-	TaskStatusRecovering   TaskRecordStatus = "recovering"
-	TaskStatusCanceled     TaskRecordStatus = "canceled"
+	TaskStatusPending          TaskRecordStatus = "pending"
+	TaskStatusDispatched       TaskRecordStatus = "dispatched"
+	TaskStatusCheckpointed     TaskRecordStatus = "checkpointed"
+	TaskStatusCompleted        TaskRecordStatus = "completed"
+	TaskStatusFailed           TaskRecordStatus = "failed"
+	TaskStatusRecovering       TaskRecordStatus = "recovering"
+	TaskStatusCanceled         TaskRecordStatus = "canceled"
+	TaskStatusApprovalRequired TaskRecordStatus = "approval_required"
 )
 
 type TaskDurabilityClass string
@@ -2767,6 +2768,8 @@ func TaskRecoverySkipReason(task *TaskRecord) string {
 	switch task.Status {
 	case TaskStatusCanceled:
 		return "task_canceled"
+	case TaskStatusApprovalRequired:
+		return "approval_required"
 	case TaskStatusCompleted:
 		return "task_completed"
 	case TaskStatusFailed:
