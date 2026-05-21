@@ -38,11 +38,12 @@ export default function Hero() {
                 lineHeight: 1.65,
               }}
             >
-              Igris is an execution layer for AI agents that touch real systems —
-              files, APIs, databases, workflows, and deployment paths. Every
-              committed action becomes durable, signed evidence. When a host
-              fails mid-run, work resumes from recorded progress; committed
-              actions never replay.
+              Igris sits between AI and the actions it wants to perform.
+              When your AI needs to read a file, call an API, update a
+              database, or trigger a workflow, Igris runs that action safely,
+              records what happened, and gives your team proof afterward.
+              If execution breaks mid-run, Igris resumes from the last
+              recorded step instead of starting from zero.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center justify-start gap-x-3 gap-y-3">
