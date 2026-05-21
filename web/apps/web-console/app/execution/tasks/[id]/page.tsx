@@ -810,6 +810,76 @@ export default function ExecutionTaskInspectorPage() {
               </Card>
             </div>
 
+            {(task.policy || task.runtime_boundary || task.runtime_handoff) && (
+              <Card className="border-gray-200 shadow-none">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold text-gray-900">
+                    Governance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {task.policy && (
+                    <KeyValueGrid
+                      rows={[
+                        { label: 'Policy Decision', value: task.policy.decision ?? '—' },
+                        { label: 'Reason', value: task.policy.reason ?? '—' },
+                        { label: 'Risk', value: task.policy.risk_level ?? '—' },
+                        { label: 'Replay', value: task.policy.replay_class ?? '—' },
+                        { label: 'Irreversible', value: task.policy.irreversible ? 'Yes' : 'No' },
+                        { label: 'Human Gate', value: task.policy.human_gated ? 'Required' : 'Not required' },
+                        { label: 'Portability', value: task.policy.checkpoint_portability ?? '—' },
+                        {
+                          label: 'Decision ID',
+                          value: task.policy.decision_id ?? '—',
+                          mono: Boolean(task.policy.decision_id),
+                          copyable: task.policy.decision_id,
+                        },
+                        {
+                          label: 'Action Digest',
+                          value: task.policy.action_digest ?? '—',
+                          mono: Boolean(task.policy.action_digest),
+                          copyable: task.policy.action_digest,
+                        },
+                      ]}
+                    />
+                  )}
+                  {task.runtime_boundary && (
+                    <KeyValueGrid
+                      rows={[
+                        { label: 'Boundary Runtime', value: task.runtime_boundary.runtime_id ?? task.runtime_id ?? '—' },
+                        { label: 'Environment', value: task.runtime_boundary.environment_label ?? '—' },
+                        { label: 'Network Scope', value: task.runtime_boundary.network_scope ?? '—' },
+                        { label: 'File Scope', value: task.runtime_boundary.filesystem_scope ?? '—' },
+                        { label: 'API Scope', value: task.runtime_boundary.api_scope ?? '—' },
+                        {
+                          label: 'Allowed Tools',
+                          value: Array.isArray(task.runtime_boundary.allowed_tools)
+                            ? task.runtime_boundary.allowed_tools.join(', ') || '—'
+                            : '—',
+                        },
+                        {
+                          label: 'Boundary Digest',
+                          value: task.runtime_boundary.boundary_digest ?? '—',
+                          mono: Boolean(task.runtime_boundary.boundary_digest),
+                          copyable: task.runtime_boundary.boundary_digest,
+                        },
+                      ]}
+                    />
+                  )}
+                  {task.runtime_handoff && (
+                    <KeyValueGrid
+                      rows={[
+                        { label: 'Handoff', value: task.runtime_handoff.decision ?? '—' },
+                        { label: 'Handoff Reason', value: task.runtime_handoff.reason ?? '—' },
+                        { label: 'Source Runtime', value: task.runtime_handoff.source_runtime_id ?? '—', mono: Boolean(task.runtime_handoff.source_runtime_id) },
+                        { label: 'Target Runtime', value: task.runtime_handoff.target_runtime_id ?? '—', mono: Boolean(task.runtime_handoff.target_runtime_id) },
+                      ]}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="border-gray-200 shadow-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold text-gray-900">
@@ -925,6 +995,46 @@ export default function ExecutionTaskInspectorPage() {
                         },
                       ]}
                     />
+                    {Array.isArray(task.recovery?.events) && task.recovery.events.length > 0 && (
+                      <div className="overflow-hidden rounded-md border border-gray-200">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-[11px]">Event</TableHead>
+                              <TableHead className="text-[11px]">Runtime</TableHead>
+                              <TableHead className="text-[11px]">Replay</TableHead>
+                              <TableHead className="text-[11px]">Reason</TableHead>
+                              <TableHead className="text-[11px]">Time</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {task.recovery.events.map((event, index) => (
+                              <TableRow key={`${event.event_type}-${event.created_at}-${index}`}>
+                                <TableCell className="text-xs font-medium text-gray-800">
+                                  {event.event_type ?? 'event'}
+                                </TableCell>
+                                <TableCell className="text-xs font-mono text-gray-600">
+                                  {event.target_runtime_id || event.source_runtime_id || '—'}
+                                </TableCell>
+                                <TableCell className="text-xs text-gray-600">
+                                  {typeof event.replay_allowed === 'boolean'
+                                    ? event.replay_allowed
+                                      ? 'Allowed'
+                                      : 'Blocked'
+                                    : '—'}
+                                </TableCell>
+                                <TableCell className="text-xs text-gray-600">
+                                  {event.reason ?? '—'}
+                                </TableCell>
+                                <TableCell className="text-xs text-gray-500">
+                                  {event.created_at ? getRelativeTime(event.created_at) : '—'}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
                   </>
                 )}
               </CardContent>
