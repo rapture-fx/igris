@@ -10,7 +10,9 @@ export type TaskStatus =
   | 'checkpointed'
   | 'completed'
   | 'failed'
-  | 'recovering';
+  | 'recovering'
+  | 'canceled'
+  | 'approval_required';
 
 export interface Task {
   task_id: string;
@@ -36,6 +38,53 @@ export interface Task {
   recovery?: {
     redispatch_eligible?: boolean;
     skip_reason?: string;
+    events?: Array<{
+      event_type?: string;
+      source_runtime_id?: string;
+      target_runtime_id?: string;
+      checkpoint_digest?: string;
+      last_committed_step?: number;
+      replay_allowed?: boolean;
+      reason?: string;
+      created_at?: string;
+    }>;
+  };
+  policy?: {
+    decision_id?: string;
+    decision?: 'allowed' | 'denied' | 'approval_required';
+    action_name?: string;
+    risk_level?: string;
+    replay_class?: string;
+    irreversible?: boolean;
+    human_gated?: boolean;
+    policy_version?: string;
+    reason?: string;
+    action_digest?: string;
+    checkpoint_portability?: string;
+    created_at?: string;
+  };
+  runtime_boundary?: {
+    boundary_id?: string;
+    runtime_id?: string;
+    environment_label?: string;
+    allowed_tools?: string[];
+    denied_tools?: string[];
+    network_scope?: string;
+    filesystem_scope?: string;
+    api_scope?: string;
+    resource_limits?: Record<string, unknown>;
+    runtime_capabilities?: Record<string, unknown>;
+    boundary_digest?: string;
+    created_at?: string;
+  };
+  runtime_handoff?: {
+    source_runtime_id?: string;
+    target_runtime_id?: string;
+    checkpoint_digest?: string;
+    checkpoint_portability?: string;
+    decision?: 'allowed' | 'denied';
+    reason?: string;
+    created_at?: string;
   };
   durability?: {
     class?: string;
