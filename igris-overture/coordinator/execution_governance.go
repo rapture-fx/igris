@@ -76,7 +76,9 @@ type RuntimeHandoffEvent struct {
 
 type ExecutionBoundarySummary struct {
 	BoundaryID          uuid.UUID       `json:"boundary_id"`
+	TaskID              uuid.UUID       `json:"task_id,omitempty"`
 	RuntimeID           string          `json:"runtime_id,omitempty"`
+	PolicyDecisionID    *uuid.UUID      `json:"policy_decision_id,omitempty"`
 	EnvironmentLabel    string          `json:"environment_label,omitempty"`
 	AllowedTools        json.RawMessage `json:"allowed_tools,omitempty"`
 	DeniedTools         json.RawMessage `json:"denied_tools,omitempty"`
@@ -87,6 +89,29 @@ type ExecutionBoundarySummary struct {
 	RuntimeCapabilities json.RawMessage `json:"runtime_capabilities,omitempty"`
 	BoundaryDigest      string          `json:"boundary_digest"`
 	CreatedAt           time.Time       `json:"created_at"`
+}
+
+type RuntimePortabilitySummary struct {
+	SameRuntimeOnly  int `json:"same_runtime_only"`
+	CompatibleRuntime int `json:"compatible_runtime"`
+	AnyRuntime       int `json:"any_runtime"`
+}
+
+type RuntimeOperationsSummary struct {
+	RuntimeID                    string                    `json:"runtime_id"`
+	RuntimeLabel                 string                    `json:"runtime_label"`
+	LastSeen                     *time.Time                `json:"last_seen,omitempty"`
+	CapabilitySummary           json.RawMessage           `json:"capability_summary,omitempty"`
+	TrustState                   string                    `json:"trust_state"`
+	ActiveExecutionCount         int                       `json:"active_execution_count"`
+	RecentExecutionCount         int                       `json:"recent_execution_count"`
+	BoundaryCount                int                       `json:"boundary_count"`
+	ViolationCount               int                       `json:"violation_count"`
+	HandoffCount                 int                       `json:"handoff_count"`
+	VerifiedProofCount           int                       `json:"verified_proof_count"`
+	FailedVerificationCount      int                       `json:"failed_verification_count"`
+	CheckpointPortabilitySummary RuntimePortabilitySummary `json:"checkpoint_portability_summary"`
+	EnforcementWarning           string                    `json:"enforcement_warning,omitempty"`
 }
 
 type VerificationResultRecord struct {
@@ -811,6 +836,10 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 		where = append(where, fmt.Sprintf("v.execution_id = $%d", len(args)+1))
 		args = append(args, opts.ExecutionID)
 	}
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("tr.runtime_id = $%d", len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
 	if opts.Action != "" {
 		where = append(where, fmt.Sprintf("v.action_digest = $%d", len(args)+1))
 		args = append(args, opts.Action)
@@ -873,6 +902,166 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 		out.Items = append(out.Items, v)
 	}
 	return out, rows.Err()
+}
+
+func (s *CheckpointStore) ListExecutionBoundaries(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[ExecutionBoundarySummary], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[ExecutionBoundarySummary]{Items: []ExecutionBoundarySummary{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("runtime_id = $%d", len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
+	query := fmt.Sprintf(`
+		SELECT boundary_id, task_id, COALESCE(runtime_id,''), policy_decision_id,
+		       COALESCE(environment_label,''), allowed_tools, denied_tools, network_scope,
+		       filesystem_scope, api_scope, resource_limits, runtime_capabilities,
+		       boundary_digest, created_at, COUNT(*) OVER()
+		FROM execution_boundaries
+		WHERE %s
+		ORDER BY created_at %s
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var b ExecutionBoundarySummary
+		var taskID, decisionID uuid.NullUUID
+		if err := rows.Scan(&b.BoundaryID, &taskID, &b.RuntimeID, &decisionID,
+			&b.EnvironmentLabel, &b.AllowedTools, &b.DeniedTools, &b.NetworkScope,
+			&b.FilesystemScope, &b.APIScope, &b.ResourceLimits, &b.RuntimeCapabilities,
+			&b.BoundaryDigest, &b.CreatedAt, &out.Total); err != nil {
+			return nil, err
+		}
+		if taskID.Valid {
+			b.TaskID = taskID.UUID
+		}
+		if decisionID.Valid {
+			id := decisionID.UUID
+			b.PolicyDecisionID = &id
+		}
+		out.Items = append(out.Items, b)
+	}
+	return out, rows.Err()
+}
+
+func (s *CheckpointStore) ListRuntimeOperations(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[RuntimeOperationsSummary], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[RuntimeOperationsSummary]{Items: []RuntimeOperationsSummary{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where := []string{"runtime_id <> ''"}
+	args := []any{tenantID}
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("runtime_id = $%d", len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
+	query := fmt.Sprintf(`
+		WITH runtime_ids AS (
+			SELECT runtime_id FROM runtime_instances WHERE tenant_id = $1 AND COALESCE(runtime_id,'') <> ''
+			UNION SELECT runtime_id FROM action_policy_decisions WHERE tenant_id = $1 AND COALESCE(runtime_id,'') <> ''
+			UNION SELECT runtime_id FROM execution_boundaries WHERE tenant_id = $1 AND COALESCE(runtime_id,'') <> ''
+			UNION SELECT runtime_id FROM boundary_violations WHERE tenant_id = $1 AND COALESCE(runtime_id,'') <> ''
+			UNION SELECT source_runtime_id FROM task_recovery_events WHERE tenant_id = $1 AND COALESCE(source_runtime_id,'') <> ''
+			UNION SELECT target_runtime_id FROM task_recovery_events WHERE tenant_id = $1 AND COALESCE(target_runtime_id,'') <> ''
+			UNION SELECT source_runtime_id FROM runtime_handoff_events WHERE tenant_id = $1 AND COALESCE(source_runtime_id,'') <> ''
+			UNION SELECT target_runtime_id FROM runtime_handoff_events WHERE tenant_id = $1 AND COALESCE(target_runtime_id,'') <> ''
+		), runtime_rows AS (
+			SELECT r.runtime_id,
+			       COALESCE(ri.capabilities, '[]'::jsonb) AS capabilities,
+			       COALESCE(ri.last_heartbeat, ri.last_seen_at) AS last_seen,
+			       COALESCE(ri.status, '') AS status,
+			       COALESCE(ri.is_healthy, false) AS is_healthy
+			FROM runtime_ids r
+			LEFT JOIN runtime_instances ri
+			  ON ri.tenant_id = $1 AND ri.runtime_id = r.runtime_id
+		)
+		SELECT runtime_id, capabilities, last_seen, status, is_healthy,
+		       (SELECT COUNT(*) FROM task_records tr
+		        WHERE tr.tenant_id = $1 AND tr.runtime_id = runtime_rows.runtime_id
+		          AND tr.status IN ('dispatched','checkpointed','recovering')) AS active_execution_count,
+		       (SELECT COUNT(*) FROM task_records tr
+		        WHERE tr.tenant_id = $1 AND tr.runtime_id = runtime_rows.runtime_id
+		          AND tr.created_at >= NOW() - INTERVAL '24 hours') AS recent_execution_count,
+		       (SELECT COUNT(*) FROM execution_boundaries eb
+		        WHERE eb.tenant_id = $1 AND eb.runtime_id = runtime_rows.runtime_id) AS boundary_count,
+		       (SELECT COUNT(*) FROM boundary_violations bv
+		        WHERE bv.tenant_id = $1 AND bv.runtime_id = runtime_rows.runtime_id) AS violation_count,
+		       (SELECT COUNT(*) FROM runtime_handoff_events he
+		        WHERE he.tenant_id = $1 AND (he.source_runtime_id = runtime_rows.runtime_id OR he.target_runtime_id = runtime_rows.runtime_id)) AS handoff_count,
+		       (SELECT COUNT(*) FROM verification_results vr
+		        JOIN task_records tr ON tr.tenant_id = vr.tenant_id AND tr.task_id = vr.task_id
+		        WHERE vr.tenant_id = $1 AND tr.runtime_id = runtime_rows.runtime_id AND vr.status = 'verified') AS verified_proof_count,
+		       (SELECT COUNT(*) FROM verification_results vr
+		        JOIN task_records tr ON tr.tenant_id = vr.tenant_id AND tr.task_id = vr.task_id
+		        WHERE vr.tenant_id = $1 AND tr.runtime_id = runtime_rows.runtime_id
+		          AND vr.status IN ('failed_verification','policy_violation')) AS failed_verification_count,
+		       (SELECT COUNT(*) FROM runtime_handoff_events he
+		        WHERE he.tenant_id = $1 AND (he.source_runtime_id = runtime_rows.runtime_id OR he.target_runtime_id = runtime_rows.runtime_id)
+		          AND he.checkpoint_portability = 'same_runtime_only') AS portability_same_runtime_only,
+		       (SELECT COUNT(*) FROM runtime_handoff_events he
+		        WHERE he.tenant_id = $1 AND (he.source_runtime_id = runtime_rows.runtime_id OR he.target_runtime_id = runtime_rows.runtime_id)
+		          AND he.checkpoint_portability = 'compatible_runtime') AS portability_compatible_runtime,
+		       (SELECT COUNT(*) FROM runtime_handoff_events he
+		        WHERE he.tenant_id = $1 AND (he.source_runtime_id = runtime_rows.runtime_id OR he.target_runtime_id = runtime_rows.runtime_id)
+		          AND he.checkpoint_portability = 'any_runtime') AS portability_any_runtime,
+		       COUNT(*) OVER()
+		FROM runtime_rows
+		WHERE %s
+		ORDER BY last_seen %s NULLS LAST, runtime_id ASC
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var r RuntimeOperationsSummary
+		var lastSeen sql.NullTime
+		var status string
+		var healthy bool
+		if err := rows.Scan(&r.RuntimeID, &r.CapabilitySummary, &lastSeen, &status, &healthy,
+			&r.ActiveExecutionCount, &r.RecentExecutionCount, &r.BoundaryCount, &r.ViolationCount,
+			&r.HandoffCount, &r.VerifiedProofCount, &r.FailedVerificationCount,
+			&r.CheckpointPortabilitySummary.SameRuntimeOnly,
+			&r.CheckpointPortabilitySummary.CompatibleRuntime,
+			&r.CheckpointPortabilitySummary.AnyRuntime,
+			&out.Total); err != nil {
+			return nil, err
+		}
+		r.RuntimeLabel = r.RuntimeID
+		if lastSeen.Valid {
+			t := lastSeen.Time
+			r.LastSeen = &t
+		}
+		r.TrustState = runtimeTrustState(status, healthy, r)
+		if r.BoundaryCount > 0 && len(r.CapabilitySummary) <= 2 {
+			r.EnforcementWarning = "Runtime capability evidence not available; boundary enforcement depends on runtime support."
+		}
+		out.Items = append(out.Items, r)
+	}
+	return out, rows.Err()
+}
+
+func runtimeTrustState(status string, healthy bool, r RuntimeOperationsSummary) string {
+	if r.ViolationCount > 0 {
+		return "boundary_violation"
+	}
+	if r.FailedVerificationCount > 0 {
+		return "limited_trust"
+	}
+	if healthy && (status == "" || status == "active") {
+		return "trusted"
+	}
+	return "limited_trust"
 }
 
 func normalizeGovernanceListOptions(opts GovernanceListOptions) GovernanceListOptions {
