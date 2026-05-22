@@ -92,16 +92,16 @@ type ExecutionBoundarySummary struct {
 }
 
 type RuntimePortabilitySummary struct {
-	SameRuntimeOnly  int `json:"same_runtime_only"`
+	SameRuntimeOnly   int `json:"same_runtime_only"`
 	CompatibleRuntime int `json:"compatible_runtime"`
-	AnyRuntime       int `json:"any_runtime"`
+	AnyRuntime        int `json:"any_runtime"`
 }
 
 type RuntimeOperationsSummary struct {
 	RuntimeID                    string                    `json:"runtime_id"`
 	RuntimeLabel                 string                    `json:"runtime_label"`
 	LastSeen                     *time.Time                `json:"last_seen,omitempty"`
-	CapabilitySummary           json.RawMessage           `json:"capability_summary,omitempty"`
+	CapabilitySummary            json.RawMessage           `json:"capability_summary,omitempty"`
 	TrustState                   string                    `json:"trust_state"`
 	ActiveExecutionCount         int                       `json:"active_execution_count"`
 	RecentExecutionCount         int                       `json:"recent_execution_count"`
