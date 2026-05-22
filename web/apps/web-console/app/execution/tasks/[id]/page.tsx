@@ -1,13 +1,24 @@
 'use client';
 
+/**
+ * Execution detail — the flight recorder for one governed AI action.
+ *
+ * Reshaped around the execution story: a vertical timeline from requested
+ * action to proof, plus tabs that inspect each phase (Policy, Boundary,
+ * Recovery, Proof) and a redacted Raw Evidence tab. Every value is a real field
+ * from `GET /v1/tasks/:id`; missing data is shown as "not available", never
+ * faked.
+ */
+
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
+import { ArrowLeft, Clock3, ListChecks } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -16,575 +27,224 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Clock3,
-  ExternalLink,
-  Hash,
-  ListChecks,
-  ListOrdered,
-  Network,
-  ShieldCheck,
-  XCircle,
-} from 'lucide-react';
 import { useTask, useTaskSteps } from '@/hooks/useTasks';
 import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
+import { CopyButton } from '@/components/execution/shared';
+import { ExecutionStoryTimeline } from '@/components/governance/ExecutionStoryTimeline';
+import { PolicyDecisionCard } from '@/components/governance/PolicyDecisionCard';
+import { RuntimeBoundaryCard } from '@/components/governance/RuntimeBoundaryCard';
+import { RecoveryStateCard } from '@/components/governance/RecoveryStateCard';
+import { ProofVerificationCard } from '@/components/governance/ProofVerificationCard';
+import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
 import {
-  CopyButton,
-  ExecutionStatusBadge,
-  JSONViewer,
-  KeyValueGrid,
-  LifecycleTimeline,
-} from '@/components/execution/shared';
+  GovernanceBadge,
+  PolicyBadge,
+  ProofBadge,
+  RecoveryBadge,
+  RiskBadge,
+} from '@/components/governance/GovernanceBadge';
+import { buildExecutionStory } from '@/lib/executionStory';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 
-// Derive a friendly action label from a WAL step's `step_type`. For tool steps
-// (the building blocks of an Action Task) this surfaces the underlying action:
-// `filesystem` (read_file), `http_request` (http_call), `database_write`
-// (db_write), etc. Falls back to the raw discriminator when unrecognised.
-function describeStepAction(stepType: unknown): string {
-  if (!stepType || typeof stepType !== 'object') return '—';
-  const obj = stepType as Record<string, unknown>;
-  const inner = (key: string): Record<string, unknown> | null => {
-    const v = obj[key];
-    return v && typeof v === 'object' ? (v as Record<string, unknown>) : null;
-  };
-  const tool = inner('ToolCall') ?? inner('tool_call');
-  if (tool) {
-    const name = tool.tool_name;
-    return typeof name === 'string' && name ? `Tool · ${name}` : 'Tool';
-  }
-  const infer = inner('Inference') ?? inner('inference');
-  if (infer) {
-    const model = infer.model;
-    return typeof model === 'string' && model ? `Inference · ${model}` : 'Inference';
-  }
-  if ('BtNode' in obj || 'bt_node' in obj) return 'Behavior tree';
-  const key = Object.keys(obj)[0];
-  return key ? key : '—';
-}
+// ── Top summary field ───────────────────────────────────────────────────────
 
-// ── Action Task V1 evidence helpers ────────────────────────────────────────────
-//
-// An Action Task (`task_type: "action_workflow"`) compiles to a runtime
-// execution graph whose nodes are sandboxed local tools. Each customer-facing
-// step maps to one tool and one durable WAL entry:
-//   read_file  -> filesystem      (graph node id `read_file-<i>`)
-//   http_call  -> http_request    (graph node id `http_call-<i>`)
-//   db_write   -> database_write  (graph node id `db_write-<i>`)
-// We surface that sequence from the *real* persisted evidence only — committed
-// WAL steps joined with the graph blackboard nodes — never synthesised data.
-
-// Plain, operator-facing labels for the three Action Task V1 steps.
-const ACTION_LABELS: Record<string, string> = {
-  read_file: 'Read file',
-  http_call: 'Call API',
-  db_write: 'Write database row',
-};
-
-const ACTION_TOOL_LABELS: Record<string, string> = {
-  filesystem: 'Read file',
-  http_request: 'Call API',
-  database_write: 'Write database row',
-};
-
-function actionFromNodeId(nodeId: unknown): { action: string; index: number } | null {
-  if (typeof nodeId !== 'string') return null;
-  const match = nodeId.match(/^(read_file|http_call|db_write)-(\d+)$/);
-  if (!match) return null;
-  return { action: match[1], index: Number(match[2]) };
-}
-
-function toolNameFromStepType(stepType: unknown): string | null {
-  if (!stepType || typeof stepType !== 'object') return null;
-  const obj = stepType as Record<string, unknown>;
-  const tool = (obj.ToolCall ?? obj.tool_call) as Record<string, unknown> | undefined;
-  if (tool && typeof tool === 'object' && typeof tool.tool_name === 'string' && tool.tool_name) {
-    return tool.tool_name;
-  }
-  return null;
-}
-
-// Best-effort, read-only summary of *what* an action touched, pulled from the
-// graph blackboard node (and its `metadata`) when present. Falls back to
-// undefined — the target may legitimately not be echoed back in the blackboard.
-function describeActionTarget(
-  action: string | undefined,
-  node: Record<string, unknown> | null | undefined,
-): string | undefined {
-  if (!node) return undefined;
-  const meta =
-    node.metadata && typeof node.metadata === 'object' && !Array.isArray(node.metadata)
-      ? (node.metadata as Record<string, unknown>)
-      : undefined;
-  const pick = (...keys: string[]): string | undefined => {
-    for (const src of [node, meta]) {
-      if (!src) continue;
-      for (const key of keys) {
-        const value = src[key];
-        if (typeof value === 'string' && value) return value;
-        if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-      }
-    }
-    return undefined;
-  };
-  if (action === 'read_file') return pick('path', 'file', 'target');
-  if (action === 'http_call') {
-    const url = pick('url', 'target');
-    const code = pick('status_code', 'http_status', 'response_status');
-    if (url && code) return `${url} → ${code}`;
-    return url ?? (code ? `HTTP ${code}` : undefined);
-  }
-  if (action === 'db_write') {
-    const table = pick('table');
-    const rowId = pick('row_id', 'id');
-    if (table && rowId) return `${table} · row ${rowId}`;
-    return table ?? (rowId ? `row ${rowId}` : undefined);
-  }
-  return pick('target', 'url', 'path', 'table');
-}
-
-const RESULT_KEY_LABELS: Record<string, string> = {
-  bytes_read: 'bytes read',
-  content_digest: 'content digest',
-  status_code: 'HTTP status',
-  response_digest: 'response digest',
-  row_id: 'row ID',
-  table: 'table',
-};
-
-function formatResultSummary(
-  summary?: Record<string, string | number> | null,
-): string | undefined {
-  if (!summary || typeof summary !== 'object') return undefined;
-  const parts = Object.entries(summary)
-    .filter(([, value]) => value !== undefined && value !== null && value !== '')
-    .map(([key, value]) => {
-      let display = String(value);
-      // Digests are long hex strings — show a recognizable prefix only.
-      if (key.endsWith('digest') && display.length > 16) {
-        display = `${display.slice(0, 12)}…`;
-      }
-      return `${RESULT_KEY_LABELS[key] ?? key}: ${display}`;
-    });
-  return parts.length > 0 ? parts.join(' · ') : undefined;
-}
-
-function verificationLabel(status?: string | null): string {
-  if (!status) return 'Pending';
-  const normalized = String(status).toLowerCase();
-  if (normalized === 'verified') return 'Verified';
-  if (normalized === 'mismatch') return 'Mismatch';
-  if (normalized === 'present') return 'Recorded';
-  if (normalized === 'missing') return 'Missing';
-  return String(status);
-}
-
-function InspectorStat({
+function SummaryField({
   label,
-  value,
-  icon: Icon,
+  children,
+  mono,
+  copyable,
 }: {
   label: string;
-  value: string;
-  icon: typeof ShieldCheck;
+  children: React.ReactNode;
+  mono?: boolean;
+  copyable?: string;
 }) {
   return (
-    <Card className="border-gray-200 shadow-none">
-      <CardContent className="pt-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-gray-500">{label}</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900">{value}</p>
-          </div>
-          <div className="rounded-full border border-gray-200 bg-gray-50 p-2.5 text-gray-600">
-            <Icon className="h-4 w-4" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div>
+      <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+      <div
+        className={`mt-1 flex items-center gap-1 text-xs text-foreground ${
+          mono ? 'font-mono break-all' : ''
+        }`}
+      >
+        <span>{children}</span>
+        {copyable && <CopyButton value={copyable} />}
+      </div>
+    </div>
   );
 }
 
-export default function ExecutionTaskInspectorPage() {
+export default function ExecutionDetailPage() {
   const params = useParams<{ id: string }>();
   const taskId = decodeURIComponent(params?.id ?? '');
   const { toast } = useToast();
-  const [verifyResult, setVerifyResult] = useState<null | boolean>(null);
-  const [chainResult, setChainResult] = useState<null | boolean>(null);
+  const [verified, setVerified] = useState<boolean | null>(null);
 
   const { data: task, isLoading } = useTask(taskId || null);
-  const { data: steps, isLoading: stepsLoading } = useTaskSteps(taskId || null);
-
-  // Prefer this session's manual verify result, else the persisted proof
-  // summary from the last /proof/verify run; null ⇒ verification not run yet.
-  const persistedVerified =
-    typeof task?.proof?.verified === 'boolean' ? task.proof.verified : null;
-  const persistedChainValid =
-    typeof task?.proof?.chain_link_valid === 'boolean' ? task.proof.chain_link_valid : null;
-  const effectiveVerified: boolean | null = verifyResult ?? persistedVerified;
-  const effectiveChainValid: boolean | null = chainResult ?? persistedChainValid;
+  const { data: stepsData } = useTaskSteps(taskId || null);
+  const steps = stepsData?.steps ?? [];
 
   const verifyMutation = useMutation({
-    mutationFn: async () => {
-      if (!taskId) {
-        throw new Error('Task id is required');
-      }
-      return api.post<{ proof?: { status?: string; chain_link_valid?: boolean } }>(
+    mutationFn: () =>
+      api.post<{ proof?: { status?: string } }>(
         `/v1/tasks/${encodeURIComponent(taskId)}/proof/verify`,
         {},
-      );
-    },
+      ),
     onSuccess: (result) => {
-      const status = result.proof?.status;
-      const valid = status === 'verified';
-      setVerifyResult(valid);
-      setChainResult(
-        typeof result.proof?.chain_link_valid === 'boolean' ? result.proof.chain_link_valid : null,
-      );
+      const ok = result.proof?.status === 'verified';
+      setVerified(ok);
       toast({
-        title: valid ? 'Receipt verified' : 'Receipt mismatch',
-        description: valid
-          ? 'The stored proof receipt matches the task execution artifact.'
-          : 'The stored proof receipt did not match the expected hash.',
+        title: ok ? 'Receipt verified' : 'Receipt verification failed',
+        description: ok
+          ? 'The stored receipt matches the execution artifact.'
+          : 'The stored receipt did not match the expected hash.',
+        variant: ok ? undefined : 'destructive',
       });
     },
     onError: (error: Error) => {
-      setVerifyResult(false);
-      setChainResult(null);
-      toast({
-        variant: 'destructive',
-        title: 'Receipt verification failed',
-        description: error.message,
-      });
+      setVerified(false);
+      toast({ variant: 'destructive', title: 'Verification failed', description: error.message });
     },
   });
 
-  const timelineEvents = useMemo(() => {
-    if (!task) return [];
-    const events = [
-      {
-        state: 'PENDING',
-        timestamp: task.created_at,
-        note: 'Task accepted by the control plane.',
-      },
-    ];
-
-    if (task.dispatched_at) {
-      events.push({
-        state: 'DISPATCHED',
-        timestamp: task.dispatched_at,
-        note: task.runtime_id
-          ? `Dispatched to runtime ${task.runtime_id}.`
-          : 'Dispatched to runtime.',
-      });
-    }
-
-    if (task.checkpoint_summary) {
-      events.push({
-        state: 'CHECKPOINTED',
-        timestamp: task.dispatched_at ?? task.created_at,
-        note: `Checkpoint recorded at step ${
-          task.checkpoint_summary.last_committed_step ?? task.last_step ?? '—'
-        }.`,
-      });
-    }
-
-    if (task.completed_at) {
-      events.push({
-        state: task.status.toUpperCase(),
-        timestamp: task.completed_at,
-        note: task.failure_reason
-          ? `Completed with failure: ${task.failure_reason}`
-          : 'Task reached a terminal state.',
-      });
-    }
-
-    return events;
-  }, [task]);
-
-  const receiptSummary = useMemo(() => {
-    const receipt = task?.execution_receipt as Record<string, unknown> | undefined;
-    const envelope = task?.execution_envelope as Record<string, unknown> | undefined;
-    return {
-      executionId: typeof receipt?.execution_id === 'string' ? receipt.execution_id : '—',
-      receiptHash:
-        typeof receipt?.receipt_hash === 'string'
-          ? receipt.receipt_hash
-          : typeof receipt?.hash === 'string'
-            ? receipt.hash
-            : undefined,
-      receiptSignature:
-        typeof receipt?.signature === 'string' ? receipt.signature : undefined,
-      envelopeSignature:
-        typeof envelope?.signature === 'string' ? envelope.signature : undefined,
-    };
-  }, [task]);
-
-  const recoveryEvidence = useMemo(() => {
-    const walSteps = steps?.steps ?? [];
-    const stepIndices = walSteps.map((step) => step.step_index);
-    const uniqueStepCount = new Set(stepIndices).size;
-    const duplicateStepsDetected = stepIndices.length !== uniqueStepCount;
-    const ordered = [...walSteps].sort((a, b) => a.step_index - b.step_index);
-    const originalRuntimeId = ordered[0]?.runtime_id;
-    const recoveryRuntimeId =
-      ordered.find((step) => step.runtime_id && step.runtime_id !== originalRuntimeId)?.runtime_id ??
-      (task?.runtime_id && task.runtime_id !== originalRuntimeId ? task.runtime_id : undefined);
-    const finalStep = ordered.length > 0 ? Math.max(...stepIndices) : undefined;
-    const checkpointStep = task?.checkpoint_summary?.last_committed_step ?? task?.last_step;
-
-    return {
-      hasCheckpoint: Boolean(task?.checkpoint_summary || task?.checkpoint_digest),
-      recovered: Boolean(originalRuntimeId && recoveryRuntimeId && originalRuntimeId !== recoveryRuntimeId),
-      originalRuntimeId,
-      recoveryRuntimeId,
-      resumedFromStep:
-        checkpointStep !== undefined && recoveryRuntimeId ? checkpointStep + 1 : undefined,
-      finalStep,
-      duplicateStepsDetected,
-      walStepCount: walSteps.length,
-    };
-  }, [steps?.steps, task]);
-
-  const actionEvidence = useMemo(() => {
-    if (!task) return null;
-
-    type ActionRow = {
-      index: number;
-      label: string;
-      nodeId?: string;
-      status?: string;
-      runtimeId?: string;
-      resultDigest?: string;
-      recordedAt?: Date;
-      target?: string;
-      resultSummary?: string;
-      raw?: unknown;
-    };
-
-    // Authoritative path: the API exposes a safe `action_evidence` array for
-    // Action Task V1 tasks (compiled graph + WAL + checkpoint blackboard,
-    // summaries only — no file contents, request/response bodies, or records).
-    if (Array.isArray(task.action_evidence) && task.action_evidence.length > 0) {
-      const rows: ActionRow[] = [...task.action_evidence]
-        .sort((a, b) => a.step_index - b.step_index)
-        .map((row) => ({
-          index: row.step_index,
-          label:
-            ACTION_LABELS[row.action_type] ??
-            (row.tool_name ? ACTION_TOOL_LABELS[row.tool_name] : undefined) ??
-            row.action_type,
-          nodeId: row.node_id,
-          status: row.status,
-          runtimeId: row.runtime_id,
-          resultDigest: row.result_digest,
-          recordedAt: row.recorded_at ? new Date(row.recorded_at) : undefined,
-          target: row.target_summary,
-          resultSummary: formatResultSummary(row.result_summary),
-          raw: row,
-        }));
-      return {
-        authoritative: true,
-        rows,
-        receiptAvailable: Boolean(task.execution_receipt),
-        proofStatus: task.proof?.status,
-      };
-    }
-
-    // Fallback path: best-effort join of committed WAL steps with the graph
-    // blackboard nodes (older runs, or before the API exposed action_evidence).
-    const rawNodes =
-      task.graph_nodes && typeof task.graph_nodes === 'object' && !Array.isArray(task.graph_nodes)
-        ? (task.graph_nodes as Record<string, unknown>)
-        : {};
-    const nodeByIndex = new Map<
-      number,
-      { nodeId: string; action: string; node: Record<string, unknown> }
-    >();
-    for (const [nodeId, value] of Object.entries(rawNodes)) {
-      const parsed = actionFromNodeId(nodeId);
-      if (!parsed) continue;
-      nodeByIndex.set(parsed.index, {
-        nodeId,
-        action: parsed.action,
-        node: value && typeof value === 'object' && !Array.isArray(value)
-          ? (value as Record<string, unknown>)
-          : {},
-      });
-    }
-
-    const isActionWorkflow = task.task_type === 'action_workflow' || nodeByIndex.size > 0;
-    if (!isActionWorkflow) return null;
-
-    const walSteps = [...(steps?.steps ?? [])].sort((a, b) => a.step_index - b.step_index);
-    const rows: ActionRow[] = [];
-
-    if (walSteps.length > 0) {
-      for (const step of walSteps) {
-        const meta = nodeByIndex.get(step.step_index);
-        const toolName = toolNameFromStepType(step.step_type);
-        const label = meta
-          ? ACTION_LABELS[meta.action] ?? meta.action
-          : toolName
-            ? ACTION_TOOL_LABELS[toolName] ?? describeStepAction(step.step_type)
-            : describeStepAction(step.step_type);
-        rows.push({
-          index: step.step_index,
-          label,
-          nodeId: meta?.nodeId,
-          status: step.status,
-          runtimeId: step.runtime_id,
-          resultDigest: step.output_digest,
-          recordedAt: Number.isFinite(step.timestamp_ms) ? new Date(step.timestamp_ms) : undefined,
-          target: describeActionTarget(meta?.action, meta?.node),
-          raw: meta?.node,
-        });
-      }
-    } else {
-      for (const [index, meta] of [...nodeByIndex.entries()].sort((a, b) => a[0] - b[0])) {
-        rows.push({
-          index,
-          label: ACTION_LABELS[meta.action] ?? meta.action,
-          nodeId: meta.nodeId,
-          status: typeof meta.node.status === 'string' ? meta.node.status : undefined,
-          target: describeActionTarget(meta.action, meta.node),
-          raw: meta.node,
-        });
-      }
-    }
-
-    return {
-      authoritative: false,
-      rows,
-      receiptAvailable: Boolean(task.execution_receipt),
-      proofStatus: task.proof?.status,
-    };
-  }, [task, steps?.steps]);
+  const story = useMemo(() => buildExecutionStory(task, steps), [task, steps]);
+  const actionEvidence = task?.action_evidence ?? [];
 
   return (
     <DashboardLayout>
       <div className="space-y-5">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="mb-2">
-              <Button asChild variant="outline" size="sm" className="gap-1.5">
-                <Link href="/execution/tasks">
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to tasks
-                </Link>
-              </Button>
-            </div>
-            <h1 className="text-base font-semibold text-gray-900">Task {truncateText(taskId, 24)}</h1>
-            <p className="mt-0.5 text-xs text-gray-500">
-              Action evidence, recovery path, signed receipt state, and technical records for this task.
-            </p>
+        <div>
+          <Button asChild variant="outline" size="sm" className="mb-2 gap-1.5">
+            <Link href="/execution/tasks">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to executions
+            </Link>
+          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-base font-semibold text-foreground">
+              Execution {truncateText(taskId, 24)}
+            </h1>
+            {taskId && <CopyButton value={taskId} />}
           </div>
-          {taskId && (
-            <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5">
-              <span className="font-mono text-[11px] text-gray-700">{truncateText(taskId, 28)}</span>
-              <CopyButton value={taskId} />
-            </div>
-          )}
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            The full execution story — requested action, policy decision, runtime boundary,
+            recovery, and proof.
+          </p>
         </div>
 
         {isLoading || !task ? (
           <div className="space-y-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-52 w-full" />
-            <Skeleton className="h-52 w-full" />
+            <Skeleton className="h-28 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-72 w-full" />
           </div>
         ) : (
           <>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <InspectorStat label="Status" value={task.status} icon={ShieldCheck} />
-              <InspectorStat
-                label="Steps Committed"
-                value={
-                  steps?.total !== undefined && steps.total > 0
-                    ? String(steps.total)
-                    : task.checkpoint_summary?.last_committed_step !== undefined
-                      ? String((task.checkpoint_summary.last_committed_step ?? 0) + 1)
-                      : task.last_step !== undefined
-                        ? String(task.last_step + 1)
-                        : '—'
-                }
-                icon={ListOrdered}
-              />
-              <InspectorStat label="Runtime" value={task.runtime_id ?? '—'} icon={Network} />
-              <InspectorStat
-                label="Receipt"
-                value={verificationLabel(task.proof?.status)}
-                icon={Hash}
-              />
+            {/* Top summary */}
+            <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white p-4">
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                <GovernanceBadge
+                  label={task.status.replace(/_/g, ' ')}
+                  tone={
+                    task.status === 'completed'
+                      ? 'success'
+                      : task.status === 'failed'
+                        ? 'danger'
+                        : task.status === 'recovering' || task.status === 'approval_required'
+                          ? 'warning'
+                          : 'info'
+                  }
+                />
+                <PolicyBadge decision={task.policy?.decision} />
+                <RecoveryBadge status={task.status} />
+                <ProofBadge
+                  status={task.proof?.verified === false ? 'failed_verification' : task.proof?.status}
+                />
+                <RiskBadge risk={task.policy?.risk_level} />
+                {task.policy?.irreversible && (
+                  <GovernanceBadge label="Irreversible" tone="danger" />
+                )}
+                {task.policy?.human_gated && (
+                  <GovernanceBadge label="Human-gated" tone="warning" />
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-3 md:grid-cols-3 xl:grid-cols-4">
+                <SummaryField label="Task ID" mono copyable={task.task_id}>
+                  {truncateText(task.task_id, 22)}
+                </SummaryField>
+                <SummaryField
+                  label="Execution ID"
+                  mono={Boolean(task.proof?.execution_id)}
+                  copyable={task.proof?.execution_id}
+                >
+                  {task.proof?.execution_id ? (
+                    truncateText(task.proof.execution_id, 22)
+                  ) : (
+                    <span className="text-muted-foreground/60">Not available</span>
+                  )}
+                </SummaryField>
+                <SummaryField
+                  label="Runtime ID"
+                  mono={Boolean(task.runtime_id)}
+                  copyable={task.runtime_id}
+                >
+                  {task.runtime_id ?? <span className="text-muted-foreground/60">—</span>}
+                </SummaryField>
+                <SummaryField label="Environment">
+                  {task.runtime_boundary?.environment_label ?? (
+                    <span className="text-muted-foreground/60">Not available</span>
+                  )}
+                </SummaryField>
+                <SummaryField label="Task type">
+                  {task.task_type ?? <span className="text-muted-foreground/60">—</span>}
+                </SummaryField>
+                <SummaryField label="Replay class">
+                  {task.policy?.replay_class?.replace(/_/g, ' ') ?? (
+                    <span className="text-muted-foreground/60">Not evaluated</span>
+                  )}
+                </SummaryField>
+                <SummaryField label="Created">{formatDateTime(task.created_at)}</SummaryField>
+                <SummaryField label="Completed">
+                  {task.completed_at ? (
+                    formatDateTime(task.completed_at)
+                  ) : (
+                    <span className="text-muted-foreground/60">In progress</span>
+                  )}
+                </SummaryField>
+              </div>
             </div>
 
-            <Card className="border-gray-200 shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-900">
-                  Operator Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <KeyValueGrid
-                  rows={[
-                    { label: 'Actions', value: actionEvidence ? String(actionEvidence.rows.length) : 'Not recorded' },
-                    {
-                      label: 'Recovery',
-                      value: recoveryEvidence.recovered
-                        ? 'Runtime handoff recorded'
-                        : recoveryEvidence.hasCheckpoint
-                          ? 'Checkpointed'
-                          : 'Unknown',
-                    },
-                    {
-                      label: 'Proof',
-                      value: effectiveVerified === true
-                        ? 'Verified'
-                        : effectiveVerified === false
-                          ? 'Verification failed'
-                          : task.execution_receipt
-                            ? 'Verification not run yet'
-                            : 'Receipt missing',
-                    },
-                    {
-                      label: 'Chain',
-                      value: effectiveChainValid === true
-                        ? 'Intact'
-                        : effectiveChainValid === false
-                          ? 'Broken'
-                          : 'Unknown',
-                    },
-                  ]}
-                />
-              </CardContent>
-            </Card>
+            {/* Tabs */}
+            <Tabs defaultValue="story">
+              <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0">
+                {['story', 'policy', 'boundary', 'recovery', 'proof', 'evidence'].map((tab) => (
+                  <TabsTrigger key={tab} value={tab} className="capitalize">
+                    {tab === 'evidence' ? 'Raw Evidence' : tab}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-            {actionEvidence && (
-              <Card className="border-gray-200 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                    <ListChecks className="h-4 w-4 text-gray-500" />
-                    Action Evidence
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-xs text-gray-500">
-                    Every external action this task performed, in execution order — the controlled
-                    target, committed status, recorded result, and durable digest.{' '}
-                    {actionEvidence.authoritative
-                      ? 'Sourced from safe task evidence; raw WAL, graph nodes, and signed artifacts remain below as secondary records.'
-                      : 'Best-effort view joined from committed WAL steps and graph blackboard nodes; raw records remain below as secondary details.'}
-                  </p>
-                  {actionEvidence.rows.length === 0 ? (
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Clock3 className="h-3.5 w-3.5" />
-                      No action steps have been committed yet.
-                    </div>
-                  ) : (
-                    <div className="overflow-hidden rounded-lg border border-gray-200">
+              {/* Story */}
+              <TabsContent value="story" className="mt-4 space-y-4">
+                <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white p-4">
+                  <h2 className="mb-3 text-sm font-semibold text-foreground">
+                    Execution story
+                  </h2>
+                  <ExecutionStoryTimeline nodes={story} />
+                </div>
+
+                {actionEvidence.length > 0 && (
+                  <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white p-4">
+                    <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                      <ListChecks className="h-4 w-4 text-muted-foreground" />
+                      Action evidence
+                    </h2>
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Every external action this task performed, in execution order — safe
+                      summaries only, no file contents or request bodies.
+                    </p>
+                    <div className="overflow-hidden rounded-md border border-gray-200">
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -592,47 +252,163 @@ export default function ExecutionTaskInspectorPage() {
                             <TableHead>Action</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Target</TableHead>
-                            <TableHead>Result</TableHead>
-                            <TableHead>Runtime</TableHead>
-                            <TableHead>Result Digest</TableHead>
+                            <TableHead>Result digest</TableHead>
                             <TableHead>Recorded</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {actionEvidence.rows.map((row) => (
-                            <TableRow key={`${row.index}-${row.nodeId ?? row.label}`}>
-                              <TableCell className="text-xs text-gray-700">{row.index}</TableCell>
-                              <TableCell className="text-xs font-medium text-gray-900">
-                                {row.label}
-                                {row.nodeId && (
-                                  <span className="ml-1.5 font-mono text-[10px] text-gray-400">
-                                    {row.nodeId}
-                                  </span>
-                                )}
+                          {[...actionEvidence]
+                            .sort((a, b) => a.step_index - b.step_index)
+                            .map((row) => (
+                              <TableRow key={`${row.step_index}-${row.node_id ?? row.action_type}`}>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {row.step_index}
+                                </TableCell>
+                                <TableCell className="text-xs font-medium text-foreground">
+                                  {row.action_type}
+                                </TableCell>
+                                <TableCell className="text-xs">
+                                  {row.status ? (
+                                    <GovernanceBadge
+                                      label={row.status}
+                                      tone={
+                                        row.status.toLowerCase().includes('commit') ||
+                                        row.status.toLowerCase().includes('complete')
+                                          ? 'success'
+                                          : 'neutral'
+                                      }
+                                      showDot={false}
+                                    />
+                                  ) : (
+                                    '—'
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {row.target_summary ?? (
+                                    <span className="text-muted-foreground/60">Not recorded</span>
+                                  )}
+                                </TableCell>
+                                <TableCell className="font-mono text-xs text-muted-foreground">
+                                  {row.result_digest ? truncateText(row.result_digest, 16) : '—'}
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {row.recorded_at ? getRelativeTime(row.recorded_at) : '—'}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Policy */}
+              <TabsContent value="policy" className="mt-4">
+                <PolicyDecisionCard policy={task.policy} />
+              </TabsContent>
+
+              {/* Boundary */}
+              <TabsContent value="boundary" className="mt-4 space-y-4">
+                <RuntimeBoundaryCard task={task} />
+                <SafeEvidenceJsonPanel
+                  title="Runtime capabilities (declared)"
+                  data={task.runtime_boundary?.runtime_capabilities}
+                  exportName={`boundary-${taskId}`}
+                />
+                <SafeEvidenceJsonPanel
+                  title="Resource limits"
+                  data={task.runtime_boundary?.resource_limits}
+                />
+              </TabsContent>
+
+              {/* Recovery */}
+              <TabsContent value="recovery" className="mt-4">
+                <RecoveryStateCard task={task} />
+              </TabsContent>
+
+              {/* Proof */}
+              <TabsContent value="proof" className="mt-4 space-y-4">
+                <ProofVerificationCard
+                  task={task}
+                  onVerify={() => {
+                    setVerified(null);
+                    verifyMutation.mutate();
+                  }}
+                  verifying={verifyMutation.isPending}
+                />
+                {verified !== null && (
+                  <p
+                    className={`text-xs ${verified ? 'text-green-700' : 'text-red-700'}`}
+                  >
+                    {verified
+                      ? 'Verified this session against the proof store.'
+                      : 'Verification did not pass this session.'}
+                  </p>
+                )}
+                <SafeEvidenceJsonPanel
+                  title="Execution receipt"
+                  data={task.execution_receipt}
+                  exportName={`receipt-${taskId}`}
+                />
+                <SafeEvidenceJsonPanel
+                  title="Execution envelope"
+                  data={task.execution_envelope}
+                  exportName={`envelope-${taskId}`}
+                />
+              </TabsContent>
+
+              {/* Raw Evidence */}
+              <TabsContent value="evidence" className="mt-4 space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Raw persisted evidence. Sensitive fields — resume tokens, secrets,
+                  credentials — are redacted before display and export.
+                </p>
+                <SafeEvidenceJsonPanel title="Checkpoint metadata" data={task.checkpoint_metadata} />
+                <SafeEvidenceJsonPanel title="Graph blackboard" data={task.graph_blackboard} />
+                <SafeEvidenceJsonPanel title="Graph nodes" data={task.graph_nodes} />
+                <SafeEvidenceJsonPanel title="Graph slots" data={task.graph_slots} />
+
+                <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white p-4">
+                  <h2 className="mb-3 text-sm font-semibold text-foreground">WAL steps</h2>
+                  {steps.length === 0 ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      No durable WAL steps recorded yet.
+                    </div>
+                  ) : (
+                    <div className="overflow-hidden rounded-md border border-gray-200">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Step</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Runtime</TableHead>
+                            <TableHead>Input digest</TableHead>
+                            <TableHead>Output digest</TableHead>
+                            <TableHead>Recorded</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {steps.map((step) => (
+                            <TableRow key={step.entry_id}>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {step.step_index}
                               </TableCell>
-                              <TableCell className="text-xs">
-                                {row.status ? (
-                                  <ExecutionStatusBadge status={row.status.toUpperCase()} />
-                                ) : (
-                                  '—'
-                                )}
+                              <TableCell className="text-xs text-foreground">
+                                {step.status}
                               </TableCell>
-                              <TableCell className="text-xs text-gray-700">
-                                {row.target ?? <span className="text-gray-400">Not recorded</span>}
+                              <TableCell className="font-mono text-xs text-muted-foreground">
+                                {truncateText(step.runtime_id, 16)}
                               </TableCell>
-                              <TableCell className="text-xs text-gray-700">
-                                {row.resultSummary ?? (
-                                  <span className="text-gray-400">Not recorded</span>
-                                )}
+                              <TableCell className="font-mono text-xs text-muted-foreground">
+                                {truncateText(step.input_digest, 14)}
                               </TableCell>
-                              <TableCell className="font-mono text-xs text-gray-600">
-                                {row.runtimeId ? truncateText(row.runtimeId, 18) : '—'}
+                              <TableCell className="font-mono text-xs text-muted-foreground">
+                                {step.output_digest ? truncateText(step.output_digest, 14) : '—'}
                               </TableCell>
-                              <TableCell className="font-mono text-xs text-gray-600">
-                                {row.resultDigest ? truncateText(row.resultDigest, 16) : '—'}
-                              </TableCell>
-                              <TableCell className="text-xs text-gray-500">
-                                {row.recordedAt ? formatDateTime(row.recordedAt) : '—'}
+                              <TableCell className="text-xs text-muted-foreground">
+                                {formatDateTime(new Date(step.timestamp_ms))}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -640,630 +416,9 @@ export default function ExecutionTaskInspectorPage() {
                       </Table>
                     </div>
                   )}
-                  <div className="space-y-2 rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-3 text-xs">
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                      <span className="inline-flex items-center gap-1.5 text-gray-700">
-                        {effectiveVerified === true ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                        ) : effectiveVerified === false ? (
-                          <XCircle className="h-3.5 w-3.5 text-red-500" />
-                        ) : (
-                          <ShieldCheck className="h-3.5 w-3.5 text-gray-400" />
-                        )}
-                        Receipt:
-                        <span
-                          className={`font-medium ${
-                            effectiveVerified === true
-                              ? 'text-green-700'
-                              : effectiveVerified === false
-                                ? 'text-red-700'
-                                : 'text-gray-900'
-                          }`}
-                        >
-                          {effectiveVerified === true
-                            ? 'Verified'
-                            : effectiveVerified === false
-                              ? 'Verification failed'
-                              : actionEvidence.receiptAvailable
-                                ? 'Recorded · verification not run yet'
-                                : 'Not yet recorded'}
-                        </span>
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-gray-700">
-                        <Hash className="h-3.5 w-3.5 text-gray-400" />
-                        Chain:
-                        <span
-                          className={`font-medium ${
-                            effectiveChainValid === true
-                              ? 'text-green-700'
-                              : effectiveChainValid === false
-                                ? 'text-red-700'
-                                : 'text-gray-900'
-                          }`}
-                        >
-                          {effectiveChainValid === true
-                            ? 'Intact'
-                            : effectiveChainValid === false
-                              ? 'Broken'
-                              : 'Run verification to check chain'}
-                        </span>
-                      </span>
-                      {effectiveVerified === null && !verifyMutation.isPending && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-6 gap-1 px-2 text-[11px]"
-                          disabled={!task.execution_receipt}
-                          onClick={() => {
-                            setVerifyResult(null);
-                            setChainResult(null);
-                            verifyMutation.mutate();
-                          }}
-                        >
-                          <ShieldCheck className="h-3 w-3" />
-                          Verify receipt
-                        </Button>
-                      )}
-                      {verifyMutation.isPending && (
-                        <span className="text-gray-500">Verifying…</span>
-                      )}
-                      <a
-                        href="#signed-artifacts"
-                        className="ml-auto inline-flex items-center gap-1 text-gray-500 underline-offset-2 hover:text-gray-800 hover:underline"
-                      >
-                        Receipt &amp; signatures
-                      </a>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-gray-500">
-                      <span>
-                        Runtime ID:{' '}
-                        {task.runtime_id ? (
-                          <span className="font-mono text-gray-700">{task.runtime_id}</span>
-                        ) : (
-                          'Not recorded'
-                        )}
-                      </span>
-                      <span>
-                        Execution ID:{' '}
-                        {task.proof?.execution_id ? (
-                          <span className="font-mono text-gray-700">{task.proof.execution_id}</span>
-                        ) : (
-                          'Not recorded'
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-              <Card className="border-gray-200 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-gray-900">
-                    Execution Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <KeyValueGrid
-                    rows={[
-                      {
-                        label: 'Task ID',
-                        value: <span className="font-mono text-[11px]">{task.task_id}</span>,
-                        copyable: task.task_id,
-                      },
-                      {
-                        label: 'Status',
-                        value: <ExecutionStatusBadge status={task.status.toUpperCase()} />,
-                      },
-                      { label: 'Task Type', value: task.task_type ?? '—' },
-                      { label: 'Runtime', value: task.runtime_id ?? '—' },
-                      { label: 'Requested Mode', value: task.requested_mode ?? '—' },
-                      { label: 'Resolved Strategy', value: task.resolved_strategy ?? '—' },
-                      {
-                        label: 'Created',
-                        value: (
-                          <div className="space-y-0.5">
-                            <div>{formatDateTime(task.created_at)}</div>
-                            <div className="text-gray-400">{getRelativeTime(task.created_at)}</div>
-                          </div>
-                        ),
-                      },
-                      {
-                        label: 'Dispatched',
-                        value: task.dispatched_at ? formatDateTime(task.dispatched_at) : '—',
-                      },
-                      {
-                        label: 'Deadline',
-                        value: task.deadline_at ? formatDateTime(task.deadline_at) : '—',
-                      },
-                      {
-                        label: 'Completed',
-                        value: task.completed_at ? formatDateTime(task.completed_at) : '—',
-                      },
-                      {
-                        label: 'Checkpoint Digest',
-                        value: task.checkpoint_digest ?? '—',
-                        mono: true,
-                        copyable: task.checkpoint_digest,
-                      },
-                      {
-                        label: 'Last Step',
-                        value:
-                          task.last_step !== undefined ? String(task.last_step) : '—',
-                      },
-                      { label: 'Failure Reason', value: task.failure_reason ?? '—' },
-                    ]}
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="border-gray-200 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-gray-900">
-                    Lifecycle
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LifecycleTimeline events={timelineEvents} />
-                </CardContent>
-              </Card>
-            </div>
-
-            {(task.policy || task.runtime_boundary || task.runtime_handoff) && (
-              <Card className="border-gray-200 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-gray-900">
-                    Governance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {task.policy && (
-                    <KeyValueGrid
-                      rows={[
-                        { label: 'Policy Decision', value: task.policy.decision ?? '—' },
-                        { label: 'Reason', value: task.policy.reason ?? '—' },
-                        { label: 'Risk', value: task.policy.risk_level ?? '—' },
-                        { label: 'Replay', value: task.policy.replay_class ?? '—' },
-                        { label: 'Irreversible', value: task.policy.irreversible ? 'Yes' : 'No' },
-                        { label: 'Human Gate', value: task.policy.human_gated ? 'Required' : 'Not required' },
-                        { label: 'Portability', value: task.policy.checkpoint_portability ?? '—' },
-                        {
-                          label: 'Decision ID',
-                          value: task.policy.decision_id ?? '—',
-                          mono: Boolean(task.policy.decision_id),
-                          copyable: task.policy.decision_id,
-                        },
-                        {
-                          label: 'Action Digest',
-                          value: task.policy.action_digest ?? '—',
-                          mono: Boolean(task.policy.action_digest),
-                          copyable: task.policy.action_digest,
-                        },
-                      ]}
-                    />
-                  )}
-                  {task.runtime_boundary && (
-                    <KeyValueGrid
-                      rows={[
-                        { label: 'Boundary Runtime', value: task.runtime_boundary.runtime_id ?? task.runtime_id ?? '—' },
-                        { label: 'Environment', value: task.runtime_boundary.environment_label ?? '—' },
-                        { label: 'Network Scope', value: task.runtime_boundary.network_scope ?? '—' },
-                        { label: 'File Scope', value: task.runtime_boundary.filesystem_scope ?? '—' },
-                        { label: 'API Scope', value: task.runtime_boundary.api_scope ?? '—' },
-                        {
-                          label: 'Allowed Tools',
-                          value: Array.isArray(task.runtime_boundary.allowed_tools)
-                            ? task.runtime_boundary.allowed_tools.join(', ') || '—'
-                            : '—',
-                        },
-                        {
-                          label: 'Boundary Digest',
-                          value: task.runtime_boundary.boundary_digest ?? '—',
-                          mono: Boolean(task.runtime_boundary.boundary_digest),
-                          copyable: task.runtime_boundary.boundary_digest,
-                        },
-                      ]}
-                    />
-                  )}
-                  {task.runtime_handoff && (
-                    <KeyValueGrid
-                      rows={[
-                        { label: 'Handoff', value: task.runtime_handoff.decision ?? '—' },
-                        { label: 'Handoff Reason', value: task.runtime_handoff.reason ?? '—' },
-                        { label: 'Source Runtime', value: task.runtime_handoff.source_runtime_id ?? '—', mono: Boolean(task.runtime_handoff.source_runtime_id) },
-                        { label: 'Target Runtime', value: task.runtime_handoff.target_runtime_id ?? '—', mono: Boolean(task.runtime_handoff.target_runtime_id) },
-                      ]}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            <Card className="border-gray-200 shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-900">
-                  Checkpoint and Recovery
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!recoveryEvidence.hasCheckpoint ? (
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Clock3 className="h-3.5 w-3.5" />
-                    No checkpoint has been recorded for this task.
-                  </div>
-                ) : (
-                  <>
-                    <KeyValueGrid
-                      rows={[
-                        {
-                          label: 'Checkpoint Status',
-                          value: task.checkpoint_summary?.checkpoint_status ?? task.status,
-                        },
-                        {
-                          label: 'Last Committed Step',
-                          value:
-                            task.checkpoint_summary?.last_committed_step !== undefined
-                              ? String(task.checkpoint_summary.last_committed_step)
-                              : task.last_step !== undefined
-                                ? String(task.last_step)
-                                : '—',
-                        },
-                        {
-                          label: 'Checkpoint Runtime',
-                          value:
-                            task.checkpoint_summary?.checkpoint_runtime_id ??
-                            task.checkpoint_runtime_id ??
-                            '—',
-                          mono: Boolean(
-                            task.checkpoint_summary?.checkpoint_runtime_id ||
-                              task.checkpoint_runtime_id,
-                          ),
-                        },
-                        {
-                          label: 'Checkpoint Digest',
-                          value:
-                            task.checkpoint_summary?.checkpoint_digest ??
-                            task.checkpoint_digest ??
-                            '—',
-                          mono: Boolean(
-                            task.checkpoint_summary?.checkpoint_digest ||
-                              task.checkpoint_digest,
-                          ),
-                          copyable:
-                            task.checkpoint_summary?.checkpoint_digest ??
-                            task.checkpoint_digest,
-                        },
-                        {
-                          label: 'Resume Token',
-                          value: task.checkpoint_summary?.resume_token_present
-                            ? 'Present'
-                            : 'Not exposed',
-                        },
-                        {
-                          label: 'Proof Status',
-                          value: task.checkpoint_summary?.proof_status ?? task.proof?.status ?? '—',
-                        },
-                      ]}
-                    />
-                    <KeyValueGrid
-                      rows={[
-                        {
-                          label: 'Recovered',
-                          value: recoveryEvidence.recovered ? 'Yes' : 'No',
-                        },
-                        {
-                          label: 'Original Runtime',
-                          value: recoveryEvidence.originalRuntimeId ?? '—',
-                          mono: Boolean(recoveryEvidence.originalRuntimeId),
-                        },
-                        {
-                          label: 'Recovery Runtime',
-                          value: recoveryEvidence.recoveryRuntimeId ?? '—',
-                          mono: Boolean(recoveryEvidence.recoveryRuntimeId),
-                        },
-                        {
-                          label: 'Resumed From Step',
-                          value:
-                            recoveryEvidence.resumedFromStep !== undefined
-                              ? String(recoveryEvidence.resumedFromStep)
-                              : '—',
-                        },
-                        {
-                          label: 'Final Step',
-                          value:
-                            recoveryEvidence.finalStep !== undefined
-                              ? String(recoveryEvidence.finalStep)
-                              : '—',
-                        },
-                        {
-                          label: 'WAL Step Count',
-                          value: String(recoveryEvidence.walStepCount),
-                        },
-                        {
-                          label: 'Duplicate Steps',
-                          value: recoveryEvidence.duplicateStepsDetected ? 'Detected' : 'None detected',
-                        },
-                        {
-                          label: 'Committed Actions',
-                          value:
-                            recoveryEvidence.recovered && !recoveryEvidence.duplicateStepsDetected
-                              ? 'No duplicate committed WAL steps detected'
-                              : recoveryEvidence.recovered
-                                ? 'Duplicate step evidence needs review'
-                                : 'Unknown',
-                        },
-                      ]}
-                    />
-                    {Array.isArray(task.recovery?.events) && task.recovery.events.length > 0 && (
-                      <div className="overflow-hidden rounded-md border border-gray-200">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="text-[11px]">Event</TableHead>
-                              <TableHead className="text-[11px]">Runtime</TableHead>
-                              <TableHead className="text-[11px]">Replay</TableHead>
-                              <TableHead className="text-[11px]">Reason</TableHead>
-                              <TableHead className="text-[11px]">Time</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {task.recovery.events.map((event, index) => (
-                              <TableRow key={`${event.event_type}-${event.created_at}-${index}`}>
-                                <TableCell className="text-xs font-medium text-gray-800">
-                                  {event.event_type ?? 'event'}
-                                </TableCell>
-                                <TableCell className="text-xs font-mono text-gray-600">
-                                  {event.target_runtime_id || event.source_runtime_id || '—'}
-                                </TableCell>
-                                <TableCell className="text-xs text-gray-600">
-                                  {typeof event.replay_allowed === 'boolean'
-                                    ? event.replay_allowed
-                                      ? 'Allowed'
-                                      : 'Blocked'
-                                    : '—'}
-                                </TableCell>
-                                <TableCell className="text-xs text-gray-600">
-                                  {event.reason ?? '—'}
-                                </TableCell>
-                                <TableCell className="text-xs text-gray-500">
-                                  {event.created_at ? getRelativeTime(event.created_at) : '—'}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
-              <Card className="border-gray-200 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-gray-900">
-                    Durable Graph State
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
-                      Graph Blackboard
-                    </p>
-                    <JSONViewer data={task.graph_blackboard ?? {}} defaultOpen={false} />
-                  </div>
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
-                      Graph Slots
-                    </p>
-                    <JSONViewer data={task.graph_slots ?? {}} defaultOpen={false} />
-                  </div>
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
-                      Graph Nodes
-                    </p>
-                    <JSONViewer data={task.graph_nodes ?? []} defaultOpen={false} />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card id="signed-artifacts" className="scroll-mt-20 border-gray-200 shadow-none">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold text-gray-900">
-                    Signed Artifacts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <KeyValueGrid
-                    rows={[
-                      {
-                        label: 'Checkpoint Digest',
-                        value: task.checkpoint_digest ?? '—',
-                        mono: true,
-                        copyable: task.checkpoint_digest,
-                      },
-                      {
-                        label: 'Envelope',
-                        value: task.execution_envelope ? 'Available' : '—',
-                      },
-                      {
-                        label: 'Receipt',
-                        value: task.execution_receipt ? 'Available' : '—',
-                      },
-                      {
-                        label: 'Proof Status',
-                        value: task.proof?.status ?? '—',
-                      },
-                      {
-                        label: 'Proof Checked',
-                        value: task.proof?.checked_at ? formatDateTime(task.proof.checked_at) : '—',
-                      },
-                      {
-                        label: 'Execution ID',
-                        value: task.proof?.execution_id ?? receiptSummary.executionId,
-                        mono: (task.proof?.execution_id ?? receiptSummary.executionId) !== '—',
-                        copyable:
-                          (task.proof?.execution_id ?? receiptSummary.executionId) !== '—'
-                            ? (task.proof?.execution_id ?? receiptSummary.executionId)
-                            : undefined,
-                      },
-                    ]}
-                  />
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5"
-                      disabled={!task.execution_receipt || verifyMutation.isPending}
-                      onClick={() => {
-                        setVerifyResult(null);
-                        setChainResult(null);
-                        verifyMutation.mutate();
-                      }}
-                    >
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      {verifyMutation.isPending ? 'Verifying…' : 'Verify receipt'}
-                    </Button>
-                    {(task.proof?.execution_id || task.links?.run) && (
-                      <Button asChild variant="outline" size="sm" className="gap-1.5">
-                        <Link
-                          href={`/execution/runs/${encodeURIComponent(task.proof?.execution_id ?? '')}`}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          View execution run
-                        </Link>
-                      </Button>
-                    )}
-                    {effectiveVerified === true && (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-700">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                        Verified against proof store
-                        {effectiveChainValid === true ? ' · chain intact' : ''}
-                      </span>
-                    )}
-                    {effectiveVerified === false && !verifyMutation.isPending && (
-                      <span className="inline-flex items-center gap-1 text-xs text-red-700">
-                        <XCircle className="h-3.5 w-3.5 text-red-500" />
-                        Verification failed
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
-                      Checkpoint Metadata
-                    </p>
-                    <JSONViewer data={task.checkpoint_metadata ?? {}} defaultOpen={false} />
-                  </div>
-                  <KeyValueGrid
-                    rows={[
-                      {
-                        label: 'Receipt Hash',
-                        value: receiptSummary.receiptHash ?? '—',
-                        mono: !!receiptSummary.receiptHash,
-                        copyable: receiptSummary.receiptHash,
-                      },
-                      {
-                        label: 'Proof Hash',
-                        value: task.proof?.stored_hash ?? '—',
-                        mono: !!task.proof?.stored_hash,
-                        copyable: task.proof?.stored_hash,
-                      },
-                      {
-                        label: 'Receipt Signature',
-                        value: receiptSummary.receiptSignature ?? '—',
-                        mono: !!receiptSummary.receiptSignature,
-                        copyable: receiptSummary.receiptSignature,
-                      },
-                      {
-                        label: 'Proof Signature',
-                        value: task.proof?.signature ?? '—',
-                        mono: !!task.proof?.signature,
-                        copyable: task.proof?.signature,
-                      },
-                      {
-                        label: 'Envelope Signature',
-                        value: receiptSummary.envelopeSignature ?? '—',
-                        mono: !!receiptSummary.envelopeSignature,
-                        copyable: receiptSummary.envelopeSignature,
-                      },
-                    ]}
-                  />
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
-                      Execution Envelope
-                    </p>
-                    <JSONViewer data={task.execution_envelope ?? {}} defaultOpen={false} />
-                  </div>
-                  <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-[0.14em] text-gray-500">
-                      Execution Receipt
-                    </p>
-                    <JSONViewer data={task.execution_receipt ?? {}} defaultOpen={false} />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="border-gray-200 shadow-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-gray-900">WAL Steps</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {stepsLoading ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                ) : !steps || steps.steps.length === 0 ? (
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Clock3 className="h-3.5 w-3.5" />
-                    No WAL steps available yet.
-                  </div>
-                ) : (
-                  <div className="overflow-hidden rounded-lg border border-gray-200">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Step</TableHead>
-                          <TableHead>Action</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Runtime</TableHead>
-                          <TableHead>Input Digest</TableHead>
-                          <TableHead>Result Digest</TableHead>
-                          <TableHead>Recorded</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {steps.steps.map((step) => (
-                          <TableRow key={step.entry_id}>
-                            <TableCell className="text-xs text-gray-700">{step.step_index}</TableCell>
-                            <TableCell className="text-xs text-gray-700">
-                              {describeStepAction(step.step_type)}
-                            </TableCell>
-                            <TableCell className="text-xs text-gray-700">{step.status}</TableCell>
-                            <TableCell className="font-mono text-xs text-gray-700">
-                              {truncateText(step.runtime_id, 18)}
-                            </TableCell>
-                            <TableCell className="font-mono text-xs text-gray-600">
-                              {truncateText(step.input_digest, 16)}
-                            </TableCell>
-                            <TableCell className="font-mono text-xs text-gray-600">
-                              {step.output_digest ? truncateText(step.output_digest, 16) : '—'}
-                            </TableCell>
-                            <TableCell className="text-xs text-gray-500">
-                              {formatDateTime(new Date(step.timestamp_ms))}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
           </>
         )}
       </div>
