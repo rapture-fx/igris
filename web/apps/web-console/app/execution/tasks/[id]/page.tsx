@@ -189,7 +189,13 @@ export default function ExecutionDetailPage() {
                   mono={Boolean(task.runtime_id)}
                   copyable={task.runtime_id}
                 >
-                  {task.runtime_id ?? <span className="text-muted-foreground/60">—</span>}
+                  {task.runtime_id ? (
+                    <Link href={`/runtimes/${encodeURIComponent(task.runtime_id)}`} className="hover:underline">
+                      {truncateText(task.runtime_id, 22)}
+                    </Link>
+                  ) : (
+                    <span className="text-muted-foreground/60">—</span>
+                  )}
                 </SummaryField>
                 <SummaryField label="Runtime label">
                   {task.runtime_boundary?.environment_label ?? (
