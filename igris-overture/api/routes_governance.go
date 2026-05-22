@@ -10,6 +10,7 @@ package api
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -20,6 +21,11 @@ import (
 // RegisterGovernanceRoutes wires the execution governance summary endpoints.
 //
 //	GET /v1/execution/governance/summary — tenant-wide execution trust summary
+//	GET /v1/execution/governance/policy-decisions — action policy decisions
+//	GET /v1/execution/governance/recovery-events — task recovery events
+//	GET /v1/execution/governance/handoff-events — runtime handoff events
+//	GET /v1/execution/governance/boundary-violations — boundary violations
+//	GET /v1/execution/governance/verification-results — proof verification results
 func RegisterGovernanceRoutes(app *fiber.App, db *sql.DB) {
 	store := coordinator.NewCheckpointStore(db)
 
@@ -38,4 +44,98 @@ func RegisterGovernanceRoutes(app *fiber.App, db *sql.DB) {
 		}
 		return c.JSON(summary)
 	})
+
+	g.Get("/policy-decisions", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListActionPolicyDecisions(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+
+	g.Get("/recovery-events", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListTaskRecoveryEvents(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+
+	g.Get("/handoff-events", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListRuntimeHandoffEvents(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+
+	g.Get("/boundary-violations", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListBoundaryViolations(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+
+	g.Get("/verification-results", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListVerificationResults(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+}
+
+func governanceListOptions(c *fiber.Ctx) coordinator.GovernanceListOptions {
+	limit, _ := strconv.Atoi(c.Query("limit", "100"))
+	offset, _ := strconv.Atoi(c.Query("offset", "0"))
+	opts := coordinator.GovernanceListOptions{
+		Limit:           limit,
+		Offset:          offset,
+		Sort:            c.Query("sort", "desc"),
+		TaskID:          c.Query("task_id"),
+		AgentID:         c.Query("agent_id"),
+		RuntimeID:       c.Query("runtime_id"),
+		Action:          c.Query("action"),
+		Decision:        c.Query("decision"),
+		RiskLevel:       c.Query("risk_level"),
+		ReplayClass:     c.Query("replay_class"),
+		EventType:       c.Query("event_type"),
+		HandoffDecision: c.Query("handoff_decision", c.Query("decision")),
+		Severity:        c.Query("severity"),
+		Status:          c.Query("status"),
+		ExecutionID:     c.Query("execution_id"),
+		TimeRange:       c.Query("range"),
+	}
+	if value := c.Query("irreversible"); value != "" {
+		if parsed, err := strconv.ParseBool(value); err == nil {
+			opts.Irreversible = &parsed
+		}
+	}
+	if value := c.Query("human_gated"); value != "" {
+		if parsed, err := strconv.ParseBool(value); err == nil {
+			opts.HumanGated = &parsed
+		}
+	}
+	return opts
 }
