@@ -802,26 +802,30 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 	if s == nil || s.db == nil || isSQLMockDB(s.db) {
 		return out, nil
 	}
-	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	where, args := governanceBaseWhereWithAlias(tenantID, opts, "created_at", "v")
 	if opts.Status != "" && validString(opts.Status, "verified", "partially_verified", "unverifiable", "failed_verification", "policy_violation") {
-		where = append(where, fmt.Sprintf("status = $%d", len(args)+1))
+		where = append(where, fmt.Sprintf("v.status = $%d", len(args)+1))
 		args = append(args, opts.Status)
 	}
 	if opts.ExecutionID != "" {
-		where = append(where, fmt.Sprintf("execution_id = $%d", len(args)+1))
+		where = append(where, fmt.Sprintf("v.execution_id = $%d", len(args)+1))
 		args = append(args, opts.ExecutionID)
 	}
 	if opts.Action != "" {
-		where = append(where, fmt.Sprintf("action_digest = $%d", len(args)+1))
+		where = append(where, fmt.Sprintf("v.action_digest = $%d", len(args)+1))
 		args = append(args, opts.Action)
 	}
 	query := fmt.Sprintf(`
-		SELECT verification_id, task_id, COALESCE(execution_id,''), policy_decision_id,
-		       COALESCE(checkpoint_digest,''), COALESCE(action_digest,''), status,
-		       policy_compliant, COALESCE(evidence_digest,''), reason, created_at, COUNT(*) OVER()
-		FROM verification_results
+		SELECT v.verification_id, v.task_id, COALESCE(v.execution_id,''), v.policy_decision_id,
+		       COALESCE(v.checkpoint_digest,''), COALESCE(v.action_digest,''), v.status,
+		       v.policy_compliant, tr.proof_hash_valid, tr.proof_signature_matches,
+		       tr.proof_runtime_key_found, tr.proof_chain_link_valid,
+		       COALESCE(v.evidence_digest,''), v.reason, v.created_at, COUNT(*) OVER()
+		FROM verification_results v
+		LEFT JOIN task_records tr
+		  ON tr.tenant_id = v.tenant_id AND tr.task_id = v.task_id
 		WHERE %s
-		ORDER BY created_at %s
+		ORDER BY v.created_at %s
 		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
 	args = append(args, opts.Limit, opts.Offset)
 	rows, err := s.db.Query(query, args...)
@@ -832,9 +836,10 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 	for rows.Next() {
 		var v VerificationResultSummary
 		var taskID, decisionID uuid.NullUUID
-		var compliant sql.NullBool
+		var compliant, hashValid, signatureMatches, runtimeKeyFound, chainLinkValid sql.NullBool
 		if err := rows.Scan(&v.VerificationID, &taskID, &v.ExecutionID, &decisionID,
 			&v.CheckpointDigest, &v.ActionDigest, &v.Status, &compliant,
+			&hashValid, &signatureMatches, &runtimeKeyFound, &chainLinkValid,
 			&v.EvidenceDigest, &v.Reason, &v.CreatedAt, &out.Total); err != nil {
 			return nil, err
 		}
@@ -848,6 +853,22 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 		if compliant.Valid {
 			value := compliant.Bool
 			v.PolicyCompliant = &value
+		}
+		if hashValid.Valid {
+			value := hashValid.Bool
+			v.HashValid = &value
+		}
+		if signatureMatches.Valid {
+			value := signatureMatches.Bool
+			v.SignatureMatches = &value
+		}
+		if runtimeKeyFound.Valid {
+			value := runtimeKeyFound.Bool
+			v.RuntimeKeyFound = &value
+		}
+		if chainLinkValid.Valid {
+			value := chainLinkValid.Bool
+			v.ChainLinkValid = &value
 		}
 		out.Items = append(out.Items, v)
 	}
@@ -885,6 +906,24 @@ func governanceBaseWhere(tenantID string, opts GovernanceListOptions, timeColumn
 	}
 	if since := governanceSince(opts.TimeRange); since != nil {
 		where = append(where, fmt.Sprintf("%s >= $%d", timeColumn, len(args)+1))
+		args = append(args, *since)
+	}
+	return where, args
+}
+
+func governanceBaseWhereWithAlias(tenantID string, opts GovernanceListOptions, timeColumn, alias string) ([]string, []any) {
+	prefix := strings.TrimSpace(alias)
+	if prefix != "" {
+		prefix += "."
+	}
+	where := []string{prefix + "tenant_id = $1"}
+	args := []any{tenantID}
+	if taskID := strings.TrimSpace(opts.TaskID); taskID != "" {
+		where = append(where, fmt.Sprintf("%stask_id::text = $%d", prefix, len(args)+1))
+		args = append(args, taskID)
+	}
+	if since := governanceSince(opts.TimeRange); since != nil {
+		where = append(where, fmt.Sprintf("%s%s >= $%d", prefix, timeColumn, len(args)+1))
 		args = append(args, *since)
 	}
 	return where, args
