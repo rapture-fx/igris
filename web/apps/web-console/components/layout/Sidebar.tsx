@@ -45,31 +45,31 @@ interface NavigationGroup {
 
 const navigationGroups: NavigationGroup[] = [
   {
-    label: 'Execution',
+    label: 'Operations',
     items: [
-      { name: 'Tasks', href: '/execution/tasks', icon: ListBulletIcon },
-      { name: 'Runs', href: '/execution/runs', icon: RocketIcon },
-      { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
+      { name: 'Executions', href: '/execution/tasks', icon: ListBulletIcon },
+      { name: 'Policy & Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
+      { name: 'Recovery', href: '/execution/recovery', icon: UpdateIcon },
     ],
   },
   {
-    label: 'Proof',
+    label: 'Evidence',
     items: [
-      { name: 'Receipts', href: '/proof/receipts', icon: ReaderIcon },
+      { name: 'Proof', href: '/proof/receipts', icon: ReaderIcon },
       { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
     ],
   },
   {
-    label: 'Policy',
+    label: 'Boundaries',
     items: [
+      { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
       { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
-      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
     ],
   },
   {
-    label: 'Infrastructure',
+    label: 'Configuration',
     items: [
-      { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
+      { name: 'Bounds', href: '/policy/bounds', icon: UpdateIcon },
       { name: 'Provider Credentials', href: '/models/providers', icon: TokensIcon },
     ],
   },
@@ -116,12 +116,13 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
   // Build flat search index with rich keywords
   const searchIndex = [
-    { title: 'Dashboard › Overview', path: '/dashboard', keywords: 'dashboard overview tasks recovery receipts evidence verification runtime' },
-    { title: 'Execution › Tasks', path: '/execution/tasks', keywords: 'agent tasks action evidence recovery checkpoint receipts proof verify' },
+    { title: 'Overview', path: '/dashboard', keywords: 'overview trust tasks recovery receipts evidence verification runtime' },
+    { title: 'Executions', path: '/execution/tasks', keywords: 'agent tasks action evidence recovery checkpoint receipts proof verify' },
     { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution records task runs receipts verification runtime events' },
-    { title: 'Execution › Approvals', path: '/execution/approvals', keywords: 'execution approvals human review pause resume reject' },
-    { title: 'Proof › Receipts', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain runtime' },
-    { title: 'Proof › Violations', path: '/proof/violations', keywords: 'proof policy violations bounded actions evidence' },
+    { title: 'Policy & Approvals', path: '/execution/approvals', keywords: 'execution approvals policy decisions allowed denied human gated irreversible retryable non replayable' },
+    { title: 'Recovery', path: '/execution/recovery', keywords: 'recovery checkpoints wal replay handoff resumable interrupted manual' },
+    { title: 'Proof', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain runtime' },
+    { title: 'Violations', path: '/proof/violations', keywords: 'proof policy violations boundary replay handoff evidence' },
     { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http filesystem domains actions' },
     { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps actions' },
     { title: 'Infrastructure › Runtimes', path: '/infrastructure/runtimes', keywords: 'runtimes runtime nodes online policy sync infrastructure' },
@@ -246,7 +247,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                   )}
                 >
                   <DashboardIcon className="h-4 w-4 flex-shrink-0 text-foreground" />
-                  Dashboard
+                  Overview
                 </Link>
               </li>
 
