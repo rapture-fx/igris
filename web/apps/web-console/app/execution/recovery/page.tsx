@@ -159,7 +159,14 @@ export default function RecoveryPage() {
                           {event.replay_allowed === false && <GovernanceBadge label="Blocked" tone="warning" showDot={false} />}
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{truncateText(event.target_runtime_id || event.source_runtime_id || 'Not available', 18)}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {event.target_runtime_id || event.source_runtime_id ? (
+                          <Link href={`/runtimes/${encodeURIComponent(event.target_runtime_id || event.source_runtime_id || '')}`} className="group flex items-center gap-1.5 hover:text-foreground" onClick={(e) => e.stopPropagation()}>
+                            {truncateText(event.target_runtime_id || event.source_runtime_id || '', 18)}
+                            <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                          </Link>
+                        ) : 'Not available'}
+                      </TableCell>
                       <TableCell className="max-w-xs text-xs text-muted-foreground">{event.reason || 'Evidence not available'}</TableCell>
                       <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{getRelativeTime(event.created_at)}</TableCell>
                     </TableRow>
@@ -179,7 +186,9 @@ export default function RecoveryPage() {
               <Link key={event.handoff_event_id} href={`/execution/tasks/${encodeURIComponent(event.task_id)}`} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2 text-xs hover:bg-gray-50">
                 <span className="font-mono text-foreground">{truncateText(event.task_id, 18)}</span>
                 <HandoffBadge decision={event.decision} />
-                <span className="font-mono text-muted-foreground">{truncateText(event.source_runtime_id || 'unknown', 12)} -&gt; {truncateText(event.target_runtime_id || 'unknown', 12)}</span>
+                <span className="font-mono text-muted-foreground">
+                  {event.source_runtime_id ? truncateText(event.source_runtime_id, 12) : 'unknown'} -&gt; {event.target_runtime_id ? truncateText(event.target_runtime_id, 12) : 'unknown'}
+                </span>
                 <span className="text-muted-foreground">{event.reason}</span>
               </Link>
             ))}
