@@ -77,7 +77,7 @@ export default function ViolationsPage() {
         kind: item.status === 'policy_violation' ? 'Policy violation' : 'Failed verification',
         severity: 'critical',
         task_id: item.task_id,
-        runtime_id: undefined,
+        runtime_id: item.runtime_id,
         action: item.action_digest,
         reason: item.reason,
         created_at: item.created_at,
@@ -202,7 +202,14 @@ export default function ViolationsPage() {
                         </Link>
                       ) : <span className="text-xs text-muted-foreground">Not available</span>}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{item.runtime_id ? truncateText(item.runtime_id, 18) : 'Not available'}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {item.runtime_id ? (
+                        <Link href={`/runtimes/${encodeURIComponent(item.runtime_id)}`} className="group flex items-center gap-1.5 hover:text-foreground" onClick={(e) => e.stopPropagation()}>
+                          {truncateText(item.runtime_id, 18)}
+                          <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                        </Link>
+                      ) : 'Not available'}
+                    </TableCell>
                     <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">{item.action || 'Not available'}</TableCell>
                     <TableCell className="max-w-md text-xs text-muted-foreground">{item.reason || 'Evidence not available'}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{getRelativeTime(item.created_at)}</TableCell>
