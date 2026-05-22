@@ -120,6 +120,10 @@ export interface GovernanceVerificationResult {
   action_digest?: string;
   status: 'verified' | 'partially_verified' | 'unverifiable' | 'failed_verification' | 'policy_violation' | string;
   policy_compliant?: boolean;
+  hash_valid?: boolean;
+  signature_matches?: boolean;
+  runtime_key_found?: boolean;
+  chain_link_valid?: boolean;
   evidence_digest?: string;
   reason: string;
   created_at: string;
