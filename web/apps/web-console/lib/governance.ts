@@ -132,6 +132,7 @@ export interface GovernanceVerificationResult {
   verification_id: string;
   task_id?: string;
   execution_id?: string;
+  runtime_id?: string;
   policy_decision_id?: string;
   checkpoint_digest?: string;
   action_digest?: string;
