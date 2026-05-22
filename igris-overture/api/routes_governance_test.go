@@ -80,12 +80,13 @@ func TestGovernanceVerificationResultsEndpointReturnsSafeSummaries(t *testing.T)
 			columns: []string{
 				"verification_id", "task_id", "execution_id", "policy_decision_id",
 				"checkpoint_digest", "action_digest", "status", "policy_compliant",
-				"evidence_digest", "reason", "created_at", "count",
+				"proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found",
+				"proof_chain_link_valid", "evidence_digest", "reason", "created_at", "count",
 			},
 			rows: [][]driver.Value{{
 				verificationID.String(), taskID.String(), "exec-1", nil,
 				"checkpoint-digest", "action-digest", "failed_verification", false,
-				"evidence-digest", "signature mismatch", now, int64(1),
+				false, false, true, false, "evidence-digest", "signature mismatch", now, int64(1),
 			}},
 		},
 	})
@@ -107,9 +108,10 @@ func TestGovernanceVerificationResultsEndpointReturnsSafeSummaries(t *testing.T)
 
 	var body struct {
 		Items []struct {
-			VerificationID string `json:"verification_id"`
-			Status         string `json:"status"`
-			Reason         string `json:"reason"`
+			VerificationID  string `json:"verification_id"`
+			Status          string `json:"status"`
+			RuntimeKeyFound bool   `json:"runtime_key_found"`
+			Reason          string `json:"reason"`
 		} `json:"items"`
 		Total int `json:"total"`
 	}
@@ -117,6 +119,7 @@ func TestGovernanceVerificationResultsEndpointReturnsSafeSummaries(t *testing.T)
 	require.Equal(t, 1, body.Total)
 	require.Equal(t, verificationID.String(), body.Items[0].VerificationID)
 	require.Equal(t, "failed_verification", body.Items[0].Status)
+	require.True(t, body.Items[0].RuntimeKeyFound)
 	require.Equal(t, "signature mismatch", body.Items[0].Reason)
 	require.Zero(t, drv.remainingQueries())
 }
