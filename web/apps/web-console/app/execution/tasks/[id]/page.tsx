@@ -191,7 +191,15 @@ export default function ExecutionDetailPage() {
                 >
                   {task.runtime_id ?? <span className="text-muted-foreground/60">—</span>}
                 </SummaryField>
-                <SummaryField label="Environment">
+                <SummaryField label="Runtime label">
+                  {task.runtime_boundary?.environment_label ?? (
+                    <span className="text-muted-foreground/60">Not available</span>
+                  )}
+                </SummaryField>
+                <SummaryField label="Agent ID">
+                  <span className="text-muted-foreground/60">Not available</span>
+                </SummaryField>
+                <SummaryField label="Boundary">
                   {task.runtime_boundary?.environment_label ?? (
                     <span className="text-muted-foreground/60">Not available</span>
                   )}
