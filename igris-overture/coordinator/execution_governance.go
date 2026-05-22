@@ -151,6 +151,10 @@ type VerificationResultSummary struct {
 	ActionDigest     string     `json:"action_digest,omitempty"`
 	Status           string     `json:"status"`
 	PolicyCompliant  *bool      `json:"policy_compliant,omitempty"`
+	HashValid        *bool      `json:"hash_valid,omitempty"`
+	SignatureMatches *bool      `json:"signature_matches,omitempty"`
+	RuntimeKeyFound  *bool      `json:"runtime_key_found,omitempty"`
+	ChainLinkValid   *bool      `json:"chain_link_valid,omitempty"`
 	EvidenceDigest   string     `json:"evidence_digest,omitempty"`
 	Reason           string     `json:"reason"`
 	CreatedAt        time.Time  `json:"created_at"`
