@@ -99,6 +99,23 @@ export interface GovernanceHandoffEvent {
   created_at: string;
 }
 
+export interface GovernanceExecutionBoundary {
+  boundary_id: string;
+  task_id?: string;
+  runtime_id?: string;
+  policy_decision_id?: string;
+  environment_label?: string;
+  allowed_tools?: unknown;
+  denied_tools?: unknown;
+  network_scope: string;
+  filesystem_scope: string;
+  api_scope: string;
+  resource_limits?: unknown;
+  runtime_capabilities?: unknown;
+  boundary_digest: string;
+  created_at: string;
+}
+
 export interface GovernanceBoundaryViolation {
   violation_id: string;
   task_id?: string;
@@ -127,6 +144,29 @@ export interface GovernanceVerificationResult {
   evidence_digest?: string;
   reason: string;
   created_at: string;
+}
+
+export interface GovernanceRuntimePortabilitySummary {
+  same_runtime_only: number;
+  compatible_runtime: number;
+  any_runtime: number;
+}
+
+export interface GovernanceRuntimeSummary {
+  runtime_id: string;
+  runtime_label: string;
+  last_seen?: string;
+  capability_summary?: unknown;
+  trust_state: string;
+  active_execution_count: number;
+  recent_execution_count: number;
+  boundary_count: number;
+  violation_count: number;
+  handoff_count: number;
+  verified_proof_count: number;
+  failed_verification_count: number;
+  checkpoint_portability_summary: GovernanceRuntimePortabilitySummary;
+  enforcement_warning?: string;
 }
 
 export interface GovernanceListParams {
@@ -272,6 +312,23 @@ export function handoffLabel(decision?: string | null): Labelled {
       return { label: 'Handoff blocked', tone: 'danger' };
     default:
       return { label: 'No handoff', tone: 'neutral' };
+  }
+}
+
+export function runtimeTrustLabel(state?: string | null): Labelled {
+  switch (String(state ?? '').toLowerCase()) {
+    case 'trusted':
+      return { label: 'Trusted', tone: 'success' };
+    case 'boundary_violation':
+      return { label: 'Boundary violation', tone: 'danger' };
+    case 'capability_mismatch':
+      return { label: 'Capability mismatch', tone: 'warning' };
+    case 'handoff_blocked':
+      return { label: 'Handoff blocked', tone: 'danger' };
+    case 'limited_trust':
+      return { label: 'Limited trust', tone: 'warning' };
+    default:
+      return { label: 'Trust not available', tone: 'neutral' };
   }
 }
 
