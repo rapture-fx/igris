@@ -11,14 +11,18 @@ import {
 } from '@/components/ui/breadcrumb';
 
 const routeNames: Record<string, string> = {
-  dashboard: 'Dashboard',
+  dashboard: 'Overview',
   execution: 'Execution',
   runs: 'Runs',
   tasks: 'Tasks',
   approvals: 'Approvals',
+  recovery: 'Recovery',
   proof: 'Proof',
   receipts: 'Receipts',
   violations: 'Violations',
+  runtimes: 'Runtimes',
+  boundaries: 'Boundaries',
+  infrastructure: 'Infrastructure',
   policy: 'Policy',
   bounds: 'Bounds',
   capabilities: 'Capabilities',
@@ -35,6 +39,15 @@ const routeNames: Record<string, string> = {
   general: 'General',
 };
 
+function segmentLabel(segment: string): string {
+  if (routeNames[segment]) return routeNames[segment];
+  const decoded = decodeURIComponent(segment);
+  if (decoded.length > 18 || /^[0-9a-f-]{20,}$/i.test(decoded)) {
+    return `${decoded.slice(0, 8)}...${decoded.slice(-4)}`;
+  }
+  return decoded.charAt(0).toUpperCase() + decoded.slice(1);
+}
+
 export function Breadcrumbs() {
   const pathname = usePathname();
 
@@ -50,7 +63,7 @@ export function Breadcrumbs() {
   const breadcrumbItems = segments.map((segment, index) => {
     const path = '/' + segments.slice(0, index + 1).join('/');
     const isLast = index === segments.length - 1;
-    const label = routeNames[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+    const label = segmentLabel(segment);
 
     return {
       label,
