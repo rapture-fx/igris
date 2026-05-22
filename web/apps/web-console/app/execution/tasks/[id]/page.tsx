@@ -14,7 +14,15 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
-import { ArrowLeft, Clock3, ListChecks } from 'lucide-react';
+import {
+  ArrowLeft,
+  Clock3,
+  FileCheck2,
+  ListChecks,
+  RotateCcw,
+  Route,
+  ShieldCheck,
+} from 'lucide-react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useTask, useTaskSteps } from '@/hooks/useTasks';
+import { useTask, useTaskSteps, type Task } from '@/hooks/useTasks';
 import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
 import { CopyButton } from '@/components/execution/shared';
@@ -71,6 +79,121 @@ function SummaryField({
         <span>{children}</span>
         {copyable && <CopyButton value={copyable} />}
       </div>
+    </div>
+  );
+}
+
+function narrativeState(task: Task): Array<{
+  label: string;
+  value: string;
+  detail: string;
+  tone: 'success' | 'danger' | 'warning' | 'info' | 'neutral';
+  Icon: typeof ShieldCheck;
+}> {
+  const proofFailed = task.proof?.verified === false || task.proof?.status === 'mismatch';
+  const recovered = task.status === 'completed' && (task.recovery?.events?.length ?? 0) > 0;
+  return [
+    {
+      label: 'Requested',
+      value: task.policy?.action_name || task.task_type || 'Action not classified',
+      detail: `Task ${truncateText(task.task_id, 18)} entered the control plane.`,
+      tone: 'neutral',
+      Icon: Route,
+    },
+    {
+      label: 'Policy',
+      value:
+        task.policy?.decision === 'allowed'
+          ? 'Allowed'
+          : task.policy?.decision === 'denied'
+            ? 'Denied'
+            : task.policy?.decision === 'approval_required'
+              ? 'Approval required'
+              : 'Not evaluated',
+      detail: task.policy?.reason || 'Policy evidence not available.',
+      tone:
+        task.policy?.decision === 'allowed'
+          ? 'success'
+          : task.policy?.decision === 'denied'
+            ? 'danger'
+            : task.policy?.decision === 'approval_required'
+              ? 'warning'
+              : 'neutral',
+      Icon: ShieldCheck,
+    },
+    {
+      label: 'Boundary',
+      value: task.runtime_boundary ? 'Boundary recorded' : 'Boundary not available',
+      detail: task.runtime_boundary
+        ? `Network ${task.runtime_boundary.network_scope ?? 'none'} · File ${task.runtime_boundary.filesystem_scope ?? 'none'} · API ${task.runtime_boundary.api_scope ?? 'none'}`
+        : 'Runtime boundary evidence was not returned for this task.',
+      tone: task.runtime_boundary ? 'info' : 'neutral',
+      Icon: Route,
+    },
+    {
+      label: 'Recovery',
+      value:
+        task.status === 'failed'
+          ? 'Failed'
+          : task.status === 'recovering'
+            ? 'Recovering'
+            : recovered
+              ? 'Recovered'
+              : task.recovery?.skip_reason
+                ? 'Manual recovery required'
+                : 'No recovery event',
+      detail:
+        task.failure_reason ||
+        task.recovery?.skip_reason ||
+        task.recovery?.events?.at(-1)?.reason ||
+        'No failure or recovery event is recorded.',
+      tone:
+        task.status === 'failed'
+          ? 'danger'
+          : task.status === 'recovering' || task.recovery?.skip_reason
+            ? 'warning'
+            : recovered
+              ? 'success'
+              : 'neutral',
+      Icon: RotateCcw,
+    },
+    {
+      label: 'Proof',
+      value:
+        task.proof?.verified || task.proof?.status === 'verified'
+          ? 'Verified'
+          : proofFailed
+            ? 'Failed verification'
+            : task.proof?.status === 'present'
+              ? 'Receipt present'
+              : 'Proof not available',
+      detail: task.proof?.verification_reason || 'Receipt and verification evidence are shown in the Proof tab.',
+      tone: task.proof?.verified || task.proof?.status === 'verified' ? 'success' : proofFailed ? 'danger' : task.proof?.status === 'present' ? 'info' : 'neutral',
+      Icon: FileCheck2,
+    },
+  ];
+}
+
+function StoryAtAGlance({ task }: { task: Task }) {
+  const toneClasses = {
+    success: 'border-green-200 bg-green-50/60 text-green-700',
+    danger: 'border-red-200 bg-red-50/60 text-red-700',
+    warning: 'border-yellow-200 bg-yellow-50/70 text-yellow-700',
+    info: 'border-blue-200 bg-blue-50/60 text-blue-700',
+    neutral: 'border-gray-200 bg-gray-50 text-muted-foreground',
+  };
+  return (
+    <div className="grid gap-2 md:grid-cols-5">
+      {narrativeState(task).map(({ label, value, detail, tone, Icon }) => (
+        <div key={label} className={`rounded-md border px-3 py-2 ${toneClasses[tone]}`}>
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.12em]">{label}</span>
+          </div>
+          <div className="mt-2 text-xs font-semibold text-foreground">{value}</div>
+          <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-muted-foreground">{detail}</p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -229,6 +352,8 @@ export default function ExecutionDetailPage() {
               </div>
             </div>
 
+            <StoryAtAGlance task={task} />
+
             {/* Tabs */}
             <Tabs defaultValue="story">
               <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0">
@@ -242,9 +367,23 @@ export default function ExecutionDetailPage() {
               {/* Story */}
               <TabsContent value="story" className="mt-4 space-y-4">
                 <div className="rounded-lg border-[0.5px] border-black/[0.08] dark:border-white/[0.08] bg-white p-4">
-                  <h2 className="mb-3 text-sm font-semibold text-foreground">
-                    Execution story
-                  </h2>
+                  <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-sm font-semibold text-foreground">Execution story</h2>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Read top to bottom: request, policy, boundary, dispatch, execution, recovery, then proof. Missing phases are shown as unavailable instead of being invented.
+                      </p>
+                    </div>
+                    {task.status === 'failed' ? (
+                      <GovernanceBadge label="Needs operator attention" tone="danger" />
+                    ) : task.status === 'recovering' ? (
+                      <GovernanceBadge label="Recovery in progress" tone="warning" />
+                    ) : task.proof?.verified || task.proof?.status === 'verified' ? (
+                      <GovernanceBadge label="Verified trust state" tone="success" />
+                    ) : (
+                      <GovernanceBadge label="Awaiting final trust state" tone="info" />
+                    )}
+                  </div>
                   <ExecutionStoryTimeline nodes={story} />
                 </div>
 
@@ -318,12 +457,18 @@ export default function ExecutionDetailPage() {
               </TabsContent>
 
               {/* Policy */}
-              <TabsContent value="policy" className="mt-4">
+              <TabsContent value="policy" className="mt-4 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Policy evidence explains whether the requested action was allowed, denied, or gated before runtime dispatch. The action digest and policy version are the audit anchors.
+                </p>
                 <PolicyDecisionCard policy={task.policy} />
               </TabsContent>
 
               {/* Boundary */}
               <TabsContent value="boundary" className="mt-4 space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Boundary evidence shows the runtime limits selected for this execution: allowed tools, denied tools, network scope, file scope, API scope, resource limits, and declared runtime support.
+                </p>
                 <RuntimeBoundaryCard task={task} />
                 <SafeEvidenceJsonPanel
                   title="Runtime capabilities (declared)"
@@ -337,12 +482,18 @@ export default function ExecutionDetailPage() {
               </TabsContent>
 
               {/* Recovery */}
-              <TabsContent value="recovery" className="mt-4">
+              <TabsContent value="recovery" className="mt-4 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Recovery evidence shows interruptions, checkpoint watermarks, replay decisions, manual gates, and runtime handoff outcomes. Non-replayable or irreversible actions are surfaced here.
+                </p>
                 <RecoveryStateCard task={task} />
               </TabsContent>
 
               {/* Proof */}
               <TabsContent value="proof" className="mt-4 space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Proof evidence is separate from logs. Verification compares expected and stored hashes, signature state, runtime key presence, and receipt chain validity where available.
+                </p>
                 <ProofVerificationCard
                   task={task}
                   onVerify={() => {
@@ -374,10 +525,9 @@ export default function ExecutionDetailPage() {
 
               {/* Raw Evidence */}
               <TabsContent value="evidence" className="mt-4 space-y-4">
-                <p className="text-xs text-muted-foreground">
-                  Raw persisted evidence. Sensitive fields — resume tokens, secrets,
-                  credentials — are redacted before display and export.
-                </p>
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  Raw persisted evidence is displayed only after redaction. Resume tokens, secrets, credentials, private keys, bearer tokens, and sensitive runtime internals are removed before display and export.
+                </div>
                 <SafeEvidenceJsonPanel title="Checkpoint metadata" data={task.checkpoint_metadata} />
                 <SafeEvidenceJsonPanel title="Graph blackboard" data={task.graph_blackboard} />
                 <SafeEvidenceJsonPanel title="Graph nodes" data={task.graph_nodes} />
