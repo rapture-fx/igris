@@ -171,6 +171,7 @@ type VerificationResultSummary struct {
 	VerificationID   uuid.UUID  `json:"verification_id"`
 	TaskID           uuid.UUID  `json:"task_id,omitempty"`
 	ExecutionID      string     `json:"execution_id,omitempty"`
+	RuntimeID        string     `json:"runtime_id,omitempty"`
 	PolicyDecisionID *uuid.UUID `json:"policy_decision_id,omitempty"`
 	CheckpointDigest string     `json:"checkpoint_digest,omitempty"`
 	ActionDigest     string     `json:"action_digest,omitempty"`
@@ -845,7 +846,7 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 		args = append(args, opts.Action)
 	}
 	query := fmt.Sprintf(`
-		SELECT v.verification_id, v.task_id, COALESCE(v.execution_id,''), v.policy_decision_id,
+		SELECT v.verification_id, v.task_id, COALESCE(v.execution_id,''), COALESCE(tr.runtime_id,''), v.policy_decision_id,
 		       COALESCE(v.checkpoint_digest,''), COALESCE(v.action_digest,''), v.status,
 		       v.policy_compliant, tr.proof_hash_valid, tr.proof_signature_matches,
 		       tr.proof_runtime_key_found, tr.proof_chain_link_valid,
@@ -866,7 +867,7 @@ func (s *CheckpointStore) ListVerificationResults(tenantID string, opts Governan
 		var v VerificationResultSummary
 		var taskID, decisionID uuid.NullUUID
 		var compliant, hashValid, signatureMatches, runtimeKeyFound, chainLinkValid sql.NullBool
-		if err := rows.Scan(&v.VerificationID, &taskID, &v.ExecutionID, &decisionID,
+		if err := rows.Scan(&v.VerificationID, &taskID, &v.ExecutionID, &v.RuntimeID, &decisionID,
 			&v.CheckpointDigest, &v.ActionDigest, &v.Status, &compliant,
 			&hashValid, &signatureMatches, &runtimeKeyFound, &chainLinkValid,
 			&v.EvidenceDigest, &v.Reason, &v.CreatedAt, &out.Total); err != nil {
