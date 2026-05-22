@@ -2,11 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import type {
   GovernanceBoundaryViolation,
+  GovernanceExecutionBoundary,
   GovernanceHandoffEvent,
   GovernanceListParams,
   GovernanceListResponse,
   GovernancePolicyDecision,
   GovernanceRecoveryEvent,
+  GovernanceRuntimeSummary,
   GovernanceSummary,
   GovernanceVerificationResult,
 } from '@/lib/governance';
@@ -84,6 +86,20 @@ export function useGovernanceHandoffEvents(params: GovernanceListParams = {}) {
   });
 }
 
+export function useGovernanceBoundaries(params: GovernanceListParams = {}) {
+  return useQuery<GovernanceListResponse<GovernanceExecutionBoundary>>({
+    queryKey: ['governance-boundaries', params],
+    queryFn: () =>
+      api.get<GovernanceListResponse<GovernanceExecutionBoundary>>(
+        governancePath('boundaries', params),
+        { allowMockFallback: false },
+      ),
+    retry: false,
+    staleTime: 10_000,
+    refetchInterval: 20_000,
+  });
+}
+
 export function useGovernanceBoundaryViolations(params: GovernanceListParams = {}) {
   return useQuery<GovernanceListResponse<GovernanceBoundaryViolation>>({
     queryKey: ['governance-boundary-violations', params],
@@ -106,6 +122,35 @@ export function useGovernanceVerificationResults(params: GovernanceListParams = 
         governancePath('verification-results', params),
         { allowMockFallback: false },
       ),
+    retry: false,
+    staleTime: 10_000,
+    refetchInterval: 20_000,
+  });
+}
+
+export function useGovernanceRuntimes(params: GovernanceListParams = {}) {
+  return useQuery<GovernanceListResponse<GovernanceRuntimeSummary>>({
+    queryKey: ['governance-runtimes', params],
+    queryFn: () =>
+      api.get<GovernanceListResponse<GovernanceRuntimeSummary>>(
+        governancePath('runtimes', params),
+        { allowMockFallback: false },
+      ),
+    retry: false,
+    staleTime: 10_000,
+    refetchInterval: 20_000,
+  });
+}
+
+export function useGovernanceRuntime(runtimeId?: string) {
+  return useQuery<GovernanceRuntimeSummary>({
+    queryKey: ['governance-runtime', runtimeId],
+    queryFn: () =>
+      api.get<GovernanceRuntimeSummary>(
+        `/v1/execution/governance/runtimes/${encodeURIComponent(runtimeId ?? '')}`,
+        { allowMockFallback: false },
+      ),
+    enabled: Boolean(runtimeId),
     retry: false,
     staleTime: 10_000,
     refetchInterval: 20_000,
