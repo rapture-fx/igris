@@ -17,7 +17,7 @@ import { useTasks, type Task } from '@/hooks/useTasks';
 import { GovernanceBadge, HandoffBadge, ReplayClassBadge } from '@/components/governance/GovernanceBadge';
 import { portabilityLabel } from '@/lib/governance';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
-import { AlertTriangle, ArrowUpRight, History, RotateCcw, Search } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, History, RotateCcw, Search, type LucideIcon } from 'lucide-react';
 
 function recoveryLabel(task: Task): { label: string; tone: 'success' | 'danger' | 'warning' | 'info' | 'neutral' } {
   if (task.recovery?.skip_reason) return { label: 'Manual recovery required', tone: 'warning' };
@@ -80,6 +80,13 @@ export default function RecoveryPage() {
     [tasks],
   );
 
+  const statCards: Array<{ label: string; value: number; Icon: LucideIcon }> = [
+    { label: 'Interrupted', value: stats.interrupted, Icon: AlertTriangle },
+    { label: 'Recovering', value: stats.recovering, Icon: RotateCcw },
+    { label: 'Resume supported', value: stats.resumable, Icon: History },
+    { label: 'Handoff blocked', value: stats.handoffBlocked, Icon: AlertTriangle },
+  ];
+
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -102,18 +109,13 @@ export default function RecoveryPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {[
-            ['Interrupted', stats.interrupted, AlertTriangle],
-            ['Recovering', stats.recovering, RotateCcw],
-            ['Resume supported', stats.resumable, History],
-            ['Handoff blocked', stats.handoffBlocked, AlertTriangle],
-          ].map(([label, value, Icon]) => (
-            <div key={String(label)} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
+          {statCards.map(({ label, value, Icon }) => (
+            <div key={label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
               <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                 <Icon className="h-3.5 w-3.5" />
                 {label}
               </div>
-              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{String(value)}</div>
+              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{value}</div>
             </div>
           ))}
         </div>
