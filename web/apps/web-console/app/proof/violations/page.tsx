@@ -1,428 +1,220 @@
 'use client';
 
-import { type CSSProperties, type ReactNode, useMemo, useState, Suspense } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { ErrorState } from '@/components/states/ErrorState';
-import { Button } from '@/components/ui/button';
-import { ClientChart } from '@/components/ui/client-chart';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
-import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
-import { fetchExecutionViolations, type ExecutionViolation } from '@/lib/executionRuns';
-import { getRelativeTime } from '@/utils/helpers';
-import { useChartTheme } from '@/utils/chartTheme';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-} from 'recharts';
-import {
-  type LucideIcon,
-  ShieldAlert, AlertCircle, AlertTriangle, RefreshCw,
-  Download, TrendingUp, ShieldOff, ChevronUp,
-} from 'lucide-react';
+  useGovernanceBoundaryViolations,
+  useGovernanceHandoffEvents,
+  useGovernancePolicyDecisions,
+  useGovernanceRecoveryEvents,
+  useGovernanceVerificationResults,
+} from '@/hooks/useGovernance';
+import { GovernanceBadge, PolicyBadge, ProofBadge, ViolationSeverityBadge } from '@/components/governance/GovernanceBadge';
+import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
+import { getRelativeTime, truncateText } from '@/utils/helpers';
+import { AlertTriangle, ArrowUpRight, Search, ShieldOff } from 'lucide-react';
 
-type ViolationSeverity = 'info' | 'warning' | 'critical' | 'unknown';
-
-const SEV_STYLE: Record<ViolationSeverity, string> = {
-  info: 'bg-gray-50 text-gray-600 border-gray-200',
-  warning: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-  critical: 'bg-red-50 text-red-600 border-red-200',
-  unknown: 'bg-gray-50 text-gray-500 border-gray-200',
+type ViolationItem = {
+  id: string;
+  kind: string;
+  severity: string;
+  task_id?: string;
+  runtime_id?: string;
+  action?: string;
+  reason: string;
+  created_at: string;
+  evidence: unknown;
 };
 
-function normalizeSeverity(value?: string): ViolationSeverity {
-  const normalized = String(value ?? '').toLowerCase();
-  if (normalized === 'info') return 'info';
-  if (normalized === 'warning') return 'warning';
-  if (normalized === 'critical') return 'critical';
-  return 'unknown';
-}
+const ranges = ['last_1h', 'last_6h', 'last_24h', 'last_7d', 'last_30d'];
 
-function violationLabel(violation: ExecutionViolation): string {
-  return violation.violation_type || violation.policy_rule || 'Violation recorded';
-}
+export default function ViolationsPage() {
+  const [range, setRange] = useState('last_24h');
+  const [severity, setSeverity] = useState('all');
+  const [search, setSearch] = useState('');
+  const [runtimeFilter, setRuntimeFilter] = useState('');
+  const [selected, setSelected] = useState<ViolationItem | null>(null);
 
-function SeverityBadge({ severity }: { severity: ViolationSeverity }) {
-  return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium border rounded ${SEV_STYLE[severity]}`}>
-      {severity}
-    </span>
-  );
-}
+  const common = { limit: 200, range, runtime_id: runtimeFilter.trim() };
+  const { data: policyData, isLoading: policyLoading } = useGovernancePolicyDecisions({ ...common, decision: 'denied' });
+  const { data: boundaryData, isLoading: boundaryLoading } = useGovernanceBoundaryViolations({ ...common, severity });
+  const { data: proofData, isLoading: proofLoading } = useGovernanceVerificationResults({ ...common });
+  const { data: recoveryData, isLoading: recoveryLoading } = useGovernanceRecoveryEvents(common);
+  const { data: handoffData, isLoading: handoffLoading } = useGovernanceHandoffEvents({ ...common, handoff_decision: 'denied' });
+  const isLoading = policyLoading || boundaryLoading || proofLoading || recoveryLoading || handoffLoading;
 
-function OverviewCard({
-  icon: Icon, label, value, loading,
-}: {
-  icon: LucideIcon; label: string; value: ReactNode; loading?: boolean;
-}) {
-  return (
-    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-        {label}
-      </div>
-      <div className="bg-white px-4 pt-4 pb-5">
-        {loading ? (
-          <Skeleton className="h-8 w-24" />
-        ) : (
-          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
-        )}
-      </div>
-    </div>
-  );
-}
+  const items = useMemo<ViolationItem[]>(() => {
+    const policy = (policyData?.items ?? []).map((item) => ({
+      id: item.decision_id,
+      kind: 'Policy violation',
+      severity: 'critical',
+      task_id: item.task_id,
+      runtime_id: item.runtime_id,
+      action: item.action_name,
+      reason: item.policy_reason,
+      created_at: item.created_at,
+      evidence: item,
+    }));
+    const boundary = (boundaryData?.items ?? []).map((item) => ({
+      id: item.violation_id,
+      kind: 'Boundary violation',
+      severity: item.severity,
+      task_id: item.task_id,
+      runtime_id: item.runtime_id,
+      action: item.violation_type,
+      reason: item.reason,
+      created_at: item.created_at,
+      evidence: item,
+    }));
+    const proof = (proofData?.items ?? [])
+      .filter((item) => item.status === 'failed_verification' || item.status === 'policy_violation')
+      .map((item) => ({
+        id: item.verification_id,
+        kind: item.status === 'policy_violation' ? 'Policy violation' : 'Failed verification',
+        severity: 'critical',
+        task_id: item.task_id,
+        runtime_id: undefined,
+        action: item.action_digest,
+        reason: item.reason,
+        created_at: item.created_at,
+        evidence: item,
+      }));
+    const recovery = (recoveryData?.items ?? [])
+      .filter((item) => item.replay_allowed === false || item.event_type.toLowerCase().includes('skip'))
+      .map((item) => ({
+        id: item.recovery_event_id,
+        kind: item.replay_allowed === false ? 'Unsafe replay blocked' : 'Non-replayable recovery skipped',
+        severity: 'warning',
+        task_id: item.task_id,
+        runtime_id: item.target_runtime_id || item.source_runtime_id,
+        action: item.event_type,
+        reason: item.reason,
+        created_at: item.created_at,
+        evidence: item,
+      }));
+    const handoff = (handoffData?.items ?? []).map((item) => ({
+      id: item.handoff_event_id,
+      kind: 'Denied runtime handoff',
+      severity: 'warning',
+      task_id: item.task_id,
+      runtime_id: item.target_runtime_id || item.source_runtime_id,
+      action: item.checkpoint_portability,
+      reason: item.reason,
+      created_at: item.created_at,
+      evidence: item,
+    }));
+    return [...policy, ...boundary, ...proof, ...recovery, ...handoff]
+      .filter((item) => severity === 'all' || item.severity === severity)
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  }, [boundaryData, handoffData, policyData, proofData, recoveryData, severity]);
 
-function SurfaceSection({
-  icon: Icon, title, actions,
-  bodyClassName = 'px-4 py-4', className = '', collapsed = false, children,
-}: {
-  icon: LucideIcon; title: string;
-  actions?: ReactNode; bodyClassName?: string; className?: string;
-  collapsed?: boolean; children: ReactNode;
-}) {
-  return (
-    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-1.5">
-          <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-          <p className="text-xs font-medium text-foreground">{title}</p>
-        </div>
-        {actions}
-      </div>
-      {!collapsed && (
-        <div className={`bg-white ${bodyClassName}`}>
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return items;
+    return items.filter((item) => [item.kind, item.task_id, item.runtime_id, item.action, item.reason]
+      .filter(Boolean).some((value) => String(value).toLowerCase().includes(query)));
+  }, [items, search]);
 
-function exportCSV(rows: ExecutionViolation[]) {
-  const headers = ['id', 'timestamp', 'execution_id', 'agent_id', 'policy_rule', 'violation_type', 'severity', 'limit_value', 'observed_value', 'action_taken'];
-  const lines = rows.map((r) => [
-    r.id,
-    r.timestamp,
-    r.execution_id,
-    r.agent_id,
-    r.policy_rule ?? '',
-    violationLabel(r),
-    normalizeSeverity(r.severity),
-    r.limit_value ?? '',
-    r.observed_value ?? '',
-    r.action_taken ?? '',
-  ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
-  const csv = [headers.join(','), ...lines].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `policy-violations-${Date.now()}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function ViolationsContent() {
-  const chartTheme = useChartTheme();
-
-  const [timeRange, setTimeRange] = useState('last_24h');
-  const [severityFilter, setSeverityFilter] = useState('all');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [chartCollapsed, setChartCollapsed] = useState(false);
-
-  const {
-    data: violations = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery<ExecutionViolation[]>({
-    queryKey: ['violations-proof', timeRange],
-    queryFn: () => fetchExecutionViolations(timeRange, 500, { strict: true }),
-    refetchInterval: 15_000,
-    retry: false,
-    staleTime: 5_000,
-  });
-
-  const filtered = useMemo(() => violations.filter((violation) => {
-    if (severityFilter === 'all') return true;
-    return normalizeSeverity(violation.severity) === severityFilter;
-  }), [violations, severityFilter]);
-
-  const selected = useMemo(
-    () => violations.find((violation) => violation.id === selectedId) ?? null,
-    [violations, selectedId],
-  );
-
-  const totalCount = violations.length;
-  const criticalCount = violations.filter((violation) => normalizeSeverity(violation.severity) === 'critical').length;
-  const boundedCount = violations.filter((violation) => violation.limit_value != null || violation.observed_value != null).length;
-  const recordedActions = violations.filter((violation) => Boolean(violation.action_taken)).length;
-
-  const chartData = useMemo(() => {
-    const buckets = Array.from({ length: 24 }, (_, hour) => ({ hour: `${hour}:00`, count: 0 }));
-    violations.forEach((violation) => {
-      const hour = new Date(violation.timestamp).getHours();
-      if (hour >= 0 && hour < 24) buckets[hour].count += 1;
-    });
-    return buckets;
-  }, [violations]);
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <ErrorState
-          error={error}
-          title="Violation records are unavailable"
-          description="This page reads live proof violations and does not fall back to history alerts or mock data."
-          onRetry={() => {
-            void refetch();
-          }}
-        />
-      </DashboardLayout>
-    );
-  }
+  const counts = {
+    critical: items.filter((item) => item.severity === 'critical' || item.severity === 'error').length,
+    warning: items.filter((item) => item.severity === 'warning').length,
+    boundary: items.filter((item) => item.kind === 'Boundary violation').length,
+    proof: items.filter((item) => item.kind === 'Failed verification').length,
+  };
 
   return (
     <DashboardLayout>
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-base font-semibold text-foreground">Proof Violations</h1>
+            <h1 className="text-base font-semibold text-foreground">Violations</h1>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Review bounded-action violations and proof mismatches backed by persisted execution evidence.
+              Policy violations, boundary violations, failed verification, unsafe replay blocks, and denied handoffs.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
-              <RefreshCw className="h-3.5 w-3.5" /> Refresh
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs gap-1.5"
-              onClick={() => exportCSV(filtered)}
-            >
-              <Download className="h-3.5 w-3.5" /> Export CSV
-            </Button>
+          <div className="grid w-full max-w-xl gap-2 md:grid-cols-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search task, action, reason..." className="h-8 pl-8 text-xs" />
+            </div>
+            <Input value={runtimeFilter} onChange={(event) => setRuntimeFilter(event.target.value)} placeholder="Runtime ID filter" className="h-8 text-xs" />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-          <OverviewCard icon={ShieldAlert} label="Total Records" value={totalCount} loading={isLoading} />
-          <OverviewCard icon={AlertCircle} label="Critical" value={criticalCount} loading={isLoading} />
-          <OverviewCard icon={AlertTriangle} label="With Bounds Data" value={boundedCount} loading={isLoading} />
-          <OverviewCard icon={TrendingUp} label="With Actions" value={recordedActions} loading={isLoading} />
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[
+            { label: 'Critical', value: counts.critical, tone: 'danger' as const },
+            { label: 'Warning', value: counts.warning, tone: 'warning' as const },
+            { label: 'Boundary', value: counts.boundary, tone: 'danger' as const },
+            { label: 'Failed proof', value: counts.proof, tone: 'danger' as const },
+          ].map((card) => (
+            <div key={card.label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldOff className="h-3.5 w-3.5" />{card.label}</div>
+              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{card.value}</div>
+              <GovernanceBadge label={card.label} tone={card.tone} showDot={false} className="mt-2" />
+            </div>
+          ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="last_1h" className="text-xs">Last 1 hour</SelectItem>
-              <SelectItem value="last_6h" className="text-xs">Last 6 hours</SelectItem>
-              <SelectItem value="last_24h" className="text-xs">Last 24 hours</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={severityFilter} onValueChange={setSeverityFilter}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-background"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs">All severities</SelectItem>
-              <SelectItem value="info" className="text-xs">Info</SelectItem>
-              <SelectItem value="warning" className="text-xs">Warning</SelectItem>
-              <SelectItem value="critical" className="text-xs">Critical</SelectItem>
-              <SelectItem value="unknown" className="text-xs">Unknown</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <SurfaceSection
-          icon={ShieldOff}
-          title="Violation Evidence"
-          bodyClassName="px-0 py-0"
-          actions={
-            !isLoading ? (
-              <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">
-                {filtered.length} of {violations.length}
-              </span>
-            ) : undefined
-          }
-        >
-          <div className="overflow-y-auto"
-            style={{ maxHeight: 400, scrollbarWidth: 'none', msOverflowStyle: 'none' } as CSSProperties}
-          >
-            <Table className="w-full">
-              <TableHeader className="sticky top-0 z-10">
-                <TableRow className="bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-white">
-                  <TableHead className="w-[120px] text-xs font-medium text-muted-foreground py-2 px-4 uppercase tracking-wide">Timestamp</TableHead>
-                  <TableHead className="w-[120px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Agent</TableHead>
-                  <TableHead className="w-[160px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Violation</TableHead>
-                  <TableHead className="w-[140px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Policy Rule</TableHead>
-                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Severity</TableHead>
-                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Limit</TableHead>
-                  <TableHead className="w-[90px] text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Observed</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground py-2 px-3 uppercase tracking-wide">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading
-                  ? Array.from({ length: 6 }).map((_, rowIndex) => (
-                      <TableRow key={rowIndex} className="bg-white border-b border-black/[0.08] dark:border-white/[0.08]">
-                        {Array.from({ length: 8 }).map((_, cellIndex) => (
-                          <TableCell key={cellIndex} className="py-2.5 px-3"><Skeleton className="h-3.5 w-full" /></TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  : filtered.length === 0
-                    ? (
-                      <TableRow className="bg-white">
-                        <TableCell colSpan={8} className="text-center text-xs text-muted-foreground py-14">
-                          No bounded action violations were returned for the selected filters.
-                        </TableCell>
-                      </TableRow>
-                    )
-                    : filtered.map((violation) => (
-                        <TableRow
-                          key={violation.id}
-                          className={`bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 cursor-pointer ${selectedId === violation.id ? 'bg-blue-50/40' : ''}`}
-                          onClick={() => setSelectedId(violation.id === selectedId ? null : violation.id)}
-                        >
-                          <TableCell className="py-2.5 px-4 text-xs text-muted-foreground font-mono whitespace-nowrap">
-                            {getRelativeTime(violation.timestamp)}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground font-mono truncate">
-                            {violation.agent_id || <span className="text-muted-foreground">—</span>}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground font-mono truncate">
-                            {violationLabel(violation)}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground font-mono truncate">
-                            {violation.policy_rule ?? <span className="text-muted-foreground">—</span>}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3">
-                            <SeverityBadge severity={normalizeSeverity(violation.severity)} />
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground tabular-nums">
-                            {violation.limit_value != null ? String(violation.limit_value) : <span className="text-muted-foreground">—</span>}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground tabular-nums">
-                            {violation.observed_value != null ? String(violation.observed_value) : <span className="text-muted-foreground">—</span>}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-muted-foreground truncate">
-                            {violation.action_taken ?? <span className="text-muted-foreground">—</span>}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-              </TableBody>
-            </Table>
-          </div>
-        </SurfaceSection>
-
-        <SurfaceSection
-          icon={TrendingUp}
-          title="Violations by Hour"
-          collapsed={chartCollapsed}
-          actions={
-            <button
-              onClick={() => setChartCollapsed((value) => !value)}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronUp className={`h-4 w-4 transition-transform ${chartCollapsed ? 'rotate-180' : ''}`} />
+        <div className="flex flex-wrap gap-1.5">
+          {['all', 'critical', 'error', 'warning', 'info'].map((value) => (
+            <button key={value} type="button" onClick={() => setSeverity(value)} className={`rounded border px-2.5 py-1 text-[11px] font-medium ${severity === value ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 bg-white text-muted-foreground'}`}>
+              {value}
             </button>
-          }
-        >
-          {isLoading ? (
-            <Skeleton className="h-40 w-full" />
-          ) : (
-            <ClientChart height={160} fallbackClassName="h-40 w-full">
-              <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
-                <XAxis
-                  dataKey="hour"
-                  tick={{ fontSize: 9, fill: chartTheme.axis }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={3}
-                />
-                <YAxis
-                  tick={{ fontSize: 9, fill: chartTheme.axis }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  contentStyle={{ fontSize: 11, padding: '4px 8px', border: `1px solid ${chartTheme.tooltip.border}`, borderRadius: 6, backgroundColor: chartTheme.tooltip.bg, color: chartTheme.tooltip.text }}
-                  itemStyle={{ color: chartTheme.tooltip.text }}
-                  labelStyle={{ color: chartTheme.tooltip.text }}
-                  cursor={{ fill: chartTheme.tooltip.bg }}
-                />
-                <Bar dataKey="count" fill="#ef4444" radius={[2, 2, 0, 0]} maxBarSize={20} />
-              </BarChart>
-            </ClientChart>
-          )}
-        </SurfaceSection>
+          ))}
+          {ranges.map((value) => (
+            <button key={value} type="button" onClick={() => setRange(value)} className={`rounded border px-2.5 py-1 text-[11px] font-medium ${range === value ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 bg-white text-muted-foreground'}`}>
+              {value.replace('last_', 'last ')}
+            </button>
+          ))}
+        </div>
+
+        <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
+          <div className="px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Operational Risk Events</h2>
+            <p className="text-[11px] text-muted-foreground">Merged from tenant-wide governance list endpoints. No mock data.</p>
+          </div>
+          <Table>
+            <TableHeader><TableRow><TableHead>Event</TableHead><TableHead>Severity</TableHead><TableHead>Task</TableHead><TableHead>Runtime</TableHead><TableHead>Action</TableHead><TableHead>Reason</TableHead><TableHead>When</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, index) => <TableRow key={index}><TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell></TableRow>)
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={7} className="py-12 text-center text-xs text-muted-foreground">Evidence not available. No violations match these filters.</TableCell></TableRow>
+              ) : (
+                filtered.map((item) => (
+                  <TableRow key={`${item.kind}-${item.id}`} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(item)}>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {item.kind === 'Policy violation' ? <PolicyBadge decision="denied" /> : item.kind === 'Failed verification' ? <ProofBadge status="failed_verification" /> : <GovernanceBadge label={item.kind} tone={item.severity === 'critical' || item.severity === 'error' ? 'danger' : 'warning'} />}
+                      </div>
+                    </TableCell>
+                    <TableCell><ViolationSeverityBadge severity={item.severity} /></TableCell>
+                    <TableCell>
+                      {item.task_id ? (
+                        <Link href={`/execution/tasks/${encodeURIComponent(item.task_id)}`} className="group flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <span className="font-mono text-xs text-foreground">{truncateText(item.task_id, 18)}</span>
+                          <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                        </Link>
+                      ) : <span className="text-xs text-muted-foreground">Not available</span>}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{item.runtime_id ? truncateText(item.runtime_id, 18) : 'Not available'}</TableCell>
+                    <TableCell className="max-w-[180px] truncate text-xs text-muted-foreground">{item.action || 'Not available'}</TableCell>
+                    <TableCell className="max-w-md text-xs text-muted-foreground">{item.reason || 'Evidence not available'}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{getRelativeTime(item.created_at)}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </section>
+
+        <SafeEvidenceJsonPanel title="Selected violation evidence" data={selected?.evidence ?? null} defaultOpen={Boolean(selected)} />
       </div>
-
-      <RightSideDrawer
-        open={!!selected}
-        onClose={() => setSelectedId(null)}
-        title={
-          <>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-            <span className="font-mono text-sm">{selected ? violationLabel(selected) : 'Policy Violation'}</span>
-            {selected && <SeverityBadge severity={normalizeSeverity(selected.severity)} />}
-          </>
-        }
-        subtitle={selected?.id}
-      >
-        {selected && (
-          <>
-            <DrawerSection title="Violation Metadata">
-              <KeyValueGrid items={[
-                { label: 'Violation ID', value: selected.id, copyable: true, copyValue: selected.id },
-                { label: 'Timestamp', value: new Date(selected.timestamp).toISOString().replace('T', ' ').slice(0, 19) },
-                { label: 'Execution ID', value: selected.execution_id, copyable: true, copyValue: selected.execution_id },
-                { label: 'Agent ID', value: selected.agent_id || '—', copyable: !!selected.agent_id, copyValue: selected.agent_id },
-                { label: 'Runtime ID', value: selected.device_id || '—', copyable: !!selected.device_id, copyValue: selected.device_id },
-                { label: 'Severity', value: <SeverityBadge severity={normalizeSeverity(selected.severity)} /> },
-              ]} />
-            </DrawerSection>
-
-            <DrawerSection title="Policy Context">
-              <KeyValueGrid items={[
-                { label: 'Policy Rule', value: selected.policy_rule ?? '—' },
-                { label: 'Capability Rule', value: selected.capability_rule ?? '—' },
-                { label: 'Bounds Rule', value: selected.bounds_rule ?? '—' },
-                { label: 'Limit Value', value: selected.limit_value != null ? String(selected.limit_value) : '—' },
-                { label: 'Observed Value', value: selected.observed_value != null ? String(selected.observed_value) : '—' },
-              ]} />
-            </DrawerSection>
-
-            <DrawerSection title="Execution State">
-              <KeyValueGrid items={[
-                { label: 'Run Status', value: selected.status ?? '—' },
-                { label: 'Execution State', value: selected.execution_state ?? '—' },
-                { label: 'Action Taken', value: selected.action_taken ?? '—' },
-                { label: 'Supervisor Action', value: selected.supervisor_action ?? '—' },
-                { label: 'Containment Result', value: selected.containment_result ?? '—' },
-              ]} />
-            </DrawerSection>
-          </>
-        )}
-      </RightSideDrawer>
     </DashboardLayout>
-  );
-}
-
-export default function ProofViolationsPage() {
-  return (
-    <Suspense>
-      <ViolationsContent />
-    </Suspense>
   );
 }
