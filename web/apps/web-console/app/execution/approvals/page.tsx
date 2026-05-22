@@ -221,6 +221,12 @@ export default function ApprovalsPage() {
                         {decision.task_id && <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                       </Link>
                       <div className="font-mono text-[10px] text-muted-foreground">{decision.task_id ? truncateText(decision.task_id, 18) : 'Task not available'}</div>
+                      {decision.runtime_id && (
+                        <Link href={`/runtimes/${encodeURIComponent(decision.runtime_id)}`} className="group mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground hover:text-foreground" onClick={(event) => event.stopPropagation()}>
+                          runtime {truncateText(decision.runtime_id, 16)}
+                          <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                        </Link>
+                      )}
                     </TableCell>
                     <TableCell><PolicyBadge decision={decision.decision} /></TableCell>
                     <TableCell><RiskBadge risk={decision.risk_level} /></TableCell>
