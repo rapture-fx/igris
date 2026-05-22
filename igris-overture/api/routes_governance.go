@@ -24,8 +24,11 @@ import (
 //	GET /v1/execution/governance/policy-decisions — action policy decisions
 //	GET /v1/execution/governance/recovery-events — task recovery events
 //	GET /v1/execution/governance/handoff-events — runtime handoff events
+//	GET /v1/execution/governance/boundaries — execution runtime boundaries
 //	GET /v1/execution/governance/boundary-violations — boundary violations
 //	GET /v1/execution/governance/verification-results — proof verification results
+//	GET /v1/execution/governance/runtimes — runtime operations summaries
+//	GET /v1/execution/governance/runtimes/:runtime_id — one runtime operations summary
 func RegisterGovernanceRoutes(app *fiber.App, db *sql.DB) {
 	store := coordinator.NewCheckpointStore(db)
 
@@ -81,6 +84,18 @@ func RegisterGovernanceRoutes(app *fiber.App, db *sql.DB) {
 		return c.JSON(result)
 	})
 
+	g.Get("/boundaries", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListExecutionBoundaries(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+
 	g.Get("/boundary-violations", func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -103,6 +118,36 @@ func RegisterGovernanceRoutes(app *fiber.App, db *sql.DB) {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		return c.JSON(result)
+	})
+
+	g.Get("/runtimes", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		result, err := store.ListRuntimeOperations(tenantID, governanceListOptions(c))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(result)
+	})
+
+	g.Get("/runtimes/:runtime_id", func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		opts := governanceListOptions(c)
+		opts.RuntimeID = c.Params("runtime_id")
+		opts.Limit = 1
+		result, err := store.ListRuntimeOperations(tenantID, opts)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if len(result.Items) == 0 {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "runtime_not_found"})
+		}
+		return c.JSON(result.Items[0])
 	})
 }
 
