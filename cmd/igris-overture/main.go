@@ -605,6 +605,7 @@ func main() {
 		api.RegisterStatsRoutes(app, dbInstance, redisClient, tenantAuth)
 		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
 		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
+		api.RegisterGovernanceRoutes(app, dbInstance)
 		api.RegisterSpeculativeRoutes(app, dbInstance)
 		api.RegisterModelProviderRoutes(app, dbInstance, tenantAuth)
 		log.Println("[Routes] ✅ Dashboard routes registered (stats, execution, proof, speculative, model-providers)")
