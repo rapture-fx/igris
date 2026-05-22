@@ -143,6 +143,12 @@ export default function ProofPage() {
                         </Link>
                       ) : <span className="text-xs text-muted-foreground">Task not available</span>}
                       <div className="font-mono text-[10px] text-muted-foreground">{item.execution_id ? truncateText(item.execution_id, 24) : 'Execution not available'}</div>
+                      {item.runtime_id && (
+                        <Link href={`/runtimes/${encodeURIComponent(item.runtime_id)}`} className="group mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground hover:text-foreground" onClick={(e) => e.stopPropagation()}>
+                          runtime {truncateText(item.runtime_id, 16)}
+                          <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                        </Link>
+                      )}
                     </TableCell>
                     <TableCell><ProofBadge status={item.status} /></TableCell>
                     <TableCell>
@@ -180,7 +186,15 @@ export default function ProofPage() {
                 receipts.slice(0, 25).map((receipt) => (
                   <TableRow key={receipt.id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(receipt)}>
                     <TableCell className="font-mono text-xs">{truncateText(receipt.id, 18)}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{truncateText(receipt.execution_id, 22)}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {truncateText(receipt.execution_id, 22)}
+                      {receipt.runtime_id && (
+                        <Link href={`/runtimes/${encodeURIComponent(receipt.runtime_id)}`} className="group mt-0.5 flex items-center gap-1.5 text-[10px] hover:text-foreground" onClick={(e) => e.stopPropagation()}>
+                          runtime {truncateText(receipt.runtime_id, 16)}
+                          <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                        </Link>
+                      )}
+                    </TableCell>
                     <TableCell><ProofBadge status={receipt.verification_status ?? receipt.status} /></TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">{receipt.hash ? truncateText(receipt.hash, 18) : 'Not available'}</TableCell>
                     <TableCell><GovernanceBadge label={receipt.signed ? 'Signature present' : 'Signature not available'} tone={receipt.signed ? 'success' : 'neutral'} showDot={false} /></TableCell>
