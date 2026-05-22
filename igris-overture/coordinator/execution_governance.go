@@ -103,24 +103,24 @@ type VerificationResultRecord struct {
 }
 
 type GovernanceListOptions struct {
-	Limit       int
-	Offset      int
-	Sort        string
-	TaskID      string
-	AgentID     string
-	RuntimeID   string
-	Action      string
-	Decision    string
-	RiskLevel   string
-	ReplayClass string
-	Irreversible *bool
-	HumanGated   *bool
-	EventType    string
+	Limit           int
+	Offset          int
+	Sort            string
+	TaskID          string
+	AgentID         string
+	RuntimeID       string
+	Action          string
+	Decision        string
+	RiskLevel       string
+	ReplayClass     string
+	Irreversible    *bool
+	HumanGated      *bool
+	EventType       string
 	HandoffDecision string
-	Severity     string
-	Status       string
-	ExecutionID  string
-	TimeRange    string
+	Severity        string
+	Status          string
+	ExecutionID     string
+	TimeRange       string
 }
 
 type GovernanceListResponse[T any] struct {
@@ -143,17 +143,17 @@ type BoundaryViolationRecord struct {
 }
 
 type VerificationResultSummary struct {
-	VerificationID    uuid.UUID  `json:"verification_id"`
-	TaskID            uuid.UUID  `json:"task_id,omitempty"`
-	ExecutionID       string     `json:"execution_id,omitempty"`
-	PolicyDecisionID  *uuid.UUID `json:"policy_decision_id,omitempty"`
-	CheckpointDigest  string     `json:"checkpoint_digest,omitempty"`
-	ActionDigest      string     `json:"action_digest,omitempty"`
-	Status            string     `json:"status"`
-	PolicyCompliant   *bool      `json:"policy_compliant,omitempty"`
-	EvidenceDigest    string     `json:"evidence_digest,omitempty"`
-	Reason            string     `json:"reason"`
-	CreatedAt         time.Time  `json:"created_at"`
+	VerificationID   uuid.UUID  `json:"verification_id"`
+	TaskID           uuid.UUID  `json:"task_id,omitempty"`
+	ExecutionID      string     `json:"execution_id,omitempty"`
+	PolicyDecisionID *uuid.UUID `json:"policy_decision_id,omitempty"`
+	CheckpointDigest string     `json:"checkpoint_digest,omitempty"`
+	ActionDigest     string     `json:"action_digest,omitempty"`
+	Status           string     `json:"status"`
+	PolicyCompliant  *bool      `json:"policy_compliant,omitempty"`
+	EvidenceDigest   string     `json:"evidence_digest,omitempty"`
+	Reason           string     `json:"reason"`
+	CreatedAt        time.Time  `json:"created_at"`
 }
 
 type actionPolicyInput struct {
