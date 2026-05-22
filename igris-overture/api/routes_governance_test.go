@@ -78,13 +78,13 @@ func TestGovernanceVerificationResultsEndpointReturnsSafeSummaries(t *testing.T)
 		tenantLookupRow(),
 		{
 			columns: []string{
-				"verification_id", "task_id", "execution_id", "policy_decision_id",
+				"verification_id", "task_id", "execution_id", "runtime_id", "policy_decision_id",
 				"checkpoint_digest", "action_digest", "status", "policy_compliant",
 				"proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found",
 				"proof_chain_link_valid", "evidence_digest", "reason", "created_at", "count",
 			},
 			rows: [][]driver.Value{{
-				verificationID.String(), taskID.String(), "exec-1", nil,
+				verificationID.String(), taskID.String(), "exec-1", "runtime-1", nil,
 				"checkpoint-digest", "action-digest", "failed_verification", false,
 				false, false, true, false, "evidence-digest", "signature mismatch", now, int64(1),
 			}},
