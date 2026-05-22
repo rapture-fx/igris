@@ -159,17 +159,17 @@ export default function ApprovalsPage() {
 
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           {[
-            ['Allowed', counts.allowed, 'success' as const],
-            ['Denied', counts.denied, 'danger' as const],
-            ['Approval required', counts.approval, 'warning' as const],
-            ['Human-gated', counts.humanGated, 'warning' as const],
-          ].map(([label, value, tone]) => (
-            <div key={String(label)} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
+            { label: 'Allowed', value: counts.allowed, tone: 'success' as const },
+            { label: 'Denied', value: counts.denied, tone: 'danger' as const },
+            { label: 'Approval required', value: counts.approval, tone: 'warning' as const },
+            { label: 'Human-gated', value: counts.humanGated, tone: 'warning' as const },
+          ].map((card) => (
+            <div key={card.label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium text-muted-foreground">{label}</span>
-                <GovernanceBadge label={String(label)} tone={tone} showDot={false} />
+                <span className="text-xs font-medium text-muted-foreground">{card.label}</span>
+                <GovernanceBadge label={card.label} tone={card.tone} showDot={false} />
               </div>
-              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{String(value)}</div>
+              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{card.value}</div>
             </div>
           ))}
         </div>
