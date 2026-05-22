@@ -148,10 +148,10 @@ export default function ProofPage() {
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         <CheckBadge label="Policy" value={item.policy_compliant} />
-                        <GovernanceBadge label="Hash: see task proof" tone="neutral" showDot={false} />
-                        <GovernanceBadge label="Signature: see task proof" tone="neutral" showDot={false} />
-                        <GovernanceBadge label="Runtime key: see task proof" tone="neutral" showDot={false} />
-                        <GovernanceBadge label="Chain: see task proof" tone="neutral" showDot={false} />
+                        <CheckBadge label="Hash" value={item.hash_valid} />
+                        <CheckBadge label="Signature" value={item.signature_matches} />
+                        <CheckBadge label="Runtime key" value={item.runtime_key_found} />
+                        <CheckBadge label="Chain" value={item.chain_link_valid} />
                       </div>
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">{item.evidence_digest ? truncateText(item.evidence_digest, 18) : 'Not available'}</TableCell>
