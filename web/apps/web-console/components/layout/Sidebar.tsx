@@ -47,23 +47,25 @@ const navigationGroups: NavigationGroup[] = [
   {
     label: 'Operations',
     items: [
+      { name: 'Overview', href: '/dashboard', icon: DashboardIcon },
       { name: 'Executions', href: '/execution/tasks', icon: ListBulletIcon },
-      { name: 'Policy & Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
+      { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
       { name: 'Recovery', href: '/execution/recovery', icon: UpdateIcon },
+      { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
     ],
   },
   {
     label: 'Evidence',
     items: [
-      { name: 'Proof', href: '/proof/receipts', icon: ReaderIcon },
-      { name: 'Violations', href: '/proof/violations', icon: CrossCircledIcon },
+      { name: 'Proof', href: '/proof', icon: ReaderIcon },
+      { name: 'Receipts', href: '/proof/receipts', icon: FileTextIcon },
     ],
   },
   {
-    label: 'Boundaries',
+    label: 'Infrastructure',
     items: [
-      { name: 'Runtimes', href: '/infrastructure/runtimes', icon: MarginIcon },
-      { name: 'Capabilities', href: '/policy/capabilities', icon: TransformIcon },
+      { name: 'Runtimes', href: '/runtimes', icon: MarginIcon },
+      { name: 'Boundaries', href: '/boundaries', icon: TransformIcon },
     ],
   },
   {
@@ -119,13 +121,15 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     { title: 'Overview', path: '/dashboard', keywords: 'overview trust tasks recovery receipts evidence verification runtime' },
     { title: 'Executions', path: '/execution/tasks', keywords: 'agent tasks action evidence recovery checkpoint receipts proof verify' },
     { title: 'Execution › Runs', path: '/execution/runs', keywords: 'execution records task runs receipts verification runtime events' },
-    { title: 'Policy & Approvals', path: '/execution/approvals', keywords: 'execution approvals policy decisions allowed denied human gated irreversible retryable non replayable' },
+    { title: 'Approvals', path: '/execution/approvals', keywords: 'execution approvals policy decisions allowed denied human gated irreversible retryable non replayable' },
     { title: 'Recovery', path: '/execution/recovery', keywords: 'recovery checkpoints wal replay handoff resumable interrupted manual' },
-    { title: 'Proof', path: '/proof/receipts', keywords: 'proof receipts verification signature hash chain runtime' },
+    { title: 'Proof', path: '/proof', keywords: 'proof verification signature hash chain runtime' },
+    { title: 'Receipts', path: '/proof/receipts', keywords: 'receipts verification signature hash chain runtime evidence' },
     { title: 'Violations', path: '/proof/violations', keywords: 'proof policy violations boundary replay handoff evidence' },
+    { title: 'Infrastructure › Runtimes', path: '/runtimes', keywords: 'runtimes runtime boundaries handoff recovery proof infrastructure' },
+    { title: 'Infrastructure › Boundaries', path: '/boundaries', keywords: 'runtime boundaries scopes tools filesystem network api infrastructure' },
     { title: 'Policy › Capabilities', path: '/policy/capabilities', keywords: 'policy capabilities permissions http filesystem domains actions' },
     { title: 'Policy › Bounds', path: '/policy/bounds', keywords: 'policy bounds limits cpu memory execution steps actions' },
-    { title: 'Infrastructure › Runtimes', path: '/infrastructure/runtimes', keywords: 'runtimes runtime nodes online policy sync infrastructure' },
     { title: 'Infrastructure › Provider Credentials', path: '/models/providers', keywords: 'provider credentials endpoints keys infrastructure' },
     { title: 'Observability › Logs', path: '/history/logs', keywords: 'logs events runtime stream traces history inspect' },
     { title: 'Observability › Metrics', path: '/history/metrics', keywords: 'metrics performance charts throughput latency history inspect' },
@@ -187,7 +191,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
     setIsSettingsExpanded((prev) => !prev);
   };
 
-  const isActive = (href: string) => pathname === href || pathname?.startsWith(href + '/');
+  const isActive = (href: string) => pathname === href || (href !== '/proof' && pathname?.startsWith(href + '/'));
 
   return (
     <>
@@ -234,23 +238,6 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-3 pt-0 pb-4 scrollbar-hide">
             <ul className="space-y-0.5">
-              {/* Dashboard - standalone */}
-              <li>
-                <Link
-                  href="/dashboard"
-                  onClick={onClose}
-                  className={cn(
-                    'flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-base font-medium transition-colors',
-                    isActive('/dashboard')
-                      ? 'bg-[#ebebeb] dark:bg-white/10 text-foreground font-semibold'
-                      : 'text-foreground/90 hover:text-foreground hover:bg-muted/60'
-                  )}
-                >
-                  <DashboardIcon className="h-4 w-4 flex-shrink-0 text-foreground" />
-                  Overview
-                </Link>
-              </li>
-
               {navigationGroups.map((group) => (
                 <li key={group.label} className="pt-3 first:pt-2">
                   <div className="px-1.5 pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
