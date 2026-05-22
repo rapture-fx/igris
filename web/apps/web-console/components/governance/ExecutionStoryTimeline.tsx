@@ -11,7 +11,7 @@
 
 import { cn } from '@/utils/helpers';
 import { formatDateTime, getRelativeTime } from '@/utils/helpers';
-import type { StoryNode } from '@/lib/executionStory';
+import type { StoryGroup, StoryNode } from '@/lib/executionStory';
 import type { Tone } from '@/lib/governance';
 
 const DOT: Record<Tone, string> = {
@@ -20,6 +20,16 @@ const DOT: Record<Tone, string> = {
   warning: 'bg-yellow-500',
   info: 'bg-blue-400',
   neutral: 'bg-muted-foreground/60',
+};
+
+const PHASE_LABEL: Record<StoryGroup, string> = {
+  request: 'Request',
+  policy: 'Policy',
+  boundary: 'Boundary',
+  dispatch: 'Dispatch',
+  execution: 'Execution',
+  recovery: 'Recovery',
+  proof: 'Proof',
 };
 
 export function ExecutionStoryTimeline({ nodes }: { nodes: StoryNode[] }) {
@@ -35,6 +45,7 @@ export function ExecutionStoryTimeline({ nodes }: { nodes: StoryNode[] }) {
     <ol className="relative">
       {nodes.map((node, index) => {
         const last = index === nodes.length - 1;
+        const showPhase = index === 0 || nodes[index - 1]?.group !== node.group;
         return (
           <li key={node.id} className="flex gap-3">
             {/* marker + connector */}
@@ -58,6 +69,11 @@ export function ExecutionStoryTimeline({ nodes }: { nodes: StoryNode[] }) {
 
             {/* content */}
             <div className={cn('min-w-0 flex-1', last ? 'pb-0' : 'pb-5')}>
+              {showPhase && (
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  {PHASE_LABEL[node.group]}
+                </div>
+              )}
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span
                   className={cn(
