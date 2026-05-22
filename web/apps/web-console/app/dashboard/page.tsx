@@ -84,12 +84,27 @@ function TrustCard({ def, loading }: { def: TrustCardDef; loading: boolean }) {
 
 // ── Active execution states ─────────────────────────────────────────────────
 
-function StatePill({ label, value, tone }: { label: string; value: number; tone: Tone }) {
+function StatePill({
+  label,
+  value,
+  tone,
+  href,
+  hint,
+}: {
+  label: string;
+  value: number;
+  tone: Tone;
+  href: string;
+  hint: string;
+}) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <GovernanceBadge label={String(value)} tone={value > 0 ? tone : 'neutral'} showDot={false} />
-    </div>
+    <Link href={href} className="group rounded-lg border border-gray-200 bg-white px-3 py-2 transition-colors hover:border-black/20 hover:bg-gray-50">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-foreground">{label}</span>
+        <GovernanceBadge label={String(value)} tone={value > 0 ? tone : 'neutral'} showDot={false} />
+      </div>
+      <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{hint}</p>
+    </Link>
   );
 }
 
@@ -138,18 +153,25 @@ function CriticalEventRow({ event }: { event: GovernanceCriticalEvent }) {
           </p>
         )}
       </div>
-      {event.task_id && <ArrowRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />}
+      <ArrowRight className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
     </div>
   );
-  return event.task_id ? (
+  const href = event.task_id
+    ? `/execution/tasks/${encodeURIComponent(event.task_id)}`
+    : event.runtime_id
+      ? `/runtimes/${encodeURIComponent(event.runtime_id)}`
+      : event.category === 'proof'
+        ? '/proof/receipts'
+        : event.category === 'boundary' || event.category === 'policy' || event.category === 'handoff'
+          ? '/proof/violations'
+          : '/execution/recovery';
+  return (
     <Link
-      href={`/execution/tasks/${encodeURIComponent(event.task_id)}`}
+      href={href}
       className="block transition-colors hover:bg-gray-50"
     >
       {body}
     </Link>
-  ) : (
-    <div>{body}</div>
   );
 }
 
@@ -202,7 +224,7 @@ export default function OverviewPage() {
       {
         key: 'verified',
         label: 'Verified executions',
-        hint: 'Receipts whose hash and signature validated.',
+        hint: 'Actions with receipts that validated against stored proof evidence.',
         icon: ShieldCheck,
         value: trust?.verified_executions ?? 0,
         href: '/proof/receipts',
@@ -211,7 +233,7 @@ export default function OverviewPage() {
       {
         key: 'recovered',
         label: 'Recovered executions',
-        hint: 'Tasks redispatched or resumed after interruption.',
+        hint: 'Interrupted actions that resumed or redispatched from durable state.',
         icon: RotateCcw,
         value: trust?.recovered_executions ?? 0,
         href: '/execution/tasks',
@@ -220,7 +242,7 @@ export default function OverviewPage() {
       {
         key: 'blocked',
         label: 'Policy-blocked actions',
-        hint: 'Actions denied before runtime dispatch.',
+        hint: 'Requests stopped before runtime dispatch because policy said Denied.',
         icon: Ban,
         value: trust?.policy_blocked_actions ?? 0,
         href: '/proof/violations',
@@ -229,7 +251,7 @@ export default function OverviewPage() {
       {
         key: 'approval',
         label: 'Approval-required actions',
-        hint: 'Actions paused for human approval.',
+        hint: 'Requests held at a human gate before execution can continue.',
         icon: Hand,
         value: trust?.approval_required_actions ?? 0,
         href: '/execution/approvals',
@@ -238,7 +260,7 @@ export default function OverviewPage() {
       {
         key: 'boundary',
         label: 'Boundary violations',
-        hint: 'Runtimes that exceeded or reported exceeded limits.',
+        hint: 'Executions where runtime limits or declared boundaries were violated.',
         icon: AlertTriangle,
         value: trust?.boundary_violations ?? 0,
         href: '/proof/violations',
@@ -247,7 +269,7 @@ export default function OverviewPage() {
       {
         key: 'failed-proof',
         label: 'Failed proof verification',
-        hint: 'Receipts that failed hash or signature checks.',
+        hint: 'Results that could not be verified from receipt and hash evidence.',
         icon: FileWarning,
         value: trust?.failed_proof_verification ?? 0,
         href: '/proof/receipts',
@@ -293,7 +315,7 @@ export default function OverviewPage() {
         {/* Active Execution States */}
         <Section
           title="Active execution states"
-          description="Where executions currently stand."
+          description="Current execution states and the operator action each state implies."
         >
           {isLoading ? (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
@@ -303,21 +325,25 @@ export default function OverviewPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-7">
-              <StatePill label="Running" value={states?.running ?? 0} tone="info" />
+              <StatePill label="Running" value={states?.running ?? 0} tone="info" href="/execution/tasks" hint="Watch for checkpoints and receipts." />
               <StatePill
                 label="Approval"
                 value={states?.approval_required ?? 0}
                 tone="warning"
+                href="/execution/approvals"
+                hint="Review human-gated requests."
               />
-              <StatePill label="Recovering" value={states?.recovering ?? 0} tone="warning" />
-              <StatePill label="Failed" value={states?.failed ?? 0} tone="danger" />
-              <StatePill label="Verified" value={states?.verified ?? 0} tone="success" />
+              <StatePill label="Recovering" value={states?.recovering ?? 0} tone="warning" href="/execution/recovery" hint="Check replay and handoff safety." />
+              <StatePill label="Failed" value={states?.failed ?? 0} tone="danger" href="/proof/violations" hint="Investigate failed or blocked actions." />
+              <StatePill label="Verified" value={states?.verified ?? 0} tone="success" href="/proof/receipts" hint="Proof has reached a trusted state." />
               <StatePill
                 label="Partial proof"
                 value={states?.partially_verified ?? 0}
                 tone="warning"
+                href="/proof/receipts"
+                hint="Inspect missing proof evidence."
               />
-              <StatePill label="Blocked" value={states?.blocked ?? 0} tone="danger" />
+              <StatePill label="Blocked" value={states?.blocked ?? 0} tone="danger" href="/proof/violations" hint="Policy or boundary blocked execution." />
             </div>
           )}
         </Section>
