@@ -123,3 +123,61 @@ func TestGovernanceVerificationResultsEndpointReturnsSafeSummaries(t *testing.T)
 	require.Equal(t, "signature mismatch", body.Items[0].Reason)
 	require.Zero(t, drv.remainingQueries())
 }
+
+func TestGovernanceRuntimesEndpointReturnsSafeSummaries(t *testing.T) {
+	t.Parallel()
+
+	now := time.Unix(1_700_000_200, 0).UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRow(),
+		{
+			columns: []string{
+				"runtime_id", "capabilities", "last_seen", "status", "is_healthy",
+				"active_execution_count", "recent_execution_count", "boundary_count",
+				"violation_count", "handoff_count", "verified_proof_count",
+				"failed_verification_count", "portability_same_runtime_only",
+				"portability_compatible_runtime", "portability_any_runtime", "count",
+			},
+			rows: [][]driver.Value{{
+				"runtime-1", []byte(`["tools.github.issues.write"]`), now, "active", true,
+				int64(1), int64(3), int64(2), int64(0), int64(1), int64(4), int64(0),
+				int64(1), int64(0), int64(0), int64(1),
+			}},
+		},
+	})
+
+	app := fiber.New()
+	RegisterGovernanceRoutes(app, db)
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/governance/runtimes?limit=10", nil)
+	req.Header.Set("Authorization", "Bearer "+testAPIKey)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	raw, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.NotContains(t, string(raw), "hostname")
+	require.NotContains(t, string(raw), "ip_address")
+	require.NotContains(t, string(raw), "public_key")
+	require.NotContains(t, string(raw), "endpoint")
+
+	var body struct {
+		Items []struct {
+			RuntimeID      string `json:"runtime_id"`
+			RuntimeLabel   string `json:"runtime_label"`
+			TrustState     string `json:"trust_state"`
+			BoundaryCount  int    `json:"boundary_count"`
+			ViolationCount int    `json:"violation_count"`
+		} `json:"items"`
+		Total int `json:"total"`
+	}
+	require.NoError(t, json.Unmarshal(raw, &body))
+	require.Equal(t, 1, body.Total)
+	require.Equal(t, "runtime-1", body.Items[0].RuntimeID)
+	require.Equal(t, "runtime-1", body.Items[0].RuntimeLabel)
+	require.Equal(t, "trusted", body.Items[0].TrustState)
+	require.Equal(t, 2, body.Items[0].BoundaryCount)
+	require.Equal(t, 0, body.Items[0].ViolationCount)
+	require.Zero(t, drv.remainingQueries())
+}
