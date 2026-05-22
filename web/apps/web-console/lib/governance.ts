@@ -45,6 +45,107 @@ export interface GovernanceSummary {
   generated_at: string;
 }
 
+export interface GovernanceListResponse<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface GovernancePolicyDecision {
+  decision_id: string;
+  task_id?: string;
+  agent_id?: string;
+  runtime_id?: string;
+  task_type: string;
+  action_name: string;
+  environment_label?: string;
+  resource_scope?: string;
+  risk_level: string;
+  decision: 'allowed' | 'denied' | 'approval_required' | string;
+  replay_class: 'retryable' | 'non_retryable' | string;
+  irreversible: boolean;
+  human_gated: boolean;
+  policy_version: string;
+  policy_reason: string;
+  action_digest: string;
+  boundary_digest?: string;
+  checkpoint_portability: string;
+  created_at: string;
+}
+
+export interface GovernanceRecoveryEvent {
+  recovery_event_id: string;
+  task_id: string;
+  event_type: string;
+  source_runtime_id?: string;
+  target_runtime_id?: string;
+  checkpoint_digest?: string;
+  last_committed_step?: number;
+  replay_allowed?: boolean;
+  reason: string;
+  created_at: string;
+}
+
+export interface GovernanceHandoffEvent {
+  handoff_event_id: string;
+  task_id: string;
+  source_runtime_id?: string;
+  target_runtime_id?: string;
+  checkpoint_digest?: string;
+  checkpoint_portability: string;
+  decision: 'allowed' | 'denied' | string;
+  reason: string;
+  created_at: string;
+}
+
+export interface GovernanceBoundaryViolation {
+  violation_id: string;
+  task_id?: string;
+  runtime_id?: string;
+  boundary_id?: string;
+  violation_type: string;
+  severity: string;
+  reason: string;
+  evidence_digest?: string;
+  created_at: string;
+}
+
+export interface GovernanceVerificationResult {
+  verification_id: string;
+  task_id?: string;
+  execution_id?: string;
+  policy_decision_id?: string;
+  checkpoint_digest?: string;
+  action_digest?: string;
+  status: 'verified' | 'partially_verified' | 'unverifiable' | 'failed_verification' | 'policy_violation' | string;
+  policy_compliant?: boolean;
+  evidence_digest?: string;
+  reason: string;
+  created_at: string;
+}
+
+export interface GovernanceListParams {
+  limit?: number;
+  offset?: number;
+  sort?: 'asc' | 'desc';
+  range?: string;
+  task_id?: string;
+  agent_id?: string;
+  runtime_id?: string;
+  action?: string;
+  decision?: string;
+  risk_level?: string;
+  replay_class?: string;
+  irreversible?: boolean;
+  human_gated?: boolean;
+  event_type?: string;
+  handoff_decision?: string;
+  severity?: string;
+  status?: string;
+  execution_id?: string;
+}
+
 // ── Tone vocabulary ─────────────────────────────────────────────────────────
 //
 // A small, fixed set of visual tones. Components map a tone to colour so the
