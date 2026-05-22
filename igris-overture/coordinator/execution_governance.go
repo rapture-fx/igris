@@ -102,6 +102,60 @@ type VerificationResultRecord struct {
 	Reason           string
 }
 
+type GovernanceListOptions struct {
+	Limit       int
+	Offset      int
+	Sort        string
+	TaskID      string
+	AgentID     string
+	RuntimeID   string
+	Action      string
+	Decision    string
+	RiskLevel   string
+	ReplayClass string
+	Irreversible *bool
+	HumanGated   *bool
+	EventType    string
+	HandoffDecision string
+	Severity     string
+	Status       string
+	ExecutionID  string
+	TimeRange    string
+}
+
+type GovernanceListResponse[T any] struct {
+	Items  []T `json:"items"`
+	Total  int `json:"total"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+}
+
+type BoundaryViolationRecord struct {
+	ViolationID    uuid.UUID `json:"violation_id"`
+	TaskID         uuid.UUID `json:"task_id,omitempty"`
+	RuntimeID      string    `json:"runtime_id,omitempty"`
+	BoundaryID     uuid.UUID `json:"boundary_id,omitempty"`
+	ViolationType  string    `json:"violation_type"`
+	Severity       string    `json:"severity"`
+	Reason         string    `json:"reason"`
+	EvidenceDigest string    `json:"evidence_digest,omitempty"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
+type VerificationResultSummary struct {
+	VerificationID    uuid.UUID  `json:"verification_id"`
+	TaskID            uuid.UUID  `json:"task_id,omitempty"`
+	ExecutionID       string     `json:"execution_id,omitempty"`
+	PolicyDecisionID  *uuid.UUID `json:"policy_decision_id,omitempty"`
+	CheckpointDigest  string     `json:"checkpoint_digest,omitempty"`
+	ActionDigest      string     `json:"action_digest,omitempty"`
+	Status            string     `json:"status"`
+	PolicyCompliant   *bool      `json:"policy_compliant,omitempty"`
+	EvidenceDigest    string     `json:"evidence_digest,omitempty"`
+	Reason            string     `json:"reason"`
+	CreatedAt         time.Time  `json:"created_at"`
+}
+
 type actionPolicyInput struct {
 	TenantID        string
 	TaskID          uuid.UUID
@@ -529,6 +583,343 @@ func (s *CheckpointStore) SaveVerificationResult(record VerificationResultRecord
 		record.Reason,
 	)
 	return err
+}
+
+func (s *CheckpointStore) ListActionPolicyDecisions(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[ActionPolicyDecision], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[ActionPolicyDecision]{Items: []ActionPolicyDecision{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	if opts.Decision != "" && validString(opts.Decision, ActionDecisionAllowed, ActionDecisionDenied, ActionDecisionApprovalRequired) {
+		where = append(where, fmt.Sprintf("decision = $%d", len(args)+1))
+		args = append(args, opts.Decision)
+	}
+	if opts.RiskLevel != "" && validString(opts.RiskLevel, "low", "medium", "high", "critical") {
+		where = append(where, fmt.Sprintf("risk_level = $%d", len(args)+1))
+		args = append(args, opts.RiskLevel)
+	}
+	if opts.ReplayClass != "" && validString(opts.ReplayClass, ReplayClassRetryable, ReplayClassNonRetryable) {
+		where = append(where, fmt.Sprintf("replay_class = $%d", len(args)+1))
+		args = append(args, opts.ReplayClass)
+	}
+	if opts.Irreversible != nil {
+		where = append(where, fmt.Sprintf("irreversible = $%d", len(args)+1))
+		args = append(args, *opts.Irreversible)
+	}
+	if opts.HumanGated != nil {
+		where = append(where, fmt.Sprintf("human_gated = $%d", len(args)+1))
+		args = append(args, *opts.HumanGated)
+	}
+	if opts.AgentID != "" {
+		where = append(where, fmt.Sprintf("agent_id = $%d", len(args)+1))
+		args = append(args, opts.AgentID)
+	}
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("runtime_id = $%d", len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
+	if opts.Action != "" {
+		where = append(where, fmt.Sprintf("action_name ILIKE $%d", len(args)+1))
+		args = append(args, "%"+opts.Action+"%")
+	}
+	query := fmt.Sprintf(`
+		SELECT decision_id, tenant_id, task_id, COALESCE(agent_id,''), COALESCE(runtime_id,''),
+		       task_type, action_name, COALESCE(environment_label,''), COALESCE(resource_scope,''),
+		       risk_level, decision, replay_class, irreversible, human_gated, policy_version,
+		       policy_reason, action_digest, COALESCE(boundary_digest,''), checkpoint_portability, created_at,
+		       COUNT(*) OVER()
+		FROM action_policy_decisions
+		WHERE %s
+		ORDER BY created_at %s
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var d ActionPolicyDecision
+		if err := rows.Scan(&d.DecisionID, &d.TenantID, &d.TaskID, &d.AgentID, &d.RuntimeID, &d.TaskType,
+			&d.ActionName, &d.EnvironmentLabel, &d.ResourceScope, &d.RiskLevel, &d.Decision,
+			&d.ReplayClass, &d.Irreversible, &d.HumanGated, &d.PolicyVersion, &d.PolicyReason,
+			&d.ActionDigest, &d.BoundaryDigest, &d.CheckpointPortability, &d.CreatedAt, &out.Total); err != nil {
+			return nil, err
+		}
+		out.Items = append(out.Items, d)
+	}
+	return out, rows.Err()
+}
+
+func (s *CheckpointStore) ListTaskRecoveryEvents(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[RecoveryEvent], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[RecoveryEvent]{Items: []RecoveryEvent{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	if opts.EventType != "" {
+		where = append(where, fmt.Sprintf("event_type = $%d", len(args)+1))
+		args = append(args, opts.EventType)
+	}
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("(source_runtime_id = $%d OR target_runtime_id = $%d)", len(args)+1, len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
+	query := fmt.Sprintf(`
+		SELECT recovery_event_id, tenant_id, task_id, event_type, COALESCE(source_runtime_id,''),
+		       COALESCE(target_runtime_id,''), COALESCE(checkpoint_digest,''), last_committed_step,
+		       replay_allowed, reason, created_at, COUNT(*) OVER()
+		FROM task_recovery_events
+		WHERE %s
+		ORDER BY created_at %s
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var e RecoveryEvent
+		var step sql.NullInt64
+		var replay sql.NullBool
+		if err := rows.Scan(&e.EventID, &e.TenantID, &e.TaskID, &e.EventType, &e.SourceRuntimeID,
+			&e.TargetRuntimeID, &e.CheckpointDigest, &step, &replay, &e.Reason, &e.CreatedAt, &out.Total); err != nil {
+			return nil, err
+		}
+		if step.Valid {
+			v := int(step.Int64)
+			e.LastCommittedStep = &v
+		}
+		if replay.Valid {
+			v := replay.Bool
+			e.ReplayAllowed = &v
+		}
+		out.Items = append(out.Items, e)
+	}
+	return out, rows.Err()
+}
+
+func (s *CheckpointStore) ListRuntimeHandoffEvents(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[RuntimeHandoffEvent], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[RuntimeHandoffEvent]{Items: []RuntimeHandoffEvent{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	if opts.HandoffDecision != "" && validString(opts.HandoffDecision, "allowed", "denied") {
+		where = append(where, fmt.Sprintf("decision = $%d", len(args)+1))
+		args = append(args, opts.HandoffDecision)
+	}
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("(source_runtime_id = $%d OR target_runtime_id = $%d)", len(args)+1, len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
+	query := fmt.Sprintf(`
+		SELECT handoff_event_id, tenant_id, task_id, COALESCE(source_runtime_id,''), COALESCE(target_runtime_id,''),
+		       COALESCE(checkpoint_digest,''), checkpoint_portability, decision, reason, created_at, COUNT(*) OVER()
+		FROM runtime_handoff_events
+		WHERE %s
+		ORDER BY created_at %s
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var e RuntimeHandoffEvent
+		if err := rows.Scan(&e.EventID, &e.TenantID, &e.TaskID, &e.SourceRuntimeID, &e.TargetRuntimeID,
+			&e.CheckpointDigest, &e.CheckpointPortability, &e.Decision, &e.Reason, &e.CreatedAt, &out.Total); err != nil {
+			return nil, err
+		}
+		out.Items = append(out.Items, e)
+	}
+	return out, rows.Err()
+}
+
+func (s *CheckpointStore) ListBoundaryViolations(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[BoundaryViolationRecord], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[BoundaryViolationRecord]{Items: []BoundaryViolationRecord{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	if opts.Severity != "" && validString(opts.Severity, "info", "warning", "error", "critical") {
+		where = append(where, fmt.Sprintf("severity = $%d", len(args)+1))
+		args = append(args, opts.Severity)
+	}
+	if opts.RuntimeID != "" {
+		where = append(where, fmt.Sprintf("runtime_id = $%d", len(args)+1))
+		args = append(args, opts.RuntimeID)
+	}
+	if opts.Action != "" {
+		where = append(where, fmt.Sprintf("violation_type ILIKE $%d", len(args)+1))
+		args = append(args, "%"+opts.Action+"%")
+	}
+	query := fmt.Sprintf(`
+		SELECT violation_id, task_id, COALESCE(runtime_id,''), boundary_id, violation_type,
+		       severity, reason, COALESCE(evidence_digest,''), created_at, COUNT(*) OVER()
+		FROM boundary_violations
+		WHERE %s
+		ORDER BY created_at %s
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var v BoundaryViolationRecord
+		var taskID, boundaryID uuid.NullUUID
+		if err := rows.Scan(&v.ViolationID, &taskID, &v.RuntimeID, &boundaryID, &v.ViolationType,
+			&v.Severity, &v.Reason, &v.EvidenceDigest, &v.CreatedAt, &out.Total); err != nil {
+			return nil, err
+		}
+		if taskID.Valid {
+			v.TaskID = taskID.UUID
+		}
+		if boundaryID.Valid {
+			v.BoundaryID = boundaryID.UUID
+		}
+		out.Items = append(out.Items, v)
+	}
+	return out, rows.Err()
+}
+
+func (s *CheckpointStore) ListVerificationResults(tenantID string, opts GovernanceListOptions) (*GovernanceListResponse[VerificationResultSummary], error) {
+	opts = normalizeGovernanceListOptions(opts)
+	out := &GovernanceListResponse[VerificationResultSummary]{Items: []VerificationResultSummary{}, Limit: opts.Limit, Offset: opts.Offset}
+	if s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return out, nil
+	}
+	where, args := governanceBaseWhere(tenantID, opts, "created_at")
+	if opts.Status != "" && validString(opts.Status, "verified", "partially_verified", "unverifiable", "failed_verification", "policy_violation") {
+		where = append(where, fmt.Sprintf("status = $%d", len(args)+1))
+		args = append(args, opts.Status)
+	}
+	if opts.ExecutionID != "" {
+		where = append(where, fmt.Sprintf("execution_id = $%d", len(args)+1))
+		args = append(args, opts.ExecutionID)
+	}
+	if opts.Action != "" {
+		where = append(where, fmt.Sprintf("action_digest = $%d", len(args)+1))
+		args = append(args, opts.Action)
+	}
+	query := fmt.Sprintf(`
+		SELECT verification_id, task_id, COALESCE(execution_id,''), policy_decision_id,
+		       COALESCE(checkpoint_digest,''), COALESCE(action_digest,''), status,
+		       policy_compliant, COALESCE(evidence_digest,''), reason, created_at, COUNT(*) OVER()
+		FROM verification_results
+		WHERE %s
+		ORDER BY created_at %s
+		LIMIT $%d OFFSET $%d`, strings.Join(where, " AND "), sortDirection(opts.Sort), len(args)+1, len(args)+2)
+	args = append(args, opts.Limit, opts.Offset)
+	rows, err := s.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var v VerificationResultSummary
+		var taskID, decisionID uuid.NullUUID
+		var compliant sql.NullBool
+		if err := rows.Scan(&v.VerificationID, &taskID, &v.ExecutionID, &decisionID,
+			&v.CheckpointDigest, &v.ActionDigest, &v.Status, &compliant,
+			&v.EvidenceDigest, &v.Reason, &v.CreatedAt, &out.Total); err != nil {
+			return nil, err
+		}
+		if taskID.Valid {
+			v.TaskID = taskID.UUID
+		}
+		if decisionID.Valid {
+			id := decisionID.UUID
+			v.PolicyDecisionID = &id
+		}
+		if compliant.Valid {
+			value := compliant.Bool
+			v.PolicyCompliant = &value
+		}
+		out.Items = append(out.Items, v)
+	}
+	return out, rows.Err()
+}
+
+func normalizeGovernanceListOptions(opts GovernanceListOptions) GovernanceListOptions {
+	if opts.Limit <= 0 {
+		opts.Limit = 100
+	}
+	if opts.Limit > 500 {
+		opts.Limit = 500
+	}
+	if opts.Offset < 0 {
+		opts.Offset = 0
+	}
+	if opts.Sort != "asc" {
+		opts.Sort = "desc"
+	}
+	opts.Decision = strings.ToLower(strings.TrimSpace(opts.Decision))
+	opts.RiskLevel = strings.ToLower(strings.TrimSpace(opts.RiskLevel))
+	opts.ReplayClass = strings.ToLower(strings.TrimSpace(opts.ReplayClass))
+	opts.HandoffDecision = strings.ToLower(strings.TrimSpace(opts.HandoffDecision))
+	opts.Severity = strings.ToLower(strings.TrimSpace(opts.Severity))
+	opts.Status = strings.ToLower(strings.TrimSpace(opts.Status))
+	return opts
+}
+
+func governanceBaseWhere(tenantID string, opts GovernanceListOptions, timeColumn string) ([]string, []any) {
+	where := []string{"tenant_id = $1"}
+	args := []any{tenantID}
+	if taskID := strings.TrimSpace(opts.TaskID); taskID != "" {
+		where = append(where, fmt.Sprintf("task_id::text = $%d", len(args)+1))
+		args = append(args, taskID)
+	}
+	if since := governanceSince(opts.TimeRange); since != nil {
+		where = append(where, fmt.Sprintf("%s >= $%d", timeColumn, len(args)+1))
+		args = append(args, *since)
+	}
+	return where, args
+}
+
+func governanceSince(value string) *time.Time {
+	now := time.Now().UTC()
+	var since time.Time
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "1h", "last_1h":
+		since = now.Add(-time.Hour)
+	case "6h", "last_6h":
+		since = now.Add(-6 * time.Hour)
+	case "24h", "last_24h":
+		since = now.Add(-24 * time.Hour)
+	case "7d", "last_7d":
+		since = now.Add(-7 * 24 * time.Hour)
+	case "30d", "last_30d":
+		since = now.Add(-30 * 24 * time.Hour)
+	default:
+		return nil
+	}
+	return &since
+}
+
+func sortDirection(sort string) string {
+	if strings.EqualFold(sort, "asc") {
+		return "ASC"
+	}
+	return "DESC"
+}
+
+func validString(value string, allowed ...string) bool {
+	for _, item := range allowed {
+		if value == item {
+			return true
+		}
+	}
+	return false
 }
 
 func RecoveryHandoffAllowed(task *TaskRecord, checkpoint *CheckpointPayload, targetRuntimeID string, decision ActionPolicyDecision) (bool, string) {
