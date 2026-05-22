@@ -1,763 +1,199 @@
 'use client';
 
-import { useState, useMemo, useEffect, Suspense, type ReactNode } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { ErrorState } from '@/components/states/ErrorState';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api } from '@/lib/apiClient';
-import {
-  buildReceiptEvidenceCSVRows,
-  buildReceiptEvidenceListExport,
-  buildReceiptEvidenceRecord,
-  type ReceiptEvidenceSource,
-} from '@/lib/receiptEvidence';
-import { downloadCSV, downloadJSON, getRelativeTime } from '@/utils/helpers';
-import {
-  Search, RefreshCw, Shield, ShieldCheck, AlertTriangle,
-  FileCheck, Copy, Check, Download, Eye, CheckCircle2, XCircle, Clock,
-  type LucideIcon,
-} from 'lucide-react';
-import { type ChainStatus } from '@/components/proof/HashChainIndicator';
-import { ReceiptStatusBadge } from '@/components/proof/ReceiptStatusBadge';
-import { ViolationSeverityBadge } from '@/components/proof/ViolationSeverityBadge';
-import { KeyValueGrid } from '@/components/proof/KeyValueGrid';
-import { JSONViewer } from '@/components/proof/JSONViewer';
-import { ChainContinuityBar } from '@/components/proof/ChainContinuityBar';
-import { RightSideDrawer, DrawerSection } from '@/components/proof/RightSideDrawer';
-import { TimeRangePicker, filterByTimeRange, type TimeRange } from '@/components/proof/TimeRangePicker';
+import { useGovernanceVerificationResults } from '@/hooks/useGovernance';
+import type { GovernanceVerificationResult } from '@/lib/governance';
+import { GovernanceBadge, ProofBadge } from '@/components/governance/GovernanceBadge';
+import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
+import { getRelativeTime, truncateText } from '@/utils/helpers';
+import { ArrowUpRight, Search, ShieldCheck } from 'lucide-react';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface ViolationRecord {
+interface ReceiptSummary {
+  id: string;
+  execution_id: string;
+  task_id?: string;
+  agent_id?: string;
+  runtime_id?: string;
+  status?: string;
+  verification_status?: string;
+  hash?: string;
+  prev_hash?: string;
+  signed?: boolean;
   timestamp: string;
-  violation_type: string;
-  policy_rule: string;
-  action_taken: string;
 }
 
-type Receipt = ReceiptEvidenceSource & {
-  status: 'verified' | 'unverified' | 'failed';
-  signed: boolean;
-  cpu_ms: number;
-  memory_mb: number;
-  tokens_used: number;
-  tool_calls: number;
-  duration_ms: number;
-  start_time: string;
-  end_time: string;
-  signature: string;
-  hash: string;
-  prev_hash: string;
-  violations: ViolationRecord[];
-  model: string;
-};
+const PROOF_STATUSES = ['all', 'verified', 'partially_verified', 'unverifiable', 'failed_verification', 'policy_violation'];
 
-
-// ─── Utilities ────────────────────────────────────────────────────────────────
-
-function trunc(s: string, n: number): string {
-  if (!s) return '—';
-  return s.length > n ? `${s.slice(0, n)}…` : s;
-}
-
-function computeChainStatuses(receipts: Receipt[]): Map<string, ChainStatus> {
-  const map = new Map<string, ChainStatus>();
-  for (let i = 0; i < receipts.length; i++) {
-    const r = receipts[i];
-    if (i === receipts.length - 1) {
-      map.set(r.id, !r.prev_hash ? 'first' : 'unknown');
-    } else {
-      const older = receipts[i + 1];
-      if (!r.prev_hash) map.set(r.id, 'first');
-      else if (r.prev_hash === older.hash) map.set(r.id, 'intact');
-      else map.set(r.id, 'broken');
-    }
-  }
-  return map;
-}
-
-// ─── Design primitives ────────────────────────────────────────────────────────
-
-function OverviewCard({
-  icon: Icon, label, value, loading,
-}: {
-  icon: LucideIcon; label: string; value: ReactNode; loading?: boolean;
-}) {
+function CheckBadge({ label, value }: { label: string; value?: boolean }) {
   return (
-    <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-      <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
-        <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-        {label}
-      </div>
-      <div className="bg-white px-4 pt-4 pb-5">
-        {loading ? (
-          <Skeleton className="h-8 w-24" />
-        ) : (
-          <div className="text-3xl font-bold text-foreground tabular-nums">{value}</div>
-        )}
-      </div>
-    </div>
+    <GovernanceBadge
+      label={`${label}: ${value === undefined ? 'Not available' : value ? 'Pass' : 'Fail'}`}
+      tone={value === false ? 'danger' : value ? 'success' : 'neutral'}
+      showDot={false}
+    />
   );
 }
 
-function SurfaceSection({
-  icon: Icon, title, description, actions,
-  bodyClassName = 'px-4 py-4', className = '', children,
-}: {
-  icon: LucideIcon; title: string; description?: ReactNode;
-  actions?: ReactNode; bodyClassName?: string; className?: string; children: ReactNode;
-}) {
-  return (
-    <div className={`border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white ${className}`}>
-      <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-4">
-        <div className="flex flex-col gap-0.5 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-            <p className="text-xs font-medium text-foreground">{title}</p>
-          </div>
-          {description ? (
-            <p className="text-[11px] text-muted-foreground">{description}</p>
-          ) : null}
-        </div>
-        {actions}
-      </div>
-      <div className={`bg-white ${bodyClassName}`}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function CopyBtn({ text }: { text: string }) {
-  const [ok, setOk] = useState(false);
-  return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        navigator.clipboard.writeText(text);
-        setOk(true);
-        setTimeout(() => setOk(false), 1500);
-      }}
-      className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-      title="Copy"
-    >
-      {ok ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
-    </button>
-  );
-}
-
-function VerificationBadge({ status }: { status: Receipt['status'] }) {
-  const map = {
-    verified:   { cls: 'bg-green-50 text-green-700 border-green-200',   label: 'Verified',   Icon: CheckCircle2 },
-    unverified: { cls: 'bg-yellow-50 text-yellow-700 border-yellow-200', label: 'Unverified', Icon: Clock },
-    failed:     { cls: 'bg-red-50 text-red-600 border-red-200',         label: 'Failed',     Icon: XCircle },
-  } as const;
-  const { cls, label, Icon } = map[status];
-  return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${cls}`}>
-      <Icon className="h-3 w-3" />
-      {label}
-    </span>
-  );
-}
-
-function ViolationCountCell({ count }: { count: number }) {
-  if (count === 0) return <span className="text-xs text-muted-foreground">—</span>;
-  return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-50 text-orange-600 border border-orange-200">
-      <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-      {count}
-    </span>
-  );
-}
-
-function HashDisplay({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{label}</span>
-        {value && <CopyBtn text={value} />}
-      </div>
-      <div className="px-3 py-2.5 rounded-md border border-black/[0.08] dark:border-white/[0.08] bg-white">
-        <p className="text-[11px] font-mono text-muted-foreground break-all leading-5">
-          {value || <span className="text-muted-foreground">none</span>}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-function ReceiptsContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export default function ProofPage() {
+  const [status, setStatus] = useState('all');
   const [search, setSearch] = useState('');
-  const [violationsOnly, setViolationsOnly] = useState(false);
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
-  const [selectedId, setSelectedId] = useState<string | null>(searchParams.get('receipt'));
-  const [verifyResult, setVerifyResult] = useState<{ ok: boolean; message: string; chainValid?: boolean | null }
-    | null>(null);
+  const [selected, setSelected] = useState<GovernanceVerificationResult | ReceiptSummary | null>(null);
 
-  const { data: allReceipts = [], isLoading, error, refetch } = useQuery<Receipt[]>({
-    queryKey: ['proof-receipts'],
-    queryFn: () => api.get<Receipt[]>('/proof/receipts?limit=500&sort=timestamp:desc', { allowMockFallback: false }),
+  const { data, isLoading } = useGovernanceVerificationResults({ limit: 200, status });
+  const results = data?.items ?? [];
+  const { data: receipts = [], isLoading: receiptsLoading } = useQuery<ReceiptSummary[]>({
+    queryKey: ['proof-receipts-summary'],
+    queryFn: async () => {
+      try {
+        return await api.get<ReceiptSummary[]>('/proof/receipts?limit=100&sort=timestamp:desc', { allowMockFallback: false });
+      } catch {
+        return [];
+      }
+    },
     retry: false,
     staleTime: 30_000,
-    refetchInterval: 30_000,
-    refetchOnWindowFocus: false,
   });
 
-  const verifyMutation = useMutation({
-    mutationFn: (payload: { execution_id: string; expected_hash: string; signature: string }) =>
-      api.post('/proof/receipts/verify', payload),
-    onSuccess: (result: { verified: boolean; message: string; chain_valid?: boolean | null }) => {
-      setVerifyResult({
-        ok: result.verified,
-        message: result.message,
-        chainValid: result.chain_valid ?? null,
-      });
-    },
-    onError: (err: Error) => setVerifyResult({ ok: false, message: err.message }),
-  });
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return results;
+    return results.filter((item) =>
+      [item.task_id, item.execution_id, item.action_digest, item.reason, item.checkpoint_digest]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query)),
+    );
+  }, [results, search]);
 
-  // Sync drawer state to URL
-  useEffect(() => {
-    const p = new URLSearchParams(searchParams.toString());
-    selectedId ? p.set('receipt', selectedId) : p.delete('receipt');
-    router.replace(`?${p.toString()}`, { scroll: false });
-  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const receipts = useMemo(
-    () => filterByTimeRange(allReceipts, timeRange),
-    [allReceipts, timeRange],
-  );
-
-  const chainStatuses = useMemo(() => computeChainStatuses(receipts), [receipts]);
-
-  const counts = useMemo(() => ({
-    total:      receipts.length,
-    verified:   receipts.filter((r) => r.status === 'verified').length,
-    violations: receipts.filter((r) => r.has_violation).length,
-    last:       receipts[0]?.timestamp ?? null,
-  }), [receipts]);
-
-  const filtered = useMemo(() =>
-    receipts.filter((r) => {
-      const q = search.toLowerCase();
-      const hit = !q
-        || r.execution_id.toLowerCase().includes(q)
-        || r.agent_id.toLowerCase().includes(q)
-        || r.runtime_id?.toLowerCase().includes(q)
-        || r.device_id.toLowerCase().includes(q);
-      return hit && (!violationsOnly || r.has_violation);
+  const counts = useMemo(
+    () => ({
+      verified: results.filter((item) => item.status === 'verified').length,
+      partial: results.filter((item) => item.status === 'partially_verified').length,
+      failed: results.filter((item) => item.status === 'failed_verification' || item.status === 'policy_violation').length,
+      unverifiable: results.filter((item) => item.status === 'unverifiable').length,
     }),
-    [receipts, search, violationsOnly],
+    [results],
   );
-
-  const selected = useMemo(
-    () => receipts.find((r) => r.id === selectedId) ?? null,
-    [receipts, selectedId],
-  );
-  const selectedChainStatus = selected ? (chainStatuses.get(selected.id) ?? 'unknown') : 'unknown';
-
-  const exportFilename = useMemo(() => {
-    const parts = ['receipt-evidence', timeRange];
-    if (violationsOnly) parts.push('violations');
-    if (search.trim()) parts.push('filtered');
-    return parts.join('-');
-  }, [search, timeRange, violationsOnly]);
-
-  const handleVerify = (r: Receipt) => {
-    setVerifyResult(null);
-    verifyMutation.mutate({
-      execution_id: r.execution_id,
-      expected_hash: r.hash,
-      signature: r.signature,
-    });
-  };
-
-  const handleExportJSON = () => {
-    downloadJSON(
-      buildReceiptEvidenceListExport(
-        filtered,
-        chainStatuses,
-        {
-          time_range: timeRange,
-          violations_only: violationsOnly,
-          search: search.trim(),
-        },
-      ),
-      exportFilename,
-    );
-  };
-
-  const handleExportCSV = () => {
-    downloadCSV(buildReceiptEvidenceCSVRows(filtered, chainStatuses), exportFilename);
-  };
-
-  if (error) {
-    return (
-      <DashboardLayout>
-        <ErrorState
-          error={error}
-          title="Receipt records are unavailable"
-          description="This page uses live proof receipts only and does not fall back to mock data."
-          onRetry={() => {
-            void refetch();
-          }}
-        />
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>
       <div className="space-y-5">
-
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-base font-semibold text-foreground">Receipts</h1>
+            <h1 className="text-base font-semibold text-foreground">Proof</h1>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Verify signed receipts, chain continuity, runtime identity, and export safe evidence.
+              Verification results and receipt summaries. Logs are supporting evidence, not proof.
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <TimeRangePicker value={timeRange} onChange={setTimeRange} />
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportJSON}>
-              <Download className="h-3.5 w-3.5" /> Export JSON
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={handleExportCSV}>
-              <Download className="h-3.5 w-3.5" /> Export CSV
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
-              <RefreshCw className="h-3.5 w-3.5" /> Refresh
-            </Button>
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search task, execution, digest..." className="h-8 pl-8 text-xs" />
           </div>
         </div>
 
-        {/* ── Stat Cards ────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <OverviewCard
-            icon={FileCheck}
-            label="Receipts"
-            value={counts.total}
-            loading={isLoading}
-          />
-          <OverviewCard
-            icon={ShieldCheck}
-            label="Verified"
-            value={counts.verified}
-            loading={isLoading}
-          />
-          <OverviewCard
-            icon={AlertTriangle}
-            label="Violations"
-            value={counts.violations}
-            loading={isLoading}
-          />
-          <OverviewCard
-            icon={Clock}
-            label="Last Receipt"
-            value={counts.last ? getRelativeTime(counts.last) : '—'}
-            loading={isLoading}
-          />
-        </div>
-
-        {/* ── Action Bar ────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1 max-w-80">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              placeholder="execution_id / agent_id / runtime_id"
-              className="pl-8 h-8 text-xs"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <button
-            onClick={() => setViolationsOnly((v) => !v)}
-            className={[
-              'h-8 px-3 text-xs border rounded-md transition-colors flex items-center gap-1.5',
-              violationsOnly
-                ? 'bg-orange-50 border-orange-200 text-orange-600'
-                : 'border-black/[0.08] dark:border-white/[0.08] text-muted-foreground hover:border-gray-300',
-            ].join(' ')}
-          >
-            <AlertTriangle className="h-3.5 w-3.5" />
-            violations only
-          </button>
-        </div>
-
-        {/* ── Receipts Table ────────────────────────────────────────────────── */}
-        <SurfaceSection
-          icon={FileCheck}
-          title="Signed Receipt Log"
-          bodyClassName="px-0 py-0"
-        >
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent bg-white">
-                  {['Timestamp', 'Execution ID', 'Agent', 'Runtime', 'Status', 'Duration', 'Violations', ''].map((h) => (
-                    <TableHead key={h} className="text-xs font-medium text-muted-foreground h-9 px-4 bg-white uppercase tracking-wide">
-                      {h}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: 8 }).map((_, i) => (
-                    <TableRow key={i} className="bg-white">
-                      {Array.from({ length: 8 }).map((_, j) => (
-                        <TableCell key={j} className="px-4 py-3"><Skeleton className="h-3.5 w-14" /></TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : filtered.length === 0 ? (
-                  <TableRow className="bg-white">
-                    <TableCell colSpan={8} className="py-14 text-center text-xs text-muted-foreground">
-                      No receipts found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filtered.map((r) => (
-                    <TableRow
-                      key={r.id}
-                      className={`cursor-pointer bg-white border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 transition-colors ${selectedId === r.id ? 'bg-blue-50/50' : ''}`}
-                      onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
-                    >
-                      {/* Timestamp */}
-                      <TableCell className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
-                        {getRelativeTime(r.timestamp)}
-                      </TableCell>
-
-                      {/* Execution ID */}
-                      <TableCell className="px-4 py-3">
-                        <div className="flex items-center gap-1.5 group">
-                          <span
-                            className="text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 font-mono"
-                            title={r.execution_id}
-                            onClick={(e) => { e.stopPropagation(); router.push(`/execution/runs/${r.execution_id}`); }}
-                          >
-                            {trunc(r.execution_id, 14)}
-                          </span>
-                          <span className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                            <CopyBtn text={r.execution_id} />
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      {/* Agent */}
-                      <TableCell className="px-4 py-3 text-xs text-muted-foreground font-mono" title={r.agent_id}>
-                        {trunc(r.agent_id, 12)}
-                      </TableCell>
-
-                      {/* Runtime */}
-                      <TableCell
-                        className="px-4 py-3 text-xs text-muted-foreground font-mono"
-                        title={r.runtime_id || 'Not recorded'}
-                      >
-                        {r.runtime_id ? trunc(r.runtime_id, 12) : 'Not recorded'}
-                      </TableCell>
-
-                      {/* Status */}
-                      <TableCell className="px-4 py-3">
-                        <VerificationBadge status={r.status} />
-                      </TableCell>
-
-                      {/* Duration */}
-                      <TableCell className="px-4 py-3 text-xs tabular-nums text-foreground">
-                        {r.duration_ms}ms
-                      </TableCell>
-
-                      {/* Violations */}
-                      <TableCell className="px-4 py-3">
-                        <ViolationCountCell count={r.violations?.length ?? 0} />
-                      </TableCell>
-
-                      {/* Actions */}
-                      <TableCell className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground gap-1"
-                            onClick={() => setSelectedId(r.id === selectedId ? null : r.id)}
-                          >
-                            <Eye className="h-3 w-3" /> View
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-[10px] text-gray-500 hover:text-gray-900 gap-1"
-                            onClick={() => handleVerify(r)}
-                            disabled={verifyMutation.isPending}
-                          >
-                            <Shield className="h-3 w-3" /> Verify
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </SurfaceSection>
-
-        {/* ── Verification Panel ────────────────────────────────────────────── */}
-        <SurfaceSection
-          icon={Shield}
-          title="Receipt Verification"
-          description="Inspect the stored receipt hash, signature, and chain context. Chain status remains unknown until verification returns an authoritative result."
-          actions={selected ? (
-            <div className="flex items-center gap-2">
-              {verifyResult?.ok && (
-                <span className="text-xs text-green-700 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Receipt check passed
-                </span>
-              )}
-              {verifyResult && !verifyResult.ok && (
-                <span className="text-xs text-red-600 flex items-center gap-1">
-                  <XCircle className="h-3.5 w-3.5" /> Receipt check failed
-                </span>
-              )}
-              {verifyResult && verifyResult.chainValid === true && (
-                <span className="text-xs text-green-700 flex items-center gap-1">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Chain link intact
-                </span>
-              )}
-              {verifyResult && verifyResult.chainValid === false && (
-                <span className="text-xs text-red-600 flex items-center gap-1">
-                  <XCircle className="h-3.5 w-3.5" /> Chain link broken
-                </span>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs gap-1.5"
-                onClick={() => handleVerify(selected)}
-                disabled={verifyMutation.isPending}
-              >
-                {verifyMutation.isPending
-                  ? <><RefreshCw className="h-3 w-3 animate-spin" /> Verifying…</>
-                  : <><ShieldCheck className="h-3 w-3" /> Check Receipt</>
-                }
-              </Button>
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[
+            { label: 'Verified', value: counts.verified, tone: 'success' as const },
+            { label: 'Partially verified', value: counts.partial, tone: 'warning' as const },
+            { label: 'Failed verification', value: counts.failed, tone: 'danger' as const },
+            { label: 'Unverifiable', value: counts.unverifiable, tone: 'neutral' as const },
+          ].map((card) => (
+            <div key={card.label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
+              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" />{card.label}</div>
+              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{card.value}</div>
+              <GovernanceBadge label={card.label} tone={card.tone} showDot={false} className="mt-2" />
             </div>
-          ) : undefined}
-        >
-          {!selected ? (
-            <p className="text-xs text-gray-400 text-center py-4">
-              Select a receipt from the table to inspect its cryptographic proof.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {verifyResult && (
-                <div className={`rounded-md border px-3 py-2 text-xs ${verifyResult.ok ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
-                  {verifyResult.message}
-                </div>
-              )}
-              <HashDisplay label="Signature" value={selected.signature} />
-              <HashDisplay label="Hash" value={selected.hash} />
-              <HashDisplay label="Previous Hash" value={selected.prev_hash || ''} />
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={() => selected.signature && navigator.clipboard.writeText(selected.signature)}
-                  className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                >
-                  <Copy className="h-3 w-3" /> Copy Signature
-                </button>
-                <button
-                  onClick={() => downloadJSON(
-                    buildReceiptEvidenceRecord(selected, selectedChainStatus),
-                    `receipt-${selected.execution_id}`,
-                  )}
-                  className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                >
-                  <Download className="h-3 w-3" /> Download JSON
-                </button>
-              </div>
-            </div>
-          )}
-        </SurfaceSection>
-      </div>
+          ))}
+        </div>
 
-      {/* ── Receipt Detail Drawer ──────────────────────────────────────────────── */}
-      <RightSideDrawer
-        open={!!selected}
-        onClose={() => setSelectedId(null)}
-        title={
-          <>
-            <Shield className="h-4 w-4 text-gray-400" />
-            Receipt
-            {selected && (
-              <span className="text-xs text-gray-400 font-normal font-mono">
-                {trunc(selected.execution_id, 16)}
-              </span>
-            )}
-          </>
-        }
-        subtitle={selected ? new Date(selected.timestamp).toISOString() : undefined}
-      >
-        {selected && (
-          <>
-            {/* Execution Metadata */}
-            <DrawerSection title="Execution Metadata">
-              <KeyValueGrid items={[
-                {
-                  label: 'execution_id',
-                  value: selected.execution_id,
-                  copyable: true,
-                  copyValue: selected.execution_id,
-                  href: `/execution/runs/${selected.execution_id}`,
-                },
-                { label: 'agent_id',   value: selected.agent_id,  copyable: true, copyValue: selected.agent_id },
-                {
-                  label: 'runtime_id',
-                  value: selected.runtime_id || 'Not recorded',
-                  copyable: !!selected.runtime_id,
-                  copyValue: selected.runtime_id,
-                },
-                { label: 'runtime_label', value: selected.runtime_label || 'Not recorded' },
-                { label: 'start_time', value: new Date(selected.start_time).toISOString() },
-                { label: 'end_time',   value: new Date(selected.end_time).toISOString() },
-                { label: 'status',     value: <VerificationBadge status={selected.status} /> },
-              ]} />
-            </DrawerSection>
+        <div className="flex flex-wrap gap-1.5">
+          {PROOF_STATUSES.map((value) => (
+            <button key={value} type="button" onClick={() => setStatus(value)} className={`rounded border px-2.5 py-1 text-[11px] font-medium ${status === value ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 bg-white text-muted-foreground'}`}>
+              {value.replace(/_/g, ' ')}
+            </button>
+          ))}
+        </div>
 
-            <Separator />
-
-            {/* Resource Usage */}
-            <DrawerSection title="Resource Usage">
-              <KeyValueGrid items={[
-                { label: 'duration_ms',  value: `${selected.duration_ms}ms` },
-                { label: 'cpu_ms',       value: `${selected.cpu_ms}ms` },
-                { label: 'memory_mb',    value: `${selected.memory_mb} MB` },
-                { label: 'tokens_used',  value: selected.tokens_used.toLocaleString() },
-                { label: 'tool_calls',   value: String(selected.tool_calls) },
-              ]} />
-            </DrawerSection>
-
-            <Separator />
-
-            {/* Violation Records */}
-            <DrawerSection title="Violation Records">
-              {(selected.violations ?? []).length === 0 ? (
-                <p className="text-xs text-gray-400">No violations recorded.</p>
+        <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
+          <div className="px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Verification Results</h2>
+            <p className="text-[11px] text-muted-foreground">Backed by `GET /v1/execution/governance/verification-results`.</p>
+          </div>
+          <Table>
+            <TableHeader><TableRow><TableHead>Task / Execution</TableHead><TableHead>Status</TableHead><TableHead>Checks</TableHead><TableHead>Evidence</TableHead><TableHead>Reason</TableHead><TableHead>When</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, index) => <TableRow key={index}><TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell></TableRow>)
+              ) : filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="py-12 text-center text-xs text-muted-foreground">Evidence not available. No verification results match these filters.</TableCell></TableRow>
               ) : (
-                <div className="rounded-md border border-gray-200 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        {['Timestamp', 'Type', 'Policy Rule', 'Action'].map((h) => (
-                          <TableHead key={h} className="text-[10px] font-medium text-gray-500 h-8 px-3 bg-gray-50">
-                            {h}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {(selected.violations ?? []).map((v, i) => (
-                        <TableRow key={i} className="border-b border-gray-100">
-                          <TableCell className="px-3 py-2 text-[10px] text-gray-500 tabular-nums whitespace-nowrap">
-                            {getRelativeTime(v.timestamp)}
-                          </TableCell>
-                          <TableCell className="px-3 py-2">
-                            <ViolationSeverityBadge kind={v.violation_type} />
-                          </TableCell>
-                          <TableCell className="px-3 py-2 text-[10px] font-mono text-gray-600">
-                            {v.policy_rule}
-                          </TableCell>
-                          <TableCell className="px-3 py-2 text-[10px] text-gray-600">
-                            {v.action_taken}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                filtered.map((item) => (
+                  <TableRow key={item.verification_id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(item)}>
+                    <TableCell>
+                      {item.task_id ? (
+                        <Link href={`/execution/tasks/${encodeURIComponent(item.task_id)}`} className="group flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <span className="font-mono text-xs text-foreground">{truncateText(item.task_id, 18)}</span>
+                          <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                        </Link>
+                      ) : <span className="text-xs text-muted-foreground">Task not available</span>}
+                      <div className="font-mono text-[10px] text-muted-foreground">{item.execution_id ? truncateText(item.execution_id, 24) : 'Execution not available'}</div>
+                    </TableCell>
+                    <TableCell><ProofBadge status={item.status} /></TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        <CheckBadge label="Policy" value={item.policy_compliant} />
+                        <GovernanceBadge label="Hash: see task proof" tone="neutral" showDot={false} />
+                        <GovernanceBadge label="Signature: see task proof" tone="neutral" showDot={false} />
+                        <GovernanceBadge label="Runtime key: see task proof" tone="neutral" showDot={false} />
+                        <GovernanceBadge label="Chain: see task proof" tone="neutral" showDot={false} />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{item.evidence_digest ? truncateText(item.evidence_digest, 18) : 'Not available'}</TableCell>
+                    <TableCell className="max-w-md text-xs text-muted-foreground">{item.reason || 'Evidence not available'}</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{getRelativeTime(item.created_at)}</TableCell>
+                  </TableRow>
+                ))
               )}
-            </DrawerSection>
+            </TableBody>
+          </Table>
+        </section>
 
-            <Separator />
+        <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
+          <div className="px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">Receipt Summaries</h2>
+            <p className="text-[11px] text-muted-foreground">Receipts are proof only after hash/signature verification succeeds.</p>
+          </div>
+          <Table>
+            <TableHeader><TableRow><TableHead>Receipt</TableHead><TableHead>Execution</TableHead><TableHead>Status</TableHead><TableHead>Hash</TableHead><TableHead>Signed</TableHead><TableHead>When</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {receiptsLoading ? (
+                <TableRow><TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
+              ) : receipts.length === 0 ? (
+                <TableRow><TableCell colSpan={6} className="py-10 text-center text-xs text-muted-foreground">Evidence not available. No receipts returned.</TableCell></TableRow>
+              ) : (
+                receipts.slice(0, 25).map((receipt) => (
+                  <TableRow key={receipt.id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(receipt)}>
+                    <TableCell className="font-mono text-xs">{truncateText(receipt.id, 18)}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{truncateText(receipt.execution_id, 22)}</TableCell>
+                    <TableCell><ProofBadge status={receipt.verification_status ?? receipt.status} /></TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{receipt.hash ? truncateText(receipt.hash, 18) : 'Not available'}</TableCell>
+                    <TableCell><GovernanceBadge label={receipt.signed ? 'Signature present' : 'Signature not available'} tone={receipt.signed ? 'success' : 'neutral'} showDot={false} /></TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{getRelativeTime(receipt.timestamp)}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </section>
 
-            {/* Hash Continuity */}
-            <DrawerSection title="Hash Continuity Estimate">
-              <ChainContinuityBar
-                hash={selected.hash}
-                prevHash={selected.prev_hash}
-                status={selectedChainStatus}
-              />
-            </DrawerSection>
-
-            <Separator />
-
-            {/* Receipt Signature */}
-            <DrawerSection title="Receipt Signature">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
-                  <span className="text-xs text-gray-500">Signature status</span>
-                  <ReceiptStatusBadge signed={selected.signed} />
-                </div>
-                <HashDisplay label="Signature" value={selected.signature} />
-                <HashDisplay label="Hash" value={selected.hash} />
-                <HashDisplay label="Previous Hash" value={selected.prev_hash} />
-                <div className="flex gap-2 pt-1">
-                  {selected.signature && (
-                    <button
-                      onClick={() => navigator.clipboard.writeText(selected.signature)}
-                      className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                    >
-                      <Copy className="h-3 w-3" /> Copy Signature
-                    </button>
-                  )}
-                  <button
-                    onClick={() => downloadJSON(
-                      buildReceiptEvidenceRecord(selected, selectedChainStatus),
-                      `receipt-${selected.execution_id}`,
-                    )}
-                    className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5 transition-colors"
-                  >
-                    <Download className="h-3 w-3" /> Download JSON
-                  </button>
-                </div>
-              </div>
-            </DrawerSection>
-
-            <Separator />
-
-            {/* Raw JSON */}
-            <DrawerSection title="Raw">
-              <JSONViewer
-                data={buildReceiptEvidenceRecord(selected, selectedChainStatus)}
-                filename={`receipt-${selected.execution_id}`}
-              />
-            </DrawerSection>
-          </>
-        )}
-      </RightSideDrawer>
+        <SafeEvidenceJsonPanel title="Selected proof evidence" data={selected} defaultOpen={Boolean(selected)} />
+      </div>
     </DashboardLayout>
-  );
-}
-
-export default function ProofReceiptsPage() {
-  return (
-    <Suspense>
-      <ReceiptsContent />
-    </Suspense>
   );
 }
