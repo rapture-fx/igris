@@ -1751,6 +1751,24 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			wantStatus: http.StatusForbidden,
 		},
 		{
+			name: "callback type mismatch",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "failed", body, uuid.NewString(), time.Now(), true)
+			},
+			queries:    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name: "task mismatch",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, uuid.New(), runtimeID, "complete", body, uuid.NewString(), time.Now(), true)
+			},
+			queries:    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
 			name: "missing signature",
 			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
 				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", body, uuid.NewString(), time.Now(), false)
