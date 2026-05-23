@@ -2170,6 +2170,7 @@ func extractModeSemantics(metadata json.RawMessage) (requestedMode string, resol
 
 func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		body := append([]byte(nil), c.Body()...)
 		taskID, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
@@ -2189,19 +2190,26 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
+			callbackValidation := runtimeCallbackValidation{bodyDigest: sha256Hex(body)}
+			if raw := strings.TrimSpace(c.Get(runtimeCallbackEnvelopeHeader)); raw != "" {
+				callbackValidation = validateRuntimeCallback(c, tc.Store(), task, tenantID, "checkpoint", body)
+			}
+			persistRejectedRuntimeCallback(tc.Store(), tenantID, taskID, callbackRuntimeID(callbackValidation, c), "checkpoint", "terminal task does not allow runtime checkpoint mutation", callbackValidation.bodyDigest)
 			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
+		}
+		callbackValidation := validateRuntimeCallback(c, tc.Store(), task, tenantID, "checkpoint", body)
+		if callbackValidation.reason != "" {
+			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "checkpoint", callbackValidation)
 		}
 
 		var cp coordinator.CheckpointPayload
-		if err := c.BodyParser(&cp); err != nil {
+		if err := json.Unmarshal(body, &cp); err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
 		cp.TaskID = taskID // enforce from URL
 		if !runtimeCallbackMatchesTask(task, checkpointRuntimeID(&cp), c.Get("X-Igris-Runtime-ID")) {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{
-				"error":   "runtime_identity_mismatch",
-				"message": "runtime callback identity does not match assigned task runtime",
-			})
+			validation := runtimeCallbackValidation{envelope: callbackValidation.envelope, bodyDigest: callbackValidation.bodyDigest, reason: "checkpoint runtime identity does not match assigned task runtime", status: http.StatusForbidden}
+			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "checkpoint", validation)
 		}
 
 		if err := tc.HandleCheckpoint(&cp); err != nil {
@@ -2229,6 +2237,7 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		body := append([]byte(nil), c.Body()...)
 		taskID, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
@@ -2246,13 +2255,20 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
+			callbackValidation := runtimeCallbackValidation{bodyDigest: sha256Hex(body)}
+			if raw := strings.TrimSpace(c.Get(runtimeCallbackEnvelopeHeader)); raw != "" {
+				callbackValidation = validateRuntimeCallback(c, tc.Store(), task, tenantID, "complete", body)
+			}
+			persistRejectedRuntimeCallback(tc.Store(), tenantID, taskID, callbackRuntimeID(callbackValidation, c), "complete", "terminal task does not allow runtime complete mutation", callbackValidation.bodyDigest)
 			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
+		callbackValidation := validateRuntimeCallback(c, tc.Store(), task, tenantID, "complete", body)
+		if callbackValidation.reason != "" {
+			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "complete", callbackValidation)
+		}
 		if !runtimeCallbackMatchesTask(task, "", c.Get("X-Igris-Runtime-ID")) {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{
-				"error":   "runtime_identity_mismatch",
-				"message": "runtime callback identity does not match assigned task runtime",
-			})
+			validation := runtimeCallbackValidation{envelope: callbackValidation.envelope, bodyDigest: callbackValidation.bodyDigest, reason: "runtime callback header identity does not match assigned task runtime", status: http.StatusForbidden}
+			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "complete", validation)
 		}
 
 		if err := tc.HandleComplete(taskID); err != nil {
@@ -2276,6 +2292,7 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		body := append([]byte(nil), c.Body()...)
 		taskID, err := uuid.Parse(c.Params("id"))
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid task_id"})
@@ -2293,20 +2310,27 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
+			callbackValidation := runtimeCallbackValidation{bodyDigest: sha256Hex(body)}
+			if raw := strings.TrimSpace(c.Get(runtimeCallbackEnvelopeHeader)); raw != "" {
+				callbackValidation = validateRuntimeCallback(c, tc.Store(), task, tenantID, "failed", body)
+			}
+			persistRejectedRuntimeCallback(tc.Store(), tenantID, taskID, callbackRuntimeID(callbackValidation, c), "failed", "terminal task does not allow runtime failed mutation", callbackValidation.bodyDigest)
 			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
+		callbackValidation := validateRuntimeCallback(c, tc.Store(), task, tenantID, "failed", body)
+		if callbackValidation.reason != "" {
+			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "failed", callbackValidation)
+		}
 		if !runtimeCallbackMatchesTask(task, "", c.Get("X-Igris-Runtime-ID")) {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{
-				"error":   "runtime_identity_mismatch",
-				"message": "runtime callback identity does not match assigned task runtime",
-			})
+			validation := runtimeCallbackValidation{envelope: callbackValidation.envelope, bodyDigest: callbackValidation.bodyDigest, reason: "runtime callback header identity does not match assigned task runtime", status: http.StatusForbidden}
+			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "failed", validation)
 		}
 
-		var body struct {
+		var failedBody struct {
 			Reason string `json:"reason"`
 		}
-		_ = c.BodyParser(&body)
-		if err := tc.HandleFailed(taskID, body.Reason); err != nil {
+		_ = json.Unmarshal(body, &failedBody)
+		if err := tc.HandleFailed(taskID, failedBody.Reason); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
 				return c.Status(http.StatusConflict).JSON(taskTransitionRejectedPayload(tc, taskID, tenantID))
 			}
@@ -2317,14 +2341,24 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if err != nil {
 			fallbackTask := *task
 			fallbackTask.Status = coordinator.TaskStatusFailed
-			if body.Reason != "" {
-				reason := body.Reason
+			if failedBody.Reason != "" {
+				reason := failedBody.Reason
 				fallbackTask.FailureReason = &reason
 			}
 			updatedTask = &fallbackTask
 		}
 		return c.JSON(buildTaskMutationResponse(updatedTask, nil))
 	}
+}
+
+func callbackRuntimeID(validation runtimeCallbackValidation, c *fiber.Ctx) string {
+	if validation.envelope != nil && validation.envelope.RuntimeID != "" {
+		return validation.envelope.RuntimeID
+	}
+	if c != nil {
+		return c.Get("X-Igris-Runtime-ID")
+	}
+	return ""
 }
 
 func checkpointRuntimeID(cp *coordinator.CheckpointPayload) string {
