@@ -37,36 +37,11 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
     ],
   },
   {
-    heading: 'DEVELOPERS',
+    heading: 'COMPANY',
     ref: 'R.2',
     links: [
-      { label: 'Quickstart', href: '/core' },
-      { label: 'SDKs', href: '/core' },
-      { label: 'API Reference', href: '/core' },
-      { label: 'Docs', href: 'https://docs.igrisinertial.com', external: true },
-    ],
-  },
-  {
-    heading: 'USE CASES',
-    ref: 'R.3',
-    links: [
-      { label: 'AI Agents', href: '/use-cases' },
-      { label: 'Internal Automation', href: '/use-cases' },
-      { label: 'Agent Workflows', href: '/use-cases' },
-      { label: 'High-Risk Tool Calls', href: '/use-cases' },
-    ],
-  },
-  {
-    heading: 'COMPANY',
-    ref: 'R.4',
-    links: [
-      { label: 'Pricing', href: '/pricing' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Contact', href: 'mailto:support@igrisinertial.com', external: true },
       { label: 'GitHub', href: 'https://github.com/igrisinertial', external: true },
       { label: 'X (Twitter)', href: 'https://x.com/igrisinertial', external: true },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/company/igrisinertial', external: true },
-      { label: 'Discord', href: 'https://discord.com', external: true },
     ],
   },
 ]
@@ -79,7 +54,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
         <div className="px-2 md:px-4 lg:px-6 flex flex-col min-h-[480px]">
 
           {/* Link columns + logo */}
@@ -139,28 +114,28 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row md:items-baseline md:justify-between gap-y-3 py-8 md:py-10">
             <div
               className="flex flex-wrap items-baseline gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
-              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
             >
-              <span>© 2026 IGRIS INERTIAL</span>
+              <span>© 2026 Igris Inertial</span>
               <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
               <Link href="/privacy" className="hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors">
-                PRIVACY
+                Privacy
               </Link>
               <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
               <Link href="/terms" className="hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors">
-                TERMS
+                Terms
               </Link>
               <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
               <Link href="/security" className="hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors">
-                SECURITY
+                Security
               </Link>
             </div>
 
             <div
               className="flex items-center gap-4"
-              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.22em' }}
+              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
             >
-              <span className="text-gray-500 dark:text-[#8a8a7a]">BUILD&nbsp;2026.05</span>
+              <span className="text-gray-500 dark:text-[#8a8a7a]">Build&nbsp;2026.05</span>
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -168,7 +143,7 @@ export default function Footer() {
                   className="inline-flex items-baseline gap-1.5 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
                 >
                   <span aria-hidden className="inline-block w-3 border-t border-current translate-y-[-3px]" />
-                  {theme === 'dark' ? 'LIGHT' : 'DARK'}
+                  {theme === 'dark' ? 'Light' : 'Dark'}
                 </button>
               )}
             </div>
