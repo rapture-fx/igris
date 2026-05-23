@@ -1705,6 +1705,8 @@ func TestHandleTaskCompleteRejectsWrongRuntimeHeader(t *testing.T) {
 }
 
 func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
+	t.Setenv("IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS", "")
+
 	testCases := []struct {
 		name       string
 		header     func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string
@@ -1819,6 +1821,47 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			require.Equal(t, 0, queued.remainingExecs())
 		})
 	}
+}
+
+func TestHandleTaskCompleteRejectsTerminalSignedCallbackAndPersistsViolation(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-terminal-callback"
+	runtimeID := "runtime-terminal-callback"
+	signing := newSignedRuntimeCallbackFixture(t)
+	createdAt := time.Unix(1_700_001_465, 0).UTC()
+	completedAt := createdAt.Add(30 * time.Second)
+
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			runtimeCallbackTaskQuery(taskID, tenantID, coordinator.TaskStatusCompleted, runtimeID, createdAt),
+			runtimePublicKeyQueryExpectation(signing.publicKey),
+		},
+		runtimeCallbackNonceExecExpectation(),
+		queuedRouteExecExpectation{rowsAffected: 1},
+	)
+	_ = completedAt
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "complete", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "task_transition_rejected", body["error"])
+	require.Equal(t, "completed", body["status"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
 }
 
 func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
