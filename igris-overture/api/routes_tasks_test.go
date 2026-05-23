@@ -1831,7 +1831,6 @@ func TestHandleTaskCompleteRejectsTerminalSignedCallbackAndPersistsViolation(t *
 	runtimeID := "runtime-terminal-callback"
 	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_465, 0).UTC()
-	completedAt := createdAt.Add(30 * time.Second)
 
 	db, queued := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
@@ -1841,7 +1840,6 @@ func TestHandleTaskCompleteRejectsTerminalSignedCallbackAndPersistsViolation(t *
 		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 1},
 	)
-	_ = completedAt
 
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
