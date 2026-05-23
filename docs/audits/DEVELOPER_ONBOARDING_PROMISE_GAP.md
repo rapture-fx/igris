@@ -8,32 +8,33 @@ A developer should be able to run one AI action, inspect the execution story, si
 
 ## Current State
 
-The repository has useful demo scripts, durable task routes, runtime code, and console views. The pieces exist, but the local path is not yet a single reliable onboarding flow.
+The repository now has a single local promise entrypoint: `make run-recover-prove-local`. It wraps the live Action Task V1 proof demo, then runs strict signed callback, irreversible recovery-blocking, runtime signer, and proof tamper checks.
 
 ## Gaps
 
-- No root `Makefile` target exists for `make test-recovery-chaos`, `make test-policy-enforcement`, or `make test-runtime-handoff`.
-- The durable task proof path requires a registered runtime public key and signed runtime artifacts; the setup instructions do not yet make this a one-command happy path.
-- Failure simulation exists through tests and scripts, but the canonical product scenarios are not all runnable from one documented command.
+- There is no live `make test-runtime-handoff` target yet; handoff blocking is covered inside `make test-recovery-chaos`.
+- The durable task proof path requires a registered runtime public key and signed runtime artifacts; `make run-recover-prove-local` now handles this for the local Action Task V1 path.
+- Failure simulation exists through tests and scripts, but not every canonical product scenario is live-server-backed from one command.
 - The console can display the story, but local developers need explicit instructions to disable mock fallback when validating real backend evidence.
-- Runtime callback identity hardening now exists in the coordinator and Rust helper, but local setup still needs a documented flow for registering the runtime key and attaching signed callback headers.
+- Runtime callback identity hardening now exists in the coordinator and Rust helper. The local flow demonstrates callback enforcement through route tests because the audited runtime execution path still returns results synchronously instead of using an async callback sender.
 
 ## Equivalent Commands Today
 
-Use these until canonical make targets are added:
+Use these for focused checks:
 
 ```bash
-GOCACHE=/tmp/igris-gocache-promise go test ./igris-overture/coordinator ./igris-overture/api -count=1 -timeout=180s
-GOCACHE=/tmp/igris-gocache-callbacks go test ./igris-overture/api -run 'TestHandleTask(Checkpoint|Complete|Failed)|TestRuntimeCallbackEnvelope' -count=1 -timeout=120s
-cargo test --manifest-path igris-runtime/crates/igris-server/Cargo.toml runtime_callback --features agent-platform
-pnpm --filter @igris-inertial/web-console exec tsc --noEmit
-pnpm --filter @igris-inertial/web-console build
-git diff --check
+make run-recover-prove-local
+make test-policy-enforcement
+make test-recovery-chaos
+make test-runtime-callbacks
+make test-proof-tamper
 ```
 
 ## Recommended Onboarding Slice
 
-Add a single `scripts/run-recover-prove-local.sh` flow that:
+Next slice: make the callback portion live-server-backed by wiring async runtime callbacks into the Rust runtime path.
+
+The current local flow already:
 
 1. Starts Overture and one local runtime with a generated Ed25519 runtime identity.
 2. Registers the runtime key.
