@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { LineSpinner } from 'ldrs/react'
+import 'ldrs/react/LineSpinner.css'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -180,7 +181,7 @@ function Sidebar() {
 
       {/* section header */}
       <div className="flex items-center justify-between px-4 mt-1 mb-1">
-        <span className="text-[10px] tracking-[0.18em] uppercase text-[#5a5a52]">Tasks</span>
+        <span className="text-[11px] text-[#7a7a72]">Tasks</span>
         <div className="flex items-center gap-1.5">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[#5a5a52] hover:text-[#a8a89e] cursor-pointer">
             <path d="M7 8 L17 8 M7 16 L17 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -380,7 +381,7 @@ function MainBody() {
 
       {/* committed actions section */}
       <div className="mt-7 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-[0.16em] text-[#7a7a72]">
+        <div className="flex items-center gap-2 text-[11.5px] text-[#a8a89e]">
           <span>Committed actions ({total})</span>
           <span className="text-emerald-400/80" style={{ fontFamily: MONO }}>+{committed}</span>
           <span className="text-rose-400/60" style={{ fontFamily: MONO }}>−0</span>
@@ -393,11 +394,18 @@ function MainBody() {
 
       <div className={'mt-3 ' + (fading ? 'ic-cycle-fade' : '')}>
         <Tree title="actions" icon="bolt">
-          {steps.map((s) => (
-            <div key={`${cycle}-${s.id}`} className="ic-step-in">
-              {s.kind === 'fault' ? <FaultLine step={s} /> : <ActionLine step={s} running={s.status === 'running'} />}
-            </div>
-          ))}
+          {steps.map((s, i) => {
+            const isLatest = i === steps.length - 1
+            return (
+              <div key={`${cycle}-${s.id}`} className="ic-step-in">
+                {s.kind === 'fault' ? (
+                  <FaultLine step={s} />
+                ) : (
+                  <ActionLine step={s} running={s.status === 'running'} isLatest={isLatest} />
+                )}
+              </div>
+            )
+          })}
         </Tree>
       </div>
 
@@ -440,13 +448,24 @@ function Tree({ title, icon, children }: { title: string; icon: 'bolt' | 'box'; 
   )
 }
 
-function ActionLine({ step, running }: { step: Step; running: boolean }) {
+function ActionLoader() {
+  return (
+    <span className="inline-flex items-center justify-center" aria-hidden>
+      <LineSpinner size="14" stroke="1.4" speed="0.9" color="rgb(52, 211, 153)" />
+    </span>
+  )
+}
+
+function ActionLine({ step, running, isLatest }: { step: Step; running: boolean; isLatest: boolean }) {
+  const loading = isLatest && !running
   return (
     <div className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded hover:bg-white/[0.02]"
          style={{ gridTemplateColumns: '14px 24px 1fr auto auto auto' }}>
       <span className="inline-flex items-center justify-center">
         {running ? (
           <span className="block w-1.5 h-1.5 rounded-full bg-emerald-400 ic-breathing" />
+        ) : loading ? (
+          <ActionLoader />
         ) : (
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" className="text-emerald-500">
             <path d="M5 12.5 L10 17 L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -498,7 +517,7 @@ function FaultLine({ step }: { step: Step }) {
       <span className="text-[11px] text-[#5a5a52] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
         {step.latency}ms
       </span>
-      <span className="text-[10.5px] text-amber-400/70 uppercase tracking-[0.08em]">recovered</span>
+      <span className="text-[10.5px] text-amber-400/70">recovered</span>
       <span className="text-[10.5px] text-[#5a5a52]" style={{ fontFamily: MONO }}>0 replays</span>
     </div>
   )
@@ -542,6 +561,41 @@ function MainFooter() {
 // Products section
 // ──────────────────────────────────────────────────────────────────
 
+const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
+
+function InstallCommand() {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(INSTALL_CMD)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div
+      className="inline-flex items-center gap-3 rounded-md px-3 py-2.5 border bg-gray-50 dark:bg-white/[0.04] border-gray-200 dark:border-[rgba(246,246,244,0.12)] text-gray-800 dark:text-[#c8c8b8] max-w-full overflow-hidden"
+      style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.02em' }}
+    >
+      <span className="select-all truncate">{INSTALL_CMD}</span>
+      <button
+        onClick={copy}
+        aria-label={copied ? 'Copied' : 'Copy install command'}
+        className="shrink-0 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+      >
+        {copied ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        )}
+      </button>
+    </div>
+  )
+}
+
 export default function Products() {
   return (
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
@@ -562,7 +616,7 @@ export default function Products() {
               Run agent actions you can recover and prove.
             </h2>
             <p
-              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
+              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
               style={{ fontFamily: SANS, fontSize: 'clamp(0.95rem, 1.05vw, 1rem)', lineHeight: 1.6 }}
             >
               AI systems should be able to operate in real environments without
@@ -581,21 +635,8 @@ export default function Products() {
               validate execution paths, and operate AI systems with real
               operational control as agents begin handling more critical work.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
-              <Link
-                href="https://docs.igrisinertial.com/"
-                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80 bg-white text-[#1b1912] border-black/10 dark:bg-white/[0.06] dark:text-[#f6f6f4] dark:border-white/[0.12]"
-                style={{ fontFamily: SANS }}
-              >
-                Read the docs ↗
-              </Link>
-              <Link
-                href="https://console.igrisinertial.com"
-                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
-                style={{ fontFamily: SANS }}
-              >
-                Open the console
-              </Link>
+            <div className="mt-8">
+              <InstallCommand />
             </div>
           </div>
         </div>
