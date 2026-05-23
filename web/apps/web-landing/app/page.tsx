@@ -22,14 +22,14 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="igris-grain igris-shell min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200 md:pl-[40rem] pt-14 md:pt-0">
+      <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200 pt-14">
         <Header />
         <main>
           <ScrollReveal delay={0.1}><Hero /></ScrollReveal>
-          <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
-          <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Capabilities /></ScrollReveal></div></div>
-          <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div></div>
-          <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Capabilities /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
         </main>
         <Footer />
       </div>
