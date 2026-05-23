@@ -647,8 +647,10 @@ export default function Products() {
                 AI systems should be able to operate in real environments
                 without becoming unreliable, hard to understand, or impossible
                 to trust. As agents begin interacting with infrastructure, APIs,
-                files, workflows, and eventually physical systems, execution
-                reliability becomes as important as intelligence itself.
+                files, workflows, and eventually physical systems, execution{' '}
+                <span className="bg-purple-200/70 dark:bg-purple-400/20 text-gray-900 dark:text-purple-100 px-1 rounded-sm">
+                  reliability becomes as important as intelligence itself.
+                </span>
               </p>
               <p>
                 Igris is infrastructure for AI actions. It helps{' '}
@@ -665,7 +667,7 @@ export default function Products() {
                 runtime-aware boundaries, and execution verification. Install
                 Igris with{' '}
                 <code
-                  className="inline-flex items-baseline rounded-md px-1.5 py-0.5 border bg-gray-50 dark:bg-white/[0.04] border-gray-200 dark:border-[rgba(246,246,244,0.12)] text-gray-800 dark:text-[#c8c8b8] align-baseline whitespace-nowrap"
+                  className="inline-flex items-baseline rounded-md px-2 py-0.5 border bg-white dark:bg-white/[0.08] border-gray-300 dark:border-white/[0.18] text-gray-900 dark:text-[#f6f6f4] align-baseline whitespace-nowrap shadow-[0_1px_2px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_2px_10px_rgba(0,0,0,0.4)]"
                   style={{ fontFamily: MONO, fontSize: '0.85em' }}
                 >
                   {INSTALL_CMD}
