@@ -42,6 +42,7 @@ ACTION_HELPER="$SCRIPT_DIR/action_task_v1_proof_helper.js"
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/igris-action-v1-proof.XXXXXX")
 LOG_DIR="$TMP_DIR/logs"
 mkdir -p "$LOG_DIR"
+CALLBACK_EVIDENCE_LOG="$TMP_DIR/runtime-callback-evidence.jsonl"
 
 # Optional: a console base URL so the proof can print a clickable Task Inspector
 # link for presenters. Accept --console-base-url <url> or CONSOLE_URL=<url>.
@@ -270,6 +271,9 @@ echo "[6/11] Starting Overture"
     IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
     IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
     IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
+    IGRIS_RUNTIME_CALLBACK_BASE_URL="http://127.0.0.1:8081" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME="Cookie" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE="better-auth.session_token=$PROOF_SESSION_TOKEN" \
     "$TMP_DIR/igris-overture"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
@@ -324,6 +328,7 @@ echo "[8/11] Starting Runtime"
     IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
     IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
     IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
+    IGRIS_RUNTIME_CALLBACK_EVIDENCE_LOG="$CALLBACK_EVIDENCE_LOG" \
     IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
     IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
     RUST_LOG="warn" \
@@ -500,6 +505,28 @@ node "$ACTION_HELPER" verify-action-evidence \
   "$DB_ROW_ID" \
   "$TMP_DIR/task-after-verify.json"
 
+if [[ ! -s "$CALLBACK_EVIDENCE_LOG" ]]; then
+  echo "runtime did not write signed callback evidence" >&2
+  exit 1
+fi
+node - <<'NODE' "$CALLBACK_EVIDENCE_LOG" "$TASK_ID" "$RUNTIME_ID"
+const fs = require("fs");
+const [path, taskId, runtimeId] = process.argv.slice(2);
+const rows = fs.readFileSync(path, "utf8").trim().split(/\n+/).filter(Boolean).map((line) => JSON.parse(line));
+function fail(msg) { throw new Error(msg); }
+if (!rows.length) fail("no callback evidence rows");
+for (const row of rows) {
+  if (row.task_id !== taskId) fail(`callback task_id mismatch: ${row.task_id}`);
+  if (row.runtime_id !== runtimeId) fail(`callback runtime_id mismatch: ${row.runtime_id}`);
+  if (!row.accepted || row.status_code < 200 || row.status_code >= 300) fail(`callback not accepted: ${JSON.stringify(row)}`);
+  if (!/^[a-f0-9]{64}$/.test(row.body_digest || "")) fail("callback evidence missing sha256 body digest");
+}
+const types = new Set(rows.map((row) => row.callback_type));
+if (!types.has("complete")) fail("complete callback was not accepted");
+if (!types.has("checkpoint")) fail("checkpoint callback was not accepted");
+console.log(`    signed runtime callbacks: ${rows.length} accepted (${[...types].sort().join(", ")})`);
+NODE
+
 echo ""
 echo "    task_id:                       $TASK_ID"
 echo "    runtime_id:                    $RUNTIME_ID"
@@ -507,6 +534,7 @@ echo "    execution_id:                  $EXECUTION_ID"
 echo "    db row id:                     $DB_ROW_ID"
 echo "    receipt verify HTTP status:    $VERIFY_HTTP_STATUS"
 echo "    task verify HTTP status:       $TASK_PROOF_HTTP_STATUS"
+echo "    callback evidence:             $CALLBACK_EVIDENCE_LOG"
 echo "    artifacts:                     $TMP_DIR"
 if [[ -n "$CONSOLE_BASE_URL" ]]; then
   echo "    Console Task Inspector:        $CONSOLE_BASE_URL/execution/tasks/$TASK_ID"
