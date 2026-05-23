@@ -651,12 +651,14 @@ export default function Products() {
                 reliability becomes as important as intelligence itself.
               </p>
               <p>
-                Igris is infrastructure for AI actions. It helps AI systems
-                execute work with recovery, operational boundaries, and
-                verifiable execution records built in. Instead of relying on
-                retries and scattered logs, Igris gives operators a clear view
-                of what happened, what failed, what recovered, and how each
-                action was executed.
+                Igris is infrastructure for AI actions. It helps{' '}
+                <span className="underline decoration-dashed underline-offset-[5px] decoration-gray-400 dark:decoration-[#7a7a72]">
+                  AI systems execute work with recovery, operational boundaries,
+                  and verifiable execution records built in
+                </span>
+                . Instead of relying on retries and scattered logs, Igris gives
+                operators a clear view of what happened, what failed, what
+                recovered, and how each action was executed.
               </p>
               <p>
                 Tasks run with checkpointed recovery, replay safety,
