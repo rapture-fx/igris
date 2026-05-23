@@ -17,8 +17,8 @@ export default function Hero() {
         <div>
           <div className="flex flex-col items-start text-left justify-end pt-12 md:pt-16 pb-4 md:pb-6">
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-6 w-full items-start">
-              <div className="md:col-span-7">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6 w-full items-start">
+              <div className="md:col-span-6">
                 <h1
                   className="text-[#000000] dark:text-[#f6f6f4]"
                   style={{
@@ -41,7 +41,7 @@ export default function Hero() {
               </div>
 
               <p
-                className="md:col-span-5 md:mt-2 text-gray-700 dark:text-[#c8c8b8]"
+                className="md:col-span-6 md:mt-2 text-gray-700 dark:text-[#c8c8b8]"
                 style={{
                   fontFamily: SANS,
                   fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)',
