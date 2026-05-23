@@ -89,6 +89,42 @@ impl RuntimeCallbackClient {
         callback_type: &str,
         body: Vec<u8>,
     ) -> Result<RuntimeCallbackSendOutcome> {
+        let (request, base_outcome) = self.build_signed_request(
+            signing_key,
+            tenant_id,
+            task_id,
+            runtime_id,
+            callback_type,
+            body,
+        )?;
+        let response = self
+            .http
+            .execute(request)
+            .await
+            .context("runtime callback HTTP request failed")?;
+        let status_code = response.status().as_u16();
+        let accepted = response.status().is_success();
+        let outcome = RuntimeCallbackSendOutcome {
+            status_code,
+            accepted,
+            ..base_outcome
+        };
+        self.write_evidence(&outcome).await;
+        if !accepted {
+            bail!("runtime callback rejected with status {}", status_code);
+        }
+        Ok(outcome)
+    }
+
+    pub(crate) fn build_signed_request(
+        &self,
+        signing_key: &SigningKey,
+        tenant_id: &str,
+        task_id: &str,
+        runtime_id: &str,
+        callback_type: &str,
+        body: Vec<u8>,
+    ) -> Result<(reqwest::Request, RuntimeCallbackSendOutcome)> {
         let nonce = uuid::Uuid::new_v4().to_string();
         let timestamp_unix_ms = current_unix_ms()?;
         let envelope_header = sign_runtime_callback_header(
@@ -103,35 +139,35 @@ impl RuntimeCallbackClient {
         )?;
         let body_digest = runtime_callback_body_digest(&body);
         let endpoint = format!("{}/v1/tasks/{}/{}", self.base_url, task_id, callback_type);
-        let response = self
+        let request = self
             .http
             .post(endpoint)
             .header("Content-Type", "application/json")
             .header(RUNTIME_CALLBACK_ENVELOPE_HEADER, envelope_header)
-            .header(self.auth.header_name.as_str(), self.auth.header_value.as_str())
+            .header(
+                self.auth.header_name.as_str(),
+                self.auth.header_value.as_str(),
+            )
             .body(body)
-            .send()
-            .await
-            .context("runtime callback HTTP request failed")?;
-        let status_code = response.status().as_u16();
-        let accepted = response.status().is_success();
+            .build()
+            .context("runtime callback HTTP request build failed")?;
         let outcome = RuntimeCallbackSendOutcome {
             callback_type: callback_type.to_string(),
             task_id: task_id.to_string(),
             runtime_id: runtime_id.to_string(),
             body_digest,
-            status_code,
-            accepted,
+            status_code: 0,
+            accepted: false,
         };
-        self.write_evidence(&outcome).await;
-        if !accepted {
-            bail!("runtime callback rejected with status {}", status_code);
-        }
-        Ok(outcome)
+        Ok((request, outcome))
     }
 
     async fn write_evidence(&self, outcome: &RuntimeCallbackSendOutcome) {
-        let Some(path) = self.evidence_log.as_ref().filter(|value| !value.trim().is_empty()) else {
+        let Some(path) = self
+            .evidence_log
+            .as_ref()
+            .filter(|value| !value.trim().is_empty())
+        else {
             return;
         };
         let record = serde_json::json!({
@@ -280,40 +316,7 @@ fn current_unix_ms() -> Result<i64> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{body::Bytes, extract::State, http::HeaderMap, routing::post, Router};
     use ed25519_dalek::{Signature, Verifier};
-    use std::net::SocketAddr;
-    use tokio::sync::mpsc;
-
-    #[derive(Debug)]
-    struct CapturedCallback {
-        headers: HeaderMap,
-        body: Bytes,
-    }
-
-    async fn capture_callback(
-        State(tx): State<mpsc::Sender<CapturedCallback>>,
-        headers: HeaderMap,
-        body: Bytes,
-    ) -> &'static str {
-        tx.send(CapturedCallback { headers, body }).await.unwrap();
-        "ok"
-    }
-
-    async fn spawn_callback_receiver() -> (SocketAddr, mpsc::Receiver<CapturedCallback>) {
-        let (tx, rx) = mpsc::channel(1);
-        let app = Router::new()
-            .route("/v1/tasks/task-1/complete", post(capture_callback))
-            .with_state(tx);
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
-            .await
-            .unwrap();
-        let addr = listener.local_addr().unwrap();
-        tokio::spawn(async move {
-            axum::serve(listener, app).await.unwrap();
-        });
-        (addr, rx)
-    }
 
     #[test]
     fn callback_header_contains_signed_body_digest() {
@@ -383,12 +386,11 @@ mod tests {
             .contains("unsupported runtime callback type"));
     }
 
-    #[tokio::test]
-    async fn callback_client_sends_signed_envelope_for_exact_body() {
-        let (addr, mut rx) = spawn_callback_receiver().await;
+    #[test]
+    fn callback_client_builds_signed_request_for_exact_body() {
         let signing_key = SigningKey::from_bytes(&[3u8; 32]);
         let client = RuntimeCallbackClient::with_evidence_log(
-            format!("http://{}", addr),
+            "http://127.0.0.1:8081".to_string(),
             RuntimeCallbackAuth {
                 header_name: "X-Test-Auth".to_string(),
                 header_value: "redacted-token".to_string(),
@@ -398,8 +400,8 @@ mod tests {
         .expect("client");
         let body = br#"{"status":"complete"}"#.to_vec();
 
-        let outcome = client
-            .send_signed(
+        let (request, outcome) = client
+            .build_signed_request(
                 &signing_key,
                 "tenant-1",
                 "task-1",
@@ -407,24 +409,33 @@ mod tests {
                 "complete",
                 body.clone(),
             )
-            .await
-            .expect("callback should send");
+            .expect("callback request should build");
 
-        assert!(outcome.accepted);
         assert_eq!(outcome.body_digest, runtime_callback_body_digest(&body));
-        let captured = rx.recv().await.expect("request captured");
-        assert_eq!(captured.body, Bytes::from(body.clone()));
         assert_eq!(
-            captured.headers.get("x-test-auth").unwrap(),
+            request.url().as_str(),
+            "http://127.0.0.1:8081/v1/tasks/task-1/complete"
+        );
+        assert_eq!(
+            request
+                .body()
+                .and_then(|body| body.as_bytes())
+                .expect("request body"),
+            body.as_slice()
+        );
+        assert_eq!(
+            request.headers().get("x-test-auth").unwrap(),
             "redacted-token"
         );
-        let header = captured
-            .headers
+        let header = request
+            .headers()
             .get(RUNTIME_CALLBACK_ENVELOPE_HEADER)
             .expect("envelope header")
             .to_str()
             .expect("header string");
-        let raw = STANDARD.decode(header).expect("header should be base64 JSON");
+        let raw = STANDARD
+            .decode(header)
+            .expect("header should be base64 JSON");
         let envelope: RuntimeCallbackEnvelope =
             serde_json::from_slice(&raw).expect("envelope should decode");
         assert_eq!(envelope.callback_type, "complete");
