@@ -151,7 +151,7 @@ export default function Faq() {
   return (
     <>
       <section id="faq" className="bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-        <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
           <div className="relative px-2 md:px-4 lg:px-6 min-h-0 flex flex-col">
             <div className="flex flex-col items-center" style={{ paddingTop: '14rem', paddingBottom: '14rem' }}>
 
