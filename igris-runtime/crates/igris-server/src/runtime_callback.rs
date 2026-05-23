@@ -280,7 +280,40 @@ fn current_unix_ms() -> Result<i64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{body::Bytes, extract::State, http::HeaderMap, routing::post, Router};
     use ed25519_dalek::{Signature, Verifier};
+    use std::net::SocketAddr;
+    use tokio::sync::mpsc;
+
+    #[derive(Debug)]
+    struct CapturedCallback {
+        headers: HeaderMap,
+        body: Bytes,
+    }
+
+    async fn capture_callback(
+        State(tx): State<mpsc::Sender<CapturedCallback>>,
+        headers: HeaderMap,
+        body: Bytes,
+    ) -> &'static str {
+        tx.send(CapturedCallback { headers, body }).await.unwrap();
+        "ok"
+    }
+
+    async fn spawn_callback_receiver() -> (SocketAddr, mpsc::Receiver<CapturedCallback>) {
+        let (tx, rx) = mpsc::channel(1);
+        let app = Router::new()
+            .route("/v1/tasks/task-1/complete", post(capture_callback))
+            .with_state(tx);
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        (addr, rx)
+    }
 
     #[test]
     fn callback_header_contains_signed_body_digest() {
@@ -348,5 +381,74 @@ mod tests {
         assert!(err
             .to_string()
             .contains("unsupported runtime callback type"));
+    }
+
+    #[tokio::test]
+    async fn callback_client_sends_signed_envelope_for_exact_body() {
+        let (addr, mut rx) = spawn_callback_receiver().await;
+        let signing_key = SigningKey::from_bytes(&[3u8; 32]);
+        let client = RuntimeCallbackClient::with_evidence_log(
+            format!("http://{}", addr),
+            RuntimeCallbackAuth {
+                header_name: "X-Test-Auth".to_string(),
+                header_value: "redacted-token".to_string(),
+            },
+            None,
+        )
+        .expect("client");
+        let body = br#"{"status":"complete"}"#.to_vec();
+
+        let outcome = client
+            .send_signed(
+                &signing_key,
+                "tenant-1",
+                "task-1",
+                "runtime-1",
+                "complete",
+                body.clone(),
+            )
+            .await
+            .expect("callback should send");
+
+        assert!(outcome.accepted);
+        assert_eq!(outcome.body_digest, runtime_callback_body_digest(&body));
+        let captured = rx.recv().await.expect("request captured");
+        assert_eq!(captured.body, Bytes::from(body.clone()));
+        assert_eq!(
+            captured.headers.get("x-test-auth").unwrap(),
+            "redacted-token"
+        );
+        let header = captured
+            .headers
+            .get(RUNTIME_CALLBACK_ENVELOPE_HEADER)
+            .expect("envelope header")
+            .to_str()
+            .expect("header string");
+        let raw = STANDARD.decode(header).expect("header should be base64 JSON");
+        let envelope: RuntimeCallbackEnvelope =
+            serde_json::from_slice(&raw).expect("envelope should decode");
+        assert_eq!(envelope.callback_type, "complete");
+        assert_eq!(envelope.body_digest, runtime_callback_body_digest(&body));
+
+        let canonical = canonical_runtime_callback_envelope(
+            &envelope.tenant_id,
+            &envelope.task_id,
+            &envelope.runtime_id,
+            &envelope.callback_type,
+            &envelope.body_digest,
+            &envelope.nonce,
+            envelope.timestamp_unix_ms,
+        )
+        .expect("canonical envelope should encode");
+        let digest = Sha256::digest(canonical);
+        let signature_bytes = STANDARD
+            .decode(&envelope.signature)
+            .expect("signature should decode");
+        let signature = Signature::from_slice(&signature_bytes).expect("signature length");
+
+        signing_key
+            .verifying_key()
+            .verify(&digest, &signature)
+            .expect("signature should verify");
     }
 }
