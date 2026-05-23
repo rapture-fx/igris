@@ -633,7 +633,7 @@ export default function Products() {
                 maxWidth: '22ch',
               }}
             >
-              Run agent actions you can recover and prove.
+              Built for AI systems operating in the real world.
             </h2>
             <p
               className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
