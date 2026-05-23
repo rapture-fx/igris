@@ -2,8 +2,12 @@ package api
 
 import (
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -30,6 +34,11 @@ type queuedRouteQueryExpectation struct {
 type queuedRouteExecExpectation struct {
 	rowsAffected int64
 	err          error
+}
+
+type signedRuntimeCallbackFixture struct {
+	publicKey  ed25519.PublicKey
+	privateKey ed25519.PrivateKey
 }
 
 type queuedRouteDriver struct {
@@ -163,6 +172,61 @@ func (r *queuedRouteRows) Next(dest []driver.Value) error {
 	copy(dest, r.values[r.index])
 	r.index++
 	return nil
+}
+
+func newSignedRuntimeCallbackFixture(t *testing.T) signedRuntimeCallbackFixture {
+	t.Helper()
+	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	return signedRuntimeCallbackFixture{publicKey: publicKey, privateKey: privateKey}
+}
+
+func signRuntimeCallbackHeader(t *testing.T, fixture signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID, callbackType string, body []byte, nonce string, timestamp time.Time) string {
+	t.Helper()
+	envelope := map[string]any{
+		"version":           runtimeCallbackVersion,
+		"tenant_id":         tenantID,
+		"task_id":           taskID.String(),
+		"runtime_id":        runtimeID,
+		"callback_type":     callbackType,
+		"body_digest":       sha256Hex(body),
+		"timestamp_unix_ms": timestamp.UnixMilli(),
+		"nonce":             nonce,
+		"algorithm":         runtimeCallbackAlgorithm,
+	}
+	canonical, err := json.Marshal(envelope)
+	require.NoError(t, err)
+	sum := sha256.Sum256(canonical)
+	envelope["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(fixture.privateKey, sum[:]))
+	raw, err := json.Marshal(envelope)
+	require.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(raw)
+}
+
+func runtimePublicKeyQueryExpectation(publicKey ed25519.PublicKey) queuedRouteQueryExpectation {
+	return queuedRouteQueryExpectation{
+		columns: []string{"public_key_ed25519"},
+		rows:    [][]driver.Value{{hex.EncodeToString(publicKey)}},
+	}
+}
+
+func runtimeCallbackNonceExecExpectation() queuedRouteExecExpectation {
+	return queuedRouteExecExpectation{rowsAffected: 1}
+}
+
+func attachRuntimeCallbackHeader(t *testing.T, req *http.Request, fixture signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID, callbackType string, body []byte) {
+	t.Helper()
+	req.Header.Set(runtimeCallbackEnvelopeHeader, signRuntimeCallbackHeader(
+		t,
+		fixture,
+		tenantID,
+		taskID,
+		runtimeID,
+		callbackType,
+		body,
+		uuid.NewString(),
+		time.Now().UTC(),
+	))
 }
 
 func taskRecordRouteRow(taskID uuid.UUID, tenantID string, status coordinator.TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *coordinator.CheckpointPayload, idempotencyKey string, failureReason *string, canceledAt, completedAt *time.Time, createdAt time.Time, failureDetails ...*coordinator.TaskFailureDetails) []driver.Value {
