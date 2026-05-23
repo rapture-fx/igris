@@ -658,6 +658,18 @@ export default function Products() {
             <div className="mt-8">
               <InstallCommand />
             </div>
+            <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
+              <img
+                src="/rohzf.png"
+                alt=""
+                className="block w-full h-auto select-none"
+                draggable={false}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-white dark:to-dark-bg"
+              />
+            </div>
           </div>
         </div>
       </div>
