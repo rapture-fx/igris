@@ -11,6 +11,11 @@ tenant ID, task ID, runtime ID, callback type, timestamp, nonce, and Ed25519
 signature. Stale, replayed, wrong-runtime, malformed, and body-tampered
 checkpoint callbacks are rejected before checkpoint persistence.
 
+In the Rust runtime path, checkpoint callbacks are sent live when Overture
+dispatches callback configuration to the runtime. Completion and failure
+callbacks use the same signed envelope mechanism. The synchronous submit
+response remains in place for execution artifact and receipt persistence.
+
 Recovery events are persisted for runtime failure detection, checkpoint
 selection, handoff allow/deny, redispatch, skip, and failure. These events are
 operator-readable and safe to expose.
