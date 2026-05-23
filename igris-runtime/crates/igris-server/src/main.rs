@@ -40,6 +40,7 @@ mod deployment_security;
 mod lifecycle;
 mod namespace;
 mod receipt;
+mod runtime_callback;
 mod runtime_identity;
 mod transaction;
 use igris_btree::prelude::*;
