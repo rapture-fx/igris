@@ -229,6 +229,57 @@ func attachRuntimeCallbackHeader(t *testing.T, req *http.Request, fixture signed
 	))
 }
 
+func runtimeCallbackHeaderWithOptions(t *testing.T, fixture signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID, callbackType string, signedBody []byte, nonce string, timestamp time.Time, includeSignature bool) string {
+	t.Helper()
+	envelope := map[string]any{
+		"version":           runtimeCallbackVersion,
+		"tenant_id":         tenantID,
+		"task_id":           taskID.String(),
+		"runtime_id":        runtimeID,
+		"callback_type":     callbackType,
+		"body_digest":       sha256Hex(signedBody),
+		"timestamp_unix_ms": timestamp.UnixMilli(),
+		"nonce":             nonce,
+		"algorithm":         runtimeCallbackAlgorithm,
+	}
+	if includeSignature {
+		canonical, err := json.Marshal(envelope)
+		require.NoError(t, err)
+		sum := sha256.Sum256(canonical)
+		envelope["signature"] = base64.StdEncoding.EncodeToString(ed25519.Sign(fixture.privateKey, sum[:]))
+	}
+	raw, err := json.Marshal(envelope)
+	require.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(raw)
+}
+
+func runtimeCallbackTaskQuery(taskID uuid.UUID, tenantID string, status coordinator.TaskRecordStatus, runtimeID string, createdAt time.Time) queuedRouteQueryExpectation {
+	return queuedRouteQueryExpectation{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			status,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+			nil,
+			"idem-runtime-callback-test",
+			nil,
+			nil,
+			nil,
+			createdAt,
+		)},
+	}
+}
+
 func taskRecordRouteRow(taskID uuid.UUID, tenantID string, status coordinator.TaskRecordStatus, runtimeID, runtimeEndpoint string, taskDefinition json.RawMessage, checkpoint *coordinator.CheckpointPayload, idempotencyKey string, failureReason *string, canceledAt, completedAt *time.Time, createdAt time.Time, failureDetails ...*coordinator.TaskFailureDetails) []driver.Value {
 	var checkpointBytes []byte
 	if checkpoint != nil {
@@ -1945,7 +1996,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
-	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "checkpoint", checkpointBytes)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	if resp.StatusCode != http.StatusConflict {
