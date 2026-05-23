@@ -285,6 +285,19 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	runtimePayload["task_id"] = taskIDBytes
 	runtimePayload["tenant_id"] = tenantIDBytes
 	runtimePayload["idempotency_key"] = idempotencyBytes
+	if callbackBaseURL := strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_CALLBACK_BASE_URL")); callbackBaseURL != "" {
+		callbackBaseURLBytes, _ := json.Marshal(callbackBaseURL)
+		runtimePayload["callback_base_url"] = callbackBaseURLBytes
+		callbackHeaderName := strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME"))
+		callbackHeaderValue := strings.TrimSpace(os.Getenv("IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE"))
+		if callbackHeaderName != "" && callbackHeaderValue != "" {
+			callbackAuthBytes, _ := json.Marshal(map[string]string{
+				"header_name":  callbackHeaderName,
+				"header_value": callbackHeaderValue,
+			})
+			runtimePayload["callback_auth"] = callbackAuthBytes
+		}
+	}
 
 	if checkpoint != nil {
 		// resume_from carries the WAL watermark for digest verification.
