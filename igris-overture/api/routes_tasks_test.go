@@ -1583,7 +1583,7 @@ func TestHandleTaskCheckpointRejectsWrongRuntime(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
-	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "checkpoint", checkpointBytes)
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -1858,6 +1858,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 	taskID := uuid.New()
 	tenantID := "tenant-checkpoint-conflict"
 	runtimeID := "runtime-checkpoint-conflict"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_500, 0).UTC()
 	canceledAt := createdAt.Add(20 * time.Second)
 	checkpoint := &coordinator.CheckpointPayload{
@@ -1901,6 +1902,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{"last_checkpoint"},
 				rows:    [][]driver.Value{{nil}},
@@ -1930,6 +1932,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 0},
 	)
 
@@ -1942,6 +1945,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
@@ -1976,6 +1980,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel
 	taskID := uuid.New()
 	tenantID := "tenant-complete-conflict"
 	runtimeID := "runtime-complete-conflict"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_600, 0).UTC()
 	canceledAt := createdAt.Add(25 * time.Second)
 
@@ -2005,6 +2010,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
@@ -2030,6 +2036,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 0},
 	)
 
@@ -2041,6 +2048,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentCancel
 	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "complete", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
@@ -2070,6 +2078,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 	taskID := uuid.New()
 	tenantID := "tenant-failed-conflict"
 	runtimeID := "runtime-failed-conflict"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_700, 0).UTC()
 	canceledAt := createdAt.Add(40 * time.Second)
 
@@ -2099,6 +2108,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
@@ -2124,6 +2134,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 0},
 	)
 
@@ -2136,6 +2147,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentCancel(t
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"runtime surfaced late failure"}`))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
@@ -2165,6 +2177,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentFail
 	taskID := uuid.New()
 	tenantID := "tenant-checkpoint-failed-conflict"
 	runtimeID := "runtime-checkpoint-failed-conflict"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_710, 0).UTC()
 	checkpoint := &coordinator.CheckpointPayload{
 		TaskID: taskID,
@@ -2218,6 +2231,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentFail
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{"last_checkpoint"},
 				rows:    [][]driver.Value{{nil}},
@@ -2248,6 +2262,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentFail
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 0},
 	)
 
@@ -2260,6 +2275,7 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentFail
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "checkpoint", checkpointBytes)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
@@ -2299,6 +2315,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentFailed
 	taskID := uuid.New()
 	tenantID := "tenant-complete-failed-conflict"
 	runtimeID := "runtime-complete-failed-conflict"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_720, 0).UTC()
 	failureReason := "runtime resume rejected (checkpoint_mismatch): Checkpoint digest mismatch - WAL state diverged"
 	failureDetails := &coordinator.TaskFailureDetails{
@@ -2335,6 +2352,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentFailed
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
@@ -2361,6 +2379,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentFailed
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 0},
 	)
 
@@ -2372,6 +2391,7 @@ func TestHandleTaskCompleteReturnsTransitionRejectedPayloadAfterConcurrentFailed
 	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "complete", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
@@ -2402,6 +2422,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentFailed(t
 	taskID := uuid.New()
 	tenantID := "tenant-failed-failed-conflict"
 	runtimeID := "runtime-failed-failed-conflict"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_730, 0).UTC()
 	failureReason := "no runtime available for recovery"
 	failureDetails := &coordinator.TaskFailureDetails{
@@ -2437,6 +2458,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentFailed(t
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
@@ -2463,6 +2485,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentFailed(t
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 0},
 	)
 
@@ -2475,6 +2498,7 @@ func TestHandleTaskFailedReturnsTransitionRejectedPayloadAfterConcurrentFailed(t
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"runtime surfaced late failure"}`))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
