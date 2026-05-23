@@ -699,6 +699,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
         let request_hash = format!(
             "{:x}",
@@ -805,6 +807,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
         let request_hash = format!(
             "{:x}",
