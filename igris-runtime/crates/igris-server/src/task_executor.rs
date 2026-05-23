@@ -35,6 +35,7 @@ use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog, WalS
 use std::sync::Arc;
 
 use crate::receipt::ExecutionReceipt;
+use crate::runtime_callback::{RuntimeCallbackAuth, RuntimeCallbackClient};
 use crate::runtime_execute::{
     canonical_envelope_bytes, iso8601_now, token_estimate, Bounds, ExecuteMessage, ExecuteUsage,
     ExecutionEnvelope, WorkerExecuteJob, WorkerExecuteResult,
@@ -453,6 +454,10 @@ pub struct TaskSubmitRequest {
     pub(crate) signed_policy_decisions: Vec<GovernedPolicyDecision>,
     #[serde(default)]
     pub deadline_ms: Option<u64>,
+    #[serde(default)]
+    pub callback_base_url: Option<String>,
+    #[serde(default)]
+    pub callback_auth: Option<RuntimeCallbackAuth>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -1024,6 +1029,11 @@ pub async fn handle_task_submit(
                     execution_receipt: None,
                 };
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+                if let Err(callback_err) =
+                    send_failed_callback(&state, &req, "behavior tree execution error").await
+                {
+                    return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+                }
                 return (StatusCode::OK, Json(response)).into_response();
             }
         };
@@ -1085,6 +1095,42 @@ pub async fn handle_task_submit(
             execution_receipt: None,
         };
         let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+        match &response.status {
+            TaskStatus::Completed => {
+                if let Some(ref cp) = response.checkpoint {
+                    if let Err(callback_err) = send_checkpoint_callback(&state, &req, cp).await {
+                        return runtime_callback_failure_response(
+                            req.task_id,
+                            "checkpoint",
+                            callback_err,
+                        );
+                    }
+                }
+                if let Err(callback_err) = send_complete_callback(&state, &req).await {
+                    return runtime_callback_failure_response(
+                        req.task_id,
+                        "complete",
+                        callback_err,
+                    );
+                }
+            }
+            TaskStatus::Checkpointed { .. } => {
+                if let Some(ref cp) = response.checkpoint {
+                    if let Err(callback_err) = send_checkpoint_callback(&state, &req, cp).await {
+                        return runtime_callback_failure_response(
+                            req.task_id,
+                            "checkpoint",
+                            callback_err,
+                        );
+                    }
+                }
+            }
+            TaskStatus::Failed { reason } => {
+                if let Err(callback_err) = send_failed_callback(&state, &req, reason).await {
+                    return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+                }
+            }
+        }
         return (StatusCode::OK, Json(response)).into_response();
     }
 
@@ -1165,6 +1211,11 @@ pub async fn handle_task_submit(
                 execution_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            if let Err(callback_err) =
+                send_lifecycle_callbacks_for_response(&state, &req, &response).await
+            {
+                return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+            }
             return (
                 StatusCode::OK,
                 Json(task_submit_response_with_step_receipts(
@@ -1193,6 +1244,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            if let Err(callback_err) =
+                send_lifecycle_callbacks_for_response(&state, &req, &response).await
+            {
+                return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+            }
             return (
                 StatusCode::OK,
                 Json(task_submit_response_with_step_receipts(
@@ -1238,6 +1294,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            if let Err(callback_err) =
+                send_lifecycle_callbacks_for_response(&state, &req, &response).await
+            {
+                return runtime_callback_failure_response(req.task_id, "checkpoint", callback_err);
+            }
             return (
                 StatusCode::OK,
                 Json(task_submit_response_with_step_receipts(
@@ -1369,6 +1430,11 @@ pub async fn handle_task_submit(
                     execution_receipt,
                 };
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+                if let Err(callback_err) =
+                    send_lifecycle_callbacks_for_response(&state, &req, &response).await
+                {
+                    return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+                }
                 return (
                     StatusCode::OK,
                     Json(task_submit_response_with_step_receipts(
@@ -1401,6 +1467,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            if let Err(callback_err) =
+                send_lifecycle_callbacks_for_response(&state, &req, &response).await
+            {
+                return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+            }
             return (
                 StatusCode::OK,
                 Json(task_submit_response_with_step_receipts(
@@ -1453,6 +1524,11 @@ pub async fn handle_task_submit(
                 execution_receipt: last_receipt,
             };
             let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            if let Err(callback_err) =
+                send_lifecycle_callbacks_for_response(&state, &req, &response).await
+            {
+                return runtime_callback_failure_response(req.task_id, "checkpoint", callback_err);
+            }
             return (
                 StatusCode::OK,
                 Json(task_submit_response_with_step_receipts(
@@ -1647,6 +1723,10 @@ pub async fn handle_task_submit(
         execution_receipt: last_receipt,
     };
     let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+    if let Err(callback_err) = send_lifecycle_callbacks_for_response(&state, &req, &response).await
+    {
+        return runtime_callback_failure_response(req.task_id, "complete", callback_err);
+    }
 
     (
         StatusCode::OK,
@@ -1814,6 +1894,8 @@ pub async fn handle_task_stream(
         credential_refs: req.credential_refs.clone(),
         signed_policy_decisions: req.signed_policy_decisions.clone(),
         deadline_ms: req.deadline_ms,
+        callback_base_url: req.callback_base_url.clone(),
+        callback_auth: req.callback_auth.clone(),
     };
 
     let required_capabilities = effective_required_capabilities(&stream_task);
@@ -2210,6 +2292,123 @@ fn should_checkpoint_after_steps(
 
 fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
     format!("{}:{}", tenant_id, idempotency_key)
+}
+
+fn runtime_callback_client(
+    req: &TaskSubmitRequest,
+) -> Result<Option<RuntimeCallbackClient>, String> {
+    let base_url = req
+        .callback_base_url
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let auth = req.callback_auth.clone();
+    match (base_url, auth) {
+        (None, None) => Ok(None),
+        (Some(_), None) => Err("runtime callback auth missing".to_string()),
+        (None, Some(_)) => Err("runtime callback base URL missing".to_string()),
+        (Some(base_url), Some(auth)) => RuntimeCallbackClient::new(base_url.to_string(), auth)
+            .map(Some)
+            .map_err(|err| err.to_string()),
+    }
+}
+
+async fn send_runtime_callback(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    callback_type: &str,
+    body: Vec<u8>,
+) -> Result<(), String> {
+    let Some(client) = runtime_callback_client(req)? else {
+        return Ok(());
+    };
+    let signing_key = state
+        .signing_key
+        .as_ref()
+        .ok_or_else(|| "runtime callback signing key missing".to_string())?;
+    let runtime_id = crate::governed_runtime_id(state).to_string();
+    client
+        .send_signed(
+            signing_key.as_ref(),
+            &req.tenant_id,
+            &req.task_id.to_string(),
+            &runtime_id,
+            callback_type,
+            body,
+        )
+        .await
+        .map(|_| ())
+        .map_err(|err| err.to_string())
+}
+
+fn runtime_callback_failure_response(
+    task_id: Uuid,
+    callback_type: &str,
+    reason: String,
+) -> Response {
+    warn!(
+        task_id = %task_id,
+        callback_type,
+        "Runtime callback delivery failed: {}",
+        reason
+    );
+    (
+        StatusCode::BAD_GATEWAY,
+        Json(serde_json::json!({
+            "error": {
+                "message": "Runtime callback delivery failed",
+                "type": "runtime_callback_failed",
+                "callback_type": callback_type
+            }
+        })),
+    )
+        .into_response()
+}
+
+async fn send_checkpoint_callback(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    checkpoint: &CheckpointPayload,
+) -> Result<(), String> {
+    let body = serde_json::to_vec(checkpoint)
+        .map_err(|_| "checkpoint callback body serialization failed".to_string())?;
+    send_runtime_callback(state, req, "checkpoint", body).await
+}
+
+async fn send_complete_callback(state: &AppState, req: &TaskSubmitRequest) -> Result<(), String> {
+    send_runtime_callback(state, req, "complete", Vec::new()).await
+}
+
+async fn send_failed_callback(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    reason: &str,
+) -> Result<(), String> {
+    let body = serde_json::to_vec(&serde_json::json!({ "reason": reason }))
+        .map_err(|_| "failed callback body serialization failed".to_string())?;
+    send_runtime_callback(state, req, "failed", body).await
+}
+
+async fn send_lifecycle_callbacks_for_response(
+    state: &AppState,
+    req: &TaskSubmitRequest,
+    response: &TaskSubmitResponse,
+) -> Result<(), String> {
+    match &response.status {
+        TaskStatus::Completed => {
+            if let Some(ref checkpoint) = response.checkpoint {
+                send_checkpoint_callback(state, req, checkpoint).await?;
+            }
+            send_complete_callback(state, req).await
+        }
+        TaskStatus::Checkpointed { .. } => {
+            if let Some(ref checkpoint) = response.checkpoint {
+                send_checkpoint_callback(state, req, checkpoint).await?;
+            }
+            Ok(())
+        }
+        TaskStatus::Failed { reason } => send_failed_callback(state, req, reason).await,
+    }
 }
 
 fn task_status_key(task_id: Uuid) -> String {
@@ -5860,6 +6059,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
 
         let required_capabilities = effective_required_capabilities(&req);
@@ -6003,6 +6204,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
         let step = RuntimeTaskStep::Tool(ToolStep {
             step_index: 0,
@@ -6054,6 +6257,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
 
         let required_capabilities = effective_required_capabilities(&req);
@@ -6103,6 +6308,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
 
         let required_capabilities = effective_required_capabilities(&req);
@@ -7012,6 +7219,8 @@ mod tests {
             credential_refs: Vec::new(),
             signed_policy_decisions: Vec::new(),
             deadline_ms: None,
+            callback_base_url: None,
+            callback_auth: None,
         };
 
         let start_step = verified_resume_start_step_from_local_or_checkpoint(&wal, &req, &token)
