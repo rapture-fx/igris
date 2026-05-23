@@ -639,28 +639,38 @@ export default function Products() {
             >
               Built for AI systems operating in the real world.
             </h2>
-            <p
-              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
+            <div
+              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
               style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
             >
-              AI systems should be able to operate in real environments without
-              becoming difficult to understand, unreliable, or impossible to
-              trust. As agents begin interacting with infrastructure, APIs,
-              files, workflows, and eventually physical systems, execution
-              reliability becomes as important as intelligence itself. Igris is
-              building infrastructure for AI actions - helping AI systems
-              execute work with recovery, operational boundaries, and verifiable
-              execution records built in. Instead of relying on retries and
-              scattered logs, Igris gives operators visibility into what
-              happened, what failed, what recovered, and how actions were
-              executed across runtimes and environments. Tasks execute with
-              checkpointed recovery, replay safety, runtime-aware boundaries,
-              and execution verification, allowing teams to inspect failures,
-              validate execution paths, and operate AI systems with real
-              operational control as agents begin handling more critical work.
-            </p>
-            <div className="mt-8">
-              <InstallCommand />
+              <p>
+                AI systems should be able to operate in real environments
+                without becoming unreliable, hard to understand, or impossible
+                to trust. As agents begin interacting with infrastructure, APIs,
+                files, workflows, and eventually physical systems, execution
+                reliability becomes as important as intelligence itself.
+              </p>
+              <p>
+                Igris is infrastructure for AI actions. It helps AI systems
+                execute work with recovery, operational boundaries, and
+                verifiable execution records built in. Instead of relying on
+                retries and scattered logs, Igris gives operators a clear view
+                of what happened, what failed, what recovered, and how each
+                action was executed.
+              </p>
+              <p>
+                Tasks run with checkpointed recovery, replay safety,
+                runtime-aware boundaries, and execution verification. Install
+                Igris with{' '}
+                <code
+                  className="inline-flex items-baseline rounded-md px-1.5 py-0.5 border bg-gray-50 dark:bg-white/[0.04] border-gray-200 dark:border-[rgba(246,246,244,0.12)] text-gray-800 dark:text-[#c8c8b8] align-baseline whitespace-nowrap"
+                  style={{ fontFamily: MONO, fontSize: '0.85em' }}
+                >
+                  {INSTALL_CMD}
+                </code>
+                {' '}to start running agent actions with recovery and proof
+                built in.
+              </p>
             </div>
             <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
               <img
