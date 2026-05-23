@@ -1948,6 +1948,10 @@ func TestHandleTaskCheckpointReturnsTransitionRejectedPayloadAfterConcurrentCanc
 	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
 	resp, err := app.Test(req)
 	require.NoError(t, err)
+	if resp.StatusCode != http.StatusConflict {
+		raw, _ := io.ReadAll(resp.Body)
+		t.Fatalf("status = %d, want %d, body=%s", resp.StatusCode, http.StatusConflict, string(raw))
+	}
 	require.Equal(t, http.StatusConflict, resp.StatusCode)
 
 	var body map[string]any
