@@ -44,7 +44,7 @@ export default function Hero() {
                 className="md:col-span-6 md:mt-2 text-gray-700 dark:text-[#c8c8b8]"
                 style={{
                   fontFamily: SANS,
-                  fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)',
+                  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
                   lineHeight: 1.65,
                 }}
               >
