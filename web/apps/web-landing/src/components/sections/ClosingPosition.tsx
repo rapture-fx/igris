@@ -10,7 +10,7 @@ export default function ClosingPosition() {
       <div className="px-0">
         <div className="px-0">
 
-          <div className="pt-12 md:pt-20 pb-12 md:pb-20">
+          <div className="pt-24 md:pt-40 pb-24 md:pb-40 min-h-[70vh] flex items-center">
             <h2
               className="text-[#000000] dark:text-[#f6f6f4]"
               style={{
