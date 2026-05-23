@@ -1,500 +1,504 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
-// Mirrors the actual web-console history/logs page — three view modes with
-// real EventType / Severity vocabulary and real RequestTrace columns.
+// ──────────────────────────────────────────────────────────────────
+// One in-flight task as Igris would render it.
+// ──────────────────────────────────────────────────────────────────
 
-type Severity = 'info' | 'warning' | 'error' | 'critical'
-type EventType =
-  | 'TaskAccepted'
-  | 'ExecutionAssigned'
-  | 'ActionCommitted'
-  | 'ActionRetry'
-  | 'PolicyViolation'
-  | 'ChainVerified'
-  | 'ReceiptSigned'
+type StepKind = 'action' | 'fault'
+type StepStatus = 'committed' | 'running'
 
-interface EventRow {
+interface Step {
   id: string
-  time: string
-  severity: Severity
-  event_type: EventType
-  message: string
-  exec_id?: string
-  latency_ms?: number
+  kind: StepKind
+  num?: string
+  name: string
+  detail: string
+  latency?: number
+  status: StepStatus
+  receipt?: string
+  signed_at?: string
 }
 
-interface ReceiptRow {
-  id: string
-  task_id: string
-  action: string
-  committed_at: string
-  receipt: 'signed'
-  chain: 'valid' | 'pending'
-  chain_ref: string
-}
-
-const ALL_EVENTS: EventRow[] = [
-  { id: '1',  time: '14:07:42', severity: 'info',    event_type: 'TaskAccepted',       message: 'task_019de343 accepted · 3 actions queued',                          exec_id: 'task_019de343' },
-  { id: '2',  time: '14:07:42', severity: 'info',    event_type: 'ExecutionAssigned',  message: 'assigned to verified worker · recovery enabled',                     exec_id: 'task_019de343', latency_ms: 23 },
-  { id: '3',  time: '14:07:42', severity: 'info',    event_type: 'ActionCommitted',    message: 'read approved file · /uploads/policy-v3.pdf · 1.2KB digest',         exec_id: 'task_019de343', latency_ms: 12 },
-  { id: '4',  time: '14:07:42', severity: 'info',    event_type: 'ActionCommitted',    message: 'call approved API · POST /v3/sync · 200 OK',                         exec_id: 'task_019de343', latency_ms: 38 },
-  { id: '5',  time: '14:07:42', severity: 'warning', event_type: 'ActionRetry',        message: 'call approved API · 503 · retry 1/3 · backoff 250ms',                exec_id: 'task_019de343', latency_ms: 250 },
-  { id: '6',  time: '14:07:42', severity: 'info',    event_type: 'ActionCommitted',    message: 'call approved API · retry 2 succeeded',                              exec_id: 'task_019de343', latency_ms: 42 },
-  { id: '7',  time: '14:07:42', severity: 'info',    event_type: 'ActionCommitted',    message: 'write approved record · orders_fulfilled · row r_8421',              exec_id: 'task_019de343', latency_ms: 18 },
-  { id: '8',  time: '14:07:43', severity: 'info',    event_type: 'ReceiptSigned',      message: 'receipt signed · chain assembled · 3 commits',                       exec_id: 'task_019de343' },
-  { id: '9',  time: '14:07:43', severity: 'info',    event_type: 'ChainVerified',      message: 'chain valid · 3 actions · 185ms · 0 replays',                        exec_id: 'task_019de343' },
-  { id: '10', time: '14:07:44', severity: 'info',    event_type: 'TaskAccepted',       message: 'task_019de421 accepted · 3 actions queued',                          exec_id: 'task_019de421' },
-  { id: '11', time: '14:07:44', severity: 'info',    event_type: 'ActionCommitted',    message: 'read approved file · /uploads/order-batch-12.csv · 4.8KB digest',    exec_id: 'task_019de421', latency_ms: 9 },
-  { id: '12', time: '14:07:44', severity: 'info',    event_type: 'ActionCommitted',    message: 'call approved API · POST /v3/sync · 200 OK',                         exec_id: 'task_019de421', latency_ms: 31 },
-  { id: '13', time: '14:07:44', severity: 'info',    event_type: 'ActionCommitted',    message: 'write approved record · orders_fulfilled · row r_8422',              exec_id: 'task_019de421', latency_ms: 14 },
-  { id: '14', time: '14:07:45', severity: 'info',    event_type: 'ReceiptSigned',      message: 'receipt signed · chain assembled · 3 commits',                       exec_id: 'task_019de421' },
+const TASK_STEPS: Step[] = [
+  { id: 's1', kind: 'action', num: '01', name: 'read_file', detail: '/uploads/policy-v3.pdf · 1.2KB digest',                       latency: 12, status: 'committed', receipt: 'r₀₁', signed_at: '14:07:42.218' },
+  { id: 's2', kind: 'action', num: '02', name: 'http_call', detail: 'POST /v3/sync · 200 OK',                                       latency: 38, status: 'committed', receipt: 'r₀₂', signed_at: '14:07:42.481' },
+  { id: 's3', kind: 'fault',             name: 'HostFault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b', latency: 31, status: 'committed' },
+  { id: 's4', kind: 'action', num: '03', name: 'http_call', detail: 'retry 2 of 3 succeeded',                                       latency: 42, status: 'committed', receipt: 'r₀₃', signed_at: '14:07:43.014' },
+  { id: 's5', kind: 'action', num: '04', name: 'db_write',  detail: 'orders_fulfilled · r_8421',                                                 status: 'running' },
 ]
 
-const ALL_RECEIPTS: ReceiptRow[] = [
-  { id: 'r1', task_id: 'task_019de343', action: 'read approved file · /uploads/policy-v3.pdf',     committed_at: '14:07:42', receipt: 'signed', chain: 'valid', chain_ref: 'chain_8f2c…a017' },
-  { id: 'r2', task_id: 'task_019de343', action: 'call approved API · POST /v3/sync',               committed_at: '14:07:42', receipt: 'signed', chain: 'valid', chain_ref: 'chain_8f2c…a017' },
-  { id: 'r3', task_id: 'task_019de343', action: 'write approved record · orders_fulfilled r_8421', committed_at: '14:07:42', receipt: 'signed', chain: 'valid', chain_ref: 'chain_8f2c…a017' },
-  { id: 'r4', task_id: 'task_019de421', action: 'read approved file · /uploads/order-batch-12.csv', committed_at: '14:07:44', receipt: 'signed', chain: 'pending', chain_ref: 'chain_3b91…d442' },
-  { id: 'r5', task_id: 'task_019de421', action: 'call approved API · POST /v3/sync',               committed_at: '14:07:44', receipt: 'signed', chain: 'pending', chain_ref: 'chain_3b91…d442' },
-  { id: 'r6', task_id: 'task_019de421', action: 'write approved record · orders_fulfilled r_8422', committed_at: '14:07:44', receipt: 'signed', chain: 'pending', chain_ref: 'chain_3b91…d442' },
-]
+type Tab = 'activity' | 'receipts' | 'summary'
 
-function sevDotClass(s: Severity) {
-  return s === 'critical' ? 'bg-red-700'
-       : s === 'error'    ? 'bg-red-500'
-       : s === 'warning'  ? 'bg-orange-600'
-       :                    'bg-green-500'
-}
-function sevTextClass(s: Severity) {
-  return s === 'critical' ? 'text-red-700 dark:text-red-400'
-       : s === 'error'    ? 'text-red-600 dark:text-red-400'
-       : s === 'warning'  ? 'text-orange-700 dark:text-orange-400'
-       :                    'text-green-700 dark:text-green-500'
-}
-function rowTintClass(s: Severity) {
-  // Subtle tint only for non-info severities, so anomalies pop.
-  return s === 'critical' ? 'bg-red-50/40 dark:bg-red-500/[0.04]'
-       : s === 'error'    ? 'bg-red-50/30 dark:bg-red-500/[0.03]'
-       : s === 'warning'  ? 'bg-orange-50/40 dark:bg-orange-500/[0.04]'
-       :                    ''
-}
+// ──────────────────────────────────────────────────────────────────
 
-type Tab = 'event_stream' | 'execution_timeline' | 'proof_trail'
-
-function ExecutionPreview() {
-  const [tab, setTab] = useState<Tab>('event_stream')
-
-  const tabs: { k: Tab; label: string; n: number }[] = [
-    { k: 'event_stream',       label: 'Submission Trace',   n: ALL_EVENTS.length },
-    { k: 'execution_timeline', label: 'Execution Timeline', n: 2 },
-    { k: 'proof_trail',        label: 'Proof Trail',        n: ALL_RECEIPTS.length },
-  ]
+export function ExecutionPreview() {
+  const [tab, setTab] = useState<Tab>('activity')
 
   return (
     <div
-      className="bg-white dark:bg-[#0c0d0f] border border-black/[0.09] dark:border-white/[0.08] rounded-xl overflow-hidden flex flex-col shadow-[0_1px_0_rgba(0,0,0,0.02),0_30px_60px_-30px_rgba(0,0,0,0.18)] dark:shadow-[0_1px_0_rgba(255,255,255,0.04),0_30px_60px_-30px_rgba(0,0,0,0.6)]"
-      style={{ fontFamily: MONO, minHeight: 600 }}
+      className="igris-console relative overflow-hidden rounded-xl border border-black/[0.07] dark:border-white/[0.07] bg-white dark:bg-[#0c0c0a]"
+      style={{ fontFamily: SANS }}
     >
-      {/* ── Titlebar: traffic lights · breadcrumb · live clock ───────────── */}
-      <div className="flex items-center gap-3 px-3.5 py-2.5 border-b border-black/[0.06] dark:border-white/[0.06] bg-gray-50/80 dark:bg-white/[0.015]">
-        {/* macOS-style traffic lights */}
-        <div className="flex items-center gap-1.5">
-          <span className="block w-2.5 h-2.5 rounded-full bg-[#ff5f57] ring-1 ring-inset ring-black/10" />
-          <span className="block w-2.5 h-2.5 rounded-full bg-[#febc2e] ring-1 ring-inset ring-black/10" />
-          <span className="block w-2.5 h-2.5 rounded-full bg-[#28c840] ring-1 ring-inset ring-black/10" />
-        </div>
+      <ConsoleStyles />
+      <AppChrome />
 
-        {/* breadcrumb path — centered identity */}
-        <div className="flex-1 flex items-center justify-center min-w-0">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.05] text-[10.5px] text-gray-500 dark:text-[#8a8a7a] truncate">
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="opacity-60 flex-shrink-0">
-              <path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-            </svg>
-            <span className="truncate">igris</span>
-            <span className="text-gray-300 dark:text-[#3a3a32]">/</span>
-            <span className="truncate">console</span>
-            <span className="text-gray-300 dark:text-[#3a3a32]">/</span>
-            <span className="text-gray-700 dark:text-[#c8c8b8] truncate">history</span>
-          </div>
-        </div>
-
-        {/* live clock */}
-        <div className="flex items-center gap-1.5 text-[10.5px] text-green-700 dark:text-green-500" style={{ fontFamily: MONO }}>
-          <span className="relative inline-flex">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span className="absolute inset-0 inline-block w-1.5 h-1.5 rounded-full bg-green-500 animate-ping opacity-75" />
-          </span>
-          <span className="tabular-nums">14:07:45</span>
-        </div>
+      <div className="px-7 md:px-9 pt-6 md:pt-7 pb-1">
+        <PageHeader />
       </div>
 
-      {/* ── Tab strip ─────────────────────────────────────────────── */}
-      <div className="flex items-stretch border-b border-black/[0.06] dark:border-white/[0.06] bg-gray-50/40 dark:bg-white/[0.008]">
-        {tabs.map((t) => {
-          const active = tab === t.k
-          return (
-            <button
-              key={t.k}
-              onClick={() => setTab(t.k)}
-              type="button"
-              className={
-                'group relative flex items-center gap-2 px-4 py-2.5 text-[11.5px] cursor-pointer transition-colors border-r border-black/[0.05] dark:border-white/[0.04] ' +
-                (active
-                  ? 'text-gray-900 dark:text-[#f6f6f4] bg-white dark:bg-[#0c0d0f]'
-                  : 'text-gray-500 dark:text-[#8a8a7a] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-white/60 dark:hover:bg-white/[0.02]')
-              }
-              style={{ fontFamily: 'inherit', letterSpacing: '0.01em' }}
-            >
-              {/* active underline indicator */}
-              <span
-                aria-hidden
-                className={
-                  'absolute left-3 right-3 -bottom-px h-px transition-opacity ' +
-                  (active ? 'bg-emerald-500/90 opacity-100' : 'opacity-0')
-                }
-              />
-              <span>{t.label}</span>
-              <span
-                className={
-                  'text-[10px] tabular-nums px-1.5 py-px rounded ' +
-                  (active
-                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                    : 'bg-black/[0.04] dark:bg-white/[0.04] text-gray-400 dark:text-[#5a5a52]')
-                }
-              >
-                {t.n}
-              </span>
-            </button>
-          )
-        })}
-      </div>
+      <TabStrip tab={tab} setTab={setTab} />
 
-      {/* ── Tab content ───────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-[#0c0d0f]">
-        {tab === 'event_stream' && <EventStreamView />}
-        {tab === 'execution_timeline' && <TimelineView />}
-        {tab === 'proof_trail' && <ProofTrailView />}
-      </div>
-
-      {/* ── Statusbar ─────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 px-3.5 py-1.5 border-t border-black/[0.06] dark:border-white/[0.06] bg-gray-50/80 dark:bg-white/[0.015] text-[10px] text-gray-500 dark:text-[#7a7a6e]" style={{ letterSpacing: '0.04em' }}>
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="flex items-center gap-1.5">
-            <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="tabular-nums">chain valid</span>
-          </span>
-          <span className="text-gray-300 dark:text-[#3a3a32]">·</span>
-          <span className="tabular-nums">2 tasks</span>
-          <span className="text-gray-300 dark:text-[#3a3a32] hidden sm:inline">·</span>
-          <span className="tabular-nums hidden sm:inline">{ALL_EVENTS.length} events</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="hidden md:flex items-center gap-1">
-            <span className="text-gray-300 dark:text-[#3a3a32]">⌘</span>
-            <span>R</span>
-            <span className="ml-1">refresh</span>
-          </span>
-          <span className="hidden md:flex items-center gap-1">
-            <span className="text-gray-300 dark:text-[#3a3a32]">⌘</span>
-            <span>K</span>
-            <span className="ml-1">filter</span>
-          </span>
-          <span>UTC</span>
-        </div>
+      <div className="px-7 md:px-9 py-6 md:py-7 min-h-[340px]">
+        {tab === 'activity' && <ActivityView />}
+        {tab === 'receipts' && <ReceiptsView />}
+        {tab === 'summary'  && <SummaryView />}
       </div>
     </div>
   )
 }
 
-/* ────────────────────────────────────────────────────────────── */
-/*  Tab 1 · Event Stream                                          */
-/* ────────────────────────────────────────────────────────────── */
-function EventStreamView() {
+// ── Styles ─────────────────────────────────────────────────────────
+
+function ConsoleStyles() {
+  return (
+    <style>{`
+      @keyframes igris-step-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .igris-console .step-in {
+        animation: igris-step-in 640ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+      }
+
+      @keyframes igris-breathe {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.42; }
+      }
+      .igris-console .breathing {
+        animation: igris-breathe 3.2s ease-in-out infinite;
+      }
+
+      @keyframes igris-cycle-fade {
+        0%   { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      .igris-console .cycle-fade {
+        animation: igris-cycle-fade 480ms ease-out both;
+      }
+
+      @keyframes igris-tab-in {
+        from { opacity: 0; transform: translateY(2px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+      .igris-console .tab-in {
+        animation: igris-tab-in 320ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+      }
+
+      .igris-console .kbd {
+        font-family: ${MONO};
+        font-size: 10px;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background: rgba(0,0,0,0.045);
+        color: inherit;
+      }
+      @media (prefers-color-scheme: dark) {
+        .igris-console .kbd { background: rgba(255,255,255,0.06); }
+      }
+    `}</style>
+  )
+}
+
+// ── App chrome ─────────────────────────────────────────────────────
+
+function AppChrome() {
+  const nav = ['Overview', 'Tasks', 'Receipts', 'Runtimes', 'Settings']
+  return (
+    <div className="flex items-center gap-5 px-5 md:px-6 h-11 border-b border-black/[0.05] dark:border-white/[0.05]">
+      <div className="flex items-center gap-2 text-gray-900 dark:text-[#f6f6f4]">
+        <svg width="14" height="14" viewBox="0 0 24 24" className="text-gray-900 dark:text-[#f6f6f4]">
+          <path d="M12 2 L22 8 L22 16 L12 22 L2 16 L2 8 Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        </svg>
+        <span className="text-[13px] tracking-tight">igris</span>
+      </div>
+
+      <nav className="hidden md:flex items-center gap-px text-[12.5px]">
+        {nav.map((item, i) => {
+          const active = i === 1
+          return (
+            <span
+              key={item}
+              className={
+                'px-2 py-1 rounded transition-colors cursor-default ' +
+                (active
+                  ? 'text-gray-900 dark:text-[#f6f6f4]'
+                  : 'text-gray-400 dark:text-[#6b6a64] hover:text-gray-900 dark:hover:text-[#f6f6f4]')
+              }
+            >
+              {item}
+            </span>
+          )
+        })}
+      </nav>
+
+      <div className="ml-auto flex items-center gap-3">
+        <span className="hidden md:inline-flex items-center gap-2 text-[11.5px] text-gray-400 dark:text-[#6b6a64]">
+          <span>Search</span>
+          <span className="kbd">⌘K</span>
+        </span>
+        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 dark:bg-white/[0.08] text-[10px] text-gray-600 dark:text-[#c8c8b8]">
+          M
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Page header ────────────────────────────────────────────────────
+
+function PageHeader() {
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 text-[12px] text-gray-400 dark:text-[#6b6a64]">
+        <span>Tasks</span>
+        <span>›</span>
+        <span className="text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: MONO }}>task_019de343</span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h3
+            className="text-[#0c0c0a] dark:text-[#f6f6f4]"
+            style={{
+              fontSize: 'clamp(1.35rem, 1.8vw, 1.55rem)',
+              fontWeight: 500,
+              lineHeight: 1.2,
+              letterSpacing: '-0.018em',
+            }}
+          >
+            Fulfill order — policy v3
+          </h3>
+          <p className="mt-1.5 text-[12.5px] text-gray-500 dark:text-[#7a7a6e]">
+            Submitted by <span className="text-gray-700 dark:text-[#c8c8b8]">mateo@acme.io</span> · 14:07:42 UTC ·{' '}
+            <span style={{ fontFamily: MONO }}>fra1·prod</span>
+          </p>
+        </div>
+
+        <span className="inline-flex items-center gap-2 text-[12px] text-emerald-700 dark:text-emerald-400">
+          <span className="relative inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span>Running · recovered</span>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Tab strip ──────────────────────────────────────────────────────
+
+function TabStrip({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) {
+  const tabs: { k: Tab; label: string; count?: number }[] = [
+    { k: 'activity', label: 'Activity', count: 5 },
+    { k: 'receipts', label: 'Receipts', count: 4 },
+    { k: 'summary',  label: 'Summary' },
+  ]
+  return (
+    <div className="px-7 md:px-9 border-b border-black/[0.05] dark:border-white/[0.05]">
+      <div className="flex items-stretch gap-6">
+        {tabs.map((t) => {
+          const active = t.k === tab
+          return (
+            <button
+              key={t.k}
+              type="button"
+              onClick={() => setTab(t.k)}
+              className={
+                'relative -mb-px py-3 text-[12.5px] cursor-pointer transition-colors flex items-center gap-2 ' +
+                (active
+                  ? 'text-gray-900 dark:text-[#f6f6f4]'
+                  : 'text-gray-400 dark:text-[#6b6a64] hover:text-gray-700 dark:hover:text-[#c8c8b8]')
+              }
+            >
+              <span>{t.label}</span>
+              {t.count != null && (
+                <span
+                  className={
+                    'text-[10.5px] tabular-nums ' +
+                    (active ? 'text-gray-400 dark:text-[#6b6a64]' : 'text-gray-300 dark:text-[#4a4a44]')
+                  }
+                  style={{ fontFamily: MONO }}
+                >
+                  {t.count}
+                </span>
+              )}
+              <span
+                aria-hidden
+                className={
+                  'absolute left-0 right-0 -bottom-px h-px transition-opacity ' +
+                  (active ? 'bg-gray-900 dark:bg-[#f6f6f4] opacity-100' : 'opacity-0')
+                }
+              />
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── Tab 1: Activity ────────────────────────────────────────────────
+
+function ActivityView() {
   const [visibleCount, setVisibleCount] = useState(1)
-  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const [cycle, setCycle] = useState(0)
+  const [fading, setFading] = useState(false)
 
   useEffect(() => {
     const prefersReduced =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     if (prefersReduced) {
-      setVisibleCount(ALL_EVENTS.length)
+      setVisibleCount(TASK_STEPS.length)
       return
     }
-    const id = setInterval(() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null
+    const tick = setInterval(() => {
       setVisibleCount((c) => {
-        if (c >= ALL_EVENTS.length) return 1
+        if (c >= TASK_STEPS.length) {
+          setFading(true)
+          timeout = setTimeout(() => {
+            setFading(false)
+            setCycle((k) => k + 1)
+            setVisibleCount(1)
+          }, 480)
+          return c
+        }
         return c + 1
       })
-    }, 650)
-    return () => clearInterval(id)
+    }, 1500)
+    return () => {
+      clearInterval(tick)
+      if (timeout) clearTimeout(timeout)
+    }
   }, [])
 
-  useEffect(() => {
-    const el = scrollRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [visibleCount])
-
-  const events = ALL_EVENTS.slice(0, visibleCount)
+  const steps = TASK_STEPS.slice(0, visibleCount)
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-      {events.map((e, i) => {
-        const isNotInfo = e.severity !== 'info'
-        const isLatest = i === events.length - 1
-        return (
-          <div
-            key={e.id}
-            className={`group flex items-center gap-3 px-4 py-[7px] cursor-pointer transition-colors animate-fadeInUp
-                        ${rowTintClass(e.severity)}
-                        hover:bg-gray-50 dark:hover:bg-white/[0.025]`}
-          >
-            {/* loader / status icon */}
-            <span className="flex-shrink-0 inline-flex items-center justify-center w-3.5 h-3.5" aria-hidden>
-              {isLatest ? (
-                <span
-                  className="block w-3 h-3 rounded-full animate-spin"
-                  style={{
-                    background:
-                      'conic-gradient(from 0deg, rgba(96,165,250,0) 0deg, rgba(96,165,250,0.15) 90deg, rgba(96,165,250,0.95) 360deg)',
-                    WebkitMask: 'radial-gradient(circle, transparent 55%, #000 56%)',
-                    mask: 'radial-gradient(circle, transparent 55%, #000 56%)',
-                    animationDuration: '0.9s',
-                  }}
-                />
-              ) : e.severity === 'critical' || e.severity === 'error' ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-red-500">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2.5" />
-                  <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-              ) : e.severity === 'warning' ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-orange-500">
-                  <path d="M12 3 22 20H2L12 3z" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" />
-                  <path d="M12 10v4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                  <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="currentColor" strokeWidth="1" />
-                </svg>
+    <div className={'tab-in ' + (fading ? 'cycle-fade' : '')}>
+      <ol className="flex flex-col">
+        {steps.map((step, i) => {
+          const isLast = i === steps.length - 1
+          const running = step.status === 'running' && isLast
+          return (
+            <li key={`${cycle}-${step.id}`} className="step-in">
+              {step.kind === 'fault' ? (
+                <FaultRow step={step} />
               ) : (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-green-600 dark:text-green-500">
-                  <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.35" strokeWidth="2" />
-                  <path d="M16 9.5 10.5 15 8 12.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <ActionRow step={step} running={running} />
               )}
-            </span>
-
-            {/* severity dot */}
-            <span
-              className={`flex-shrink-0 rounded-full ${sevDotClass(e.severity)}`}
-              style={{ width: 5, height: 5 }}
-              aria-label={e.severity}
-            />
-
-            {/* time */}
-            <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap w-[68px] flex-shrink-0 select-none">
-              {e.time}
-            </span>
-
-            {/* severity label — only when not info */}
-            <span
-              className={`text-[10.5px] font-semibold uppercase w-[42px] flex-shrink-0 select-none ${isNotInfo ? sevTextClass(e.severity) : 'text-transparent'}`}
-              style={{ letterSpacing: '0.08em' }}
-            >
-              {isNotInfo ? (e.severity === 'critical' ? 'CRIT' : e.severity.slice(0, 4).toUpperCase()) : '·'}
-            </span>
-
-            {/* event type */}
-            <span className="text-[11.5px] text-blue-600 dark:text-blue-400 w-[176px] flex-shrink-0 truncate select-none">
-              {e.event_type}
-            </span>
-
-            {/* message */}
-            <span className="text-[12px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 truncate">
-              {e.message}
-            </span>
-
-            {/* latency (if present) */}
-            {e.latency_ms != null && (
-              <span className="text-[10.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums flex-shrink-0 w-[44px] text-right select-none">
-                {e.latency_ms}ms
-              </span>
-            )}
-
-            {/* exec id (always visible, faint blue) */}
-            <span className="text-[11px] text-blue-500/80 dark:text-blue-400/70 w-[110px] text-right flex-shrink-0 truncate select-none">
-              {e.exec_id ? `${e.exec_id.slice(0, 14)}…` : ''}
-            </span>
-
-            {/* drill-in chevron, reveals on hover */}
-            <span className="text-[12px] text-gray-300 dark:text-[#3a3a32] flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity select-none">
-              ›
-            </span>
-          </div>
-        )
-      })}
+            </li>
+          )
+        })}
+      </ol>
     </div>
   )
 }
 
-/* ────────────────────────────────────────────────────────────── */
-/*  Tab 2 · Execution Timeline                                    */
-/* ────────────────────────────────────────────────────────────── */
-function TimelineView() {
-  const groups = new Map<string, EventRow[]>()
-  for (const e of ALL_EVENTS) {
-    if (!e.exec_id) continue
-    const arr = groups.get(e.exec_id) ?? []
-    arr.push(e)
-    groups.set(e.exec_id, arr)
-  }
-
+function ActionRow({ step, running }: { step: Step; running: boolean }) {
   return (
-    <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ scrollbarWidth: 'thin' }}>
-      {Array.from(groups.entries()).map(([execId, evts]) => {
-        const hasWarn = evts.some((e) => e.severity === 'warning')
-        const hasErr = evts.some((e) => e.severity === 'error' || e.severity === 'critical')
-        const firstT = evts[0]?.time
-        const lastT  = evts[evts.length - 1]?.time
-
-        return (
-          <div
-            key={execId}
-            className="rounded-md border border-gray-200 dark:border-white/[0.06] overflow-hidden bg-white dark:bg-white/[0.01]"
-          >
-            {/* group header */}
-            <div className="flex items-center justify-between gap-3 px-3 py-2 border-b border-gray-100 dark:border-white/[0.04]">
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={`flex-shrink-0 rounded-full ${hasErr ? 'bg-orange-500' : hasWarn ? 'bg-yellow-500' : 'bg-blue-500'}`}
-                  style={{ width: 6, height: 6 }}
-                />
-                <span className="text-[11.5px] text-blue-600 dark:text-blue-400 truncate" style={{ fontFamily: MONO }}>
-                  {execId}
-                </span>
-                {hasErr && (
-                  <span className="text-[10px] font-semibold uppercase text-orange-600 dark:text-orange-400 tracking-wider">err</span>
-                )}
-                {!hasErr && hasWarn && (
-                  <span className="text-[10px] font-semibold uppercase text-yellow-700 dark:text-yellow-400 tracking-wider">warn</span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 flex-shrink-0 text-[10.5px] text-gray-400 dark:text-[#6a6a5e]">
-                <span className="tabular-nums">{evts.length} events</span>
-                {firstT && lastT && firstT !== lastT && (
-                  <span className="tabular-nums">{firstT} → {lastT}</span>
-                )}
-                <span className="text-gray-300 dark:text-[#3a3a32]">›</span>
-              </div>
-            </div>
-
-            {/* group body */}
-            <div>
-              {evts.map((e, i) => (
-                <div
-                  key={e.id}
-                  className={`group flex items-center gap-3 px-3 py-[5px] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer
-                              ${rowTintClass(e.severity)}`}
-                >
-                  <span
-                    className={`flex-shrink-0 rounded-full ${sevDotClass(e.severity)}`}
-                    style={{ width: 4, height: 4 }}
-                  />
-                  <span className="text-[11px] text-gray-400 dark:text-[#6a6a5e] tabular-nums whitespace-nowrap w-[68px] flex-shrink-0 select-none">
-                    {e.time}
-                  </span>
-                  <span className="text-[11px] text-blue-600 dark:text-blue-400 w-[170px] flex-shrink-0 truncate select-none">
-                    {e.event_type}
-                  </span>
-                  <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] flex-1 min-w-0 truncate">
-                    {e.message}
-                  </span>
-                  {e.latency_ms != null && (
-                    <span className="text-[10.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums flex-shrink-0 select-none">
-                      {e.latency_ms}ms
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-/* ────────────────────────────────────────────────────────────── */
-/*  Tab 3 · Proof Trail                                           */
-/* ────────────────────────────────────────────────────────────── */
-function ProofTrailView() {
-  const cols = '12px 72px 124px 1fr 70px 110px'
-
-  return (
-    <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-      {/* compact column header */}
-      <div
-        className="grid items-baseline px-4 py-2 text-[9.5px] uppercase tracking-[0.2em] text-gray-400 dark:text-[#5a5a52] border-b border-gray-100 dark:border-white/[0.04]"
-        style={{ fontFamily: MONO, gridTemplateColumns: cols }}
+    <div className="grid items-center gap-x-4 py-2.5 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0"
+         style={{ gridTemplateColumns: '24px 1fr auto auto' }}>
+      <span
+        className="text-[11px] text-gray-400 dark:text-[#5a5a52] tabular-nums"
+        style={{ fontFamily: MONO, letterSpacing: '0.04em' }}
       >
-        <span />
-        <span>committed</span>
-        <span>task</span>
-        <span>action</span>
-        <span className="text-right">receipt</span>
-        <span className="text-right">chain</span>
+        {step.num}
+      </span>
+
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span
+            className={'text-[13px] text-gray-900 dark:text-[#f6f6f4] ' + (running ? 'breathing' : '')}
+            style={{ fontFamily: MONO }}
+          >
+            {step.name}
+          </span>
+          <span className="text-[12.5px] text-gray-500 dark:text-[#7a7a6e] truncate">
+            {step.detail}
+          </span>
+        </div>
       </div>
 
-      {ALL_RECEIPTS.map((r, i) => {
-        const valid = r.chain === 'valid'
-        return (
-          <div
-            key={r.id}
-            className={`group grid items-center gap-x-3 px-4 py-[8px] cursor-pointer transition-colors
-                        hover:bg-gray-50 dark:hover:bg-white/[0.025]`}
-            style={{ gridTemplateColumns: cols }}
-          >
-            <span
-              className={`flex-shrink-0 rounded-full ${valid ? 'bg-green-500' : 'bg-gray-400 dark:bg-[#5a5a52]'}`}
-              style={{ width: 5, height: 5 }}
-              aria-label={r.chain}
-            />
-            <span className="text-[11.5px] text-gray-400 dark:text-[#6a6a5e] tabular-nums select-none">{r.committed_at}</span>
-            <span className="text-[11.5px] text-blue-600 dark:text-blue-400 truncate select-none" title={r.task_id}>
-              {r.task_id.slice(0, 16)}…
-            </span>
-            <span className="text-[11.5px] text-gray-700 dark:text-[#c8c8b8] truncate" title={r.action}>{r.action}</span>
-            <span className="text-right">
-              <span className="inline-flex px-1.5 py-px rounded text-[10px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10">
-                signed
-              </span>
-            </span>
-            <span
-              className={`text-[11px] tabular-nums text-right truncate select-none ${valid ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-400 dark:text-[#6a6a5e]'}`}
-              title={r.chain_ref}
-            >
-              {valid ? r.chain_ref : 'pending'}
-            </span>
-          </div>
-        )
-      })}
+      <span
+        className="text-[11px] text-gray-400 dark:text-[#5a5a52] tabular-nums min-w-[44px] text-right"
+        style={{ fontFamily: MONO }}
+      >
+        {step.latency != null ? `${step.latency}ms` : ''}
+      </span>
+
+      <span className="inline-flex items-center justify-center w-3.5 h-3.5">
+        {running ? (
+          <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500 breathing" />
+        ) : (
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" className="text-emerald-600 dark:text-emerald-400">
+            <path d="M5 12.5 L10 17 L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
     </div>
   )
 }
 
+function FaultRow({ step }: { step: Step }) {
+  return (
+    <div className="grid items-center gap-x-4 py-2.5 border-b border-black/[0.03] dark:border-white/[0.03]"
+         style={{ gridTemplateColumns: '24px 1fr auto auto' }}>
+      <span className="inline-flex items-center justify-center">
+        <span className="block w-1 h-1 rounded-full bg-amber-500" />
+      </span>
+
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span
+            className="text-[13px] text-amber-800 dark:text-amber-300"
+            style={{ fontFamily: MONO }}
+          >
+            host_fault
+          </span>
+          <span className="text-[12.5px] text-gray-500 dark:text-[#7a7a6e] truncate">
+            {step.detail}
+          </span>
+        </div>
+      </div>
+
+      <span
+        className="text-[11px] text-gray-400 dark:text-[#5a5a52] tabular-nums min-w-[44px] text-right"
+        style={{ fontFamily: MONO }}
+      >
+        {step.latency != null ? `${step.latency}ms` : ''}
+      </span>
+
+      <span className="text-[10.5px] text-amber-700 dark:text-amber-400 tracking-[0.06em] uppercase">
+        recovered
+      </span>
+    </div>
+  )
+}
+
+// ── Tab 2: Receipts ────────────────────────────────────────────────
+
+function ReceiptsView() {
+  const receipts = TASK_STEPS.filter((s) => s.receipt)
+  return (
+    <div className="tab-in">
+      <div className="flex items-baseline justify-between pb-3">
+        <span className="text-[12px] text-gray-500 dark:text-[#7a7a6e]">
+          Chain <span className="text-emerald-700 dark:text-emerald-400">valid</span> · 3 of 4 signed · <span style={{ fontFamily: MONO }}>ed25519</span>
+        </span>
+        <span className="text-[11px] text-gray-400 dark:text-[#5a5a52]" style={{ fontFamily: MONO }}>
+          chain_8f2c…a017
+        </span>
+      </div>
+
+      <div
+        className="grid text-[10.5px] uppercase tracking-[0.14em] text-gray-400 dark:text-[#5a5a52] pb-2 border-b border-black/[0.05] dark:border-white/[0.05]"
+        style={{ gridTemplateColumns: '60px 1fr 110px 90px' }}
+      >
+        <span>Receipt</span>
+        <span>Action</span>
+        <span>Signed</span>
+        <span className="text-right">Status</span>
+      </div>
+
+      {receipts.map((r) => (
+        <div
+          key={r.id}
+          className="grid items-center gap-x-4 py-2.5 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0"
+          style={{ gridTemplateColumns: '60px 1fr 110px 90px' }}
+        >
+          <span className="text-[12px] text-gray-900 dark:text-[#f6f6f4]" style={{ fontFamily: MONO }}>
+            {r.receipt}
+          </span>
+          <span className="text-[12.5px] text-gray-700 dark:text-[#c8c8b8] truncate">
+            <span style={{ fontFamily: MONO }}>{r.name}</span>
+            <span className="text-gray-400 dark:text-[#6b6a64]"> · {r.detail}</span>
+          </span>
+          <span className="text-[11.5px] text-gray-500 dark:text-[#7a7a6e] tabular-nums" style={{ fontFamily: MONO }}>
+            {r.signed_at}
+          </span>
+          <span className="text-right text-[11.5px] text-emerald-700 dark:text-emerald-400">
+            signed
+          </span>
+        </div>
+      ))}
+
+      <div
+        className="grid items-center gap-x-4 py-2.5"
+        style={{ gridTemplateColumns: '60px 1fr 110px 90px' }}
+      >
+        <span className="text-[12px] text-gray-400 dark:text-[#5a5a52]" style={{ fontFamily: MONO }}>
+          r₀₄
+        </span>
+        <span className="text-[12.5px] text-gray-400 dark:text-[#6b6a64] truncate">
+          <span style={{ fontFamily: MONO }}>db_write</span>
+          <span> · orders_fulfilled · r_8421</span>
+        </span>
+        <span className="text-[11.5px] text-gray-400 dark:text-[#5a5a52] tabular-nums" style={{ fontFamily: MONO }}>—</span>
+        <span className="text-right text-[11.5px] text-gray-400 dark:text-[#6b6a64] breathing">
+          pending
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Tab 3: Summary ─────────────────────────────────────────────────
+
+function SummaryView() {
+  const rows: { label: string; value: React.ReactNode; mono?: boolean }[] = [
+    { label: 'Status',         value: <span className="text-emerald-700 dark:text-emerald-400">Running · recovered</span> },
+    { label: 'Worker',         value: <>worker_a → <span className="text-gray-900 dark:text-[#f6f6f4]">worker_b</span></>, mono: true },
+    { label: 'Actions',        value: <>3 of 4 committed</> },
+    { label: 'Failures',       value: '0' },
+    { label: 'Replays',        value: '0' },
+    { label: 'Latency p50',    value: '18ms', mono: true },
+    { label: 'Latency p95',    value: '42ms', mono: true },
+    { label: 'Receipt chain',  value: <><span className="text-emerald-700 dark:text-emerald-400">valid</span> · 3 of 4 signed</> },
+    { label: 'Region',         value: 'fra1 · prod', mono: true },
+  ]
+  return (
+    <dl className="tab-in flex flex-col">
+      {rows.map((r) => (
+        <div key={r.label} className="flex items-baseline justify-between py-2.5 border-b border-black/[0.03] dark:border-white/[0.03] last:border-b-0">
+          <dt className="text-[12.5px] text-gray-500 dark:text-[#7a7a6e]">{r.label}</dt>
+          <dd
+            className="text-[12.5px] text-gray-900 dark:text-[#f6f6f4] tabular-nums"
+            style={r.mono ? { fontFamily: MONO } : undefined}
+          >
+            {r.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+// ──────────────────────────────────────────────────────────────────
+// Products section
+// ──────────────────────────────────────────────────────────────────
 
 export default function Products() {
   return (
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="px-0">
         <div className="px-0">
-
-          {/* Section heading — eyebrow / title / subtext */}
           <div className="pt-6 md:pt-8 pb-6 md:pb-8">
-
             <h2
               className="text-[#000000] dark:text-[#f6f6f4]"
               style={{
@@ -506,20 +510,42 @@ export default function Products() {
                 maxWidth: '22ch',
               }}
             >
-              Submit an agent task once. Igris records every committed action.
+              Run agent actions you can recover and prove.
             </h2>
             <p
               className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
-              style={{
-                fontFamily: SANS,
-                fontSize: 'clamp(0.95rem, 1.05vw, 1rem)',
-                lineHeight: 1.6,
-              }}
+              style={{ fontFamily: SANS, fontSize: 'clamp(0.95rem, 1.05vw, 1rem)', lineHeight: 1.6 }}
             >
-              Your app submits a task to Igris. Each committed action is
-              recorded, recovery-safe, and returned with verifiable proof
-              through the API or console.
+              AI systems should be able to operate in real environments without
+              becoming difficult to understand, unreliable, or impossible to
+              trust. As agents begin interacting with infrastructure, APIs,
+              files, workflows, and eventually physical systems, execution
+              reliability becomes as important as intelligence itself.
             </p>
+
+            <p
+              className="mt-4 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
+              style={{ fontFamily: SANS, fontSize: 'clamp(0.95rem, 1.05vw, 1rem)', lineHeight: 1.6 }}
+            >
+              Igris is building infrastructure for AI actions - helping AI
+              systems execute work with recovery, operational boundaries, and
+              verifiable execution records built in. Instead of relying on
+              retries and scattered logs, Igris gives operators visibility into
+              what happened, what failed, what recovered, and how actions were
+              executed across runtimes and environments.
+            </p>
+
+            <p
+              className="mt-4 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
+              style={{ fontFamily: SANS, fontSize: 'clamp(0.95rem, 1.05vw, 1rem)', lineHeight: 1.6 }}
+            >
+              Tasks execute with checkpointed recovery, replay safety,
+              runtime-aware boundaries, and execution verification, allowing
+              teams to inspect failures, validate execution paths, and operate
+              AI systems with real operational control as agents begin handling
+              more critical work.
+            </p>
+
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
               <Link
                 href="https://docs.igrisinertial.com/"
@@ -528,13 +554,15 @@ export default function Products() {
               >
                 Read the docs ↗
               </Link>
+              <Link
+                href="https://console.igrisinertial.com"
+                className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                style={{ fontFamily: SANS }}
+              >
+                Open the console
+              </Link>
             </div>
           </div>
-
-          <div className="pb-8 md:pb-12">
-            <ExecutionPreview />
-          </div>
-
         </div>
       </div>
     </section>
