@@ -11,6 +11,11 @@ ID, runtime ID, callback type, SHA-256 body digest, timestamp, nonce, algorithm,
 and Ed25519 signature. Overture verifies the envelope before accepting the
 callback body.
 
+The Rust runtime sends these envelopes live when the coordinator includes
+callback configuration in the dispatch payload. Callback acceptance proves the
+runtime identity and exact callback body for the lifecycle mutation; receipts
+remain the cryptographic execution evidence used for proof verification.
+
 Task proof state stores safe verification summaries: status, expected hash,
 stored hash, signature presence, hash validity, signature match, runtime key
 presence, chain-link validity, reason, and verification timestamp.
