@@ -3,7 +3,7 @@
 //! These helpers produce the `X-Igris-Callback-Envelope` header accepted by
 //! Overture for checkpoint, complete, and failed callbacks.
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use ed25519_dalek::{Signer, SigningKey};
 use serde::{Deserialize, Serialize};
@@ -26,6 +26,141 @@ pub struct RuntimeCallbackEnvelope {
     pub nonce: String,
     pub algorithm: String,
     pub signature: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RuntimeCallbackAuth {
+    pub header_name: String,
+    pub header_value: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct RuntimeCallbackClient {
+    base_url: String,
+    auth: RuntimeCallbackAuth,
+    http: reqwest::Client,
+    evidence_log: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RuntimeCallbackSendOutcome {
+    pub callback_type: String,
+    pub task_id: String,
+    pub runtime_id: String,
+    pub body_digest: String,
+    pub status_code: u16,
+    pub accepted: bool,
+}
+
+impl RuntimeCallbackClient {
+    pub fn new(base_url: String, auth: RuntimeCallbackAuth) -> Result<Self> {
+        Self::with_evidence_log(
+            base_url,
+            auth,
+            std::env::var("IGRIS_RUNTIME_CALLBACK_EVIDENCE_LOG").ok(),
+        )
+    }
+
+    pub fn with_evidence_log(
+        base_url: String,
+        auth: RuntimeCallbackAuth,
+        evidence_log: Option<String>,
+    ) -> Result<Self> {
+        if base_url.trim().is_empty() {
+            bail!("runtime callback base URL is required");
+        }
+        if auth.header_name.trim().is_empty() || auth.header_value.trim().is_empty() {
+            bail!("runtime callback auth header is required");
+        }
+        Ok(Self {
+            base_url: base_url.trim_end_matches('/').to_string(),
+            auth,
+            http: reqwest::Client::new(),
+            evidence_log,
+        })
+    }
+
+    pub async fn send_signed(
+        &self,
+        signing_key: &SigningKey,
+        tenant_id: &str,
+        task_id: &str,
+        runtime_id: &str,
+        callback_type: &str,
+        body: Vec<u8>,
+    ) -> Result<RuntimeCallbackSendOutcome> {
+        let nonce = uuid::Uuid::new_v4().to_string();
+        let timestamp_unix_ms = current_unix_ms()?;
+        let envelope_header = sign_runtime_callback_header(
+            signing_key,
+            tenant_id,
+            task_id,
+            runtime_id,
+            callback_type,
+            &body,
+            &nonce,
+            timestamp_unix_ms,
+        )?;
+        let body_digest = runtime_callback_body_digest(&body);
+        let endpoint = format!("{}/v1/tasks/{}/{}", self.base_url, task_id, callback_type);
+        let response = self
+            .http
+            .post(endpoint)
+            .header("Content-Type", "application/json")
+            .header(RUNTIME_CALLBACK_ENVELOPE_HEADER, envelope_header)
+            .header(self.auth.header_name.as_str(), self.auth.header_value.as_str())
+            .body(body)
+            .send()
+            .await
+            .context("runtime callback HTTP request failed")?;
+        let status_code = response.status().as_u16();
+        let accepted = response.status().is_success();
+        let outcome = RuntimeCallbackSendOutcome {
+            callback_type: callback_type.to_string(),
+            task_id: task_id.to_string(),
+            runtime_id: runtime_id.to_string(),
+            body_digest,
+            status_code,
+            accepted,
+        };
+        self.write_evidence(&outcome).await;
+        if !accepted {
+            bail!("runtime callback rejected with status {}", status_code);
+        }
+        Ok(outcome)
+    }
+
+    async fn write_evidence(&self, outcome: &RuntimeCallbackSendOutcome) {
+        let Some(path) = self.evidence_log.as_ref().filter(|value| !value.trim().is_empty()) else {
+            return;
+        };
+        let record = serde_json::json!({
+            "schema_version": "runtime_callback_evidence.v1",
+            "callback_type": outcome.callback_type,
+            "task_id": outcome.task_id,
+            "runtime_id": outcome.runtime_id,
+            "body_digest": outcome.body_digest,
+            "status_code": outcome.status_code,
+            "accepted": outcome.accepted,
+            "recorded_at_unix_ms": current_unix_ms().unwrap_or_default(),
+        });
+        let line = match serde_json::to_vec(&record) {
+            Ok(mut bytes) => {
+                bytes.push(b'\n');
+                bytes
+            }
+            Err(_) => return,
+        };
+        if let Ok(mut file) = tokio::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+            .await
+        {
+            use tokio::io::AsyncWriteExt;
+            let _ = file.write_all(&line).await;
+        }
+    }
 }
 
 pub fn runtime_callback_body_digest(body: &[u8]) -> String {
@@ -133,6 +268,13 @@ fn canonical_runtime_callback_envelope(
     map.insert("timestamp_unix_ms", serde_json::json!(timestamp_unix_ms));
     map.insert("version", serde_json::json!(RUNTIME_CALLBACK_VERSION));
     Ok(serde_json::to_vec(&map)?)
+}
+
+fn current_unix_ms() -> Result<i64> {
+    let duration = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .context("system clock is before UNIX epoch")?;
+    Ok(duration.as_millis() as i64)
 }
 
 #[cfg(test)]
