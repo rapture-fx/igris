@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { ExecutionPreview } from './Products'
 
 const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO  = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -70,12 +71,7 @@ export default function Hero() {
       </div>
 
       <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8 mt-8 pb-12 md:pb-16">
-        <img
-          src="/hand.png"
-          alt=""
-          aria-hidden
-          className="block w-full h-auto rounded-lg select-none pointer-events-none"
-        />
+        <ExecutionPreview />
       </div>
     </section>
   )
