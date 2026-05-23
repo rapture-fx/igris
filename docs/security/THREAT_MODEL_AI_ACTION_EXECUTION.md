@@ -19,8 +19,15 @@ WAL/checkpoint recovery, signed receipts, and operator task views.
 - Privilege escalation: capability policy remains default-deny and signed
   permission envelopes bind tenant, task, runtime, and capability decisions.
 - Replay attacks: task idempotency keys and recovery dispatch keys separate
-  first dispatch from resume. Irreversible/non-replayable tasks are not
-  automatically replayed.
+  first dispatch from resume. Runtime callback nonces reject replayed
+  checkpoint, complete, and failed callbacks. Irreversible/non-replayable tasks
+  are not automatically replayed.
+- Forged runtime callbacks: checkpoint, complete, and failed callbacks require
+  signed envelopes that bind tenant ID, task ID, runtime ID, callback type,
+  exact body digest, timestamp, and nonce to a registered Ed25519 runtime key.
+- Stale or wrong-runtime callbacks: callback timestamps must be fresh and the
+  envelope runtime ID must match the assigned task runtime unless future handoff
+  policy explicitly allows otherwise.
 - Forged receipts: runtime receipts are verified server-side against registered
   Ed25519 public keys before lineage persistence.
 - Tampered checkpoints: checkpoint task IDs, WAL entry task IDs, stable entry
@@ -35,6 +42,9 @@ WAL/checkpoint recovery, signed receipts, and operator task views.
   persisted as evidence, not trusted as authorization.
 - Cross-runtime resume abuse: handoff attempts are recorded and blocked unless
   checkpoint portability and action replay safety allow it.
+- Callback rejection observability: rejected runtime callback attempts are
+  persisted as safe boundary/security evidence with reason and body digest, not
+  raw callback bodies or secrets.
 
 ## Current Gaps
 
@@ -42,3 +52,8 @@ Multi-runtime portability is guarded but still experimental. Compatibility is
 based on conservative runtime identity and policy metadata, not a complete
 portable execution VM. Operators should treat compatible-runtime resume as
 eligible for controlled rollout, not universal migration.
+
+The Rust runtime now has a helper for producing signed callback envelopes, but
+the currently audited synchronous submit path returns results directly rather
+than through an asynchronous callback sender. Runtime implementations that call
+the coordinator callback routes must attach the signed envelope header.
