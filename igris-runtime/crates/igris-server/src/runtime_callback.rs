@@ -38,7 +38,6 @@ pub struct RuntimeCallbackAuth {
 pub struct RuntimeCallbackClient {
     base_url: String,
     auth: RuntimeCallbackAuth,
-    http: reqwest::Client,
     evidence_log: Option<String>,
 }
 
@@ -75,7 +74,6 @@ impl RuntimeCallbackClient {
         Ok(Self {
             base_url: base_url.trim_end_matches('/').to_string(),
             auth,
-            http: reqwest::Client::new(),
             evidence_log,
         })
     }
@@ -97,8 +95,7 @@ impl RuntimeCallbackClient {
             callback_type,
             body,
         )?;
-        let response = self
-            .http
+        let response = reqwest::Client::new()
             .execute(request)
             .await
             .context("runtime callback HTTP request failed")?;
@@ -139,18 +136,27 @@ impl RuntimeCallbackClient {
         )?;
         let body_digest = runtime_callback_body_digest(&body);
         let endpoint = format!("{}/v1/tasks/{}/{}", self.base_url, task_id, callback_type);
-        let request = self
-            .http
-            .post(endpoint)
-            .header("Content-Type", "application/json")
-            .header(RUNTIME_CALLBACK_ENVELOPE_HEADER, envelope_header)
-            .header(
-                self.auth.header_name.as_str(),
-                self.auth.header_value.as_str(),
-            )
-            .body(body)
-            .build()
-            .context("runtime callback HTTP request build failed")?;
+        let url = reqwest::Url::parse(&endpoint).context("runtime callback URL invalid")?;
+        let mut request = reqwest::Request::new(reqwest::Method::POST, url);
+        {
+            let headers = request.headers_mut();
+            headers.insert(
+                reqwest::header::CONTENT_TYPE,
+                reqwest::header::HeaderValue::from_static("application/json"),
+            );
+            headers.insert(
+                reqwest::header::HeaderName::from_static("x-igris-callback-envelope"),
+                reqwest::header::HeaderValue::from_str(&envelope_header)
+                    .context("runtime callback envelope header invalid")?,
+            );
+            headers.insert(
+                reqwest::header::HeaderName::from_bytes(self.auth.header_name.as_bytes())
+                    .context("runtime callback auth header name invalid")?,
+                reqwest::header::HeaderValue::from_str(&self.auth.header_value)
+                    .context("runtime callback auth header value invalid")?,
+            );
+        }
+        *request.body_mut() = Some(body.into());
         let outcome = RuntimeCallbackSendOutcome {
             callback_type: callback_type.to_string(),
             task_id: task_id.to_string(),
