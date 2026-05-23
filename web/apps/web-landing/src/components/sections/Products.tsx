@@ -627,7 +627,7 @@ export default function Products() {
               style={{
                 fontFamily: SANS,
                 fontWeight: 500,
-                fontSize: 'clamp(1.5rem, 2.6vw, 2.25rem)',
+                fontSize: 'clamp(1.75rem, 3.2vw, 2.75rem)',
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em',
                 maxWidth: '22ch',
@@ -637,7 +637,7 @@ export default function Products() {
             </h2>
             <p
               className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
-              style={{ fontFamily: SANS, fontSize: 'clamp(0.95rem, 1.05vw, 1rem)', lineHeight: 1.6 }}
+              style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
             >
               AI systems should be able to operate in real environments without
               becoming difficult to understand, unreliable, or impossible to
