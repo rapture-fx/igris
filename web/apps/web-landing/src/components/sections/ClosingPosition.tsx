@@ -16,7 +16,7 @@ export default function ClosingPosition() {
               style={{
                 fontFamily: PIXEL,
                 fontWeight: 500,
-                fontSize: 'clamp(1.5rem, 2.8vw, 2.2rem)',
+                fontSize: 'clamp(2rem, 3.6vw, 3rem)',
                 lineHeight: 1.12,
                 letterSpacing: '-0.005em',
                 maxWidth: '24ch',
