@@ -1704,6 +1704,123 @@ func TestHandleTaskCompleteRejectsWrongRuntimeHeader(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
+	testCases := []struct {
+		name       string
+		header     func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string
+		queries    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation
+		execs      []queuedRouteExecExpectation
+		wantStatus int
+	}{
+		{
+			name: "missing envelope",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return ""
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name: "malformed envelope",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return "not-valid-base64"
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name: "stale timestamp",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", body, uuid.NewString(), time.Now().Add(-10*time.Minute), true)
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name: "body digest mismatch",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", []byte(`{"tampered":false}`), uuid.NewString(), time.Now(), true)
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name: "missing signature",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", body, uuid.NewString(), time.Now(), false)
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation {
+				return []queuedRouteQueryExpectation{runtimePublicKeyQueryExpectation(signing.publicKey)}
+			},
+			execs: []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name: "unknown runtime key",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", body, uuid.NewString(), time.Now(), true)
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation {
+				return []queuedRouteQueryExpectation{{columns: []string{"public_key_ed25519"}, rows: nil}}
+			},
+			execs: []queuedRouteExecExpectation{{rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name: "replayed nonce",
+			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
+				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", body, "nonce-replay", time.Now(), true)
+			},
+			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation {
+				return []queuedRouteQueryExpectation{runtimePublicKeyQueryExpectation(signing.publicKey)}
+			},
+			execs: []queuedRouteExecExpectation{{rowsAffected: 0}, {rowsAffected: 1}},
+			wantStatus: http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			taskID := uuid.New()
+			tenantID := "tenant-callback-rejection"
+			runtimeID := "runtime-callback-rejection"
+			signing := newSignedRuntimeCallbackFixture(t)
+			bodyBytes := []byte(`{}`)
+
+			queries := []queuedRouteQueryExpectation{
+				runtimeCallbackTaskQuery(taskID, tenantID, coordinator.TaskStatusDispatched, runtimeID, time.Now().UTC()),
+			}
+			queries = append(queries, tc.queries(signing)...)
+			db, queued := newQueuedRouteDB(t, queries, tc.execs...)
+
+			app := fiber.New()
+			app.Use(func(c *fiber.Ctx) error {
+				c.Locals("clerk_user_id", tenantID)
+				return c.Next()
+			})
+			app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+			req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", strings.NewReader(string(bodyBytes)))
+			req.Header.Set("Content-Type", "application/json")
+			if header := tc.header(t, signing, tenantID, taskID, runtimeID, bodyBytes); header != "" {
+				req.Header.Set(runtimeCallbackEnvelopeHeader, header)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantStatus, resp.StatusCode)
+			var response map[string]any
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&response))
+			require.Equal(t, "runtime_callback_rejected", response["error"])
+			require.Equal(t, 0, queued.remainingQueries())
+			require.Equal(t, 0, queued.remainingExecs())
+		})
+	}
+}
+
 func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 	t.Parallel()
 
