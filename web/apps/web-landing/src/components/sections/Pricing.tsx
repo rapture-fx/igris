@@ -16,7 +16,7 @@ export default function Pricing() {
 
   return (
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
-      <div className="mr-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-2 md:px-4 lg:px-6 py-8 bg-white dark:bg-dark-bg z-10">
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
