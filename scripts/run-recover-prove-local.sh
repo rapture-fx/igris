@@ -99,6 +99,8 @@ EXECUTION_ID=""
 RECEIPT_VERIFY_STATUS=""
 TASK_VERIFY_STATUS=""
 LIVE_MODE="real"
+CALLBACK_MODE="fallback-test-backed"
+CALLBACK_EVIDENCE=""
 
 if [[ "$SKIP_LIVE" == "true" ]]; then
   LIVE_MODE="skipped"
@@ -140,6 +142,7 @@ else
   EXECUTION_ID=$(extract_field_from_live_log "execution_id" "$LIVE_LOG")
   RECEIPT_VERIFY_STATUS=$(extract_field_from_live_log "receipt verify HTTP status" "$LIVE_LOG")
   TASK_VERIFY_STATUS=$(extract_field_from_live_log "task verify HTTP status" "$LIVE_LOG")
+  CALLBACK_EVIDENCE=$(extract_field_from_live_log "callback evidence" "$LIVE_LOG")
 
   if [[ -z "$TASK_ID" || -z "$RUNTIME_ID" || -z "$EXECUTION_ID" ]]; then
     echo "live proof completed but did not print task_id/runtime_id/execution_id; refusing to claim local proof" >&2
@@ -149,6 +152,11 @@ else
     echo "proof verification did not return HTTP 200 (receipt=$RECEIPT_VERIFY_STATUS task=$TASK_VERIFY_STATUS)" >&2
     exit 1
   fi
+  if [[ -z "$CALLBACK_EVIDENCE" || ! -s "$CALLBACK_EVIDENCE" ]]; then
+    echo "live proof completed but did not produce accepted signed callback evidence" >&2
+    exit 1
+  fi
+  CALLBACK_MODE="live-server-backed"
 fi
 
 CALLBACK_LOG="$LOG_DIR/runtime-callback-tests.log"
@@ -177,7 +185,7 @@ run_and_capture "proof-tamper" "$PROOF_TAMPER_LOG" \
   -count=1 -timeout=120s
 
 SUMMARY_JSON="$TMP_DIR/redacted-evidence-summary.json"
-node - <<'NODE' "$SUMMARY_JSON" "$LIVE_MODE" "$TASK_ID" "$RUNTIME_ID" "$EXECUTION_ID" "$RECEIPT_VERIFY_STATUS" "$TASK_VERIFY_STATUS" "$CONSOLE_BASE_URL"
+node - <<'NODE' "$SUMMARY_JSON" "$LIVE_MODE" "$TASK_ID" "$RUNTIME_ID" "$EXECUTION_ID" "$RECEIPT_VERIFY_STATUS" "$TASK_VERIFY_STATUS" "$CONSOLE_BASE_URL" "$CALLBACK_MODE" "$CALLBACK_EVIDENCE"
 const fs = require("fs");
 const [
   outPath,
@@ -188,6 +196,8 @@ const [
   receiptVerifyStatus,
   taskVerifyStatus,
   consoleBaseUrl,
+  callbackMode,
+  callbackEvidence,
 ] = process.argv.slice(2);
 const apiBase = "http://127.0.0.1:8081";
 const summary = {
@@ -195,6 +205,7 @@ const summary = {
   live_mode: liveMode,
   strict_signed_callbacks: true,
   unsigned_callback_compatibility: "disabled",
+  callback_mode: callbackMode || "fallback-test-backed",
   task_id: taskId || null,
   runtime_id: runtimeId || null,
   execution_id: executionId || null,
@@ -202,6 +213,10 @@ const summary = {
     receipt_verify_http_status: receiptVerifyStatus || null,
     task_verify_http_status: taskVerifyStatus || null,
     status: liveMode === "real" ? "verified_when_status_200" : "not_run",
+  },
+  callback_evidence: {
+    mode: callbackMode || "fallback-test-backed",
+    evidence_path: callbackEvidence || null,
   },
   urls: {
     task_api: taskId ? `${apiBase}/v1/tasks/${taskId}` : null,
@@ -236,6 +251,8 @@ echo "  live action path:              $LIVE_MODE"
 echo "  task_id:                       ${TASK_ID:-n/a}"
 echo "  runtime_id:                    ${RUNTIME_ID:-n/a}"
 echo "  execution_id:                  ${EXECUTION_ID:-n/a}"
+echo "  signed callback mode:          $CALLBACK_MODE"
+echo "  callback evidence:             ${CALLBACK_EVIDENCE:-n/a}"
 echo "  receipt verify HTTP status:    ${RECEIPT_VERIFY_STATUS:-n/a}"
 echo "  task verify HTTP status:       ${TASK_VERIFY_STATUS:-n/a}"
 echo "  task API:                      ${TASK_ID:+http://127.0.0.1:8081/v1/tasks/$TASK_ID}"
