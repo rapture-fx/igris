@@ -634,6 +634,9 @@ func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
 	var gotAuthHeader string
 
 	t.Setenv("IGRIS_RUNTIME_SECRET", "runtime-secret-test")
+	t.Setenv("IGRIS_RUNTIME_CALLBACK_BASE_URL", "http://overture.test")
+	t.Setenv("IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME", "Cookie")
+	t.Setenv("IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE", "better-auth.session_token=redacted")
 
 	client := &http.Client{Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 		require.Equal(t, http.MethodPost, r.Method)
@@ -690,6 +693,11 @@ func TestDispatchToRuntimeIncludesRecoveryResumePayload(t *testing.T) {
 	require.Equal(t, taskID.String(), gotBody["task_id"])
 	require.Equal(t, tenantID, gotBody["tenant_id"])
 	require.Equal(t, "idem-recovery:resume:7:digest-7", gotBody["idempotency_key"])
+	require.Equal(t, "http://overture.test", gotBody["callback_base_url"])
+	callbackAuth, ok := gotBody["callback_auth"].(map[string]any)
+	require.True(t, ok)
+	require.Equal(t, "Cookie", callbackAuth["header_name"])
+	require.Equal(t, "better-auth.session_token=redacted", callbackAuth["header_value"])
 	deadlineBudget, ok := gotBody["deadline_ms"].(float64)
 	require.True(t, ok)
 	require.Greater(t, deadlineBudget, float64(0))
