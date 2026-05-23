@@ -667,7 +667,11 @@ export default function Products() {
               />
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-white dark:to-dark-bg"
+                className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-t from-transparent to-dark-bg"
+              />
+              <div
+                aria-hidden
+                className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-dark-bg"
               />
             </div>
           </div>
