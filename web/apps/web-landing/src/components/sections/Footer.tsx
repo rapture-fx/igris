@@ -135,7 +135,6 @@ export default function Footer() {
               className="flex items-center gap-4"
               style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
             >
-              <span className="text-gray-500 dark:text-[#8a8a7a]">Build&nbsp;2026.05</span>
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
