@@ -1583,7 +1583,7 @@ func TestHandleTaskCheckpointRejectsWrongRuntime(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
-	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", []byte(`{"reason":"runtime surfaced late failure"}`))
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "checkpoint", checkpointBytes)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
