@@ -1459,6 +1459,122 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestHandleTaskCheckpointRejectsWrongRuntime(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-checkpoint-runtime-mismatch"
+	runtimeID := "runtime-assigned"
+	createdAt := time.Unix(1_700_001_450, 0).UTC()
+	checkpoint := &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 0,
+			CheckpointDigest:  "digest-0",
+			RuntimeID:         "runtime-wrong",
+		},
+	}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusDispatched,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+			nil,
+			"idem-checkpoint-runtime-mismatch",
+			nil,
+			nil,
+			nil,
+			createdAt,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/checkpoint", handleTaskCheckpoint(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "runtime_identity_mismatch", body["error"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestHandleTaskCompleteRejectsWrongRuntimeHeader(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	tenantID := "tenant-complete-runtime-mismatch"
+	runtimeID := "runtime-assigned"
+	createdAt := time.Unix(1_700_001_460, 0).UTC()
+
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{
+			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+			"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+			"idempotency_key", "failure_reason", "failure_details",
+			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+		},
+		rows: [][]driver.Value{taskRecordRouteRow(
+			taskID,
+			tenantID,
+			coordinator.TaskStatusDispatched,
+			runtimeID,
+			"http://runtime.test",
+			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+			nil,
+			"idem-complete-runtime-mismatch",
+			nil,
+			nil,
+			nil,
+			createdAt,
+		)},
+	}})
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	req.Header.Set("X-Igris-Runtime-ID", "runtime-wrong")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "runtime_identity_mismatch", body["error"])
+	require.Equal(t, 0, queued.remainingQueries())
+	require.Equal(t, 0, queued.remainingExecs())
+}
+
 func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 	t.Parallel()
 
