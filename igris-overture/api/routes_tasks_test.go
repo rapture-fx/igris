@@ -1719,8 +1719,8 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
 				return ""
 			},
-			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
-			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			queries:    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
 			wantStatus: http.StatusForbidden,
 		},
 		{
@@ -1728,8 +1728,8 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
 				return "not-valid-base64"
 			},
-			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
-			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			queries:    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
 			wantStatus: http.StatusBadRequest,
 		},
 		{
@@ -1737,8 +1737,8 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
 				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", body, uuid.NewString(), time.Now().Add(-10*time.Minute), true)
 			},
-			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
-			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			queries:    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
 			wantStatus: http.StatusForbidden,
 		},
 		{
@@ -1746,8 +1746,8 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			header: func(t *testing.T, signing signedRuntimeCallbackFixture, tenantID string, taskID uuid.UUID, runtimeID string, body []byte) string {
 				return runtimeCallbackHeaderWithOptions(t, signing, tenantID, taskID, runtimeID, "complete", []byte(`{"tampered":false}`), uuid.NewString(), time.Now(), true)
 			},
-			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
-			execs:   []queuedRouteExecExpectation{{rowsAffected: 1}},
+			queries:    func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation { return nil },
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
 			wantStatus: http.StatusForbidden,
 		},
 		{
@@ -1758,7 +1758,7 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation {
 				return []queuedRouteQueryExpectation{runtimePublicKeyQueryExpectation(signing.publicKey)}
 			},
-			execs: []queuedRouteExecExpectation{{rowsAffected: 1}},
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
 			wantStatus: http.StatusForbidden,
 		},
 		{
@@ -1769,7 +1769,7 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation {
 				return []queuedRouteQueryExpectation{{columns: []string{"public_key_ed25519"}, rows: nil}}
 			},
-			execs: []queuedRouteExecExpectation{{rowsAffected: 1}},
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 1}},
 			wantStatus: http.StatusForbidden,
 		},
 		{
@@ -1780,7 +1780,7 @@ func TestRuntimeCallbackEnvelopeRejectionPathsPersistViolations(t *testing.T) {
 			queries: func(signing signedRuntimeCallbackFixture) []queuedRouteQueryExpectation {
 				return []queuedRouteQueryExpectation{runtimePublicKeyQueryExpectation(signing.publicKey)}
 			},
-			execs: []queuedRouteExecExpectation{{rowsAffected: 0}, {rowsAffected: 1}},
+			execs:      []queuedRouteExecExpectation{{rowsAffected: 0}, {rowsAffected: 1}},
 			wantStatus: http.StatusForbidden,
 		},
 	}
