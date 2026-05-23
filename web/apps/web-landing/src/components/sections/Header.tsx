@@ -1,17 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
 
-const NAV_FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const MONO_FONT = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace';
 
 const NAV_ITEM_STYLE: React.CSSProperties = {
   fontFamily: NAV_FONT,
-  fontSize: '14px',
+  fontSize: '11px',
   letterSpacing: '0',
   fontWeight: 400,
 };
@@ -46,6 +46,8 @@ export default function Header() {
   const [consoleUrl, setConsoleUrl] = useState('https://console.igrisinertial.com');
   const [mounted, setMounted] = useState(false);
 
+  const navRef = useRef<HTMLElement>(null);
+
   const { theme } = useTheme();
 
   useEffect(() => { setMounted(true); }, []);
@@ -63,105 +65,238 @@ export default function Header() {
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
+  // Close desktop dropdowns on outside click
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setProductOpen(false);
+        setDocsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
+
   const isDark = mounted && theme === 'dark';
 
-  const SidebarContent = (
-    <div className="flex flex-col h-full w-full">
-      {/* Logo */}
-      <div className="pl-5 pr-8 pt-32 md:pt-44 pb-6 flex justify-end">
-        <Link href="/" prefetch={false} onClick={() => setMobileOpen(false)}>
-          <img
-            src={isDark ? '/inertiadm.png' : '/inertia.png'}
-            alt="Igris Inertial"
-            className="h-7 w-auto rounded-lg"
-          />
-        </Link>
-      </div>
+  const closeAll = () => {
+    setMobileOpen(false);
+    setProductOpen(false);
+    setDocsOpen(false);
+  };
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto pl-3 pr-8 text-right">
-        <a
-          href={`${consoleUrl}/auth?mode=signin`}
-          onClick={() => setMobileOpen(false)}
-          className="block w-full py-1.5 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-          style={NAV_ITEM_STYLE}
-        >
-          Sign in
-        </a>
-
-        <Link
-          href="/pricing"
-          prefetch={false}
-          onClick={() => setMobileOpen(false)}
-          className="block w-full py-1.5 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-          style={NAV_ITEM_STYLE}
-        >
-          Pricing
-        </Link>
-
-        {/* Product accordion */}
-        <button
-          type="button"
-          onClick={() => setProductOpen((v) => !v)}
-          className="w-full flex items-center justify-end gap-2 py-1.5 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-          style={NAV_ITEM_STYLE}
-        >
-          <span>Product</span>
-        </button>
-        {productOpen && (
-          <div className="mb-2 pr-2 border-r border-black/[0.08] dark:border-white/[0.08]">
-            {productItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                prefetch={false}
-                onClick={() => setMobileOpen(false)}
-                className="block w-full pl-3 pr-0 py-1 text-[10px] text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
-                style={{ fontFamily: NAV_FONT }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        )}
-      </nav>
+  const DesktopDropdownPanel = (items: DropdownItem[]) => (
+    <div className="absolute left-0 top-full mt-2 w-48 rounded-lg bg-white dark:bg-[#161313] border border-black/[0.08] dark:border-white/[0.08] shadow-lg shadow-black/[0.04] dark:shadow-black/40 p-1.5 z-50">
+      {items.map((item) =>
+        item.external ? (
+          <a
+            key={item.label}
+            href={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={closeAll}
+            className="block rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+            style={NAV_ITEM_STYLE}
+          >
+            {item.label}
+          </a>
+        ) : (
+          <Link
+            key={item.label}
+            href={item.href}
+            prefetch={false}
+            onClick={closeAll}
+            className="block rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+            style={NAV_ITEM_STYLE}
+          >
+            {item.label}
+          </Link>
+        ),
+      )}
     </div>
   );
 
   return (
     <>
-      {/* Desktop sidebar — fixed, doesn't scroll */}
-      <aside
-        className="igris-header igris-sidebar hidden md:flex fixed top-0 left-0 h-screen w-96 z-40 bg-white dark:bg-[#110f0f] border-r border-black/[0.08] dark:border-white/[0.08]"
-      >
-        {SidebarContent}
-      </aside>
+      {/* Top navigation bar — fixed, full width */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/85 dark:bg-[rgba(17,15,15,0.85)] backdrop-blur-md">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center justify-between">
 
-      {/* Mobile top bar */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/85 dark:bg-[rgba(17,15,15,0.85)] backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.06]">
-        <div className="flex items-center justify-between px-4 py-3">
-          <Link href="/" prefetch={false}>
-            <img
-              src={isDark ? '/inertiadm.png' : '/inertia.png'}
-              alt="Igris Inertial"
-              className="h-9 w-auto rounded-lg"
-            />
-          </Link>
-          <button
-            type="button"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="text-gray-700 dark:text-[#c8c8b8]"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+            {/* Logo */}
+            <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center">
+              <img
+                src={isDark ? '/inertiadm.png' : '/inertia.png'}
+                alt="Igris Inertial"
+                className="h-7 w-auto rounded-lg"
+              />
+            </Link>
+
+            {/* Desktop nav */}
+            <nav ref={navRef} className="hidden md:flex items-center gap-1">
+              {/* Product */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }}
+                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                  style={NAV_ITEM_STYLE}
+                >
+                  <span>Product</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {productOpen && DesktopDropdownPanel(productItems)}
+              </div>
+
+              {/* Docs */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }}
+                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                  style={NAV_ITEM_STYLE}
+                >
+                  <span>Docs</span>
+                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {docsOpen && DesktopDropdownPanel(docsItems)}
+              </div>
+
+              {/* Pricing */}
+              <Link
+                href="/pricing"
+                prefetch={false}
+                onClick={closeAll}
+                className="rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                style={NAV_ITEM_STYLE}
+              >
+                Pricing
+              </Link>
+
+              <span className="mx-1 h-4 w-px bg-black/[0.08] dark:bg-white/[0.08]" />
+
+              {/* Sign in */}
+              <a
+                href={`${consoleUrl}/auth?mode=signin`}
+                onClick={closeAll}
+                className="rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                style={NAV_ITEM_STYLE}
+              >
+                Sign in
+              </a>
+
+              {/* Get started */}
+              <a
+                href={`${consoleUrl}/auth?mode=signup`}
+                onClick={closeAll}
+                className="rounded-xl px-3.5 py-1.5 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912] hover:opacity-80 transition-opacity"
+                style={NAV_ITEM_STYLE}
+              >
+                Get started
+              </a>
+            </nav>
+
+            {/* Mobile toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden text-gray-700 dark:text-[#c8c8b8]"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+
+          </div>
         </div>
       </header>
 
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 pt-14 bg-white dark:bg-[#110f0f] overflow-y-auto">
-          {SidebarContent}
+          <nav className="flex flex-col px-5 py-6">
+            <a
+              href={`${consoleUrl}/auth?mode=signin`}
+              onClick={closeAll}
+              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              style={NAV_ITEM_STYLE}
+            >
+              Sign in
+            </a>
+
+            <Link
+              href="/pricing"
+              prefetch={false}
+              onClick={closeAll}
+              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              style={NAV_ITEM_STYLE}
+            >
+              Pricing
+            </Link>
+
+            {/* Product accordion */}
+            <button
+              type="button"
+              onClick={() => setProductOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              style={NAV_ITEM_STYLE}
+            >
+              <span>Product</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {productOpen && (
+              <div className="mb-2 pl-3 border-l border-black/[0.08] dark:border-white/[0.08]">
+                {productItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    prefetch={false}
+                    onClick={closeAll}
+                    className="block w-full py-1.5 text-[13px] text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                    style={{ fontFamily: NAV_FONT }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Docs accordion */}
+            <button
+              type="button"
+              onClick={() => setDocsOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              style={NAV_ITEM_STYLE}
+            >
+              <span>Docs</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {docsOpen && (
+              <div className="mb-2 pl-3 border-l border-black/[0.08] dark:border-white/[0.08]">
+                {docsItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeAll}
+                    className="block w-full py-1.5 text-[13px] text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                    style={{ fontFamily: NAV_FONT }}
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <a
+              href={`${consoleUrl}/auth?mode=signup`}
+              onClick={closeAll}
+               className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912] hover:opacity-80 transition-opacity"
+              style={NAV_ITEM_STYLE}
+            >
+              Get started
+            </a>
+          </nav>
         </div>
       )}
     </>
