@@ -2197,6 +2197,12 @@ func handleTaskCheckpoint(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
 		cp.TaskID = taskID // enforce from URL
+		if !runtimeCallbackMatchesTask(task, checkpointRuntimeID(&cp), c.Get("X-Igris-Runtime-ID")) {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
+				"error":   "runtime_identity_mismatch",
+				"message": "runtime callback identity does not match assigned task runtime",
+			})
+		}
 
 		if err := tc.HandleCheckpoint(&cp); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
@@ -2242,6 +2248,12 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
 			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
+		if !runtimeCallbackMatchesTask(task, "", c.Get("X-Igris-Runtime-ID")) {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
+				"error":   "runtime_identity_mismatch",
+				"message": "runtime callback identity does not match assigned task runtime",
+			})
+		}
 
 		if err := tc.HandleComplete(taskID); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
@@ -2283,6 +2295,12 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 		if !coordinator.TaskAllowsRuntimeMutation(task.Status) {
 			return c.Status(http.StatusConflict).JSON(buildTaskTransitionRejectedPayload(task))
 		}
+		if !runtimeCallbackMatchesTask(task, "", c.Get("X-Igris-Runtime-ID")) {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
+				"error":   "runtime_identity_mismatch",
+				"message": "runtime callback identity does not match assigned task runtime",
+			})
+		}
 
 		var body struct {
 			Reason string `json:"reason"`
@@ -2307,4 +2325,36 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 		}
 		return c.JSON(buildTaskMutationResponse(updatedTask, nil))
 	}
+}
+
+func checkpointRuntimeID(cp *coordinator.CheckpointPayload) string {
+	if cp == nil {
+		return ""
+	}
+	if cp.ResumeToken.RuntimeID != "" {
+		return strings.TrimSpace(cp.ResumeToken.RuntimeID)
+	}
+	for _, entry := range cp.WalEntries {
+		if strings.TrimSpace(entry.RuntimeID) != "" {
+			return strings.TrimSpace(entry.RuntimeID)
+		}
+	}
+	return ""
+}
+
+func runtimeCallbackMatchesTask(task *coordinator.TaskRecord, runtimeIDs ...string) bool {
+	if task == nil || task.RuntimeID == nil || strings.TrimSpace(*task.RuntimeID) == "" {
+		return true
+	}
+	want := strings.TrimSpace(*task.RuntimeID)
+	for _, runtimeID := range runtimeIDs {
+		got := strings.TrimSpace(runtimeID)
+		if got == "" {
+			continue
+		}
+		if got != want {
+			return false
+		}
+	}
+	return true
 }
