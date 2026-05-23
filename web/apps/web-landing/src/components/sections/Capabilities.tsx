@@ -500,12 +500,7 @@ export default function Capabilities() {
 
           {/* Section heading — eyebrow / title / subtext */}
           <div className="pt-10 md:pt-14 pb-6 md:pb-8">
-            <div
-              className="pb-5 text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a]"
-              style={{ fontFamily: MONO }}
-            >
-              02&nbsp;·&nbsp;EXECUTION
-            </div>
+
             <h2
               className="text-[#000000] dark:text-[#f6f6f4]"
               style={{
