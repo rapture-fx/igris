@@ -83,13 +83,21 @@ const SIDEBAR: SidebarGroup[] = [
 export function ExecutionPreview() {
   return (
     <div
-      className="igris-console relative overflow-hidden rounded-xl border border-white/[0.07]"
-      style={{ fontFamily: SANS, background: '#0e0e0c', color: '#e8e7df' }}
+      className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]"
     >
-      <ConsoleStyles />
-      <div className="grid" style={{ gridTemplateColumns: '236px 1fr', height: 640 }}>
-        <Sidebar />
-        <Main />
+      <div
+        className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]"
+      >
+        <div
+          className="igris-console relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]"
+          style={{ fontFamily: SANS, background: '#0e0e0c', color: '#e8e7df' }}
+        >
+          <ConsoleStyles />
+          <div className="grid" style={{ gridTemplateColumns: '236px 1fr', height: 640 }}>
+            <Sidebar />
+            <Main />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -121,6 +129,18 @@ function ConsoleStyles() {
         background: rgba(255,255,255,0.05);
         color: #8a8a82;
         border: 1px solid rgba(255,255,255,0.04);
+      }
+      .igris-console .ic-kbd--sm {
+        font-size: 8.5px;
+        padding: 0 4px;
+        line-height: 14px;
+        border-radius: 2.5px;
+      }
+      .igris-console .ic-chip-icon {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 4px;
+        color: #8a8a82;
       }
 
       @keyframes ic-step-in {
@@ -169,13 +189,13 @@ function Sidebar() {
 
       {/* search */}
       <div className="px-3 pt-3 pb-2">
-        <div className="flex items-center gap-2 px-2.5 h-7 rounded-md bg-white/[0.025] border border-white/[0.04]">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[#6a6a62]">
+        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md bg-white/[0.025] border-[0.5px] border-white/[0.04]">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[#6a6a62]">
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span className="flex-1 text-[11.5px] text-[#6a6a62]">Search</span>
-          <span className="ic-kbd">⌘K</span>
+          <span className="flex-1 text-[10.5px] text-[#6a6a62]">Search</span>
+          <span className="ic-kbd ic-kbd--sm">⌘K</span>
         </div>
       </div>
 
@@ -366,11 +386,11 @@ function MainBody() {
   return (
     <div className="ic-scroll flex-1 overflow-y-auto px-7 pt-6 pb-2">
       {/* definition rows — Submitter / Region / Worker / Submitted / Mode */}
-      <DefRow label="Submitter" value={<><span className="ic-chip">mateo@acme.io</span> <span className="text-[#7a7a72]">— engineer, integrations</span></>} />
-      <DefRow label="Region"    value={<><span className="ic-chip">fra1·prod</span> <span className="text-[#7a7a72]">— eu-central, primary</span></>} />
-      <DefRow label="Worker"    value={<><span className="ic-chip">worker_b</span> <span className="text-[#7a7a72]">— recovered from </span><span className="ic-chip">worker_a</span></>} />
-      <DefRow label="Submitted" value={<><span className="ic-chip">14:07:42 UTC</span> <span className="text-[#7a7a72]">— 12 seconds ago, action workflow</span></>} />
-      <DefRow label="Mode"      value={<><span className="ic-chip">action_workflow</span> <span className="text-[#7a7a72]">— 4 controlled tools, recovery enabled</span></>} />
+      <DefRow label="Submitter" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>mateo@acme.io</span> <span className="text-[#7a7a72]">engineer, integrations</span></>} />
+      <DefRow label="Region"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>fra1·prod</span> <span className="text-[#7a7a72]">eu-central, primary</span></>} />
+      <DefRow label="Worker"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_b</span> <span className="text-[#7a7a72]">recovered from </span><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_a</span></>} />
+      <DefRow label="Submitted" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>14:07:42 UTC</span> <span className="text-[#7a7a72]">12 seconds ago, action workflow</span></>} />
+      <DefRow label="Mode"      value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>action_workflow</span> <span className="text-[#7a7a72]">4 controlled tools, recovery enabled</span></>} />
 
       {/* narrative */}
       <p className="mt-5 text-[13px] text-[#c8c7be] leading-relaxed max-w-[60ch]">
