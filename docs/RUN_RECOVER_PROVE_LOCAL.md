@@ -34,17 +34,24 @@ The local promise flow requires signed runtime callback envelopes. It refuses to
 run if `IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS` is enabled, then exports it as
 `false` for child commands.
 
-The signed callback demonstration is test-backed because the currently audited
-runtime submit path returns results synchronously instead of using an
-asynchronous outbound callback sender. The tests exercise the real coordinator
-routes and prove that missing, malformed, stale, replayed, body-tampered,
-wrong-runtime, missing-key, and terminal-state callbacks are rejected and
-persisted as safe violation evidence.
+The signed callback demonstration is live-server-backed when the live path runs.
+Overture passes an explicit callback base URL and auth header to the runtime
+during local dispatch. The runtime signs checkpoint, complete, and failed
+callback bodies with its Ed25519 identity and sends them to Overture with
+`X-Igris-Callback-Envelope`. The runtime also writes a redacted local JSONL
+evidence file containing callback type, task ID, runtime ID, body digest, HTTP
+status, and accepted flag.
+
+When `--skip-live` is used, callback enforcement is fallback-test-backed. The
+tests exercise the real coordinator routes and prove that missing, malformed,
+stale, replayed, body-tampered, wrong-runtime, missing-key, and terminal-state
+callbacks are rejected and persisted as safe violation evidence.
 
 ## Commands
 
 ```bash
 make run-recover-prove-local
+make run-recover-prove-local-smoke
 make test-policy-enforcement
 make test-recovery-chaos
 make test-runtime-callbacks
@@ -100,6 +107,10 @@ Production-ready locally:
 - Runtime key registration through the existing runtime registration endpoint.
 - Durable task submission for a deterministic local `action_task`.
 - Runtime boundary and policy evidence for the task path.
+- Live signed runtime-to-coordinator callbacks for checkpoint and complete in
+  the Action Task V1 path when local Postgres is available.
+- Signed failed callback sender support in the Rust runtime, covered by sender
+  and route tests.
 - Signed receipt verification with a registered runtime key.
 - Strict signed callback validation in coordinator routes.
 - Rejected callback violation persistence.
@@ -108,8 +119,10 @@ Production-ready locally:
 
 Experimental or not fully live in this script:
 
-- Async runtime-to-coordinator callback sending. The runtime has a signing
-  helper, but the current local execution path is synchronous.
+- The runtime still returns the synchronous submit response so Overture can
+  persist execution artifacts and receipts in the existing durable path. Live
+  callbacks now mutate lifecycle state; the synchronous response remains the
+  artifact carriage path for compatibility.
 - Broad multi-runtime portability.
 - OS/container-level boundary enforcement beyond runtime-supported controls.
 
