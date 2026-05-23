@@ -24,7 +24,7 @@ export default function Hero() {
                   style={{
                     fontFamily: PIXEL,
                     fontWeight: 500,
-                    fontSize: 'clamp(1.6rem, 3.4vw, 2.6rem)',
+                    fontSize: 'clamp(1.9rem, 4vw, 3.2rem)',
                     lineHeight: 1.1,
                     letterSpacing: '-0.01em',
                   }}
