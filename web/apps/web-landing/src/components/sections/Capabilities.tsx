@@ -543,15 +543,12 @@ export default function Capabilities() {
           {/* 2×2 card grid */}
           <div
             className="grid grid-cols-1 md:grid-cols-2"
-            style={{ borderTop: borderStyle, borderLeft: borderStyle }}
           >
             {cards.map((c, i) => (
               <article
                 key={c.num}
                 className={`cap-card ${revealed ? 'is-in' : ''} relative flex flex-col`}
                 style={{
-                  borderRight: borderStyle,
-                  borderBottom: borderStyle,
                   animationDelay: `${120 + i * 110}ms`,
                   height: 'clamp(580px, 60vw, 660px)',
                 }}
