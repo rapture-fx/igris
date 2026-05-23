@@ -468,8 +468,16 @@ function ActionLine({ step, running }: { step: Step; running: boolean }) {
       ) : (
         <span className="text-[10.5px] text-[#5a5a52]" style={{ fontFamily: MONO }}>—</span>
       )}
-      <span className="text-[10.5px] text-emerald-400/80 tabular-nums" style={{ fontFamily: MONO }}>
-        {running ? '· · ·' : '+1 / −0'}
+      <span className="text-[10.5px] tabular-nums" style={{ fontFamily: MONO }}>
+        {running ? (
+          <span className="text-[#5a5a52]">· · ·</span>
+        ) : (
+          <>
+            <span className="text-emerald-400/80">+1</span>
+            <span className="text-[#5a5a52]"> / </span>
+            <span className="text-rose-400/70">−0</span>
+          </>
+        )}
       </span>
     </div>
   )
@@ -557,12 +565,21 @@ export default function Products() {
               className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[58ch]"
               style={{ fontFamily: SANS, fontSize: 'clamp(0.95rem, 1.05vw, 1rem)', lineHeight: 1.6 }}
             >
-              Submit an agent task once. Igris{' '}
-              <span className="text-gray-900 dark:text-[#f6f6f4]">runs</span> each action through controlled tools,{' '}
-              <span className="text-gray-900 dark:text-[#f6f6f4]">recovers</span> from host faults without replays,
-              returns a signed receipt you can{' '}
-              <span className="text-gray-900 dark:text-[#f6f6f4]">verify</span>, and lets operators{' '}
-              <span className="text-gray-900 dark:text-[#f6f6f4]">inspect</span> the outcome.
+              AI systems should be able to operate in real environments without
+              becoming difficult to understand, unreliable, or impossible to
+              trust. As agents begin interacting with infrastructure, APIs,
+              files, workflows, and eventually physical systems, execution
+              reliability becomes as important as intelligence itself. Igris is
+              building infrastructure for AI actions - helping AI systems
+              execute work with recovery, operational boundaries, and verifiable
+              execution records built in. Instead of relying on retries and
+              scattered logs, Igris gives operators visibility into what
+              happened, what failed, what recovered, and how actions were
+              executed across runtimes and environments. Tasks execute with
+              checkpointed recovery, replay safety, runtime-aware boundaries,
+              and execution verification, allowing teams to inspect failures,
+              validate execution paths, and operate AI systems with real
+              operational control as agents begin handling more critical work.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-3">
               <Link
