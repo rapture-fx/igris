@@ -53,7 +53,7 @@ based on conservative runtime identity and policy metadata, not a complete
 portable execution VM. Operators should treat compatible-runtime resume as
 eligible for controlled rollout, not universal migration.
 
-The Rust runtime now has a helper for producing signed callback envelopes, but
-the currently audited synchronous submit path returns results directly rather
-than through an asynchronous callback sender. Runtime implementations that call
-the coordinator callback routes must attach the signed envelope header.
+The Rust runtime now has an outbound callback sender for checkpoint, complete,
+and failed lifecycle callbacks when callback configuration is provided by
+Overture. The synchronous submit response still returns execution artifacts and
+receipts for compatibility with the existing durable task path.
