@@ -157,7 +157,9 @@ mod tests {
         )
         .expect("header should sign");
 
-        let raw = STANDARD.decode(header).expect("header should be base64 JSON");
+        let raw = STANDARD
+            .decode(header)
+            .expect("header should be base64 JSON");
         let envelope: RuntimeCallbackEnvelope =
             serde_json::from_slice(&raw).expect("envelope should decode");
         assert_eq!(envelope.version, RUNTIME_CALLBACK_VERSION);
@@ -201,6 +203,8 @@ mod tests {
         )
         .expect_err("unsupported callback type should fail");
 
-        assert!(err.to_string().contains("unsupported runtime callback type"));
+        assert!(err
+            .to_string()
+            .contains("unsupported runtime callback type"));
     }
 }
