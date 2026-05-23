@@ -1415,6 +1415,7 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 	taskID := uuid.New()
 	tenantID := "tenant-checkpoint"
 	runtimeID := "runtime-checkpoint"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_200, 0).UTC()
 	checkpoint := &coordinator.CheckpointPayload{
 		TaskID: taskID,
@@ -1457,6 +1458,7 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{"last_checkpoint"},
 				rows:    [][]driver.Value{{nil}},
@@ -1486,6 +1488,7 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 1},
 		queuedRouteExecExpectation{rowsAffected: 1},
 	)
@@ -1499,6 +1502,7 @@ func TestHandleTaskCheckpointReturnsLifecycleMetadata(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "checkpoint", checkpointBytes)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -1529,6 +1533,7 @@ func TestHandleTaskCheckpointRejectsWrongRuntime(t *testing.T) {
 	taskID := uuid.New()
 	tenantID := "tenant-checkpoint-runtime-mismatch"
 	runtimeID := "runtime-assigned"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_450, 0).UTC()
 	checkpoint := &coordinator.CheckpointPayload{
 		TaskID: taskID,
@@ -1541,30 +1546,33 @@ func TestHandleTaskCheckpointRejectsWrongRuntime(t *testing.T) {
 	checkpointBytes, err := json.Marshal(checkpoint)
 	require.NoError(t, err)
 
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{
-			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
-			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
-			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-			"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
-			"idempotency_key", "failure_reason", "failure_details",
-			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{
+				"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+				"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+				"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+				"idempotency_key", "failure_reason", "failure_details",
+				"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+			},
+			rows: [][]driver.Value{taskRecordRouteRow(
+				taskID,
+				tenantID,
+				coordinator.TaskStatusDispatched,
+				runtimeID,
+				"http://runtime.test",
+				json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+				nil,
+				"idem-checkpoint-runtime-mismatch",
+				nil,
+				nil,
+				nil,
+				createdAt,
+			)},
 		},
-		rows: [][]driver.Value{taskRecordRouteRow(
-			taskID,
-			tenantID,
-			coordinator.TaskStatusDispatched,
-			runtimeID,
-			"http://runtime.test",
-			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
-			nil,
-			"idem-checkpoint-runtime-mismatch",
-			nil,
-			nil,
-			nil,
-			createdAt,
-		)},
-	}})
+		runtimePublicKeyQueryExpectation(signing.publicKey),
+	}, runtimeCallbackNonceExecExpectation(), queuedRouteExecExpectation{rowsAffected: 1})
 
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
@@ -1575,13 +1583,14 @@ func TestHandleTaskCheckpointRejectsWrongRuntime(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/checkpoint", strings.NewReader(string(checkpointBytes)))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "checkpoint", checkpointBytes)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 	var body map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
-	require.Equal(t, "runtime_identity_mismatch", body["error"])
+	require.Equal(t, "runtime_callback_rejected", body["error"])
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
@@ -1592,32 +1601,36 @@ func TestHandleTaskCompleteRejectsWrongRuntimeHeader(t *testing.T) {
 	taskID := uuid.New()
 	tenantID := "tenant-complete-runtime-mismatch"
 	runtimeID := "runtime-assigned"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_460, 0).UTC()
 
-	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
-		columns: []string{
-			"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
-			"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
-			"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
-			"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
-			"idempotency_key", "failure_reason", "failure_details",
-			"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{
+				"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+				"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+				"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+				"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+				"idempotency_key", "failure_reason", "failure_details",
+				"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at",
+			},
+			rows: [][]driver.Value{taskRecordRouteRow(
+				taskID,
+				tenantID,
+				coordinator.TaskStatusDispatched,
+				runtimeID,
+				"http://runtime.test",
+				json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+				nil,
+				"idem-complete-runtime-mismatch",
+				nil,
+				nil,
+				nil,
+				createdAt,
+			)},
 		},
-		rows: [][]driver.Value{taskRecordRouteRow(
-			taskID,
-			tenantID,
-			coordinator.TaskStatusDispatched,
-			runtimeID,
-			"http://runtime.test",
-			json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
-			nil,
-			"idem-complete-runtime-mismatch",
-			nil,
-			nil,
-			nil,
-			createdAt,
-		)},
-	}})
+		runtimePublicKeyQueryExpectation(signing.publicKey),
+	}, runtimeCallbackNonceExecExpectation(), queuedRouteExecExpectation{rowsAffected: 1})
 
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
@@ -1628,13 +1641,14 @@ func TestHandleTaskCompleteRejectsWrongRuntimeHeader(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
 	req.Header.Set("X-Igris-Runtime-ID", "runtime-wrong")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "complete", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 	var body map[string]any
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
-	require.Equal(t, "runtime_identity_mismatch", body["error"])
+	require.Equal(t, "runtime_callback_rejected", body["error"])
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
 }
@@ -1645,6 +1659,7 @@ func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 	taskID := uuid.New()
 	tenantID := "tenant-complete"
 	runtimeID := "runtime-complete"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_300, 0).UTC()
 	completedAt := createdAt.Add(30 * time.Second)
 
@@ -1674,6 +1689,7 @@ func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
@@ -1699,6 +1715,7 @@ func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 1},
 	)
 
@@ -1710,6 +1727,7 @@ func TestHandleTaskCompleteReturnsLifecycleMetadata(t *testing.T) {
 	app.Post("/v1/tasks/:id/complete", handleTaskComplete(coordinator.NewTaskCoordinator(db)))
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/complete", nil)
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "complete", nil)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -1739,8 +1757,10 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 	taskID := uuid.New()
 	tenantID := "tenant-failed"
 	runtimeID := "runtime-failed"
+	signing := newSignedRuntimeCallbackFixture(t)
 	createdAt := time.Unix(1_700_001_400, 0).UTC()
 	failureReason := "runtime surfaced late failure"
+	requestBody := []byte(`{"reason":"` + failureReason + `"}`)
 
 	db, queued := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
@@ -1768,6 +1788,7 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 					createdAt,
 				)},
 			},
+			runtimePublicKeyQueryExpectation(signing.publicKey),
 			{
 				columns: []string{
 					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
@@ -1793,6 +1814,7 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 				)},
 			},
 		},
+		runtimeCallbackNonceExecExpectation(),
 		queuedRouteExecExpectation{rowsAffected: 1},
 	)
 
@@ -1803,8 +1825,9 @@ func TestHandleTaskFailedReturnsRecoveryMetadata(t *testing.T) {
 	})
 	app.Post("/v1/tasks/:id/failed", handleTaskFailed(coordinator.NewTaskCoordinator(db)))
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(`{"reason":"`+failureReason+`"}`))
+	req := httptest.NewRequest(http.MethodPost, "/v1/tasks/"+taskID.String()+"/failed", strings.NewReader(string(requestBody)))
 	req.Header.Set("Content-Type", "application/json")
+	attachRuntimeCallbackHeader(t, req, signing, tenantID, taskID, runtimeID, "failed", requestBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
