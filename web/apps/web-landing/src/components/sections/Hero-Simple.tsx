@@ -18,18 +18,27 @@ export default function Hero() {
           <div className="flex flex-col items-start text-left justify-end pt-12 md:pt-16 pb-4 md:pb-6">
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-6 w-full items-start">
-              <h1
-                className="md:col-span-7 text-[#000000] dark:text-[#f6f6f4]"
-                style={{
-                  fontFamily: PIXEL,
-                  fontWeight: 500,
-                  fontSize: 'clamp(1.6rem, 3.4vw, 2.6rem)',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Run agent actions that recover and prove what happened.
-              </h1>
+              <div className="md:col-span-7">
+                <h1
+                  className="text-[#000000] dark:text-[#f6f6f4]"
+                  style={{
+                    fontFamily: PIXEL,
+                    fontWeight: 500,
+                    fontSize: 'clamp(1.6rem, 3.4vw, 2.6rem)',
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  Run agent actions that recover and prove what happened.
+                </h1>
+                <a
+                  href="https://console.igrisinertial.com/auth?mode=signup"
+                  className="mt-5 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                  style={{ fontFamily: SANS }}
+                >
+                  Get started
+                </a>
+              </div>
 
               <p
                 className="md:col-span-5 md:mt-2 text-gray-700 dark:text-[#c8c8b8]"
