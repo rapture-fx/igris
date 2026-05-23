@@ -13,7 +13,7 @@ export default function Hero() {
       className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
       style={{ minHeight: 'calc(100vh - 3.5rem)' }}
     >
-      <div className="relative mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div>
           <div className="flex flex-col items-start text-left justify-end pt-12 md:pt-16 pb-4 md:pb-6">
 
@@ -61,7 +61,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8 mt-3 pb-12 md:pb-16">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 mt-3 pb-12 md:pb-16">
         <ExecutionPreview />
       </div>
     </section>
