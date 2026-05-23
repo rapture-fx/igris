@@ -71,7 +71,7 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - `SaveCheckpoint` does not cryptographically verify WAL entry signatures today; it validates shape and task linkage.
 - Multi-runtime portability is guarded by policy and handoff decisions, but compatible-runtime execution remains experimental.
 - The console API client can fall back to mock data when feature flags permit it; production must disable mock fallback.
-- Runtime-side signed callback helper code exists, but the current synchronous runtime submit path does not yet use an outbound callback loop. Any runtime that calls the callback routes must attach the envelope header.
+- Runtime-side signed callback sender code now sends checkpoint, complete, and failed callback envelopes when callback configuration is provided. The synchronous runtime submit response still carries execution artifacts and receipts for the existing durable path.
 
 ## Security Findings
 
@@ -125,7 +125,7 @@ Audited endpoints:
 
 Complete the runtime callback integration slice:
 
-- Wire the Rust runtime helper into any asynchronous callback sender once that sender exists.
+- Promote failed-callback and recovery-blocking scenarios into the live local promise flow.
 - Add an operator-facing metric/count for rejected runtime callback violations.
 - Add a migration cleanup/retention policy for `runtime_callback_nonces`.
 - Keep `IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS` disabled outside explicit local development.
