@@ -189,13 +189,12 @@ function Sidebar() {
 
       {/* search */}
       <div className="px-3 pt-3 pb-2">
-        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md bg-white/[0.025] border-[0.5px] border-white/[0.04]">
+        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] border-white/[0.04]" style={{ background: '#0e0e0c' }}>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[#6a6a62]">
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           <span className="flex-1 text-[10.5px] text-[#6a6a62]">Search</span>
-          <span className="ic-kbd ic-kbd--sm">⌘K</span>
         </div>
       </div>
 
@@ -400,33 +399,38 @@ function MainBody() {
       </p>
 
       {/* committed actions section */}
-      <div className="mt-7 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[11.5px] text-[#a8a89e]">
-          <span>Committed actions ({total})</span>
-          <span className="text-emerald-400/80" style={{ fontFamily: MONO }}>+{committed}</span>
-          <span className="text-rose-400/60" style={{ fontFamily: MONO }}>−0</span>
+      <div
+        className="mt-7 rounded-lg border-[0.5px] border-white/[0.06] px-4 py-3"
+        style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[11.5px] text-[#a8a89e]">
+            <span>Committed actions ({total})</span>
+            <span className="text-emerald-400/80" style={{ fontFamily: MONO }}>+{committed}</span>
+            <span className="text-rose-400/60" style={{ fontFamily: MONO }}>−0</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded">Collapse all</button>
+            <button className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded">View receipts</button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded">Collapse all</button>
-          <button className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded">View receipts</button>
-        </div>
-      </div>
 
-      <div className={'mt-3 ' + (fading ? 'ic-cycle-fade' : '')}>
-        <Tree title="actions" icon="bolt">
-          {steps.map((s, i) => {
-            const isLatest = i === steps.length - 1
-            return (
-              <div key={`${cycle}-${s.id}`} className="ic-step-in">
-                {s.kind === 'fault' ? (
-                  <FaultLine step={s} />
-                ) : (
-                  <ActionLine step={s} running={s.status === 'running'} isLatest={isLatest} />
-                )}
-              </div>
-            )
-          })}
-        </Tree>
+        <div className={'mt-3 ' + (fading ? 'ic-cycle-fade' : '')}>
+          <Tree title="actions" icon="bolt">
+            {steps.map((s, i) => {
+              const isLatest = i === steps.length - 1
+              return (
+                <div key={`${cycle}-${s.id}`} className="ic-step-in">
+                  {s.kind === 'fault' ? (
+                    <FaultLine step={s} />
+                  ) : (
+                    <ActionLine step={s} running={s.status === 'running'} isLatest={isLatest} />
+                  )}
+                </div>
+              )
+            })}
+          </Tree>
+        </div>
       </div>
 
       <div className="mt-4 text-[11px] text-[#5a5a52] tabular-nums" style={{ fontFamily: MONO }}>
