@@ -26,6 +26,7 @@ import {
   FileWarning,
   Hand,
   RotateCcw,
+  ShieldOff,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -267,6 +268,15 @@ export default function OverviewPage() {
         activeTone: 'danger',
       },
       {
+        key: 'callback-rejections',
+        label: 'Rejected runtime callbacks',
+        hint: 'Signed callback attempts rejected for replay, stale timestamp, body mismatch, or wrong runtime.',
+        icon: ShieldOff,
+        value: trust?.rejected_runtime_callbacks ?? summary?.runtime_callback_rejections?.total ?? 0,
+        href: '/proof/violations?action=runtime_callback_rejected',
+        activeTone: 'danger',
+      },
+      {
         key: 'failed-proof',
         label: 'Failed proof verification',
         hint: 'Results that could not be verified from receipt and hash evidence.',
@@ -276,7 +286,7 @@ export default function OverviewPage() {
         activeTone: 'danger',
       },
     ],
-    [trust],
+    [summary?.runtime_callback_rejections?.total, trust],
   );
 
   return (
@@ -306,7 +316,7 @@ export default function OverviewPage() {
           title="Execution trust summary"
           description="Tenant-wide counts from the verification, policy, recovery, and boundary ledgers."
         >
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
             {trustCards.map((def) => (
               <TrustCard key={def.key} def={def} loading={isLoading} />
             ))}
