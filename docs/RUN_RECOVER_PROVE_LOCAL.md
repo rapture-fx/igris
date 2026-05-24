@@ -180,7 +180,15 @@ On success, the script prints:
 The redacted summary excludes private keys, raw API keys, session tokens,
 credentials, raw callback bodies, and raw environment values.
 
-Validated local live run on 2026-05-24:
+Validation status:
+
+- macOS/Homebrew fallback completed the full live demo on 2026-05-24.
+- Docker-first validation is still pending on this workstation because neither
+  `docker` nor `docker-compose` is installed here. Do not claim the Docker path
+  is validated until `make run-recover-prove-local-provision` completes on a
+  Docker-enabled machine without `--skip-live`.
+
+Sanitized Homebrew fallback live output from 2026-05-24:
 
 ```text
 live action path:              real
@@ -201,6 +209,15 @@ console task:                  http://127.0.0.1:3000/execution/tasks/b9f812df-f1
 console failure task:          http://127.0.0.1:3000/execution/tasks/ce6ebb94-044d-48f2-905c-6a48d3ecb04b
 console proof:                 http://127.0.0.1:3000/proof/receipts
 console violations:            http://127.0.0.1:3000/proof/violations
+```
+
+Expected Docker validation output has the same shape, with the provisioning
+helper also printing:
+
+```text
+[local-db] provisioning Postgres with Docker Compose
+[local-db] Docker Postgres is ready
+[local-db] provisioning path used: Docker
 ```
 
 ## Console
@@ -338,3 +355,14 @@ is intentionally rejected by this flow.
 Proof verification is honest. It is verified only when signed runtime artifacts
 and a registered runtime key exist. If either is missing, proof must be treated
 as unavailable or unverifiable, not as verified.
+
+Frontend console checks:
+
+```bash
+make web-console-check
+```
+
+Run the build before `tsc --noEmit` because the console TypeScript config
+includes Next-generated `.next/types/**/*.ts` files. Running `tsc --noEmit` on a
+clean tree before `next build` can fail only because those generated files do
+not exist yet.
