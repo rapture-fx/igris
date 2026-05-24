@@ -736,11 +736,11 @@ export default function Products() {
         <div className="px-0">
           <div className="pt-6 md:pt-8 pb-6 md:pb-8">
             <h2
-              className="text-[#000000] dark:text-[#f6f6f4]"
+              className="text-[#000000] dark:text-[#f6f6f4] font-normal"
               style={{
                 fontFamily: SANS,
-                fontWeight: 500,
-                fontSize: 'clamp(1.75rem, 3.2vw, 2.75rem)',
+                fontWeight: 400,
+                fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
                 lineHeight: 1.1,
                 letterSpacing: '-0.02em',
                 maxWidth: '22ch',
@@ -778,6 +778,14 @@ export default function Products() {
                 alt=""
                 className="block w-full h-auto select-none"
                 draggable={false}
+              />
+              <div
+                aria-hidden
+                className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-t from-transparent to-dark-bg"
+              />
+              <div
+                aria-hidden
+                className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-dark-bg"
               />
             </div>
             <div className="mt-8 px-4 md:px-6 text-gray-600 dark:text-[#a8a898] space-y-5 md:max-w-[50%] md:ml-auto"
