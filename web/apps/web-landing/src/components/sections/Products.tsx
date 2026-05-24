@@ -661,6 +661,14 @@ export default function Products() {
               style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
             >
               <p>
+                Igris sits between AI and the actions it wants to perform. When
+                your AI needs to read a file, call an API, update a database, or
+                trigger a workflow, Igris runs that action safely, records what
+                happened, and gives your team proof afterward. If execution
+                breaks mid-run, Igris resumes from the last recorded step
+                instead of starting from zero.
+              </p>
+              <p>
                 AI systems should be able to operate in real environments
                 without becoming unreliable, hard to understand, or impossible
                 to trust.{' '}
