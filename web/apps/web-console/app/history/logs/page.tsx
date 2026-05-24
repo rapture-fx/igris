@@ -115,7 +115,7 @@ const TYPE_STYLES: Record<EventType, string> = {
 
 function EventTypeChip({ type }: { type: EventType }) {
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-mono font-medium rounded ${TYPE_STYLES[type]}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded ${TYPE_STYLES[type]}`}>
       {type}
     </span>
   );
@@ -225,14 +225,14 @@ function ExecutionTimeline({ events }: { events: RuntimeEvent[] }) {
 
   if (grouped.length === 0) {
     return (
-      <div className="py-8 font-mono text-xs text-gray-500">
+      <div className="py-8 text-xs text-gray-500">
         — no events for the selected filters —
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 font-mono">
+    <div className="space-y-3">
       {grouped.map(({ execId, events: evts, firstTs, lastTs, hasCritical, hasError }) => (
         <div key={execId} className="rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-4 py-2.5 flex items-center justify-between gap-3 bg-gray-50 border-b border-gray-100">
@@ -405,15 +405,7 @@ function LogsContent() {
 
   return (
     <DashboardLayout fullWidth>
-      <div className="flex flex-col gap-2 flex-1 min-h-0">
-        <div className="flex items-start justify-between gap-4 flex-shrink-0">
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Logs</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Debug raw events after the operator evidence view is not enough.
-            </p>
-          </div>
-        </div>
+      <div className="flex flex-col gap-2 flex-1 min-h-0 px-6 pr-8 py-6">
 
         {/* ── Filter bar ────────────────────────────────────────────────────── */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2 flex-shrink-0">
@@ -421,14 +413,14 @@ function LogsContent() {
             <SelectTrigger className="h-auto py-2 w-52 text-xs bg-white shadow-none"><SelectValue placeholder="all agents" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">all agents</SelectItem>
-              {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs font-mono">{a}</SelectItem>)}
+              {uniqueAgents.map((a) => <SelectItem key={a} value={a} className="text-xs">{a}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={deviceFilter} onValueChange={setDeviceFilter}>
             <SelectTrigger className="h-auto py-2 w-52 text-xs bg-white shadow-none"><SelectValue placeholder="all runtimes" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all" className="text-xs">all runtimes</SelectItem>
-              {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs font-mono">{d}</SelectItem>)}
+              {uniqueDevices.map((d) => <SelectItem key={d} value={d} className="text-xs">{d}</SelectItem>)}
             </SelectContent>
           </Select>
           <Input placeholder="exec ID..." className="py-2 h-auto w-52 text-xs shadow-none"
@@ -596,13 +588,13 @@ function LogsContent() {
                             )}
                             onClick={() => setSelectedTrace(selectedTrace?.id === trace.id ? null : trace)}
                           >
-                            <TableCell className="px-3 py-2 text-xs text-gray-400 tabular-nums font-mono whitespace-nowrap">
+                            <TableCell className="px-3 py-2 text-xs text-gray-400 tabular-nums whitespace-nowrap">
                               {new Date(trace.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                             </TableCell>
                             <TableCell className="px-3 py-2 text-xs text-gray-700 font-medium truncate">
                               {trace.provider}
                             </TableCell>
-                            <TableCell className="px-3 py-2 text-xs text-gray-500 font-mono truncate" title={trace.model}>
+                            <TableCell className="px-3 py-2 text-xs text-gray-500 truncate" title={trace.model}>
                               {trace.model}
                             </TableCell>
                             <TableCell className="px-3 py-2">
@@ -655,7 +647,7 @@ function LogsContent() {
                 title={
                   <>
                     <Activity className="h-4 w-4 text-gray-400" />
-                    <span className="font-mono text-sm">{selectedTrace?.provider ?? ''}</span>
+                    <span className="text-sm">{selectedTrace?.provider ?? ''}</span>
                     {selectedTrace && (
                       <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-medium border ${
                         selectedTrace.status === 200 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
@@ -702,7 +694,7 @@ function LogsContent() {
 
                     {selectedTrace.prompt && (
                       <DrawerSection title="Prompt">
-                        <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words bg-gray-50 rounded p-2.5 max-h-40 overflow-y-auto font-mono">
+                        <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words bg-gray-50 rounded p-2.5 max-h-40 overflow-y-auto">
                           {selectedTrace.prompt}
                         </pre>
                       </DrawerSection>
@@ -710,7 +702,7 @@ function LogsContent() {
 
                     {selectedTrace.completion && (
                       <DrawerSection title="Completion">
-                        <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words bg-gray-50 rounded p-2.5 max-h-40 overflow-y-auto font-mono">
+                        <pre className="text-xs text-gray-700 whitespace-pre-wrap break-words bg-gray-50 rounded p-2.5 max-h-40 overflow-y-auto">
                           {selectedTrace.completion}
                         </pre>
                       </DrawerSection>
@@ -721,7 +713,7 @@ function LogsContent() {
                         <div className="bg-red-50 border border-red-200 rounded p-2.5">
                           <p className="text-xs text-red-700 font-medium">{selectedTrace.error.message}</p>
                           {selectedTrace.error.provider_error && (
-                            <p className="text-xs text-red-500 mt-1 font-mono">{selectedTrace.error.provider_error}</p>
+                            <p className="text-xs text-red-500 mt-1">{selectedTrace.error.provider_error}</p>
                           )}
                         </div>
                       </DrawerSection>
@@ -765,7 +757,7 @@ function LogsContent() {
                 </span>
               )}
               {dataUpdatedAt > 0 && !liveMode && (
-                <span className="text-xs text-gray-400 font-mono">
+                <span className="text-xs text-gray-400">
                   {new Date(dataUpdatedAt).toLocaleTimeString()}
                 </span>
               )}
@@ -778,7 +770,7 @@ function LogsContent() {
             style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgb(229 231 235) transparent' } as React.CSSProperties}
           >
             {isLoading ? (
-              <div className="px-4 py-6 font-mono">
+              <div className="px-4 py-6">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3 py-[3px] opacity-30 animate-pulse">
                     <span className="text-xs text-gray-600 w-[58px] bg-gray-200 rounded h-2.5" />
@@ -789,7 +781,7 @@ function LogsContent() {
                 ))}
               </div>
             ) : events.length === 0 ? (
-              <div className="px-4 py-8 font-mono">
+              <div className="px-4 py-8">
                 <span className="text-xs text-gray-600">
                   {activeFilters.length > 0
                     ? <>— no events match filters — <button onClick={clearAll} className="text-gray-500 hover:text-gray-300 underline underline-offset-2 transition-colors">clear</button></>
@@ -814,13 +806,13 @@ function LogsContent() {
                   onClick={() => setSelectedId(e.id === selectedId ? null : e.id)}
                 >
                   {/* Timestamp */}
-                  <span className="text-xs text-gray-400 tabular-nums font-mono whitespace-nowrap pr-3 flex-shrink-0 select-none">
+                  <span className="text-xs text-gray-400 tabular-nums whitespace-nowrap pr-3 flex-shrink-0 select-none">
                     {new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
 
                   {/* Severity level */}
                   <span className={cn(
-                    'text-xs font-mono font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
+                    'text-xs font-bold uppercase pr-3 w-[46px] flex-shrink-0 select-none',
                     e.severity === 'critical' ? 'text-red-400'    :
                     e.severity === 'error'    ? 'text-orange-400' :
                     e.severity === 'warning'  ? 'text-yellow-400' :
@@ -830,19 +822,19 @@ function LogsContent() {
                   </span>
 
                   {/* Event type */}
-                  <span className="text-xs text-violet-600 font-mono pr-3 w-[176px] flex-shrink-0 truncate select-none">
+                  <span className="text-xs text-violet-600 pr-3 w-[176px] flex-shrink-0 truncate select-none">
                     {e.event_type}
                   </span>
 
                   {/* Message */}
-                  <span className="text-xs text-gray-700 font-mono flex-1 min-w-0 break-words leading-[1.7]">
+                  <span className="text-xs text-gray-700 flex-1 min-w-0 break-words leading-[1.7]">
                     {q ? highlightMatch(e.message, q) : e.message}
                   </span>
 
                   {/* Exec ID — reveal on hover */}
                   {e.execution_id && (
                     <span
-                      className="text-xs text-blue-500/60 font-mono flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
+                      className="text-xs text-blue-500/60 flex-shrink-0 pl-3 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap"
                       onClick={(ev) => { ev.stopPropagation(); router.push(`/execution/runs/${e.execution_id}`); }}
                     >
                       {e.execution_id.slice(0, 10)}
@@ -929,7 +921,7 @@ function LogsContent() {
                         className="flex items-center gap-2 px-3 py-2 rounded border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-blue-600 group-hover:text-blue-700 font-mono truncate">{selected.execution_id}</span>
+                        <span className="text-xs text-blue-600 group-hover:text-blue-700 truncate">{selected.execution_id}</span>
                         <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Execution →</span>
                       </a>
                     )}
@@ -939,7 +931,7 @@ function LogsContent() {
                         className="flex items-center gap-2 px-3 py-2 rounded border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-teal-600 group-hover:text-teal-700 font-mono truncate">{selected.agent_id}</span>
+                        <span className="text-xs text-teal-600 group-hover:text-teal-700 truncate">{selected.agent_id}</span>
                         <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Agent →</span>
                       </a>
                     )}
@@ -949,7 +941,7 @@ function LogsContent() {
                         className="flex items-center gap-2 px-3 py-2 rounded border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-violet-600 group-hover:text-violet-700 font-mono truncate">{selected.device_id}</span>
+                        <span className="text-xs text-violet-600 group-hover:text-violet-700 truncate">{selected.device_id}</span>
                         <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Runtime →</span>
                       </a>
                     )}
@@ -959,7 +951,7 @@ function LogsContent() {
                         className="flex items-center gap-2 px-3 py-2 rounded border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-green-600 group-hover:text-green-700 font-mono truncate">receipt for {selected.execution_id.slice(0, 14)}…</span>
+                        <span className="text-xs text-green-600 group-hover:text-green-700 truncate">receipt for {selected.execution_id.slice(0, 14)}…</span>
                         <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Receipt →</span>
                       </a>
                     )}
@@ -969,7 +961,7 @@ function LogsContent() {
                         className="flex items-center gap-2 px-3 py-2 rounded border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors group"
                       >
                         <Link2 className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                        <span className="text-xs text-red-600 group-hover:text-red-700 font-mono truncate">violation record</span>
+                        <span className="text-xs text-red-600 group-hover:text-red-700 truncate">violation record</span>
                         <span className="text-xs text-gray-400 ml-auto flex-shrink-0">Violation →</span>
                       </a>
                     )}
