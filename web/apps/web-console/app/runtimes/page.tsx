@@ -1,113 +1,122 @@
 'use client';
 
+/**
+ * Runtimes — minimal infrastructure context for the execution workspace.
+ *
+ * Shows runtime id/label, trust state, last seen, recent executions, recent
+ * failures. Each row links to the runtime detail page. No fleet-management
+ * widgets. Real data from `useGovernanceRuntimes()`; missing values render
+ * as "Not available".
+ */
+
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { GovernanceBadge } from '@/components/governance/GovernanceBadge';
-import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
 import { useGovernanceRuntimes } from '@/hooks/useGovernance';
-import { runtimeTrustLabel, type GovernanceRuntimeSummary } from '@/lib/governance';
+import { runtimeTrustLabel } from '@/lib/governance';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
-import { ArrowUpRight, AlertTriangle, Cpu, Search, ShieldCheck } from 'lucide-react';
 
-function capabilityText(value: unknown): string {
-  if (Array.isArray(value)) return value.length ? value.slice(0, 4).map(String).join(', ') : 'Not available';
-  if (value && typeof value === 'object') return Object.keys(value).slice(0, 4).join(', ') || 'Not available';
-  return 'Not available';
-}
-
-function TrustBadge({ state }: { state?: string }) {
+function trustDot(state?: string): string {
   const label = runtimeTrustLabel(state);
-  return <GovernanceBadge label={label.label} tone={label.tone} />;
+  if (label.tone === 'success') return 'bg-emerald-400';
+  if (label.tone === 'warning') return 'bg-amber-400';
+  if (label.tone === 'danger') return 'bg-rose-500';
+  return 'bg-[#3a3a32]';
 }
 
 export default function RuntimesPage() {
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<GovernanceRuntimeSummary | null>(null);
   const { data, isLoading } = useGovernanceRuntimes({ limit: 200 });
   const runtimes = data?.items ?? [];
 
   const filtered = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return runtimes;
-    return runtimes.filter((runtime) =>
-      [runtime.runtime_id, runtime.runtime_label, runtime.trust_state, capabilityText(runtime.capability_summary)]
-        .some((value) => value.toLowerCase().includes(query)),
+    const q = search.trim().toLowerCase();
+    if (!q) return runtimes;
+    return runtimes.filter((r) =>
+      [r.runtime_id, r.runtime_label, r.trust_state].some((v) => (v || '').toLowerCase().includes(q)),
     );
   }, [runtimes, search]);
 
   return (
     <DashboardLayout>
-      <div className="space-y-5 px-6 pr-8 py-6">
-        <div className="flex flex-wrap items-start justify-end gap-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search runtime, trust, capability..." className="h-8 pl-8 text-xs" />
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-[1040px] px-8 py-10">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h1 className="text-[15px] text-[#f0efe8]" style={{ letterSpacing: '-0.01em' }}>
+                Runtimes
+              </h1>
+              <p className="text-[12px] text-[#7a7a72] mt-0.5">
+                Runtime context for the executions you're inspecting.
+              </p>
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search runtimes…"
+              className="h-7 px-2.5 text-[11.5px] rounded-md bg-white/[0.04] border border-white/[0.06] text-[#e8e7df] placeholder:text-[#5a5a52] outline-none focus:border-white/[0.12] w-56"
+            />
+          </div>
+
+          <div
+            className="rounded-lg border-[0.5px] border-white/[0.06] overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
+          >
+            <div
+              className="grid items-center gap-3 px-4 py-2 border-b border-white/[0.05] text-[10.5px] text-[#7a7a72]"
+              style={{ gridTemplateColumns: '1fr 110px 110px 100px 110px' }}
+            >
+              <span>Runtime</span>
+              <span>Trust</span>
+              <span className="text-right tabular-nums">Active / recent</span>
+              <span className="text-right tabular-nums">Failures</span>
+              <span className="text-right">Last seen</span>
+            </div>
+
+            {isLoading ? (
+              <div className="px-4 py-6 text-[11.5px] text-[#6a6a62]">Loading runtimes…</div>
+            ) : filtered.length === 0 ? (
+              <div className="px-4 py-6 text-[11.5px] text-[#6a6a62]">No runtimes available.</div>
+            ) : (
+              filtered.map((r) => {
+                const trust = runtimeTrustLabel(r.trust_state);
+                return (
+                  <Link
+                    key={r.runtime_id}
+                    href={`/runtimes/${encodeURIComponent(r.runtime_id)}`}
+                    className="grid items-center gap-3 px-4 py-2.5 border-b border-white/[0.04] last:border-b-0 hover:bg-white/[0.025] transition-colors"
+                    style={{ gridTemplateColumns: '1fr 110px 110px 100px 110px' }}
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[12.5px] text-[#e8e7df] truncate" style={{ letterSpacing: '-0.005em' }}>
+                        {truncateText(r.runtime_label || r.runtime_id, 36)}
+                      </div>
+                      <div className="text-[10.5px] text-[#6a6a62] truncate">
+                        {truncateText(r.runtime_id, 40)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={'block w-1.5 h-1.5 rounded-full ' + trustDot(r.trust_state)} />
+                      <span className="text-[11px] text-[#c8c7be]">{trust.label}</span>
+                    </div>
+                    <span className="text-[11px] text-[#c8c7be] tabular-nums text-right">
+                      {r.active_execution_count} / {r.recent_execution_count}
+                    </span>
+                    <span className="text-[11px] tabular-nums text-right">
+                      <span className={r.failed_verification_count > 0 ? 'text-rose-400/80' : 'text-[#6a6a62]'}>
+                        {r.failed_verification_count}
+                      </span>
+                    </span>
+                    <span className="text-[10.5px] text-[#7a7a72] text-right">
+                      {r.last_seen ? getRelativeTime(r.last_seen) : 'Not available'}
+                    </span>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </div>
-
-        <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
-          <div className="flex items-center justify-end px-4 py-3">
-            {!isLoading && <span className="text-[11px] tabular-nums text-muted-foreground">{filtered.length} of {data?.total ?? 0}</span>}
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Runtime</TableHead>
-                <TableHead>Trust</TableHead>
-                <TableHead>Capabilities</TableHead>
-                <TableHead>Executions</TableHead>
-                <TableHead>Boundaries</TableHead>
-                <TableHead>Recovery / Proof</TableHead>
-                <TableHead>Last seen</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, index) => <TableRow key={index}><TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell></TableRow>)
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="py-12 text-center text-xs text-muted-foreground">Evidence not available. No runtime summaries match these filters.</TableCell></TableRow>
-              ) : (
-                filtered.map((runtime) => (
-                  <TableRow key={runtime.runtime_id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(runtime)}>
-                    <TableCell>
-                      <Link href={`/runtimes/${encodeURIComponent(runtime.runtime_id)}`} className="group flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
-                        <span className="text-xs text-foreground">{truncateText(runtime.runtime_label || runtime.runtime_id, 22)}</span>
-                        <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
-                      </Link>
-                      <div className="text-[10px] text-muted-foreground">{truncateText(runtime.runtime_id, 24)}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <TrustBadge state={runtime.trust_state} />
-                        {runtime.enforcement_warning && <GovernanceBadge label="Runtime support warning" tone="warning" showDot={false} />}
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-[220px] text-xs text-muted-foreground">{capabilityText(runtime.capability_summary)}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div>{runtime.active_execution_count} active</div>
-                      <div>{runtime.recent_execution_count} recent</div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div>{runtime.boundary_count} records</div>
-                      <div>{runtime.violation_count} violations</div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      <div>{runtime.handoff_count} handoffs</div>
-                      <div>{runtime.verified_proof_count} verified / {runtime.failed_verification_count} failed</div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{runtime.last_seen ? getRelativeTime(runtime.last_seen) : 'Not available'}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </section>
-
-        <SafeEvidenceJsonPanel title="Selected runtime evidence" data={selected} defaultOpen={Boolean(selected)} />
       </div>
     </DashboardLayout>
   );
