@@ -40,21 +40,7 @@ export default function Hero() {
                 </a>
               </div>
 
-              <p
-                className="md:col-span-4 md:col-start-9 md:mt-2 text-gray-700 dark:text-[#c8c8b8]"
-                style={{
-                  fontFamily: SANS,
-                  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
-                  lineHeight: 1.65,
-                }}
-              >
-                Igris sits between AI and the actions it wants to perform. When
-                your AI needs to read a file, call an API, update a database, or
-                trigger a workflow, Igris runs that action safely, records what
-                happened, and gives your team proof afterward. If execution breaks
-                mid-run, Igris resumes from the last recorded step instead of
-                starting from zero.
-              </p>
+
             </div>
 
           </div>
