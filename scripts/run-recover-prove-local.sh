@@ -333,7 +333,14 @@ run_and_capture() {
 extract_field_from_live_log() {
   local label="$1"
   local log_file="$2"
-  awk -F': +' -v key="$label" '$0 ~ key ":" { value=$2 } END { gsub(/^[ \t]+|[ \t]+$/, "", value); print value }' "$log_file"
+  awk -F': +' -v key="$label" '
+    {
+      line=$0
+      sub(/^[ \t]+/, "", line)
+      if (index(line, key ":") == 1) { value=$2 }
+    }
+    END { gsub(/^[ \t]+|[ \t]+$/, "", value); print value }
+  ' "$log_file"
 }
 
 if [[ "$MODE" == "migrate" ]]; then
