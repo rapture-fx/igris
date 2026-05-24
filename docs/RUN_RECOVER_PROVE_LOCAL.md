@@ -13,16 +13,50 @@ The main entrypoint is:
 make run-recover-prove-local
 ```
 
+Use these setup helpers before the first live run:
+
+```bash
+make run-recover-prove-local-doctor
+make run-recover-prove-local-migrate
+```
+
 The script fails loudly when local prerequisites are missing. It does not fake
 proof and does not enable unsigned runtime callback compatibility.
 
-## Prerequisites
+## Clean Local Setup
 
 - Go, Cargo/Rust, Node, curl, lsof, and psql on PATH.
 - A local Postgres database with the Overture migrations applied.
 - `DATABASE_URL` or `POSTGRES_URL` pointing at that database, or a `.env` file
   containing one of those values.
 - Ports `8080`, `8081`, `18090`, and `18091` available.
+
+macOS/Homebrew setup:
+
+```bash
+brew install postgresql@16
+brew services start postgresql@16
+createdb igris_overture
+export DATABASE_URL='postgres://<local-user>@localhost:5432/igris_overture?sslmode=disable'
+make run-recover-prove-local-migrate
+make run-recover-prove-local-doctor
+make run-recover-prove-local
+```
+
+Docker setup:
+
+```bash
+docker compose -f docker-compose.minimal.yml up -d postgres
+export DATABASE_URL='postgres://igris_user:<local-password>@localhost:5432/igris_overture?sslmode=disable'
+make run-recover-prove-local-migrate
+make run-recover-prove-local-doctor
+make run-recover-prove-local
+```
+
+The migration helper uses `igris-overture/database/migrations`, not the older
+top-level migration directory. It applies all migrations for a clean schema. For
+an existing local schema it applies the additive live-demo requirements,
+including recovery governance and signed callback nonce tables.
 
 The flow starts Overture on `127.0.0.1:8081`, starts one Rust runtime on
 `127.0.0.1:8080`, registers the runtime Ed25519 public key, submits a
@@ -52,6 +86,8 @@ callbacks are rejected and persisted as safe violation evidence.
 
 ```bash
 make run-recover-prove-local
+make run-recover-prove-local-doctor
+make run-recover-prove-local-migrate
 make run-recover-prove-local-smoke
 make test-policy-enforcement
 make test-recovery-chaos
@@ -92,6 +128,29 @@ On success, the script prints:
 
 The redacted summary excludes private keys, raw API keys, session tokens,
 credentials, raw callback bodies, and raw environment values.
+
+Validated local live run on 2026-05-24:
+
+```text
+live action path:              real
+task_id:                       b9f812df-f1c3-4990-a991-eb05dae1b235
+runtime_id:                    ed5cc5b1-efc0-4e98-ae8f-9411889719e2
+execution_id:                  019e5924-8ade-7c70-b58f-1a115d3d92d8
+signed callback mode:          live-server-backed
+failure/recovery mode:         live-server-backed
+failure task_id:               ce6ebb94-044d-48f2-905c-6a48d3ecb04b
+receipt verify HTTP status:    200
+task verify HTTP status:       200
+recovery event URL:            http://127.0.0.1:8081/v1/execution/governance/recovery-events?task_id=ce6ebb94-044d-48f2-905c-6a48d3ecb04b
+task API:                      http://127.0.0.1:8081/v1/tasks/b9f812df-f1c3-4990-a991-eb05dae1b235
+run API:                       http://127.0.0.1:8081/v1/execution/runs/019e5924-8ade-7c70-b58f-1a115d3d92d8
+receipts API:                  http://127.0.0.1:8081/proof/receipts
+violations API:                http://127.0.0.1:8081/v1/execution/governance/boundary-violations
+console task:                  http://127.0.0.1:3000/execution/tasks/b9f812df-f1c3-4990-a991-eb05dae1b235
+console failure task:          http://127.0.0.1:3000/execution/tasks/ce6ebb94-044d-48f2-905c-6a48d3ecb04b
+console proof:                 http://127.0.0.1:3000/proof/receipts
+console violations:            http://127.0.0.1:3000/proof/violations
+```
 
 ## Console
 
@@ -162,3 +221,49 @@ The script exits non-zero if:
 - irreversible recovery-blocking tests fail,
 - proof tamper tests fail,
 - any required command is missing.
+
+## Troubleshooting
+
+Postgres missing or unreachable:
+
+```bash
+pg_isready -h localhost -p 5432
+make run-recover-prove-local-doctor
+```
+
+The doctor prints a sanitized database summary with host, port, database, auth
+presence, and sslmode. It does not print passwords or raw DSNs.
+
+Migrations missing:
+
+```bash
+make run-recover-prove-local-migrate
+make run-recover-prove-local-doctor
+```
+
+Required live-demo schema includes `task_records`, `wal_checkpoints`,
+`execution_context`, `execution_lineage`, `runtime_instances`,
+`action_policy_decisions`, `task_recovery_events`, `execution_boundaries`,
+`boundary_violations`, and `runtime_callback_nonces`.
+
+Ports in use:
+
+```bash
+lsof -nP -iTCP:8080 -sTCP:LISTEN
+lsof -nP -iTCP:8081 -sTCP:LISTEN
+lsof -nP -iTCP:18090 -sTCP:LISTEN
+lsof -nP -iTCP:18091 -sTCP:LISTEN
+```
+
+Runtime key registration failure means Overture started but did not accept the
+generated runtime identity. Check the live run's `overture.log` and
+`runtime-register-response.json` under the printed artifacts directory.
+
+Missing callback evidence means the runtime did not write accepted signed
+checkpoint, complete, and failed callback rows to the printed JSONL file. Keep
+`IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS` unset or false; unsigned compatibility
+is intentionally rejected by this flow.
+
+Proof verification is honest. It is verified only when signed runtime artifacts
+and a registered runtime key exist. If either is missing, proof must be treated
+as unavailable or unverifiable, not as verified.
