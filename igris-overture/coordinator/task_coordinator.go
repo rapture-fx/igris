@@ -186,6 +186,73 @@ func (tc *TaskCoordinator) HandleFailed(taskID uuid.UUID, reason string) error {
 	return tc.store.MarkFailed(taskID, reason)
 }
 
+// RecordRuntimeFailedRecoveryDecision persists the conservative recovery
+// decision that follows an accepted runtime failed callback for irreversible or
+// otherwise non-replayable work. It does not redispatch the task.
+func (tc *TaskCoordinator) RecordRuntimeFailedRecoveryDecision(task *TaskRecord, callbackRuntimeID string) error {
+	if tc == nil || tc.store == nil || task == nil {
+		return nil
+	}
+	decision, runtimeID, allowed, reason, shouldRecord := runtimeFailedRecoveryDecision(task, callbackRuntimeID)
+	if !shouldRecord {
+		return nil
+	}
+	if err := tc.store.SaveActionPolicyDecision(decision); err != nil {
+		return err
+	}
+	_ = tc.store.SetLatestPolicyDecision(task.TaskID, decision)
+	if allowed {
+		return nil
+	}
+	_ = tc.store.SaveRuntimeHandoffEvent(RuntimeHandoffEvent{
+		TenantID:              task.TenantID,
+		TaskID:                task.TaskID,
+		SourceRuntimeID:       runtimeID,
+		TargetRuntimeID:       runtimeID,
+		CheckpointDigest:      checkpointDigest(task.LastCheckpoint),
+		CheckpointPortability: decision.CheckpointPortability,
+		Decision:              mapBoolDecision(false),
+		Reason:                reason,
+	})
+	replayAllowed := false
+	return tc.store.SaveRecoveryEvent(RecoveryEvent{
+		TenantID:          task.TenantID,
+		TaskID:            task.TaskID,
+		EventType:         "automatic_replay_blocked",
+		SourceRuntimeID:   runtimeID,
+		TargetRuntimeID:   runtimeID,
+		CheckpointDigest:  checkpointDigest(task.LastCheckpoint),
+		LastCommittedStep: checkpointLastCommittedStep(task.LastCheckpoint),
+		ReplayAllowed:     &replayAllowed,
+		Reason:            reason,
+	})
+}
+
+func runtimeFailedRecoveryDecision(task *TaskRecord, callbackRuntimeID string) (ActionPolicyDecision, string, bool, string, bool) {
+	if task == nil {
+		return ActionPolicyDecision{}, "", false, "", false
+	}
+	runtimeID := strings.TrimSpace(callbackRuntimeID)
+	if runtimeID == "" && task.RuntimeID != nil {
+		runtimeID = *task.RuntimeID
+	}
+	decision := evaluateActionPolicy(actionPolicyInput{
+		TenantID:        task.TenantID,
+		TaskID:          task.TaskID,
+		RuntimeID:       runtimeID,
+		TaskDefinition:  task.TaskDefinition,
+		AgentIdentity:   task.AgentIdentity,
+		RequiredCaps:    task.RequiredCapabilities,
+		Checkpoint:      task.LastCheckpoint,
+		RecoveryAttempt: true,
+	})
+	if !decision.Irreversible && decision.ReplayClass != ReplayClassNonRetryable {
+		return decision, runtimeID, false, "", false
+	}
+	allowed, reason := RecoveryHandoffAllowed(task, task.LastCheckpoint, runtimeID, decision)
+	return decision, runtimeID, allowed, reason, true
+}
+
 // HandleCancel marks a task as canceled.
 func (tc *TaskCoordinator) HandleCancel(taskID uuid.UUID) error {
 	return tc.store.MarkCanceled(taskID)
