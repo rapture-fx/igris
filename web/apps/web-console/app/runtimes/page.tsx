@@ -41,14 +41,8 @@ export default function RuntimesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Runtimes</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Runtime trust, execution boundaries, violations, handoffs, recovery, and proof records.
-            </p>
-          </div>
+      <div className="space-y-5 px-6 pr-8 py-6">
+        <div className="flex flex-wrap items-start justify-end gap-4">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search runtime, trust, capability..." className="h-8 pl-8 text-xs" />
@@ -56,11 +50,7 @@ export default function RuntimesPage() {
         </div>
 
         <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">Runtime Operations</h2>
-              <p className="text-[11px] text-muted-foreground">Backed by `GET /v1/execution/governance/runtimes`. Safe summaries only.</p>
-            </div>
+          <div className="flex items-center justify-end px-4 py-3">
             {!isLoading && <span className="text-[11px] tabular-nums text-muted-foreground">{filtered.length} of {data?.total ?? 0}</span>}
           </div>
           <Table>
