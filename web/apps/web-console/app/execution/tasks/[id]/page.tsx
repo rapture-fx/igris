@@ -716,8 +716,17 @@ export default function ExecutionDetailPage() {
                       </div>
                     </div>
 
-                    {/* Detailed evidence */}
-                    {showDetailed && <DetailedEvidence task={task} verifyState={verified} walEntries={steps.length} />}
+                    {/* Always-visible Policy / Boundary / Recovery / Proof / Checkpoint */}
+                    <DetailedEvidence task={task} verifyState={verified} walEntries={steps.length} />
+
+                    {/* Raw evidence — redacted */}
+                    <div id="raw-evidence" className="mt-6 scroll-mt-16">
+                      <SafeEvidenceJsonPanel
+                        title="Raw evidence"
+                        data={task}
+                        exportName={`task-${task.task_id}-evidence.json`}
+                      />
+                    </div>
 
                     <div className="mt-4 text-[11px] text-[#5a5a52] tabular-nums">
                       {task.completed_at ? formatDateTime(task.completed_at) : (task.created_at ? formatDateTime(task.created_at) : '—')} ·{' '}
