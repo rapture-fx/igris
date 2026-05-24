@@ -585,7 +585,7 @@ const listEvents = Array.isArray(events.items) ? events.items : [];
 const allEvents = taskEvents.concat(listEvents);
 const blocked = allEvents.find((event) => event.event_type === "automatic_replay_blocked" && event.replay_allowed === false);
 if (!blocked) fail(`missing automatic_replay_blocked recovery event: ${JSON.stringify(allEvents)}`);
-if (!String(blocked.reason || "").includes("non-replayable or irreversible")) fail(`unexpected block reason: ${blocked.reason}`);
+if (!String(blocked.reason || "").includes("irreversible action cannot be automatically replayed")) fail(`unexpected block reason: ${blocked.reason}`);
 console.log(`    recovery blocked reason: ${blocked.reason}`);
 NODE
   if [[ -n "$CONSOLE_BASE_URL" ]]; then
