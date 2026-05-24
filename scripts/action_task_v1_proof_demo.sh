@@ -48,6 +48,7 @@ CALLBACK_EVIDENCE_LOG="$TMP_DIR/runtime-callback-evidence.jsonl"
 # link for presenters. Accept --console-base-url <url> or CONSOLE_URL=<url>.
 # Never required; omitting it leaves behavior unchanged.
 CONSOLE_BASE_URL="${CONSOLE_URL:-}"
+INCLUDE_FAILURE_RECOVERY="${IGRIS_ACTION_TASK_INCLUDE_FAILURE_RECOVERY:-false}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --console-base-url)
@@ -58,9 +59,13 @@ while [[ $# -gt 0 ]]; do
       CONSOLE_BASE_URL="${1#*=}"
       shift
       ;;
+    --include-failure-recovery)
+      INCLUDE_FAILURE_RECOVERY=true
+      shift
+      ;;
     *)
       echo "unknown argument: $1" >&2
-      echo "usage: $0 [--console-base-url <url>]   (or set CONSOLE_URL)" >&2
+      echo "usage: $0 [--console-base-url <url>] [--include-failure-recovery]   (or set CONSOLE_URL)" >&2
       exit 2
       ;;
   esac
@@ -329,6 +334,7 @@ echo "[8/11] Starting Runtime"
     IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
     IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
     IGRIS_RUNTIME_CALLBACK_EVIDENCE_LOG="$CALLBACK_EVIDENCE_LOG" \
+    IGRIS_ENABLE_LOCAL_DEMO_FAILURE="$INCLUDE_FAILURE_RECOVERY" \
     IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
     IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
     RUST_LOG="warn" \
@@ -505,26 +511,115 @@ node "$ACTION_HELPER" verify-action-evidence \
   "$DB_ROW_ID" \
   "$TMP_DIR/task-after-verify.json"
 
+FAILURE_TASK_ID=""
+FAILURE_RECOVERY_EVENT_URL=""
+FAILURE_TASK_URL=""
+FAILURE_CONSOLE_URL=""
+if [[ "$INCLUDE_FAILURE_RECOVERY" == "true" ]]; then
+  echo "[10b/11] Submitting deterministic failed irreversible recovery-blocking task"
+  FAILURE_TASK_ID=$(node -e 'process.stdout.write(require("crypto").randomUUID())')
+  FAILURE_TASK_URL="http://127.0.0.1:8081/v1/tasks/$FAILURE_TASK_ID"
+  FAILURE_RECOVERY_EVENT_URL="http://127.0.0.1:8081/v1/execution/governance/recovery-events?task_id=$FAILURE_TASK_ID"
+  node - <<'NODE' "$TMP_DIR/failure-task-request.json" "$FAILURE_TASK_ID" "$INPUT_FILE" "$ACTION_TABLE"
+const fs = require("fs");
+const [outPath, taskId, inputFile, table] = process.argv.slice(2);
+const body = {
+  task_id: taskId,
+  task_type: "execution_graph",
+  task_definition: {
+    graph: {
+      graph_id: "local-irreversible-recovery-blocking",
+      nodes: [
+        {
+          kind: "tool",
+          node_id: "read_file-0",
+          tool_name: "filesystem",
+          args: { operation: "read", path: inputFile },
+          checkpoint_key: "failure-demo-read",
+          write_slot: "read_result"
+        },
+        {
+          kind: "tool",
+          node_id: "db_write-1",
+          tool_name: "database_write",
+          args: {
+            table,
+            record: { task_id: taskId, status: "should_not_replay", source: "failure-demo" }
+          },
+          checkpoint_key: "failure-demo-db-write",
+          write_slot: "db_result"
+        }
+      ]
+    },
+    local_demo_failure: {
+      after_steps: 1,
+      reason: "local demo deterministic failure before irreversible replay"
+    }
+  },
+  idempotency_key: `action-task-failure-${String(taskId).slice(0, 8)}`
+};
+fs.writeFileSync(outPath, JSON.stringify(body, null, 2) + "\n");
+NODE
+  echo "    failure_task_id:          $FAILURE_TASK_ID"
+  echo "    request:                  $TMP_DIR/failure-task-request.json"
+  curl -sS -f \
+    "${AUTH_ARGS[@]}" \
+    -H "Content-Type: application/json" \
+    -d @"$TMP_DIR/failure-task-request.json" \
+    "http://127.0.0.1:8081/v1/tasks/submit" > "$TMP_DIR/failure-task-accepted.json"
+
+  wait_for_task_status "$FAILURE_TASK_ID" "failed" "$TMP_DIR/failure-task-detail.json" 90 1
+  curl -sS -f "${AUTH_ARGS[@]}" "$FAILURE_RECOVERY_EVENT_URL" > "$TMP_DIR/failure-recovery-events.json"
+  node - <<'NODE' "$TMP_DIR/failure-task-detail.json" "$TMP_DIR/failure-recovery-events.json"
+const fs = require("fs");
+const [taskPath, eventsPath] = process.argv.slice(2);
+const task = JSON.parse(fs.readFileSync(taskPath, "utf8"));
+const events = JSON.parse(fs.readFileSync(eventsPath, "utf8"));
+function fail(msg) { throw new Error(msg); }
+if (task.status !== "failed") fail(`failure task status is ${task.status}`);
+if (!task.policy || task.policy.irreversible !== true || task.policy.replay_class !== "non_retryable") {
+  fail(`failure task missing irreversible non-replayable policy: ${JSON.stringify(task.policy)}`);
+}
+const taskEvents = (((task.recovery || {}).events) || []);
+const listEvents = Array.isArray(events.items) ? events.items : [];
+const allEvents = taskEvents.concat(listEvents);
+const blocked = allEvents.find((event) => event.event_type === "automatic_replay_blocked" && event.replay_allowed === false);
+if (!blocked) fail(`missing automatic_replay_blocked recovery event: ${JSON.stringify(allEvents)}`);
+if (!String(blocked.reason || "").includes("non-replayable or irreversible")) fail(`unexpected block reason: ${blocked.reason}`);
+console.log(`    recovery blocked reason: ${blocked.reason}`);
+NODE
+  if [[ -n "$CONSOLE_BASE_URL" ]]; then
+    FAILURE_CONSOLE_URL="$CONSOLE_BASE_URL/execution/tasks/$FAILURE_TASK_ID"
+  fi
+fi
+
 if [[ ! -s "$CALLBACK_EVIDENCE_LOG" ]]; then
   echo "runtime did not write signed callback evidence" >&2
   exit 1
 fi
-node - <<'NODE' "$CALLBACK_EVIDENCE_LOG" "$TASK_ID" "$RUNTIME_ID"
+node - <<'NODE' "$CALLBACK_EVIDENCE_LOG" "$TASK_ID" "$RUNTIME_ID" "$FAILURE_TASK_ID"
 const fs = require("fs");
-const [path, taskId, runtimeId] = process.argv.slice(2);
+const [path, taskId, runtimeId, failureTaskId] = process.argv.slice(2);
 const rows = fs.readFileSync(path, "utf8").trim().split(/\n+/).filter(Boolean).map((line) => JSON.parse(line));
 function fail(msg) { throw new Error(msg); }
 if (!rows.length) fail("no callback evidence rows");
-for (const row of rows) {
+const successRows = rows.filter((row) => row.task_id === taskId);
+for (const row of successRows) {
   if (row.task_id !== taskId) fail(`callback task_id mismatch: ${row.task_id}`);
   if (row.runtime_id !== runtimeId) fail(`callback runtime_id mismatch: ${row.runtime_id}`);
   if (!row.accepted || row.status_code < 200 || row.status_code >= 300) fail(`callback not accepted: ${JSON.stringify(row)}`);
   if (!/^[a-f0-9]{64}$/.test(row.body_digest || "")) fail("callback evidence missing sha256 body digest");
 }
-const types = new Set(rows.map((row) => row.callback_type));
+const types = new Set(successRows.map((row) => row.callback_type));
 if (!types.has("complete")) fail("complete callback was not accepted");
 if (!types.has("checkpoint")) fail("checkpoint callback was not accepted");
-console.log(`    signed runtime callbacks: ${rows.length} accepted (${[...types].sort().join(", ")})`);
+if (failureTaskId) {
+  const failedRows = rows.filter((row) => row.task_id === failureTaskId);
+  if (!failedRows.some((row) => row.callback_type === "failed" && row.accepted && row.status_code >= 200 && row.status_code < 300)) {
+    fail(`failed callback was not accepted for ${failureTaskId}: ${JSON.stringify(failedRows)}`);
+  }
+}
+console.log(`    signed runtime callbacks: ${rows.length} accepted (${[...new Set(rows.map((row) => row.callback_type))].sort().join(", ")})`);
 NODE
 
 echo ""
@@ -535,7 +630,16 @@ echo "    db row id:                     $DB_ROW_ID"
 echo "    receipt verify HTTP status:    $VERIFY_HTTP_STATUS"
 echo "    task verify HTTP status:       $TASK_PROOF_HTTP_STATUS"
 echo "    callback evidence:             $CALLBACK_EVIDENCE_LOG"
+if [[ -n "$FAILURE_TASK_ID" ]]; then
+  echo "    failure task_id:               $FAILURE_TASK_ID"
+  echo "    failed callback evidence:      $CALLBACK_EVIDENCE_LOG"
+  echo "    recovery event URL:            $FAILURE_RECOVERY_EVENT_URL"
+  echo "    failure task API:              $FAILURE_TASK_URL"
+fi
 echo "    artifacts:                     $TMP_DIR"
 if [[ -n "$CONSOLE_BASE_URL" ]]; then
   echo "    Console Task Inspector:        $CONSOLE_BASE_URL/execution/tasks/$TASK_ID"
+  if [[ -n "$FAILURE_CONSOLE_URL" ]]; then
+    echo "    Failure Task Inspector:        $FAILURE_CONSOLE_URL"
+  fi
 fi
