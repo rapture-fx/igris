@@ -1,7 +1,19 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper
 
 run-recover-prove-local:
 	./scripts/run-recover-prove-local.sh
+
+run-recover-prove-local-provision:
+	./scripts/igris-local-provision.sh run
+
+igris-local-up:
+	./scripts/igris-local-provision.sh up
+
+igris-local-down:
+	./scripts/igris-local-provision.sh down
+
+igris-local-reset:
+	./scripts/igris-local-provision.sh reset
 
 run-recover-prove-local-doctor:
 	./scripts/run-recover-prove-local.sh --doctor
