@@ -8,7 +8,13 @@ A developer should be able to run one AI action, inspect the execution story, si
 
 ## Current State
 
-The repository now has a single local promise entrypoint: `make run-recover-prove-local`. It wraps the live Action Task V1 proof demo, sends live signed checkpoint/complete callbacks, then runs a deterministic live failed-callback and irreversible recovery-blocking scenario when Postgres is ready. It still runs strict callback rejection, runtime signer, recovery, and proof tamper checks.
+The repository now has a one-command local promise entrypoint:
+`make run-recover-prove-local-provision`. It provisions or reuses local
+Postgres, applies Overture migrations, runs the doctor, then calls
+`make run-recover-prove-local`. The live demo wraps the Action Task V1 proof
+demo, sends live signed checkpoint/complete callbacks, then runs a deterministic
+live failed-callback and irreversible recovery-blocking scenario. It still runs
+strict callback rejection, runtime signer, recovery, and proof tamper checks.
 
 On 2026-05-24 the full live path completed against local Postgres, without
 `--skip-live`, after applying the additive recovery/callback migrations through
@@ -31,8 +37,9 @@ Validated evidence:
 - The durable task proof path requires a registered runtime public key and signed runtime artifacts; `make run-recover-prove-local` now handles this for the local Action Task V1 path.
 - The console can display the story, but local developers need explicit instructions to disable mock fallback when validating real backend evidence.
 - Runtime callback identity hardening now exists in the coordinator and Rust runtime sender. The live local flow demonstrates accepted signed checkpoint, complete, and failed callbacks; `--skip-live` still falls back to route tests.
-- The local setup path now has doctor and migration targets, but it still relies
-  on a developer-provided Postgres service rather than provisioning one itself.
+- The local setup path now has Docker-first provisioning, macOS/Homebrew fallback
+  automation, focused doctor and migration targets, and explicit Docker down and
+  reset targets.
 
 ## Equivalent Commands Today
 
@@ -40,6 +47,10 @@ Use these for focused checks:
 
 ```bash
 make run-recover-prove-local
+make run-recover-prove-local-provision
+make igris-local-up
+make igris-local-down
+make igris-local-reset
 make run-recover-prove-local-doctor
 make run-recover-prove-local-migrate
 make run-recover-prove-local-smoke
@@ -52,9 +63,9 @@ make test-proof-tamper
 
 ## Recommended Onboarding Slice
 
-Next slice: make local Postgres provisioning one-command on machines with
-Docker or Homebrew available, then add alert thresholds for rejected callback
-spikes and keep hardening console inspection around unavailable proof states.
+Next slice: validate the Docker-first one-command path on a clean second
+machine, then add alert thresholds for rejected callback spikes and keep
+hardening console inspection around unavailable proof states.
 
 The current local flow already:
 
@@ -69,3 +80,5 @@ The current local flow already:
    when persisted rejection evidence exists.
 9. Fails preflight before partial startup when Postgres, migrations, or ports
    are not ready.
+10. Provisions local Postgres with Docker Compose when available, or safely
+    falls back to Homebrew Postgres on macOS.
