@@ -282,7 +282,8 @@ export default function OverviewPage() {
   return (
     <DashboardLayout>
       <OnboardingModal />
-      <div className="space-y-7">
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-[1100px] px-6 py-8 space-y-7">
         <div className="space-y-1">
           <h1 className="text-base font-semibold text-foreground">Execution Operations</h1>
           <p className="text-xs text-muted-foreground">
@@ -431,6 +432,7 @@ export default function OverviewPage() {
               )}
             </div>
           </Section>
+        </div>
         </div>
       </div>
     </DashboardLayout>
