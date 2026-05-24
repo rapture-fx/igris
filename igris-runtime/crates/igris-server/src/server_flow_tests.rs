@@ -952,10 +952,20 @@ mod tests {
 
     #[tokio::test]
     async fn runtime_task_robotics_denied_path_emits_signed_audit_artifacts() {
+        let overture_signing_key = SigningKey::from_bytes(&[0x46u8; 32]);
         let mut state = build_runtime_only_state();
+        state.overture_public_key = Some(Arc::new(overture_signing_key.verifying_key()));
         state.signing_key = Some(Arc::new(SigningKey::from_bytes(&[0x44u8; 32])));
         let app = build_runtime_task_app(state);
         let task_id = uuid::Uuid::new_v4();
+        let tenant_id = "tenant-robotics-denied";
+        let permission_envelope = signed_permission_envelope_for_capability_test(
+            &overture_signing_key,
+            task_id,
+            tenant_id,
+            "test",
+            "robotics.execute",
+        );
         let req_body = serde_json::json!({
             "task_id": task_id,
             "task_type": {
@@ -966,7 +976,8 @@ mod tests {
             },
             "containment": {"max_tick_ms": 1000},
             "idempotency_key": "robotics-denied-artifacts",
-            "tenant_id": "tenant-robotics-denied"
+            "permission_envelope": permission_envelope,
+            "tenant_id": tenant_id
         });
         let req = Request::builder()
             .method("POST")
@@ -989,7 +1000,7 @@ mod tests {
         assert!(payload["status"]["reason"]
             .as_str()
             .unwrap()
-            .contains("missing signed policy verifier"));
+            .contains("missing signed policy decision"));
         assert_eq!(
             payload["execution_envelope"]["routing_decision"],
             "runtime:robotics:failed"
@@ -997,7 +1008,7 @@ mod tests {
         assert!(payload["execution_envelope"]["violation"]
             .as_str()
             .unwrap()
-            .contains("missing signed policy verifier"));
+            .contains("missing signed policy decision"));
         assert!(payload["execution_envelope"]["signature"]
             .as_str()
             .is_some_and(|value| !value.is_empty()));
