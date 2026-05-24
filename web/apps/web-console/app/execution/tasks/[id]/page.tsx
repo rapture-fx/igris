@@ -103,6 +103,114 @@ function TopBtn({
   );
 }
 
+// ── Status strip + anchor nav ─────────────────────────────────────────────
+
+type StatusTone = 'ok' | 'warn' | 'bad' | 'muted';
+
+function statusToneColors(tone: StatusTone): { dot: string; text: string } {
+  switch (tone) {
+    case 'ok':    return { dot: 'bg-emerald-400',           text: 'text-emerald-300' };
+    case 'warn':  return { dot: 'bg-amber-400',             text: 'text-amber-300'   };
+    case 'bad':   return { dot: 'bg-rose-500',              text: 'text-rose-400'    };
+    case 'muted': return { dot: 'bg-[#3a3a32]',             text: 'text-[#a8a89e]'   };
+  }
+}
+
+function StatusPill({ label, value, tone }: { label: string; value: string; tone: StatusTone }) {
+  const c = statusToneColors(tone);
+  return (
+    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.05]">
+      <span className={'block w-1.5 h-1.5 rounded-full ' + c.dot} />
+      <span className="text-[10.5px] text-[#7a7a72] tracking-[0.02em]">{label}</span>
+      <span className={'text-[11.5px] ' + c.text} style={{ letterSpacing: '-0.005em' }}>{value}</span>
+    </div>
+  );
+}
+
+function statusFor(task: Task): { value: string; tone: StatusTone } {
+  switch (task.status) {
+    case 'completed':         return { value: 'Completed',        tone: 'ok'    };
+    case 'failed':            return { value: 'Failed',           tone: 'bad'   };
+    case 'approval_required': return { value: 'Approval required', tone: 'warn' };
+    case 'recovering':        return { value: 'Recovering',       tone: 'warn'  };
+    case 'canceled':          return { value: 'Canceled',         tone: 'muted' };
+    case 'pending':
+    case 'dispatched':
+    case 'checkpointed':
+    default:                  return { value: 'Running',          tone: 'ok'    };
+  }
+}
+
+function policyFor(task: Task): { value: string; tone: StatusTone } {
+  const d = task.policy?.decision;
+  if (d === 'allowed')           return { value: 'Policy allowed',  tone: 'ok'    };
+  if (d === 'denied')            return { value: 'Policy denied',   tone: 'bad'   };
+  if (d === 'approval_required') return { value: 'Approval required', tone: 'warn' };
+  return { value: 'Not available', tone: 'muted' };
+}
+
+function recoveryFor(task: Task): { value: string; tone: StatusTone } {
+  const events = task.recovery?.events ?? [];
+  if (events.length > 0) return { value: 'Recovered', tone: 'warn' };
+  if (task.recovery?.redispatch_eligible === false) return { value: 'Not redispatchable', tone: 'muted' };
+  if (task.checkpoint_summary?.checkpoint_status === 'committed') return { value: 'Checkpoint preserved', tone: 'ok' };
+  return { value: 'No recovery event', tone: 'muted' };
+}
+
+function proofFor(task: Task): { value: string; tone: StatusTone } {
+  const p = task.proof;
+  if (!p) return { value: 'Proof unavailable', tone: 'muted' };
+  if (p.verified || p.status === 'verified') return { value: 'Proof verified', tone: 'ok' };
+  if (p.verified === false || p.status === 'mismatch') return { value: 'Failed verification', tone: 'bad' };
+  if (p.status === 'present')   return { value: 'Receipt present', tone: 'warn' };
+  if (p.status === 'pending')   return { value: 'Pending verification', tone: 'warn' };
+  return { value: 'Proof unavailable', tone: 'muted' };
+}
+
+function replayFor(task: Task): { value: string; tone: StatusTone } {
+  const events = task.recovery?.events ?? [];
+  if (events.some((e) => e.replay_allowed === false)) return { value: 'Replay blocked', tone: 'warn' };
+  if (task.policy?.irreversible) return { value: 'No replay', tone: 'muted' };
+  if (events.length > 0) return { value: 'No replay needed', tone: 'ok' };
+  return { value: 'Not available', tone: 'muted' };
+}
+
+function StatusStrip({ task }: { task: Task }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-white/[0.04]" style={{ background: 'rgba(255,255,255,0.012)' }}>
+      <StatusPill label="Status"   {...statusFor(task)} />
+      <StatusPill label="Policy"   {...policyFor(task)} />
+      <StatusPill label="Recovery" {...recoveryFor(task)} />
+      <StatusPill label="Proof"    {...proofFor(task)} />
+      <StatusPill label="Replay"   {...replayFor(task)} />
+    </div>
+  );
+}
+
+const ANCHORS: Array<{ id: string; label: string }> = [
+  { id: 'story',        label: 'Story' },
+  { id: 'policy',       label: 'Policy' },
+  { id: 'recovery',     label: 'Recovery' },
+  { id: 'proof',        label: 'Proof' },
+  { id: 'raw-evidence', label: 'Raw evidence' },
+];
+
+function AnchorNav() {
+  return (
+    <div className="hidden md:flex items-center gap-0.5 mr-2">
+      {ANCHORS.map((a) => (
+        <a
+          key={a.id}
+          href={`#${a.id}`}
+          className="px-2 h-7 inline-flex items-center text-[11px] text-[#7a7a72] hover:text-[#e8e7df] rounded transition-colors"
+        >
+          {a.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
 // ── Action tree ────────────────────────────────────────────────────────────
 
 function Tree({ title, children }: { title: string; children: React.ReactNode }) {
@@ -188,8 +296,8 @@ function FaultLine({ source, target, reason }: { source?: string; target?: strin
         <span className="text-[12px] text-[#9a9a8e] truncate">{detail || 'recovery event recorded'}</span>
       </div>
       <span className="text-[11px] text-[#5a5a52] tabular-nums min-w-[42px] text-right" />
-      <span className="text-[10.5px] text-amber-400/70">recovered</span>
-      <span className="text-[10.5px] text-[#5a5a52]">0 replays</span>
+      <span className="text-[10.5px] text-amber-400/70">Recovered</span>
+      <span className="text-[10.5px] text-[#5a5a52]">No replay</span>
     </div>
   );
 }
@@ -265,9 +373,9 @@ function Narrative({ task }: { task: Task }) {
 
 // ── Detailed evidence sections (dark, sans, no uppercase, no mono) ───────
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, id, children }: { title: string; id?: string; children: React.ReactNode }) {
   return (
-    <div className="mt-6">
+    <div id={id} className="mt-6 scroll-mt-16">
       <div className="text-[12.5px] text-[#c8c7be] mb-2" style={{ letterSpacing: '-0.005em' }}>
         {title}
       </div>
@@ -306,7 +414,7 @@ function DetailedEvidence({
   return (
     <div className="mt-2 pb-2">
       {/* Policy */}
-      <Section title="Policy">
+      <Section title="Policy" id="policy">
         <DefRow label="Decision" value={
           p?.decision ? (
             <>
@@ -371,7 +479,7 @@ function DetailedEvidence({
       </Section>
 
       {/* Recovery */}
-      <Section title="Recovery">
+      <Section title="Recovery" id="recovery">
         <DefRow label="Eligible" value={
           r?.redispatch_eligible === false
             ? <span className="text-[#a8a89e]">not redispatchable</span>
@@ -407,15 +515,15 @@ function DetailedEvidence({
       </Section>
 
       {/* Proof */}
-      <Section title="Proof">
+      <Section title="Proof" id="proof">
         <DefRow label="Status" value={
           proofVerified
-            ? <Chip><span className="text-emerald-400">verified</span></Chip>
+            ? <Chip><span className="text-emerald-400">Proof verified</span></Chip>
             : proofFailed
-              ? <Chip><span className="text-rose-400">verification failed</span></Chip>
+              ? <Chip><span className="text-rose-400">Failed verification</span></Chip>
               : proof?.status === 'present'
-                ? <Chip>present</Chip>
-                : <NotAvail />
+                ? <Chip>Receipt present</Chip>
+                : <Chip><span className="text-[#a8a89e]">Proof unavailable</span></Chip>
         } />
         <DefRow label="Execution" value={
           proof?.execution_id ? <Chip>{truncateText(proof.execution_id, 28)}</Chip> : <NotAvail />
@@ -604,6 +712,9 @@ export default function ExecutionDetailPage() {
                 </div>
               </div>
 
+              {/* Status strip — always visible Run / Recover / Prove summary */}
+              {task && !isLoading && <StatusStrip task={task} />}
+
               {/* Body */}
               <div className="ic-scroll flex-1 overflow-y-auto px-7 pt-6 pb-2">
                 {isLoading || !task ? (
@@ -676,9 +787,10 @@ export default function ExecutionDetailPage() {
                     {/* Narrative */}
                     <Narrative task={task} />
 
-                    {/* Committed actions */}
+                    {/* Committed actions — Story anchor */}
                     <div
-                      className="mt-7 rounded-lg border-[0.5px] border-white/[0.06] px-4 py-3"
+                      id="story"
+                      className="mt-7 scroll-mt-16 rounded-lg border-[0.5px] border-white/[0.06] px-4 py-3"
                       style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
                     >
                       <div className="flex items-center justify-between">
