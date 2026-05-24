@@ -412,6 +412,36 @@ func TestHandleRecoverySkipDoesNotMarkNonRecoveringTaskFailed(t *testing.T) {
 	require.Equal(t, 0, queued.remainingExecs())
 }
 
+func TestRuntimeFailedRecoveryDecisionBlocksIrreversibleReplay(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-failed-live"
+	task := &TaskRecord{
+		TaskID:    taskID,
+		TenantID:  "tenant-live-recovery",
+		Status:    TaskStatusDispatched,
+		RuntimeID: &runtimeID,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[
+				{"kind":"tool","tool_name":"filesystem","node_id":"read_file-0"},
+				{"kind":"tool","tool_name":"database_write","node_id":"db_write-1"}
+			]},
+			"local_demo_failure":{"after_steps":1,"reason":"safe demo failure"}
+		}`),
+	}
+
+	decision, gotRuntimeID, allowed, reason, shouldRecord := runtimeFailedRecoveryDecision(task, runtimeID)
+	require.True(t, shouldRecord)
+	require.Equal(t, runtimeID, gotRuntimeID)
+	require.Equal(t, ActionDecisionDenied, decision.Decision)
+	require.Equal(t, ReplayClassNonRetryable, decision.ReplayClass)
+	require.True(t, decision.Irreversible)
+	require.False(t, allowed)
+	require.Equal(t, "non-replayable or irreversible action requires manual recovery", reason)
+}
+
 func TestSelectRecoveryCheckpoint(t *testing.T) {
 	t.Parallel()
 
