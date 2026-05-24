@@ -368,59 +368,6 @@ function ExecutionTasksContent() {
           </p>
         </div>
 
-        {/* ── Stat Cards ──────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-          <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-            <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-              Running
-            </div>
-            <div className="bg-white px-4 pt-4 pb-5">
-              {isLoading ? <Skeleton className="h-8 w-12" /> : (
-                <div className="text-3xl font-bold text-foreground tabular-nums">{stats.active}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-            <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
-              Completed
-            </div>
-            <div className="bg-white px-4 pt-4 pb-5">
-              {isLoading ? <Skeleton className="h-8 w-12" /> : (
-                <div className="text-3xl font-bold text-foreground tabular-nums">{stats.completed}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-            <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
-              Verified
-            </div>
-            <div className="bg-white px-4 pt-4 pb-5">
-              {isLoading ? <Skeleton className="h-8 w-12" /> : (
-                <div className="text-3xl font-bold text-foreground tabular-nums">{stats.verifiedProof}</div>
-              )}
-            </div>
-          </div>
-
-          <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
-            <div className="px-4 pt-4 pb-2 text-xs font-medium text-foreground flex items-center gap-1.5">
-              <Clock3 className="h-3.5 w-3.5 text-muted-foreground" />
-              Needs Review
-            </div>
-            <div className="bg-white px-4 pt-4 pb-5">
-              {isLoading ? <Skeleton className="h-8 w-12" /> : (
-                <div className="text-3xl font-bold text-foreground tabular-nums">{stats.needsReview}</div>
-              )}
-            </div>
-          </div>
-
-        </div>
-
         {/* ── Task Activity ───────────────────────────────────────────── */}
         <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
 
