@@ -4,8 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { LineSpinner } from 'ldrs/react'
 import 'ldrs/react/LineSpinner.css'
 import {
-  Home, LayoutDashboard, ListChecks, Hand, RotateCcw, ShieldOff, FileCheck2,
-  Box, Shield, Activity, BarChart3, type LucideIcon,
+  LayoutDashboard, ListChecks, RotateCcw, Activity, BarChart3, type LucideIcon,
 } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -196,15 +195,9 @@ function IconRail() {
         <img src="/inertiadm.png" alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
       <div className="flex flex-col items-center flex-1">
-        <RailIcon Icon={Home} />
         <RailIcon Icon={LayoutDashboard} />
         <RailIcon Icon={ListChecks} active />
-        <RailIcon Icon={Hand} />
         <RailIcon Icon={RotateCcw} />
-        <RailIcon Icon={ShieldOff} />
-        <RailIcon Icon={FileCheck2} />
-        <RailIcon Icon={Box} />
-        <RailIcon Icon={Shield} />
         <RailIcon Icon={Activity} />
         <RailIcon Icon={BarChart3} />
       </div>
