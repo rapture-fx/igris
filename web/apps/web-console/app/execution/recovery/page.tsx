@@ -90,20 +90,6 @@ export default function RecoveryPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {[
-            { label: 'Interrupted', value: stats.interrupted, Icon: AlertTriangle },
-            { label: 'Recovered', value: stats.recovered, Icon: RotateCcw },
-            { label: 'Replay skipped', value: stats.skipped, Icon: History },
-            { label: 'Handoff blocked', value: stats.handoffBlocked, Icon: AlertTriangle },
-          ].map(({ label, value, Icon }) => (
-            <div key={label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Icon className="h-3.5 w-3.5" />{label}</div>
-              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{value}</div>
-            </div>
-          ))}
-        </div>
-
         <div className="flex flex-wrap gap-1.5">
           {['all', 'interrupted', 'recovering', 'recovered', 'replay_skipped', 'manual_required', 'failed'].map((value) => (
             <button
