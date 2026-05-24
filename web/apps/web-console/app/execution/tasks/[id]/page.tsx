@@ -588,22 +588,14 @@ export default function ExecutionDetailPage() {
                   {projectChip && <Chip>{projectChip}</Chip>}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  <AnchorNav />
                   <TopBtn label="Re-run" iconPlus disabled title="Re-run is not yet exposed from the console" />
-                  {task?.proof?.execution_id ? (
-                    <Link
-                      href={`/proof/receipts?execution_id=${encodeURIComponent(task.proof.execution_id)}`}
-                      className="inline-flex"
-                    >
-                      <TopBtn label="Inspect" iconCaret />
-                    </Link>
-                  ) : (
-                    <TopBtn label="Inspect" iconCaret disabled title="No execution receipt yet" />
-                  )}
                   <TopBtn
-                    label={verifyMutation.isPending ? 'Verifying…' : 'Verify chain'}
+                    label={verifyMutation.isPending ? 'Verifying…' : 'Verify proof'}
                     iconCaret
                     accent
                     disabled={verifyMutation.isPending || !task?.proof?.execution_id}
+                    title={!task?.proof?.execution_id ? 'No execution receipt to verify' : undefined}
                     onClick={() => {
                       setVerified(null);
                       verifyMutation.mutate();
