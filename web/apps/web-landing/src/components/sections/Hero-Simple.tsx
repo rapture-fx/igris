@@ -15,7 +15,7 @@ export default function Hero() {
     >
       <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div>
-          <div className="flex flex-col items-start text-left justify-end pt-12 md:pt-16 pb-4 md:pb-6">
+          <div className="flex flex-col items-start text-left justify-end pt-20 md:pt-28 pb-4 md:pb-6">
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6 w-full items-start">
               <div className="md:col-span-7">
