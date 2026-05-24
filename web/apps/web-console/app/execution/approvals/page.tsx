@@ -76,7 +76,7 @@ function DetailCard({ decision }: { decision: GovernancePolicyDecision | null })
         ].map(([label, value]) => (
           <div key={label} className="rounded-md border border-gray-200 px-3 py-2">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
-            <div className="mt-1 break-all font-mono text-[11px] text-foreground">{value}</div>
+            <div className="mt-1 break-all text-[11px] text-foreground">{value}</div>
           </div>
         ))}
       </div>
@@ -196,9 +196,9 @@ export default function ApprovalsPage() {
                         <span className="text-xs font-medium text-foreground">{decision.action_name || 'Action not available'}</span>
                         {decision.task_id && <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                       </Link>
-                      <div className="font-mono text-[10px] text-muted-foreground">{decision.task_id ? truncateText(decision.task_id, 18) : 'Task not available'}</div>
+                      <div className="text-[10px] text-muted-foreground">{decision.task_id ? truncateText(decision.task_id, 18) : 'Task not available'}</div>
                       {decision.runtime_id && (
-                        <Link href={`/runtimes/${encodeURIComponent(decision.runtime_id)}`} className="group mt-0.5 flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground hover:text-foreground" onClick={(event) => event.stopPropagation()}>
+                        <Link href={`/runtimes/${encodeURIComponent(decision.runtime_id)}`} className="group mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground hover:text-foreground" onClick={(event) => event.stopPropagation()}>
                           runtime {truncateText(decision.runtime_id, 16)}
                           <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
                         </Link>
@@ -246,7 +246,7 @@ export default function ApprovalsPage() {
               ) : (
                 runs.map((run) => (
                   <TableRow key={run.id}>
-                    <TableCell className="font-mono text-xs">{truncateText(run.id, 18)}</TableCell>
+                    <TableCell className="text-xs">{truncateText(run.id, 18)}</TableCell>
                     <TableCell className="text-xs">{truncateText(run.agent_id, 18)}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs text-muted-foreground"><Clock className="mr-1 inline h-3 w-3" />{getRelativeTime(run.paused_at)}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{run.pause_reason ?? run.model ?? 'Evidence not available'}</TableCell>
