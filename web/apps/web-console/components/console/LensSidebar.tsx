@@ -38,31 +38,17 @@ function LensSidebarContent() {
   const searchParams = useSearchParams();
   const lens = activeLensId(pathname);
 
-  // Home / Overview render without a sidebar — page bodies use max-width
-  // containers internally so they don't sprawl full-width.
-  if (lens === 'home' || lens === 'overview') return null;
+  // Home renders without a sidebar — page body uses its own layout.
+  if (lens === 'home') return null;
 
-  if (lens === 'tasks') {
+  if (lens === 'executions') {
     const taskId = params?.id ? decodeURIComponent(params.id) : '';
-    // The mock task ID, when ?mock=1 is set without a real id segment.
     const isMock = searchParams?.get('mock') === '1' || taskId === 'mock';
     return <ExecutionTaskSidebar selectedTaskId={isMock ? 'tsk_01HZX7E4MQGYK9QH4F3JC2NMD8' : taskId} />;
   }
 
-  const titles: Record<string, string> = {
-    approvals: 'Approvals',
-    recovery: 'Recovery',
-    violations: 'Violations',
-    receipts: 'Receipts',
-    runtimes: 'Runtimes',
-    boundaries: 'Boundaries',
-    logs: 'Logs',
-    metrics: 'Metrics',
-    settings: 'Settings',
-  };
-
-  if (lens && titles[lens]) {
-    return <PlaceholderSidebar title={titles[lens]} body={<>Lens not migrated yet.<br />The list view will appear here.</>} />;
+  if (lens === 'runtimes') {
+    return <PlaceholderSidebar title="Runtimes" />;
   }
 
   // No lens (auth pages, onboarding, etc.) — render no sidebar.
