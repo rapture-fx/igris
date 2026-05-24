@@ -33,7 +33,7 @@ make test-proof-tamper
 
 ## Recommended Onboarding Slice
 
-Next slice: add an operator metric/count for rejected callback violations and keep hardening console inspection around unavailable proof states.
+Next slice: add alert thresholds for rejected callback spikes and keep hardening console inspection around unavailable proof states.
 
 The current local flow already:
 
@@ -44,3 +44,5 @@ The current local flow already:
 5. Prints task, run, receipt, and verification URLs.
 6. Runs a live recovery-blocking irreversible action scenario and prints its task, recovery event, and console URLs.
 7. Verifies the receipt and exports redacted evidence.
+8. Shows rejected runtime callback counts and violation labels in the console
+   when persisted rejection evidence exists.
