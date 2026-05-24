@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS runtime_downloads (
     id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id        UUID        NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id        TEXT        NOT NULL,
     ip_address       TEXT        NOT NULL,
     runtime_version  TEXT        NOT NULL DEFAULT 'latest',
     platform         TEXT        NOT NULL,
