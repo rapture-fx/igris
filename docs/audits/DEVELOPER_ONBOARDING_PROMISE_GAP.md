@@ -31,6 +31,12 @@ Validated evidence:
 - signed callback mode: `live-server-backed`
 - failure/recovery mode: `live-server-backed`
 
+Docker-first status: not yet validated in this audit environment. On this
+machine, `docker`, `docker compose`, and `docker-compose` are unavailable, so
+the Docker-backed proof loop has not honestly completed. The Docker path must
+still be run on a Docker-enabled machine before the onboarding promise can be
+closed.
+
 ## Gaps
 
 - There is no live `make test-runtime-handoff` target yet; handoff blocking is covered inside `make test-recovery-chaos`.
@@ -40,6 +46,8 @@ Validated evidence:
 - The local setup path now has Docker-first provisioning, macOS/Homebrew fallback
   automation, focused doctor and migration targets, and explicit Docker down and
   reset targets.
+- Console typechecking should use `make web-console-check`, which runs the Next
+  build before `tsc --noEmit` so generated `.next/types` files exist.
 
 ## Equivalent Commands Today
 
@@ -63,9 +71,9 @@ make test-proof-tamper
 
 ## Recommended Onboarding Slice
 
-Next slice: validate the Docker-first one-command path on a clean second
-machine, then add alert thresholds for rejected callback spikes and keep
-hardening console inspection around unavailable proof states.
+Next slice: validate the Docker-first one-command path on a clean
+Docker-enabled machine, then add alert thresholds for rejected callback spikes
+and keep hardening console inspection around unavailable proof states.
 
 The current local flow already:
 
