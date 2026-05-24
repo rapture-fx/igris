@@ -2,18 +2,40 @@ package coordinator
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
 // GovernanceTrustSummary holds tenant-wide operational trust counts. Each field
 // is a count of safe governance records — no secrets, tokens, or raw payloads.
 type GovernanceTrustSummary struct {
-	VerifiedExecutions      int `json:"verified_executions"`
-	RecoveredExecutions     int `json:"recovered_executions"`
-	PolicyBlockedActions    int `json:"policy_blocked_actions"`
-	ApprovalRequiredActions int `json:"approval_required_actions"`
-	BoundaryViolations      int `json:"boundary_violations"`
-	FailedProofVerification int `json:"failed_proof_verification"`
+	VerifiedExecutions       int `json:"verified_executions"`
+	RecoveredExecutions      int `json:"recovered_executions"`
+	PolicyBlockedActions     int `json:"policy_blocked_actions"`
+	ApprovalRequiredActions  int `json:"approval_required_actions"`
+	BoundaryViolations       int `json:"boundary_violations"`
+	RejectedRuntimeCallbacks int `json:"rejected_runtime_callbacks"`
+	FailedProofVerification  int `json:"failed_proof_verification"`
+}
+
+// RuntimeCallbackRejectionBucket is an operator-safe grouped rejected-callback
+// count. Key values are reasons, runtime IDs, or callback types already stored
+// in governance evidence. No raw bodies or auth material are exposed.
+type RuntimeCallbackRejectionBucket struct {
+	Key     string `json:"key"`
+	Count   int    `json:"count"`
+	Last24h int    `json:"last_24h"`
+}
+
+// RuntimeCallbackRejectionSummary breaks rejected runtime callback evidence
+// down into operator-visible buckets.
+type RuntimeCallbackRejectionSummary struct {
+	Total          int                              `json:"total"`
+	Last1h         int                              `json:"last_1h"`
+	Last24h        int                              `json:"last_24h"`
+	ByReason       []RuntimeCallbackRejectionBucket `json:"by_reason"`
+	ByRuntimeID    []RuntimeCallbackRejectionBucket `json:"by_runtime_id"`
+	ByCallbackType []RuntimeCallbackRejectionBucket `json:"by_callback_type"`
 }
 
 // GovernanceActiveStates counts executions currently in each operational state.
@@ -41,10 +63,11 @@ type GovernanceCriticalEvent struct {
 
 // GovernanceSummary is the aggregate payload behind the console Overview page.
 type GovernanceSummary struct {
-	TrustSummary          GovernanceTrustSummary    `json:"trust_summary"`
-	ActiveExecutionStates GovernanceActiveStates    `json:"active_execution_states"`
-	RecentCriticalEvents  []GovernanceCriticalEvent `json:"recent_critical_events"`
-	GeneratedAt           time.Time                 `json:"generated_at"`
+	TrustSummary              GovernanceTrustSummary          `json:"trust_summary"`
+	RuntimeCallbackRejections RuntimeCallbackRejectionSummary `json:"runtime_callback_rejections"`
+	ActiveExecutionStates     GovernanceActiveStates          `json:"active_execution_states"`
+	RecentCriticalEvents      []GovernanceCriticalEvent       `json:"recent_critical_events"`
+	GeneratedAt               time.Time                       `json:"generated_at"`
 }
 
 // GovernanceSummaryReport computes the tenant-wide execution trust summary from
@@ -100,6 +123,12 @@ func (s *CheckpointStore) GovernanceSummaryReport(tenantID string, criticalLimit
 		tenantID).Scan(&summary.TrustSummary.BoundaryViolations); err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
+	callbackRejections, err := s.runtimeCallbackRejectionSummary(tenantID)
+	if err != nil {
+		return nil, err
+	}
+	summary.RuntimeCallbackRejections = callbackRejections
+	summary.TrustSummary.RejectedRuntimeCallbacks = callbackRejections.Total
 
 	// Recovery ledger: distinct tasks that were redispatched or resumed.
 	if err := s.db.QueryRow(`
@@ -136,6 +165,77 @@ func (s *CheckpointStore) GovernanceSummaryReport(tenantID string, criticalLimit
 	}
 	summary.RecentCriticalEvents = events
 	return summary, nil
+}
+
+func (s *CheckpointStore) runtimeCallbackRejectionSummary(tenantID string) (RuntimeCallbackRejectionSummary, error) {
+	out := RuntimeCallbackRejectionSummary{
+		ByReason:       []RuntimeCallbackRejectionBucket{},
+		ByRuntimeID:    []RuntimeCallbackRejectionBucket{},
+		ByCallbackType: []RuntimeCallbackRejectionBucket{},
+	}
+	if err := s.db.QueryRow(`
+		SELECT
+			COUNT(*),
+			COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '1 hour'),
+			COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours')
+		FROM boundary_violations
+		WHERE tenant_id = $1
+		  AND violation_type LIKE 'runtime_callback_rejected_%'`, tenantID).Scan(
+		&out.Total,
+		&out.Last1h,
+		&out.Last24h,
+	); err != nil && err != sql.ErrNoRows {
+		return out, err
+	}
+
+	var err error
+	out.ByReason, err = s.runtimeCallbackRejectionBuckets(tenantID, "reason")
+	if err != nil {
+		return out, err
+	}
+	out.ByRuntimeID, err = s.runtimeCallbackRejectionBuckets(tenantID, "runtime_id")
+	if err != nil {
+		return out, err
+	}
+	out.ByCallbackType, err = s.runtimeCallbackRejectionBuckets(tenantID, "callback_type")
+	if err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+func (s *CheckpointStore) runtimeCallbackRejectionBuckets(tenantID, group string) ([]RuntimeCallbackRejectionBucket, error) {
+	keySQL := "COALESCE(NULLIF(reason,''), 'unknown')"
+	if group == "runtime_id" {
+		keySQL = "COALESCE(NULLIF(runtime_id,''), 'unknown')"
+	}
+	if group == "callback_type" {
+		keySQL = "REPLACE(violation_type, 'runtime_callback_rejected_', '')"
+	}
+	rows, err := s.db.Query(fmt.Sprintf(`
+		SELECT %s AS key,
+		       COUNT(*) AS count,
+		       COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours') AS last_24h
+		FROM boundary_violations
+		WHERE tenant_id = $1
+		  AND violation_type LIKE 'runtime_callback_rejected_%%'
+		GROUP BY key
+		ORDER BY count DESC, key ASC
+		LIMIT 20`, keySQL), tenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []RuntimeCallbackRejectionBucket{}
+	for rows.Next() {
+		var bucket RuntimeCallbackRejectionBucket
+		if err := rows.Scan(&bucket.Key, &bucket.Count, &bucket.Last24h); err != nil {
+			return nil, err
+		}
+		out = append(out, bucket)
+	}
+	return out, rows.Err()
 }
 
 // recentCriticalEvents merges denied policy decisions, failed verifications,
