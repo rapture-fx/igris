@@ -678,6 +678,19 @@ export default function Products() {
                   reliability becomes as important as intelligence itself.
                 </span>
               </p>
+
+            </div>
+            <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
+              <img
+                src="/rohzf.png"
+                alt=""
+                className="block w-full h-auto select-none"
+                draggable={false}
+              />
+            </div>
+            <div className="mt-8 px-4 md:px-6 text-gray-600 dark:text-[#a8a898] space-y-5 md:max-w-[50%] md:ml-auto"
+              style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+            >
               <p>
                 Igris is infrastructure for AI actions. It helps{' '}
                 <span className="underline decoration-dashed underline-offset-[5px] decoration-gray-400 dark:decoration-[#7a7a72]">
@@ -701,22 +714,6 @@ export default function Products() {
                 {' '}to start running agent actions with recovery and proof
                 built in.
               </p>
-            </div>
-            <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
-              <img
-                src="/rohzf.png"
-                alt=""
-                className="block w-full h-auto select-none"
-                draggable={false}
-              />
-              <div
-                aria-hidden
-                className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-t from-transparent to-dark-bg"
-              />
-              <div
-                aria-hidden
-                className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-dark-bg"
-              />
             </div>
           </div>
         </div>
