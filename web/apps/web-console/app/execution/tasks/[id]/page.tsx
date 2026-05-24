@@ -24,6 +24,7 @@ import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
 import { mockTask, mockTaskSteps, MOCK_TASK_ID } from '@/lib/mockExecution';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
+import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
 
 // ── Inline icons (from hero mockup) ───────────────────────────────────────
 
