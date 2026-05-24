@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: igris-run-recover-prove-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-igris_overture}
+      POSTGRES_USER: ${POSTGRES_USER:-igris_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: "-c shared_buffers=128MB -c effective_cache_size=256MB"
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - run_recover_prove_postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c effective_cache_size=256MB
+      -c max_connections=30
+      -c work_mem=4MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-igris_user} -d ${POSTGRES_DB:-igris_overture}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  run_recover_prove_postgres_data:
