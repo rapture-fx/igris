@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth-client';
 import {
-  ActivityLogIcon, BarChartIcon, DashboardIcon,
+  ActivityLogIcon, BarChartIcon, DashboardIcon, HomeIcon,
   ChevronDownIcon, MagnifyingGlassIcon, FileTextIcon,
   EnvelopeClosedIcon, ExitIcon, GearIcon,
   LockClosedIcon, MixerHorizontalIcon, MoonIcon, OpenInNewWindowIcon,
@@ -47,6 +47,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     label: 'Operations',
     items: [
+      { name: 'Home', href: '/home', icon: HomeIcon },
       { name: 'Overview', href: '/dashboard', icon: DashboardIcon },
       { name: 'Executions', href: '/execution/tasks', icon: ListBulletIcon },
       { name: 'Approvals', href: '/execution/approvals', icon: CheckCircledIcon },
