@@ -271,6 +271,14 @@ pub struct ExecutionGraph {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalDemoFailure {
+    #[serde(default)]
+    pub after_steps: u32,
+    #[serde(default)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum ExecutionNode {
     Reason {
@@ -393,6 +401,10 @@ pub enum TaskType {
         /// graphs to prove recovery without replaying committed actions.
         #[serde(default)]
         checkpoint_after_steps: Option<u32>,
+        /// Local/demo-only deterministic failure trigger. Ignored unless
+        /// IGRIS_ENABLE_LOCAL_DEMO_FAILURE is explicitly enabled.
+        #[serde(default)]
+        local_demo_failure: Option<LocalDemoFailure>,
     },
     SingleInference {
         model: String,
@@ -1184,6 +1196,40 @@ pub async fn handle_task_submit(
         initialize_graph_blackboard(&execution_graph, req.resume_checkpoint.as_ref());
 
     for step in steps.iter().filter(|step| step.step_index() >= start_step) {
+        if let Some(reason) = local_demo_failure_reason(&req.task_type, steps_completed) {
+            let response = TaskSubmitResponse {
+                task_id: req.task_id,
+                steps_completed,
+                steps_total,
+                status: TaskStatus::Failed {
+                    reason: reason.clone(),
+                },
+                checkpoint,
+                final_output: last_output,
+                usage: last_usage,
+                failure_details: Some(runtime_execution_failure_details(
+                    "local_demo_deterministic_failure",
+                    reason,
+                    Some(step),
+                )),
+                execution_envelope: last_envelope,
+                execution_receipt: last_receipt,
+            };
+            let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
+            if let Err(callback_err) =
+                send_lifecycle_callbacks_for_response(&state, &req, &response).await
+            {
+                return runtime_callback_failure_response(req.task_id, "failed", callback_err);
+            }
+            return (
+                StatusCode::OK,
+                Json(task_submit_response_with_step_receipts(
+                    response,
+                    &step_receipts,
+                )),
+            )
+                .into_response();
+        }
         if let Some(failure_details) = permission_failure_for_step(&req, step) {
             let reason = failure_details.message.clone();
             let failure_artifacts = build_failure_execution_artifacts(
@@ -2288,6 +2334,32 @@ fn should_checkpoint_after_steps(
         return true;
     }
     *checkpoint_after_steps > 1 && steps_completed % *checkpoint_after_steps == 0
+}
+
+fn local_demo_failure_reason(task_type: &TaskType, steps_completed: u32) -> Option<String> {
+    let enabled = std::env::var("IGRIS_ENABLE_LOCAL_DEMO_FAILURE")
+        .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+        .unwrap_or(false);
+    if !enabled {
+        return None;
+    }
+    let failure = match task_type {
+        TaskType::ExecutionGraph {
+            local_demo_failure: Some(failure),
+            ..
+        } => failure,
+        _ => return None,
+    };
+    if steps_completed < failure.after_steps {
+        return None;
+    }
+    let reason = failure
+        .reason
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or("local demo deterministic failure");
+    Some(reason.to_string())
 }
 
 fn submission_key(tenant_id: &str, idempotency_key: &str) -> String {
@@ -5908,10 +5980,11 @@ mod tests {
         canonical_task_permission_envelope_bytes, collect_slot_inputs,
         compile_execution_graph_to_steps, deterministic_embedding, effective_required_capabilities,
         evaluate_robotics_safety_gate, initialize_graph_blackboard, materialize_execution_graph,
-        normalize_agent_mode, permission_failure_for_step, persist_task_status_index,
-        resolve_graph_value, robotics_action_name, runtime_execution_failure_details,
-        should_checkpoint_after_steps, stream_durability_metadata, task_status_key, unix_now_ms,
-        update_graph_blackboard, validate_external_resume_checkpoint,
+        normalize_agent_mode, local_demo_failure_reason, permission_failure_for_step,
+        persist_task_status_index, resolve_graph_value, robotics_action_name,
+        runtime_execution_failure_details, should_checkpoint_after_steps,
+        stream_durability_metadata, task_status_key, unix_now_ms, update_graph_blackboard,
+        validate_external_resume_checkpoint,
         validate_task_permission_envelope, verified_resume_start_step,
         verified_resume_start_step_from_local_or_checkpoint, AgentApprovalOptions,
         AgentExecutionMode, AgentIdentity, AgentMemoryOptions, BehaviorTreeStep,
@@ -6047,6 +6120,7 @@ mod tests {
                     nodes: vec![],
                 },
                 checkpoint_after_steps: None,
+                local_demo_failure: None,
             },
             containment: None,
             resume_from: None,
@@ -6113,6 +6187,7 @@ mod tests {
         let TaskType::ExecutionGraph {
             checkpoint_after_steps,
             graph,
+            ..
         } = graph_type
         else {
             panic!("expected execution graph");
@@ -6153,6 +6228,7 @@ mod tests {
 
         let graph_task_type = TaskType::ExecutionGraph {
             checkpoint_after_steps: Some(2),
+            local_demo_failure: None,
             graph: ExecutionGraph {
                 graph_id: Some("action-task-v1".to_string()),
                 blackboard: None,
@@ -6169,6 +6245,27 @@ mod tests {
             steps: Vec::new(),
         };
         assert!(!should_checkpoint_after_steps(&disabled, 0, 1, 5));
+    }
+
+    #[test]
+    fn local_demo_failure_requires_env_and_step_threshold() {
+        let task_type: TaskType = serde_json::from_value(serde_json::json!({
+            "type": "execution_graph",
+            "graph": {"nodes": [{"kind": "tool", "node_id": "read_file-0", "tool_name": "filesystem"}]},
+            "local_demo_failure": {"after_steps": 1, "reason": "safe demo failure"}
+        }))
+        .expect("execution graph with local demo failure");
+
+        std::env::remove_var("IGRIS_ENABLE_LOCAL_DEMO_FAILURE");
+        assert_eq!(local_demo_failure_reason(&task_type, 1), None);
+
+        std::env::set_var("IGRIS_ENABLE_LOCAL_DEMO_FAILURE", "true");
+        assert_eq!(local_demo_failure_reason(&task_type, 0), None);
+        assert_eq!(
+            local_demo_failure_reason(&task_type, 1).as_deref(),
+            Some("safe demo failure")
+        );
+        std::env::remove_var("IGRIS_ENABLE_LOCAL_DEMO_FAILURE");
     }
 
     #[test]
@@ -6192,6 +6289,7 @@ mod tests {
                     nodes: vec![],
                 },
                 checkpoint_after_steps: None,
+                local_demo_failure: None,
             },
             containment: None,
             resume_from: None,
@@ -6245,6 +6343,7 @@ mod tests {
                     }],
                 },
                 checkpoint_after_steps: None,
+                local_demo_failure: None,
             },
             containment: None,
             resume_from: None,
@@ -7207,6 +7306,7 @@ mod tests {
                     nodes: Vec::new(),
                 },
                 checkpoint_after_steps: Some(2),
+                local_demo_failure: None,
             },
             containment: None,
             resume_from: Some(token.clone()),
