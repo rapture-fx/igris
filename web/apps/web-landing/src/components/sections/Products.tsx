@@ -646,9 +646,10 @@ export default function Products() {
               <p>
                 AI systems should be able to operate in real environments
                 without becoming unreliable, hard to understand, or impossible
-                to trust. As agents begin interacting with infrastructure, APIs,
-                files, workflows, and eventually physical systems, execution{' '}
+                to trust.{' '}
                 <span className="bg-purple-200/70 dark:bg-purple-400/20 text-gray-900 dark:text-purple-100 px-1 rounded-sm">
+                  As agents begin interacting with infrastructure, APIs, files,
+                  workflows, and eventually physical systems, execution
                   reliability becomes as important as intelligence itself.
                 </span>
               </p>
