@@ -15,7 +15,23 @@ export interface GovernanceTrustSummary {
   policy_blocked_actions: number;
   approval_required_actions: number;
   boundary_violations: number;
+  rejected_runtime_callbacks?: number;
   failed_proof_verification: number;
+}
+
+export interface RuntimeCallbackRejectionBucket {
+  key: string;
+  count: number;
+  last_24h: number;
+}
+
+export interface RuntimeCallbackRejectionSummary {
+  total: number;
+  last_1h: number;
+  last_24h: number;
+  by_reason: RuntimeCallbackRejectionBucket[];
+  by_runtime_id: RuntimeCallbackRejectionBucket[];
+  by_callback_type: RuntimeCallbackRejectionBucket[];
 }
 
 export interface GovernanceActiveStates {
@@ -40,6 +56,7 @@ export interface GovernanceCriticalEvent {
 
 export interface GovernanceSummary {
   trust_summary: GovernanceTrustSummary;
+  runtime_callback_rejections?: RuntimeCallbackRejectionSummary;
   active_execution_states: GovernanceActiveStates;
   recent_critical_events: GovernanceCriticalEvent[];
   generated_at: string;
