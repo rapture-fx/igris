@@ -684,6 +684,8 @@ func main() {
 		log.Println("[AICredentials] ✅ AI credential endpoints registered (/v1/ai/credentials)")
 		api.StartRoboticsPolicyCommandNonceCleanup(context.Background(), dbInstance, time.Hour)
 		log.Println("[RoboticsPolicy] ✅ Expired policy command nonce cleanup started")
+		api.StartRuntimeCallbackNonceCleanup(context.Background(), dbInstance, time.Hour, 24*time.Hour)
+		log.Println("[RuntimeCallback] ✅ Expired callback nonce cleanup started")
 		startTenantComplianceExportSchedulerFromEnv(context.Background(), dbInstance)
 
 		// Fleet config push and OTA updates
