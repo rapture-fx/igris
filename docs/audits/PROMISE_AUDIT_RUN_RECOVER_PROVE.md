@@ -62,6 +62,9 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - Runtime callback envelopes bind tenant, task, runtime, callback type, exact body digest, timestamp, nonce, and Ed25519 signature.
 - Stale, replayed, malformed, body-tampered, wrong-runtime, missing-key, and terminal-state callback attempts are rejected and auditable.
 - The local promise flow now demonstrates a live signed failed callback and records `automatic_replay_blocked` recovery evidence for an irreversible/non-replayable task when Postgres is available.
+- Governance summary now includes rejected runtime callback counts sourced from
+  persisted `boundary_violations`, including safe breakdowns by reason,
+  runtime ID, callback type, and recent time windows.
 - Governance APIs are BetterAuth-scoped and query by tenant ID.
 - Console task detail is driven by `GET /v1/tasks/:id` and says evidence is unavailable when missing.
 - Raw evidence display/export is frontend-redacted.
@@ -83,6 +86,9 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - Governance list endpoints do not expose raw resume tokens or private keys.
 - Runtime-submitted callback identity is now checked server-side with signed callback envelopes and registered runtime public keys.
 - Rejected runtime callbacks are persisted as `boundary_violations` with safe reason and digest fields, not raw bodies or secrets.
+- Runtime callback nonces are retained for replay protection and cleaned by a
+  scheduled maintenance loop only after the retention window. Retention is
+  floored at the callback freshness window and defaults to 24 hours.
 
 ## Recovery Findings
 
@@ -129,6 +135,5 @@ Audited endpoints:
 
 Next engineering slice:
 
-- Add an operator-facing metric/count for rejected runtime callback violations.
-- Add a migration cleanup/retention policy for `runtime_callback_nonces`.
+- Add alert thresholds or notifications for sustained rejected callback spikes.
 - Keep `IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS` disabled outside explicit local development.
