@@ -8,7 +8,7 @@ Igris partially delivers the promise today.
 
 The strongest production-ready path is the durable task path through `POST /v1/tasks/submit`: the coordinator creates a task, classifies the action, records an action policy decision before dispatch, records a runtime boundary, dispatches to a selected runtime, persists checkpoints/WAL state, accepts signed runtime artifacts, stores receipt lineage, and can run fresh proof verification.
 
-The recovery and proof foundations are real, but not complete enough to claim all scenarios are fully proven. Recovery is conservative for irreversible/non-replayable work and records handoff decisions, but broad multi-runtime portability remains experimental. Proof is stronger than logs because receipt hashes, signatures, runtime keys, and chain links are checked, but proof is unavailable unless the runtime returns signed artifacts and a registered key is present. Runtime callback trust is stronger after the signed-envelope hardening: checkpoint, complete, and failed callbacks now require a signed runtime-bound envelope in strict mode.
+The recovery and proof foundations are real, but not complete enough to claim all scenarios are fully proven. Recovery is conservative for irreversible/non-replayable work and records handoff decisions, but broad multi-runtime portability remains experimental. Proof is stronger than logs because receipt hashes, signatures, runtime keys, and chain links are checked, but proof is unavailable unless the runtime returns signed artifacts and a registered key is present. Runtime callback trust is stronger after the signed-envelope hardening: checkpoint, complete, and failed callbacks now require a signed runtime-bound envelope in strict mode. The local proof loop now has a Docker-first provisioning command that can prepare Postgres, apply migrations, run doctor checks, and execute the full live Run/Recover/Prove demo without `--skip-live`.
 
 ## Execution Path Traced
 
@@ -61,6 +61,7 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - Runtime callback envelopes are mandatory in strict mode for checkpoint, complete, and failed callback routes.
 - Runtime callback envelopes bind tenant, task, runtime, callback type, exact body digest, timestamp, nonce, and Ed25519 signature.
 - Stale, replayed, malformed, body-tampered, wrong-runtime, missing-key, and terminal-state callback attempts are rejected and auditable.
+- `make run-recover-prove-local-provision` provides a one-command local path that provisions or reuses Postgres, applies migrations, runs doctor checks, and executes the full live proof flow.
 - The local promise flow now demonstrates a live signed failed callback and records `automatic_replay_blocked` recovery evidence for an irreversible/non-replayable task when Postgres is available.
 - Governance summary now includes rejected runtime callback counts sourced from
   persisted `boundary_violations`, including safe breakdowns by reason,
@@ -135,5 +136,6 @@ Audited endpoints:
 
 Next engineering slice:
 
+- Validate the new one-command provisioning path on a clean second machine.
 - Add alert thresholds or notifications for sustained rejected callback spikes.
 - Keep `IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS` disabled outside explicit local development.
