@@ -22,7 +22,7 @@ export default function ClosingPosition() {
                 maxWidth: '24ch',
               }}
             >
-              Give agents real work you can recover and prove.
+              AI can do more when execution can be trusted.
             </h2>
           </div>
 
