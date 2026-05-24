@@ -24,12 +24,12 @@ export default function Hero() {
                   style={{
                     fontFamily: PIXEL,
                     fontWeight: 500,
-                    fontSize: 'clamp(1.9rem, 4vw, 3.2rem)',
+                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
                     lineHeight: 1.1,
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  Run agent actions that recover and prove what happened.
+                  Run agent actions that recover<br />and prove what happened.
                 </h1>
                 <a
                   href="https://console.igrisinertial.com/auth?mode=signup"
