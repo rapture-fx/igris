@@ -217,13 +217,13 @@ func evaluateActionPolicy(input actionPolicyInput) ActionPolicyDecision {
 		decision = ActionDecisionApprovalRequired
 		reason = "human approval required before execution"
 	}
-	if input.RecoveryAttempt && irreversible {
-		decision = ActionDecisionDenied
-		reason = "irreversible action cannot be automatically replayed during recovery"
-	}
 	if input.RecoveryAttempt && !TaskRecoveryCheckpointUsable(input.TaskID, input.Checkpoint) {
 		decision = ActionDecisionDenied
 		reason = "recovery checkpoint is missing or invalid"
+	}
+	if input.RecoveryAttempt && irreversible {
+		decision = ActionDecisionDenied
+		reason = "irreversible action cannot be automatically replayed during recovery"
 	}
 
 	boundary := defaultExecutionBoundary(input.TaskDefinition, input.RequiredCaps)
