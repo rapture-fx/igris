@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import { Suspense, type ReactNode } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GovernanceBadge, HandoffBadge, ProofBadge, ViolationSeverityBadge } from '@/components/governance/GovernanceBadge';
 import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
@@ -18,6 +18,7 @@ import {
   useGovernanceVerificationResults,
 } from '@/hooks/useGovernance';
 import { runtimeTrustLabel } from '@/lib/governance';
+import { mockRuntimeById } from '@/lib/mockExecution';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 
@@ -41,10 +42,14 @@ function Field({ label, value, mono = false }: { label: string; value: ReactNode
   );
 }
 
-export default function RuntimeDetailPage() {
+function RuntimeDetailPageInner() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const isMock = searchParams?.get('mock') === '1';
   const runtimeId = decodeURIComponent(String(params.id ?? ''));
-  const { data: runtime, isLoading } = useGovernanceRuntime(runtimeId);
+  const { data: realRuntime, isLoading: realLoading } = useGovernanceRuntime(isMock ? undefined : runtimeId);
+  const runtime = isMock ? mockRuntimeById(runtimeId) : realRuntime;
+  const isLoading = isMock ? false : realLoading;
   const common = { limit: 200, runtime_id: runtimeId };
   const { data: boundaries, isLoading: boundariesLoading } = useGovernanceBoundaries(common);
   const { data: violations, isLoading: violationsLoading } = useGovernanceBoundaryViolations(common);
@@ -229,5 +234,13 @@ export default function RuntimeDetailPage() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function RuntimeDetailPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex-1" /></DashboardLayout>}>
+      <RuntimeDetailPageInner />
+    </Suspense>
   );
 }
