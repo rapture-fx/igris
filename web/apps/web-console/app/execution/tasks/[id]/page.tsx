@@ -475,7 +475,6 @@ export default function ExecutionDetailPage() {
   const { toast } = useToast();
   const { data: tenant } = useTenant();
   const [verified, setVerified] = useState<boolean | null>(null);
-  const [showDetailed, setShowDetailed] = useState(false);
 
   const { data: fetchedTask, isLoading: loadingFetched } = useTask(isMock ? null : (rawId || null));
   const { data: stepsData } = useTaskSteps(isMock ? null : (rawId || null));
