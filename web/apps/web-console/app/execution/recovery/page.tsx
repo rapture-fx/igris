@@ -82,6 +82,7 @@ export default function RecoveryPage() {
             </div>
             <Input value={runtimeFilter} onChange={(event) => setRuntimeFilter(event.target.value)} placeholder="Runtime ID filter" className="h-8 text-xs" />
           </div>
+        </div>
 
         <div className="flex flex-wrap gap-1.5">
           {['all', 'interrupted', 'recovering', 'recovered', 'replay_skipped', 'manual_required', 'failed'].map((value) => (
@@ -97,11 +98,7 @@ export default function RecoveryPage() {
         </div>
 
         <div className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">Recovery Events</h2>
-              <p className="text-[11px] text-muted-foreground">Backed by `GET /v1/execution/governance/recovery-events`.</p>
-            </div>
+          <div className="flex items-center justify-end px-4 py-3">
             {!isLoading && <span className="text-[11px] tabular-nums text-muted-foreground">{filtered.length} of {data?.total ?? 0}</span>}
           </div>
           <Table>
