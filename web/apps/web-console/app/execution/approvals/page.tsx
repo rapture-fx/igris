@@ -148,20 +148,6 @@ export default function ApprovalsPage() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {[
-            { label: 'Allowed', value: counts.allowed, tone: 'success' as const },
-            { label: 'Denied', value: counts.denied, tone: 'danger' as const },
-            { label: 'Approval required', value: counts.approval, tone: 'warning' as const },
-            { label: 'Human-gated', value: counts.humanGated, tone: 'warning' as const },
-          ].map((card) => (
-            <div key={card.label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
-              <span className="text-xs font-medium text-muted-foreground">{card.label}</span>
-              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{card.value}</div>
-            </div>
-          ))}
-        </div>
-
         <section className="rounded-lg border-[0.5px] border-black/[0.08] bg-white">
           <div className="space-y-3 px-4 py-3">
             <div>
