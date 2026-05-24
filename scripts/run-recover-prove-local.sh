@@ -244,7 +244,7 @@ const summary = {
     recovery_event_url: failureRecoveryEventUrl || null,
     task_api: failureTaskApi || null,
     console_task: failureConsoleTask || null,
-    expected_block_reason: failureTaskId ? "non-replayable or irreversible action requires manual recovery" : null,
+    expected_block_reason: failureTaskId ? "irreversible action cannot be automatically replayed during recovery" : null,
   },
   urls: {
     task_api: taskId ? `${apiBase}/v1/tasks/${taskId}` : null,
