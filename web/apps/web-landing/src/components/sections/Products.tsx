@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 import { LineSpinner } from 'ldrs/react'
 import 'ldrs/react/LineSpinner.css'
 import {
@@ -84,6 +85,8 @@ const SIDEBAR: SidebarGroup[] = [
 // ──────────────────────────────────────────────────────────────────
 
 export function ExecutionPreview() {
+  const { resolvedTheme } = useTheme()
+  const isLight = resolvedTheme === 'light'
   return (
     <div
       className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]"
@@ -92,8 +95,11 @@ export function ExecutionPreview() {
         className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]"
       >
         <div
-          className="igris-console relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]"
-          style={{ fontFamily: SANS, background: '#0e0e0c', color: '#e8e7df' }}
+          className={
+            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
+            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
+          }
+          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
         >
           <ConsoleStyles />
           <div className="grid" style={{ gridTemplateColumns: '40px 236px 1fr', height: 640 }}>
@@ -110,7 +116,62 @@ export function ExecutionPreview() {
 function ConsoleStyles() {
   return (
     <style>{`
-      .igris-console { color-scheme: dark; }
+      .igris-console {
+        color-scheme: dark;
+        --ic-bg: #0e0e0c;
+        --ic-bg-rail: #070707;
+        --ic-text: #e8e7df;
+        --ic-text-bright: #f0efe8;
+        --ic-text-2: #d3d2c8;
+        --ic-text-3: #c8c7be;
+        --ic-text-4: #a8a89e;
+        --ic-text-5: #8a8a82;
+        --ic-text-6: #7a7a72;
+        --ic-text-7: #6a6a62;
+        --ic-text-8: #5a5a52;
+        --ic-text-9: #3a3a32;
+        --ic-avatar-bg: #2a2a25;
+        --ic-fault-text: #9a9a8e;
+        --ic-border: rgba(255,255,255,0.05);
+        --ic-border-soft: rgba(255,255,255,0.04);
+        --ic-overlay-1: rgba(255,255,255,0.02);
+        --ic-overlay-2: rgba(255,255,255,0.025);
+        --ic-overlay-3: rgba(255,255,255,0.03);
+        --ic-overlay-4: rgba(255,255,255,0.045);
+        --ic-overlay-5: rgba(255,255,255,0.06);
+        --ic-overlay-bg: rgba(255,255,255,0.015);
+        --ic-rail-active: #f0efe8;
+        --ic-dot-border: #070707;
+        --ic-accent: #34d399;
+      }
+      .igris-console.igris-console--light {
+        color-scheme: light;
+        --ic-bg: #f7f7f5;
+        --ic-bg-rail: #f2f1ee;
+        --ic-text: #1b1912;
+        --ic-text-bright: #000000;
+        --ic-text-2: #2a2820;
+        --ic-text-3: #3a3830;
+        --ic-text-4: #555248;
+        --ic-text-5: #6e6b62;
+        --ic-text-6: #84817a;
+        --ic-text-7: #9a978f;
+        --ic-text-8: #b0ada5;
+        --ic-text-9: #d6d3cb;
+        --ic-avatar-bg: #d8d5cc;
+        --ic-fault-text: #5a574e;
+        --ic-border: rgba(0,0,0,0.08);
+        --ic-border-soft: rgba(0,0,0,0.06);
+        --ic-overlay-1: rgba(0,0,0,0.025);
+        --ic-overlay-2: rgba(0,0,0,0.03);
+        --ic-overlay-3: rgba(0,0,0,0.035);
+        --ic-overlay-4: rgba(0,0,0,0.05);
+        --ic-overlay-5: rgba(0,0,0,0.07);
+        --ic-overlay-bg: rgba(0,0,0,0.02);
+        --ic-rail-active: #1b1912;
+        --ic-dot-border: #f2f1ee;
+        --ic-accent: #047857;
+      }
 
       .igris-console .ic-scroll { scrollbar-width: none; -ms-overflow-style: none; }
       .igris-console .ic-scroll::-webkit-scrollbar { display: none; }
@@ -120,9 +181,9 @@ function ConsoleStyles() {
         font-size: 11.5px;
         padding: 1px 6px;
         border-radius: 4px;
-        background: rgba(255,255,255,0.045);
-        color: #d3d2c8;
-        border: 1px solid rgba(255,255,255,0.04);
+        background: var(--ic-overlay-4);
+        color: var(--ic-text-2);
+        border: 1px solid var(--ic-border-soft);
         white-space: nowrap;
       }
       .igris-console .ic-kbd {
@@ -130,9 +191,9 @@ function ConsoleStyles() {
         font-size: 10px;
         padding: 1px 5px;
         border-radius: 3px;
-        background: rgba(255,255,255,0.05);
-        color: #8a8a82;
-        border: 1px solid rgba(255,255,255,0.04);
+        background: var(--ic-border);
+        color: var(--ic-text-5);
+        border: 1px solid var(--ic-border-soft);
       }
       .igris-console .ic-kbd--sm {
         font-size: 8.5px;
@@ -144,8 +205,35 @@ function ConsoleStyles() {
         display: inline-flex;
         align-items: center;
         margin-right: 4px;
-        color: #8a8a82;
+        color: var(--ic-text-5);
       }
+
+      /* Light mode: darken the emerald + amber + rose accents so they read on the warm-white surface */
+      /* Light mode: darken the emerald + amber + rose accents and drop opacity so the +1 / −0 counters read properly */
+      .igris-console--light .text-emerald-300,
+      .igris-console--light .text-emerald-400,
+      .igris-console--light .text-emerald-500,
+      .igris-console--light .text-emerald-400\\/80 { color: #047857; }
+      .igris-console--light .bg-emerald-400 { background-color: #059669; }
+      .igris-console--light .bg-emerald-500,
+      .igris-console--light .bg-emerald-500\\/80 { background-color: #047857; }
+      .igris-console--light .bg-emerald-500\\/\\[0\\.12\\] { background-color: rgb(4 120 87 / 0.10); }
+      .igris-console--light .bg-emerald-500\\/\\[0\\.14\\] { background-color: rgb(4 120 87 / 0.12); }
+      .igris-console--light .hover\\:bg-emerald-500\\/\\[0\\.16\\]:hover { background-color: rgb(4 120 87 / 0.16); }
+      .igris-console--light .hover\\:bg-emerald-500\\/\\[0\\.2\\]:hover { background-color: rgb(4 120 87 / 0.2); }
+      .igris-console--light .border-emerald-500\\/20 { border-color: rgb(4 120 87 / 0.3); }
+      .igris-console--light .border-emerald-500\\/25 { border-color: rgb(4 120 87 / 0.35); }
+
+      .igris-console--light .text-rose-400,
+      .igris-console--light .text-rose-400\\/60,
+      .igris-console--light .text-rose-400\\/70 { color: #be123c; }
+      .igris-console--light .bg-rose-500 { background-color: #be123c; }
+
+      .igris-console--light .text-amber-300,
+      .igris-console--light .text-amber-400,
+      .igris-console--light .text-amber-400\\/60,
+      .igris-console--light .text-amber-400\\/70 { color: #b45309; }
+      .igris-console--light .bg-amber-400 { background-color: #b45309; }
 
       @keyframes ic-step-in {
         from { opacity: 0; transform: translateY(3px); }
@@ -180,19 +268,21 @@ function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
   return (
     <div
       className="relative flex items-center justify-center h-9 w-9 rounded-md"
-      style={{ background: active ? 'rgba(255,255,255,0.06)' : 'transparent' }}
+      style={{ background: active ? 'var(--ic-overlay-5)' : 'transparent' }}
     >
-      {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r" style={{ background: '#f0efe8' }} />}
-      <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} style={{ color: active ? '#f0efe8' : '#7a7a72' }} />
+      {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r" style={{ background: 'var(--ic-rail-active)' }} />}
+      <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} style={{ color: active ? 'var(--ic-rail-active)' : 'var(--ic-text-6)' }} />
     </div>
   )
 }
 
 function IconRail() {
+  const { resolvedTheme } = useTheme()
+  const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   return (
-    <nav className="flex flex-col items-center py-2 border-r border-white/[0.05]" style={{ background: '#070707' }}>
+    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
-        <img src="/inertiadm.png" alt="" width={15} height={15} className="block select-none" draggable={false} />
+        <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
       <div className="flex flex-col items-center flex-1">
         <RailIcon Icon={LayoutDashboard} />
@@ -202,9 +292,9 @@ function IconRail() {
         <RailIcon Icon={BarChart3} />
       </div>
       {/* Profile avatar */}
-      <div className="relative h-7 w-7 mt-1 rounded-full overflow-hidden select-none" style={{ background: '#2a2a25' }}>
+      <div className="relative h-7 w-7 mt-1 rounded-full overflow-hidden select-none" style={{ background: 'var(--ic-avatar-bg)' }}>
         <img src="/sfat.png" alt="" width={28} height={28} className="block h-full w-full object-cover" draggable={false} />
-        <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border" style={{ background: '#34d399', borderColor: '#070707' }} />
+        <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border" style={{ background: 'var(--ic-accent)', borderColor: 'var(--ic-dot-border)' }} />
       </div>
     </nav>
   )
@@ -214,27 +304,27 @@ function IconRail() {
 
 function Sidebar() {
   return (
-    <aside className="flex flex-col border-r border-white/[0.05]" style={{ background: '#070707' }}>
+    <aside className="flex flex-col border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
       {/* search */}
       <div className="px-3 pt-3 pb-2">
-        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] border-white/[0.04]" style={{ background: '#0e0e0c' }}>
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[#6a6a62]">
+        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px]" style={{ background: 'var(--ic-bg)', borderColor: 'var(--ic-border-soft)' }}>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--ic-text-7)' }}>
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span className="flex-1 text-[10.5px] text-[#6a6a62]">Search</span>
+          <span className="flex-1 text-[10.5px]" style={{ color: 'var(--ic-text-7)' }}>Search</span>
         </div>
       </div>
 
       {/* section header */}
       <div className="flex items-center justify-between px-4 mt-1 mb-1">
-        <span className="text-[11px] text-[#7a7a72]">Tasks</span>
+        <span className="text-[11px] text-[var(--ic-text-6)]">Tasks</span>
         <div className="flex items-center gap-1.5">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[#5a5a52] hover:text-[#a8a89e] cursor-pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-8)] hover:text-[var(--ic-text-4)] cursor-pointer">
             <path d="M7 8 L17 8 M7 16 L17 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             <path d="M14 5 L17 8 L14 11 M10 13 L7 16 L10 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[#5a5a52] hover:text-[#a8a89e] cursor-pointer">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-8)] hover:text-[var(--ic-text-4)] cursor-pointer">
             <path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
@@ -245,7 +335,7 @@ function Sidebar() {
         {SIDEBAR.map((g) => (
           <SidebarGroupView key={g.id} group={g} />
         ))}
-        <button className="w-full text-left text-[11px] text-[#5a5a52] hover:text-[#a8a89e] px-2 py-1.5 mt-1">
+        <button className="w-full text-left text-[11px] text-[var(--ic-text-8)] hover:text-[var(--ic-text-4)] px-2 py-1.5 mt-1">
           Show more
         </button>
       </div>
@@ -258,8 +348,8 @@ function SidebarGroupView({ group }: { group: SidebarGroup }) {
   const expanded = !group.collapsed
   return (
     <div className="mt-1">
-      <button className="flex items-center gap-1.5 w-full px-1.5 py-1 text-left text-[12px] text-[#c8c7be] hover:bg-white/[0.025] rounded">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className={'text-[#6a6a62] transition-transform ' + (expanded ? 'rotate-90' : '')}>
+      <button className="flex items-center gap-1.5 w-full px-1.5 py-1 text-left text-[12px] text-[var(--ic-text-3)] hover:bg-[var(--ic-overlay-2)] rounded">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className={'text-[var(--ic-text-7)] transition-transform ' + (expanded ? 'rotate-90' : '')}>
           <path d="M9 6 L15 12 L9 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="flex items-center justify-center w-3.5 h-3.5">
@@ -282,7 +372,7 @@ function SidebarTaskView({ task }: { task: SidebarTask }) {
   const dotColor =
     task.status === 'running'  ? 'bg-emerald-400' :
     task.status === 'failed'   ? 'bg-rose-500'    :
-                                 'bg-[#3a3a32]'
+                                 'bg-[var(--ic-text-9)]'
   const label =
     task.status === 'running'   ? 'Running'   :
     task.status === 'failed'    ? 'Failed'    :
@@ -290,23 +380,23 @@ function SidebarTaskView({ task }: { task: SidebarTask }) {
   const labelColor =
     task.status === 'running'   ? 'text-emerald-400' :
     task.status === 'failed'    ? 'text-rose-400'    :
-                                  'text-[#6a6a62]'
+                                  'text-[var(--ic-text-7)]'
 
   return (
     <div
       className={
         'group flex items-center gap-2 pl-7 pr-2 py-1.5 rounded transition-colors cursor-default ' +
-        (task.active ? 'bg-white/[0.045]' : 'hover:bg-white/[0.02]')
+        (task.active ? 'bg-[var(--ic-overlay-4)]' : 'hover:bg-[var(--ic-overlay-1)]')
       }
     >
       <span className="flex items-center justify-center w-2.5">
         <span className={'block w-1.5 h-1.5 rounded-full ' + dotColor + (task.status === 'running' ? ' ic-live-dot' : '')} />
       </span>
       <span className={'text-[10.5px] tracking-[0.04em] flex-shrink-0 w-[58px] ' + labelColor}>{label}</span>
-      <span className={'text-[11.5px] truncate flex-1 ' + (task.active ? 'text-[#f0efe8]' : 'text-[#a8a89e]')} style={{ letterSpacing: '-0.005em' }}>
+      <span className={'text-[11.5px] truncate flex-1 ' + (task.active ? 'text-[var(--ic-text-bright)]' : 'text-[var(--ic-text-4)]')} style={{ letterSpacing: '-0.005em' }}>
         {task.title}
       </span>
-      <span className="text-[10.5px] text-[#5a5a52] tabular-nums flex-shrink-0 hidden md:inline">{task.when}</span>
+      <span className="text-[10.5px] text-[var(--ic-text-8)] tabular-nums flex-shrink-0 hidden md:inline">{task.when}</span>
     </div>
   )
 }
@@ -325,9 +415,9 @@ function Main() {
 
 function MainTopBar() {
   return (
-    <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-white/[0.05]">
+    <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-[color:var(--ic-border)]">
       <div className="flex items-center gap-2.5 min-w-0">
-        <span className="text-[13px] font-medium text-[#f0efe8] truncate" style={{ letterSpacing: '-0.01em' }}>
+        <span className="text-[13px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em' }}>
           Fulfill order — policy v3
         </span>
         <span className="ic-chip">acme-orders</span>
@@ -349,7 +439,7 @@ function TopBtn({ label, iconPlus, iconCaret, accent }: { label: string; iconPlu
         'inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11.5px] transition-colors cursor-default ' +
         (accent
           ? 'bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16]'
-          : 'bg-white/[0.04] text-[#d3d2c8] border border-white/[0.05] hover:bg-white/[0.06]')
+          : 'bg-[var(--ic-overlay-3)] text-[var(--ic-text-2)] border border-[color:var(--ic-border)] hover:bg-[var(--ic-overlay-5)]')
       }
     >
       {iconPlus && (
@@ -402,14 +492,14 @@ function MainBody() {
   return (
     <div className="ic-scroll flex-1 overflow-y-auto px-7 pt-6 pb-2">
       {/* definition rows — Submitter / Region / Worker / Submitted / Mode */}
-      <DefRow label="Submitter" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>mateo@acme.io</span> <span className="text-[#7a7a72]">engineer, integrations</span></>} />
-      <DefRow label="Region"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>fra1·prod</span> <span className="text-[#7a7a72]">eu-central, primary</span></>} />
-      <DefRow label="Worker"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_b</span> <span className="text-[#7a7a72]">recovered from </span><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_a</span></>} />
-      <DefRow label="Submitted" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>14:07:42 UTC</span> <span className="text-[#7a7a72]">12 seconds ago, action workflow</span></>} />
-      <DefRow label="Mode"      value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>action_workflow</span> <span className="text-[#7a7a72]">4 controlled tools, recovery enabled</span></>} />
+      <DefRow label="Submitter" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>mateo@acme.io</span> <span className="text-[var(--ic-text-6)]">engineer, integrations</span></>} />
+      <DefRow label="Region"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>fra1·prod</span> <span className="text-[var(--ic-text-6)]">eu-central, primary</span></>} />
+      <DefRow label="Worker"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_b</span> <span className="text-[var(--ic-text-6)]">recovered from </span><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_a</span></>} />
+      <DefRow label="Submitted" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>14:07:42 UTC</span> <span className="text-[var(--ic-text-6)]">12 seconds ago, action workflow</span></>} />
+      <DefRow label="Mode"      value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>action_workflow</span> <span className="text-[var(--ic-text-6)]">4 controlled tools, recovery enabled</span></>} />
 
       {/* narrative */}
-      <p className="mt-5 text-[13px] text-[#c8c7be] leading-relaxed max-w-[60ch]">
+      <p className="mt-5 text-[13px] text-[var(--ic-text-3)] leading-relaxed max-w-[60ch]">
         The receipt chain is <span className="text-emerald-400">valid</span> up to <span style={{ fontFamily: MONO }}>action 03</span>.
         Action 04 (<span style={{ fontFamily: MONO }}>db_write</span>) is currently running. No replays were
         needed across the host fault.
@@ -417,18 +507,18 @@ function MainBody() {
 
       {/* committed actions section */}
       <div
-        className="mt-7 rounded-lg border-[0.5px] border-white/[0.06] px-4 py-3"
+        className="mt-7 rounded-lg border-[0.5px] border-[color:var(--ic-overlay-5)] px-4 py-3"
         style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[11.5px] text-[#a8a89e]">
+          <div className="flex items-center gap-2 text-[11.5px] text-[var(--ic-text-4)]">
             <span>Committed actions ({total})</span>
             <span className="text-emerald-400/80" style={{ fontFamily: MONO }}>+{committed}</span>
             <span className="text-rose-400/60" style={{ fontFamily: MONO }}>−0</span>
           </div>
           <div className="flex items-center gap-2">
-            <button className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded">Collapse all</button>
-            <button className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded">View receipts</button>
+            <button className="text-[11px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-2)] px-2 py-1 rounded">Collapse all</button>
+            <button className="text-[11px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-2)] px-2 py-1 rounded">View receipts</button>
           </div>
         </div>
 
@@ -450,7 +540,7 @@ function MainBody() {
         </div>
       </div>
 
-      <div className="mt-4 text-[11px] text-[#5a5a52] tabular-nums" style={{ fontFamily: MONO }}>
+      <div className="mt-4 text-[11px] text-[var(--ic-text-8)] tabular-nums" style={{ fontFamily: MONO }}>
         14:07:42 · live
       </div>
     </div>
@@ -460,8 +550,8 @@ function MainBody() {
 function DefRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid gap-x-6 py-1.5" style={{ gridTemplateColumns: '90px 1fr' }}>
-      <span className="text-[12px] text-[#8a8a82]">{label}</span>
-      <div className="text-[12.5px] text-[#d3d2c8] flex items-center gap-1.5 flex-wrap">{value}</div>
+      <span className="text-[12px] text-[var(--ic-text-5)]">{label}</span>
+      <div className="text-[12.5px] text-[var(--ic-text-2)] flex items-center gap-1.5 flex-wrap">{value}</div>
     </div>
   )
 }
@@ -469,30 +559,32 @@ function DefRow({ label, value }: { label: string; value: React.ReactNode }) {
 function Tree({ title, icon, children }: { title: string; icon: 'bolt' | 'box'; children: React.ReactNode }) {
   return (
     <div>
-      <div className="flex items-center gap-2 text-[12px] text-[#a8a89e]">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[#6a6a62] rotate-90">
+      <div className="flex items-center gap-2 text-[12px] text-[var(--ic-text-4)]">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-7)] rotate-90">
           <path d="M9 6 L15 12 L9 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         {icon === 'bolt' ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-[#7a7a72]">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-6)]">
             <path d="M13 2 L4 14 L11 14 L11 22 L20 10 L13 10 Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
           </svg>
         ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-[#7a7a72]">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-6)]">
             <path d="M4 7 L12 3 L20 7 L20 17 L12 21 L4 17 Z M4 7 L12 11 L20 7 M12 11 L12 21" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
           </svg>
         )}
         <span style={{ fontFamily: MONO }}>{title}</span>
       </div>
-      <div className="mt-1 pl-5 border-l border-white/[0.05] ml-1">{children}</div>
+      <div className="mt-1 pl-5 border-l border-[color:var(--ic-border)] ml-1">{children}</div>
     </div>
   )
 }
 
 function ActionLoader() {
+  const { resolvedTheme } = useTheme()
+  const color = resolvedTheme === 'light' ? 'rgb(4, 120, 87)' : 'rgb(52, 211, 153)'
   return (
     <span className="inline-flex items-center justify-center" aria-hidden>
-      <LineSpinner size="14" stroke="1.4" speed="0.9" color="rgb(52, 211, 153)" />
+      <LineSpinner size="14" stroke="1.4" speed="0.9" color={color} />
     </span>
   )
 }
@@ -500,7 +592,7 @@ function ActionLoader() {
 function ActionLine({ step, running, isLatest }: { step: Step; running: boolean; isLatest: boolean }) {
   const loading = isLatest && !running
   return (
-    <div className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded hover:bg-white/[0.02]"
+    <div className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded hover:bg-[var(--ic-overlay-1)]"
          style={{ gridTemplateColumns: '14px 24px 1fr auto auto auto' }}>
       <span className="inline-flex items-center justify-center">
         {running ? (
@@ -513,28 +605,28 @@ function ActionLine({ step, running, isLatest }: { step: Step; running: boolean;
           </svg>
         )}
       </span>
-      <span className="text-[11px] text-[#5a5a52] tabular-nums" style={{ fontFamily: MONO }}>{step.num}</span>
+      <span className="text-[11px] text-[var(--ic-text-8)] tabular-nums" style={{ fontFamily: MONO }}>{step.num}</span>
       <div className="min-w-0 flex items-baseline gap-2">
-        <span className={'text-[12.5px] text-[#e8e7df] ' + (running ? 'ic-breathing' : '')} style={{ fontFamily: MONO }}>
+        <span className={'text-[12.5px] text-[var(--ic-text)] ' + (running ? 'ic-breathing' : '')} style={{ fontFamily: MONO }}>
           {step.name}
         </span>
-        <span className="text-[12px] text-[#7a7a72] truncate">{step.detail}</span>
+        <span className="text-[12px] text-[var(--ic-text-6)] truncate">{step.detail}</span>
       </div>
-      <span className="text-[11px] text-[#5a5a52] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
+      <span className="text-[11px] text-[var(--ic-text-8)] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
         {step.latency != null ? `${step.latency}ms` : ''}
       </span>
       {step.receipt ? (
         <span className="text-[10.5px] text-emerald-400" style={{ fontFamily: MONO }}>{step.receipt}</span>
       ) : (
-        <span className="text-[10.5px] text-[#5a5a52]" style={{ fontFamily: MONO }}>—</span>
+        <span className="text-[10.5px] text-[var(--ic-text-8)]" style={{ fontFamily: MONO }}>—</span>
       )}
       <span className="text-[10.5px] tabular-nums" style={{ fontFamily: MONO }}>
         {running ? (
-          <span className="text-[#5a5a52]">· · ·</span>
+          <span className="text-[var(--ic-text-8)]">· · ·</span>
         ) : (
           <>
             <span className="text-emerald-400/80">+1</span>
-            <span className="text-[#5a5a52]"> / </span>
+            <span className="text-[var(--ic-text-8)]"> / </span>
             <span className="text-rose-400/70">−0</span>
           </>
         )}
@@ -553,40 +645,40 @@ function FaultLine({ step }: { step: Step }) {
       <span className="text-[11px] text-amber-400/60 tabular-nums" style={{ fontFamily: MONO }}>!!</span>
       <div className="min-w-0 flex items-baseline gap-2">
         <span className="text-[12.5px] text-amber-300" style={{ fontFamily: MONO }}>{step.name}</span>
-        <span className="text-[12px] text-[#9a9a8e] truncate">{step.detail}</span>
+        <span className="text-[12px] text-[var(--ic-fault-text)] truncate">{step.detail}</span>
       </div>
-      <span className="text-[11px] text-[#5a5a52] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
+      <span className="text-[11px] text-[var(--ic-text-8)] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
         {step.latency}ms
       </span>
       <span className="text-[10.5px] text-amber-400/70">recovered</span>
-      <span className="text-[10.5px] text-[#5a5a52]" style={{ fontFamily: MONO }}>0 replays</span>
+      <span className="text-[10.5px] text-[var(--ic-text-8)]" style={{ fontFamily: MONO }}>0 replays</span>
     </div>
   )
 }
 
 function MainFooter() {
   return (
-    <div className="border-t border-white/[0.05]">
+    <div className="border-t border-[color:var(--ic-border)]">
       {/* input row */}
       <div className="px-5 py-3">
-        <div className="text-[12px] text-[#5a5a52]">Submit a follow-up task or ask for a re-run with different params…</div>
+        <div className="text-[12px] text-[var(--ic-text-8)]">Submit a follow-up task or ask for a re-run with different params…</div>
       </div>
       {/* bottom bar */}
-      <div className="flex items-center gap-3 px-5 py-2.5 border-t border-white/[0.05]">
-        <button className="inline-flex items-center gap-1.5 text-[11.5px] text-[#d3d2c8] hover:text-[#f0efe8]">
+      <div className="flex items-center gap-3 px-5 py-2.5 border-t border-[color:var(--ic-border)]">
+        <button className="inline-flex items-center gap-1.5 text-[11.5px] text-[var(--ic-text-2)] hover:text-[var(--ic-text-bright)]">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>action_workflow v1</span>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
             <path d="M6 10 L12 16 L18 10" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <span className="text-[#3a3a32]">·</span>
-        <span className="text-[11.5px] text-[#a8a89e]">Recovery on</span>
-        <span className="text-[#3a3a32]">·</span>
-        <span className="text-[11.5px] text-[#a8a89e]">Receipts ed25519</span>
+        <span className="text-[var(--ic-text-9)]">·</span>
+        <span className="text-[11.5px] text-[var(--ic-text-4)]">Recovery on</span>
+        <span className="text-[var(--ic-text-9)]">·</span>
+        <span className="text-[11.5px] text-[var(--ic-text-4)]">Receipts ed25519</span>
 
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-[11.5px] text-[#7a7a72]">tier <span className="text-[#d3d2c8]">horizon</span></span>
+          <span className="text-[11.5px] text-[var(--ic-text-6)]">tier <span className="text-[var(--ic-text-2)]">horizon</span></span>
           <button className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/[0.2]">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
               <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
