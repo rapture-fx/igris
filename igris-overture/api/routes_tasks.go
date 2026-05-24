@@ -2336,6 +2336,9 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
+		if err := tc.RecordRuntimeFailedRecoveryDecision(task, callbackRuntimeID(callbackValidation, c)); err != nil {
+			log.Warn().Err(err).Str("task_id", taskID.String()).Msg("[Tasks] Persist runtime-failed recovery decision")
+		}
 
 		updatedTask, err := tc.Store().GetTask(taskID, tenantID)
 		if err != nil {
