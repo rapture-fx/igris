@@ -68,6 +68,83 @@ func TestGovernancePolicyDecisionsEndpointIsTenantScoped(t *testing.T) {
 	require.Zero(t, drv.remainingQueries())
 }
 
+func TestGovernanceSummaryIncludesRejectedRuntimeCallbackCounts(t *testing.T) {
+	t.Parallel()
+
+	now := time.Unix(1_700_010_000, 0).UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRow(),
+		{columns: []string{"verified", "failed", "verified_tasks", "partial_tasks"}, rows: [][]driver.Value{{int64(3), int64(1), int64(2), int64(1)}}},
+		{columns: []string{"denied", "approval", "blocked_tasks"}, rows: [][]driver.Value{{int64(2), int64(1), int64(2)}}},
+		{columns: []string{"count"}, rows: [][]driver.Value{{int64(9)}}},
+		{columns: []string{"count", "last_1h", "last_24h"}, rows: [][]driver.Value{{int64(5), int64(2), int64(4)}}},
+		{columns: []string{"key", "count", "last_24h"}, rows: [][]driver.Value{
+			{"runtime callback replay detected", int64(3), int64(3)},
+			{"runtime callback timestamp outside freshness window", int64(2), int64(1)},
+		}},
+		{columns: []string{"key", "count", "last_24h"}, rows: [][]driver.Value{
+			{"runtime-a", int64(4), int64(3)},
+			{"unknown", int64(1), int64(1)},
+		}},
+		{columns: []string{"key", "count", "last_24h"}, rows: [][]driver.Value{
+			{"complete", int64(3), int64(2)},
+			{"failed", int64(2), int64(2)},
+		}},
+		{columns: []string{"count"}, rows: [][]driver.Value{{int64(1)}}},
+		{columns: []string{"running", "approval", "recovering", "failed"}, rows: [][]driver.Value{{int64(4), int64(1), int64(0), int64(2)}}},
+		{columns: []string{"kind", "category", "task_id", "runtime_id", "severity", "reason", "created_at"}, rows: [][]driver.Value{{
+			"boundary_violation", "boundary", uuid.New().String(), "runtime-a", "critical", "runtime callback replay detected", now,
+		}}},
+	})
+
+	app := fiber.New()
+	RegisterGovernanceRoutes(app, db)
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/governance/summary", nil)
+	req.Header.Set("Authorization", "Bearer "+testAPIKey)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body struct {
+		TrustSummary struct {
+			BoundaryViolations       int `json:"boundary_violations"`
+			RejectedRuntimeCallbacks int `json:"rejected_runtime_callbacks"`
+		} `json:"trust_summary"`
+		RuntimeCallbackRejections struct {
+			Total    int `json:"total"`
+			Last1h   int `json:"last_1h"`
+			Last24h  int `json:"last_24h"`
+			ByReason []struct {
+				Key     string
+				Count   int
+				Last24h int `json:"last_24h"`
+			} `json:"by_reason"`
+			ByRuntimeID []struct {
+				Key     string
+				Count   int
+				Last24h int `json:"last_24h"`
+			} `json:"by_runtime_id"`
+			ByCallbackType []struct {
+				Key     string
+				Count   int
+				Last24h int `json:"last_24h"`
+			} `json:"by_callback_type"`
+		} `json:"runtime_callback_rejections"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, 9, body.TrustSummary.BoundaryViolations)
+	require.Equal(t, 5, body.TrustSummary.RejectedRuntimeCallbacks)
+	require.Equal(t, 5, body.RuntimeCallbackRejections.Total)
+	require.Equal(t, 2, body.RuntimeCallbackRejections.Last1h)
+	require.Equal(t, 4, body.RuntimeCallbackRejections.Last24h)
+	require.Equal(t, "runtime callback replay detected", body.RuntimeCallbackRejections.ByReason[0].Key)
+	require.Equal(t, 3, body.RuntimeCallbackRejections.ByReason[0].Count)
+	require.Equal(t, "runtime-a", body.RuntimeCallbackRejections.ByRuntimeID[0].Key)
+	require.Equal(t, "complete", body.RuntimeCallbackRejections.ByCallbackType[0].Key)
+	require.Zero(t, drv.remainingQueries())
+}
+
 func TestGovernanceVerificationResultsEndpointReturnsSafeSummaries(t *testing.T) {
 	t.Parallel()
 
