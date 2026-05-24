@@ -101,6 +101,11 @@ TASK_VERIFY_STATUS=""
 LIVE_MODE="real"
 CALLBACK_MODE="fallback-test-backed"
 CALLBACK_EVIDENCE=""
+FAILURE_TASK_ID=""
+FAILURE_RECOVERY_EVENT_URL=""
+FAILURE_TASK_API=""
+FAILURE_CONSOLE_TASK=""
+FAILURE_RECOVERY_MODE="fallback-test-backed"
 
 if [[ "$SKIP_LIVE" == "true" ]]; then
   LIVE_MODE="skipped"
@@ -135,7 +140,7 @@ else
   fi
 
   echo "[live-proof] starting Overture/runtime, registering runtime key, submitting action_task, and verifying proof"
-  "$SCRIPT_DIR/action_task_v1_proof_demo.sh" --console-base-url "$CONSOLE_BASE_URL" 2>&1 | tee "$LIVE_LOG"
+  "$SCRIPT_DIR/action_task_v1_proof_demo.sh" --console-base-url "$CONSOLE_BASE_URL" --include-failure-recovery 2>&1 | tee "$LIVE_LOG"
 
   TASK_ID=$(extract_field_from_live_log "task_id" "$LIVE_LOG")
   RUNTIME_ID=$(extract_field_from_live_log "runtime_id" "$LIVE_LOG")
@@ -143,6 +148,10 @@ else
   RECEIPT_VERIFY_STATUS=$(extract_field_from_live_log "receipt verify HTTP status" "$LIVE_LOG")
   TASK_VERIFY_STATUS=$(extract_field_from_live_log "task verify HTTP status" "$LIVE_LOG")
   CALLBACK_EVIDENCE=$(extract_field_from_live_log "callback evidence" "$LIVE_LOG")
+  FAILURE_TASK_ID=$(extract_field_from_live_log "failure task_id" "$LIVE_LOG")
+  FAILURE_RECOVERY_EVENT_URL=$(extract_field_from_live_log "recovery event URL" "$LIVE_LOG")
+  FAILURE_TASK_API=$(extract_field_from_live_log "failure task API" "$LIVE_LOG")
+  FAILURE_CONSOLE_TASK=$(extract_field_from_live_log "Failure Task Inspector" "$LIVE_LOG")
 
   if [[ -z "$TASK_ID" || -z "$RUNTIME_ID" || -z "$EXECUTION_ID" ]]; then
     echo "live proof completed but did not print task_id/runtime_id/execution_id; refusing to claim local proof" >&2
@@ -157,6 +166,11 @@ else
     exit 1
   fi
   CALLBACK_MODE="live-server-backed"
+  if [[ -z "$FAILURE_TASK_ID" || -z "$FAILURE_RECOVERY_EVENT_URL" ]]; then
+    echo "live proof completed but did not produce failure/recovery-blocking evidence" >&2
+    exit 1
+  fi
+  FAILURE_RECOVERY_MODE="live-server-backed"
 fi
 
 CALLBACK_LOG="$LOG_DIR/runtime-callback-tests.log"
@@ -185,7 +199,7 @@ run_and_capture "proof-tamper" "$PROOF_TAMPER_LOG" \
   -count=1 -timeout=120s
 
 SUMMARY_JSON="$TMP_DIR/redacted-evidence-summary.json"
-node - <<'NODE' "$SUMMARY_JSON" "$LIVE_MODE" "$TASK_ID" "$RUNTIME_ID" "$EXECUTION_ID" "$RECEIPT_VERIFY_STATUS" "$TASK_VERIFY_STATUS" "$CONSOLE_BASE_URL" "$CALLBACK_MODE" "$CALLBACK_EVIDENCE"
+node - <<'NODE' "$SUMMARY_JSON" "$LIVE_MODE" "$TASK_ID" "$RUNTIME_ID" "$EXECUTION_ID" "$RECEIPT_VERIFY_STATUS" "$TASK_VERIFY_STATUS" "$CONSOLE_BASE_URL" "$CALLBACK_MODE" "$CALLBACK_EVIDENCE" "$FAILURE_RECOVERY_MODE" "$FAILURE_TASK_ID" "$FAILURE_RECOVERY_EVENT_URL" "$FAILURE_TASK_API" "$FAILURE_CONSOLE_TASK"
 const fs = require("fs");
 const [
   outPath,
@@ -198,6 +212,11 @@ const [
   consoleBaseUrl,
   callbackMode,
   callbackEvidence,
+  failureRecoveryMode,
+  failureTaskId,
+  failureRecoveryEventUrl,
+  failureTaskApi,
+  failureConsoleTask,
 ] = process.argv.slice(2);
 const apiBase = "http://127.0.0.1:8081";
 const summary = {
@@ -218,6 +237,15 @@ const summary = {
     mode: callbackMode || "fallback-test-backed",
     evidence_path: callbackEvidence || null,
   },
+  failure_recovery_evidence: {
+    mode: failureRecoveryMode || "fallback-test-backed",
+    task_id: failureTaskId || null,
+    failed_callback_evidence_path: callbackEvidence || null,
+    recovery_event_url: failureRecoveryEventUrl || null,
+    task_api: failureTaskApi || null,
+    console_task: failureConsoleTask || null,
+    expected_block_reason: failureTaskId ? "non-replayable or irreversible action requires manual recovery" : null,
+  },
   urls: {
     task_api: taskId ? `${apiBase}/v1/tasks/${taskId}` : null,
     steps_api: taskId ? `${apiBase}/v1/tasks/${taskId}/steps` : null,
@@ -226,13 +254,15 @@ const summary = {
     receipts_api: `${apiBase}/proof/receipts`,
     violations_api: `${apiBase}/v1/execution/governance/boundary-violations`,
     console_task: taskId && consoleBaseUrl ? `${consoleBaseUrl}/execution/tasks/${taskId}` : null,
+    console_failure_task: failureConsoleTask || null,
     console_proof: consoleBaseUrl ? `${consoleBaseUrl}/proof/receipts` : null,
     console_violations: consoleBaseUrl ? `${consoleBaseUrl}/proof/violations` : null,
   },
   scenarios: {
     read_only_action_execution: liveMode === "real" ? "covered_live" : "skipped",
     signed_callback_rejection: "covered_by_strict_go_route_tests",
-    irreversible_recovery_blocking: "covered_by_coordinator_tests",
+    signed_failed_callback: failureTaskId ? "covered_live" : "covered_by_strict_go_route_tests",
+    irreversible_recovery_blocking: failureTaskId ? "covered_live" : "covered_by_coordinator_tests",
     proof_verification: liveMode === "real" ? "covered_live_and_tamper_tests" : "covered_by_tamper_tests_only",
   },
   redaction: {
@@ -253,6 +283,10 @@ echo "  runtime_id:                    ${RUNTIME_ID:-n/a}"
 echo "  execution_id:                  ${EXECUTION_ID:-n/a}"
 echo "  signed callback mode:          $CALLBACK_MODE"
 echo "  callback evidence:             ${CALLBACK_EVIDENCE:-n/a}"
+echo "  failure/recovery mode:         $FAILURE_RECOVERY_MODE"
+echo "  failure task_id:               ${FAILURE_TASK_ID:-n/a}"
+echo "  failed callback evidence:      ${CALLBACK_EVIDENCE:-n/a}"
+echo "  recovery event URL:            ${FAILURE_RECOVERY_EVENT_URL:-n/a}"
 echo "  receipt verify HTTP status:    ${RECEIPT_VERIFY_STATUS:-n/a}"
 echo "  task verify HTTP status:       ${TASK_VERIFY_STATUS:-n/a}"
 echo "  task API:                      ${TASK_ID:+http://127.0.0.1:8081/v1/tasks/$TASK_ID}"
@@ -261,6 +295,9 @@ echo "  receipts API:                  http://127.0.0.1:8081/proof/receipts"
 echo "  violations API:                http://127.0.0.1:8081/v1/execution/governance/boundary-violations"
 if [[ -n "$CONSOLE_BASE_URL" && -n "$TASK_ID" ]]; then
   echo "  console task:                  $CONSOLE_BASE_URL/execution/tasks/$TASK_ID"
+  if [[ -n "$FAILURE_TASK_ID" ]]; then
+    echo "  console failure task:          ${FAILURE_CONSOLE_TASK:-$CONSOLE_BASE_URL/execution/tasks/$FAILURE_TASK_ID}"
+  fi
   echo "  console proof:                 $CONSOLE_BASE_URL/proof/receipts"
   echo "  console violations:            $CONSOLE_BASE_URL/proof/violations"
 fi
