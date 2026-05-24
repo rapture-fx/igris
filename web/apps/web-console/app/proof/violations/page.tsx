@@ -32,6 +32,23 @@ type ViolationItem = {
 
 const ranges = ['last_1h', 'last_6h', 'last_24h', 'last_7d', 'last_30d'];
 
+function runtimeCallbackViolationLabel(item: { violation_type: string; reason: string }) {
+  if (!item.violation_type.startsWith('runtime_callback_rejected_')) {
+    return { kind: 'Boundary violation', action: item.violation_type };
+  }
+  const callbackType = item.violation_type.replace('runtime_callback_rejected_', '');
+  const reason = item.reason.toLowerCase();
+  let action = 'Rejected callback';
+  if (reason.includes('replay')) action = 'Replay attempt';
+  else if (reason.includes('freshness') || reason.includes('timestamp')) action = 'Stale callback';
+  else if (reason.includes('body digest')) action = 'Body mismatch';
+  else if (reason.includes('runtime') || reason.includes('identity')) action = 'Wrong runtime';
+  return {
+    kind: 'Rejected runtime callbacks',
+    action: `${action} (${callbackType})`,
+  };
+}
+
 export default function ViolationsPage() {
   const [range, setRange] = useState('last_24h');
   const [severity, setSeverity] = useState('all');
@@ -59,17 +76,20 @@ export default function ViolationsPage() {
       created_at: item.created_at,
       evidence: item,
     }));
-    const boundary = (boundaryData?.items ?? []).map((item) => ({
-      id: item.violation_id,
-      kind: 'Boundary violation',
-      severity: item.severity,
-      task_id: item.task_id,
-      runtime_id: item.runtime_id,
-      action: item.violation_type,
-      reason: item.reason,
-      created_at: item.created_at,
-      evidence: item,
-    }));
+    const boundary = (boundaryData?.items ?? []).map((item) => {
+      const labels = runtimeCallbackViolationLabel(item);
+      return {
+        id: item.violation_id,
+        kind: labels.kind,
+        severity: item.severity,
+        task_id: item.task_id,
+        runtime_id: item.runtime_id,
+        action: labels.action,
+        reason: item.reason,
+        created_at: item.created_at,
+        evidence: item,
+      };
+    });
     const proof = (proofData?.items ?? [])
       .filter((item) => item.status === 'failed_verification' || item.status === 'policy_violation')
       .map((item) => ({
@@ -123,6 +143,7 @@ export default function ViolationsPage() {
     critical: items.filter((item) => item.severity === 'critical' || item.severity === 'error').length,
     warning: items.filter((item) => item.severity === 'warning').length,
     boundary: items.filter((item) => item.kind === 'Boundary violation').length,
+    callbacks: items.filter((item) => item.kind === 'Rejected runtime callbacks').length,
     proof: items.filter((item) => item.kind === 'Failed verification').length,
   };
 
