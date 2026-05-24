@@ -34,6 +34,7 @@ type queuedRouteQueryExpectation struct {
 type queuedRouteExecExpectation struct {
 	rowsAffected int64
 	err          error
+	check        func(query string, args []driver.NamedValue)
 }
 
 type signedRuntimeCallbackFixture struct {
@@ -91,12 +92,15 @@ func (d *queuedRouteDriver) nextQueryRows() (driver.Rows, error) {
 	return &queuedRouteRows{columns: next.columns, values: next.rows}, nil
 }
 
-func (d *queuedRouteDriver) nextExecResult() (driver.Result, error) {
+func (d *queuedRouteDriver) nextExecResult(query string, args []driver.NamedValue) (driver.Result, error) {
 	if len(d.execs) == 0 {
 		return nil, errors.New("unexpected exec")
 	}
 	next := d.execs[0]
 	d.execs = d.execs[1:]
+	if next.check != nil {
+		next.check(query, args)
+	}
 	if next.err != nil {
 		return nil, next.err
 	}
@@ -127,8 +131,8 @@ func (c *queuedRouteConn) BeginTx(context.Context, driver.TxOptions) (driver.Tx,
 	return queuedRouteTx{driver: c.driver}, nil
 }
 
-func (c *queuedRouteConn) ExecContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Result, error) {
-	return c.driver.nextExecResult()
+func (c *queuedRouteConn) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return c.driver.nextExecResult(query, args)
 }
 
 func (c *queuedRouteConn) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
@@ -143,8 +147,8 @@ func (tx queuedRouteTx) Rollback() error {
 	return nil
 }
 
-func (tx queuedRouteTx) ExecContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Result, error) {
-	return tx.driver.nextExecResult()
+func (tx queuedRouteTx) ExecContext(_ context.Context, query string, args []driver.NamedValue) (driver.Result, error) {
+	return tx.driver.nextExecResult(query, args)
 }
 
 func (tx queuedRouteTx) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
