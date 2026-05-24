@@ -7,6 +7,7 @@
  */
 
 import { useParams, usePathname, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { ExecutionTaskSidebar } from '@/components/execution/ExecutionTaskSidebar';
 import { activeLensId } from './IconRail';
 import { tokens } from './primitives';
@@ -31,7 +32,7 @@ function PlaceholderSidebar({ title, body }: { title: string; body?: React.React
   );
 }
 
-export function LensSidebar() {
+function LensSidebarContent() {
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
   const searchParams = useSearchParams();
@@ -66,4 +67,12 @@ export function LensSidebar() {
 
   // No lens (auth pages, onboarding, etc.) — render no sidebar.
   return null;
+}
+
+export function LensSidebar() {
+  return (
+    <Suspense fallback={null}>
+      <LensSidebarContent />
+    </Suspense>
+  );
 }
