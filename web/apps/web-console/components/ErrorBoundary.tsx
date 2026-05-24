@@ -71,7 +71,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   handleGoHome = () => {
     // Navigate to home page
     if (typeof window !== 'undefined') {
-      window.location.href = '/dashboard';
+      window.location.href = '/home';
     }
   };
 
