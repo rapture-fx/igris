@@ -687,22 +687,8 @@ export default function ExecutionDetailPage() {
                           <span className="text-emerald-400/80">+{committedActions}</span>
                           <span className="text-rose-400/60">−0</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setShowDetailed((v) => !v)}
-                            className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded"
-                          >
-                            {showDetailed ? 'Hide detail' : 'View detail'}
-                          </button>
-                          {task.proof?.execution_id && (
-                            <Link
-                              href={`/proof/receipts?execution_id=${encodeURIComponent(task.proof.execution_id)}`}
-                              className="text-[11px] text-[#7a7a72] hover:text-[#d3d2c8] px-2 py-1 rounded"
-                            >
-                              View receipts
-                            </Link>
-                          )}
+                        <div className="text-[10.5px] text-[#6a6a62]">
+                          {task.completed_at ? 'sealed' : 'live'}
                         </div>
                       </div>
 
