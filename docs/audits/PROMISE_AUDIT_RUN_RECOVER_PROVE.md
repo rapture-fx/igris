@@ -1,6 +1,6 @@
 # Igris Promise Audit: Run, Recover, Prove
 
-Date: 2026-05-23
+Date: 2026-05-24
 
 ## Executive Summary
 
@@ -31,7 +31,8 @@ Callback-only routes now have a separate control-plane trust check before mutati
 
 1. Runtime posts `POST /v1/tasks/:id/checkpoint`, `complete`, or `failed` with `X-Igris-Callback-Envelope`.
 2. Overture validates tenant ID, task ID, runtime ID, callback type, body digest, timestamp freshness, nonce replay, and Ed25519 signature against the registered runtime key.
-3. Rejected callbacks are persisted as safe `boundary_violations` evidence with reason and body digest only.
+3. Accepted failed callbacks can persist recovery-blocking evidence for irreversible/non-replayable tasks.
+4. Rejected callbacks are persisted as safe `boundary_violations` evidence with reason and body digest only.
 
 ## IDs Connecting The Chain
 
@@ -60,6 +61,7 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - Runtime callback envelopes are mandatory in strict mode for checkpoint, complete, and failed callback routes.
 - Runtime callback envelopes bind tenant, task, runtime, callback type, exact body digest, timestamp, nonce, and Ed25519 signature.
 - Stale, replayed, malformed, body-tampered, wrong-runtime, missing-key, and terminal-state callback attempts are rejected and auditable.
+- The local promise flow now demonstrates a live signed failed callback and records `automatic_replay_blocked` recovery evidence for an irreversible/non-replayable task when Postgres is available.
 - Governance APIs are BetterAuth-scoped and query by tenant ID.
 - Console task detail is driven by `GET /v1/tasks/:id` and says evidence is unavailable when missing.
 - Raw evidence display/export is frontend-redacted.
@@ -72,6 +74,7 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - Multi-runtime portability is guarded by policy and handoff decisions, but compatible-runtime execution remains experimental.
 - The console API client can fall back to mock data when feature flags permit it; production must disable mock fallback.
 - Runtime-side signed callback sender code now sends checkpoint, complete, and failed callback envelopes when callback configuration is provided. The synchronous runtime submit response still carries execution artifacts and receipts for the existing durable path.
+- The deterministic runtime failure trigger is demo-only and ignored unless `IGRIS_ENABLE_LOCAL_DEMO_FAILURE=true`; it is not a production failure injection interface.
 
 ## Security Findings
 
@@ -87,6 +90,7 @@ Callback-only routes now have a separate control-plane trust check before mutati
 - Invalid cumulative checkpoints fail recovery.
 - Streaming/non-resumable tasks are skipped or failed rather than blindly resumed.
 - Irreversible and non-replayable actions are blocked from automatic recovery replay.
+- Runtime failed callbacks for irreversible/non-replayable tasks now record the recovery decision as task/governance evidence, including replay_allowed=false and the blocking reason.
 - Duplicate callbacks are constrained by nonce replay protection and task status transitions; terminal tasks do not accept further runtime mutations.
 
 ## Proof Findings
@@ -123,9 +127,8 @@ Audited endpoints:
 
 ## Recommended Next Engineering Slice
 
-Complete the runtime callback integration slice:
+Next engineering slice:
 
-- Promote failed-callback and recovery-blocking scenarios into the live local promise flow.
 - Add an operator-facing metric/count for rejected runtime callback violations.
 - Add a migration cleanup/retention policy for `runtime_callback_nonces`.
 - Keep `IGRIS_ALLOW_UNSIGNED_RUNTIME_CALLBACKS` disabled outside explicit local development.
