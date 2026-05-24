@@ -97,21 +97,6 @@ export default function ProofPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {[
-            { label: 'Verified', value: counts.verified, tone: 'success' as const },
-            { label: 'Partially verified', value: counts.partial, tone: 'warning' as const },
-            { label: 'Failed verification', value: counts.failed, tone: 'danger' as const },
-            { label: 'Unverifiable', value: counts.unverifiable, tone: 'neutral' as const },
-          ].map((card) => (
-            <div key={card.label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><ShieldCheck className="h-3.5 w-3.5" />{card.label}</div>
-              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{card.value}</div>
-              <GovernanceBadge label={card.label} tone={card.tone} showDot={false} className="mt-2" />
-            </div>
-          ))}
-        </div>
-
         <div className="flex flex-wrap gap-1.5">
           {PROOF_STATUSES.map((value) => (
             <button key={value} type="button" onClick={() => setStatus(value)} className={`rounded border px-2.5 py-1 text-[11px] font-medium ${status === value ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 bg-white text-muted-foreground'}`}>
