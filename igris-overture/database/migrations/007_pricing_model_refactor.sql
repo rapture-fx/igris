@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS tenants (
     api_key_created_at    TIMESTAMPTZ,
     is_active             BOOLEAN     NOT NULL DEFAULT true,
     runtime_limit         INTEGER     NOT NULL DEFAULT 1,
+    capabilities_policy   JSONB       NOT NULL DEFAULT '{}',
     polar_subscription_id TEXT,
     created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
