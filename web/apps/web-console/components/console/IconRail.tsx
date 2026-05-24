@@ -11,8 +11,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, LayoutDashboard, ListChecks, Hand, RotateCcw, ShieldOff, FileCheck2,
-  Box, Shield, Activity, BarChart3, Settings, type LucideIcon,
+  Home, ListChecks, Box, type LucideIcon,
 } from 'lucide-react';
 import { tokens } from './primitives';
 import { ProfileMenu } from './ProfileMenu';
@@ -26,23 +25,10 @@ interface Lens {
 }
 
 const LENSES: Lens[] = [
-  { id: 'home',        label: 'Home',        href: '/home',                matches: ['/home'],                                     Icon: Home },
-  { id: 'overview',    label: 'Overview',    href: '/dashboard',           matches: ['/dashboard'],                                Icon: LayoutDashboard },
-  { id: 'tasks',       label: 'Tasks',       href: '/execution/tasks',     matches: ['/execution/tasks'],                          Icon: ListChecks },
-  { id: 'approvals',   label: 'Approvals',   href: '/execution/approvals', matches: ['/execution/approvals'],                      Icon: Hand },
-  { id: 'recovery',    label: 'Recovery',    href: '/execution/recovery',  matches: ['/execution/recovery'],                       Icon: RotateCcw },
-  { id: 'violations',  label: 'Violations',  href: '/proof/violations',    matches: ['/proof/violations'],                         Icon: ShieldOff },
-  { id: 'receipts',    label: 'Receipts',    href: '/proof/receipts',      matches: ['/proof/receipts', '/proof'],                 Icon: FileCheck2 },
-  { id: 'runtimes',    label: 'Runtimes',    href: '/runtimes',            matches: ['/runtimes', '/infrastructure/runtimes'],     Icon: Box },
-  { id: 'boundaries',  label: 'Boundaries',  href: '/boundaries',          matches: ['/boundaries', '/policy/bounds', '/policy'],  Icon: Shield },
-  { id: 'logs',        label: 'Logs',        href: '/history/logs',        matches: ['/history/logs', '/history/alerts'],          Icon: Activity },
-  { id: 'metrics',     label: 'Metrics',     href: '/history/metrics',     matches: ['/history/metrics'],                          Icon: BarChart3 },
+  { id: 'home',       label: 'Home',       href: '/home',            matches: ['/home'],         Icon: Home },
+  { id: 'executions', label: 'Executions', href: '/execution/tasks', matches: ['/execution'],    Icon: ListChecks },
+  { id: 'runtimes',   label: 'Runtimes',   href: '/runtimes',        matches: ['/runtimes'],     Icon: Box },
 ];
-
-const SETTINGS_LENS: Lens = {
-  id: 'settings', label: 'Settings', href: '/settings/general',
-  matches: ['/settings'], Icon: Settings,
-};
 
 function isActive(pathname: string | null, lens: Lens): boolean {
   if (!pathname) return false;
@@ -118,7 +104,7 @@ export function IconRail() {
 }
 
 export function activeLensId(pathname: string | null): string | null {
-  for (const l of [...LENSES, SETTINGS_LENS]) {
+  for (const l of LENSES) {
     if (isActive(pathname, l)) return l.id;
   }
   return null;
