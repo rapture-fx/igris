@@ -32,14 +32,8 @@ export default function BoundariesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Boundaries</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Tenant-wide runtime boundary records: tools, network scope, filesystem scope, API scope, resource limits, and runtime capability evidence.
-            </p>
-          </div>
+      <div className="space-y-5 px-6 pr-8 py-6">
+        <div className="flex flex-wrap items-start justify-end gap-4">
           <div className="grid w-full max-w-xl gap-2 md:grid-cols-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -50,11 +44,7 @@ export default function BoundariesPage() {
         </div>
 
         <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
-          <div className="flex items-center justify-between px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">Execution Boundaries</h2>
-              <p className="text-[11px] text-muted-foreground">Backed by `GET /v1/execution/governance/boundaries`. Safe JSON evidence only.</p>
-            </div>
+          <div className="flex items-center justify-end px-4 py-3">
             {!isLoading && <span className="text-[11px] tabular-nums text-muted-foreground">{filtered.length} of {data?.total ?? 0}</span>}
           </div>
           <Table>
@@ -72,7 +62,7 @@ export default function BoundariesPage() {
                     <TableCell>
                       {boundary.task_id ? (
                         <Link href={`/execution/tasks/${encodeURIComponent(boundary.task_id)}`} className="group flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
-                          <span className="font-mono text-xs text-foreground">{truncateText(boundary.task_id, 18)}</span>
+                          <span className="text-xs text-foreground">{truncateText(boundary.task_id, 18)}</span>
                           <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                         </Link>
                       ) : <span className="text-xs text-muted-foreground">Not available</span>}
@@ -80,7 +70,7 @@ export default function BoundariesPage() {
                     <TableCell>
                       {boundary.runtime_id ? (
                         <Link href={`/runtimes/${encodeURIComponent(boundary.runtime_id)}`} className="group flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
-                          <span className="font-mono text-xs text-foreground">{truncateText(boundary.runtime_id, 18)}</span>
+                          <span className="text-xs text-foreground">{truncateText(boundary.runtime_id, 18)}</span>
                           <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                         </Link>
                       ) : <span className="text-xs text-muted-foreground">Not available</span>}
@@ -92,7 +82,7 @@ export default function BoundariesPage() {
                         <GovernanceBadge label={`API: ${boundary.api_scope}`} tone="neutral" showDot={false} />
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{truncateText(boundary.boundary_digest, 18)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{truncateText(boundary.boundary_digest, 18)}</TableCell>
                     <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{getRelativeTime(boundary.created_at)}</TableCell>
                   </TableRow>
                 ))
