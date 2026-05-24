@@ -22,7 +22,7 @@ import { useTask, useTaskSteps, type Task, type ActionEvidenceRow } from '@/hook
 import { useTenant } from '@/hooks/useTenant';
 import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
-import { mockTask, mockTaskSteps, MOCK_TASK_ID } from '@/lib/mockExecution';
+import { mockTaskById, mockTaskSteps, MOCK_TASK_ID } from '@/lib/mockExecution';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
 
@@ -579,14 +579,14 @@ export default function ExecutionDetailPage() {
   const searchParams = useSearchParams();
   const rawId = decodeURIComponent(params?.id ?? '');
   const isMock = searchParams?.get('mock') === '1' || rawId === 'mock';
-  const taskId = isMock ? MOCK_TASK_ID : rawId;
+  const taskId = isMock ? (rawId || MOCK_TASK_ID) : rawId;
   const { toast } = useToast();
   const { data: tenant } = useTenant();
   const [verified, setVerified] = useState<boolean | null>(null);
 
   const { data: fetchedTask, isLoading: loadingFetched } = useTask(isMock ? null : (rawId || null));
   const { data: stepsData } = useTaskSteps(isMock ? null : (rawId || null));
-  const task = isMock ? mockTask : fetchedTask;
+  const task = isMock ? mockTaskById(taskId) : fetchedTask;
   const isLoading = isMock ? false : loadingFetched;
   const steps = isMock ? mockTaskSteps : (stepsData?.steps ?? []);
 
@@ -594,7 +594,8 @@ export default function ExecutionDetailPage() {
     mutationFn: async () => {
       if (isMock) {
         await new Promise((r) => setTimeout(r, 700));
-        return { proof: { status: 'verified' } };
+        const mockProofStatus = task?.proof?.status === 'mismatch' ? 'mismatch' : 'verified';
+        return { proof: { status: mockProofStatus } };
       }
       return api.post<{ proof?: { status?: string } }>(
         `/v1/tasks/${encodeURIComponent(taskId)}/proof/verify`,
