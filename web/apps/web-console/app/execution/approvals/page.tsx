@@ -134,14 +134,8 @@ export default function ApprovalsPage() {
 
   return (
     <DashboardLayout fullWidth>
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Policy &amp; Approvals</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Tenant-wide action decisions from the governance ledger, plus the live approval queue when available.
-            </p>
-          </div>
+      <div className="space-y-6 px-6 pr-8 py-6">
+        <div className="flex justify-end">
           <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} />
             Refresh
@@ -150,10 +144,6 @@ export default function ApprovalsPage() {
 
         <section className="rounded-lg border-[0.5px] border-black/[0.08] bg-white">
           <div className="space-y-3 px-4 py-3">
-            <div>
-              <h2 className="text-sm font-semibold text-foreground">Recent Policy Decisions</h2>
-              <p className="text-[11px] text-muted-foreground">Backed by `GET /v1/execution/governance/policy-decisions`.</p>
-            </div>
             <div className="flex flex-wrap gap-1.5">
               <FilterButton label="All" active={decisionFilter === 'all'} onClick={() => setDecisionFilter('all')} />
               <FilterButton label="Allowed" active={decisionFilter === 'allowed'} onClick={() => setDecisionFilter('allowed')} />
