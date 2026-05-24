@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/sha256"
 	"database/sql"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
 )
@@ -25,6 +27,7 @@ const (
 	runtimeCallbackVersion        = "runtime_callback.v1"
 	runtimeCallbackAlgorithm      = "ed25519-sha256-canonical-json"
 	runtimeCallbackFreshness      = 5 * time.Minute
+	runtimeCallbackNonceRetention = 24 * time.Hour
 )
 
 type runtimeCallbackEnvelope struct {
@@ -242,6 +245,62 @@ func reserveRuntimeCallbackNonce(store *coordinator.CheckpointStore, envelope ru
 		return errors.New("runtime callback replay detected")
 	}
 	return nil
+}
+
+// CleanupExpiredRuntimeCallbackNonces removes accepted callback nonces after
+// their replay-protection retention window has elapsed. Retention is floored at
+// the signed callback freshness window so cleanup never removes replay
+// protection while a callback timestamp may still be accepted.
+func CleanupExpiredRuntimeCallbackNonces(ctx context.Context, db *sql.DB, retention time.Duration) (int64, error) {
+	if db == nil {
+		return 0, nil
+	}
+	if retention <= 0 {
+		retention = runtimeCallbackNonceRetention
+	}
+	if retention < runtimeCallbackFreshness {
+		retention = runtimeCallbackFreshness
+	}
+	cutoff := time.Now().UTC().Add(-retention)
+	result, err := db.ExecContext(ctx, `
+		DELETE FROM runtime_callback_nonces
+		WHERE accepted_at < $1`, cutoff)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, nil
+	}
+	return rowsAffected, nil
+}
+
+func StartRuntimeCallbackNonceCleanup(ctx context.Context, db *sql.DB, interval, retention time.Duration) {
+	if db == nil {
+		return
+	}
+	if interval <= 0 {
+		interval = time.Hour
+	}
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				deleted, err := CleanupExpiredRuntimeCallbackNonces(ctx, db, retention)
+				if err != nil {
+					log.Error().Err(err).Msg("[RuntimeCallback] nonce cleanup failed")
+					continue
+				}
+				if deleted > 0 {
+					log.Info().Int64("deleted", deleted).Msg("[RuntimeCallback] expired callback nonces cleaned")
+				}
+			}
+		}
+	}()
 }
 
 func persistRejectedRuntimeCallback(store *coordinator.CheckpointStore, tenantID string, taskID uuid.UUID, runtimeID, callbackType, reason, bodyDigest string) {
