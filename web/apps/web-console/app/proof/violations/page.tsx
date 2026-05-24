@@ -172,12 +172,12 @@ export default function ViolationsPage() {
                     <TableCell>
                       {item.task_id ? (
                         <Link href={`/execution/tasks/${encodeURIComponent(item.task_id)}`} className="group flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <span className="font-mono text-xs text-foreground">{truncateText(item.task_id, 18)}</span>
+                          <span className="text-xs text-foreground">{truncateText(item.task_id, 18)}</span>
                           <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                         </Link>
                       ) : <span className="text-xs text-muted-foreground">Not available</span>}
                     </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableCell className="text-xs text-muted-foreground">
                       {item.runtime_id ? (
                         <Link href={`/runtimes/${encodeURIComponent(item.runtime_id)}`} className="group flex items-center gap-1.5 hover:text-foreground" onClick={(e) => e.stopPropagation()}>
                           {truncateText(item.runtime_id, 18)}
