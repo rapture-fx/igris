@@ -10,11 +10,12 @@
  */
 
 import { Suspense, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTasks } from '@/hooks/useTasks';
 
-function EmptyState({ message }: { message: string }) {
+function EmptyState({ message, showDemo }: { message: string; showDemo?: boolean }) {
   return (
     <div className="flex flex-1 items-center justify-center px-8">
       <div className="text-center max-w-sm">
@@ -25,6 +26,14 @@ function EmptyState({ message }: { message: string }) {
           Select an execution from the list to inspect what ran, what recovered,
           and what proof exists.
         </div>
+        {showDemo && (
+          <Link
+            href="/execution/tasks?mock=1"
+            className="mt-4 inline-flex items-center gap-1.5 px-3 h-7 rounded-md bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16] text-[11.5px]"
+          >
+            View demo with sample data
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -53,7 +62,7 @@ function ExecutionsPageInner() {
     <DashboardLayout>
       {isLoading
         ? <EmptyState message="Loading executions…" />
-        : <EmptyState message="No execution selected" />}
+        : <EmptyState message="No execution selected" showDemo />}
     </DashboardLayout>
   );
 }
