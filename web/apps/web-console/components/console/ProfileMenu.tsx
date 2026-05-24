@@ -55,7 +55,7 @@ export function ProfileMenu() {
         <DropdownMenuTrigger asChild>
           <button
             aria-label="Profile menu"
-            className="relative flex items-center justify-center h-8 w-8 mt-1 rounded-full text-[10px] font-semibold tracking-wide select-none outline-none focus:ring-1"
+            className="relative flex items-center justify-center h-7 w-7 mt-1 rounded-full text-[10px] font-semibold tracking-wide select-none outline-none focus:ring-1 overflow-hidden"
             style={{
               background: '#2a2a25',
               color: tokens.textPrimary,
