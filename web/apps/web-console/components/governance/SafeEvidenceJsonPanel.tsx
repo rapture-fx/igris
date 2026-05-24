@@ -47,17 +47,21 @@ export function SafeEvidenceJsonPanel({
   };
 
   return (
-    <div className={cn('rounded-lg border border-gray-200 bg-white', className)}>
+    <div
+      className={cn('rounded-lg border-[0.5px] border-white/[0.06]', className)}
+      style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
+    >
       <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="flex items-center gap-1.5 text-xs font-medium text-foreground"
+          className="flex items-center gap-1.5 text-[12.5px] text-[#c8c7be] hover:text-[#f0efe8]"
+          style={{ letterSpacing: '-0.005em' }}
         >
           {open ? (
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            <ChevronDown className="h-3.5 w-3.5 text-[#7a7a72]" />
           ) : (
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            <ChevronRight className="h-3.5 w-3.5 text-[#7a7a72]" />
           )}
           {title}
         </button>
@@ -65,7 +69,7 @@ export function SafeEvidenceJsonPanel({
           <button
             type="button"
             onClick={download}
-            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-[11px] text-[#7a7a72] hover:text-[#e8e7df]"
           >
             <Download className="h-3 w-3" />
             Export safe JSON
@@ -74,17 +78,17 @@ export function SafeEvidenceJsonPanel({
       </div>
 
       {!hasData ? (
-        <p className="px-3.5 pb-3 text-xs text-muted-foreground">Evidence not available.</p>
+        <p className="px-3.5 pb-3 text-[11.5px] text-[#6a6a62]">Evidence not available.</p>
       ) : (
         open && (
           <div className="px-3.5 pb-3">
             {redactedCount > 0 && (
-              <p className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] text-amber-700">
+              <p className="mb-2 inline-flex items-center gap-1.5 rounded-md border border-amber-400/25 bg-amber-400/[0.08] px-2 py-1 text-[11px] text-amber-300">
                 <ShieldOff className="h-3 w-3" />
                 {redactedCount} sensitive field{redactedCount === 1 ? '' : 's'} redacted before display
               </p>
             )}
-            <pre className="max-h-80 overflow-auto rounded-md border border-gray-200 bg-gray-50 p-3 text-[11px] leading-normal text-foreground">
+            <pre className="max-h-80 overflow-auto rounded-md border border-white/[0.05] bg-black/30 p-3 text-[11px] leading-normal text-[#d3d2c8]">
               {JSON.stringify(redacted, null, 2)}
             </pre>
           </div>
