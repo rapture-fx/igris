@@ -37,10 +37,9 @@ export function LensSidebar() {
   const searchParams = useSearchParams();
   const lens = activeLensId(pathname);
 
-  // Structured-view lenses get a minimal titled sidebar so the layout
-  // stays at the same 236px rhythm as list+detail lenses.
-  if (lens === 'home') return <PlaceholderSidebar title="Home" />;
-  if (lens === 'overview') return <PlaceholderSidebar title="Overview" />;
+  // Home / Overview render without a sidebar — page bodies use max-width
+  // containers internally so they don't sprawl full-width.
+  if (lens === 'home' || lens === 'overview') return null;
 
   if (lens === 'tasks') {
     const taskId = params?.id ? decodeURIComponent(params.id) : '';
