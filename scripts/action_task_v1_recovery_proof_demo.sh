@@ -359,6 +359,9 @@ wait_for_http "http://127.0.0.1:$ACTION_TARGET_PORT/health" "action target serve
   cd "$ROOT_DIR"
   env \
     PORT=8081 \
+    DATABASE_URL="$DB_URL" \
+    POSTGRES_URL="$DB_URL" \
+    ENABLE_PERSISTENCE=true \
     PROVIDER_MODE=mock \
     ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
     ENABLE_MULTI_TENANCY=true \
