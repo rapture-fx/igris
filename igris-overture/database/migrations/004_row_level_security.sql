@@ -27,10 +27,10 @@ ALTER TABLE licenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE licenses FORCE ROW LEVEL SECURITY;
 
 CREATE POLICY licenses_tenant_isolation ON licenses
-    USING (customer_id = current_tenant_id());
+    USING (customer_id::text = current_tenant_id());
 
 CREATE POLICY licenses_tenant_insert ON licenses
-    FOR INSERT WITH CHECK (customer_id = current_tenant_id());
+    FOR INSERT WITH CHECK (customer_id::text = current_tenant_id());
 
 -- Tenant keys table (if exists)
 DO $$
@@ -38,8 +38,8 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'tenant_keys') THEN
         EXECUTE 'ALTER TABLE tenant_keys ENABLE ROW LEVEL SECURITY';
         EXECUTE 'ALTER TABLE tenant_keys FORCE ROW LEVEL SECURITY';
-        EXECUTE 'CREATE POLICY tenant_keys_isolation ON tenant_keys USING (tenant_id = current_tenant_id())';
-        EXECUTE 'CREATE POLICY tenant_keys_insert ON tenant_keys FOR INSERT WITH CHECK (tenant_id = current_tenant_id())';
+        EXECUTE 'CREATE POLICY tenant_keys_isolation ON tenant_keys USING (tenant_id::text = current_tenant_id())';
+        EXECUTE 'CREATE POLICY tenant_keys_insert ON tenant_keys FOR INSERT WITH CHECK (tenant_id::text = current_tenant_id())';
     END IF;
 END $$;
 
@@ -59,7 +59,7 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'decision_audit') THEN
         EXECUTE 'ALTER TABLE decision_audit ENABLE ROW LEVEL SECURITY';
         EXECUTE 'ALTER TABLE decision_audit FORCE ROW LEVEL SECURITY';
-        EXECUTE 'CREATE POLICY decision_audit_isolation ON decision_audit USING (tenant_id = current_tenant_id())';
+        EXECUTE 'CREATE POLICY decision_audit_isolation ON decision_audit USING (tenant_id::text = current_tenant_id())';
     END IF;
 END $$;
 
