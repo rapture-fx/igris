@@ -19,3 +19,8 @@ CREATE TABLE IF NOT EXISTS runtime_callback_nonces (
 
 CREATE INDEX IF NOT EXISTS idx_runtime_callback_nonces_task
     ON runtime_callback_nonces (tenant_id, task_id, accepted_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_runtime_callback_nonces_retention
+    ON runtime_callback_nonces (accepted_at);
+
+COMMENT ON TABLE runtime_callback_nonces IS 'Accepted runtime callback nonce metadata for replay protection. Cleanup retains entries for at least the callback freshness window; default application retention is 24 hours.';
