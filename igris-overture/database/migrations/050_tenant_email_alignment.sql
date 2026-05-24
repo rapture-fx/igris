@@ -35,9 +35,20 @@ BEGIN;
 ALTER TABLE tenants
     ADD COLUMN IF NOT EXISTS tenant_email TEXT;
 
-UPDATE tenants
-    SET tenant_email = email
-    WHERE tenant_email IS NULL
-      AND email IS NOT NULL;
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'tenants'
+          AND column_name = 'email'
+    ) THEN
+        UPDATE tenants
+            SET tenant_email = email
+            WHERE tenant_email IS NULL
+              AND email IS NOT NULL;
+    END IF;
+END $$;
 
 COMMIT;
