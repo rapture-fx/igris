@@ -4,7 +4,7 @@ This runbook demonstrates the core Igris promise on a developer machine:
 
 1. run a deterministic local `action_task`,
 2. prove signed runtime callback enforcement,
-3. show irreversible recovery blocking through coordinator tests,
+3. show live irreversible recovery blocking when local Postgres is available,
 4. verify proof where signed runtime artifacts exist.
 
 The main entrypoint is:
@@ -26,7 +26,8 @@ proof and does not enable unsigned runtime callback compatibility.
 
 The flow starts Overture on `127.0.0.1:8081`, starts one Rust runtime on
 `127.0.0.1:8080`, registers the runtime Ed25519 public key, submits a
-read-only/local action workflow, and verifies the resulting receipt.
+local action workflow, verifies the resulting receipt, then submits a controlled
+demo failure task that is classified irreversible/non-replayable.
 
 ## Strict Callback Mode
 
@@ -55,6 +56,7 @@ make run-recover-prove-local-smoke
 make test-policy-enforcement
 make test-recovery-chaos
 make test-runtime-callbacks
+make test-runtime-failed-callbacks
 make test-proof-tamper
 ```
 
@@ -77,6 +79,9 @@ On success, the script prints:
 - execution ID,
 - receipt verification HTTP status,
 - task proof verification HTTP status,
+- failure task ID,
+- failed callback evidence path,
+- recovery event URL,
 - task API URL,
 - execution run API URL,
 - receipt/proof API URL,
@@ -94,6 +99,7 @@ When validating real backend evidence, disable console mock fallback. Use the
 local backend URLs printed by the script and inspect:
 
 - `/execution/tasks/:task_id`
+- `/execution/tasks/:failure_task_id`
 - `/execution/runs/:execution_id`
 - `/proof/receipts`
 - `/proof/violations`
@@ -109,12 +115,19 @@ Production-ready locally:
 - Runtime boundary and policy evidence for the task path.
 - Live signed runtime-to-coordinator callbacks for checkpoint and complete in
   the Action Task V1 path when local Postgres is available.
-- Signed failed callback sender support in the Rust runtime, covered by sender
-  and route tests.
+- Live signed failed callback in the local deterministic failure scenario when
+  local Postgres is available.
+- Live irreversible/non-replayable recovery blocking from the failed task's
+  recorded action policy. The task detail and recovery governance endpoints show
+  `automatic_replay_blocked` with replay disabled and reason
+  `irreversible action cannot be automatically replayed during recovery`.
 - Signed receipt verification with a registered runtime key.
 - Strict signed callback validation in coordinator routes.
 - Rejected callback violation persistence.
 - Irreversible/non-replayable recovery policy blocking.
+- Demo-only deterministic runtime failure. It is opt-in and requires
+  `IGRIS_ENABLE_LOCAL_DEMO_FAILURE=true`; normal runtime tasks ignore
+  `local_demo_failure`.
 - Proof tamper and missing-key behavior through route tests.
 
 Experimental or not fully live in this script:
@@ -125,6 +138,8 @@ Experimental or not fully live in this script:
   artifact carriage path for compatibility.
 - Broad multi-runtime portability.
 - OS/container-level boundary enforcement beyond runtime-supported controls.
+- `--skip-live` remains fallback-test-backed for failed callbacks and recovery
+  blocking because it does not start Overture, Runtime, or Postgres.
 
 ## Failure Behavior
 
@@ -134,6 +149,7 @@ The script exits non-zero if:
 - runtime key registration fails,
 - signed receipt verification does not return HTTP 200,
 - strict signed callback tests fail,
+- live failure/recovery evidence is missing when Postgres is available,
 - irreversible recovery-blocking tests fail,
 - proof tamper tests fail,
 - any required command is missing.
