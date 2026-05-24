@@ -44,8 +44,8 @@ Areas such as real-provider proof, local fallback, checkpoint recovery, fleet fa
 
 ## Local Proof Loop
 
-To validate the core product promise on a developer machine, run the Docker-first
-local proof loop:
+To validate the core product promise on a developer machine, run the local proof
+loop:
 
 ```bash
 make run-recover-prove-local-provision
@@ -53,15 +53,20 @@ make run-recover-prove-local-provision
 
 The command provisions or reuses local Postgres, applies the Overture migrations,
 runs setup checks, and executes the live Run / Recover / Prove demo without
-`--skip-live`. A successful run shows that Igris can run a deterministic local
-agent action, recover by blocking an irreversible failed action from automatic
-replay, and prove the run through signed runtime evidence and verification
-endpoints returning HTTP `200`.
+`--skip-live`. It can use an existing `DATABASE_URL`/`POSTGRES_URL`, Homebrew
+Postgres on macOS, or Docker Compose when Docker is already installed. Docker is
+optional, not a gate for the local proof loop.
+
+A successful run shows that Igris can run a deterministic local agent action,
+recover by blocking an irreversible failed action from automatic replay, and
+prove the run through signed runtime evidence and verification endpoints
+returning HTTP `200`.
 
 This is a local developer proof, not a production guarantee. It does not claim
 host hardening, broad fleet failover, or real-provider production readiness.
 Use [Run, Recover, Prove Locally](./docs/RUN_RECOVER_PROVE_LOCAL.md) for the
-full runbook, Docker lifecycle commands, Homebrew fallback, and troubleshooting.
+full runbook, Homebrew/manual Postgres setup, optional Docker lifecycle
+commands, and troubleshooting.
 
 ## Repository Layout
 
