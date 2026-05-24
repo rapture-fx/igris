@@ -73,14 +73,8 @@ export default function RecoveryPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Recovery</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Tenant-wide recovery events, checkpoint watermarks, replay skips, and runtime handoff decisions.
-            </p>
-          </div>
+      <div className="space-y-5 px-6 pr-8 py-6">
+        <div className="flex flex-wrap items-start justify-end gap-4">
           <div className="grid w-full max-w-xl gap-2 md:grid-cols-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -88,7 +82,6 @@ export default function RecoveryPage() {
             </div>
             <Input value={runtimeFilter} onChange={(event) => setRuntimeFilter(event.target.value)} placeholder="Runtime ID filter" className="h-8 text-xs" />
           </div>
-        </div>
 
         <div className="flex flex-wrap gap-1.5">
           {['all', 'interrupted', 'recovering', 'recovered', 'replay_skipped', 'manual_required', 'failed'].map((value) => (
