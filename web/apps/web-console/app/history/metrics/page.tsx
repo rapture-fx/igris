@@ -189,15 +189,8 @@ export default function HistoryMetricsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">Metrics</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Track task throughput, recovery, verification, runtime health, and violation trends.
-            </p>
-          </div>
+      <div className="space-y-5 px-6 pr-8 py-6">
+        <div className="flex justify-end">
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5" onClick={() => refetch()}>
             <RefreshCw className="h-3.5 w-3.5" /> Refresh
           </Button>
@@ -392,19 +385,19 @@ export default function HistoryMetricsPage() {
                     )
                   : (metrics?.events ?? []).map((ev) => (
                       <TableRow key={ev.id} className="border-b border-black/[0.08] dark:border-white/[0.08] hover:bg-gray-50 bg-white">
-                        <TableCell className="px-4 py-2 text-xs text-muted-foreground font-mono whitespace-nowrap">
+                        <TableCell className="px-4 py-2 text-xs text-muted-foreground whitespace-nowrap">
                           {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </TableCell>
                         <TableCell className="px-3 py-2">
                           <MetricNameBadge name={ev.metric_name} />
                         </TableCell>
-                        <TableCell className="px-3 py-2 text-xs text-foreground font-mono tabular-nums">
+                        <TableCell className="px-3 py-2 text-xs text-foreground tabular-nums">
                           {ev.metric_value.toFixed(2)}{ev.unit ? ` ${ev.unit}` : ''}
                         </TableCell>
-                        <TableCell className="px-3 py-2 text-xs text-muted-foreground font-mono truncate">
+                        <TableCell className="px-3 py-2 text-xs text-muted-foreground truncate">
                           {ev.agent_id}
                         </TableCell>
-                        <TableCell className="px-3 py-2 text-xs text-muted-foreground font-mono truncate">
+                        <TableCell className="px-3 py-2 text-xs text-muted-foreground truncate">
                           {ev.device_id}
                         </TableCell>
                         <TableCell className="px-3 py-2 text-xs text-muted-foreground capitalize">
