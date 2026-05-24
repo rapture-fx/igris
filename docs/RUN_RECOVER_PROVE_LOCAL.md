@@ -9,14 +9,17 @@ This runbook demonstrates the core Igris promise on a developer machine:
 
 ## Quick Start
 
-Recommended path for a first-time developer with Docker running:
+Recommended local path for a first-time developer:
 
 ```bash
 make run-recover-prove-local-provision
 ```
 
 This provisions or reuses local Postgres, applies Overture migrations, runs the
-doctor, then executes the full live demo. It does not pass `--skip-live`.
+doctor, then executes the full live demo. On macOS it works with Homebrew
+Postgres; if Docker is installed it can use Docker Compose; and if you already
+have Postgres, it reuses `DATABASE_URL` or `POSTGRES_URL`. It does not pass
+`--skip-live`.
 
 Expected successful output includes:
 
@@ -48,20 +51,55 @@ proof and does not enable unsigned runtime callback compatibility.
 ## One-Command Local Setup
 
 - Go, Cargo/Rust, Node, curl, lsof, and psql on PATH.
-- Docker with Docker Compose running. This is the recommended path.
+- Local Postgres through Homebrew, Docker Compose, or an existing
+  `DATABASE_URL`/`POSTGRES_URL`.
 - Ports `8080`, `8081`, `18090`, and `18091` available.
 
-Docker-first run:
+Recommended local run:
 
 ```bash
 make run-recover-prove-local-provision
 ```
 
-The provisioning command prefers Docker Compose when available. It writes a
-local-only `.env.run-recover-prove-local` file with a generated password and a
-sanitized `DATABASE_URL` for the proof scripts to load. That file is ignored by
-git and should not be committed. The command prints only host, port, database,
-auth presence, and sslmode; it does not print the raw DSN or password.
+The provisioning command reuses an explicitly configured `DATABASE_URL` or
+`POSTGRES_URL` first. Otherwise it uses Docker Compose when available, or
+Homebrew Postgres on macOS. It writes a local-only
+`.env.run-recover-prove-local` file for provisioned local databases and that
+file is ignored by git. The command prints only host, port, database, auth
+presence, and sslmode; it does not print the raw DSN or password.
+
+## Homebrew Postgres
+
+Homebrew Postgres is the primary validated macOS path. The helper tries a
+compatible installation (`postgresql@16`, then older compatible formulas),
+starts it with `brew services start` when available, creates `igris_overture`
+only if missing, and writes a passwordless local user DSN to
+`.env.run-recover-prove-local`.
+
+```bash
+brew install postgresql@16
+make run-recover-prove-local-provision
+```
+
+This path has completed the full live Run / Recover / Prove demo without
+`--skip-live`, with live-server-backed signed callbacks, live-server-backed
+failure/recovery evidence, and both verification endpoints returning HTTP `200`.
+
+## Manual Postgres
+
+Manual Postgres is also supported. Set `DATABASE_URL` or `POSTGRES_URL` in the
+current shell, or provide it through `.env`, then run:
+
+```bash
+make run-recover-prove-local-provision
+```
+
+The scripts reuse the provided database and still redact connection details.
+
+## Optional Docker
+
+Docker remains supported as an optional reproducible setup for contributors who
+already have Docker installed. It is not required for the main local proof loop.
 
 Docker lifecycle:
 
@@ -74,29 +112,6 @@ make igris-local-reset    # explicit destructive reset of Docker DB volume
 `igris-local-reset` is the only local helper that deletes Docker-managed
 Postgres data. It also removes `.env.run-recover-prove-local` so the next run
 generates a fresh local password.
-
-## Homebrew Fallback
-
-If Docker Compose is unavailable on macOS, the helper tries a compatible
-Homebrew Postgres installation (`postgresql@16`, then older compatible formulas),
-starts it with `brew services start` when available, creates `igris_overture`
-only if missing, and writes a passwordless local user DSN to
-`.env.run-recover-prove-local`.
-
-```bash
-brew install postgresql@16
-make run-recover-prove-local-provision
-```
-
-This fallback remains useful for development, but Docker is the intended clean
-machine validation path.
-
-## Manual Postgres
-
-Manual Postgres remains supported. Set `DATABASE_URL` or `POSTGRES_URL` in the
-current shell, or provide it through `.env`, then run migration, doctor, and the
-demo directly. The scripts will reuse the provided database and still redact
-connection details.
 
 The migration helper uses `igris-overture/database/migrations`, not the older
 top-level migration directory. It applies the live-demo required Overture
@@ -182,11 +197,12 @@ credentials, raw callback bodies, and raw environment values.
 
 Validation status:
 
-- macOS/Homebrew fallback completed the full live demo on 2026-05-24.
-- Docker-first validation is still pending on this workstation because neither
-  `docker` nor `docker-compose` is installed here. Do not claim the Docker path
-  is validated until `make run-recover-prove-local-provision` completes on a
-  Docker-enabled machine without `--skip-live`.
+- macOS/Homebrew Postgres completed the full live demo on 2026-05-24 and is the
+  primary validated local onboarding path.
+- Docker validation is optional and still pending on this workstation because
+  neither `docker` nor `docker-compose` is installed here. Do not claim the
+  Docker path is validated until `make run-recover-prove-local-provision`
+  completes on a Docker-enabled machine without `--skip-live`.
 
 Sanitized Homebrew fallback live output from 2026-05-24:
 
@@ -211,8 +227,8 @@ console proof:                 http://127.0.0.1:3000/proof/receipts
 console violations:            http://127.0.0.1:3000/proof/violations
 ```
 
-Expected Docker validation output has the same shape, with the provisioning
-helper also printing:
+Optional Docker validation output has the same shape, with the provisioning
+helper also printing when Docker is the path used:
 
 ```text
 [local-db] provisioning Postgres with Docker Compose
