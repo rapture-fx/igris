@@ -75,10 +75,10 @@ export default function RuntimesPage() {
                   <TableRow key={runtime.runtime_id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(runtime)}>
                     <TableCell>
                       <Link href={`/runtimes/${encodeURIComponent(runtime.runtime_id)}`} className="group flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
-                        <span className="font-mono text-xs text-foreground">{truncateText(runtime.runtime_label || runtime.runtime_id, 22)}</span>
+                        <span className="text-xs text-foreground">{truncateText(runtime.runtime_label || runtime.runtime_id, 22)}</span>
                         <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                       </Link>
-                      <div className="font-mono text-[10px] text-muted-foreground">{truncateText(runtime.runtime_id, 24)}</div>
+                      <div className="text-[10px] text-muted-foreground">{truncateText(runtime.runtime_id, 24)}</div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
