@@ -192,35 +192,35 @@ apply_local_migrations() {
   psql_preflight
   ensure_schema_migrations
 
+  local required_migrations=(
+    "005_runtime_instances"
+    "006_execution_lineage"
+    "015_better_auth"
+    "016_schema_gaps"
+    "031_task_records"
+    "032_task_record_artifacts"
+    "033_task_proof_state"
+    "034_task_cancellation"
+    "035_task_failure_details"
+    "043_ai_capability_governance_audit"
+    "047_execution_context"
+    "048_verified_execution_schema_repair"
+    "049_task_proof_verification_summary"
+    "050_tenant_email_alignment"
+    "051_execution_governance_recovery"
+    "052_runtime_callback_envelopes"
+  )
+
   local has_task_records
   has_task_records=$(query_scalar "SELECT to_regclass('public.task_records') IS NOT NULL;")
   if [[ "$has_task_records" != "t" ]]; then
-    echo "[db] clean schema detected; applying all Overture migrations"
-    local migration_file migration_name
-    for migration_file in "$MIGRATIONS_DIR"/*.sql; do
-      [[ -e "$migration_file" ]] || continue
-      migration_name=$(basename "$migration_file" .sql)
+    echo "[db] clean schema detected; applying live-demo required migrations"
+    local migration_name
+    for migration_name in "${required_migrations[@]}"; do
       apply_migration_if_needed "$migration_name"
     done
   else
     echo "[db] existing schema detected; applying live-demo required additive migrations"
-    local required_migrations=(
-      "006_execution_lineage"
-      "015_better_auth"
-      "016_schema_gaps"
-      "031_task_records"
-      "032_task_record_artifacts"
-      "033_task_proof_state"
-      "034_task_cancellation"
-      "035_task_failure_details"
-      "043_ai_capability_governance_audit"
-      "047_execution_context"
-      "048_verified_execution_schema_repair"
-      "049_task_proof_verification_summary"
-      "050_tenant_email_alignment"
-      "051_execution_governance_recovery"
-      "052_runtime_callback_envelopes"
-    )
     local migration_name
     for migration_name in "${required_migrations[@]}"; do
       apply_migration_if_needed "$migration_name"
