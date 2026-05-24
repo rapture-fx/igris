@@ -1,7 +1,13 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-smoke test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper
+.PHONY: run-recover-prove-local run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper
 
 run-recover-prove-local:
 	./scripts/run-recover-prove-local.sh
+
+run-recover-prove-local-doctor:
+	./scripts/run-recover-prove-local.sh --doctor
+
+run-recover-prove-local-migrate:
+	./scripts/run-recover-prove-local.sh --migrate
 
 run-recover-prove-local-smoke:
 	IGRIS_LOCAL_PROMISE_SKIP_LIVE=true ./scripts/run-recover-prove-local.sh --skip-live
