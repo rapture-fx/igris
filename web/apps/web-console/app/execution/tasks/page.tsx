@@ -358,15 +358,7 @@ function ExecutionTasksContent() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-
-        {/* ── Page Header ─────────────────────────────────────────────────── */}
-        <div className="space-y-1">
-          <h1 className="text-base font-semibold text-foreground">Agent Tasks</h1>
-          <p className="text-xs text-muted-foreground">
-            Track controlled agent actions, recovery state, proof status, and runtime handoff.
-          </p>
-        </div>
+      <div className="space-y-6 px-6 pr-8 py-6">
 
         {/* ── Task Activity ───────────────────────────────────────────── */}
         <div className="border-[0.5px] border-black/[0.08] dark:border-white/[0.08] rounded-lg overflow-hidden bg-white">
@@ -374,7 +366,6 @@ function ExecutionTasksContent() {
           {/* Card header with search + controls */}
           <div className="px-4 pt-4 pb-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-foreground">Task Activity</span>
               {/* Demo affordance: Open latest Action Task */}
               {!isLoading && tasks.length > 0 && (
                 (() => {
@@ -474,18 +465,9 @@ function ExecutionTasksContent() {
               </div>
             ) : filteredTasks.length === 0 ? (
               <div className="px-4 py-12 text-center">
-                {tasks.length === 0 ? (
-                  /* Truly empty workspace */
-                  <div className="space-y-1 text-xs text-muted-foreground">
-                    <p>No tasks yet. Run the Action Task demo or submit a task to see action evidence, recovery state, and proof.</p>
-                    <p className="font-mono text-[11px] text-gray-500">Try: scripts/action_task_v1_proof_demo.sh</p>
-                  </div>
-                ) : (
-                  /* Filters are hiding tasks */
-                  <div className="text-xs text-muted-foreground">
-                    No tasks match this filter.
-                  </div>
-                )}
+                <div className="text-xs text-muted-foreground">
+                  {tasks.length === 0 ? 'No tasks.' : 'No tasks match this filter.'}
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
