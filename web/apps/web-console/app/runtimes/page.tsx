@@ -10,10 +10,12 @@
  */
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useGovernanceRuntimes } from '@/hooks/useGovernance';
 import { runtimeTrustLabel } from '@/lib/governance';
+import { mockRuntimes } from '@/lib/mockExecution';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 
 function trustDot(state?: string): string {
@@ -24,10 +26,14 @@ function trustDot(state?: string): string {
   return 'bg-[#3a3a32]';
 }
 
-export default function RuntimesPage() {
+function RuntimesPageInner() {
+  const searchParams = useSearchParams();
+  const isMock = searchParams?.get('mock') === '1';
   const [search, setSearch] = useState('');
-  const { data, isLoading } = useGovernanceRuntimes({ limit: 200 });
-  const runtimes = data?.items ?? [];
+  const { data, isLoading: realLoading } = useGovernanceRuntimes({ limit: 200 });
+  const runtimes = isMock ? mockRuntimes() : (data?.items ?? []);
+  const isLoading = isMock ? false : realLoading;
+  const mockSuffix = isMock ? '?mock=1' : '';
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -50,13 +56,28 @@ export default function RuntimesPage() {
                 Runtime context for the executions you're inspecting.
               </p>
             </div>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search runtimes…"
-              className="h-7 px-2.5 text-[11.5px] rounded-md bg-white/[0.04] border border-white/[0.06] text-[#e8e7df] placeholder:text-[#5a5a52] outline-none focus:border-white/[0.12] w-56"
-            />
+            <div className="flex items-center gap-2">
+              {isMock && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 h-6 rounded-md bg-amber-400/[0.08] text-amber-300 border border-amber-400/25 text-[10.5px]">
+                  Demo data
+                </span>
+              )}
+              {!isMock && runtimes.length === 0 && !isLoading && (
+                <Link
+                  href="/runtimes?mock=1"
+                  className="inline-flex items-center gap-1.5 px-3 h-7 rounded-md bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16] text-[11.5px]"
+                >
+                  View demo
+                </Link>
+              )}
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search runtimes…"
+                className="h-7 px-2.5 text-[11.5px] rounded-md bg-white/[0.04] border border-white/[0.06] text-[#e8e7df] placeholder:text-[#5a5a52] outline-none focus:border-white/[0.12] w-56"
+              />
+            </div>
           </div>
 
           <div
@@ -84,7 +105,7 @@ export default function RuntimesPage() {
                 return (
                   <Link
                     key={r.runtime_id}
-                    href={`/runtimes/${encodeURIComponent(r.runtime_id)}`}
+                    href={`/runtimes/${encodeURIComponent(r.runtime_id)}${mockSuffix}`}
                     className="grid items-center gap-3 px-4 py-2.5 border-b border-white/[0.04] last:border-b-0 hover:bg-white/[0.025] transition-colors"
                     style={{ gridTemplateColumns: '1fr 110px 110px 100px 110px' }}
                   >
@@ -119,5 +140,13 @@ export default function RuntimesPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function RuntimesPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex-1" /></DashboardLayout>}>
+      <RuntimesPageInner />
+    </Suspense>
   );
 }
