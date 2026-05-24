@@ -45,6 +45,10 @@ WAL/checkpoint recovery, signed receipts, and operator task views.
 - Callback rejection observability: rejected runtime callback attempts are
   persisted as safe boundary/security evidence with reason and body digest, not
   raw callback bodies or secrets.
+- Callback nonce lifecycle: accepted runtime callback nonces are retained for
+  replay protection and cleaned only after the configured retention window. The
+  cleanup floor is the signed callback freshness window; the default
+  application retention is 24 hours.
 
 ## Current Gaps
 
@@ -57,3 +61,7 @@ The Rust runtime now has an outbound callback sender for checkpoint, complete,
 and failed lifecycle callbacks when callback configuration is provided by
 Overture. The synchronous submit response still returns execution artifacts and
 receipts for compatibility with the existing durable task path.
+
+Rejected callback metrics are operational summaries, not a new trust source.
+They are derived from tenant-scoped `boundary_violations` rows and expose only
+counts, runtime IDs, callback types, and operator-safe reasons.
