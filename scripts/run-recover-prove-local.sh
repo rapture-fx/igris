@@ -24,6 +24,7 @@ mkdir -p "$LOG_DIR"
 CONSOLE_BASE_URL="${CONSOLE_URL:-http://127.0.0.1:3000}"
 SKIP_LIVE="${IGRIS_LOCAL_PROMISE_SKIP_LIVE:-false}"
 MIGRATIONS_DIR="$ROOT_DIR/igris-overture/database/migrations"
+LOCAL_ENV_FILE="$ROOT_DIR/.env.run-recover-prove-local"
 MODE="run"
 
 while [[ $# -gt 0 ]]; do
@@ -85,6 +86,11 @@ redact_file_tail() {
 }
 
 load_env_file_if_needed() {
+  if [[ -z "${DATABASE_URL:-${POSTGRES_URL:-}}" && -f "$LOCAL_ENV_FILE" ]]; then
+    set -a
+    source "$LOCAL_ENV_FILE" >/dev/null 2>&1 || true
+    set +a
+  fi
   if [[ -z "${DATABASE_URL:-${POSTGRES_URL:-}}" && -f "$ROOT_DIR/.env" ]]; then
     set -a
     source "$ROOT_DIR/.env" >/dev/null 2>&1 || true
