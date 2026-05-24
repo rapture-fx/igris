@@ -31,11 +31,11 @@ Validated evidence:
 - signed callback mode: `live-server-backed`
 - failure/recovery mode: `live-server-backed`
 
-Docker-first status: not yet validated in this audit environment. On this
-machine, `docker`, `docker compose`, and `docker-compose` are unavailable, so
-the Docker-backed proof loop has not honestly completed. The Docker path must
-still be run on a Docker-enabled machine before the onboarding promise can be
-closed.
+Docker status: optional, not a gate for local onboarding. On this machine,
+`docker`, `docker compose`, and `docker-compose` are unavailable, so the
+Docker-backed proof loop has not honestly completed. The validated local
+onboarding path is Homebrew/manual Postgres; Docker should be validated later on
+a Docker-enabled machine as a convenience path.
 
 ## Gaps
 
@@ -43,9 +43,9 @@ closed.
 - The durable task proof path requires a registered runtime public key and signed runtime artifacts; `make run-recover-prove-local` now handles this for the local Action Task V1 path.
 - The console can display the story, but local developers need explicit instructions to disable mock fallback when validating real backend evidence.
 - Runtime callback identity hardening now exists in the coordinator and Rust runtime sender. The live local flow demonstrates accepted signed checkpoint, complete, and failed callbacks; `--skip-live` still falls back to route tests.
-- The local setup path now has Docker-first provisioning, macOS/Homebrew fallback
-  automation, focused doctor and migration targets, and explicit Docker down and
-  reset targets.
+- The local setup path now provisions or reuses local Postgres, with
+  Homebrew/manual Postgres as the validated macOS path and optional Docker
+  support for contributors who already have Docker installed.
 - Console typechecking should use `make web-console-check`, which runs the Next
   build before `tsc --noEmit` so generated `.next/types` files exist.
 
@@ -71,9 +71,10 @@ make test-proof-tamper
 
 ## Recommended Onboarding Slice
 
-Next slice: validate the Docker-first one-command path on a clean
-Docker-enabled machine, then add alert thresholds for rejected callback spikes
-and keep hardening console inspection around unavailable proof states.
+Next slice: keep Homebrew/manual onboarding as the primary validated proof path,
+then ask a second engineer or Docker-enabled machine to validate optional Docker
+provisioning separately. After that, add alert thresholds for rejected callback
+spikes and keep hardening console inspection around unavailable proof states.
 
 The current local flow already:
 
@@ -88,5 +89,5 @@ The current local flow already:
    when persisted rejection evidence exists.
 9. Fails preflight before partial startup when Postgres, migrations, or ports
    are not ready.
-10. Provisions local Postgres with Docker Compose when available, or safely
-    falls back to Homebrew Postgres on macOS.
+10. Provisions or reuses local Postgres through an explicit DSN, Homebrew
+    Postgres on macOS, or optional Docker Compose when available.
