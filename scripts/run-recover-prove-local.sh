@@ -209,6 +209,7 @@ apply_local_migrations() {
     "050_tenant_email_alignment"
     "051_execution_governance_recovery"
     "052_runtime_callback_envelopes"
+    "053_tenant_local_proof_columns"
   )
 
   local has_task_records
