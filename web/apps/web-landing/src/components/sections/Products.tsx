@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from 'react'
 import { LineSpinner } from 'ldrs/react'
 import 'ldrs/react/LineSpinner.css'
+import {
+  Home, LayoutDashboard, ListChecks, Hand, RotateCcw, ShieldOff, FileCheck2,
+  Box, Shield, Activity, BarChart3, type LucideIcon,
+} from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -93,7 +97,8 @@ export function ExecutionPreview() {
           style={{ fontFamily: SANS, background: '#0e0e0c', color: '#e8e7df' }}
         >
           <ConsoleStyles />
-          <div className="grid" style={{ gridTemplateColumns: '236px 1fr', height: 640 }}>
+          <div className="grid" style={{ gridTemplateColumns: '40px 236px 1fr', height: 640 }}>
+            <IconRail />
             <Sidebar />
             <Main />
           </div>
@@ -170,23 +175,53 @@ function ConsoleStyles() {
   )
 }
 
+// ── Icon Rail ──────────────────────────────────────────────────────
+
+function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
+  return (
+    <div
+      className="relative flex items-center justify-center h-9 w-9 rounded-md"
+      style={{ background: active ? 'rgba(255,255,255,0.06)' : 'transparent' }}
+    >
+      {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r" style={{ background: '#f0efe8' }} />}
+      <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} style={{ color: active ? '#f0efe8' : '#7a7a72' }} />
+    </div>
+  )
+}
+
+function IconRail() {
+  return (
+    <nav className="flex flex-col items-center py-2 border-r border-white/[0.05]" style={{ background: '#070707' }}>
+      <div className="flex items-center justify-center h-9 w-9 mb-1">
+        <img src="/inertiadm.png" alt="" width={15} height={15} className="block select-none" draggable={false} />
+      </div>
+      <div className="flex flex-col items-center flex-1">
+        <RailIcon Icon={Home} />
+        <RailIcon Icon={LayoutDashboard} />
+        <RailIcon Icon={ListChecks} active />
+        <RailIcon Icon={Hand} />
+        <RailIcon Icon={RotateCcw} />
+        <RailIcon Icon={ShieldOff} />
+        <RailIcon Icon={FileCheck2} />
+        <RailIcon Icon={Box} />
+        <RailIcon Icon={Shield} />
+        <RailIcon Icon={Activity} />
+        <RailIcon Icon={BarChart3} />
+      </div>
+      {/* Profile avatar */}
+      <div className="relative h-7 w-7 mt-1 rounded-full overflow-hidden select-none" style={{ background: '#2a2a25' }}>
+        <img src="/sfat.png" alt="" width={28} height={28} className="block h-full w-full object-cover" draggable={false} />
+        <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border" style={{ background: '#34d399', borderColor: '#070707' }} />
+      </div>
+    </nav>
+  )
+}
+
 // ── Sidebar ────────────────────────────────────────────────────────
 
 function Sidebar() {
   return (
     <aside className="flex flex-col border-r border-white/[0.05]" style={{ background: '#070707' }}>
-      {/* brand */}
-      <div className="flex items-center gap-2 h-11 px-4 border-b border-white/[0.05]">
-        <img
-          src="/inertiadm.png"
-          alt="Igris"
-          width={18}
-          height={18}
-          className="block select-none"
-          draggable={false}
-        />
-      </div>
-
       {/* search */}
       <div className="px-3 pt-3 pb-2">
         <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] border-white/[0.04]" style={{ background: '#0e0e0c' }}>
@@ -222,17 +257,6 @@ function Sidebar() {
         </button>
       </div>
 
-      {/* settings */}
-      <div className="flex items-center gap-2 px-4 h-9 border-t border-white/[0.05] text-[#7a7a72]">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
-          <path
-            d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4.8a7 7 0 0 0-2.1-1.2L14 3h-4l-.4 2.5a7 7 0 0 0-2.1 1.2l-2.4-.8-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-.8a7 7 0 0 0 2.1 1.2L10 21h4l.4-2.5a7 7 0 0 0 2.1-1.2l2.4.8 2-3.4-2-1.5c0-.4.1-.8.1-1.2z"
-            stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"
-          />
-        </svg>
-        <span className="text-[11.5px]">Settings</span>
-      </div>
     </aside>
   )
 }
