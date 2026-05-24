@@ -439,7 +439,7 @@ func TestRuntimeFailedRecoveryDecisionBlocksIrreversibleReplay(t *testing.T) {
 	require.Equal(t, ReplayClassNonRetryable, decision.ReplayClass)
 	require.True(t, decision.Irreversible)
 	require.False(t, allowed)
-	require.Equal(t, "non-replayable or irreversible action requires manual recovery", reason)
+	require.Equal(t, "irreversible action cannot be automatically replayed during recovery", reason)
 }
 
 func TestSelectRecoveryCheckpoint(t *testing.T) {
