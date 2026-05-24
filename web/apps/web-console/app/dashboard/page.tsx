@@ -146,7 +146,7 @@ function CriticalEventRow({ event }: { event: GovernanceCriticalEvent }) {
         </div>
         <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{event.reason}</p>
         {(event.task_id || event.runtime_id) && (
-          <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/70">
+          <p className="mt-0.5 text-[10px] text-muted-foreground/70">
             {event.task_id && `task ${truncateText(event.task_id, 16)}`}
             {event.task_id && event.runtime_id && ' · '}
             {event.runtime_id && `runtime ${truncateText(event.runtime_id, 16)}`}
@@ -295,7 +295,7 @@ export default function OverviewPage() {
         {error && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
             Execution trust summary is unavailable. The governance summary endpoint
-            (<code className="font-mono">/v1/execution/governance/summary</code>) did not
+            (<code className="">/v1/execution/governance/summary</code>) did not
             respond — the backend may not yet be deployed with execution governance.
             Per-task governance is still available on each execution detail page.
           </div>
@@ -415,7 +415,7 @@ export default function OverviewPage() {
                         className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-gray-50"
                       >
                         <div className="min-w-0">
-                          <p className="truncate font-mono text-[11px] text-foreground">
+                          <p className="truncate text-[11px] text-foreground">
                             {truncateText(task.task_id, 22)}
                           </p>
                           <p className="text-[11px] text-muted-foreground">
