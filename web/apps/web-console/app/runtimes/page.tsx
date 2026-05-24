@@ -39,13 +39,6 @@ export default function RuntimesPage() {
     );
   }, [runtimes, search]);
 
-  const stats = {
-    trusted: runtimes.filter((runtime) => runtime.trust_state === 'trusted').length,
-    violations: runtimes.reduce((sum, runtime) => sum + runtime.violation_count, 0),
-    boundaries: runtimes.reduce((sum, runtime) => sum + runtime.boundary_count, 0),
-    handoffs: runtimes.reduce((sum, runtime) => sum + runtime.handoff_count, 0),
-  };
-
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -60,21 +53,6 @@ export default function RuntimesPage() {
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search runtime, trust, capability..." className="h-8 pl-8 text-xs" />
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {[
-            { label: 'Trusted runtimes', value: stats.trusted, Icon: ShieldCheck, tone: 'success' as const },
-            { label: 'Boundary records', value: stats.boundaries, Icon: Cpu, tone: 'info' as const },
-            { label: 'Boundary violations', value: stats.violations, Icon: AlertTriangle, tone: 'danger' as const },
-            { label: 'Handoff events', value: stats.handoffs, Icon: ArrowUpRight, tone: 'warning' as const },
-          ].map(({ label, value, Icon, tone }) => (
-            <div key={label} className="rounded-lg border-[0.5px] border-black/[0.08] bg-white p-4">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"><Icon className="h-3.5 w-3.5" />{label}</div>
-              <div className="mt-3 text-3xl font-bold tabular-nums text-foreground">{value}</div>
-              <GovernanceBadge label={label} tone={tone} showDot={false} className="mt-2" />
-            </div>
-          ))}
         </div>
 
         <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
