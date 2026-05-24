@@ -55,13 +55,13 @@ function RailItem({ lens, active }: { lens: Lens; active: boolean }) {
     <Link
       href={href}
       aria-label={label}
-      className="relative flex items-center justify-center h-10 w-10 my-0.5 rounded-md transition-colors group"
+      className="relative flex items-center justify-center h-9 w-9 rounded-md transition-colors group"
       style={{
         background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
         color: active ? tokens.textPrimary : tokens.textDim,
       }}
     >
-      <Icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
+      <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} />
       {active && (
         <span
           className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r"
@@ -93,15 +93,15 @@ export function IconRail() {
     <nav
       className="relative flex flex-col items-center py-2 border-r flex-shrink-0"
       style={{
-        width: 48,
+        width: 40,
         background: tokens.bgRail,
         borderColor: tokens.borderSoft,
         zIndex: 40,
       }}
     >
       {/* brand */}
-      <Link href="/execution/tasks" className="flex items-center justify-center h-10 w-10 mb-1">
-        <img src="/inertiadm.png" alt="Igris" width={18} height={18} className="block select-none" draggable={false} />
+      <Link href="/execution/tasks" className="flex items-center justify-center h-9 w-9 mb-1">
+        <img src="/inertiadm.png" alt="Igris" width={15} height={15} className="block select-none" draggable={false} />
       </Link>
 
       {/* lenses */}
