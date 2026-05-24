@@ -18,7 +18,8 @@ test-runtime-callbacks:
 
 test-runtime-failed-callbacks:
 	GOCACHE=/tmp/igris-gocache-local-promise go test ./igris-overture/api ./igris-overture/coordinator -run 'TestHandleTaskFailed|TestRuntimeCallbackEnvelope|TestRuntimeFailedRecoveryDecisionBlocksIrreversibleReplay' -count=1 -timeout=180s
-	cargo test --manifest-path igris-runtime/crates/igris-server/Cargo.toml 'runtime_callback|local_demo_failure' --features agent-platform
+	cargo test --manifest-path igris-runtime/crates/igris-server/Cargo.toml runtime_callback --features agent-platform
+	cargo test --manifest-path igris-runtime/crates/igris-server/Cargo.toml local_demo_failure --features agent-platform
 
 test-proof-tamper:
 	GOCACHE=/tmp/igris-gocache-local-promise go test ./igris-overture/api -run 'TestVerifyReceipt(StoredValuesAloneCannotMarkVerifiedTrue|ReturnsCleanlyWithoutRuntimeIdentity|ChainLinkRejects.*|ChainLinkVerifiesPriorReceipt|ChainLinkGenesisIsValid)' -count=1 -timeout=180s
