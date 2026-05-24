@@ -8,9 +8,7 @@ mod tests {
         routing::post,
         Json, Router,
     };
-    #[cfg(feature = "robotics-platform")]
     use base64::Engine;
-    #[cfg(feature = "robotics-platform")]
     use ed25519_dalek::Signer;
     use ed25519_dalek::SigningKey;
     use igris_core::storage::{TASK_SUBMISSIONS, TASK_SUBMISSION_STATUS_BY_TASK_ID};
@@ -19,7 +17,6 @@ mod tests {
     use igris_wal::{StepType, WalLog};
     use serde::Serialize;
     use sha2::{Digest, Sha256};
-    #[cfg(feature = "robotics-platform")]
     use std::collections::BTreeMap;
     use std::{convert::Infallible, net::SocketAddr, sync::Arc};
     use tokio::net::TcpListener;
@@ -383,7 +380,6 @@ mod tests {
         decision
     }
 
-    #[cfg(feature = "robotics-platform")]
     fn canonical_permission_agent_identity_for_test(
         identity: &task_executor::AgentIdentity,
     ) -> serde_json::Value {
@@ -402,7 +398,6 @@ mod tests {
         serde_json::to_value(value).unwrap_or_default()
     }
 
-    #[cfg(feature = "robotics-platform")]
     fn canonical_permission_decisions_for_test(
         decisions: &[task_executor::CapabilityDecision],
     ) -> Vec<serde_json::Value> {
@@ -419,7 +414,6 @@ mod tests {
             .collect()
     }
 
-    #[cfg(feature = "robotics-platform")]
     fn canonical_permission_envelope_bytes_for_test(
         envelope: &task_executor::TaskPermissionEnvelope,
     ) -> Vec<u8> {
@@ -458,7 +452,6 @@ mod tests {
         serde_json::to_vec(&value).unwrap_or_default()
     }
 
-    #[cfg(feature = "robotics-platform")]
     fn signed_permission_envelope_for_capability_test(
         signing_key: &SigningKey,
         task_id: uuid::Uuid,
