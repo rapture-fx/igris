@@ -494,7 +494,7 @@ function ExecutionTasksContent() {
                       >
                         <td className="px-4 py-2.5">
                           <div className="space-y-0.5">
-                            <div className="flex items-center gap-1 font-mono text-muted-foreground">
+                            <div className="flex items-center gap-1 text-muted-foreground">
                               <span>{truncateText(task.task_id, 18)}</span>
                               <CopyButton value={task.task_id} />
                             </div>
@@ -530,7 +530,7 @@ function ExecutionTasksContent() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-2.5 font-mono text-muted-foreground">
+                        <td className="px-4 py-2.5 text-muted-foreground">
                           {runtimeSummary(task)}
                         </td>
                         <td className="px-4 py-2.5 text-muted-foreground tabular-nums">
@@ -576,7 +576,7 @@ function ExecutionTasksContent() {
                 {selectedUnresolvedIndex >= 0 && unresolvedTaskIds.length > 0 && (
                   <p className="text-xs text-gray-500">
                     Unresolved {selectedUnresolvedIndex + 1} of {unresolvedTaskIds.length} ·{' '}
-                    <span className="text-gray-400 font-mono">j/k</span> to navigate
+                    <span className="text-gray-400">j/k</span> to navigate
                   </p>
                 )}
               </div>
@@ -633,7 +633,7 @@ function ExecutionTasksContent() {
                   </h3>
                   <KeyValueGrid
                     rows={[
-                      { label: 'Task ID', value: <span className="font-mono text-[11px]">{selectedTask.task_id}</span>, copyable: selectedTask.task_id },
+                      { label: 'Task ID', value: <span className="text-[11px]">{selectedTask.task_id}</span>, copyable: selectedTask.task_id },
                       { label: 'Status', value: <ExecutionStatusBadge status={selectedTask.status.toUpperCase()} /> },
                       { label: 'Task Type', value: selectedTask.task_type ?? '—' },
                       { label: 'Requested Mode', value: selectedTask.requested_mode ?? '—' },
@@ -711,7 +711,7 @@ function ExecutionTasksContent() {
                             <tr key={step.entry_id} className="border-b border-gray-100 last:border-0">
                               <td className="px-3 py-2 text-gray-700">{step.step_index}</td>
                               <td className="px-3 py-2 text-gray-700">{step.status}</td>
-                              <td className="px-3 py-2 font-mono text-gray-700">{truncateText(step.runtime_id, 18)}</td>
+                              <td className="px-3 py-2 text-gray-700">{truncateText(step.runtime_id, 18)}</td>
                               <td className="px-3 py-2 text-gray-500">{formatDateTime(new Date(step.timestamp_ms))}</td>
                             </tr>
                           ))}
