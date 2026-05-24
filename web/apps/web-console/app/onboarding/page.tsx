@@ -260,7 +260,7 @@ export default function OnboardingPage() {
             <Button
               onClick={() => {
                 try { localStorage.setItem('igris_onboarding_complete', '1'); } catch {}
-                router.replace('/dashboard');
+                router.replace('/home');
               }}
               className="mt-6 w-full h-9 text-sm gap-1.5"
             >
