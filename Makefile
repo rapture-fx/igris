@@ -1,4 +1,4 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-smoke test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-proof-tamper
+.PHONY: run-recover-prove-local run-recover-prove-local-smoke test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper
 
 run-recover-prove-local:
 	./scripts/run-recover-prove-local.sh
@@ -15,6 +15,10 @@ test-recovery-chaos:
 test-runtime-callbacks:
 	GOCACHE=/tmp/igris-gocache-local-promise go test ./igris-overture/api -run 'TestHandleTask(Checkpoint|Complete|Failed)|TestRuntimeCallbackEnvelope' -count=1 -timeout=180s
 	cargo test --manifest-path igris-runtime/crates/igris-server/Cargo.toml runtime_callback --features agent-platform
+
+test-runtime-failed-callbacks:
+	GOCACHE=/tmp/igris-gocache-local-promise go test ./igris-overture/api ./igris-overture/coordinator -run 'TestHandleTaskFailed|TestRuntimeCallbackEnvelope|TestRuntimeFailedRecoveryDecisionBlocksIrreversibleReplay' -count=1 -timeout=180s
+	cargo test --manifest-path igris-runtime/crates/igris-server/Cargo.toml 'runtime_callback|local_demo_failure' --features agent-platform
 
 test-proof-tamper:
 	GOCACHE=/tmp/igris-gocache-local-promise go test ./igris-overture/api -run 'TestVerifyReceipt(StoredValuesAloneCannotMarkVerifiedTrue|ReturnsCleanlyWithoutRuntimeIdentity|ChainLinkRejects.*|ChainLinkVerifiesPriorReceipt|ChainLinkGenesisIsValid)' -count=1 -timeout=180s
