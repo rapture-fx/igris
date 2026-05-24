@@ -128,14 +128,8 @@ export default function ViolationsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold text-foreground">Violations</h1>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Policy violations, boundary violations, failed verification, unsafe replay blocks, and denied handoffs.
-            </p>
-          </div>
+      <div className="space-y-5 px-6 pr-8 py-6">
+        <div className="flex flex-wrap items-start justify-end gap-4">
           <div className="grid w-full max-w-xl gap-2 md:grid-cols-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -159,10 +153,6 @@ export default function ViolationsPage() {
         </div>
 
         <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
-          <div className="px-4 py-3">
-            <h2 className="text-sm font-semibold text-foreground">Operational Risk Events</h2>
-            <p className="text-[11px] text-muted-foreground">Merged from tenant-wide governance list endpoints. No mock data.</p>
-          </div>
           <Table>
             <TableHeader><TableRow><TableHead>Event</TableHead><TableHead>Severity</TableHead><TableHead>Task</TableHead><TableHead>Runtime</TableHead><TableHead>Action</TableHead><TableHead>Reason</TableHead><TableHead>When</TableHead></TableRow></TableHeader>
             <TableBody>
