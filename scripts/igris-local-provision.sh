@@ -201,9 +201,18 @@ provision_up() {
 
   source_env_if_present
   if [[ -n "${DATABASE_URL:-${POSTGRES_URL:-}}" ]]; then
-    if [[ "${IGRIS_LOCAL_PROVISIONER:-}" == "docker" && docker_compose_available ]]; then
-      docker_up
-      return 0
+    if [[ "${IGRIS_LOCAL_PROVISIONER:-}" == "docker" ]]; then
+      if docker_compose_available; then
+        docker_up
+        return 0
+      fi
+      echo "[local-db] Docker Compose is unavailable; ignoring Docker-generated local env and trying another local Postgres path"
+      unset DATABASE_URL
+      unset POSTGRES_URL
+      unset IGRIS_LOCAL_PROVISIONER
+      if homebrew_up; then
+        return 0
+      fi
     fi
     if [[ "${IGRIS_LOCAL_PROVISIONER:-}" == "homebrew" ]]; then
       homebrew_up
