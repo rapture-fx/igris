@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS idx_runtime_downloads_tenant
     ON runtime_downloads (tenant_id, download_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_runtime_downloads_tenant_hour
-    ON runtime_downloads (tenant_id, date_trunc('hour', download_at));
+    ON runtime_downloads (tenant_id, date_trunc('hour', download_at AT TIME ZONE 'UTC'));
 
 COMMENT ON TABLE runtime_downloads IS
     'Audit log of every authenticated runtime binary download. '
