@@ -106,6 +106,11 @@ local backend URLs printed by the script and inspect:
 
 Missing proof must be treated as unavailable, not verified.
 
+The Overview page's Execution Trust Summary includes `Rejected runtime
+callbacks`. The violations page labels rejected callback evidence as replay
+attempt, stale callback, body mismatch, wrong runtime, or rejected callback
+based on the persisted rejection reason.
+
 ## What Is Demonstrated
 
 Production-ready locally:
@@ -124,6 +129,10 @@ Production-ready locally:
 - Signed receipt verification with a registered runtime key.
 - Strict signed callback validation in coordinator routes.
 - Rejected callback violation persistence.
+- Rejected callback counts in the governance summary, sourced from persisted
+  `boundary_violations` evidence.
+- Runtime callback nonce cleanup. Accepted callback nonces are retained for at
+  least the callback freshness window; the application default is 24 hours.
 - Irreversible/non-replayable recovery policy blocking.
 - Demo-only deterministic runtime failure. It is opt-in and requires
   `IGRIS_ENABLE_LOCAL_DEMO_FAILURE=true`; normal runtime tasks ignore
