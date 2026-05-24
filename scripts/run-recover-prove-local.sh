@@ -225,8 +225,8 @@ apply_local_migrations() {
 require_relation() {
   local relation="$1"
   local found
-  found=$(query_scalar "SELECT to_regclass('public.$relation');")
-  if [[ "$found" != "$relation" ]]; then
+  found=$(query_scalar "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '$relation');")
+  if [[ "$found" != "t" ]]; then
     echo "schema missing table: $relation" >&2
     return 1
   fi
