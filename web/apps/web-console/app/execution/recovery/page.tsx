@@ -119,12 +119,12 @@ export default function RecoveryPage() {
                     <TableRow key={event.recovery_event_id} className="cursor-pointer hover:bg-gray-50" onClick={() => setSelected(event)}>
                       <TableCell>
                         <Link href={`/execution/tasks/${encodeURIComponent(event.task_id)}`} className="group flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <span className="font-mono text-xs text-foreground">{truncateText(event.task_id, 18)}</span>
+                          <span className="text-xs text-foreground">{truncateText(event.task_id, 18)}</span>
                           <ArrowUpRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
                         </Link>
                       </TableCell>
                       <TableCell><GovernanceBadge label={recoveryLabel(event)} tone={recoveryTone(event)} /></TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-muted-foreground">
                         {event.checkpoint_digest ? truncateText(event.checkpoint_digest, 18) : 'Not available'}
                         <div className="font-sans text-[10px] text-muted-foreground">{event.last_committed_step !== undefined ? `Committed step ${event.last_committed_step}` : 'Committed watermark not available'}</div>
                       </TableCell>
@@ -135,7 +135,7 @@ export default function RecoveryPage() {
                           {event.replay_allowed === false && <GovernanceBadge label="Blocked" tone="warning" showDot={false} />}
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-muted-foreground">
                         {event.target_runtime_id || event.source_runtime_id ? (
                           <Link href={`/runtimes/${encodeURIComponent(event.target_runtime_id || event.source_runtime_id || '')}`} className="group flex items-center gap-1.5 hover:text-foreground" onClick={(e) => e.stopPropagation()}>
                             {truncateText(event.target_runtime_id || event.source_runtime_id || '', 18)}
@@ -160,9 +160,9 @@ export default function RecoveryPage() {
               <p className="text-xs text-muted-foreground">Evidence not available. No runtime handoff events returned.</p>
             ) : handoffItems.slice(0, 8).map((event) => (
               <Link key={event.handoff_event_id} href={`/execution/tasks/${encodeURIComponent(event.task_id)}`} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2 text-xs hover:bg-gray-50">
-                <span className="font-mono text-foreground">{truncateText(event.task_id, 18)}</span>
+                <span className="text-foreground">{truncateText(event.task_id, 18)}</span>
                 <HandoffBadge decision={event.decision} />
-                <span className="font-mono text-muted-foreground">
+                <span className="text-muted-foreground">
                   {event.source_runtime_id ? truncateText(event.source_runtime_id, 12) : 'unknown'} -&gt; {event.target_runtime_id ? truncateText(event.target_runtime_id, 12) : 'unknown'}
                 </span>
                 <span className="text-muted-foreground">{event.reason}</span>
