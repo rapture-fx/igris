@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 export default function AuthPage() {
   // AUTH DISABLED FOR LOCAL DEVELOPMENT
   if (typeof window !== 'undefined') {
-    window.location.replace('/dashboard');
+    window.location.replace('/home');
   }
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -82,7 +82,7 @@ function AuthContent() {
       } else {
         const result = await signIn.email({ email, password });
         if (result.error) { setError(result.error.message || 'Invalid email or password'); return; }
-        router.replace('/dashboard');
+        router.replace('/home');
       }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -95,7 +95,7 @@ function AuthContent() {
     setError('');
     setLoadingProvider(provider);
     try {
-      await signIn.social({ provider, callbackURL: '/dashboard' });
+      await signIn.social({ provider, callbackURL: '/home' });
     } catch (err: any) {
       setError(err.message || `${provider} sign in failed`);
       setLoadingProvider(null);
