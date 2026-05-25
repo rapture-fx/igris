@@ -329,11 +329,11 @@ run_and_capture() {
   shift 2
   echo "[$label] $*"
   "$@" > "$log_file" 2>&1 || {
-    local status=$?
-    echo "[$label] failed with status $status" >&2
+    local exit_code=$?
+    echo "[$label] failed with status $exit_code" >&2
     echo "----- $log_file -----" >&2
     tail -n 120 "$log_file" >&2 || true
-    exit "$status"
+    exit "$exit_code"
   }
 }
 
