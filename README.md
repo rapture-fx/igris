@@ -62,11 +62,25 @@ recover by blocking an irreversible failed action from automatic replay, and
 prove the run through signed runtime evidence and verification endpoints
 returning HTTP `200`.
 
+Expected successful output includes:
+
+- `live action path: real`
+- `signed callback mode: live-server-backed`
+- `failure/recovery mode: live-server-backed`
+- `receipt verify HTTP status: 200`
+- `task verify HTTP status: 200`
+
 This is a local developer proof, not a production guarantee. It does not claim
 host hardening, broad fleet failover, or real-provider production readiness.
 Use [Run, Recover, Prove Locally](./docs/RUN_RECOVER_PROVE_LOCAL.md) for the
 full runbook, Homebrew/manual Postgres setup, optional Docker lifecycle
 commands, and troubleshooting.
+
+For external evaluation, start with:
+
+- [External Tester Checklist](./docs/EXTERNAL_TESTER_CHECKLIST.md)
+- [Replay Safety Demo](./docs/REPLAY_SAFETY_DEMO.md)
+- [Receipt and Proof Spec v0.1](./docs/specs/IGRIS_RECEIPT_PROOF_SPEC_V0_1.md)
 
 ## Repository Layout
 
