@@ -31,6 +31,12 @@ Expected successful output includes:
 - proof and recovery URLs,
 - path to a redacted evidence summary JSON.
 
+For the receipt/proof model, read
+[Receipt and Proof Spec v0.1](./specs/IGRIS_RECEIPT_PROOF_SPEC_V0_1.md). For
+the recovery-blocking scenario in plain language, read
+[Replay Safety Demo](./REPLAY_SAFETY_DEMO.md). For cold external testing, use
+[External Tester Checklist](./EXTERNAL_TESTER_CHECKLIST.md).
+
 If Postgres is already prepared, the direct live entrypoint remains:
 
 ```bash
@@ -240,6 +246,11 @@ helper also printing when Docker is the path used:
 
 When validating real backend evidence, disable console mock fallback. Use the
 local backend URLs printed by the script and inspect:
+
+```bash
+NEXT_PUBLIC_ENABLE_MOCK_DATA=false
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8081
+```
 
 - `/execution/tasks/:task_id`
 - `/execution/tasks/:failure_task_id`
