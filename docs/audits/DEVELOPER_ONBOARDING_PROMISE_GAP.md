@@ -1,6 +1,6 @@
 # Developer Onboarding Promise Gap
 
-Date: 2026-05-24
+Date: 2026-05-25
 
 ## Goal
 
@@ -15,6 +15,12 @@ Postgres, applies Overture migrations, runs the doctor, then calls
 demo, sends live signed checkpoint/complete callbacks, then runs a deterministic
 live failed-callback and irreversible recovery-blocking scenario. It still runs
 strict callback rejection, runtime signer, recovery, and proof tamper checks.
+
+The onboarding docs now include the trust-adoption reading path:
+
+- [Receipt and Proof Spec v0.1](../specs/IGRIS_RECEIPT_PROOF_SPEC_V0_1.md)
+- [Replay Safety Demo](../REPLAY_SAFETY_DEMO.md)
+- [External Tester Checklist](../EXTERNAL_TESTER_CHECKLIST.md)
 
 On 2026-05-24 the full live path completed against local Postgres, without
 `--skip-live`, after applying the additive recovery/callback migrations through
@@ -48,6 +54,9 @@ a Docker-enabled machine as a convenience path.
   support for contributors who already have Docker installed.
 - Console typechecking should use `make web-console-check`, which runs the Next
   build before `tsc --noEmit` so generated `.next/types` files exist.
+- External testers now have a checklist that keeps Docker optional, names
+  Homebrew/manual Postgres as the validated path, and tells them to disable
+  console mock fallback for real backend evidence.
 
 ## Equivalent Commands Today
 
@@ -71,10 +80,10 @@ make test-proof-tamper
 
 ## Recommended Onboarding Slice
 
-Next slice: keep Homebrew/manual onboarding as the primary validated proof path,
-then ask a second engineer or Docker-enabled machine to validate optional Docker
-provisioning separately. After that, add alert thresholds for rejected callback
-spikes and keep hardening console inspection around unavailable proof states.
+Next slice: ask 2-3 external technical users to run the proof loop cold. Collect
+where they get stuck, whether they understand run/recover/prove, and whether the
+receipt/proof model feels trustworthy. Separately, use a Docker-enabled machine
+to validate optional Docker provisioning before describing it as validated.
 
 The current local flow already:
 
