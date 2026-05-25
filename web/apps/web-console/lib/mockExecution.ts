@@ -385,7 +385,7 @@ const baseRuntime = (
   handoff_count: 1,
   verified_proof_count: recent - failures,
   failed_verification_count: failures,
-  checkpoint_portability_summary: { portable: 1, runtime_bound: 0, any_runtime: 0 },
+  checkpoint_portability_summary: { same_runtime_only: 0, compatible_runtime: 1, any_runtime: 0 },
   enforcement_warning: warning,
 });
 
