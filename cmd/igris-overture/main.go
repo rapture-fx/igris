@@ -700,7 +700,9 @@ func main() {
 		taskCoordinator := coordinator.NewTaskCoordinator(dbInstance)
 		taskCoordinator.StartRecoveryLoop(context.Background())
 		api.RegisterTaskRoutes(app, dbInstance, taskCoordinator)
+		api.RegisterActionRoutes(app, dbInstance, taskCoordinator)
 		log.Println("[Tasks] ✅ Durable task endpoints registered (/v1/tasks)")
+		log.Println("[Actions] ✅ Action gateway endpoints registered (/v1/actions/run, /v1/actions/runs/:id)")
 		if triggerAvailable, err := taskCoordinator.Store().HasTaskProofSyncTrigger(); err != nil {
 			log.Printf("[Tasks] ⚠️  Could not determine proof sync mode at startup: %v", err)
 		} else if triggerAvailable {
