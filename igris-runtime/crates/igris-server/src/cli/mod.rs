@@ -144,6 +144,18 @@ pub enum DemoSub {
     },
 }
 
+/// Default install directory used by the public installer.
+pub fn default_install_dir() -> String {
+    std::env::var("IGRIS_INSTALL_DIR")
+        .ok()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| {
+            std::env::var("HOME")
+                .map(|home| format!("{}/.igris/bin", home.trim_end_matches('/')))
+                .unwrap_or_else(|_| "~/.igris/bin".to_string())
+        })
+}
+
 /// Build a console URL for a task, or None if no base is configured.
 pub fn task_console_url(base: &str, task_id: &str) -> Option<String> {
     let trimmed = base.trim().trim_end_matches('/');
