@@ -55,13 +55,12 @@ export function ProfileMenu() {
         <DropdownMenuTrigger asChild>
           <button
             aria-label="Profile menu"
-            className="relative flex items-center justify-center h-7 w-7 mt-1 rounded-full text-[10px] font-semibold tracking-wide select-none outline-none focus:ring-1 overflow-hidden"
+            className="relative flex items-center justify-center h-7 w-7 mt-1 rounded-full select-none outline-none focus:ring-1 overflow-hidden"
             style={{
               background: '#2a2a25',
-              color: tokens.textPrimary,
             }}
           >
-            {initials}
+            <img src="/sfat.png" alt="" className="h-full w-full object-cover" />
             <span
               className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border"
               style={{ background: tokens.emerald, borderColor: tokens.bgRail }}
