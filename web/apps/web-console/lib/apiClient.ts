@@ -1,5 +1,5 @@
-import { API_BASE_URL, ROUTES } from '@/utils/constants';
-import { FEATURE_FLAGS } from './config';
+import { API_BASE_URL } from '@/utils/constants';
+import { API_CONFIG, FEATURE_FLAGS } from './config';
 import { getMockForPath } from './mock/data';
 
 export class ApiError extends Error {
@@ -39,6 +39,8 @@ export async function apiRequest<T = any>(
   options: ApiRequestOptions = {}
 ): Promise<T> {
   const { skipAuth = false, allowMockFallback = true, ...fetchOptions } = options;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -61,6 +63,7 @@ export async function apiRequest<T = any>(
       ...fetchOptions,
       headers,
       credentials: 'include',
+      signal: fetchOptions.signal ?? controller.signal,
     });
 
     // Handle 401 - Unauthorized (redirect disabled for local dev)
@@ -98,7 +101,11 @@ export async function apiRequest<T = any>(
       const mock = getMockForPath(path);
       if (mock !== undefined) return mock as T;
     }
-    throw new ApiError(500, 'Network error or server is unavailable');
+    throw new ApiError(500, error instanceof DOMException && error.name === 'AbortError'
+      ? 'Request timed out'
+      : 'Network error or server is unavailable');
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
