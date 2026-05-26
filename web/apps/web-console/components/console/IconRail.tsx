@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, ListChecks, Box, type LucideIcon,
+  LayoutDashboard, Zap, Box, type LucideIcon,
 } from 'lucide-react';
 import { tokens } from './primitives';
 import { ProfileMenu } from './ProfileMenu';
@@ -25,8 +25,8 @@ interface Lens {
 }
 
 const LENSES: Lens[] = [
-  { id: 'home',       label: 'Home',       href: '/home',            matches: ['/home'],         Icon: Home },
-  { id: 'executions', label: 'Executions', href: '/execution/tasks', matches: ['/execution'],    Icon: ListChecks },
+  { id: 'home',       label: 'Home',       href: '/home',            matches: ['/home'],         Icon: LayoutDashboard },
+  { id: 'executions', label: 'Executions', href: '/execution/tasks', matches: ['/execution'],    Icon: Zap },
   { id: 'runtimes',   label: 'Runtimes',   href: '/runtimes',        matches: ['/runtimes'],     Icon: Box },
 ];
 
@@ -50,7 +50,7 @@ function RailItem({ lens, active }: { lens: Lens; active: boolean }) {
       <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} />
       {active && (
         <span
-          className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r"
+          className="absolute left-0 top-1.5 bottom-1.5 w-[1px] rounded-r"
           style={{ background: tokens.textPrimary }}
         />
       )}
@@ -86,8 +86,8 @@ export function IconRail() {
       }}
     >
       {/* brand */}
-      <Link href="/execution/tasks" className="flex items-center justify-center h-9 w-9 mb-1">
-        <img src="/inertiadm.png" alt="Igris" width={15} height={15} className="block select-none" draggable={false} />
+      <Link href="/execution/tasks" className="flex items-center justify-center h-6 w-6 mt-2 mb-2">
+        <img src="/fofotlight.png" alt="Igris" className="block select-none h-full w-full object-contain" draggable={false} />
       </Link>
 
       {/* lenses */}
@@ -98,7 +98,9 @@ export function IconRail() {
       </div>
 
       {/* profile (always at bottom — Settings lives inside the profile menu) */}
-      <ProfileMenu />
+      <div className="mb-2">
+        <ProfileMenu />
+      </div>
     </nav>
   );
 }
