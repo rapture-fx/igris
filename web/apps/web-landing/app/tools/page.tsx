@@ -153,7 +153,7 @@ processData();`
       downloadUrl: 'https://github.com/igris-inertial/cli/releases',
       docsUrl: '/docs/cli',
       githubUrl: 'https://github.com/igris-inertial/cli',
-      installCommand: 'curl -sSL https://install.igris-inertial.com/cli | bash',
+      installCommand: 'curl -fsSL https://igrisinertial.com/install | bash',
       features: [
         'Dataset management',
         'Pipeline orchestration',
@@ -163,10 +163,11 @@ processData();`
         'Batch operations'
       ],
       codeExample: `# Install Igris Inertial CLI
-curl -sSL https://install.igris-inertial.com/cli | bash
+curl -fsSL https://igrisinertial.com/install | bash
 
-# Set up authentication
-igris auth login
+# Check install and run the first demo
+igris doctor
+igris demo --recover-prove
 
 # Upload a dataset
 igris data upload data.csv --name "Customer Data"
