@@ -1,0 +1,78 @@
+---
+title: "Install"
+description: "Install the Igris CLI and run the first Run / Recover / Prove demo without Postgres, Docker, or a repository checkout."
+audience: "public"
+---
+
+# Install
+
+Run the public installer:
+
+```bash
+curl -fsSL https://igrisinertial.com/install | bash
+```
+
+The installer detects macOS/Linux and arm64/x86_64, downloads the matching CLI
+archive, verifies the checksum when release checksum metadata is published, and
+installs into `~/.igris/bin`. It does not use `sudo` and does not silently edit
+shell profiles.
+
+If `~/.igris/bin` is not on your `PATH`, add it explicitly:
+
+```bash
+export PATH="$HOME/.igris/bin:$PATH"
+```
+
+## First Run
+
+```bash
+igris doctor
+igris demo --recover-prove
+```
+
+The demo is self-contained. It does not require Postgres, Docker, Homebrew
+Postgres, provider credentials, runtime key setup, or a cloned repository.
+
+Expected output includes:
+
+```text
+Action requested: read-only task
+Policy applied: ...
+Runtime boundary recorded: ...
+Recovery demo: irreversible replay blocked
+Receipt verification: verified
+Open the execution story: file://...
+```
+
+The first-run proof is demo evidence. It uses a generated local runtime key and
+a signed receipt so you can see the Run / Recover / Prove model immediately. It
+is not a production deployment claim.
+
+## Uninstall
+
+```bash
+igris uninstall
+rm -rf "$HOME/.igris"
+```
+
+Remove any `PATH` line you added to your shell profile.
+
+## Security Notes
+
+- The installer is readable shell served from `https://igrisinertial.com/install`.
+- Installation is user-local by default: `~/.igris/bin`.
+- Checksums are verified when published for the selected artifact.
+- No telemetry is collected by the installer or first-run demo.
+- Do not paste private keys, tokens, raw callback bodies, database credentials,
+  or environment secrets into support tickets or public transcripts.
+
+## Advanced Validation
+
+Contributors who want the full advanced local validation path can still use:
+
+```bash
+make run-recover-prove-local-provision
+```
+
+That advanced path can use Homebrew/manual Postgres or optional Docker. It is
+separate from the first-run installer demo.
