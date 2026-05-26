@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "---Start Here---",
+    "install",
     "quickstart",
     "first-verified-run",
     "sdk",
