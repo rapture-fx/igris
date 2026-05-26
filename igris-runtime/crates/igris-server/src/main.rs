@@ -3555,6 +3555,28 @@ async fn main() -> anyhow::Result<()> {
     enum Command {
         /// Start the HTTP server (default)
         Serve,
+        /// Check the local CLI install and first-run prerequisites.
+        Doctor,
+        /// Run the first-run local Run / Recover / Prove demo.
+        Demo {
+            /// Show the explicit recovery/proof first-run path.
+            #[arg(long)]
+            recover_prove: bool,
+            /// Optional hosted console base URL for seeded demo links.
+            #[arg(long)]
+            console_url: Option<String>,
+            /// Advanced repo-backed demo commands.
+            #[command(subcommand)]
+            command: Option<cli::DemoSub>,
+        },
+        /// Remove user-local Igris binaries installed by the public installer.
+        Uninstall {
+            /// Print what would be removed without deleting files.
+            #[arg(long)]
+            dry_run: bool,
+        },
+        /// Print CLI version.
+        Version,
         /// Validate a config.json5 file and exit
         ValidateConfig,
         /// Ping /v1/health and exit
@@ -3596,9 +3618,6 @@ async fn main() -> anyhow::Result<()> {
         /// Verify a receipt by execution_id.
         #[command(subcommand)]
         Receipts(cli::ReceiptsSub),
-        /// Run a built-in proof demo.
-        #[command(subcommand)]
-        Demo(cli::DemoSub),
         /// Run the MCP server (stdio transport) exposing task/proof tools.
         #[command(subcommand)]
         Mcp(cli::McpSub),
@@ -3611,6 +3630,77 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command.unwrap_or(Command::Serve) {
         Command::Serve => {}
+        Command::Doctor => {
+            let os = std::env::consts::OS;
+            let arch = std::env::consts::ARCH;
+            let install_dir = cli::default_install_dir();
+            let path = std::env::var("PATH").unwrap_or_default();
+            println!("Igris doctor");
+            println!("  version: {}", env!("CARGO_PKG_VERSION"));
+            println!("  os: {}", os);
+            println!("  arch: {}", arch);
+            println!("  install_dir: {}", install_dir);
+            println!(
+                "  install_dir_in_path: {}",
+                path.split(':').any(|entry| entry == install_dir)
+            );
+            println!("  first_run_demo_requires_postgres: false");
+            println!("  first_run_demo_requires_docker: false");
+            println!("  first_run_demo_requires_repo_clone: false");
+            println!("  telemetry: disabled");
+            println!();
+            println!("Run: igris demo");
+            return Ok(());
+        }
+        Command::Demo {
+            recover_prove,
+            console_url,
+            command,
+        } => {
+            if let Some(sub) = command {
+                match sub {
+                    cli::DemoSub::ActionTask {
+                        script,
+                        watch,
+                        verify,
+                        console_url,
+                    } => {
+                        let console = cli::resolve_console_url(&console_url);
+                        cli::demo::run_action_task(&script, watch, verify, &console).await?
+                    }
+                }
+            } else {
+                let console = cli::resolve_console_url(&console_url);
+                cli::demo::run_first_run_demo(recover_prove, &console).await?
+            }
+            return Ok(());
+        }
+        Command::Uninstall { dry_run } => {
+            let install_dir = std::path::PathBuf::from(cli::default_install_dir());
+            let targets = [install_dir.join("igris"), install_dir.join("igris-runtime")];
+            println!("Igris uninstall");
+            for target in targets {
+                if target.exists() {
+                    if dry_run {
+                        println!("  would remove {}", target.display());
+                    } else {
+                        std::fs::remove_file(&target)?;
+                        println!("  removed {}", target.display());
+                    }
+                } else {
+                    println!("  not found {}", target.display());
+                }
+            }
+            println!(
+                "Remove PATH entry manually if you added it: {}",
+                install_dir.display()
+            );
+            return Ok(());
+        }
+        Command::Version => {
+            println!("igris {}", env!("CARGO_PKG_VERSION"));
+            return Ok(());
+        }
         Command::ValidateConfig => {
             let config_path =
                 std::env::var("IGRIS_CONFIG").unwrap_or_else(|_| "config.json5".to_string());
@@ -3809,20 +3899,6 @@ async fn main() -> anyhow::Result<()> {
                 } => {
                     let api = cli::resolve_api_url(&api_url);
                     cli::receipts::run_verify(&api, &execution_id).await?
-                }
-            }
-            return Ok(());
-        }
-        Command::Demo(sub) => {
-            match sub {
-                cli::DemoSub::ActionTask {
-                    script,
-                    watch,
-                    verify,
-                    console_url,
-                } => {
-                    let console = cli::resolve_console_url(&console_url);
-                    cli::demo::run_action_task(&script, watch, verify, &console).await?
                 }
             }
             return Ok(());
