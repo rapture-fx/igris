@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-09T07:42:40.180Z",
+  "generated_at": "2026-05-25T15:53:50.873Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
     "/docs/agents": "public",
@@ -148,6 +148,7 @@
     "/docs/hybrid-deployment-workflow": "public",
     "/docs/identity-access": "public",
     "/docs": "public",
+    "/docs/install": "public",
     "/docs/key-management": "public",
     "/docs/licensing-activation": "public",
     "/docs/local-llm-fallback": "public",
