@@ -125,6 +125,36 @@ pub enum McpSub {
 }
 
 #[derive(Debug, Subcommand)]
+pub enum RuntimeSub {
+    /// Start the local runtime HTTP server.
+    Start,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ActionsSub {
+    /// Validate and register an action manifest for this project.
+    Register {
+        /// Path to igris.actions.json.
+        file: String,
+    },
+    /// List actions from a local manifest.
+    List {
+        /// Path to igris.actions.json.
+        #[arg(default_value = "igris.actions.json")]
+        file: String,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum SecretsSub {
+    /// Placeholder for hosted/runtime secret storage.
+    Set {
+        /// Secret name, for example GITHUB_TOKEN.
+        name: String,
+    },
+}
+
+#[derive(Debug, Subcommand)]
 pub enum DemoSub {
     /// Run the Action Task V1 proof demo end-to-end.
     ActionTask {
