@@ -1,0 +1,28 @@
+{
+  "actions": [
+    {
+      "name": "github.create_issue",
+      "description": "Create an issue through a mocked HTTP endpoint.",
+      "risk": "medium",
+      "replay_class": "non_retryable",
+      "irreversible": true,
+      "requires_approval": false,
+      "required_secrets": [],
+      "runtime_target": "http_request",
+      "input_schema": {
+        "type": "object",
+        "required": ["method", "url", "body"]
+      }
+    },
+    {
+      "name": "db.update_customer",
+      "description": "Write a customer update record to a controlled table.",
+      "risk": "high",
+      "replay_class": "non_retryable",
+      "irreversible": true,
+      "requires_approval": true,
+      "required_secrets": [],
+      "runtime_target": "database_write"
+    }
+  ]
+}
