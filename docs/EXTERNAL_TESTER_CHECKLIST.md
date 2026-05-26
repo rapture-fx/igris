@@ -74,14 +74,27 @@ Verification should be explained through:
 
 ## Report Back
 
-Please report:
+Please report answers in this structure:
 
-- OS and Postgres path used: Homebrew, manual DSN, or Docker.
-- Whether the main command completed without `--skip-live`.
-- The first command or doc step that was unclear.
-- Whether you can explain run, recover, and prove in your own words after the run.
-- Whether the receipt/proof model felt inspectable and trustworthy.
-- Any output that looked like a secret or raw local credential.
+1. Environment: OS, CPU architecture, and Postgres path used: Homebrew, manual
+   DSN, or Docker.
+2. Command result: did `make run-recover-prove-local-provision` complete
+   without `--skip-live`? If not, paste the first failing command and the
+   redacted error.
+3. Setup friction: what prerequisite, command, port, migration, or database
+   step slowed you down?
+4. Product understanding: after the run, explain "run", "recover", and
+   "prove" in your own words.
+5. Proof trust: did the receipt/proof model feel inspectable and trustworthy?
+   What still felt like a leap of faith?
+6. Unclear terms: list any words, API names, output fields, or docs that were
+   confusing.
+7. Secret leakage: did any output look like a raw credential, private key,
+   token, raw `DATABASE_URL`, raw callback body, or raw environment value?
 
-Do not share raw `DATABASE_URL`, DB passwords, private keys, API keys, tokens, raw callback bodies, or raw environment values.
+It is safe to share the success/failure status, sanitized IDs, HTTP status
+codes, local-only inspection URLs, and the redacted evidence summary. Redact
+tenant IDs if sharing publicly.
 
+Do not share raw `DATABASE_URL`, DB passwords, private keys, API keys, tokens,
+raw callback bodies, or raw environment values.
