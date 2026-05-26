@@ -85,7 +85,7 @@ export const API_CONFIG = {
   /**
    * Request timeout in milliseconds
    */
-  timeout: 30000, // 30 seconds
+  timeout: 8000,
 
   /**
    * Number of retry attempts for failed requests
