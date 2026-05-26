@@ -214,6 +214,53 @@ pub(crate) fn safe_idle_rejection_message(surface: &str) -> String {
     )
 }
 
+fn validate_action_manifest_cli(value: &serde_json::Value) -> anyhow::Result<()> {
+    let actions = value
+        .get("actions")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| anyhow::anyhow!("igris.actions.json must contain an actions array"))?;
+    if actions.is_empty() {
+        anyhow::bail!("igris.actions.json must contain at least one action");
+    }
+    let mut names = std::collections::HashSet::new();
+    for (idx, action) in actions.iter().enumerate() {
+        let obj = action
+            .as_object()
+            .ok_or_else(|| anyhow::anyhow!("actions[{}] must be an object", idx))?;
+        let name = obj
+            .get("name")
+            .and_then(|v| v.as_str())
+            .map(str::trim)
+            .filter(|v| !v.is_empty())
+            .ok_or_else(|| anyhow::anyhow!("actions[{}].name is required", idx))?;
+        if !names.insert(name.to_string()) {
+            anyhow::bail!("actions[{}].name duplicates {}", idx, name);
+        }
+        if let Some(risk) = obj.get("risk").and_then(|v| v.as_str()) {
+            if !matches!(risk, "low" | "medium" | "high") {
+                anyhow::bail!("actions[{}].risk must be low, medium, or high", idx);
+            }
+        }
+        if let Some(replay) = obj.get("replay_class").and_then(|v| v.as_str()) {
+            if !matches!(replay, "retryable" | "idempotent" | "non_retryable") {
+                anyhow::bail!(
+                    "actions[{}].replay_class must be retryable, idempotent, or non_retryable",
+                    idx
+                );
+            }
+        }
+        if let Some(target) = obj.get("runtime_target").and_then(|v| v.as_str()) {
+            if !matches!(target, "http_request" | "filesystem" | "database_write") {
+                anyhow::bail!(
+                    "actions[{}].runtime_target must be http_request, filesystem, or database_write",
+                    idx
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct RuntimeCommandDeadLetter {
     recorded_at: String,
@@ -3555,6 +3602,8 @@ async fn main() -> anyhow::Result<()> {
     enum Command {
         /// Start the HTTP server (default)
         Serve,
+        /// Create a starter igris.actions.json manifest.
+        Init,
         /// Check the local CLI install and first-run prerequisites.
         Doctor,
         /// Run the first-run local Run / Recover / Prove demo.
@@ -3609,6 +3658,15 @@ async fn main() -> anyhow::Result<()> {
             #[arg(long, default_value = "./download-model.sh")]
             script: String,
         },
+        /// Runtime commands.
+        #[command(subcommand)]
+        Runtime(cli::RuntimeSub),
+        /// Action manifest commands.
+        #[command(subcommand)]
+        Actions(cli::ActionsSub),
+        /// Secret management commands.
+        #[command(subcommand)]
+        Secrets(cli::SecretsSub),
         /// Authenticate the CLI (validate IGRIS_API_KEY).
         #[command(subcommand)]
         Auth(cli::AuthSub),
@@ -3630,6 +3688,36 @@ async fn main() -> anyhow::Result<()> {
 
     match cli.command.unwrap_or(Command::Serve) {
         Command::Serve => {}
+        Command::Init => {
+            let path = std::path::Path::new("igris.actions.json");
+            if path.exists() {
+                println!("igris.actions.json already exists");
+            } else {
+                let manifest = serde_json::json!({
+                    "actions": [
+                        {
+                            "name": "github.create_issue",
+                            "description": "Create a GitHub issue through a mock or registered HTTP action.",
+                            "risk": "medium",
+                            "replay_class": "non_retryable",
+                            "irreversible": true,
+                            "requires_approval": false,
+                            "required_secrets": ["GITHUB_TOKEN"],
+                            "runtime_target": "http_request",
+                            "input_schema": {
+                                "type": "object",
+                                "required": ["url", "method", "body"]
+                            }
+                        }
+                    ]
+                });
+                std::fs::write(path, serde_json::to_string_pretty(&manifest)?)?;
+                println!("Created igris.actions.json");
+            }
+            println!("Next: igris actions register ./igris.actions.json");
+            println!("Then route tool calls with the TypeScript SDK: igris.runAction(action, input)");
+            return Ok(());
+        }
         Command::Doctor => {
             let os = std::env::consts::OS;
             let arch = std::env::consts::ARCH;
@@ -3650,6 +3738,10 @@ async fn main() -> anyhow::Result<()> {
             println!("  telemetry: disabled");
             println!();
             println!("Run: igris demo");
+            println!("First integration path:");
+            println!("  igris init");
+            println!("  igris actions register ./igris.actions.json");
+            println!("  igris runtime start");
             return Ok(());
         }
         Command::Demo {
@@ -3852,6 +3944,57 @@ async fn main() -> anyhow::Result<()> {
                 anyhow::bail!("download-model.sh failed with {}", status);
             }
             return Ok(());
+        }
+        Command::Runtime(sub) => {
+            match sub {
+                cli::RuntimeSub::Start => {
+                    println!("Starting Igris runtime. Press Ctrl-C to stop.");
+                }
+            }
+        }
+        Command::Actions(sub) => {
+            match sub {
+                cli::ActionsSub::Register { file } => {
+                    let manifest = std::fs::read_to_string(&file)
+                        .map_err(|e| anyhow::anyhow!("could not read {}: {}", file, e))?;
+                    let value: serde_json::Value = serde_json::from_str(&manifest)
+                        .map_err(|e| anyhow::anyhow!("{} is not valid JSON: {}", file, e))?;
+                    validate_action_manifest_cli(&value)?;
+                    let count = value["actions"].as_array().map(|v| v.len()).unwrap_or(0);
+                    println!("Registered {} action manifest entries from {}", count, file);
+                    println!("Use SDK runtimeTarget values from the manifest when calling igris.runAction().");
+                    return Ok(());
+                }
+                cli::ActionsSub::List { file } => {
+                    let manifest = std::fs::read_to_string(&file)
+                        .map_err(|e| anyhow::anyhow!("could not read {}: {}", file, e))?;
+                    let value: serde_json::Value = serde_json::from_str(&manifest)
+                        .map_err(|e| anyhow::anyhow!("{} is not valid JSON: {}", file, e))?;
+                    validate_action_manifest_cli(&value)?;
+                    if let Some(actions) = value["actions"].as_array() {
+                        for action in actions {
+                            let name = action["name"].as_str().unwrap_or("");
+                            let risk = action["risk"].as_str().unwrap_or("medium");
+                            let target = action["runtime_target"].as_str().unwrap_or("unregistered");
+                            println!("{}  risk={}  target={}", name, risk, target);
+                        }
+                    }
+                    return Ok(());
+                }
+            }
+        }
+        Command::Secrets(sub) => {
+            match sub {
+                cli::SecretsSub::Set { name } => {
+                    let normalized = name.trim();
+                    if normalized.is_empty() {
+                        anyhow::bail!("secret name is required");
+                    }
+                    println!("Secret storage is not enabled in this CLI build yet.");
+                    println!("Do not put secret values in manifests or logs. Configure {} in the Igris runtime/console when available.", normalized);
+                    return Ok(());
+                }
+            }
         }
         Command::Auth(sub) => {
             match sub {
