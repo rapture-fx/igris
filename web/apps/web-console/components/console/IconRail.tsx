@@ -47,10 +47,10 @@ function RailItem({ lens, active }: { lens: Lens; active: boolean }) {
         color: active ? tokens.textPrimary : tokens.textDim,
       }}
     >
-      <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} />
+      <Icon className={`h-6 w-6 ${active ? 'opacity-80' : ''}`} strokeWidth={1.5} />
       {active && (
         <span
-          className="absolute left-0 top-1.5 bottom-1.5 w-[1px] rounded-r"
+          className="absolute left-0 top-2 bottom-2 w-[0.5px] rounded-r opacity-80"
           style={{ background: tokens.textPrimary }}
         />
       )}
@@ -86,8 +86,8 @@ export function IconRail() {
       }}
     >
       {/* brand */}
-      <Link href="/execution/tasks" className="flex items-center justify-center h-6 w-6 mt-2 mb-2">
-        <img src="/fofotlight.png" alt="Igris" className="block select-none h-full w-full object-contain" draggable={false} />
+      <Link href="/execution/tasks" className="flex items-center justify-center h-6 w-6 mt-2 mb-6">
+        <img src="/fofotlight.png" alt="Igris" className="block select-none h-full w-full object-contain opacity-80" draggable={false} />
       </Link>
 
       {/* lenses */}
