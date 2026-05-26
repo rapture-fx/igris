@@ -104,10 +104,10 @@ export default function WhyItExists() {
                 lineHeight: 1.6,
               }}
             >
-              The Igris runtime ships as a single SHA256-pinned install script.
-              It is non-interactive, idempotent, and safe for CI pipelines —
-              verifies its own integrity, fetches the platform binary, and
-              registers the host with the supplied API key.
+              The Igris CLI installs into your user-local path and runs a
+              first-run proof demo without Postgres, Docker, or a repository
+              checkout. The installer verifies checksums when release metadata
+              is published and does not edit shell profiles silently.
             </p>
           </div>
 
