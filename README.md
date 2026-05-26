@@ -1,14 +1,78 @@
 # Igris Inertial
 
-Igris is one execution system for AI tasks you can verify.
+Igris is the trust layer between AI agents and the actions they perform.
+
+Keep your LLM stack. Route risky actions through Igris.
 
 The product model is:
 
-1. Request
-2. Execute
-3. Verify
+1. Agent reasons in your app
+2. Your app calls `igris.runAction()` instead of the tool directly
+3. Igris governs, executes, records, recovers, and verifies the action
 
-You send one request through a consistent API surface. Igris applies execution boundaries, records execution events, produces signed records, and returns verification-ready receipts for runs that need governance and post-run inspection.
+Igris does not replace OpenAI, Anthropic, your agent framework, or your application code. It sits between your app and the tools, APIs, files, databases, and workflows your agent can affect.
+
+```text
+Before:  app/agent -> createIssue() -> GitHub/API/database
+After:   app/agent -> igris.runAction("github.create_issue", input) -> Igris -> GitHub/API/database
+```
+
+Igris applies execution boundaries, records execution events, produces signed records, and returns task IDs, run IDs, proof status, and console links for actions that need governance and post-run inspection.
+
+## First Integration Path
+
+Install the TypeScript SDK and change the action/tool execution line:
+
+```bash
+npm install @igris-inertial/sdk
+```
+
+```ts
+import { IgrisClient } from '@igris-inertial/sdk';
+
+const igris = new IgrisClient({
+  apiKey: process.env.IGRIS_API_KEY,
+  baseUrl: process.env.IGRIS_BASE_URL,
+});
+
+await igris.runAction('github.create_issue', {
+  method: 'POST',
+  url: 'http://localhost:8787/issues',
+  body: { repo, title, body },
+}, { runtimeTarget: 'http_request' });
+
+const safeTool = igris.wrapTool('db.update_customer', updateCustomer, {
+  runtimeTarget: 'database_write',
+});
+```
+
+Action manifests make the available actions explicit:
+
+```json
+{
+  "actions": [
+    {
+      "name": "github.create_issue",
+      "description": "Create a GitHub issue.",
+      "risk": "medium",
+      "replay_class": "non_retryable",
+      "irreversible": true,
+      "requires_approval": false,
+      "required_secrets": ["GITHUB_TOKEN"],
+      "runtime_target": "http_request"
+    }
+  ]
+}
+```
+
+See [examples/node-action-wrapper](./examples/node-action-wrapper) for the before/after integration.
+
+The HTTP contract behind the SDK is:
+
+- `POST /v1/actions/run`
+- `GET /v1/actions/runs/:id`
+
+Responses include `task_id`, `run_id`, `execution_id` when available, `status`, `proof_status`, `result` when available, and `console_url` when configured. Secrets and raw proof internals are not returned.
 
 ## Deployment Modes
 
@@ -45,27 +109,24 @@ Areas such as real-provider proof, local fallback, checkpoint recovery, fleet fa
 
 ## Quick Install
 
-The public first-run path installs the Igris CLI into `~/.igris/bin` and runs a
-self-contained Run / Recover / Prove demo:
+The public first-run path installs the Igris CLI into `~/.igris/bin`:
 
 ```bash
 curl -fsSL https://igrisinertial.com/install | bash
 ```
 
-The first-run demo does not require local Postgres, Docker, Homebrew Postgres,
-or a cloned repository. It shows a deterministic read-only action, policy
-application, runtime boundary evidence, replay-safety blocking, and signed demo
-receipt verification. It labels the result as demo evidence, not a production
-deployment.
+The first product path does not require local Postgres, Docker, Homebrew Postgres,
+or a cloned repository. Start with the SDK/action path:
 
 After install:
 
 ```bash
+igris init
+igris runtime start
+igris actions register ./igris.actions.json
+igris actions list
 igris doctor
-igris demo
-igris demo --recover-prove
 igris version
-igris uninstall
 ```
 
 The installer does not use `sudo`, does not silently edit shell profiles, and
