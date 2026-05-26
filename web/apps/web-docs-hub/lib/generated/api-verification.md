@@ -1,21 +1,21 @@
 # API Verification Report
 
-Generated: 2026-05-09T07:42:47.398Z
+Generated: 2026-05-25T15:53:56.330Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
 - Total documented endpoints: 103
-- Test-covered: 15
+- Test-covered: 17
 - Client-referenced: 13
-- Implemented but unverified: 75
+- Implemented but unverified: 73
 
 ## Endpoints
 
 | Status | Method | Path | Section | Evidence |
 | --- | --- | --- | --- | --- |
-| test-covered | POST | `/v1/infer` | Inference & Integration | tests: 5, clients: 2 |
+| test-covered | POST | `/v1/infer` | Inference & Integration | tests: 6, clients: 2 |
 | test-covered | POST | `/v1/chat/completions` | Inference & Integration | tests: 3, clients: 4 |
 | test-covered | GET | `/v1/health` | Inference & Integration | tests: 5, clients: 5 |
 | client-referenced | GET | `/v1/models` | Inference & Integration | clients: 2 |
@@ -35,9 +35,9 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | POST | `/api/v1/runtime/update` | Runtime Distribution & Fleet Coordination | none |
 | implemented-unverified | GET | `/api/subscription/status` | Account, Trial, and Billing | none |
 | implemented-unverified | GET | `/api/subscription/plans` | Account, Trial, and Billing | none |
-| implemented-unverified | GET | `/v1/account/api-key` | Account, Trial, and Billing | none |
+| test-covered | GET | `/v1/account/api-key` | Account, Trial, and Billing | tests: 1 |
 | implemented-unverified | POST | `/v1/account/api-key` | Account, Trial, and Billing | none |
-| implemented-unverified | DELETE | `/v1/account/api-key` | Account, Trial, and Billing | none |
+| test-covered | DELETE | `/v1/account/api-key` | Account, Trial, and Billing | tests: 1 |
 | client-referenced | GET | `/v1/vault/keys` | Vault, Policy, and Governance | clients: 2 |
 | client-referenced | POST | `/v1/vault/keys` | Vault, Policy, and Governance | clients: 2 |
 | client-referenced | GET | `/v1/vault/keys/:provider` | Vault, Policy, and Governance | clients: 2 |
@@ -51,7 +51,7 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | test-covered | GET | `/v1/receipts` | Execution, History, and Receipts | tests: 1 |
 | test-covered | GET | `/v1/receipts/:id` | Execution, History, and Receipts | tests: 1 |
 | implemented-unverified | GET | `/v1/receipts/export` | Execution, History, and Receipts | none |
-| test-covered | POST | `/proof/receipts/verify` | Execution, History, and Receipts | tests: 1 |
+| test-covered | POST | `/proof/receipts/verify` | Execution, History, and Receipts | tests: 2 |
 | implemented-unverified | GET | `/v1/routing/stats` | Routing Control & Analytics | none |
 | implemented-unverified | GET | `/v1/routing/recent` | Routing Control & Analytics | none |
 | implemented-unverified | GET | `/v1/routing/leaderboard` | Routing Control & Analytics | none |
@@ -72,8 +72,8 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | POST | `/v1/bt/definitions` | Behavior Trees | none |
 | implemented-unverified | DELETE | `/v1/bt/definitions/:id` | Behavior Trees | none |
 | test-covered | POST | `/v1/tasks/submit` | Durable Tasks | tests: 1, clients: 1 |
-| test-covered | GET | `/v1/tasks/:id` | Durable Tasks | tests: 1, clients: 1 |
-| test-covered | GET | `/v1/tasks` | Durable Tasks | tests: 1, clients: 1 |
+| test-covered | GET | `/v1/tasks/:id` | Durable Tasks | tests: 2, clients: 1 |
+| test-covered | GET | `/v1/tasks` | Durable Tasks | tests: 2, clients: 1 |
 | client-referenced | GET | `/v1/tasks/:id/steps` | Durable Tasks | clients: 1 |
 | test-covered | POST | `/v1/tasks/:id/cancel` | Durable Tasks | tests: 1 |
 | implemented-unverified | GET | `/v1/tasks/proof/readiness` | Durable Tasks | none |
