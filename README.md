@@ -35,6 +35,7 @@ Areas such as real-provider proof, local fallback, checkpoint recovery, fleet fa
 
 ## Start Here
 
+- Quick install: `curl -fsSL https://igrisinertial.com/install | bash`
 - Docs app: [web/apps/web-docs-hub](./web/apps/web-docs-hub)
 - Docs overview: [web/apps/web-docs-hub/content/docs/index.mdx](./web/apps/web-docs-hub/content/docs/index.mdx)
 - Quick start: [web/apps/web-docs-hub/content/docs/quickstart.mdx](./web/apps/web-docs-hub/content/docs/quickstart.mdx)
@@ -42,7 +43,35 @@ Areas such as real-provider proof, local fallback, checkpoint recovery, fleet fa
 - Request -> Execute -> Verify: [web/apps/web-docs-hub/content/docs/request-execute-verify.mdx](./web/apps/web-docs-hub/content/docs/request-execute-verify.mdx)
 - Verification: [web/apps/web-docs-hub/content/docs/verification.mdx](./web/apps/web-docs-hub/content/docs/verification.mdx)
 
-## Local Proof Loop
+## Quick Install
+
+The public first-run path installs the Igris CLI into `~/.igris/bin` and runs a
+self-contained Run / Recover / Prove demo:
+
+```bash
+curl -fsSL https://igrisinertial.com/install | bash
+```
+
+The first-run demo does not require local Postgres, Docker, Homebrew Postgres,
+or a cloned repository. It shows a deterministic read-only action, policy
+application, runtime boundary evidence, replay-safety blocking, and signed demo
+receipt verification. It labels the result as demo evidence, not a production
+deployment.
+
+After install:
+
+```bash
+igris doctor
+igris demo
+igris demo --recover-prove
+igris version
+igris uninstall
+```
+
+The installer does not use `sudo`, does not silently edit shell profiles, and
+prints PATH instructions if `~/.igris/bin` is not already available.
+
+## Advanced Local Validation
 
 To validate the core product promise on a developer machine, run the local proof
 loop:
@@ -76,11 +105,15 @@ Use [Run, Recover, Prove Locally](./docs/RUN_RECOVER_PROVE_LOCAL.md) for the
 full runbook, Homebrew/manual Postgres setup, optional Docker lifecycle
 commands, and troubleshooting.
 
-For external evaluation, start with:
+External tester path:
 
-- [External Tester Checklist](./docs/EXTERNAL_TESTER_CHECKLIST.md)
-- [Replay Safety Demo](./docs/REPLAY_SAFETY_DEMO.md)
-- [Receipt and Proof Spec v0.1](./docs/specs/IGRIS_RECEIPT_PROOF_SPEC_V0_1.md)
+1. Open [External Tester Checklist](./docs/EXTERNAL_TESTER_CHECKLIST.md).
+2. Run `make run-recover-prove-local-provision`.
+3. Share the checklist feedback answers and only redacted output.
+
+Use [Replay Safety Demo](./docs/REPLAY_SAFETY_DEMO.md) for the recovery
+scenario and [Receipt and Proof Spec v0.1](./docs/specs/IGRIS_RECEIPT_PROOF_SPEC_V0_1.md)
+for the proof model.
 
 ## Repository Layout
 
