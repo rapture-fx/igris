@@ -1,0 +1,17 @@
+{
+  "name": "igris-node-action-wrapper-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/after.ts"
+  },
+  "dependencies": {
+    "@igris-inertial/sdk": "file:../../igris-javascript-sdk"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.3.0"
+  }
+}
