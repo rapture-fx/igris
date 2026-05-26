@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-05-09T07:42:47.394Z",
+  "generated_at": "2026-05-25T15:53:56.327Z",
   "summary": {
     "total": 103,
     "by_status": {
-      "test-covered": 15,
+      "test-covered": 17,
       "client-referenced": 13,
-      "implemented-unverified": 75
+      "implemented-unverified": 73
     },
     "by_section": {
       "Inference & Integration": 7,
@@ -35,6 +35,7 @@
       "evidence": {
         "test_files": [
           "igris-go-sdk/igris_test.go",
+          "igris-overture/api/routes_execution_contract_test.go",
           "igris-overture/api/routes_multimodal_test.go",
           "stability-tests/tests/load/extended_load_test.go",
           "stability-tests/tests/load/soak_test.go",
@@ -401,11 +402,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Returns current API key metadata without revealing the secret.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/auth_apikey_integration_test.go"
+        ],
         "client_files": []
       }
     },
@@ -433,11 +436,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Revokes the current tenant API key.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/auth_apikey_integration_test.go"
+        ],
         "client_files": []
       }
     },
@@ -682,7 +687,8 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
-          "igris-overture/api/routes_proof_contract_test.go"
+          "igris-overture/api/routes_proof_contract_test.go",
+          "igris-overture/api/routes_tasks_test.go"
         ],
         "client_files": []
       }
@@ -1024,6 +1030,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/auth_apikey_integration_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
         "client_files": [
@@ -1044,6 +1051,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/auth_apikey_integration_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
         "client_files": [
