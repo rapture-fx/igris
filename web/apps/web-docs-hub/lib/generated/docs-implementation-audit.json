@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-09T07:44:40.573Z",
+  "generated_at": "2026-05-25T15:54:36.610Z",
   "summary": {
     "total": 836,
     "by_status": {
@@ -18094,7 +18094,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 45,
+      "line": 72,
       "method": null,
       "path": "/v1/infer",
       "expected_surface": null,
@@ -18123,7 +18123,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 63,
+      "line": 90,
       "method": null,
       "path": "/v1/infer",
       "expected_surface": null,
