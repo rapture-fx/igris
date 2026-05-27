@@ -47,7 +47,7 @@ function StatusRow({ label, value, tone = 'neutral' }: { label: string; value: s
 
 function HomeInner() {
   const { data: taskData, isLoading: tasksLoading } = useTasks({ limit: 60 });
-  const { data: runtimeData, isLoading: runtimesLoading } = useGovernanceRuntimes({ limit: 50 });
+  const { data: runtimeData, isLoading: runtimesLoading } = useGovernanceRuntimes({ limit: 1 });
   const tasks = useMemo(() => taskData?.tasks ?? [], [taskData?.tasks]);
   const runtimes = runtimeData?.items ?? [];
   const lastRun = tasks[0];
