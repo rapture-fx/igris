@@ -36,11 +36,12 @@ function proofTone(status: string): Tone {
 function setupStatus(action: ConsoleAction): { label: string; tone: Tone } {
   const def = action.definition;
   if (def.target_type === 'mock_demo') return { label: 'Ready', tone: 'ok' };
-  if (def.target_type === 'webhook' || def.target_type === 'api') {
+  if (def.target_type === 'webhook' || def.target_type === 'hosted_api' || def.target_type === 'api') {
     if (!def.target_url) return { label: 'Needs target', tone: 'warn' };
     return { label: 'Ready', tone: 'ok' };
   }
   if (def.target_type === 'local_runtime') return { label: 'Needs runtime', tone: 'warn' };
+  if (def.target_type === 'hybrid_fallback') return { label: 'Coming soon', tone: 'muted' };
   return { label: 'Ready', tone: 'ok' };
 }
 
@@ -90,9 +91,7 @@ function ActionsInner() {
               {actions.length} {actions.length === 1 ? 'action' : 'actions'}
             </span>
           </div>
-          <div className="text-[11.5px] text-[#7a7a72] ml-1">
-            Actions are endpoints your agent calls instead of calling tools directly.
-          </div>
+
         </div>
 
         {/* Body */}
@@ -119,8 +118,8 @@ function ActionsInner() {
                   Create your first action
                 </div>
                 <p className="mx-auto mt-1.5 max-w-md text-[12px] leading-relaxed text-[#7a7a72]">
-                  Actions are endpoints your agent calls instead of calling tools directly.
-                  Igris loads policy and target, then runs the action with a signed receipt.
+                  Create an action with a target, policy, and endpoint. Igris loads
+                  policy and target, then runs the action with a signed receipt.
                 </p>
                 <Link
                   href="/actions/new"
