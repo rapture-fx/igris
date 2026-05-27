@@ -1,13 +1,15 @@
 import * as React from 'react';
 
+// Palette tuned to the console's warm/sepia surface (#c8c7be base, emerald +
+// amber accents). Avoids the cool Material rainbow that clashed with the UI.
 const HL = {
-  keyword:  '#c792ea',
-  string:   '#a5e075',
-  fn:       '#82aaff',
-  prop:     '#7fdbca',
-  flag:     '#f78c6c',
-  variable: '#ffcb6b',
-  punct:    '#5a5a52',
+  keyword:  '#6ee7b7',  // HTTP verbs, JS keywords — emerald-300 (matches POST badge)
+  string:   '#c8b89a',  // string literals — warm sand
+  fn:       '#e8c987',  // curl, fetch, JSON — warm gold
+  prop:     '#a8b8a8',  // object keys / header names — sage gray
+  flag:     '#d3a07a',  // -X, -H — terra
+  variable: '#fcd34d',  // $VAR, ${expr} — amber-300 (matches warn accents)
+  punct:    '#6a6a62',  // line-continuation \ — existing muted
 } as const;
 
 export type Token = { type: keyof typeof HL | 'text'; value: string };
