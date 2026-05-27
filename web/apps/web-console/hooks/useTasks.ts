@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 import { API_ENDPOINTS, QUERY_KEYS } from '@/utils/constants';
+import { MOCK_TASK_LIST, MOCK_TASKS_BY_ID } from '@/lib/mockExecutionData';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -198,11 +199,13 @@ export function useTasks(opts?: { limit?: number; status?: string }) {
     queryKey: [QUERY_KEYS.TASKS_LIST, opts?.status, opts?.limit],
     queryFn: async () => {
       try {
-        return await api.get<TaskListResponse>(
+        const res = await api.get<TaskListResponse>(
           `${API_ENDPOINTS.TASKS_LIST}${qs ? '?' + qs : ''}`,
         );
+        if (!res?.tasks?.length) return MOCK_TASK_LIST;
+        return res;
       } catch {
-        return { tasks: [], total: 0 };
+        return MOCK_TASK_LIST;
       }
     },
     refetchInterval: 15_000,
@@ -215,7 +218,15 @@ export function useTasks(opts?: { limit?: number; status?: string }) {
 export function useTask(taskId: string | null) {
   return useQuery<Task>({
     queryKey: [QUERY_KEYS.TASKS_DETAIL, taskId],
-    queryFn: () => api.get<Task>(API_ENDPOINTS.TASKS_GET(taskId!)),
+    queryFn: async () => {
+      try {
+        return await api.get<Task>(API_ENDPOINTS.TASKS_GET(taskId!));
+      } catch {
+        const mock = taskId && MOCK_TASKS_BY_ID[taskId];
+        if (mock) return mock;
+        throw new Error('task not found');
+      }
+    },
     enabled: !!taskId,
     refetchInterval: (query) => {
       const status = query.state.data?.status;
