@@ -20,6 +20,33 @@ import (
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
+// Execution target vocabulary for the unified Action model (Slice 1).
+//
+// These are not separate products. They are the surfaces a single Igris
+// Action can run on. `actionTargetAPIDeprecated` is the legacy alias for
+// `actionTargetHostedAPI` that existed before vocabulary normalization;
+// it is accepted on input and rewritten to the canonical form, but it is
+// never the preferred product term.
+const (
+	actionTargetHostedAPI      = "hosted_api"
+	actionTargetWebhook        = "webhook"
+	actionTargetLocalRuntime   = "local_runtime"
+	actionTargetHybridFallback = "hybrid_fallback"
+	actionTargetMockDemo       = "mock_demo"
+	actionTargetAPIDeprecated  = "api"
+)
+
+// canonicalActionTargetType normalizes legacy aliases (currently only `api`)
+// to the canonical execution target vocabulary. Unknown values are returned
+// unchanged so the caller's validation step can report a precise error.
+func canonicalActionTargetType(targetType string) string {
+	t := strings.TrimSpace(targetType)
+	if t == actionTargetAPIDeprecated {
+		return actionTargetHostedAPI
+	}
+	return t
+}
+
 type actionRunRequest struct {
 	Action         string                 `json:"action"`
 	Input          map[string]interface{} `json:"input"`
@@ -27,6 +54,22 @@ type actionRunRequest struct {
 	RuntimeTarget  string                 `json:"runtime_target,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+}
+
+// actionFallbackPolicy describes how an Action may fall back from a primary
+// execution target to a secondary one. Fallback is always explicit; the
+// resolver in a later slice will refuse to silently switch surfaces.
+//
+// `Enabled` defaults to false. For `hybrid_fallback` actions, the create/patch
+// path requires `Enabled = true` plus a primary and secondary target. The
+// resolver itself is not implemented in this slice — only the model.
+type actionFallbackPolicy struct {
+	Enabled            bool     `json:"enabled"`
+	PrimaryTarget      string   `json:"primary_target,omitempty"`
+	SecondaryTarget    string   `json:"secondary_target,omitempty"`
+	AllowedTargets     []string `json:"allowed_targets,omitempty"`
+	RequiresReplaySafe bool     `json:"requires_replay_safe"`
+	MaxAttempts        int      `json:"max_attempts,omitempty"`
 }
 
 type actionDefinition struct {
@@ -44,6 +87,7 @@ type actionDefinition struct {
 	Irreversible     bool                   `json:"irreversible"`
 	SecretRefs       []string               `json:"secret_refs"`
 	TargetMetadata   map[string]interface{} `json:"target_metadata,omitempty"`
+	FallbackPolicy   actionFallbackPolicy   `json:"fallback_policy"`
 	CreatedAt        time.Time              `json:"created_at"`
 	UpdatedAt        time.Time              `json:"updated_at"`
 	ArchivedAt       *time.Time             `json:"archived_at,omitempty"`
@@ -62,6 +106,7 @@ type actionDefinitionRequest struct {
 	Irreversible     *bool                  `json:"irreversible"`
 	SecretRefs       []string               `json:"secret_refs"`
 	TargetMetadata   map[string]interface{} `json:"target_metadata"`
+	FallbackPolicy   *actionFallbackPolicy  `json:"fallback_policy"`
 }
 
 type actionRunByNameRequest struct {
@@ -255,7 +300,7 @@ func handleActionCreate(db *sql.DB) fiber.Handler {
 		}
 		def.ID = uuid.NewString()
 		def.TenantID = tenantID
-		secretRefs, targetMetadata, err := marshalActionJSON(def)
+		secretRefs, targetMetadata, fallbackPolicy, err := marshalActionJSON(def)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
 		}
@@ -263,14 +308,16 @@ func handleActionCreate(db *sql.DB) fiber.Handler {
 		created, err := queryActionDefinition(c.Context(), db, `
 			INSERT INTO action_definitions (
 				id, tenant_id, name, display_name, description, target_type, target_url, method,
-				policy_preset, replay_class, approval_required, irreversible, secret_refs, target_metadata
+				policy_preset, replay_class, approval_required, irreversible, secret_refs, target_metadata,
+				fallback_policy
 			)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14::jsonb)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14::jsonb,$15::jsonb)
 			RETURNING id, tenant_id, name, display_name, description, target_type, target_url, method,
 			          policy_preset, replay_class, approval_required, irreversible, secret_refs,
-			          target_metadata, created_at, updated_at, archived_at`,
+			          target_metadata, fallback_policy, created_at, updated_at, archived_at`,
 			def.ID, def.TenantID, def.Name, def.DisplayName, def.Description, def.TargetType, def.TargetURL, def.Method,
-			def.PolicyPreset, def.ReplayClass, def.ApprovalRequired, def.Irreversible, string(secretRefs), string(targetMetadata))
+			def.PolicyPreset, def.ReplayClass, def.ApprovalRequired, def.Irreversible, string(secretRefs), string(targetMetadata),
+			string(fallbackPolicy))
 		if err != nil {
 			if isLikelyUniqueViolation(err) {
 				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "action_name_conflict"})
@@ -319,7 +366,7 @@ func handleActionPatch(db *sql.DB) fiber.Handler {
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
 		}
-		secretRefs, targetMetadata, err := marshalActionJSON(def)
+		secretRefs, targetMetadata, fallbackPolicy, err := marshalActionJSON(def)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
 		}
@@ -327,13 +374,15 @@ func handleActionPatch(db *sql.DB) fiber.Handler {
 			UPDATE action_definitions
 			SET name = $3, display_name = $4, description = $5, target_type = $6, target_url = $7,
 			    method = $8, policy_preset = $9, replay_class = $10, approval_required = $11,
-			    irreversible = $12, secret_refs = $13::jsonb, target_metadata = $14::jsonb, updated_at = NOW()
+			    irreversible = $12, secret_refs = $13::jsonb, target_metadata = $14::jsonb,
+			    fallback_policy = $15::jsonb, updated_at = NOW()
 			WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL
 			RETURNING id, tenant_id, name, display_name, description, target_type, target_url, method,
 			          policy_preset, replay_class, approval_required, irreversible, secret_refs,
-			          target_metadata, created_at, updated_at, archived_at`,
+			          target_metadata, fallback_policy, created_at, updated_at, archived_at`,
 			tenantID, current.ID, def.Name, def.DisplayName, def.Description, def.TargetType, def.TargetURL, def.Method,
-			def.PolicyPreset, def.ReplayClass, def.ApprovalRequired, def.Irreversible, string(secretRefs), string(targetMetadata))
+			def.PolicyPreset, def.ReplayClass, def.ApprovalRequired, def.Irreversible, string(secretRefs), string(targetMetadata),
+			string(fallbackPolicy))
 		if err == sql.ErrNoRows {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "action_not_found"})
 		}
@@ -411,8 +460,12 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 		DeadlineAt:     req.DeadlineAt,
 	}
 
-	switch def.TargetType {
-	case "mock_demo":
+	// Resolve legacy `api` rows to `hosted_api` for the dispatch switch.
+	// Behavior for hosted_api and webhook is identical in this slice; the
+	// target_type only differs in the metadata stamped onto the run.
+	targetType := canonicalActionTargetType(def.TargetType)
+	switch targetType {
+	case actionTargetMockDemo:
 		record := map[string]interface{}{
 			"demo":                 true,
 			"demo_behavior":        "mock_demo target; no external API was called",
@@ -563,7 +616,7 @@ func loadActionDefinitionByID(ctx context.Context, db *sql.DB, tenantID, id stri
 	return queryActionDefinition(ctx, db, `
 		SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
 		       policy_preset, replay_class, approval_required, irreversible, secret_refs,
-		       target_metadata, created_at, updated_at, archived_at
+		       target_metadata, fallback_policy, created_at, updated_at, archived_at
 		FROM action_definitions
 		WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL`, tenantID, id)
 }
@@ -572,7 +625,7 @@ func loadActionDefinitionByName(ctx context.Context, db *sql.DB, tenantID, name 
 	return queryActionDefinition(ctx, db, `
 		SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
 		       policy_preset, replay_class, approval_required, irreversible, secret_refs,
-		       target_metadata, created_at, updated_at, archived_at
+		       target_metadata, fallback_policy, created_at, updated_at, archived_at
 		FROM action_definitions
 		WHERE tenant_id = $1 AND name = $2 AND archived_at IS NULL`, tenantID, name)
 }
@@ -586,6 +639,7 @@ func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, er
 	var def actionDefinition
 	var secretRefsRaw []byte
 	var targetMetadataRaw []byte
+	var fallbackPolicyRaw []byte
 	err := scanner.Scan(
 		&def.ID,
 		&def.TenantID,
@@ -601,6 +655,7 @@ func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, er
 		&def.Irreversible,
 		&secretRefsRaw,
 		&targetMetadataRaw,
+		&fallbackPolicyRaw,
 		&def.CreatedAt,
 		&def.UpdatedAt,
 		&def.ArchivedAt,
@@ -614,12 +669,17 @@ func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, er
 	if len(targetMetadataRaw) > 0 {
 		_ = json.Unmarshal(targetMetadataRaw, &def.TargetMetadata)
 	}
+	if len(fallbackPolicyRaw) > 0 {
+		_ = json.Unmarshal(fallbackPolicyRaw, &def.FallbackPolicy)
+	}
 	if def.SecretRefs == nil {
 		def.SecretRefs = []string{}
 	}
 	if def.TargetMetadata == nil {
 		def.TargetMetadata = map[string]interface{}{}
 	}
+	// Persisted rows pre-dating migration 055 read back as an empty struct,
+	// which is the same as the canonical "disabled" default — no rewrite needed.
 	return def, nil
 }
 
@@ -653,10 +713,17 @@ func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *acti
 		def.Description = strings.TrimSpace(req.Description)
 	}
 	if strings.TrimSpace(req.TargetType) != "" {
-		def.TargetType = strings.TrimSpace(req.TargetType)
+		def.TargetType = canonicalActionTargetType(req.TargetType)
+	} else {
+		// Re-canonicalize any legacy value that may have been carried over
+		// from `current` so the normalized definition is always written back
+		// using the preferred vocabulary.
+		def.TargetType = canonicalActionTargetType(def.TargetType)
 	}
 	if !validActionTargetType(def.TargetType) {
-		return actionDefinition{}, fmt.Errorf("target_type must be mock_demo, webhook, api, or local_runtime")
+		return actionDefinition{}, fmt.Errorf(
+			"target_type must be one of hosted_api, webhook, local_runtime, hybrid_fallback, or mock_demo",
+		)
 	}
 	if strings.TrimSpace(req.TargetURL) != "" || current == nil {
 		def.TargetURL = strings.TrimSpace(req.TargetURL)
@@ -700,19 +767,87 @@ func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *acti
 	if req.TargetMetadata != nil {
 		def.TargetMetadata = copyActionMap(req.TargetMetadata)
 	}
+	if req.FallbackPolicy != nil {
+		def.FallbackPolicy = *req.FallbackPolicy
+		def.FallbackPolicy.PrimaryTarget = canonicalActionTargetType(def.FallbackPolicy.PrimaryTarget)
+		def.FallbackPolicy.SecondaryTarget = canonicalActionTargetType(def.FallbackPolicy.SecondaryTarget)
+		for i, allowed := range def.FallbackPolicy.AllowedTargets {
+			def.FallbackPolicy.AllowedTargets[i] = canonicalActionTargetType(allowed)
+		}
+	}
+	if err := validateFallbackPolicy(def); err != nil {
+		return actionDefinition{}, err
+	}
 	return def, nil
 }
 
-func marshalActionJSON(def actionDefinition) ([]byte, []byte, error) {
+// validateFallbackPolicy enforces the slice-1 fallback rules:
+//
+//   - hybrid_fallback actions require an explicit, enabled policy with both
+//     primary and secondary targets set, and the two targets must differ.
+//   - Both targets, when set, must be canonical execution surfaces (not
+//     another `hybrid_fallback`).
+//   - Irreversible actions and `non_retryable` replay classes are not
+//     fallback-safe by default. Operators may opt in only by explicitly
+//     setting `requires_replay_safe: false` on the policy.
+//   - For non-hybrid actions a disabled / zero-value policy is accepted and
+//     is the canonical default.
+func validateFallbackPolicy(def actionDefinition) error {
+	fp := def.FallbackPolicy
+	if def.TargetType == actionTargetHybridFallback {
+		if !fp.Enabled {
+			return fmt.Errorf("target_type hybrid_fallback requires fallback_policy.enabled = true")
+		}
+		if fp.PrimaryTarget == "" || fp.SecondaryTarget == "" {
+			return fmt.Errorf("hybrid_fallback requires both fallback_policy.primary_target and secondary_target")
+		}
+		if fp.PrimaryTarget == fp.SecondaryTarget {
+			return fmt.Errorf("hybrid_fallback primary_target and secondary_target must differ")
+		}
+		if !isCanonicalFallbackSurface(fp.PrimaryTarget) {
+			return fmt.Errorf("fallback_policy.primary_target must be a canonical execution surface")
+		}
+		if !isCanonicalFallbackSurface(fp.SecondaryTarget) {
+			return fmt.Errorf("fallback_policy.secondary_target must be a canonical execution surface")
+		}
+		if fp.MaxAttempts < 0 {
+			return fmt.Errorf("fallback_policy.max_attempts must be >= 0")
+		}
+	}
+	if fp.Enabled && !fp.RequiresReplaySafe {
+		if def.Irreversible {
+			return fmt.Errorf("irreversible actions cannot enable fallback without requires_replay_safe=true")
+		}
+		if def.ReplayClass == "non_retryable" {
+			return fmt.Errorf("non_retryable replay_class cannot enable fallback without requires_replay_safe=true")
+		}
+	}
+	return nil
+}
+
+func isCanonicalFallbackSurface(targetType string) bool {
+	switch targetType {
+	case actionTargetHostedAPI, actionTargetWebhook, actionTargetLocalRuntime, actionTargetMockDemo:
+		return true
+	default:
+		return false
+	}
+}
+
+func marshalActionJSON(def actionDefinition) ([]byte, []byte, []byte, error) {
 	secretRefs, err := json.Marshal(def.SecretRefs)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	targetMetadata, err := json.Marshal(def.TargetMetadata)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
-	return secretRefs, targetMetadata, nil
+	fallbackPolicy, err := json.Marshal(def.FallbackPolicy)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return secretRefs, targetMetadata, fallbackPolicy, nil
 }
 
 func inferRuntimeTarget(input map[string]interface{}) string {
@@ -762,7 +897,11 @@ func validActionName(name string) bool {
 
 func validActionTargetType(targetType string) bool {
 	switch targetType {
-	case "mock_demo", "webhook", "api", "local_runtime":
+	case actionTargetHostedAPI,
+		actionTargetWebhook,
+		actionTargetLocalRuntime,
+		actionTargetHybridFallback,
+		actionTargetMockDemo:
 		return true
 	default:
 		return false
@@ -856,5 +995,5 @@ func actionConsoleURL(taskID string) string {
 	if base == "" {
 		return ""
 	}
-	return base + "/runs/" + taskID
+	return base + "/execution/tasks/" + taskID
 }
