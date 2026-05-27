@@ -1001,6 +1001,16 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 	if taskType := extractTaskType(task.TaskDefinition); taskType != "" {
 		resp["task_type"] = taskType
 	}
+	// executed_target is the canonical Action execution surface that ran this
+	// task. Surfaced so Run detail can render "Routed via …" without guessing.
+	// fallback_reason is only set by a future hybrid_fallback resolver — until
+	// then it stays nil and is omitted from the response.
+	if task.ExecutedTarget != nil && *task.ExecutedTarget != "" {
+		resp["executed_target"] = *task.ExecutedTarget
+	}
+	if task.FallbackReason != nil && *task.FallbackReason != "" {
+		resp["fallback_reason"] = *task.FallbackReason
+	}
 
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason
