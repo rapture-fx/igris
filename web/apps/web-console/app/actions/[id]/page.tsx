@@ -182,19 +182,22 @@ function snippets(actionName: string) {
 }
 
 function targetLabel(t: ActionDefinition['target_type']): string {
-  if (t === 'mock_demo')      return 'Mock demo';
-  if (t === 'webhook')        return 'Hosted webhook';
-  if (t === 'api')            return 'Hosted API';
-  if (t === 'local_runtime')  return 'Local runtime';
+  if (t === 'mock_demo')        return 'Mock demo';
+  if (t === 'webhook')          return 'Hosted webhook';
+  if (t === 'hosted_api')       return 'Hosted API';
+  if (t === 'api')              return 'Hosted API'; // legacy alias
+  if (t === 'local_runtime')    return 'Local runtime';
+  if (t === 'hybrid_fallback')  return 'Hybrid / fallback';
   return t;
 }
 
 function setupPill(action: ActionDefinition): { value: string; tone: Tone } {
   if (action.target_type === 'mock_demo') return { value: 'Ready', tone: 'ok' };
-  if ((action.target_type === 'webhook' || action.target_type === 'api') && !action.target_url) {
+  if ((action.target_type === 'webhook' || action.target_type === 'hosted_api' || action.target_type === 'api') && !action.target_url) {
     return { value: 'Needs target', tone: 'warn' };
   }
   if (action.target_type === 'local_runtime') return { value: 'Needs runtime', tone: 'warn' };
+  if (action.target_type === 'hybrid_fallback') return { value: 'Coming soon', tone: 'muted' };
   return { value: 'Ready', tone: 'ok' };
 }
 
@@ -466,7 +469,8 @@ function ActionDetailInner() {
                     <span className="text-[#a8a89e]">
                       {action.target_type === 'mock_demo' && 'Mock demo target runs without external credentials. Useful for first-time setup.'}
                       {action.target_type === 'local_runtime' && 'Use a local runtime when the action needs private/local access.'}
-                      {(action.target_type === 'webhook' || action.target_type === 'api') && 'Hosted target is called from Igris with the configured method.'}
+                      {(action.target_type === 'webhook' || action.target_type === 'hosted_api' || action.target_type === 'api') && 'Hosted target is called from Igris with the configured method.'}
+                      {action.target_type === 'hybrid_fallback' && 'Hosted target with a local-runtime fallback. Coming soon — resolver behavior is not yet wired up.'}
                     </span>
                   } />
                 </Section>
