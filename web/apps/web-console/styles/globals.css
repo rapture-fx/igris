@@ -8,25 +8,28 @@
 
 @layer base {
   :root {
-    --background: 250 250 250;
-    --foreground: 31 31 31;
-    --card: 249 249 250;
-    --card-foreground: 31 31 31;
+    /* Light palette aligned with web-landing ExecutionPreview (igris-console--light):
+       warm cream page #f7f7f5, rail #f2f1ee, warm-ink ramp #1b1912 → #d6d3cb,
+       #1b1912 primary ink, emerald-700 accent. */
+    --background: 247 247 245;
+    --foreground: 27 25 18;
+    --card: 242 241 238;
+    --card-foreground: 27 25 18;
     --popover: 255 255 255;
-    --popover-foreground: 31 31 31;
-    --primary: 17 77 205;
-    --primary-foreground: 255 255 255;
-    --secondary: 41 154 147;
+    --popover-foreground: 27 25 18;
+    --primary: 27 25 18;
+    --primary-foreground: 246 246 244;
+    --secondary: 4 120 87;
     --secondary-foreground: 255 255 255;
-    --muted: 243 244 246;
-    --muted-foreground: 107 114 128;
-    --accent: 31 83 208;
-    --accent-foreground: 255 255 255;
-    --destructive: 239 68 68;
+    --muted: 242 241 238;
+    --muted-foreground: 85 82 72;
+    --accent: 27 25 18;
+    --accent-foreground: 246 246 244;
+    --destructive: 190 18 60;
     --destructive-foreground: 255 255 255;
-    --border: 228 228 228;
-    --input: 228 228 228;
-    --ring: 17 77 205;
+    --border: 222 219 211;
+    --input: 222 219 211;
+    --ring: 27 25 18;
     --radius: 0.5rem;
   }
 
@@ -116,24 +119,25 @@
     display: none;
   }
 
-  /* Overscroll background */
+  /* Overscroll background — matches web-landing console palette
+     (#f7f7f5 warm cream in light, #0e0e0c ink in dark). */
   html {
-    background-color: #f3f3f6;
+    background-color: #f7f7f5;
   }
   html.dark {
-    background-color: #110f0f;
+    background-color: #0e0e0c;
   }
   ::-webkit-scrollbar-corner {
-    background-color: #f3f3f6;
+    background-color: #f7f7f5;
   }
   html.dark ::-webkit-scrollbar-corner {
-    background-color: #110f0f;
+    background-color: #0e0e0c;
   }
   body {
-    background-color: #f3f3f6;
+    background-color: #f7f7f5;
   }
   html.dark body {
-    background-color: #110f0f;
+    background-color: #0e0e0c;
   }
 
   .console-surface {
@@ -229,6 +233,110 @@
     border-color: rgb(var(--border) / 1) !important;
   }
 }
+
+/* =============================================================
+   Light-mode adaptive overrides
+   -------------------------------------------------------------
+   The console pages were originally authored dark-only, so they
+   pepper hardcoded hex colors (`text-[#e8e7df]`, `bg-[#0A0A0A]`,
+   inline `rgba(255,255,255,0.015)` surfaces, `bg-white/[0.04]`
+   overlays, etc.) directly into JSX. Rather than refactoring
+   every page, we translate those exact patterns into landing-
+   palette equivalents whenever `html` does not have `.dark`.
+   Mirrors web-landing hero: white page, #f9f9fa surface,
+   #e5e7eb borders, true-black text, #4b5563 muted ink.
+   ============================================================= */
+
+/* — Tailwind arbitrary white/X overlays → black/X equivalents — */
+html:not(.dark) .bg-white\/\[0\.012\] { background-color: rgba(0,0,0,0.018); }
+html:not(.dark) .bg-white\/\[0\.015\] { background-color: rgba(0,0,0,0.022); }
+html:not(.dark) .bg-white\/\[0\.02\]  { background-color: rgba(0,0,0,0.028); }
+html:not(.dark) .bg-white\/\[0\.025\] { background-color: rgba(0,0,0,0.035); }
+html:not(.dark) .bg-white\/\[0\.03\]  { background-color: rgba(0,0,0,0.04); }
+html:not(.dark) .bg-white\/\[0\.04\]  { background-color: rgba(0,0,0,0.05); }
+html:not(.dark) .bg-white\/\[0\.045\] { background-color: rgba(0,0,0,0.055); }
+html:not(.dark) .bg-white\/\[0\.05\]  { background-color: rgba(0,0,0,0.06); }
+html:not(.dark) .bg-white\/\[0\.06\]  { background-color: rgba(0,0,0,0.07); }
+html:not(.dark) .hover\:bg-white\/\[0\.02\]:hover  { background-color: rgba(0,0,0,0.03); }
+html:not(.dark) .hover\:bg-white\/\[0\.025\]:hover { background-color: rgba(0,0,0,0.035); }
+html:not(.dark) .hover\:bg-white\/\[0\.04\]:hover  { background-color: rgba(0,0,0,0.05); }
+html:not(.dark) .hover\:bg-white\/\[0\.06\]:hover  { background-color: rgba(0,0,0,0.07); }
+
+html:not(.dark) .border-white\/\[0\.04\]  { border-color: rgba(0,0,0,0.07); }
+html:not(.dark) .border-white\/\[0\.05\]  { border-color: rgba(0,0,0,0.08); }
+html:not(.dark) .border-white\/\[0\.06\]  { border-color: rgba(0,0,0,0.10); }
+html:not(.dark) .border-white\/\[0\.12\]  { border-color: rgba(0,0,0,0.16); }
+html:not(.dark) .focus\:border-white\/\[0\.12\]:focus { border-color: rgba(0,0,0,0.18); }
+
+/* — Hardcoded dark-ink text colors → landing light-mode warm ink ramp.
+     Mirrors --ic-text-* in web-landing Products.tsx exactly. — */
+html:not(.dark) .text-\[\#f6f6f4\],
+html:not(.dark) .text-\[\#f0efe8\] { color: #000000; }
+html:not(.dark) .text-\[\#e8e7df\] { color: #1b1912; }
+html:not(.dark) .text-\[\#d3d2c8\] { color: #2a2820; }
+html:not(.dark) .text-\[\#c8c7be\] { color: #3a3830; }
+html:not(.dark) .text-\[\#a8a89e\] { color: #555248; }
+html:not(.dark) .text-\[\#9a9a8e\] { color: #5a574e; }
+html:not(.dark) .text-\[\#8a8a82\] { color: #6e6b62; }
+html:not(.dark) .text-\[\#7a7a72\] { color: #84817a; }
+html:not(.dark) .text-\[\#6a6a62\] { color: #9a978f; }
+html:not(.dark) .text-\[\#5a5a52\] { color: #b0ada5; }
+html:not(.dark) .text-\[\#3a3a32\] { color: #d6d3cb; }
+html:not(.dark) .placeholder\:text-\[\#5a5a52\]::placeholder { color: #b0ada5; }
+
+/* — Hardcoded dark surface bg → landing warm cream surfaces — */
+html:not(.dark) .bg-\[\#0A0A0A\],
+html:not(.dark) .bg-\[\#111110\] { background-color: #f7f7f5; }
+html:not(.dark) .bg-\[\#191918\],
+html:not(.dark) .bg-\[\#1c1c1b\] { background-color: #f2f1ee; }
+html:not(.dark) .bg-\[\#2c2a22\] { background-color: #ebe9e3; }
+html:not(.dark) .bg-\[\#3a3a32\] { background-color: #d6d3cb; }
+/* #1b1912 is the canonical "ink button" — keep dark, just ensure the text inverts */
+html:not(.dark) .border-\[\#f6f6f4\] { border-color: #1b1912; }
+
+/* — Tailwind semantic accent overrides for the warm-white surface.
+     These cover the +N / −0 counter chips (text + tint backgrounds + borders),
+     mirroring web-landing igris-console--light exactly. — */
+html:not(.dark) .text-emerald-300,
+html:not(.dark) .text-emerald-400,
+html:not(.dark) .text-emerald-500,
+html:not(.dark) .text-emerald-400\/80 { color: #047857; }
+html:not(.dark) .bg-emerald-400 { background-color: #059669; }
+html:not(.dark) .bg-emerald-500,
+html:not(.dark) .bg-emerald-500\/80 { background-color: #047857; }
+html:not(.dark) .bg-emerald-500\/\[0\.12\] { background-color: rgb(4 120 87 / 0.10); }
+html:not(.dark) .bg-emerald-500\/\[0\.14\] { background-color: rgb(4 120 87 / 0.12); }
+html:not(.dark) .hover\:bg-emerald-500\/\[0\.16\]:hover { background-color: rgb(4 120 87 / 0.16); }
+html:not(.dark) .hover\:bg-emerald-500\/\[0\.2\]:hover { background-color: rgb(4 120 87 / 0.2); }
+html:not(.dark) .border-emerald-500\/20 { border-color: rgb(4 120 87 / 0.3); }
+html:not(.dark) .border-emerald-500\/25 { border-color: rgb(4 120 87 / 0.35); }
+
+html:not(.dark) .text-rose-400,
+html:not(.dark) .text-rose-400\/60,
+html:not(.dark) .text-rose-400\/70 { color: #be123c; }
+html:not(.dark) .bg-rose-500 { background-color: #be123c; }
+html:not(.dark) .bg-rose-500\/\[0\.12\] { background-color: rgb(190 18 60 / 0.10); }
+html:not(.dark) .border-rose-500\/20 { border-color: rgb(190 18 60 / 0.3); }
+
+html:not(.dark) .text-amber-300,
+html:not(.dark) .text-amber-400,
+html:not(.dark) .text-amber-400\/60,
+html:not(.dark) .text-amber-400\/70 { color: #b45309; }
+html:not(.dark) .bg-amber-400 { background-color: #b45309; }
+html:not(.dark) .bg-amber-500\/\[0\.12\] { background-color: rgb(180 83 9 / 0.10); }
+html:not(.dark) .border-amber-500\/20 { border-color: rgb(180 83 9 / 0.3); }
+
+/* — Inline surface backgrounds (rgba 255,255,255 at very low alpha)
+     can't be CSS-overridden without !important since they're inline.
+     Match the exact strings the pages emit. — */
+html:not(.dark) [style*="rgba(255,255,255,0.012)"] { background-color: rgba(0,0,0,0.018) !important; }
+html:not(.dark) [style*="rgba(255,255,255,0.015)"] { background-color: rgba(0,0,0,0.022) !important; }
+html:not(.dark) [style*="rgba(255,255,255,0.025)"] { background-color: rgba(0,0,0,0.035) !important; }
+
+/* — Inline dark hex backgrounds emitted by pages (e.g. ExecutionTaskSidebar
+     uses background: '#070707'). Map to landing's warm cream rail. — */
+html:not(.dark) [style*="background: #070707"],
+html:not(.dark) [style*="background:#070707"] { background-color: #f2f1ee !important; }
 
 /* Dark mode adaptive overrides — scoped to main content */
 html.dark main .bg-white { background-color: rgb(var(--card) / 1); }
