@@ -1,5 +1,5 @@
 import type { Task } from '@/hooks/useTasks';
-import type { ActionDraft } from '@/hooks/useActionDrafts';
+import type { ActionDefinition } from '@/hooks/useActions';
 
 export interface ConsoleAction {
   id: string;
@@ -11,28 +11,12 @@ export interface ConsoleAction {
   proofStatus: string;
   replayBehavior: string;
   endpoint: string;
-  source: 'run' | 'draft';
-  draft?: ActionDraft;
+  source: 'registry';
+  definition: ActionDefinition;
 }
 
 export function actionDisplayName(task: Task): string {
   return task.policy?.action_name || task.task_type || 'Unnamed action';
-}
-
-export function actionId(name: string): string {
-  return encodeURIComponent(name);
-}
-
-export function targetForTask(task?: Task): string {
-  if (!task) return 'Not available';
-  const firstTarget = task.action_evidence?.find((row) => row.target_summary)?.target_summary;
-  return firstTarget || task.runtime_boundary?.environment_label || task.runtime_id || 'Not available';
-}
-
-export function policyForTask(task?: Task): string {
-  if (!task?.policy) return 'Not available';
-  const decision = task.policy.decision?.replace(/_/g, ' ') ?? 'policy';
-  return task.policy.policy_version ? `${decision}, v${task.policy.policy_version}` : decision;
 }
 
 export function proofForTask(task?: Task): string {
@@ -46,61 +30,44 @@ export function proofForTask(task?: Task): string {
 }
 
 export function endpointForAction(name: string): string {
-  return `https://api.igrisinertial.com/v1/actions/run`;
+  return `https://api.igrisinertial.com/v1/actions/${encodeURIComponent(name)}/run`;
 }
 
-export function replayForTask(task?: Task): string {
-  if (!task?.policy) return 'Not configured';
-  if (task.policy.irreversible) return 'Replay blocked';
-  if (task.policy.replay_class) return task.policy.replay_class.replace(/_/g, ' ');
-  return 'Replay allowed';
+export function targetForActionDefinition(action: ActionDefinition): string {
+  if (action.target_type === 'mock_demo') return 'Mock demo target';
+  if (action.target_type === 'local_runtime') return 'Local runtime';
+  return action.target_url || 'Not configured';
 }
 
-export function buildActions(tasks: Task[]): ConsoleAction[] {
-  const order: string[] = [];
+export function replayForActionDefinition(action: ActionDefinition): string {
+  if (action.irreversible) return 'Replay blocked';
+  if (action.replay_class === 'read_only') return 'Read only';
+  return action.replay_class.replace(/_/g, ' ');
+}
+
+export function buildRegisteredActions(actions: ActionDefinition[], tasks: Task[]): ConsoleAction[] {
   const grouped = new Map<string, Task[]>();
   for (const task of tasks) {
     const name = actionDisplayName(task);
-    if (!grouped.has(name)) {
-      order.push(name);
-      grouped.set(name, []);
-    }
+    if (!grouped.has(name)) grouped.set(name, []);
     grouped.get(name)!.push(task);
   }
 
-  return order.map((name) => {
-    const runs = grouped.get(name) ?? [];
+  return actions.map((action) => {
+    const runs = grouped.get(action.name) ?? [];
     const lastRun = runs[0];
     return {
-      id: actionId(name),
-      name,
-      target: targetForTask(lastRun),
-      policy: policyForTask(lastRun),
-      proofStatus: proofForTask(lastRun),
-      replayBehavior: replayForTask(lastRun),
-      endpoint: endpointForAction(name),
+      id: action.id,
+      name: action.name,
+      target: targetForActionDefinition(action),
+      policy: action.policy_preset,
+      proofStatus: lastRun ? proofForTask(lastRun) : 'No run yet',
+      replayBehavior: replayForActionDefinition(action),
+      endpoint: endpointForAction(action.name),
       lastRun,
       runs,
-      source: 'run',
+      source: 'registry',
+      definition: action,
     };
   });
-}
-
-export function buildDraftActions(drafts: ActionDraft[], existingNames: Set<string>): ConsoleAction[] {
-  return drafts
-    .filter((draft) => !existingNames.has(draft.actionName))
-    .map((draft) => ({
-      id: draft.id,
-      name: draft.actionName,
-      target: draft.targetType === 'mock_demo'
-        ? 'Mock demo target'
-        : draft.targetUrl || (draft.targetType === 'local_runtime' ? 'Local runtime' : 'Not configured'),
-      policy: draft.policyPreset,
-      proofStatus: 'No run yet',
-      replayBehavior: draft.replayClass.replace(/_/g, ' '),
-      endpoint: endpointForAction(draft.actionName),
-      runs: [],
-      source: 'draft',
-      draft,
-    }));
 }
