@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Box, Home, ListChecks, Settings, Workflow, type LucideIcon,
+  Box, Home, Settings, Workflow, Zap, type LucideIcon,
 } from 'lucide-react';
 import { tokens } from './primitives';
 import { ProfileMenu } from './ProfileMenu';
@@ -27,7 +27,7 @@ interface Lens {
 const LENSES: Lens[] = [
   { id: 'home',     label: 'Home',     href: '/home',     matches: ['/home'],                      Icon: Home },
   { id: 'actions',  label: 'Actions',  href: '/actions',  matches: ['/actions'],                   Icon: Workflow },
-  { id: 'runs',     label: 'Runs',     href: '/runs',     matches: ['/runs', '/execution/tasks'],  Icon: ListChecks },
+  { id: 'execution', label: 'Execution', href: '/execution/tasks', matches: ['/execution/tasks'],  Icon: Zap },
   { id: 'runtimes', label: 'Runtimes', href: '/runtimes', matches: ['/runtimes'],                  Icon: Box },
   { id: 'settings', label: 'Settings', href: '/settings', matches: ['/settings'],                  Icon: Settings },
 ];
