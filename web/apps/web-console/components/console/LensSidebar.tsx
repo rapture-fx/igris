@@ -2,11 +2,11 @@
 
 /**
  * LensSidebar — the 236px content sidebar for the currently active lens.
- * For the Tasks lens it delegates to ExecutionTaskSidebar. For other
+ * For the Runs lens it delegates to ExecutionTaskSidebar. For other
  * lenses (not yet ported) it shows a minimal placeholder header.
  */
 
-import { useParams, usePathname, useSearchParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { Suspense } from 'react';
 import { ExecutionTaskSidebar } from '@/components/execution/ExecutionTaskSidebar';
 import { activeLensId } from './IconRail';
@@ -35,20 +35,22 @@ function PlaceholderSidebar({ title, body }: { title: string; body?: React.React
 function LensSidebarContent() {
   const pathname = usePathname();
   const params = useParams<{ id?: string }>();
-  const searchParams = useSearchParams();
   const lens = activeLensId(pathname);
 
   // Home renders without a sidebar — page body uses its own layout.
   if (lens === 'home') return null;
 
-  if (lens === 'executions') {
+  if (lens === 'runs') {
     const taskId = params?.id ? decodeURIComponent(params.id) : '';
-    const isMock = searchParams?.get('mock') === '1' || taskId === 'mock';
-    return <ExecutionTaskSidebar selectedTaskId={isMock ? 'tsk_01HZX7E4MQGYK9QH4F3JC2NMD8' : taskId} />;
+    return <ExecutionTaskSidebar selectedTaskId={taskId} />;
   }
 
   if (lens === 'runtimes') {
     return <PlaceholderSidebar title="Runtimes" />;
+  }
+
+  if (lens === 'settings') {
+    return <PlaceholderSidebar title="Settings" />;
   }
 
   // No lens (auth pages, onboarding, etc.) — render no sidebar.
