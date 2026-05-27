@@ -332,6 +332,33 @@ func TestBuildActionRunRequestFromDefinitionHostedAPI(t *testing.T) {
 	require.Equal(t, "hosted_api", req.Metadata["target_type"])
 }
 
+func TestScanActionDefinitionCanonicalizesLegacyAPIRows(t *testing.T) {
+	t.Parallel()
+
+	// Simulate a row persisted before migration 055: target_type is still the
+	// legacy `api` and fallback_policy carries the legacy alias on its targets.
+	// The scanner must rewrite both so the API surface never exposes `api`.
+	now := time.Now().UTC()
+	actionID := uuid.NewString()
+	db, _ := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		rows: [][]driver.Value{{
+			actionID, "tenant-a", "send_email", "send_email", "",
+			"api", "https://example.com/send", "POST",
+			"Safe automation", "retryable", false, false,
+			[]byte(`[]`), []byte(`{}`),
+			[]byte(`{"enabled": true, "primary_target": "local_runtime", "secondary_target": "api", "requires_replay_safe": true}`),
+			now, now, nil,
+		}},
+	}})
+
+	def, err := loadActionDefinitionByID(t.Context(), db, "tenant-a", actionID)
+	require.NoError(t, err)
+	require.Equal(t, "hosted_api", def.TargetType, "scanner must canonicalize legacy `api` on read")
+	require.Equal(t, "hosted_api", def.FallbackPolicy.SecondaryTarget, "scanner must canonicalize nested policy targets on read")
+	require.Equal(t, "local_runtime", def.FallbackPolicy.PrimaryTarget, "non-legacy targets must pass through unchanged")
+}
+
 func TestBuildActionRunRequestFromDefinitionLegacyAPIRouteAsHostedAPI(t *testing.T) {
 	t.Parallel()
 
