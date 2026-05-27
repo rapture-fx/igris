@@ -23,7 +23,7 @@ const POLICY_PRESETS: ActionPolicyPreset[] = ['Safe automation', 'Human-gated', 
 const STEPS = ['Identity', 'Target', 'Policy', 'Endpoint'];
 
 type TargetOption = {
-  id: ActionTargetType | 'hybrid';
+  id: ActionTargetType;
   label: string;
   hint: string;
   disabled?: boolean;
@@ -31,11 +31,11 @@ type TargetOption = {
 };
 
 const TARGET_OPTIONS: TargetOption[] = [
-  { id: 'mock_demo',     label: 'Mock demo',      hint: 'Persisted demo target. No credentials required.' },
-  { id: 'webhook',       label: 'Hosted webhook', hint: 'Call a webhook your hosted backend already exposes.' },
-  { id: 'api',           label: 'Hosted API',     hint: 'Call a hosted API endpoint by URL.' },
-  { id: 'local_runtime', label: 'Local runtime',  hint: 'Use this when the action needs private files, internal APIs, or local databases.' },
-  { id: 'hybrid',        label: 'Hybrid / fallback', hint: 'Hosted with local fallback. Coming soon.', disabled: true, disabledReason: 'Coming soon' },
+  { id: 'mock_demo',       label: 'Mock demo',         hint: 'Persisted demo target. No credentials required.' },
+  { id: 'webhook',         label: 'Hosted webhook',    hint: 'Call a webhook your hosted backend already exposes.' },
+  { id: 'hosted_api',      label: 'Hosted API',        hint: 'Call a hosted API endpoint by URL.' },
+  { id: 'local_runtime',   label: 'Local runtime',     hint: 'Use this when the action needs private files, internal APIs, or local databases.' },
+  { id: 'hybrid_fallback', label: 'Hybrid / fallback', hint: 'Hosted with local fallback. Coming soon.', disabled: true, disabledReason: 'Coming soon' },
 ];
 
 function endpointFor(name: string) {
@@ -311,7 +311,7 @@ function NewActionInner() {
                   })}
                 </div>
 
-                {(targetType === 'webhook' || targetType === 'api') && (
+                {(targetType === 'webhook' || targetType === 'hosted_api' || targetType === 'api') && (
                   <div className="grid gap-3 md:grid-cols-[1fr_120px] mt-4">
                     <label className="block">
                       <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Target URL</span>
