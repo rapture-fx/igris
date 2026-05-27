@@ -56,7 +56,7 @@ function normalizeTenant(raw: TenantAPIResponse): Tenant {
   };
 }
 
-export function useTenant() {
+export function useTenant(options: { enabled?: boolean } = {}) {
   return useQuery<Tenant>({
     queryKey: [QUERY_KEYS.TENANT],
     queryFn: async () => {
@@ -70,5 +70,6 @@ export function useTenant() {
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
     refetchOnWindowFocus: false,
+    enabled: options.enabled ?? true,
   });
 }
