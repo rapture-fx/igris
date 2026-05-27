@@ -484,7 +484,7 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 			"table":  "action_task_mock_demo",
 			"record": record,
 		}
-	case "webhook", "api":
+	case actionTargetWebhook, actionTargetHostedAPI:
 		if strings.TrimSpace(def.TargetURL) == "" {
 			return actionRunRequest{}, fmt.Errorf("target URL is not configured")
 		}
@@ -498,11 +498,20 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 			"method": def.Method,
 			"body":   body,
 		}
-	case "local_runtime":
+	case actionTargetLocalRuntime:
+		// Vocabulary is now accepted by the registry, but dispatch onto the
+		// local runtime is intentionally not wired in this slice.
 		return actionRunRequest{}, fmt.Errorf("local runtime action targets are not configured in this slice")
+	case actionTargetHybridFallback:
+		// Routing model exists, resolver does not. Refusing here keeps the
+		// slice purely additive — no surprise behavior change for callers.
+		return actionRunRequest{}, fmt.Errorf("hybrid_fallback resolver is not configured in this slice")
 	default:
 		return actionRunRequest{}, fmt.Errorf("unsupported target type")
 	}
+	// Stamp the canonical target on the run metadata so downstream slices
+	// (and the console) can render "Routed via …" without re-deriving it.
+	runReq.Metadata["target_type"] = targetType
 	return runReq, nil
 }
 
