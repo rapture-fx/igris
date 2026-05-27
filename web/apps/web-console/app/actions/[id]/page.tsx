@@ -154,33 +154,15 @@ function tokenize(src: string, rules: Array<{ type: Token['type']; re: RegExp }>
 
 function highlightCurl(src: string): string {
   const tokens = tokenize(src, [
-    // Strings — match before everything so flags/verbs inside strings stay green
-    { type: 'string',  re: /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/y },
-    { type: 'fn',      re: /\bcurl\b/y },
-    { type: 'flag',    re: /-{1,2}[A-Za-z][\w-]*/y },
+    // Strings first so flags/verbs inside `'…'` stay green
+    { type: 'string',   re: /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/y },
+    { type: 'fn',       re: /\bcurl\b/y },
+    { type: 'keyword',  re: /\b(?:POST|GET|PUT|DELETE|PATCH|HEAD|OPTIONS)\b/y },
+    { type: 'flag',     re: /-{1,2}[A-Za-z][\w-]*/y },
     { type: 'variable', re: /\$[A-Z_][A-Z0-9_]*/y },
-    { type: 'punct',   re: /\\(?=\s*$)/my },
+    { type: 'punct',    re: /\\(?=\s*$)/my },
   ]);
-  // Color HTTP verbs that appear inside a string-quoted curl line — handle by
-  // splitting string tokens once they're isolated.
-  const refined: Token[] = [];
-  for (const t of tokens) {
-    if (t.type === 'string') {
-      const inner = t.value.replace(
-        /\b(POST|GET|PUT|DELETE|PATCH)\b/g,
-        (m) => `\x00${m}\x00`,
-      );
-      const parts = inner.split('\x00');
-      for (let idx = 0; idx < parts.length; idx++) {
-        if (!parts[idx]) continue;
-        const isVerb = idx % 2 === 1;
-        refined.push({ type: isVerb ? 'keyword' : 'string', value: parts[idx] });
-      }
-    } else {
-      refined.push(t);
-    }
-  }
-  return renderTokens(refined);
+  return renderTokens(tokens);
 }
 
 function highlightTs(src: string): string {
@@ -212,7 +194,7 @@ function highlightTs(src: string): string {
 function CodeBlock({ html }: { html: string }) {
   return (
     <pre
-      className="overflow-x-auto whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be] p-3 rounded-md border border-[var(--ig-border)] bg-[var(--ig-bg-chip)]"
+      className="overflow-x-auto whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be] m-0"
       style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
