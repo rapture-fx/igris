@@ -4,8 +4,8 @@ import { Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTasks } from '@/hooks/useTasks';
-import { useActionDrafts } from '@/hooks/useActionDrafts';
-import { buildActions, buildDraftActions } from '@/lib/actions';
+import { useActions } from '@/hooks/useActions';
+import { buildRegisteredActions } from '@/lib/actions';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 
 function proofTone(status: string): string {
@@ -16,14 +16,11 @@ function proofTone(status: string): string {
 }
 
 function ActionsInner() {
-  const { data, isLoading } = useTasks({ limit: 100 });
-  const { drafts } = useActionDrafts();
-  const tasks = useMemo(() => data?.tasks ?? [], [data?.tasks]);
-  const runActions = useMemo(() => buildActions(tasks), [tasks]);
-  const actions = useMemo(() => {
-    const names = new Set(runActions.map((action) => action.name));
-    return [...buildDraftActions(drafts, names), ...runActions];
-  }, [drafts, runActions]);
+  const { data: actionData, isLoading: actionsLoading } = useActions();
+  const { data: taskData, isLoading: tasksLoading } = useTasks({ limit: 100 });
+  const tasks = useMemo(() => taskData?.tasks ?? [], [taskData?.tasks]);
+  const actions = useMemo(() => buildRegisteredActions(actionData?.actions ?? [], tasks), [actionData?.actions, tasks]);
+  const isLoading = actionsLoading || tasksLoading;
 
   return (
     <DashboardLayout>
@@ -71,7 +68,6 @@ function ActionsInner() {
                 >
                   <span className="truncate text-[12.5px] text-[#e8e7df]">
                     {action.name}
-                    {action.source === 'draft' && <span className="ml-2 rounded bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-[#7a7a72]">draft</span>}
                   </span>
                   <span className="truncate text-[11px] text-[#8a8a82]">{truncateText(action.target, 42)}</span>
                   <span className="truncate text-[11px] text-[#c8c7be]">{action.policy}</span>
