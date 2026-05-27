@@ -28,10 +28,11 @@ import { tokens } from './primitives';
 
 export function ProfileMenu() {
   const router = useRouter();
-  const { data: tenant } = useTenant();
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [showLogout, setShowLogout] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { data: tenant } = useTenant({ enabled: menuOpen });
 
   const resolvedName =
     tenant?.name || session?.user?.name || session?.user?.email?.split('@')[0] || 'User';
@@ -51,7 +52,7 @@ export function ProfileMenu() {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <button
             aria-label="Profile menu"
