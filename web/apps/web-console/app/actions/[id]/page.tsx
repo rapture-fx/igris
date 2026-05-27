@@ -103,61 +103,116 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Minimal token colors tuned to the surrounding palette.
+// Token colors tuned for visibility on the dark surface background.
 const HL = {
-  keyword: '#c4b5fd',  // method, await, const
-  string:  '#a7d3a0',  // string literals
-  number:  '#d3b07f',
-  comment: '#6a6a62',
-  prop:    '#9ec1d6',  // object keys / headers
-  fn:      '#e8c987',  // function names
-  flag:    '#d3a0a0',  // curl flags like -X, -H
-  variable:'#d3d2c8',
-  punct:   '#7a7a72',
+  keyword:  '#c792ea',  // await, const, method names
+  string:   '#a5e075',  // string + template literal bodies
+  fn:       '#82aaff',  // fetch, JSON, curl
+  prop:     '#7fdbca',  // object keys / header names
+  flag:     '#f78c6c',  // curl flags like -X, -H
+  variable: '#ffcb6b',  // $VARS and ${expr}
+  punct:    '#5a5a52',  // line-continuation \
 } as const;
 
+type Token = { type: keyof typeof HL | 'text'; value: string };
+
+function renderTokens(tokens: Token[]): string {
+  return tokens.map((t) => {
+    const v = escapeHtml(t.value);
+    return t.type === 'text' ? v : `<span style="color:${HL[t.type]}">${v}</span>`;
+  }).join('');
+}
+
+// Single-pass tokenizer: each rule's regex is tried at the current cursor;
+// the longest non-empty match wins, so strings/templates can't be re-tokenized.
+function tokenize(src: string, rules: Array<{ type: Token['type']; re: RegExp }>): Token[] {
+  const tokens: Token[] = [];
+  let i = 0;
+  let buf = '';
+  while (i < src.length) {
+    let matched: { type: Token['type']; value: string } | null = null;
+    for (const rule of rules) {
+      rule.re.lastIndex = i;
+      const m = rule.re.exec(src);
+      if (m && m.index === i && m[0].length > 0) {
+        matched = { type: rule.type, value: m[0] };
+        break;
+      }
+    }
+    if (matched) {
+      if (buf) { tokens.push({ type: 'text', value: buf }); buf = ''; }
+      tokens.push(matched);
+      i += matched.value.length;
+    } else {
+      buf += src[i];
+      i += 1;
+    }
+  }
+  if (buf) tokens.push({ type: 'text', value: buf });
+  return tokens;
+}
+
 function highlightCurl(src: string): string {
-  let out = escapeHtml(src);
-  // Strings (single or double quoted)
-  out = out.replace(/('[^']*'|"[^"]*")/g, `<span style="color:${HL.string}">$1</span>`);
-  // curl keyword at start
-  out = out.replace(/^(\s*)(curl)\b/, `$1<span style="color:${HL.keyword}">$2</span>`);
-  // Flags like -X, -H, --data
-  out = out.replace(/(^|\s)(-{1,2}[A-Za-z][\w-]*)/g, `$1<span style="color:${HL.flag}">$2</span>`);
-  // HTTP verbs
-  out = out.replace(/\b(POST|GET|PUT|DELETE|PATCH)\b/g, `<span style="color:${HL.fn}">$1</span>`);
-  // Env vars like $IGRIS_API_KEY
-  out = out.replace(/(\$[A-Z_][A-Z0-9_]*)/g, `<span style="color:${HL.variable}">$1</span>`);
-  // Line-continuation backslashes
-  out = out.replace(/(\\)$/gm, `<span style="color:${HL.punct}">$1</span>`);
-  return out;
+  const tokens = tokenize(src, [
+    // Strings — match before everything so flags/verbs inside strings stay green
+    { type: 'string',  re: /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/y },
+    { type: 'fn',      re: /\bcurl\b/y },
+    { type: 'flag',    re: /-{1,2}[A-Za-z][\w-]*/y },
+    { type: 'variable', re: /\$[A-Z_][A-Z0-9_]*/y },
+    { type: 'punct',   re: /\\(?=\s*$)/my },
+  ]);
+  // Color HTTP verbs that appear inside a string-quoted curl line — handle by
+  // splitting string tokens once they're isolated.
+  const refined: Token[] = [];
+  for (const t of tokens) {
+    if (t.type === 'string') {
+      const inner = t.value.replace(
+        /\b(POST|GET|PUT|DELETE|PATCH)\b/g,
+        (m) => `\x00${m}\x00`,
+      );
+      const parts = inner.split('\x00');
+      for (let idx = 0; idx < parts.length; idx++) {
+        if (!parts[idx]) continue;
+        const isVerb = idx % 2 === 1;
+        refined.push({ type: isVerb ? 'keyword' : 'string', value: parts[idx] });
+      }
+    } else {
+      refined.push(t);
+    }
+  }
+  return renderTokens(refined);
 }
 
 function highlightTs(src: string): string {
-  let out = escapeHtml(src);
-  // Template literals first (so inner ${} can be styled)
-  out = out.replace(/`([^`]*)`/g, (_m, body) => {
-    const inner = body.replace(/(\$\{[^}]+\})/g, `<span style="color:${HL.variable}">$1</span>`);
-    return `<span style="color:${HL.string}">\`${inner}\`</span>`;
-  });
-  // Single/double-quoted strings
-  out = out.replace(/('[^']*'|"[^"]*")/g, `<span style="color:${HL.string}">$1</span>`);
-  // Keywords
-  out = out.replace(/\b(await|async|const|let|var|return|new|function|if|else|true|false|null|undefined)\b/g,
-    `<span style="color:${HL.keyword}">$1</span>`);
-  // Built-in / function calls: fetch, JSON.stringify
-  out = out.replace(/\b(fetch|JSON|stringify|process)\b/g, `<span style="color:${HL.fn}">$1</span>`);
-  // Object keys (word followed by colon, not in a string already)
-  out = out.replace(/(^|[\s,{])([A-Za-z_][\w-]*)(\s*:)/g,
-    `$1<span style="color:${HL.prop}">$2</span>$3`);
-  // 'Content-Type' style header keys already covered by string rule
-  return out;
+  const tokens = tokenize(src, [
+    // Template literals — interpolations are styled in a second pass below
+    { type: 'string', re: /`(?:[^`\\$]|\\.|\$(?!\{))*`|`(?:[^`\\]|\\.|\$\{[^}]*\})*`/y },
+    { type: 'string', re: /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/y },
+    { type: 'keyword', re: /\b(?:await|async|const|let|var|return|new|function|if|else|true|false|null|undefined)\b/y },
+    { type: 'fn',     re: /\b(?:fetch|JSON|stringify|process|env)\b/y },
+    // Object keys: identifier directly followed by `:` (with optional space)
+    { type: 'prop',   re: /[A-Za-z_][\w-]*(?=\s*:)/y },
+  ]);
+  // Style ${...} inside template strings
+  const refined: Token[] = [];
+  for (const t of tokens) {
+    if (t.type === 'string' && t.value.startsWith('`') && t.value.includes('${')) {
+      const parts = t.value.split(/(\$\{[^}]*\})/g);
+      for (const part of parts) {
+        if (!part) continue;
+        refined.push({ type: part.startsWith('${') ? 'variable' : 'string', value: part });
+      }
+    } else {
+      refined.push(t);
+    }
+  }
+  return renderTokens(refined);
 }
 
 function CodeBlock({ html }: { html: string }) {
   return (
     <pre
-      className="overflow-x-auto whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be]"
+      className="overflow-x-auto whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be] p-3 rounded-md border border-[var(--ig-border)] bg-[var(--ig-bg-chip)]"
       style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
