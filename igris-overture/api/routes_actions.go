@@ -56,8 +56,8 @@ type actionRunRequest struct {
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
 
 	// Internal-only fields populated by the gateway from the registered Action
-	// definition. They are never deserialized from the public API body — the
-	// `-` json tag keeps customer payloads from spoofing them.
+	// definition. Unexported so encoding/json cannot read or write them —
+	// customer payloads cannot spoof which target the gateway selects.
 	executedTarget     string
 	preferredRuntimeID string
 }
