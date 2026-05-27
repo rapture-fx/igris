@@ -23,6 +23,17 @@ import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
+import { LineSpinner } from 'ldrs/react';
+import 'ldrs/react/LineSpinner.css';
+
+function ActionLoader({ size = '14' }: { size?: string }) {
+  // Matches the success check-mark color (Tailwind text-emerald-500).
+  return (
+    <span className="inline-flex items-center justify-center" aria-hidden>
+      <LineSpinner size={size} stroke="1.4" speed="0.9" color="rgb(16, 185, 129)" />
+    </span>
+  );
+}
 
 // ── Inline icons (from hero mockup) ───────────────────────────────────────
 
@@ -83,7 +94,7 @@ function TopBtn({
         (disabled ? 'opacity-50 cursor-not-allowed ' : 'cursor-pointer ') +
         (accent
           ? 'bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16]'
-          : 'bg-white/[0.04] text-[#d3d2c8] border border-white/[0.05] hover:bg-white/[0.06]')
+          : 'bg-[var(--ig-bg-chip)] text-[var(--ig-text-body)] border border-[var(--ig-border)] hover:bg-[var(--ig-bg-surface)]')
       }
     >
       {iconPlus && (
@@ -117,7 +128,7 @@ function statusToneColors(tone: StatusTone): { dot: string; text: string } {
 function StatusPill({ label, value, tone }: { label: string; value: string; tone: StatusTone }) {
   const c = statusToneColors(tone);
   return (
-    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/[0.05]">
+    <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[var(--ig-bg-chip)] border border-[var(--ig-border)]">
       <span className={'block w-1.5 h-1.5 rounded-full ' + c.dot} />
       <span className="text-[10.5px] text-[#7a7a72] tracking-[0.02em]">{label}</span>
       <span className={'text-[11.5px] ' + c.text} style={{ letterSpacing: '-0.005em' }}>{value}</span>
@@ -175,7 +186,7 @@ function replayFor(task: Task): { value: string; tone: StatusTone } {
 
 function StatusStrip({ task }: { task: Task }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-white/[0.04]" style={{ background: 'rgba(255,255,255,0.012)' }}>
+    <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-[var(--ig-border-soft)]" style={{ background: 'var(--ig-bg-surface)' }}>
       <StatusPill label="Status"   {...statusFor(task)} />
       <StatusPill label="Policy"   {...policyFor(task)} />
       <StatusPill label="Recovery" {...recoveryFor(task)} />
@@ -223,7 +234,7 @@ function Tree({ title, children }: { title: string; children: React.ReactNode })
         </svg>
         <span>{title}</span>
       </div>
-      <div className="mt-1 pl-5 border-l border-white/[0.05] ml-1">{children}</div>
+      <div className="mt-1 pl-5 border-l border-[var(--ig-border)] ml-1">{children}</div>
     </div>
   );
 }
@@ -234,12 +245,12 @@ function ActionLine({ row, running }: { row: ActionEvidenceRow; running: boolean
   const receipt = row.result_digest ? `r${num}` : null;
   return (
     <div
-      className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded hover:bg-white/[0.02]"
+      className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded hover:bg-[var(--ig-bg-surface)]"
       style={{ gridTemplateColumns: '14px 24px 1fr auto auto auto' }}
     >
       <span className="inline-flex items-center justify-center">
         {running ? (
-          <span className="block w-1.5 h-1.5 rounded-full bg-emerald-400 ic-breathing" />
+          <ActionLoader />
         ) : (
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" className="text-emerald-500">
             <path d="M5 12.5 L10 17 L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -378,8 +389,8 @@ function Section({ title, id, children }: { title: string; id?: string; children
         {title}
       </div>
       <div
-        className="rounded-lg border-[0.5px] border-white/[0.06] px-4 py-3"
-        style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
+        className="rounded-lg border-[0.5px] border-[var(--ig-border)] px-4 py-3"
+        style={{ background: 'var(--ig-bg-surface)' }}
       >
         {children}
       </div>
@@ -668,12 +679,12 @@ export default function ExecutionDetailPage() {
     <DashboardLayout>
       <div className="flex flex-col min-h-0 h-full">
               {/* Top bar */}
-              <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-white/[0.05]">
+              <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-[var(--ig-border)]">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Link
-                    href="/runs"
+                    href="/execution/tasks"
                     className="text-[11.5px] text-[#7a7a72] hover:text-[#d3d2c8]"
-                    title="Back to runs"
+                    title="Back to execution"
                   >
                     ←
                   </Link>
@@ -708,7 +719,12 @@ export default function ExecutionDetailPage() {
               {/* Body */}
               <div className="ic-scroll flex-1 overflow-y-auto px-7 pt-6 pb-2">
                 {isLoading || !task ? (
-                  <div className="text-[12px] text-[#7a7a72]">Loading run…</div>
+                  <div className="flex flex-1 items-center justify-center min-h-[60vh]">
+                    <div className="flex flex-col items-center gap-3">
+                      <ActionLoader size="22" />
+                      <span className="text-[12px]" style={{ color: 'var(--ig-text-dim)' }}>Loading run…</span>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     {/* Definition rows */}
@@ -780,8 +796,8 @@ export default function ExecutionDetailPage() {
                     {/* Committed actions — Story anchor */}
                     <div
                       id="story"
-                      className="mt-7 scroll-mt-16 rounded-lg border-[0.5px] border-white/[0.06] px-4 py-3"
-                      style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
+                      className="mt-7 scroll-mt-16 rounded-lg border-[0.5px] border-[var(--ig-border)] px-4 py-3"
+                      style={{ background: 'var(--ig-bg-surface)' }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-[11.5px] text-[#a8a89e]">
@@ -839,7 +855,7 @@ export default function ExecutionDetailPage() {
               </div>
 
               {/* Bottom bar */}
-              <div className="border-t border-white/[0.05]">
+              <div className="border-t border-[var(--ig-border)]">
                 <div className="flex items-center gap-3 px-5 py-2.5">
                   <span className="inline-flex items-center gap-1.5 text-[11.5px] text-[#d3d2c8]">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
