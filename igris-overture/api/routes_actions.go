@@ -689,6 +689,16 @@ func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, er
 	}
 	// Persisted rows pre-dating migration 055 read back as an empty struct,
 	// which is the same as the canonical "disabled" default — no rewrite needed.
+	//
+	// Canonicalize on read so API responses never leak the deprecated `api`
+	// alias — rows persisted before the rename keep working but always present
+	// as `hosted_api` to the world.
+	def.TargetType = canonicalActionTargetType(def.TargetType)
+	def.FallbackPolicy.PrimaryTarget = canonicalActionTargetType(def.FallbackPolicy.PrimaryTarget)
+	def.FallbackPolicy.SecondaryTarget = canonicalActionTargetType(def.FallbackPolicy.SecondaryTarget)
+	for i, allowed := range def.FallbackPolicy.AllowedTargets {
+		def.FallbackPolicy.AllowedTargets[i] = canonicalActionTargetType(allowed)
+	}
 	return def, nil
 }
 
