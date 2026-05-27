@@ -23,6 +23,7 @@ import {
 } from '@/lib/actions';
 import { useToast } from '@/components/ui/use-toast';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
+import { CodeBlock, tokensForCurl, tokensForTs } from '@/lib/codeHighlight';
 
 type Tone = 'ok' | 'warn' | 'bad' | 'muted';
 
@@ -96,108 +97,6 @@ function CopyButton({ text, onCopy }: { text: string; onCopy?: () => void }) {
       </svg>
       {copied ? 'Copied' : 'Copy'}
     </button>
-  );
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// Token colors tuned for visibility on the dark surface background.
-const HL = {
-  keyword:  '#c792ea',  // await, const, method names
-  string:   '#a5e075',  // string + template literal bodies
-  fn:       '#82aaff',  // fetch, JSON, curl
-  prop:     '#7fdbca',  // object keys / header names
-  flag:     '#f78c6c',  // curl flags like -X, -H
-  variable: '#ffcb6b',  // $VARS and ${expr}
-  punct:    '#5a5a52',  // line-continuation \
-} as const;
-
-type Token = { type: keyof typeof HL | 'text'; value: string };
-
-function renderTokens(tokens: Token[]): string {
-  return tokens.map((t) => {
-    const v = escapeHtml(t.value);
-    return t.type === 'text' ? v : `<span style="color:${HL[t.type]}">${v}</span>`;
-  }).join('');
-}
-
-// Single-pass tokenizer: each rule's regex is tried at the current cursor;
-// the longest non-empty match wins, so strings/templates can't be re-tokenized.
-function tokenize(src: string, rules: Array<{ type: Token['type']; re: RegExp }>): Token[] {
-  const tokens: Token[] = [];
-  let i = 0;
-  let buf = '';
-  while (i < src.length) {
-    let matched: { type: Token['type']; value: string } | null = null;
-    for (const rule of rules) {
-      rule.re.lastIndex = i;
-      const m = rule.re.exec(src);
-      if (m && m.index === i && m[0].length > 0) {
-        matched = { type: rule.type, value: m[0] };
-        break;
-      }
-    }
-    if (matched) {
-      if (buf) { tokens.push({ type: 'text', value: buf }); buf = ''; }
-      tokens.push(matched);
-      i += matched.value.length;
-    } else {
-      buf += src[i];
-      i += 1;
-    }
-  }
-  if (buf) tokens.push({ type: 'text', value: buf });
-  return tokens;
-}
-
-function highlightCurl(src: string): string {
-  const tokens = tokenize(src, [
-    // Strings first so flags/verbs inside `'…'` stay green
-    { type: 'string',   re: /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/y },
-    { type: 'fn',       re: /\bcurl\b/y },
-    { type: 'keyword',  re: /\b(?:POST|GET|PUT|DELETE|PATCH|HEAD|OPTIONS)\b/y },
-    { type: 'flag',     re: /-{1,2}[A-Za-z][\w-]*/y },
-    { type: 'variable', re: /\$[A-Z_][A-Z0-9_]*/y },
-    { type: 'punct',    re: /\\(?=\s*$)/my },
-  ]);
-  return renderTokens(tokens);
-}
-
-function highlightTs(src: string): string {
-  const tokens = tokenize(src, [
-    // Template literals — interpolations are styled in a second pass below
-    { type: 'string', re: /`(?:[^`\\$]|\\.|\$(?!\{))*`|`(?:[^`\\]|\\.|\$\{[^}]*\})*`/y },
-    { type: 'string', re: /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/y },
-    { type: 'keyword', re: /\b(?:await|async|const|let|var|return|new|function|if|else|true|false|null|undefined)\b/y },
-    { type: 'fn',     re: /\b(?:fetch|JSON|stringify|process|env)\b/y },
-    // Object keys: identifier directly followed by `:` (with optional space)
-    { type: 'prop',   re: /[A-Za-z_][\w-]*(?=\s*:)/y },
-  ]);
-  // Style ${...} inside template strings
-  const refined: Token[] = [];
-  for (const t of tokens) {
-    if (t.type === 'string' && t.value.startsWith('`') && t.value.includes('${')) {
-      const parts = t.value.split(/(\$\{[^}]*\})/g);
-      for (const part of parts) {
-        if (!part) continue;
-        refined.push({ type: part.startsWith('${') ? 'variable' : 'string', value: part });
-      }
-    } else {
-      refined.push(t);
-    }
-  }
-  return renderTokens(refined);
-}
-
-function CodeBlock({ html }: { html: string }) {
-  return (
-    <pre
-      className="overflow-x-auto whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be] m-0"
-      style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
   );
 }
 
@@ -482,17 +381,21 @@ function ActionDetailInner() {
                   </Section>
 
                   <Section title="curl">
-                    <div className="flex items-center justify-end mb-2">
-                      <CopyButton text={code.curl} />
+                    <div className="relative">
+                      <div className="absolute top-0 right-0 z-10">
+                        <CopyButton text={code.curl} />
+                      </div>
+                      <CodeBlock tokens={tokensForCurl(code.curl)} />
                     </div>
-                    <CodeBlock html={highlightCurl(code.curl)} />
                   </Section>
 
                   <Section title="TypeScript fetch">
-                    <div className="flex items-center justify-end mb-2">
-                      <CopyButton text={code.ts} />
+                    <div className="relative">
+                      <div className="absolute top-0 right-0 z-10">
+                        <CopyButton text={code.ts} />
+                      </div>
+                      <CodeBlock tokens={tokensForTs(code.ts)} />
                     </div>
-                    <CodeBlock html={highlightTs(code.ts)} />
                   </Section>
                 </>
               )}
