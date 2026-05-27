@@ -114,7 +114,7 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		return nil, fmt.Errorf("lookup idempotent task: %w", err)
 	}
 
-	runtime, err := tc.selectRuntime(ctx, req.TenantID)
+	runtime, err := tc.selectRuntime(ctx, req.TenantID, req.PreferredRuntimeID)
 	if err != nil {
 		_ = tc.store.MarkFailedWithDetails(taskID, "no healthy runtime available", overtureTaskFailureDetails("submit", "no_runtime_available", "no healthy runtime available"))
 		return nil, fmt.Errorf("no healthy runtime: %w", err)
@@ -282,9 +282,12 @@ type runtimeInfo struct {
 }
 
 // selectRuntime picks the healthiest available runtime for a tenant.
-// Prefers runtimes with the lowest active task count.
-func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID string) (*runtimeInfo, error) {
-	row := tc.db.QueryRowContext(ctx, `
+// Prefers runtimes with the lowest active task count. When preferredRuntimeID
+// is non-empty the lookup is pinned to that runtime — the tenant + health
+// guards still apply so cross-tenant pinning cannot succeed.
+func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID, preferredRuntimeID string) (*runtimeInfo, error) {
+	preferredRuntimeID = strings.TrimSpace(preferredRuntimeID)
+	query := `
 		SELECT ri.runtime_id, ri.endpoint
 		FROM runtime_instances ri
 		LEFT JOIN (
@@ -297,14 +300,20 @@ func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID string) (
 		  AND ri.is_healthy = true
 		  AND ri.status = 'active'
 		  AND ri.endpoint IS NOT NULL
-		  AND ri.last_heartbeat > NOW() - INTERVAL '90 seconds'
-		ORDER BY COALESCE(t.active_count, 0) ASC
-		LIMIT 1`,
-		tenantID,
-	)
+		  AND ri.last_heartbeat > NOW() - INTERVAL '90 seconds'`
+	args := []interface{}{tenantID}
+	if preferredRuntimeID != "" {
+		query += ` AND ri.runtime_id = $2`
+		args = append(args, preferredRuntimeID)
+	}
+	query += ` ORDER BY COALESCE(t.active_count, 0) ASC LIMIT 1`
 
+	row := tc.db.QueryRowContext(ctx, query, args...)
 	var r runtimeInfo
 	if err := row.Scan(&r.RuntimeID, &r.Endpoint); err == sql.ErrNoRows {
+		if preferredRuntimeID != "" {
+			return nil, fmt.Errorf("no healthy runtime %s for tenant %s", preferredRuntimeID, tenantID)
+		}
 		return nil, fmt.Errorf("no healthy runtime for tenant %s", tenantID)
 	} else if err != nil {
 		return nil, err
@@ -1294,7 +1303,7 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			continue
 		}
 
-		newRuntime, err := tc.selectRuntime(ctx, tenantID)
+		newRuntime, err := tc.selectRuntime(ctx, tenantID, "")
 		if err != nil {
 			log.Error().Err(err).Str("task_id", taskID.String()).Msg("[Coordinator] No runtime for recovery")
 			_ = tc.store.MarkFailedWithDetails(taskID, "no runtime available for recovery", overtureTaskFailureDetails("recovery", "no_runtime_available", "no runtime available for recovery"))
@@ -1473,6 +1482,12 @@ type TaskSubmitRequest struct {
 	CredentialRequests   []CredentialRequest `json:"credential_requests,omitempty"`
 	IdempotencyKey       string              `json:"idempotency_key,omitempty"`
 	DeadlineAt           *time.Time          `json:"deadline_at,omitempty"`
+
+	// PreferredRuntimeID pins dispatch to a specific tenant runtime. Used by
+	// local_runtime action dispatch so a customer-owned runtime executes the
+	// action. The runtime must still be tenant-scoped and healthy; if no such
+	// runtime exists Submit returns a no-healthy-runtime error.
+	PreferredRuntimeID string `json:"-"`
 }
 
 func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.RawMessage, error) {
