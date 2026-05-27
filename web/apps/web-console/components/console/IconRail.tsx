@@ -3,7 +3,7 @@
 /**
  * IconRail — 48px vertical lens switcher on the far left of the console.
  *
- * Each lens is a top-level surface (Tasks, Approvals, Recovery, etc.). The
+ * Each lens is a top-level product surface. The
  * active lens is highlighted; clicking switches the route. Profile lives at
  * the bottom of the rail.
  */
@@ -11,7 +11,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Zap, Box, type LucideIcon,
+  Box, Home, ListChecks, Settings, Workflow, type LucideIcon,
 } from 'lucide-react';
 import { tokens } from './primitives';
 import { ProfileMenu } from './ProfileMenu';
@@ -25,9 +25,11 @@ interface Lens {
 }
 
 const LENSES: Lens[] = [
-  { id: 'home',       label: 'Home',       href: '/home',            matches: ['/home'],         Icon: LayoutDashboard },
-  { id: 'executions', label: 'Executions', href: '/execution/tasks', matches: ['/execution'],    Icon: Zap },
-  { id: 'runtimes',   label: 'Runtimes',   href: '/runtimes',        matches: ['/runtimes'],     Icon: Box },
+  { id: 'home',     label: 'Home',     href: '/home',     matches: ['/home'],                      Icon: Home },
+  { id: 'actions',  label: 'Actions',  href: '/actions',  matches: ['/actions'],                   Icon: Workflow },
+  { id: 'runs',     label: 'Runs',     href: '/runs',     matches: ['/runs', '/execution/tasks'],  Icon: ListChecks },
+  { id: 'runtimes', label: 'Runtimes', href: '/runtimes', matches: ['/runtimes'],                  Icon: Box },
+  { id: 'settings', label: 'Settings', href: '/settings', matches: ['/settings'],                  Icon: Settings },
 ];
 
 function isActive(pathname: string | null, lens: Lens): boolean {
@@ -86,7 +88,7 @@ export function IconRail() {
       }}
     >
       {/* brand */}
-      <Link href="/execution/tasks" className="flex items-center justify-center h-6 w-6 mt-2 mb-6">
+      <Link href="/home" className="flex items-center justify-center h-6 w-6 mt-2 mb-6">
         {/* Mirrors landing hero IconRail: /inertia.png on light, /inertiadm.png on dark */}
         <img src="/inertia.png" alt="Igris" className="block select-none h-full w-full object-contain opacity-80 dark:hidden" draggable={false} />
         <img src="/inertiadm.png" alt="" aria-hidden="true" className="hidden dark:block select-none h-full w-full object-contain opacity-80" draggable={false} />
@@ -99,7 +101,7 @@ export function IconRail() {
         ))}
       </div>
 
-      {/* profile (always at bottom — Settings lives inside the profile menu) */}
+      {/* profile */}
       <div className="mb-2">
         <ProfileMenu />
       </div>
