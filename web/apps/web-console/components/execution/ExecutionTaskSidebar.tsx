@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Inner task list rendered inside the Executions inspector pane. Ports the
+ * Inner run list rendered inside the Runs inspector pane. Ports the
  * canonical product design from the landing-page hero
  * (web-landing/.../Products.tsx ExecutionPreview): dark surface,
  * project-style groups with a status dot beside each group name, task rows
@@ -14,9 +14,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useTasks, type Task, type TaskStatus } from '@/hooks/useTasks';
-import { mockTaskListForSidebar } from '@/lib/mockExecution';
 import { getRelativeTime } from '@/utils/helpers';
 
 interface ExecutionTaskSidebarProps {
@@ -35,7 +33,7 @@ function statusLabel(s: RowStatus): string {
   return s === 'running' ? 'Running' : s === 'failed' ? 'Failed' : 'Completed';
 }
 
-function TaskRow({ task, selected, mock }: { task: Task; selected: boolean; mock: boolean }) {
+function TaskRow({ task, selected }: { task: Task; selected: boolean }) {
   const rs = rowStatusFor(task.status);
   const dotColor =
     rs === 'running' ? 'bg-emerald-400' :
@@ -48,7 +46,7 @@ function TaskRow({ task, selected, mock }: { task: Task; selected: boolean; mock
   const title = task.policy?.action_name || task.task_type || task.task_id;
   return (
     <Link
-      href={`/execution/tasks/${encodeURIComponent(task.task_id)}${mock ? '?mock=1' : ''}`}
+      href={`/runs/${encodeURIComponent(task.task_id)}`}
       className={
         'group flex items-center gap-2 pl-7 pr-2 py-1.5 rounded transition-colors ' +
         (selected ? 'bg-white/[0.045]' : 'hover:bg-white/[0.02]')
@@ -74,9 +72,9 @@ function TaskRow({ task, selected, mock }: { task: Task; selected: boolean; mock
 }
 
 function Group({
-  name, tasks, selectedTaskId, mock, expanded, onToggle,
+  name, tasks, selectedTaskId, expanded, onToggle,
 }: {
-  name: string; tasks: Task[]; selectedTaskId: string; mock: boolean;
+  name: string; tasks: Task[]; selectedTaskId: string;
   expanded: boolean; onToggle: () => void;
 }) {
   const anyRunning = tasks.some((t) => rowStatusFor(t.status) === 'running');
@@ -102,7 +100,7 @@ function Group({
       {expanded && (
         <div className="mt-px">
           {tasks.map((t) => (
-            <TaskRow key={t.task_id} task={t} selected={t.task_id === selectedTaskId} mock={mock} />
+            <TaskRow key={t.task_id} task={t} selected={t.task_id === selectedTaskId} />
           ))}
         </div>
       )}
@@ -111,13 +109,11 @@ function Group({
 }
 
 export function ExecutionTaskSidebar({ selectedTaskId }: ExecutionTaskSidebarProps) {
-  const searchParams = useSearchParams();
-  const isMock = searchParams?.get('mock') === '1';
   const { data, isLoading: fetchedLoading } = useTasks({ limit: 60 });
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-  const tasks = useMemo(() => (isMock ? mockTaskListForSidebar() : (data?.tasks ?? [])), [isMock, data?.tasks]);
-  const isLoading = isMock ? false : fetchedLoading;
+  const tasks = useMemo(() => data?.tasks ?? [], [data?.tasks]);
+  const isLoading = fetchedLoading;
   const filtered = tasks;
 
   const groups = useMemo(() => {
@@ -144,15 +140,15 @@ export function ExecutionTaskSidebar({ selectedTaskId }: ExecutionTaskSidebarPro
       style={{ width: 236, background: '#070707' }}
     >
       <div className="flex items-center justify-between px-4 pt-4 pb-1">
-        <span className="text-[11px] text-[#7a7a72]">Tasks</span>
+        <span className="text-[11px] text-[#7a7a72]">Runs</span>
         <span className="text-[10.5px] text-[#5a5a52] tabular-nums">{filtered.length}</span>
       </div>
 
       <div className="ic-scroll flex-1 overflow-y-auto px-2 pb-2">
         {isLoading ? (
-          <div className="px-2 py-3 text-[11px] text-[#6a6a62]">Loading tasks…</div>
+          <div className="px-2 py-3 text-[11px] text-[#6a6a62]">Loading runs…</div>
         ) : filtered.length === 0 ? (
-          <div className="px-2 py-3 text-[11px] text-[#6a6a62]">No tasks yet.</div>
+          <div className="px-2 py-3 text-[11px] text-[#6a6a62]">No runs yet.</div>
         ) : (
           groups.map((g) => (
             <Group
@@ -160,7 +156,6 @@ export function ExecutionTaskSidebar({ selectedTaskId }: ExecutionTaskSidebarPro
               name={g.name}
               tasks={g.tasks}
               selectedTaskId={selectedTaskId}
-              mock={isMock}
               expanded={!collapsedGroups[g.name]}
               onToggle={() => toggleGroup(g.name)}
             />
