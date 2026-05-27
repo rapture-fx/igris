@@ -150,6 +150,207 @@ func TestBuildActionRunRequestFromDefinitionWebhook(t *testing.T) {
 	require.Equal(t, true, req.Metadata["irreversible"])
 }
 
+func TestNormalizeActionDefinitionAcceptsHostedAPI(t *testing.T) {
+	t.Parallel()
+
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "send_email",
+		TargetType:   "hosted_api",
+		TargetURL:    "https://example.com/send",
+		PolicyPreset: "Safe automation",
+	}, nil)
+	require.NoError(t, err)
+	require.Equal(t, "hosted_api", def.TargetType)
+	require.False(t, def.FallbackPolicy.Enabled)
+}
+
+func TestNormalizeActionDefinitionRewritesDeprecatedAPIAlias(t *testing.T) {
+	t.Parallel()
+
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "send_email",
+		TargetType:   "api",
+		TargetURL:    "https://example.com/send",
+		PolicyPreset: "Safe automation",
+	}, nil)
+	require.NoError(t, err)
+	require.Equal(t, "hosted_api", def.TargetType, "legacy `api` must canonicalize to hosted_api")
+}
+
+func TestNormalizeActionDefinitionAcceptsWebhook(t *testing.T) {
+	t.Parallel()
+
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "create_ticket",
+		TargetType:   "webhook",
+		TargetURL:    "https://example.com/tickets",
+		PolicyPreset: "Safe automation",
+	}, nil)
+	require.NoError(t, err)
+	require.Equal(t, "webhook", def.TargetType)
+}
+
+func TestNormalizeActionDefinitionAcceptsLocalRuntime(t *testing.T) {
+	t.Parallel()
+
+	// Slice 1 must accept local_runtime in the registry even though dispatch
+	// onto the local runtime is still stubbed in buildActionRunRequestFromDefinition.
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "rebuild_index",
+		TargetType:   "local_runtime",
+		PolicyPreset: "Safe automation",
+	}, nil)
+	require.NoError(t, err)
+	require.Equal(t, "local_runtime", def.TargetType)
+
+	// Behavior must not change yet — the run builder still refuses to dispatch.
+	_, runErr := buildActionRunRequestFromDefinition(def, actionRunByNameRequest{Input: map[string]interface{}{"x": 1}})
+	require.Error(t, runErr)
+	require.Contains(t, runErr.Error(), "local runtime")
+}
+
+func TestNormalizeActionDefinitionHybridFallbackRequiresPolicy(t *testing.T) {
+	t.Parallel()
+
+	// Missing policy → reject.
+	_, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "wire_transfer",
+		TargetType:   "hybrid_fallback",
+		PolicyPreset: "Safe automation",
+	}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "fallback_policy.enabled")
+
+	// Disabled policy → reject.
+	disabled := actionFallbackPolicy{Enabled: false, PrimaryTarget: "local_runtime", SecondaryTarget: "hosted_api"}
+	_, err = normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:           "wire_transfer",
+		TargetType:     "hybrid_fallback",
+		PolicyPreset:   "Safe automation",
+		FallbackPolicy: &disabled,
+	}, nil)
+	require.Error(t, err)
+
+	// Same primary/secondary → reject.
+	same := actionFallbackPolicy{Enabled: true, PrimaryTarget: "hosted_api", SecondaryTarget: "hosted_api"}
+	_, err = normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:           "wire_transfer",
+		TargetType:     "hybrid_fallback",
+		PolicyPreset:   "Safe automation",
+		FallbackPolicy: &same,
+	}, nil)
+	require.Error(t, err)
+
+	// Nested hybrid_fallback as a target → reject.
+	nested := actionFallbackPolicy{Enabled: true, PrimaryTarget: "hybrid_fallback", SecondaryTarget: "hosted_api"}
+	_, err = normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:           "wire_transfer",
+		TargetType:     "hybrid_fallback",
+		PolicyPreset:   "Safe automation",
+		FallbackPolicy: &nested,
+	}, nil)
+	require.Error(t, err)
+
+	// Valid explicit policy with deprecated `api` alias on secondary is
+	// canonicalized to `hosted_api`.
+	good := actionFallbackPolicy{Enabled: true, PrimaryTarget: "local_runtime", SecondaryTarget: "api"}
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:           "wire_transfer",
+		TargetType:     "hybrid_fallback",
+		PolicyPreset:   "Safe automation",
+		FallbackPolicy: &good,
+	}, nil)
+	require.NoError(t, err)
+	require.Equal(t, "hybrid_fallback", def.TargetType)
+	require.True(t, def.FallbackPolicy.Enabled)
+	require.Equal(t, "local_runtime", def.FallbackPolicy.PrimaryTarget)
+	require.Equal(t, "hosted_api", def.FallbackPolicy.SecondaryTarget)
+
+	// hybrid_fallback resolver itself is not wired in this slice.
+	_, runErr := buildActionRunRequestFromDefinition(def, actionRunByNameRequest{Input: map[string]interface{}{"amount": 100}})
+	require.Error(t, runErr)
+	require.Contains(t, runErr.Error(), "hybrid_fallback")
+}
+
+func TestNormalizeActionDefinitionRejectsIrreversibleFallbackByDefault(t *testing.T) {
+	t.Parallel()
+
+	irreversible := true
+	policy := actionFallbackPolicy{Enabled: true, PrimaryTarget: "local_runtime", SecondaryTarget: "hosted_api"}
+	_, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:           "purge_user",
+		TargetType:     "hybrid_fallback",
+		PolicyPreset:   "Non-replayable",
+		Irreversible:   &irreversible,
+		FallbackPolicy: &policy,
+	}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "irreversible")
+
+	// Opt-in path: requires_replay_safe=true acknowledges the caller has
+	// reasoned about replay safety, and the model accepts it.
+	policy.RequiresReplaySafe = true
+	_, err = normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:           "purge_user",
+		TargetType:     "hybrid_fallback",
+		PolicyPreset:   "Non-replayable",
+		Irreversible:   &irreversible,
+		FallbackPolicy: &policy,
+	}, nil)
+	require.NoError(t, err)
+}
+
+func TestNormalizeActionDefinitionRejectsInvalidTargetType(t *testing.T) {
+	t.Parallel()
+
+	_, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "send_email",
+		TargetType:   "rocket_ship",
+		PolicyPreset: "Safe automation",
+	}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "hosted_api")
+}
+
+func TestBuildActionRunRequestFromDefinitionHostedAPI(t *testing.T) {
+	t.Parallel()
+
+	// hosted_api dispatches identically to webhook, but stamps the canonical
+	// target on run metadata so the inspector can render "Routed via hosted_api".
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-hosted",
+		Name:         "send_email",
+		TargetType:   "hosted_api",
+		TargetURL:    "https://example.com/send",
+		Method:       "POST",
+		PolicyPreset: "Safe automation",
+		ReplayClass:  "retryable",
+	}, actionRunByNameRequest{Input: map[string]interface{}{"to": "user@example.com"}})
+	require.NoError(t, err)
+	require.Equal(t, "http_request", req.RuntimeTarget)
+	require.Equal(t, "https://example.com/send", req.Input["url"])
+	require.Equal(t, "hosted_api", req.Metadata["target_type"])
+}
+
+func TestBuildActionRunRequestFromDefinitionLegacyAPIRouteAsHostedAPI(t *testing.T) {
+	t.Parallel()
+
+	// Persisted rows that still carry the legacy `api` value continue to
+	// dispatch correctly and present as the canonical `hosted_api` on metadata.
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-legacy",
+		Name:         "send_email",
+		TargetType:   "api",
+		TargetURL:    "https://example.com/send",
+		Method:       "POST",
+		PolicyPreset: "Safe automation",
+		ReplayClass:  "retryable",
+	}, actionRunByNameRequest{Input: map[string]interface{}{"to": "user@example.com"}})
+	require.NoError(t, err)
+	require.Equal(t, "http_request", req.RuntimeTarget)
+	require.Equal(t, "hosted_api", req.Metadata["target_type"])
+}
+
 func TestValidateActionName(t *testing.T) {
 	t.Parallel()
 
