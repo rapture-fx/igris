@@ -65,6 +65,15 @@ type TaskRecord struct {
 	CompletedAt          *time.Time              `json:"completed_at,omitempty"`
 	CanceledAt           *time.Time              `json:"canceled_at,omitempty"`
 	CreatedAt            time.Time               `json:"created_at"`
+
+	// ExecutedTarget records which Action execution target actually ran the
+	// task (hosted_api, webhook, local_runtime, mock_demo, or hybrid_fallback
+	// once that resolver lands). It is informational — operators read it on
+	// run detail; nothing in the dispatch pipeline branches on it.
+	ExecutedTarget *string `json:"executed_target,omitempty"`
+	// FallbackReason is set only when a future hybrid_fallback resolver
+	// actually switched surfaces. Until that resolver exists, this stays nil.
+	FallbackReason *string `json:"fallback_reason,omitempty"`
 }
 
 type TaskRecordStatus string
@@ -2277,7 +2286,8 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
-		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at,
+		       executed_target, fallback_reason
 		FROM task_records
 		WHERE task_id = $1 AND tenant_id = $2`,
 		taskID, tenantID,
@@ -2293,7 +2303,8 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
-		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at,
+		       executed_target, fallback_reason
 		FROM task_records
 		WHERE tenant_id = $1 AND idempotency_key = $2`,
 		tenantID, idempotencyKey,
@@ -2309,7 +2320,8 @@ func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskR
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
-		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at,
+		       executed_target, fallback_reason
 		FROM task_records
 		WHERE tenant_id = $1
 		ORDER BY created_at DESC
@@ -2529,7 +2541,8 @@ func (s *CheckpointStore) GetRecoveringTasks() ([]*TaskRecord, error) {
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
 		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
 		       idempotency_key, failure_reason, failure_details,
-		       deadline_at, dispatched_at, completed_at, canceled_at, created_at
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at,
+		       executed_target, fallback_reason
 		FROM task_records
 		WHERE status = 'recovering'
 		ORDER BY created_at ASC`,
@@ -2623,6 +2636,8 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 	var proofVerified, proofHashValid, proofSignatureMatches, proofRuntimeKeyFound, proofChainLinkValid sql.NullBool
 	var proofVerificationReason sql.NullString
 	var proofVerifiedAt sql.NullTime
+	var executedTarget sql.NullString
+	var fallbackReason sql.NullString
 	err := row.Scan(
 		&t.TaskID, &t.TenantID, &t.Status, &t.RuntimeID, &t.RuntimeEndpoint,
 		&defBytes, &cpBytes, &envelopeBytes, &receiptBytes,
@@ -2630,11 +2645,20 @@ func scanTaskRecord(row scanner) (*TaskRecord, error) {
 		&proofVerified, &proofHashValid, &proofSignatureMatches, &proofRuntimeKeyFound, &proofChainLinkValid, &proofVerificationReason, &proofVerifiedAt,
 		&t.IdempotencyKey, &t.FailureReason, &failureDetailBytes,
 		&t.DeadlineAt, &t.DispatchedAt, &t.CompletedAt, &t.CanceledAt, &t.CreatedAt,
+		&executedTarget, &fallbackReason,
 	)
 	if err != nil {
 		return nil, err
 	}
 	t.TaskDefinition = defBytes
+	if executedTarget.Valid && executedTarget.String != "" {
+		v := executedTarget.String
+		t.ExecutedTarget = &v
+	}
+	if fallbackReason.Valid && fallbackReason.String != "" {
+		v := fallbackReason.String
+		t.FallbackReason = &v
+	}
 	governance := extractTaskGovernanceFromDefinition(t.TaskDefinition)
 	t.AgentIdentity = governance.AgentIdentity
 	t.RequiredCapabilities = governance.RequiredCapabilities
