@@ -13,6 +13,10 @@ import type {
   GovernanceVerificationResult,
 } from '@/lib/governance';
 
+interface GovernanceQueryOptions {
+  enabled?: boolean;
+}
+
 /**
  * Tenant-wide execution trust summary behind the Overview page.
  * Backed by `GET /v1/execution/governance/summary`.
@@ -58,7 +62,7 @@ export function useGovernancePolicyDecisions(params: GovernanceListParams = {}) 
   });
 }
 
-export function useGovernanceRecoveryEvents(params: GovernanceListParams = {}) {
+export function useGovernanceRecoveryEvents(params: GovernanceListParams = {}, options: GovernanceQueryOptions = {}) {
   return useQuery<GovernanceListResponse<GovernanceRecoveryEvent>>({
     queryKey: ['governance-recovery-events', params],
     queryFn: () =>
@@ -68,11 +72,12 @@ export function useGovernanceRecoveryEvents(params: GovernanceListParams = {}) {
       ),
     retry: false,
     staleTime: 10_000,
-    refetchInterval: 20_000,
+    refetchInterval: options.enabled === false ? false : 20_000,
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useGovernanceHandoffEvents(params: GovernanceListParams = {}) {
+export function useGovernanceHandoffEvents(params: GovernanceListParams = {}, options: GovernanceQueryOptions = {}) {
   return useQuery<GovernanceListResponse<GovernanceHandoffEvent>>({
     queryKey: ['governance-handoff-events', params],
     queryFn: () =>
@@ -82,11 +87,12 @@ export function useGovernanceHandoffEvents(params: GovernanceListParams = {}) {
       ),
     retry: false,
     staleTime: 10_000,
-    refetchInterval: 20_000,
+    refetchInterval: options.enabled === false ? false : 20_000,
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useGovernanceBoundaries(params: GovernanceListParams = {}) {
+export function useGovernanceBoundaries(params: GovernanceListParams = {}, options: GovernanceQueryOptions = {}) {
   return useQuery<GovernanceListResponse<GovernanceExecutionBoundary>>({
     queryKey: ['governance-boundaries', params],
     queryFn: () =>
@@ -96,11 +102,12 @@ export function useGovernanceBoundaries(params: GovernanceListParams = {}) {
       ),
     retry: false,
     staleTime: 10_000,
-    refetchInterval: 20_000,
+    refetchInterval: options.enabled === false ? false : 20_000,
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useGovernanceBoundaryViolations(params: GovernanceListParams = {}) {
+export function useGovernanceBoundaryViolations(params: GovernanceListParams = {}, options: GovernanceQueryOptions = {}) {
   return useQuery<GovernanceListResponse<GovernanceBoundaryViolation>>({
     queryKey: ['governance-boundary-violations', params],
     queryFn: () =>
@@ -110,11 +117,12 @@ export function useGovernanceBoundaryViolations(params: GovernanceListParams = {
       ),
     retry: false,
     staleTime: 10_000,
-    refetchInterval: 20_000,
+    refetchInterval: options.enabled === false ? false : 20_000,
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useGovernanceVerificationResults(params: GovernanceListParams = {}) {
+export function useGovernanceVerificationResults(params: GovernanceListParams = {}, options: GovernanceQueryOptions = {}) {
   return useQuery<GovernanceListResponse<GovernanceVerificationResult>>({
     queryKey: ['governance-verification-results', params],
     queryFn: () =>
@@ -124,7 +132,8 @@ export function useGovernanceVerificationResults(params: GovernanceListParams = 
       ),
     retry: false,
     staleTime: 10_000,
-    refetchInterval: 20_000,
+    refetchInterval: options.enabled === false ? false : 20_000,
+    enabled: options.enabled ?? true,
   });
 }
 
