@@ -1,39 +1,39 @@
 'use client';
 
 import { Suspense, useMemo, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
-import { DraftPolicyPreset, DraftTargetType, slugifyActionName, useActionDrafts } from '@/hooks/useActionDrafts';
+import { ActionPolicyPreset, ActionReplayClass, ActionTargetType, useCreateAction } from '@/hooks/useActions';
 
 const EXAMPLES = ['send_email', 'create_ticket', 'update_customer_record', 'fulfill_order'];
-const TARGET_TYPES: DraftTargetType[] = ['mock_demo', 'webhook', 'api', 'local_runtime'];
-const POLICY_PRESETS: DraftPolicyPreset[] = ['Safe automation', 'Human-gated', 'Non-replayable', 'Read-only'];
+const TARGET_TYPES: ActionTargetType[] = ['mock_demo', 'webhook', 'api', 'local_runtime'];
+const POLICY_PRESETS: ActionPolicyPreset[] = ['Safe automation', 'Human-gated', 'Non-replayable', 'Read-only'];
 const STEPS = ['Name', 'Target', 'Policy', 'Endpoint'];
 
 function endpointFor(name: string) {
-  return 'https://api.igrisinertial.com/v1/actions/run';
+  return `https://api.igrisinertial.com/v1/actions/${encodeURIComponent(name || 'send_email')}/run`;
 }
 
-function currentSnippet(actionName: string, targetUrl: string, method: string) {
+function slugifyActionName(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9_ -]/g, '').replace(/[-\s]+/g, '_');
+}
+
+function replayForPreset(preset: ActionPolicyPreset): ActionReplayClass {
+  if (preset === 'Human-gated' || preset === 'Non-replayable') return 'non_retryable';
+  if (preset === 'Read-only') return 'read_only';
+  return 'retryable';
+}
+
+function currentSnippet(actionName: string) {
   return `await fetch('${endpointFor(actionName)}', {
   method: 'POST',
   headers: {
     Authorization: \`Bearer \${process.env.IGRIS_API_KEY}\`,
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify({
-    action: '${actionName || 'send_email'}',
-    runtime_target: 'http_request',
-    input: {
-      url: '${targetUrl || 'https://example.com/webhook'}',
-      method: '${method || 'POST'}',
-      body: input
-    }
-  })
+  body: JSON.stringify({ input })
 })`;
 }
 
@@ -42,55 +42,48 @@ function NewActionInner() {
   const searchParams = useSearchParams();
   const initial = searchParams?.get('step');
   const { toast } = useToast();
-  const { saveDraft } = useActionDrafts();
   const [step, setStep] = useState(initial === 'target' ? 1 : initial === 'policy' ? 2 : 0);
   const [name, setName] = useState('send_email');
   const [description, setDescription] = useState('Let the agent request an email send through Igris.');
-  const [targetType, setTargetType] = useState<DraftTargetType>('mock_demo');
+  const [targetType, setTargetType] = useState<ActionTargetType>('mock_demo');
   const [targetUrl, setTargetUrl] = useState('');
   const [method, setMethod] = useState('POST');
-  const [policyPreset, setPolicyPreset] = useState<DraftPolicyPreset>('Safe automation');
-  const [replayClass, setReplayClass] = useState<'replayable' | 'non_replayable' | 'read_only'>('replayable');
+  const [policyPreset, setPolicyPreset] = useState<ActionPolicyPreset>('Safe automation');
+  const [replayClass, setReplayClass] = useState<ActionReplayClass>('retryable');
   const [approvalRequired, setApprovalRequired] = useState(false);
-  const [runId, setRunId] = useState<string | null>(null);
   const actionName = slugifyActionName(name);
-  const snippet = useMemo(() => currentSnippet(actionName, targetUrl, method), [actionName, targetUrl, method]);
+  const snippet = useMemo(() => currentSnippet(actionName), [actionName]);
+  const mutation = useCreateAction();
 
-  const save = () => saveDraft({
-    actionName,
-    description,
-    targetType,
-    targetUrl,
-    method,
-    policyPreset,
-    replayClass,
-    approvalRequired,
-  });
+  const finishAction = () => {
+    mutation.mutate({
+      name: actionName,
+      display_name: actionName,
+      description,
+      target_type: targetType,
+      target_url: targetUrl,
+      method,
+      policy_preset: policyPreset,
+      replay_class: replayClass,
+      approval_required: approvalRequired,
+      irreversible: policyPreset === 'Non-replayable',
+    }, {
+      onSuccess: (action) => {
+        toast({ title: 'Action created', description: 'Copy the endpoint or run a mock demo test from the action detail.' });
+        router.push(`/actions/${encodeURIComponent(action.id)}?tab=endpoint`);
+      },
+      onError: (error: Error) => {
+        toast({ variant: 'destructive', title: 'Action was not created', description: error.message });
+      },
+    });
+  };
 
-  const mutation = useMutation({
-    mutationFn: async () => api.post<{ run_id?: string; task_id?: string; id?: string }>('/v1/actions/run', {
-      action: actionName,
-      runtime_target: 'http_request',
-      input: { url: targetUrl, method, body: { demo: true } },
-      metadata: { source: 'console_action_wizard' },
-    }),
-    onSuccess: (result) => {
-      const saved = save();
-      const id = result.run_id || result.task_id || result.id || null;
-      setRunId(id);
-      toast({ title: 'Test run started', description: id ? 'Open the run to inspect policy, recovery, and proof.' : 'The action request was accepted.' });
-      if (id) router.push(`/runs/${encodeURIComponent(id)}`);
-      else router.push(`/actions/${saved.id}`);
-    },
-    onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Test run failed to start', description: error.message });
-    },
-  });
+  const canSave = Boolean(actionName) && (targetType === 'mock_demo' || targetType === 'local_runtime' || targetUrl.trim());
 
-  const canRun = actionName && (targetType === 'webhook' || targetType === 'api') && targetUrl.trim();
-  const finishDraft = () => {
-    const saved = save();
-    router.push(`/actions/${saved.id}?tab=endpoint`);
+  const updatePreset = (preset: ActionPolicyPreset) => {
+    setPolicyPreset(preset);
+    setApprovalRequired(preset === 'Human-gated');
+    setReplayClass(replayForPreset(preset));
   };
 
   return (
@@ -151,7 +144,7 @@ function NewActionInner() {
                     </label>
                   </div>
                 )}
-                {targetType === 'mock_demo' && <p className="text-[12px] text-[#8a8a82]">Mock demo creates a local action draft without credentials. Backend support for running mock_demo targets is not implemented yet.</p>}
+                {targetType === 'mock_demo' && <p className="text-[12px] text-[#8a8a82]">Mock demo is persisted and can be tested without credentials. It produces demo run evidence without calling an external API.</p>}
                 {targetType === 'local_runtime' && <p className="text-[12px] text-[#8a8a82]">Use a runtime when actions need to run near private files, internal APIs, or customer infrastructure.</p>}
               </div>
             )}
@@ -160,11 +153,7 @@ function NewActionInner() {
               <div className="space-y-4">
                 <div className="grid gap-2 md:grid-cols-4">
                   {POLICY_PRESETS.map((preset) => (
-                    <button key={preset} type="button" onClick={() => {
-                      setPolicyPreset(preset);
-                      setApprovalRequired(preset === 'Human-gated');
-                      setReplayClass(preset === 'Non-replayable' ? 'non_replayable' : preset === 'Read-only' ? 'read_only' : 'replayable');
-                    }} className={'rounded-lg border px-3 py-3 text-left ' + (policyPreset === preset ? 'border-emerald-500/25 bg-emerald-500/[0.08]' : 'border-white/[0.06] bg-white/[0.015]')}>
+                    <button key={preset} type="button" onClick={() => updatePreset(preset)} className={'rounded-lg border px-3 py-3 text-left ' + (policyPreset === preset ? 'border-emerald-500/25 bg-emerald-500/[0.08]' : 'border-white/[0.06] bg-white/[0.015]')}>
                       <div className="text-[12px] text-[#e8e7df]">{preset}</div>
                     </button>
                   ))}
@@ -186,26 +175,23 @@ function NewActionInner() {
                   <div className="mb-2 text-[11px] text-[#7a7a72]">TypeScript fetch</div>
                   <pre className="whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be]">{snippet}</pre>
                 </div>
-                <p className="text-[11.5px] text-[#7a7a72]">This replaces the direct tool call in your agent. A name-scoped endpoint is still a backend TODO; today the action name is sent in the request body.</p>
+                <p className="text-[11.5px] text-[#7a7a72]">This replaces the direct tool call in your agent. Igris resolves the action name to the target and policy you configured.</p>
               </div>
             )}
 
             <div className="mt-5 flex items-center justify-between border-t border-white/[0.05] pt-4">
               <button type="button" onClick={() => setStep(Math.max(0, step - 1))} className="h-8 rounded-md border border-white/[0.06] px-3 text-[11.5px] text-[#c8c7be] disabled:opacity-40" disabled={step === 0}>Back</button>
               <div className="flex gap-2">
-                <button type="button" onClick={finishDraft} disabled={!actionName} className="h-8 rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[11.5px] text-[#c8c7be] disabled:opacity-40">Save draft</button>
                 {step < 3 ? (
                   <button type="button" onClick={() => setStep(step + 1)} disabled={!actionName} className="h-8 rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 disabled:opacity-40">Continue</button>
                 ) : (
-                  <button type="button" onClick={() => canRun ? mutation.mutate() : finishDraft()} disabled={!actionName || mutation.isPending} className="h-8 rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 disabled:opacity-40">
-                    {canRun ? (mutation.isPending ? 'Starting test...' : 'Run test action') : 'Finish action'}
+                  <button type="button" onClick={finishAction} disabled={!canSave || mutation.isPending} className="h-8 rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 disabled:opacity-40">
+                    {mutation.isPending ? 'Creating action...' : 'Create action'}
                   </button>
                 )}
               </div>
             </div>
           </section>
-
-          {runId && <Link href={`/runs/${encodeURIComponent(runId)}`} className="mt-4 inline-flex text-[11.5px] text-[#c8c7be] hover:text-[#f0efe8]">Open test run -&gt;</Link>}
         </div>
       </div>
     </DashboardLayout>
