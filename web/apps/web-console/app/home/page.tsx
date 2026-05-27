@@ -1,164 +1,119 @@
 'use client';
 
-/**
- * Home — attention summary only.
- *
- * Surfaces executions that need an operator's attention: failed, blocked
- * (approval required), proof failures, and recovered runs. Each row links
- * straight into the Executions workspace. Uses real data from `useTasks()`;
- * missing data renders as an empty section, never as fabricated values.
- */
-
 import { Suspense, useMemo } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTasks, type Task } from '@/hooks/useTasks';
-import { mockTaskListForSidebar } from '@/lib/mockExecution';
+import { useGovernanceRuntimes } from '@/hooks/useGovernance';
 import { getRelativeTime } from '@/utils/helpers';
 
-type Bucket = {
-  id: string;
-  title: string;
-  empty: string;
-  match: (t: Task) => boolean;
-};
-
-const BUCKETS: Bucket[] = [
-  {
-    id: 'failed',
-    title: 'Failed',
-    empty: 'No failed executions',
-    match: (t) => t.status === 'failed',
-  },
-  {
-    id: 'blocked',
-    title: 'Approval required',
-    empty: 'Nothing waiting on approval',
-    match: (t) => t.status === 'approval_required' || t.policy?.decision === 'approval_required' || t.policy?.decision === 'denied',
-  },
-  {
-    id: 'recovered',
-    title: 'Recovered',
-    empty: 'No recent recoveries',
-    match: (t) => (t.recovery?.events?.length ?? 0) > 0,
-  },
-  {
-    id: 'proof_failed',
-    title: 'Proof failures',
-    empty: 'No proof failures',
-    match: (t) => t.proof?.verified === false || t.proof?.status === 'mismatch',
-  },
+const CHECKLIST = [
+  'Create an action',
+  'Add a target and secret',
+  'Choose the policy',
+  'Copy the endpoint',
+  'Run a test',
+  'Inspect proof',
 ];
 
-function StatusDot({ task }: { task: Task }) {
-  const color =
-    task.status === 'failed' ? 'bg-rose-500' :
-    task.status === 'approval_required' ? 'bg-amber-400' :
-    task.status === 'completed' ? 'bg-[#3a3a32]' :
-    'bg-emerald-400';
-  return <span className={'block w-1.5 h-1.5 rounded-full ' + color} />;
+function proofStatus(task?: Task): string {
+  if (!task?.proof) return 'Proof unavailable';
+  if (task.proof.verified || task.proof.status === 'verified') return 'Proof verified';
+  if (task.proof.verified === false || task.proof.status === 'mismatch') return 'Proof failed';
+  if (task.proof.status === 'present') return 'Receipt present';
+  return 'Proof unavailable';
 }
 
-function Row({ task, mock }: { task: Task; mock: boolean }) {
-  const title = task.policy?.action_name || task.task_type || task.task_id;
-  return (
-    <Link
-      href={`/execution/tasks/${encodeURIComponent(task.task_id)}${mock ? '?mock=1' : ''}`}
-      className="group flex items-center gap-3 px-3 py-2 rounded hover:bg-white/[0.025] transition-colors"
-    >
-      <StatusDot task={task} />
-      <span className="text-[12.5px] text-[#e8e7df] truncate flex-1" style={{ letterSpacing: '-0.005em' }}>
-        {title}
-      </span>
-      {task.runtime_id && (
-        <span className="text-[10.5px] text-[#7a7a72] truncate hidden md:inline" style={{ maxWidth: 160 }}>
-          {task.runtime_id}
-        </span>
-      )}
-      <span className="text-[10.5px] text-[#5a5a52] tabular-nums">
-        {getRelativeTime(task.created_at)}
-      </span>
-    </Link>
-  );
+function actionName(task: Task): string {
+  return task.policy?.action_name || task.task_type || task.task_id;
 }
 
-function Section({ bucket, tasks, mock }: { bucket: Bucket; tasks: Task[]; mock: boolean }) {
-  const rows = tasks.filter(bucket.match).slice(0, 6);
+function StatusRow({ label, value, tone = 'neutral' }: { label: string; value: string; tone?: 'ok' | 'warn' | 'bad' | 'neutral' }) {
+  const dot =
+    tone === 'ok' ? 'bg-emerald-400' :
+    tone === 'warn' ? 'bg-amber-400' :
+    tone === 'bad' ? 'bg-rose-500' :
+    'bg-[#3a3a32]';
   return (
-    <div
-      className="rounded-lg border-[0.5px] border-white/[0.06]"
-      style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
-    >
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.04]">
-        <span className="text-[12px] text-[#c8c7be]" style={{ letterSpacing: '-0.005em' }}>
-          {bucket.title}
-        </span>
-        <span className="text-[10.5px] text-[#5a5a52] tabular-nums">{rows.length}</span>
-      </div>
-      <div className="px-2 py-2">
-        {rows.length === 0 ? (
-          <div className="px-3 py-2 text-[11.5px] text-[#6a6a62]">{bucket.empty}</div>
-        ) : (
-          rows.map((t) => <Row key={t.task_id} task={t} mock={mock} />)
-        )}
-      </div>
+    <div className="flex items-center justify-between gap-4 rounded-md border border-white/[0.06] bg-white/[0.018] px-3 py-2">
+      <span className="flex items-center gap-2 text-[12px] text-[#c8c7be]">
+        <span className={'h-1.5 w-1.5 rounded-full ' + dot} />
+        {label}
+      </span>
+      <span className="text-[11.5px] text-[#8a8a82] text-right">{value}</span>
     </div>
   );
 }
 
 function HomeInner() {
-  const searchParams = useSearchParams();
-  const isMock = searchParams?.get('mock') === '1';
-  const { data, isLoading: realLoading } = useTasks({ limit: 60 });
-  const tasks = useMemo(() => (isMock ? mockTaskListForSidebar() : (data?.tasks ?? [])), [isMock, data?.tasks]);
-  const isLoading = isMock ? false : realLoading;
-  const hasAny = tasks.length > 0;
+  const { data: taskData, isLoading: tasksLoading } = useTasks({ limit: 60 });
+  const { data: runtimeData, isLoading: runtimesLoading } = useGovernanceRuntimes({ limit: 50 });
+  const tasks = useMemo(() => taskData?.tasks ?? [], [taskData?.tasks]);
+  const runtimes = runtimeData?.items ?? [];
+  const lastRun = tasks[0];
+  const firstActionCreated = tasks.some((t) => Boolean(t.policy?.action_name || t.task_type));
+  const runtimeConnected = runtimes.some((r) => Boolean(r.last_seen));
+  const loading = tasksLoading || runtimesLoading;
+  const proof = proofStatus(lastRun);
+  const proofTone = proof === 'Proof verified' ? 'ok' : proof === 'Proof failed' ? 'bad' : 'warn';
 
   return (
     <DashboardLayout>
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[960px] px-8 py-10">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-[15px] text-[#f0efe8] mb-1" style={{ letterSpacing: '-0.01em' }}>
-                Attention
+        <div className="mx-auto max-w-[1040px] px-8 py-10">
+          <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-2xl">
+              <h1 className="text-[18px] text-[#f0efe8]" style={{ letterSpacing: '-0.01em' }}>
+                Set up Igris for agent actions
               </h1>
-              <p className="text-[12px] text-[#7a7a72]">
-                Executions that need a look. Open any row to inspect the Run / Recover / Prove story.
+              <p className="mt-2 text-[13px] leading-relaxed text-[#8a8a82]">
+                Igris sits between your agent and the side effects it can perform. Create an action, get an endpoint, then route agent actions through Igris so runs can be inspected, recovered, and proven.
               </p>
             </div>
-            {!isMock && !hasAny && !isLoading && (
-              <Link
-                href="/home?mock=1"
-                className="inline-flex items-center gap-1.5 px-3 h-7 rounded-md bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16] text-[11.5px] flex-shrink-0"
-              >
-                View demo
+            <div className="flex items-center gap-2">
+              <Link href="/actions/new" className="inline-flex h-8 items-center rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 hover:bg-emerald-500/[0.16]">
+                Create your first action
               </Link>
-            )}
-            {isMock && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 h-6 rounded-md bg-amber-400/[0.08] text-amber-300 border border-amber-400/25 text-[10.5px] flex-shrink-0">
-                Demo data
-              </span>
-            )}
+            </div>
           </div>
 
-          {isLoading ? (
-            <div className="text-[11.5px] text-[#6a6a62]">Loading…</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {BUCKETS.map((b) => <Section key={b.id} bucket={b} tasks={tasks} mock={isMock} />)}
+          <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+            <section className="rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.015] p-4">
+              <h2 className="mb-3 text-[13px] text-[#d3d2c8]">Setup checklist</h2>
+              <div className="space-y-2">
+                {CHECKLIST.map((item, index) => (
+                  <div key={item} className="flex items-center gap-3 rounded-md px-2 py-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.08] text-[10.5px] text-[#8a8a82]">{index + 1}</span>
+                    <span className="text-[12.5px] text-[#c8c7be]">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.015] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-[13px] text-[#d3d2c8]">Actionable status</h2>
+              </div>
+              {loading ? (
+                <div className="text-[11.5px] text-[#6a6a62]">Loading status...</div>
+              ) : (
+                <div className="space-y-2">
+                  <StatusRow label="Runtime connected" value={runtimeConnected ? 'Connected' : 'Disconnected'} tone={runtimeConnected ? 'ok' : 'warn'} />
+                  <StatusRow label="First action created" value={firstActionCreated ? 'Created' : 'Not created'} tone={firstActionCreated ? 'ok' : 'warn'} />
+                  <StatusRow label="Last run status" value={lastRun ? `${actionName(lastRun)}: ${lastRun.status.replace(/_/g, ' ')}` : 'No runs yet'} tone={lastRun?.status === 'failed' ? 'bad' : lastRun ? 'ok' : 'neutral'} />
+                  <StatusRow label="Proof" value={lastRun ? proof : 'No run to inspect'} tone={lastRun ? proofTone : 'neutral'} />
+                </div>
+              )}
+            </section>
+          </div>
+
+          {lastRun && (
+            <div className="mt-5">
+              <Link href={`/runs/${encodeURIComponent(lastRun.task_id)}`} className="text-[11.5px] text-[#c8c7be] hover:text-[#f0efe8]">
+                Inspect latest run →
+              </Link>
             </div>
           )}
-
-          <div className="mt-6">
-            <Link
-              href={isMock ? '/execution/tasks?mock=1' : '/execution/tasks'}
-              className="inline-flex items-center gap-1.5 text-[11.5px] text-[#c8c7be] hover:text-[#f0efe8]"
-            >
-              Open Executions →
-            </Link>
-          </div>
         </div>
       </div>
     </DashboardLayout>
