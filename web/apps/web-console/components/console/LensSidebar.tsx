@@ -2,7 +2,7 @@
 
 /**
  * LensSidebar — the 236px content sidebar for the currently active lens.
- * For the Runs lens it delegates to ExecutionTaskSidebar. For other
+ * For the Execution lens it delegates to ExecutionTaskSidebar. For other
  * lenses (not yet ported) it shows a minimal placeholder header.
  */
 
@@ -40,7 +40,7 @@ function LensSidebarContent() {
   // Home renders without a sidebar — page body uses its own layout.
   if (lens === 'home') return null;
 
-  if (lens === 'runs') {
+  if (lens === 'execution') {
     const taskId = params?.id ? decodeURIComponent(params.id) : '';
     return <ExecutionTaskSidebar selectedTaskId={taskId} />;
   }
