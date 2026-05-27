@@ -152,7 +152,7 @@ func handleActionRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
 
-		return submitActionRun(c, tc, tenantID, req)
+		return submitActionRun(c, tc, tenantID, req, nil)
 	}
 }
 
@@ -189,11 +189,56 @@ func handleActionRunByName(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Ha
 				"message": err.Error(),
 			})
 		}
-		return submitActionRun(c, tc, tenantID, runReq)
+		if runReq.executedTarget == actionTargetLocalRuntime {
+			if !tenantHasHealthyRuntime(c.Context(), db, tenantID, runReq.preferredRuntimeID) {
+				return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+					"error":   "runtime_unavailable",
+					"message": "no connected runtime is available to execute this local_runtime action; install or reconnect a runtime and retry",
+				})
+			}
+		}
+		return submitActionRun(c, tc, tenantID, runReq, &def)
 	}
 }
 
-func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest) error {
+// tenantHasHealthyRuntime confirms the tenant has at least one healthy,
+// recently-heartbeated runtime — and, if preferredRuntimeID is set, that the
+// specific runtime is the one available. The query mirrors selectRuntime so
+// the pre-flight and dispatch see the same world. A negative result means the
+// gateway must refuse with a clear runtime_unavailable rather than enqueueing
+// a task that will fail to dispatch.
+func tenantHasHealthyRuntime(ctx context.Context, db *sql.DB, tenantID, preferredRuntimeID string) bool {
+	if db == nil || tenantID == "" {
+		return false
+	}
+	preferredRuntimeID = strings.TrimSpace(preferredRuntimeID)
+	query := `
+		SELECT 1
+		FROM runtime_instances
+		WHERE tenant_id = $1
+		  AND is_healthy = true
+		  AND status = 'active'
+		  AND endpoint IS NOT NULL
+		  AND last_heartbeat > NOW() - INTERVAL '90 seconds'`
+	args := []interface{}{tenantID}
+	if preferredRuntimeID != "" {
+		query += ` AND runtime_id = $2`
+		args = append(args, preferredRuntimeID)
+	}
+	query += ` LIMIT 1`
+	var one int
+	err := db.QueryRowContext(ctx, query, args...).Scan(&one)
+	if err == sql.ErrNoRows {
+		return false
+	}
+	if err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Actions] runtime availability check failed")
+		return false
+	}
+	return true
+}
+
+func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest, def *actionDefinition) error {
 	taskReq, err := buildActionTaskSubmitRequest(req, tenantID)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -223,11 +268,33 @@ func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID str
 		})
 	}
 
+	// Stamp executed_target once a real execution target has been selected.
+	// For local_runtime this is what proves the action ran on the customer's
+	// connected runtime rather than a hosted surface. Approval-pending tasks
+	// still belong to the chosen target — stamping is safe because policy
+	// denial would have errored above before reaching this point.
+	if req.executedTarget != "" {
+		if err := tc.Store().StampExecutedTarget(task.TaskID, tenantID, req.executedTarget); err != nil {
+			log.Warn().Err(err).Str("task_id", task.TaskID.String()).Msg("[Actions] stamp executed_target failed")
+		}
+	}
+
 	status := http.StatusAccepted
 	if task.Status == coordinator.TaskStatusApprovalRequired {
 		status = http.StatusConflict
 	}
-	return c.Status(status).JSON(buildActionRunResponse(task))
+	resp := buildActionRunResponse(task)
+	if def != nil {
+		resp["action_name"] = def.Name
+		resp["target_type"] = def.TargetType
+	}
+	if req.executedTarget != "" {
+		resp["selected_target"] = req.executedTarget
+	}
+	if task.RuntimeID != nil && *task.RuntimeID != "" {
+		resp["runtime_id"] = *task.RuntimeID
+	}
+	return c.Status(status).JSON(resp)
 }
 
 func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
@@ -473,6 +540,7 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 	targetType := canonicalActionTargetType(def.TargetType)
 	switch targetType {
 	case actionTargetMockDemo:
+		runReq.executedTarget = actionTargetMockDemo
 		record := map[string]interface{}{
 			"demo":                 true,
 			"demo_behavior":        "mock_demo target; no external API was called",
@@ -495,6 +563,7 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 		if strings.TrimSpace(def.TargetURL) == "" {
 			return actionRunRequest{}, fmt.Errorf("target URL is not configured")
 		}
+		runReq.executedTarget = targetType
 		body := req.Input
 		if body == nil {
 			body = map[string]interface{}{}
