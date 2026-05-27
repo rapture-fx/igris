@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
-import { Suspense, type ReactNode } from 'react';
+import { useParams } from 'next/navigation';
+import { Suspense, type ReactNode, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { GovernanceBadge, HandoffBadge, ProofBadge, ViolationSeverityBadge } from '@/components/governance/GovernanceBadge';
 import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
@@ -18,7 +18,6 @@ import {
   useGovernanceVerificationResults,
 } from '@/hooks/useGovernance';
 import { runtimeTrustLabel } from '@/lib/governance';
-import { mockRuntimeById } from '@/lib/mockExecution';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
 
@@ -44,18 +43,19 @@ function Field({ label, value, mono = false }: { label: string; value: ReactNode
 
 function RuntimeDetailPageInner() {
   const params = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
-  const isMock = searchParams?.get('mock') === '1';
   const runtimeId = decodeURIComponent(String(params.id ?? ''));
-  const { data: realRuntime, isLoading: realLoading } = useGovernanceRuntime(isMock ? undefined : runtimeId);
-  const runtime = isMock ? mockRuntimeById(runtimeId) : realRuntime;
-  const isLoading = isMock ? false : realLoading;
+  const { data: runtime, isLoading } = useGovernanceRuntime(runtimeId);
   const common = { limit: 200, runtime_id: runtimeId };
-  const { data: boundaries, isLoading: boundariesLoading } = useGovernanceBoundaries(common);
-  const { data: violations, isLoading: violationsLoading } = useGovernanceBoundaryViolations(common);
-  const { data: recovery, isLoading: recoveryLoading } = useGovernanceRecoveryEvents(common);
-  const { data: handoffs } = useGovernanceHandoffEvents(common);
-  const { data: proof, isLoading: proofLoading } = useGovernanceVerificationResults(common);
+  const [activeTab, setActiveTab] = useState('overview');
+  const loadBoundaries = activeTab === 'boundaries' || activeTab === 'raw evidence';
+  const loadViolations = activeTab === 'violations' || activeTab === 'raw evidence';
+  const loadRecovery = activeTab === 'recovery' || activeTab === 'raw evidence';
+  const loadProof = activeTab === 'proof' || activeTab === 'raw evidence';
+  const { data: boundaries, isLoading: boundariesLoading } = useGovernanceBoundaries(common, { enabled: loadBoundaries });
+  const { data: violations, isLoading: violationsLoading } = useGovernanceBoundaryViolations(common, { enabled: loadViolations });
+  const { data: recovery, isLoading: recoveryLoading } = useGovernanceRecoveryEvents(common, { enabled: loadRecovery });
+  const { data: handoffs } = useGovernanceHandoffEvents(common, { enabled: loadRecovery });
+  const { data: proof, isLoading: proofLoading } = useGovernanceVerificationResults(common, { enabled: loadProof });
 
   return (
     <DashboardLayout>
@@ -93,7 +93,7 @@ function RuntimeDetailPageInner() {
               </div>
             )}
 
-            <Tabs defaultValue="overview" className="space-y-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
               <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-0">
                 {['overview', 'capabilities', 'boundaries', 'violations', 'recovery', 'proof', 'raw evidence'].map((tab) => (
                   <TabsTrigger key={tab} value={tab} className="rounded-md border border-gray-200 px-3 py-1.5 text-xs data-[state=active]:bg-gray-900 data-[state=active]:text-white">
@@ -104,8 +104,8 @@ function RuntimeDetailPageInner() {
 
               <TabsContent value="overview" className="space-y-3">
                 <div className="grid gap-3 md:grid-cols-3">
-                  <Field label="Active executions" value={runtime.active_execution_count} />
-                  <Field label="Recent executions" value={runtime.recent_execution_count} />
+                  <Field label="Active runs" value={runtime.active_execution_count} />
+                  <Field label="Recent runs" value={runtime.recent_execution_count} />
                   <Field label="Boundary records" value={runtime.boundary_count} />
                   <Field label="Boundary violations" value={runtime.violation_count} />
                   <Field label="Handoff events" value={runtime.handoff_count} />
@@ -136,7 +136,7 @@ function RuntimeDetailPageInner() {
                         <TableRow><TableCell colSpan={4} className="py-10 text-center text-xs text-muted-foreground">Evidence not available. No boundary records returned.</TableCell></TableRow>
                       ) : boundaries?.items.map((boundary) => (
                         <TableRow key={boundary.boundary_id}>
-                          <TableCell>{boundary.task_id ? <Link href={`/execution/tasks/${encodeURIComponent(boundary.task_id)}`} className="group flex items-center gap-1.5 font-mono text-xs text-foreground">{truncateText(boundary.task_id, 18)}<ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" /></Link> : <span className="text-xs text-muted-foreground">Not available</span>}</TableCell>
+                          <TableCell>{boundary.task_id ? <Link href={`/runs/${encodeURIComponent(boundary.task_id)}`} className="group flex items-center gap-1.5 font-mono text-xs text-foreground">{truncateText(boundary.task_id, 18)}<ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" /></Link> : <span className="text-xs text-muted-foreground">Not available</span>}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{boundary.network_scope} / {boundary.filesystem_scope} / {boundary.api_scope}</TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground">{truncateText(boundary.boundary_digest, 18)}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{getRelativeTime(boundary.created_at)}</TableCell>
@@ -157,7 +157,7 @@ function RuntimeDetailPageInner() {
                         <TableRow><TableCell colSpan={5} className="py-10 text-center text-xs text-muted-foreground">Evidence not available. No violations returned.</TableCell></TableRow>
                       ) : violations?.items.map((violation) => (
                         <TableRow key={violation.violation_id}>
-                          <TableCell>{violation.task_id ? <Link href={`/execution/tasks/${encodeURIComponent(violation.task_id)}`} className="font-mono text-xs text-foreground">{truncateText(violation.task_id, 18)}</Link> : <span className="text-xs text-muted-foreground">Not available</span>}</TableCell>
+                          <TableCell>{violation.task_id ? <Link href={`/runs/${encodeURIComponent(violation.task_id)}`} className="font-mono text-xs text-foreground">{truncateText(violation.task_id, 18)}</Link> : <span className="text-xs text-muted-foreground">Not available</span>}</TableCell>
                           <TableCell><ViolationSeverityBadge severity={violation.severity} /></TableCell>
                           <TableCell className="text-xs text-muted-foreground">{violation.violation_type}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{violation.reason || 'Evidence not available'}</TableCell>
@@ -179,7 +179,7 @@ function RuntimeDetailPageInner() {
                         <TableRow><TableCell colSpan={5} className="py-10 text-center text-xs text-muted-foreground">Evidence not available. No recovery events returned.</TableCell></TableRow>
                       ) : recovery?.items.map((event) => (
                         <TableRow key={event.recovery_event_id}>
-                          <TableCell><Link href={`/execution/tasks/${encodeURIComponent(event.task_id)}`} className="font-mono text-xs text-foreground">{truncateText(event.task_id, 18)}</Link></TableCell>
+                          <TableCell><Link href={`/runs/${encodeURIComponent(event.task_id)}`} className="font-mono text-xs text-foreground">{truncateText(event.task_id, 18)}</Link></TableCell>
                           <TableCell><GovernanceBadge label={event.event_type.replace(/_/g, ' ')} tone={event.replay_allowed === false ? 'warning' : 'neutral'} /></TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground">{event.checkpoint_digest ? truncateText(event.checkpoint_digest, 18) : 'Not available'}</TableCell>
                           <TableCell className="text-xs text-muted-foreground">{event.reason || 'Evidence not available'}</TableCell>
@@ -191,7 +191,7 @@ function RuntimeDetailPageInner() {
                 </section>
                 <div className="grid gap-2">
                   {(handoffs?.items ?? []).length === 0 ? <p className="text-xs text-muted-foreground">Evidence not available. No handoff events returned.</p> : handoffs?.items.map((event) => (
-                    <Link key={event.handoff_event_id} href={`/execution/tasks/${encodeURIComponent(event.task_id)}`} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs hover:bg-gray-50">
+                    <Link key={event.handoff_event_id} href={`/runs/${encodeURIComponent(event.task_id)}`} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2 text-xs hover:bg-gray-50">
                       <span className="font-mono text-foreground">{truncateText(event.task_id, 18)}</span>
                       <HandoffBadge decision={event.decision} />
                       <span className="font-mono text-muted-foreground">{truncateText(event.source_runtime_id || 'unknown', 12)} -&gt; {truncateText(event.target_runtime_id || 'unknown', 12)}</span>
@@ -205,14 +205,14 @@ function RuntimeDetailPageInner() {
                 <section className="overflow-hidden rounded-lg border-[0.5px] border-black/[0.08] bg-white">
                   <div className="px-4 py-3"><h2 className="text-sm font-semibold text-foreground">Proof</h2></div>
                   <Table>
-                    <TableHeader><TableRow><TableHead>Task / Execution</TableHead><TableHead>Status</TableHead><TableHead>Evidence</TableHead><TableHead>Reason</TableHead><TableHead>When</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>Run / Execution</TableHead><TableHead>Status</TableHead><TableHead>Evidence</TableHead><TableHead>Reason</TableHead><TableHead>When</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {proofLoading ? <TableRow><TableCell colSpan={5}><Skeleton className="h-5 w-full" /></TableCell></TableRow> : (proof?.items ?? []).length === 0 ? (
                         <TableRow><TableCell colSpan={5} className="py-10 text-center text-xs text-muted-foreground">Evidence not available. No proof records returned for this runtime.</TableCell></TableRow>
                       ) : proof?.items.map((item) => (
                         <TableRow key={item.verification_id}>
                           <TableCell>
-                            {item.task_id ? <Link href={`/execution/tasks/${encodeURIComponent(item.task_id)}`} className="font-mono text-xs text-foreground">{truncateText(item.task_id, 18)}</Link> : <span className="text-xs text-muted-foreground">Task not available</span>}
+                            {item.task_id ? <Link href={`/runs/${encodeURIComponent(item.task_id)}`} className="font-mono text-xs text-foreground">{truncateText(item.task_id, 18)}</Link> : <span className="text-xs text-muted-foreground">Run not available</span>}
                             <div className="font-mono text-[10px] text-muted-foreground">{item.execution_id ? truncateText(item.execution_id, 22) : 'Execution not available'}</div>
                           </TableCell>
                           <TableCell><ProofBadge status={item.status} /></TableCell>
