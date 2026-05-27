@@ -43,10 +43,10 @@ export function ProfileMenu() {
   };
 
   const menuContentStyle = {
-    background: '#1a1a17',
+    background: 'var(--ig-bg-pop)',
     borderColor: tokens.borderSoft,
     color: tokens.text,
-    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    boxShadow: 'var(--ig-pop-shadow)',
   };
 
   return (
@@ -57,13 +57,13 @@ export function ProfileMenu() {
             aria-label="Profile menu"
             className="relative flex items-center justify-center h-7 w-7 mt-1 rounded-full select-none outline-none focus:ring-1 overflow-hidden"
             style={{
-              background: '#2a2a25',
+              background: 'var(--ig-avatar-bg)',
             }}
           >
             <img src="/sfat.png" alt="" className="h-full w-full object-cover" />
             <span
               className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border"
-              style={{ background: tokens.emerald, borderColor: tokens.bgRail }}
+              style={{ background: tokens.emerald, borderColor: 'var(--ig-dot-border)' }}
             />
           </button>
         </DropdownMenuTrigger>
@@ -141,7 +141,7 @@ export function ProfileMenu() {
             </button>
             <button
               className="px-3 h-8 text-xs rounded-md inline-flex items-center gap-1.5"
-              style={{ background: '#1b1912', color: tokens.textPrimary }}
+              style={{ background: '#1b1912', color: '#f6f6f4' }}
               onClick={handleLogout}
             >
               <ExitIcon className="h-3 w-3" />
@@ -164,7 +164,7 @@ function ProfileItem({
   external?: boolean;
   danger?: boolean;
 }) {
-  const className = 'flex items-center justify-between gap-2.5 px-2.5 py-2 text-[12px] cursor-pointer focus:outline-none data-[highlighted]:bg-white/[0.04]';
+  const className = 'ig-profile-item flex items-center justify-between gap-2.5 px-2.5 py-2 text-[12px] cursor-pointer focus:outline-none';
   const color = danger ? tokens.rose : tokens.text;
   if (href) {
     return (
