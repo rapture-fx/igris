@@ -1,12 +1,14 @@
 package api
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -27,14 +29,64 @@ type actionRunRequest struct {
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
 }
 
+type actionDefinition struct {
+	ID               string                 `json:"id"`
+	TenantID         string                 `json:"-"`
+	Name             string                 `json:"name"`
+	DisplayName      string                 `json:"display_name"`
+	Description      string                 `json:"description"`
+	TargetType       string                 `json:"target_type"`
+	TargetURL        string                 `json:"target_url"`
+	Method           string                 `json:"method"`
+	PolicyPreset     string                 `json:"policy_preset"`
+	ReplayClass      string                 `json:"replay_class"`
+	ApprovalRequired bool                   `json:"approval_required"`
+	Irreversible     bool                   `json:"irreversible"`
+	SecretRefs       []string               `json:"secret_refs"`
+	TargetMetadata   map[string]interface{} `json:"target_metadata,omitempty"`
+	CreatedAt        time.Time              `json:"created_at"`
+	UpdatedAt        time.Time              `json:"updated_at"`
+	ArchivedAt       *time.Time             `json:"archived_at,omitempty"`
+}
+
+type actionDefinitionRequest struct {
+	Name             string                 `json:"name"`
+	DisplayName      string                 `json:"display_name"`
+	Description      string                 `json:"description"`
+	TargetType       string                 `json:"target_type"`
+	TargetURL        string                 `json:"target_url"`
+	Method           string                 `json:"method"`
+	PolicyPreset     string                 `json:"policy_preset"`
+	ReplayClass      string                 `json:"replay_class"`
+	ApprovalRequired *bool                  `json:"approval_required"`
+	Irreversible     *bool                  `json:"irreversible"`
+	SecretRefs       []string               `json:"secret_refs"`
+	TargetMetadata   map[string]interface{} `json:"target_metadata"`
+}
+
+type actionRunByNameRequest struct {
+	Input          map[string]interface{} `json:"input"`
+	Metadata       map[string]interface{} `json:"metadata,omitempty"`
+	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
+	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+}
+
+var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{1,63}$`)
+
 // RegisterActionRoutes wires the product-facing action gateway. These routes
 // adapt customer action calls onto the same durable task path used by /v1/tasks.
 func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordinator) {
 	v1 := app.Group("/v1/actions")
 	v1.Use(middleware.BetterAuth(db))
 
+	v1.Get("", handleActionList(db))
+	v1.Post("", handleActionCreate(db))
 	v1.Post("/run", handleActionRun(tc))
 	v1.Get("/runs/:id", handleActionGetRun(tc))
+	v1.Post("/:name/run", handleActionRunByName(db, tc))
+	v1.Get("/:id", handleActionGet(db))
+	v1.Patch("/:id", handleActionPatch(db))
+	v1.Delete("/:id", handleActionArchive(db))
 }
 
 func handleActionRun(tc *coordinator.TaskCoordinator) fiber.Handler {
@@ -49,41 +101,82 @@ func handleActionRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
 
-		taskReq, err := buildActionTaskSubmitRequest(req, tenantID)
+		return submitActionRun(c, tc, tenantID, req)
+	}
+}
+
+func handleActionRunByName(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		name := strings.TrimSpace(c.Params("name"))
+		if !validActionName(name) {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_name"})
+		}
+		def, err := loadActionDefinitionByName(c.Context(), db, tenantID, name)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{
+				"error":   "action_not_found",
+				"message": "No action with that name is configured.",
+			})
+		}
 		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		var req actionRunByNameRequest
+		if len(c.Body()) > 0 {
+			if err := json.Unmarshal(c.Body(), &req); err != nil {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+			}
+		}
+		runReq, err := buildActionRunRequestFromDefinition(def, req)
+		if err != nil {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":   "target_not_configured",
+				"message": err.Error(),
+			})
+		}
+		return submitActionRun(c, tc, tenantID, runReq)
+	}
+}
+
+func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest) error {
+	taskReq, err := buildActionTaskSubmitRequest(req, tenantID)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error":   "invalid_action_request",
+			"message": err.Error(),
+		})
+	}
+
+	task, err := tc.Submit(c.Context(), taskReq)
+	if err != nil {
+		if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{
+				"error":   "policy_denied",
+				"message": err.Error(),
+			})
+		}
+		if errors.Is(err, coordinator.ErrInvalidTaskDefinition) {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
 				"error":   "invalid_action_request",
 				"message": err.Error(),
 			})
 		}
-
-		task, err := tc.Submit(c.Context(), taskReq)
-		if err != nil {
-			if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
-				return c.Status(http.StatusForbidden).JSON(fiber.Map{
-					"error":   "policy_denied",
-					"message": err.Error(),
-				})
-			}
-			if errors.Is(err, coordinator.ErrInvalidTaskDefinition) {
-				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-					"error":   "invalid_action_request",
-					"message": err.Error(),
-				})
-			}
-			log.Error().Err(err).Str("tenant_id", tenantID).Str("action", req.Action).Msg("[Actions] Run failed")
-			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
-				"error":   "runtime_unavailable",
-				"message": "no runtime was available to accept the action",
-			})
-		}
-
-		status := http.StatusAccepted
-		if task.Status == coordinator.TaskStatusApprovalRequired {
-			status = http.StatusConflict
-		}
-		return c.Status(status).JSON(buildActionRunResponse(task))
+		log.Error().Err(err).Str("tenant_id", tenantID).Str("action", req.Action).Msg("[Actions] Run failed")
+		return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+			"error":   "runtime_unavailable",
+			"message": "no runtime was available to accept the action",
+		})
 	}
+
+	status := http.StatusAccepted
+	if task.Status == coordinator.TaskStatusApprovalRequired {
+		status = http.StatusConflict
+	}
+	return c.Status(status).JSON(buildActionRunResponse(task))
 }
 
 func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
@@ -112,6 +205,169 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
+func handleActionList(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		rows, err := db.QueryContext(c.Context(), `
+			SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
+			       policy_preset, replay_class, approval_required, irreversible, secret_refs,
+			       target_metadata, created_at, updated_at, archived_at
+			FROM action_definitions
+			WHERE tenant_id = $1 AND archived_at IS NULL
+			ORDER BY updated_at DESC
+			LIMIT 200`, tenantID)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		defer rows.Close()
+
+		actions := make([]actionDefinition, 0)
+		for rows.Next() {
+			def, err := scanActionDefinition(rows)
+			if err != nil {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+			actions = append(actions, def)
+		}
+		if err := rows.Err(); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(fiber.Map{"actions": actions})
+	}
+}
+
+func handleActionCreate(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		var req actionDefinitionRequest
+		if err := json.Unmarshal(c.Body(), &req); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+		}
+		def, err := normalizeActionDefinitionRequest(req, nil)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
+		}
+		def.ID = uuid.NewString()
+		def.TenantID = tenantID
+		secretRefs, targetMetadata, err := marshalActionJSON(def)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
+		}
+
+		created, err := queryActionDefinition(c.Context(), db, `
+			INSERT INTO action_definitions (
+				id, tenant_id, name, display_name, description, target_type, target_url, method,
+				policy_preset, replay_class, approval_required, irreversible, secret_refs, target_metadata
+			)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14::jsonb)
+			RETURNING id, tenant_id, name, display_name, description, target_type, target_url, method,
+			          policy_preset, replay_class, approval_required, irreversible, secret_refs,
+			          target_metadata, created_at, updated_at, archived_at`,
+			def.ID, def.TenantID, def.Name, def.DisplayName, def.Description, def.TargetType, def.TargetURL, def.Method,
+			def.PolicyPreset, def.ReplayClass, def.ApprovalRequired, def.Irreversible, string(secretRefs), string(targetMetadata))
+		if err != nil {
+			if isLikelyUniqueViolation(err) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "action_name_conflict"})
+			}
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.Status(http.StatusCreated).JSON(created)
+	}
+}
+
+func handleActionGet(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		def, err := loadActionDefinitionByID(c.Context(), db, tenantID, c.Params("id"))
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "action_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(def)
+	}
+}
+
+func handleActionPatch(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		current, err := loadActionDefinitionByID(c.Context(), db, tenantID, c.Params("id"))
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "action_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		var req actionDefinitionRequest
+		if err := json.Unmarshal(c.Body(), &req); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+		}
+		def, err := normalizeActionDefinitionRequest(req, &current)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
+		}
+		secretRefs, targetMetadata, err := marshalActionJSON(def)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_action_definition", "message": err.Error()})
+		}
+		updated, err := queryActionDefinition(c.Context(), db, `
+			UPDATE action_definitions
+			SET name = $3, display_name = $4, description = $5, target_type = $6, target_url = $7,
+			    method = $8, policy_preset = $9, replay_class = $10, approval_required = $11,
+			    irreversible = $12, secret_refs = $13::jsonb, target_metadata = $14::jsonb, updated_at = NOW()
+			WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL
+			RETURNING id, tenant_id, name, display_name, description, target_type, target_url, method,
+			          policy_preset, replay_class, approval_required, irreversible, secret_refs,
+			          target_metadata, created_at, updated_at, archived_at`,
+			tenantID, current.ID, def.Name, def.DisplayName, def.Description, def.TargetType, def.TargetURL, def.Method,
+			def.PolicyPreset, def.ReplayClass, def.ApprovalRequired, def.Irreversible, string(secretRefs), string(targetMetadata))
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "action_not_found"})
+		}
+		if err != nil {
+			if isLikelyUniqueViolation(err) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "action_name_conflict"})
+			}
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(updated)
+	}
+}
+
+func handleActionArchive(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		res, err := db.ExecContext(c.Context(), `
+			UPDATE action_definitions
+			SET archived_at = NOW(), updated_at = NOW()
+			WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL`, tenantID, c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		affected, _ := res.RowsAffected()
+		if affected == 0 {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "action_not_found"})
+		}
+		return c.SendStatus(http.StatusNoContent)
+	}
+}
+
 func buildActionTaskSubmitRequest(req actionRunRequest, tenantID string) (*coordinator.TaskSubmitRequest, error) {
 	action := strings.TrimSpace(req.Action)
 	if action == "" {
@@ -137,6 +393,66 @@ func buildActionTaskSubmitRequest(req actionRunRequest, tenantID string) (*coord
 	}, nil
 }
 
+func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNameRequest) (actionRunRequest, error) {
+	metadata := copyActionMap(req.Metadata)
+	metadata["action_definition_id"] = def.ID
+	metadata["action_name"] = def.Name
+	metadata["target_type"] = def.TargetType
+	metadata["policy_preset"] = def.PolicyPreset
+	metadata["replay_class"] = def.ReplayClass
+	metadata["approval_required"] = def.ApprovalRequired
+	metadata["irreversible"] = def.Irreversible
+
+	runReq := actionRunRequest{
+		Action:         def.Name,
+		Input:          copyActionMap(req.Input),
+		Metadata:       metadata,
+		IdempotencyKey: req.IdempotencyKey,
+		DeadlineAt:     req.DeadlineAt,
+	}
+
+	switch def.TargetType {
+	case "mock_demo":
+		record := map[string]interface{}{
+			"demo":                 true,
+			"demo_behavior":        "mock_demo target; no external API was called",
+			"action":               def.Name,
+			"action_definition_id": def.ID,
+			"requested_input":      req.Input,
+			"policy_preset":        def.PolicyPreset,
+			"replay_class":         def.ReplayClass,
+			"approval_required":    def.ApprovalRequired,
+			"irreversible":         def.Irreversible,
+			"created_by_gateway":   true,
+			"target_configuration": "mock_demo",
+		}
+		runReq.RuntimeTarget = "database_write"
+		runReq.Input = map[string]interface{}{
+			"table":  "action_task_mock_demo",
+			"record": record,
+		}
+	case "webhook", "api":
+		if strings.TrimSpace(def.TargetURL) == "" {
+			return actionRunRequest{}, fmt.Errorf("target URL is not configured")
+		}
+		body := req.Input
+		if body == nil {
+			body = map[string]interface{}{}
+		}
+		runReq.RuntimeTarget = "http_request"
+		runReq.Input = map[string]interface{}{
+			"url":    def.TargetURL,
+			"method": def.Method,
+			"body":   body,
+		}
+	case "local_runtime":
+		return actionRunRequest{}, fmt.Errorf("local runtime action targets are not configured in this slice")
+	default:
+		return actionRunRequest{}, fmt.Errorf("unsupported target type")
+	}
+	return runReq, nil
+}
+
 func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage, error) {
 	target := strings.TrimSpace(req.RuntimeTarget)
 	if target == "" {
@@ -152,9 +468,7 @@ func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage,
 		"node_id":        nodeID,
 		"checkpoint_key": nodeID + "-checkpoint-0",
 		"write_slot":     "action." + strings.ReplaceAll(nodeID, "-", "_"),
-		"metadata": map[string]interface{}{
-			"action": req.Action,
-		},
+		"metadata":       actionNodeMetadata(req),
 	}
 
 	switch target {
@@ -241,6 +555,166 @@ func buildActionRunResponse(task *coordinator.TaskRecord) fiber.Map {
 	return resp
 }
 
+type actionDefinitionScanner interface {
+	Scan(dest ...interface{}) error
+}
+
+func loadActionDefinitionByID(ctx context.Context, db *sql.DB, tenantID, id string) (actionDefinition, error) {
+	return queryActionDefinition(ctx, db, `
+		SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
+		       policy_preset, replay_class, approval_required, irreversible, secret_refs,
+		       target_metadata, created_at, updated_at, archived_at
+		FROM action_definitions
+		WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL`, tenantID, id)
+}
+
+func loadActionDefinitionByName(ctx context.Context, db *sql.DB, tenantID, name string) (actionDefinition, error) {
+	return queryActionDefinition(ctx, db, `
+		SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
+		       policy_preset, replay_class, approval_required, irreversible, secret_refs,
+		       target_metadata, created_at, updated_at, archived_at
+		FROM action_definitions
+		WHERE tenant_id = $1 AND name = $2 AND archived_at IS NULL`, tenantID, name)
+}
+
+func queryActionDefinition(ctx context.Context, db *sql.DB, query string, args ...interface{}) (actionDefinition, error) {
+	row := db.QueryRowContext(ctx, query, args...)
+	return scanActionDefinition(row)
+}
+
+func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, error) {
+	var def actionDefinition
+	var secretRefsRaw []byte
+	var targetMetadataRaw []byte
+	err := scanner.Scan(
+		&def.ID,
+		&def.TenantID,
+		&def.Name,
+		&def.DisplayName,
+		&def.Description,
+		&def.TargetType,
+		&def.TargetURL,
+		&def.Method,
+		&def.PolicyPreset,
+		&def.ReplayClass,
+		&def.ApprovalRequired,
+		&def.Irreversible,
+		&secretRefsRaw,
+		&targetMetadataRaw,
+		&def.CreatedAt,
+		&def.UpdatedAt,
+		&def.ArchivedAt,
+	)
+	if err != nil {
+		return actionDefinition{}, err
+	}
+	if len(secretRefsRaw) > 0 {
+		_ = json.Unmarshal(secretRefsRaw, &def.SecretRefs)
+	}
+	if len(targetMetadataRaw) > 0 {
+		_ = json.Unmarshal(targetMetadataRaw, &def.TargetMetadata)
+	}
+	if def.SecretRefs == nil {
+		def.SecretRefs = []string{}
+	}
+	if def.TargetMetadata == nil {
+		def.TargetMetadata = map[string]interface{}{}
+	}
+	return def, nil
+}
+
+func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *actionDefinition) (actionDefinition, error) {
+	def := actionDefinition{
+		TargetType:     "mock_demo",
+		Method:         "POST",
+		PolicyPreset:   "Safe automation",
+		ReplayClass:    "retryable",
+		SecretRefs:     []string{},
+		TargetMetadata: map[string]interface{}{},
+	}
+	if current != nil {
+		def = *current
+		def.SecretRefs = append([]string(nil), current.SecretRefs...)
+		def.TargetMetadata = copyActionMap(current.TargetMetadata)
+	}
+	if strings.TrimSpace(req.Name) != "" || current == nil {
+		def.Name = normalizeActionName(req.Name)
+	}
+	if !validActionName(def.Name) {
+		return actionDefinition{}, fmt.Errorf("name must match %s", actionNamePattern.String())
+	}
+	if strings.TrimSpace(req.DisplayName) != "" || current == nil {
+		def.DisplayName = strings.TrimSpace(req.DisplayName)
+	}
+	if def.DisplayName == "" {
+		def.DisplayName = def.Name
+	}
+	if strings.TrimSpace(req.Description) != "" || current == nil {
+		def.Description = strings.TrimSpace(req.Description)
+	}
+	if strings.TrimSpace(req.TargetType) != "" {
+		def.TargetType = strings.TrimSpace(req.TargetType)
+	}
+	if !validActionTargetType(def.TargetType) {
+		return actionDefinition{}, fmt.Errorf("target_type must be mock_demo, webhook, api, or local_runtime")
+	}
+	if strings.TrimSpace(req.TargetURL) != "" || current == nil {
+		def.TargetURL = strings.TrimSpace(req.TargetURL)
+	}
+	if strings.TrimSpace(req.Method) != "" {
+		def.Method = strings.ToUpper(strings.TrimSpace(req.Method))
+	}
+	if def.Method == "" {
+		def.Method = "POST"
+	}
+	if !validActionMethod(def.Method) {
+		return actionDefinition{}, fmt.Errorf("method must be GET, POST, PUT, PATCH, or DELETE")
+	}
+	if strings.TrimSpace(req.PolicyPreset) != "" || current == nil {
+		def.PolicyPreset = strings.TrimSpace(req.PolicyPreset)
+	}
+	if !validPolicyPreset(def.PolicyPreset) {
+		return actionDefinition{}, fmt.Errorf("unsupported policy_preset")
+	}
+	applyPolicyPresetDefaults(&def)
+	if strings.TrimSpace(req.ReplayClass) != "" {
+		def.ReplayClass = strings.TrimSpace(req.ReplayClass)
+	}
+	if !validReplayClass(def.ReplayClass) {
+		return actionDefinition{}, fmt.Errorf("replay_class must be retryable, non_retryable, or read_only")
+	}
+	if req.ApprovalRequired != nil {
+		def.ApprovalRequired = *req.ApprovalRequired
+	}
+	if req.Irreversible != nil {
+		def.Irreversible = *req.Irreversible
+	}
+	if req.SecretRefs != nil {
+		for _, ref := range req.SecretRefs {
+			if strings.TrimSpace(ref) == "" {
+				return actionDefinition{}, fmt.Errorf("secret_refs cannot contain empty values")
+			}
+		}
+		def.SecretRefs = append([]string(nil), req.SecretRefs...)
+	}
+	if req.TargetMetadata != nil {
+		def.TargetMetadata = copyActionMap(req.TargetMetadata)
+	}
+	return def, nil
+}
+
+func marshalActionJSON(def actionDefinition) ([]byte, []byte, error) {
+	secretRefs, err := json.Marshal(def.SecretRefs)
+	if err != nil {
+		return nil, nil, err
+	}
+	targetMetadata, err := json.Marshal(def.TargetMetadata)
+	if err != nil {
+		return nil, nil, err
+	}
+	return secretRefs, targetMetadata, nil
+}
+
 func inferRuntimeTarget(input map[string]interface{}) string {
 	switch {
 	case stringFromMap(input, "url") != "":
@@ -254,6 +728,17 @@ func inferRuntimeTarget(input map[string]interface{}) string {
 	}
 }
 
+func actionNodeMetadata(req actionRunRequest) map[string]interface{} {
+	metadata := map[string]interface{}{"action": req.Action}
+	for key, value := range req.Metadata {
+		switch key {
+		case "action_definition_id", "action_name", "target_type", "policy_preset", "replay_class", "approval_required", "irreversible":
+			metadata[key] = value
+		}
+	}
+	return metadata
+}
+
 func actionNodeID(action string) string {
 	replacer := strings.NewReplacer(".", "-", "_", "-", "/", "-", " ", "-")
 	nodeID := strings.ToLower(replacer.Replace(strings.TrimSpace(action)))
@@ -262,6 +747,83 @@ func actionNodeID(action string) string {
 		return "action-0"
 	}
 	return nodeID + "-0"
+}
+
+func normalizeActionName(name string) string {
+	name = strings.ToLower(strings.TrimSpace(name))
+	name = strings.ReplaceAll(name, "-", "_")
+	name = strings.ReplaceAll(name, " ", "_")
+	return name
+}
+
+func validActionName(name string) bool {
+	return actionNamePattern.MatchString(name)
+}
+
+func validActionTargetType(targetType string) bool {
+	switch targetType {
+	case "mock_demo", "webhook", "api", "local_runtime":
+		return true
+	default:
+		return false
+	}
+}
+
+func validActionMethod(method string) bool {
+	switch method {
+	case "GET", "POST", "PUT", "PATCH", "DELETE":
+		return true
+	default:
+		return false
+	}
+}
+
+func validPolicyPreset(preset string) bool {
+	switch preset {
+	case "Safe automation", "Human-gated", "Non-replayable", "Read-only":
+		return true
+	default:
+		return false
+	}
+}
+
+func applyPolicyPresetDefaults(def *actionDefinition) {
+	switch def.PolicyPreset {
+	case "Human-gated":
+		def.ReplayClass = "non_retryable"
+		def.ApprovalRequired = true
+	case "Non-replayable":
+		def.ReplayClass = "non_retryable"
+		def.Irreversible = true
+	case "Read-only":
+		def.ReplayClass = "read_only"
+		def.ApprovalRequired = false
+	default:
+		def.ReplayClass = "retryable"
+		def.ApprovalRequired = false
+	}
+}
+
+func validReplayClass(replayClass string) bool {
+	switch replayClass {
+	case "retryable", "non_retryable", "read_only":
+		return true
+	default:
+		return false
+	}
+}
+
+func copyActionMap(values map[string]interface{}) map[string]interface{} {
+	copied := make(map[string]interface{})
+	for key, value := range values {
+		copied[key] = value
+	}
+	return copied
+}
+
+func isLikelyUniqueViolation(err error) bool {
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "unique") || strings.Contains(msg, "duplicate")
 }
 
 func stringFromMap(values map[string]interface{}, key string) string {
@@ -294,5 +856,5 @@ func actionConsoleURL(taskID string) string {
 	if base == "" {
 		return ""
 	}
-	return base + "/execution/tasks/" + taskID
+	return base + "/runs/" + taskID
 }
