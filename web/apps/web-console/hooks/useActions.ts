@@ -1,7 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/apiClient';
 
-export type ActionTargetType = 'mock_demo' | 'webhook' | 'api' | 'local_runtime';
+// Canonical target types match the backend (see `igris-overture/api/routes_actions.go`).
+// `api` is a legacy alias kept only so older responses still typecheck — the backend
+// normalizes it to `hosted_api` before returning, and the UI shows `Hosted API` for both.
+export type ActionTargetType =
+  | 'mock_demo'
+  | 'webhook'
+  | 'hosted_api'
+  | 'local_runtime'
+  | 'hybrid_fallback'
+  | 'api';
 export type ActionPolicyPreset = 'Safe automation' | 'Human-gated' | 'Non-replayable' | 'Read-only';
 export type ActionReplayClass = 'retryable' | 'non_retryable' | 'read_only';
 
