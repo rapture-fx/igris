@@ -3,7 +3,7 @@
 /**
  * Runtimes — minimal infrastructure context for the execution workspace.
  *
- * Shows runtime id/label, trust state, last seen, recent executions, recent
+ * Shows runtime id/label, health, capabilities, last seen, recent runs, recent
  * failures. Each row links to the runtime detail page. No fleet-management
  * widgets. Real data from `useGovernanceRuntimes()`; missing values render
  * as "Not available".
@@ -11,11 +11,9 @@
 
 import Link from 'next/link';
 import { Suspense, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useGovernanceRuntimes } from '@/hooks/useGovernance';
 import { runtimeTrustLabel } from '@/lib/governance';
-import { mockRuntimes } from '@/lib/mockExecution';
 import { getRelativeTime, truncateText } from '@/utils/helpers';
 
 function trustDot(state?: string): string {
@@ -27,13 +25,9 @@ function trustDot(state?: string): string {
 }
 
 function RuntimesPageInner() {
-  const searchParams = useSearchParams();
-  const isMock = searchParams?.get('mock') === '1';
   const [search, setSearch] = useState('');
-  const { data, isLoading: realLoading } = useGovernanceRuntimes({ limit: 200 });
-  const runtimes = isMock ? mockRuntimes() : (data?.items ?? []);
-  const isLoading = isMock ? false : realLoading;
-  const mockSuffix = isMock ? '?mock=1' : '';
+  const { data, isLoading } = useGovernanceRuntimes({ limit: 200 });
+  const runtimes = data?.items ?? [];
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -53,23 +47,10 @@ function RuntimesPageInner() {
                 Runtimes
               </h1>
               <p className="text-[12px] text-[#7a7a72] mt-0.5">
-                Runtime context for the executions you're inspecting.
+                Connected runtimes, health, capabilities, and last seen status.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {isMock && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 h-6 rounded-md bg-amber-400/[0.08] text-amber-300 border border-amber-400/25 text-[10.5px]">
-                  Demo data
-                </span>
-              )}
-              {!isMock && runtimes.length === 0 && !isLoading && (
-                <Link
-                  href="/runtimes?mock=1"
-                  className="inline-flex items-center gap-1.5 px-3 h-7 rounded-md bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16] text-[11.5px]"
-                >
-                  View demo
-                </Link>
-              )}
               <input
                 type="text"
                 value={search}
@@ -105,7 +86,7 @@ function RuntimesPageInner() {
                 return (
                   <Link
                     key={r.runtime_id}
-                    href={`/runtimes/${encodeURIComponent(r.runtime_id)}${mockSuffix}`}
+                    href={`/runtimes/${encodeURIComponent(r.runtime_id)}`}
                     className="grid items-center gap-3 px-4 py-2.5 border-b border-white/[0.04] last:border-b-0 hover:bg-white/[0.025] transition-colors"
                     style={{ gridTemplateColumns: '1fr 110px 110px 100px 110px' }}
                   >
