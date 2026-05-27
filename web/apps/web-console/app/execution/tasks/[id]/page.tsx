@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Execution inspector — the operator-facing view for one governed AI action.
+ * Run inspector — the flight recorder for one governed AI action.
  * The layout ports the canonical product design shown in the landing-page
  * hero (web-landing/.../Products.tsx ExecutionPreview): 236px task sidebar,
  * top bar with title + Re-run / Inspect / Verify chain buttons, definition
@@ -9,20 +9,18 @@
  * a bottom status bar.
  *
  * Every value comes from `GET /v1/tasks/:id`; missing data renders as
- * "Not available" instead of being fabricated. `?mock=1` injects a realistic
- * preview Task for design review only.
+ * "Not available" instead of being fabricated.
  */
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTask, useTaskSteps, type Task, type ActionEvidenceRow } from '@/hooks/useTasks';
 import { useTenant } from '@/hooks/useTenant';
 import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
-import { mockTaskById, mockTaskSteps, MOCK_TASK_ID } from '@/lib/mockExecution';
 import { formatDateTime, getRelativeTime, truncateText } from '@/utils/helpers';
 import { SafeEvidenceJsonPanel } from '@/components/governance/SafeEvidenceJsonPanel';
 
@@ -357,7 +355,7 @@ function Narrative({ task }: { task: Task }) {
   } else if (recovered) {
     body = <>Recovery recorded; receipt chain verification is <span className="text-[#c8c7be]">not yet available</span>.</>;
   } else if (task.status === 'failed') {
-    body = <>Execution <span className="text-rose-400">failed</span>{task.failure_reason ? <> — {task.failure_reason}</> : null}.</>;
+    body = <>Run <span className="text-rose-400">failed</span>{task.failure_reason ? <> — {task.failure_reason}</> : null}.</>;
   } else if (proof?.status === 'present') {
     body = <>Receipt is present but has not been verified. Run <span>Verify chain</span> to confirm hashes.</>;
   } else {
@@ -576,27 +574,18 @@ function DetailedEvidence({
 
 export default function ExecutionDetailPage() {
   const params = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
   const rawId = decodeURIComponent(params?.id ?? '');
-  const isMock = searchParams?.get('mock') === '1' || rawId === 'mock';
-  const taskId = isMock ? (rawId || MOCK_TASK_ID) : rawId;
+  const taskId = rawId;
   const { toast } = useToast();
   const { data: tenant } = useTenant();
   const [verified, setVerified] = useState<boolean | null>(null);
 
-  const { data: fetchedTask, isLoading: loadingFetched } = useTask(isMock ? null : (rawId || null));
-  const { data: stepsData } = useTaskSteps(isMock ? null : (rawId || null));
-  const task = isMock ? mockTaskById(taskId) : fetchedTask;
-  const isLoading = isMock ? false : loadingFetched;
-  const steps = isMock ? mockTaskSteps : (stepsData?.steps ?? []);
+  const { data: task, isLoading } = useTask(rawId || null);
+  const { data: stepsData } = useTaskSteps(rawId || null);
+  const steps = stepsData?.steps ?? [];
 
   const verifyMutation = useMutation({
     mutationFn: async () => {
-      if (isMock) {
-        await new Promise((r) => setTimeout(r, 700));
-        const mockProofStatus = task?.proof?.status === 'mismatch' ? 'mismatch' : 'verified';
-        return { proof: { status: mockProofStatus } };
-      }
       return api.post<{ proof?: { status?: string } }>(
         `/v1/tasks/${encodeURIComponent(taskId)}/proof/verify`,
         {},
@@ -654,7 +643,7 @@ export default function ExecutionDetailPage() {
 
   const title = task
     ? `${task.policy?.action_name || task.task_type || 'Action'}${task.policy?.policy_version ? ` — policy v${task.policy.policy_version}` : ''}`
-    : 'Execution';
+    : 'Run';
   const projectChip = task?.runtime_boundary?.environment_label || null;
 
   const totalActions = task ? (task.action_evidence?.length ?? 0) : 0;
@@ -682,9 +671,9 @@ export default function ExecutionDetailPage() {
               <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-white/[0.05]">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Link
-                    href="/execution/tasks"
+                    href="/runs"
                     className="text-[11.5px] text-[#7a7a72] hover:text-[#d3d2c8]"
-                    title="Back to executions"
+                    title="Back to runs"
                   >
                     ←
                   </Link>
@@ -692,7 +681,7 @@ export default function ExecutionDetailPage() {
                     className="text-[13px] font-medium text-[#f0efe8] truncate"
                     style={{ letterSpacing: '-0.01em' }}
                   >
-                    {isLoading ? 'Loading execution…' : title}
+                    {isLoading ? 'Loading run…' : title}
                   </span>
                   {projectChip && <Chip>{projectChip}</Chip>}
                 </div>
@@ -719,7 +708,7 @@ export default function ExecutionDetailPage() {
               {/* Body */}
               <div className="ic-scroll flex-1 overflow-y-auto px-7 pt-6 pb-2">
                 {isLoading || !task ? (
-                  <div className="text-[12px] text-[#7a7a72]">Loading execution…</div>
+                  <div className="text-[12px] text-[#7a7a72]">Loading run…</div>
                 ) : (
                   <>
                     {/* Definition rows */}
