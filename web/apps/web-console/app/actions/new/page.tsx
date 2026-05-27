@@ -17,6 +17,7 @@ import {
   ActionTargetType,
   useCreateAction,
 } from '@/hooks/useActions';
+import { CodeBlock, tokensForCurl, tokensForTs } from '@/lib/codeHighlight';
 
 const EXAMPLES = ['send_email', 'create_ticket', 'update_customer_record', 'fulfill_order'];
 const POLICY_PRESETS: ActionPolicyPreset[] = ['Safe automation', 'Human-gated', 'Non-replayable', 'Read-only'];
@@ -399,16 +400,20 @@ function NewActionInner() {
                 </div>
               </Section>
               <Section title="curl">
-                <div className="flex items-center justify-end mb-2">
-                  <CopyButton text={snippetCurlText} />
+                <div className="relative">
+                  <div className="absolute top-0 right-0 z-10">
+                    <CopyButton text={snippetCurlText} />
+                  </div>
+                  <CodeBlock tokens={tokensForCurl(snippetCurlText)} />
                 </div>
-                <pre className="whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be]" style={{ fontFamily: 'inherit' }}>{snippetCurlText}</pre>
               </Section>
               <Section title="TypeScript fetch">
-                <div className="flex items-center justify-end mb-2">
-                  <CopyButton text={snippetTsText} />
+                <div className="relative">
+                  <div className="absolute top-0 right-0 z-10">
+                    <CopyButton text={snippetTsText} />
+                  </div>
+                  <CodeBlock tokens={tokensForTs(snippetTsText)} />
                 </div>
-                <pre className="whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be]" style={{ fontFamily: 'inherit' }}>{snippetTsText}</pre>
               </Section>
             </>
           )}
