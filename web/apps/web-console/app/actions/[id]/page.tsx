@@ -107,7 +107,7 @@ function ActionDetailInner() {
                   <p className="mt-0.5 text-[12px] text-[#7a7a72]">{target}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {startedRunId ? <Link href={`/runs/${encodeURIComponent(startedRunId)}`} className="inline-flex h-7 items-center rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[11.5px] text-[#c8c7be] hover:bg-white/[0.06]">Open run</Link> : null}
+                  {startedRunId ? <Link href={`/execution/tasks/${encodeURIComponent(startedRunId)}`} className="inline-flex h-7 items-center rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[11.5px] text-[#c8c7be] hover:bg-white/[0.06]">Open execution</Link> : null}
                   {action.target_type === 'mock_demo' ? (
                     <button type="button" onClick={runTest} disabled={runMutation.isPending} className="inline-flex h-7 items-center rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 hover:bg-emerald-500/[0.16] disabled:opacity-50">
                       {runMutation.isPending ? 'Starting...' : 'Run test action'}
@@ -127,7 +127,7 @@ function ActionDetailInner() {
               <section className="rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.015] p-4">
                 {tab === 'overview' && (
                   <>
-                    <Field label="Last run" value={lastRun ? <Link className="hover:text-[#f0efe8]" href={`/runs/${encodeURIComponent(lastRun.task_id)}`}>{lastRun.status.replace(/_/g, ' ')} · {getRelativeTime(lastRun.created_at)}</Link> : 'No run yet'} />
+                    <Field label="Last run" value={lastRun ? <Link className="hover:text-[#f0efe8]" href={`/execution/tasks/${encodeURIComponent(lastRun.task_id)}`}>{lastRun.status.replace(/_/g, ' ')} · {getRelativeTime(lastRun.created_at)}</Link> : 'No run yet'} />
                     <Field label="Target" value={truncateText(target, 96)} />
                     <Field label="Policy" value={action.policy_preset} />
                     <Field label="Replay" value={replayForActionDefinition(action)} />
@@ -179,7 +179,7 @@ function ActionDetailInner() {
                     {runs.length === 0 ? (
                       <div className="py-4 text-[12px] text-[#7a7a72]">No run yet. Run a test action to inspect policy, recovery, and proof.</div>
                     ) : runs.map((run) => (
-                      <Link key={run.task_id} href={`/runs/${encodeURIComponent(run.task_id)}`} className="flex items-center justify-between rounded-md px-2 py-2 text-[12px] text-[#c8c7be] hover:bg-white/[0.025]">
+                      <Link key={run.task_id} href={`/execution/tasks/${encodeURIComponent(run.task_id)}`} className="flex items-center justify-between rounded-md px-2 py-2 text-[12px] text-[#c8c7be] hover:bg-white/[0.025]">
                         <span>{run.status.replace(/_/g, ' ')}</span>
                         <span className="text-[#7a7a72]">{getRelativeTime(run.created_at)}</span>
                       </Link>
