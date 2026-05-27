@@ -27,7 +27,7 @@ interface Lens {
 const LENSES: Lens[] = [
   { id: 'home',     label: 'Home',     href: '/home',     matches: ['/home'],                      Icon: Home },
   { id: 'actions',  label: 'Actions',  href: '/actions',  matches: ['/actions'],                   Icon: Workflow },
-  { id: 'execution', label: 'Execution', href: '/execution/tasks', matches: ['/execution/tasks'],  Icon: Zap },
+  { id: 'execution', label: 'Runs', href: '/execution/tasks', matches: ['/execution/tasks'],  Icon: Zap },
   { id: 'runtimes', label: 'Runtimes', href: '/runtimes', matches: ['/runtimes'],                  Icon: Box },
   { id: 'settings', label: 'Settings', href: '/settings', matches: ['/settings'],                  Icon: Settings },
 ];
