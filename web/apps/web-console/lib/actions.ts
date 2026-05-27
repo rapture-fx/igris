@@ -1,4 +1,5 @@
 import type { Task } from '@/hooks/useTasks';
+import type { ActionDraft } from '@/hooks/useActionDrafts';
 
 export interface ConsoleAction {
   id: string;
@@ -8,6 +9,10 @@ export interface ConsoleAction {
   lastRun?: Task;
   runs: Task[];
   proofStatus: string;
+  replayBehavior: string;
+  endpoint: string;
+  source: 'run' | 'draft';
+  draft?: ActionDraft;
 }
 
 export function actionDisplayName(task: Task): string {
@@ -40,6 +45,17 @@ export function proofForTask(task?: Task): string {
   return 'Proof unavailable';
 }
 
+export function endpointForAction(name: string): string {
+  return `https://api.igrisinertial.com/v1/actions/run`;
+}
+
+export function replayForTask(task?: Task): string {
+  if (!task?.policy) return 'Not configured';
+  if (task.policy.irreversible) return 'Replay blocked';
+  if (task.policy.replay_class) return task.policy.replay_class.replace(/_/g, ' ');
+  return 'Replay allowed';
+}
+
 export function buildActions(tasks: Task[]): ConsoleAction[] {
   const order: string[] = [];
   const grouped = new Map<string, Task[]>();
@@ -61,8 +77,30 @@ export function buildActions(tasks: Task[]): ConsoleAction[] {
       target: targetForTask(lastRun),
       policy: policyForTask(lastRun),
       proofStatus: proofForTask(lastRun),
+      replayBehavior: replayForTask(lastRun),
+      endpoint: endpointForAction(name),
       lastRun,
       runs,
+      source: 'run',
     };
   });
+}
+
+export function buildDraftActions(drafts: ActionDraft[], existingNames: Set<string>): ConsoleAction[] {
+  return drafts
+    .filter((draft) => !existingNames.has(draft.actionName))
+    .map((draft) => ({
+      id: draft.id,
+      name: draft.actionName,
+      target: draft.targetType === 'mock_demo'
+        ? 'Mock demo target'
+        : draft.targetUrl || (draft.targetType === 'local_runtime' ? 'Local runtime' : 'Not configured'),
+      policy: draft.policyPreset,
+      proofStatus: 'No run yet',
+      replayBehavior: draft.replayClass.replace(/_/g, ' '),
+      endpoint: endpointForAction(draft.actionName),
+      runs: [],
+      source: 'draft',
+      draft,
+    }));
 }
