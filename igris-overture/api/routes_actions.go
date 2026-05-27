@@ -54,6 +54,12 @@ type actionRunRequest struct {
 	RuntimeTarget  string                 `json:"runtime_target,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+
+	// Internal-only fields populated by the gateway from the registered Action
+	// definition. They are never deserialized from the public API body — the
+	// `-` json tag keeps customer payloads from spoofing them.
+	executedTarget     string
+	preferredRuntimeID string
 }
 
 // actionFallbackPolicy describes how an Action may fall back from a primary
@@ -437,8 +443,9 @@ func buildActionTaskSubmitRequest(req actionRunRequest, tenantID string) (*coord
 			AgentID:     stringFromMap(req.Metadata, "agent_id"),
 			PrincipalID: stringFromMap(req.Metadata, "user_id"),
 		},
-		IdempotencyKey: req.IdempotencyKey,
-		DeadlineAt:     req.DeadlineAt,
+		IdempotencyKey:     req.IdempotencyKey,
+		DeadlineAt:         req.DeadlineAt,
+		PreferredRuntimeID: req.preferredRuntimeID,
 	}, nil
 }
 
@@ -499,9 +506,21 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 			"body":   body,
 		}
 	case actionTargetLocalRuntime:
-		// Vocabulary is now accepted by the registry, but dispatch onto the
-		// local runtime is intentionally not wired in this slice.
-		return actionRunRequest{}, fmt.Errorf("local runtime action targets are not configured in this slice")
+		// local_runtime actions execute on a tenant-owned runtime. The action's
+		// `input` declares the tool call (http_request / filesystem /
+		// database_write) — the runtime executes it with its own local
+		// capabilities. `target_metadata.runtime_id`, when set, pins dispatch
+		// to a specific tenant runtime; all other target_metadata fields
+		// (environment, capabilities, working_directory_label, timeout_ms) are
+		// reserved for future selector slices and intentionally not echoed
+		// back through the public response.
+		if req.Input == nil {
+			return actionRunRequest{}, fmt.Errorf("input is required for local_runtime actions")
+		}
+		if rid := stringFromMap(def.TargetMetadata, "runtime_id"); rid != "" {
+			runReq.preferredRuntimeID = rid
+		}
+		runReq.executedTarget = actionTargetLocalRuntime
 	case actionTargetHybridFallback:
 		// Routing model exists, resolver does not. Refusing here keeps the
 		// slice purely additive — no surprise behavior change for callers.
