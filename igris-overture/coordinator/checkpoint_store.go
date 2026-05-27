@@ -603,6 +603,19 @@ func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string,
 	return taskTransitionResult(result, err)
 }
 
+// StampExecutedTarget records which Action execution target (hosted_api,
+// webhook, local_runtime, mock_demo) actually ran a task. Tenant-scoped to
+// prevent cross-tenant writes. Silently no-ops if the task does not match.
+func (s *CheckpointStore) StampExecutedTarget(taskID uuid.UUID, tenantID, executedTarget string) error {
+	_, err := s.db.Exec(`
+		UPDATE task_records
+		SET executed_target = $3
+		WHERE task_id = $1 AND tenant_id = $2`,
+		taskID, tenantID, executedTarget,
+	)
+	return err
+}
+
 // MarkCanceled transitions a task to CANCELED.
 func (s *CheckpointStore) MarkCanceled(taskID uuid.UUID) error {
 	result, err := s.db.Exec(`
