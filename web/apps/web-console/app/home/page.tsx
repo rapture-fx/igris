@@ -5,21 +5,17 @@ import Link from 'next/link';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useTasks, type Task } from '@/hooks/useTasks';
 import { useGovernanceRuntimes } from '@/hooks/useGovernance';
-import { useActionDrafts } from '@/hooks/useActionDrafts';
+import { useActions } from '@/hooks/useActions';
 import { getRelativeTime } from '@/utils/helpers';
 
 const BEFORE_CODE = 'await sendEmail(input)';
-const AFTER_CODE = `await fetch('https://api.igrisinertial.com/v1/actions/run', {
+const AFTER_CODE = `await fetch('https://api.igrisinertial.com/v1/actions/send_email/run', {
   method: 'POST',
   headers: {
     Authorization: \`Bearer \${process.env.IGRIS_API_KEY}\`,
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify({
-    action: 'send_email',
-    runtime_target: 'http_request',
-    input
-  })
+  body: JSON.stringify({ input })
 })`;
 
 function proofStatus(task?: Task): string {
@@ -121,23 +117,24 @@ function StatusRow({ label, value, tone = 'neutral' }: { label: string; value: s
 function HomeInner() {
   const { data: taskData, isLoading: tasksLoading } = useTasks({ limit: 60 });
   const { data: runtimeData, isLoading: runtimesLoading } = useGovernanceRuntimes({ limit: 1 });
-  const { drafts } = useActionDrafts();
+  const { data: actionData, isLoading: actionsLoading } = useActions();
   const tasks = useMemo(() => taskData?.tasks ?? [], [taskData?.tasks]);
+  const actions = useMemo(() => actionData?.actions ?? [], [actionData?.actions]);
   const lastRun = tasks[0];
-  const firstDraft = drafts[0];
-  const firstActionCreated = drafts.length > 0 || tasks.some((t) => Boolean(t.policy?.action_name || t.task_type));
-  const targetConnected = Boolean(firstDraft?.targetType && (firstDraft.targetType === 'mock_demo' || firstDraft.targetUrl || firstDraft.targetType === 'local_runtime'));
+  const firstAction = actions[0];
+  const firstActionCreated = actions.length > 0;
+  const targetConnected = Boolean(firstAction && (firstAction.target_type === 'mock_demo' || firstAction.target_url || firstAction.target_type === 'local_runtime'));
   const endpointReady = firstActionCreated && targetConnected;
   const runtimeConnected = (runtimeData?.items ?? []).some((r) => Boolean(r.last_seen));
   const proof = proofStatus(lastRun);
-  const loading = tasksLoading || runtimesLoading;
+  const loading = tasksLoading || runtimesLoading || actionsLoading;
 
   const steps = [
     ['Create an action', 'Define the action your agent is allowed to request, such as send_email, create_ticket, update_record, or fulfill_order.', 'Create action', firstActionCreated ? 'Complete' : 'Not started', '/actions/new'],
     ['Connect a target', 'Choose where the action goes: hosted webhook/API, mocked demo target, or local runtime for private systems.', 'Add target', firstActionCreated ? (targetConnected ? 'Complete' : 'Not started') : 'Locked until action exists', '/actions/new?step=target'],
-    ['Add secret or header', 'Store the API key or header Igris needs to call the target. For private systems, secrets can stay with the runtime.', 'Add secret', !targetConnected ? 'Locked until target exists' : firstDraft?.targetType === 'mock_demo' ? 'Optional for mock target' : 'Not configured', firstDraft ? `/actions/${firstDraft.id}?tab=secrets` : '/actions/new'],
-    ['Choose policy', 'Decide how this action should behave: auto-allow, human-gated, non-replayable, or blocked.', 'Choose policy', firstDraft?.policyPreset ? 'Complete' : 'Not started', '/actions/new?step=policy'],
-    ['Copy the endpoint', 'Use this endpoint where your agent would normally call the tool directly.', 'Copy endpoint', !endpointReady ? 'Locked until action ready' : firstDraft?.endpointCopied ? 'Copied' : 'Ready', firstDraft ? `/actions/${firstDraft.id}?tab=endpoint` : '/actions/new'],
+    ['Add secret or header', 'Store the API key or header Igris needs to call the target. For private systems, secrets can stay with the runtime.', 'Add secret', !targetConnected ? 'Locked until target exists' : firstAction?.target_type === 'mock_demo' ? 'Optional for mock target' : (firstAction?.secret_refs?.length ? 'Complete' : 'Not configured'), firstAction ? `/actions/${firstAction.id}?tab=secrets` : '/actions/new'],
+    ['Choose policy', 'Decide how this action should behave: auto-allow, human-gated, non-replayable, or blocked.', 'Choose policy', firstAction?.policy_preset ? 'Complete' : 'Not started', '/actions/new?step=policy'],
+    ['Copy the endpoint', 'Use this endpoint where your agent would normally call the tool directly.', 'Copy endpoint', !endpointReady ? 'Locked until action ready' : 'Ready', firstAction ? `/actions/${firstAction.id}?tab=endpoint` : '/actions/new'],
     ['Run a test', 'Send a test request through Igris and inspect policy, recovery, and proof.', 'Run test action', !endpointReady ? 'Locked until endpoint ready' : lastRun ? 'Complete' : 'Ready', '/actions/new?step=run'],
   ] as const;
 
@@ -186,7 +183,7 @@ function HomeInner() {
                     <StatusRow label="Endpoint ready" value={endpointReady ? 'Ready to copy' : 'Not ready'} tone={endpointReady ? 'ok' : 'warn'} />
                     <StatusRow label="Last test run" value={lastRun ? `${actionName(lastRun)}: ${lastRun.status.replace(/_/g, ' ')} ${getRelativeTime(lastRun.created_at)}` : 'No run yet'} tone={lastRun?.status === 'failed' ? 'bad' : lastRun ? 'ok' : 'neutral'} />
                     <StatusRow label="Proof status" value={lastRun ? proof : 'Proof unavailable'} tone={proof === 'Proof verified' ? 'ok' : proof === 'Proof failed' ? 'bad' : 'warn'} />
-                    {firstDraft?.targetType === 'local_runtime' && <StatusRow label="Runtime status" value={runtimeConnected ? 'Connected' : 'Runtime disconnected'} tone={runtimeConnected ? 'ok' : 'bad'} />}
+                    {firstAction?.target_type === 'local_runtime' && <StatusRow label="Runtime status" value={runtimeConnected ? 'Connected' : 'Runtime disconnected'} tone={runtimeConnected ? 'ok' : 'bad'} />}
                   </div>
                 )}
               </section>
