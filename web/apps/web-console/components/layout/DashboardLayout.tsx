@@ -29,7 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <ErrorBoundary>
         <div
           className="igris-pane flex h-screen overflow-hidden"
-          style={{ background: tokens.bg, color: tokens.text, colorScheme: 'dark' }}
+          style={{ background: tokens.bg, color: tokens.text }}
         >
           <ConsoleStyles />
           <IconRail />
