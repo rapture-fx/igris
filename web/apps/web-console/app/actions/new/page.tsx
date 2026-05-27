@@ -1,108 +1,221 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { api } from '@/lib/apiClient';
 import { useToast } from '@/components/ui/use-toast';
+import { DraftPolicyPreset, DraftTargetType, slugifyActionName, useActionDrafts } from '@/hooks/useActionDrafts';
 
-const TARGETS = ['http_request', 'filesystem', 'database_write'];
+const EXAMPLES = ['send_email', 'create_ticket', 'update_customer_record', 'fulfill_order'];
+const TARGET_TYPES: DraftTargetType[] = ['mock_demo', 'webhook', 'api', 'local_runtime'];
+const POLICY_PRESETS: DraftPolicyPreset[] = ['Safe automation', 'Human-gated', 'Non-replayable', 'Read-only'];
+const STEPS = ['Name', 'Target', 'Policy', 'Endpoint'];
 
-export default function NewActionPage() {
+function endpointFor(name: string) {
+  return 'https://api.igrisinertial.com/v1/actions/run';
+}
+
+function currentSnippet(actionName: string, targetUrl: string, method: string) {
+  return `await fetch('${endpointFor(actionName)}', {
+  method: 'POST',
+  headers: {
+    Authorization: \`Bearer \${process.env.IGRIS_API_KEY}\`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    action: '${actionName || 'send_email'}',
+    runtime_target: 'http_request',
+    input: {
+      url: '${targetUrl || 'https://example.com/webhook'}',
+      method: '${method || 'POST'}',
+      body: input
+    }
+  })
+})`;
+}
+
+function NewActionInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initial = searchParams?.get('step');
   const { toast } = useToast();
-  const [name, setName] = useState('');
-  const [target, setTarget] = useState('http_request');
-  const [url, setUrl] = useState('');
-  const [path, setPath] = useState('');
-  const [table, setTable] = useState('');
+  const { saveDraft } = useActionDrafts();
+  const [step, setStep] = useState(initial === 'target' ? 1 : initial === 'policy' ? 2 : 0);
+  const [name, setName] = useState('send_email');
+  const [description, setDescription] = useState('Let the agent request an email send through Igris.');
+  const [targetType, setTargetType] = useState<DraftTargetType>('mock_demo');
+  const [targetUrl, setTargetUrl] = useState('');
+  const [method, setMethod] = useState('POST');
+  const [policyPreset, setPolicyPreset] = useState<DraftPolicyPreset>('Safe automation');
+  const [replayClass, setReplayClass] = useState<'replayable' | 'non_replayable' | 'read_only'>('replayable');
+  const [approvalRequired, setApprovalRequired] = useState(false);
   const [runId, setRunId] = useState<string | null>(null);
+  const actionName = slugifyActionName(name);
+  const snippet = useMemo(() => currentSnippet(actionName, targetUrl, method), [actionName, targetUrl, method]);
+
+  const save = () => saveDraft({
+    actionName,
+    description,
+    targetType,
+    targetUrl,
+    method,
+    policyPreset,
+    replayClass,
+    approvalRequired,
+  });
 
   const mutation = useMutation({
-    mutationFn: async () => {
-      const input =
-        target === 'http_request' ? { url, method: 'POST' } :
-        target === 'filesystem' ? { path } :
-        { table };
-      return api.post<{ run_id?: string; task_id?: string; id?: string }>('/v1/actions/run', {
-        action: name.trim(),
-        runtime_target: target,
-        input,
-      });
-    },
+    mutationFn: async () => api.post<{ run_id?: string; task_id?: string; id?: string }>('/v1/actions/run', {
+      action: actionName,
+      runtime_target: 'http_request',
+      input: { url: targetUrl, method, body: { demo: true } },
+      metadata: { source: 'console_action_wizard' },
+    }),
     onSuccess: (result) => {
+      const saved = save();
       const id = result.run_id || result.task_id || result.id || null;
       setRunId(id);
-      toast({ title: 'Action test started', description: id ? 'Open the run to inspect policy, recovery, and proof.' : 'The action request was accepted.' });
+      toast({ title: 'Test run started', description: id ? 'Open the run to inspect policy, recovery, and proof.' : 'The action request was accepted.' });
+      if (id) router.push(`/runs/${encodeURIComponent(id)}`);
+      else router.push(`/actions/${saved.id}`);
     },
     onError: (error: Error) => {
-      toast({ variant: 'destructive', title: 'Action was not created', description: error.message });
+      toast({ variant: 'destructive', title: 'Test run failed to start', description: error.message });
     },
   });
 
-  const disabled =
-    !name.trim() ||
-    (target === 'http_request' && !url.trim()) ||
-    (target === 'filesystem' && !path.trim()) ||
-    (target === 'database_write' && !table.trim());
+  const canRun = actionName && (targetType === 'webhook' || targetType === 'api') && targetUrl.trim();
+  const finishDraft = () => {
+    const saved = save();
+    router.push(`/actions/${saved.id}?tab=endpoint`);
+  };
 
   return (
     <DashboardLayout>
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-[760px] px-8 py-10">
+        <div className="mx-auto max-w-[940px] px-8 py-10">
           <Link href="/actions" className="mb-4 inline-flex text-[11.5px] text-[#7a7a72] hover:text-[#d3d2c8]">← Actions</Link>
-          <h1 className="text-[15px] text-[#f0efe8]" style={{ letterSpacing: '-0.01em' }}>Create action</h1>
-          <p className="mt-1 text-[12px] text-[#7a7a72]">Start with a test run. Once it exists, the action detail page exposes the endpoint, policy, secrets, and run history.</p>
-
-          <div className="mt-6 space-y-4 rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.015] p-4">
-            <label className="block">
-              <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Action name</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Fulfill order" className="h-8 w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] text-[#e8e7df] outline-none placeholder:text-[#5a5a52]" />
-            </label>
-
-            <label className="block">
-              <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Target</span>
-              <select value={target} onChange={(e) => setTarget(e.target.value)} className="h-8 w-full rounded-md border border-white/[0.06] bg-[#10100f] px-3 text-[12px] text-[#e8e7df] outline-none">
-                {TARGETS.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-            </label>
-
-            {target === 'http_request' && (
-              <label className="block">
-                <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Target URL</span>
-                <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://api.example.com/action" className="h-8 w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] text-[#e8e7df] outline-none placeholder:text-[#5a5a52]" />
-              </label>
-            )}
-            {target === 'filesystem' && (
-              <label className="block">
-                <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Path</span>
-                <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="/data/input.json" className="h-8 w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] text-[#e8e7df] outline-none placeholder:text-[#5a5a52]" />
-              </label>
-            )}
-            {target === 'database_write' && (
-              <label className="block">
-                <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Table</span>
-                <input value={table} onChange={(e) => setTable(e.target.value)} placeholder="orders" className="h-8 w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] text-[#e8e7df] outline-none placeholder:text-[#5a5a52]" />
-              </label>
-            )}
-
-            <button
-              type="button"
-              disabled={disabled || mutation.isPending}
-              onClick={() => mutation.mutate()}
-              className="inline-flex h-8 items-center rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 hover:bg-emerald-500/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {mutation.isPending ? 'Starting test...' : 'Create and run test'}
-            </button>
+          <div className="mb-5">
+            <h1 className="text-[15px] text-[#f0efe8]" style={{ letterSpacing: '-0.01em' }}>Create action</h1>
+            <p className="mt-1 text-[12px] text-[#7a7a72]">Define the action, connect a target, choose policy, then copy the endpoint your agent will call.</p>
           </div>
 
-          {runId && (
-            <Link href={`/runs/${encodeURIComponent(runId)}`} className="mt-4 inline-flex text-[11.5px] text-[#c8c7be] hover:text-[#f0efe8]">
-              Open test run →
-            </Link>
-          )}
+          <div className="mb-4 flex gap-1">
+            {STEPS.map((label, index) => (
+              <button key={label} type="button" onClick={() => setStep(index)} className={'h-7 rounded-md px-3 text-[11.5px] ' + (step === index ? 'bg-white/[0.08] text-[#f0efe8]' : 'text-[#8a8a82] hover:bg-white/[0.035]')}>
+                {index + 1}. {label}
+              </button>
+            ))}
+          </div>
+
+          <section className="rounded-lg border-[0.5px] border-white/[0.06] bg-white/[0.015] p-4">
+            {step === 0 && (
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Action name</span>
+                  <input value={name} onChange={(e) => setName(e.target.value)} className="h-8 w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] text-[#e8e7df] outline-none" />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Description</span>
+                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[74px] w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 py-2 text-[12px] text-[#e8e7df] outline-none" />
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {EXAMPLES.map((example) => <button key={example} type="button" onClick={() => setName(example)} className="rounded-md border border-white/[0.06] px-2 py-1 text-[11px] text-[#8a8a82] hover:bg-white/[0.04]">{example}</button>)}
+                </div>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="space-y-4">
+                <div className="grid gap-2 md:grid-cols-4">
+                  {TARGET_TYPES.map((type) => (
+                    <button key={type} type="button" onClick={() => setTargetType(type)} className={'rounded-lg border px-3 py-3 text-left ' + (targetType === type ? 'border-emerald-500/25 bg-emerald-500/[0.08]' : 'border-white/[0.06] bg-white/[0.015]')}>
+                      <div className="text-[12px] text-[#e8e7df]">{type.replace(/_/g, ' ')}</div>
+                    </button>
+                  ))}
+                </div>
+                {(targetType === 'webhook' || targetType === 'api') && (
+                  <div className="grid gap-3 md:grid-cols-[1fr_120px]">
+                    <label className="block">
+                      <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Target URL</span>
+                      <input value={targetUrl} onChange={(e) => setTargetUrl(e.target.value)} placeholder="https://api.example.com/send-email" className="h-8 w-full rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[12px] text-[#e8e7df] outline-none placeholder:text-[#5a5a52]" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-1.5 block text-[11.5px] text-[#a8a89e]">Method</span>
+                      <select value={method} onChange={(e) => setMethod(e.target.value)} className="h-8 w-full rounded-md border border-white/[0.06] bg-[#10100f] px-3 text-[12px] text-[#e8e7df] outline-none">
+                        {['POST', 'PUT', 'PATCH'].map((item) => <option key={item}>{item}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                )}
+                {targetType === 'mock_demo' && <p className="text-[12px] text-[#8a8a82]">Mock demo creates a local action draft without credentials. Backend support for running mock_demo targets is not implemented yet.</p>}
+                {targetType === 'local_runtime' && <p className="text-[12px] text-[#8a8a82]">Use a runtime when actions need to run near private files, internal APIs, or customer infrastructure.</p>}
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <div className="grid gap-2 md:grid-cols-4">
+                  {POLICY_PRESETS.map((preset) => (
+                    <button key={preset} type="button" onClick={() => {
+                      setPolicyPreset(preset);
+                      setApprovalRequired(preset === 'Human-gated');
+                      setReplayClass(preset === 'Non-replayable' ? 'non_replayable' : preset === 'Read-only' ? 'read_only' : 'replayable');
+                    }} className={'rounded-lg border px-3 py-3 text-left ' + (policyPreset === preset ? 'border-emerald-500/25 bg-emerald-500/[0.08]' : 'border-white/[0.06] bg-white/[0.015]')}>
+                      <div className="text-[12px] text-[#e8e7df]">{preset}</div>
+                    </button>
+                  ))}
+                </div>
+                <label className="flex items-center gap-2 text-[12px] text-[#c8c7be]">
+                  <input type="checkbox" checked={approvalRequired} onChange={(e) => setApprovalRequired(e.target.checked)} />
+                  Approval required
+                </label>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4">
+                <div className="rounded-md border border-white/[0.06] bg-white/[0.025] px-3 py-2">
+                  <div className="text-[11px] text-[#7a7a72]">POST endpoint</div>
+                  <code className="mt-1 block break-all text-[12px] text-[#d3d2c8]">{endpointFor(actionName)}</code>
+                </div>
+                <div className="rounded-md border border-white/[0.06] bg-[#090908] p-3">
+                  <div className="mb-2 text-[11px] text-[#7a7a72]">TypeScript fetch</div>
+                  <pre className="whitespace-pre-wrap text-[11.5px] leading-relaxed text-[#c8c7be]">{snippet}</pre>
+                </div>
+                <p className="text-[11.5px] text-[#7a7a72]">This replaces the direct tool call in your agent. A name-scoped endpoint is still a backend TODO; today the action name is sent in the request body.</p>
+              </div>
+            )}
+
+            <div className="mt-5 flex items-center justify-between border-t border-white/[0.05] pt-4">
+              <button type="button" onClick={() => setStep(Math.max(0, step - 1))} className="h-8 rounded-md border border-white/[0.06] px-3 text-[11.5px] text-[#c8c7be] disabled:opacity-40" disabled={step === 0}>Back</button>
+              <div className="flex gap-2">
+                <button type="button" onClick={finishDraft} disabled={!actionName} className="h-8 rounded-md border border-white/[0.06] bg-white/[0.04] px-3 text-[11.5px] text-[#c8c7be] disabled:opacity-40">Save draft</button>
+                {step < 3 ? (
+                  <button type="button" onClick={() => setStep(step + 1)} disabled={!actionName} className="h-8 rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 disabled:opacity-40">Continue</button>
+                ) : (
+                  <button type="button" onClick={() => canRun ? mutation.mutate() : finishDraft()} disabled={!actionName || mutation.isPending} className="h-8 rounded-md border border-emerald-500/20 bg-emerald-500/[0.12] px-3 text-[11.5px] text-emerald-300 disabled:opacity-40">
+                    {canRun ? (mutation.isPending ? 'Starting test...' : 'Run test action') : 'Finish action'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {runId && <Link href={`/runs/${encodeURIComponent(runId)}`} className="mt-4 inline-flex text-[11.5px] text-[#c8c7be] hover:text-[#f0efe8]">Open test run -&gt;</Link>}
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function NewActionPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex-1" /></DashboardLayout>}>
+      <NewActionInner />
+    </Suspense>
   );
 }
