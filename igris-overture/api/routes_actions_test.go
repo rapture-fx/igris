@@ -202,11 +202,76 @@ func TestNormalizeActionDefinitionAcceptsLocalRuntime(t *testing.T) {
 	}, nil)
 	require.NoError(t, err)
 	require.Equal(t, "local_runtime", def.TargetType)
+}
 
-	// Behavior must not change yet — the run builder still refuses to dispatch.
-	_, runErr := buildActionRunRequestFromDefinition(def, actionRunByNameRequest{Input: map[string]interface{}{"x": 1}})
-	require.Error(t, runErr)
-	require.Contains(t, runErr.Error(), "local runtime")
+func TestBuildActionRunRequestFromDefinitionLocalRuntimeHTTPInput(t *testing.T) {
+	t.Parallel()
+
+	// local_runtime actions execute the customer's tool call on a connected
+	// runtime; the registered definition only configures runtime selection.
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-local",
+		Name:         "fetch_internal_doc",
+		TargetType:   "local_runtime",
+		PolicyPreset: "Read-only",
+		ReplayClass:  "read_only",
+	}, actionRunByNameRequest{Input: map[string]interface{}{
+		"url":    "http://intranet.local/doc/42",
+		"method": "GET",
+	}})
+	require.NoError(t, err, "local_runtime dispatch must no longer be stubbed")
+	require.Equal(t, "fetch_internal_doc", req.Action)
+	require.Equal(t, "local_runtime", req.Metadata["target_type"])
+	// executedTarget is internal but governs the post-Submit stamp.
+	require.Equal(t, "local_runtime", req.executedTarget)
+	require.Empty(t, req.preferredRuntimeID, "no runtime_id selector → unpinned")
+
+	// The execution-graph builder infers http_request from the input, giving
+	// the runtime the same tool surface used by hosted_api/webhook actions.
+	taskReq, err := buildActionTaskSubmitRequest(req, "tenant-local")
+	require.NoError(t, err)
+	require.Equal(t, "execution_graph", taskReq.TaskType)
+	var def map[string]interface{}
+	require.NoError(t, json.Unmarshal(taskReq.TaskDefinition, &def))
+	node := def["graph"].(map[string]interface{})["nodes"].([]interface{})[0].(map[string]interface{})
+	require.Equal(t, "http_request", node["tool_name"])
+}
+
+func TestBuildActionRunRequestFromDefinitionLocalRuntimePinsRuntime(t *testing.T) {
+	t.Parallel()
+
+	// target_metadata.runtime_id pins dispatch to a specific tenant runtime.
+	// The pin survives onto the coordinator submit request as PreferredRuntimeID.
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-local-pin",
+		Name:         "list_local_files",
+		TargetType:   "local_runtime",
+		PolicyPreset: "Read-only",
+		ReplayClass:  "read_only",
+		TargetMetadata: map[string]interface{}{
+			"runtime_id":              "runtime_pinned",
+			"working_directory_label": "workspace",
+		},
+	}, actionRunByNameRequest{Input: map[string]interface{}{
+		"path":      "/srv/data",
+		"operation": "read",
+	}})
+	require.NoError(t, err)
+	require.Equal(t, "runtime_pinned", req.preferredRuntimeID)
+	taskReq, err := buildActionTaskSubmitRequest(req, "tenant-local")
+	require.NoError(t, err)
+	require.Equal(t, "runtime_pinned", taskReq.PreferredRuntimeID)
+}
+
+func TestBuildActionRunRequestFromDefinitionLocalRuntimeRequiresInput(t *testing.T) {
+	t.Parallel()
+
+	_, err := buildActionRunRequestFromDefinition(actionDefinition{
+		Name:       "noop",
+		TargetType: "local_runtime",
+	}, actionRunByNameRequest{Input: nil})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "input is required")
 }
 
 func TestNormalizeActionDefinitionHybridFallbackRequiresPolicy(t *testing.T) {
