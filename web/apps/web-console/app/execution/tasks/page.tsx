@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * Runs workspace — execution inspection / flight recorder.
+ * Execution workspace — execution inspection / flight recorder.
  *
  * The lens sidebar (ExecutionTaskSidebar) renders the hero-style task list and
  * handles selection. This page is the empty state shown until the user picks
- * a run; selecting a row navigates to /runs/[id], which
- * renders the full Run / Recover / Prove story.
+ * an execution; selecting a row navigates to /execution/tasks/[id], which
+ * renders the full Recover / Prove story.
  */
 
 import { Suspense } from 'react';
