@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Local setup for the Igris Rails console.
+#
+# Goal: a developer with Ruby 3.2+ runs this once and is ready to `bin/dev`.
+# No DATABASE_URL, no Overture, no Render, no production secrets required.
+
+set -euo pipefail
+
+APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$APP_ROOT"
+
+REQUIRED_RUBY="3.2"
+
+bold()  { printf '\033[1m%s\033[0m\n' "$*"; }
+red()   { printf '\033[31m%s\033[0m\n' "$*"; }
+green() { printf '\033[32m%s\033[0m\n' "$*"; }
+yellow(){ printf '\033[33m%s\033[0m\n' "$*"; }
+
+bold "== Igris Rails console — local setup =="
+echo
+
+# ── 1. Ruby version ───────────────────────────────────────────────────────────
+if ! command -v ruby >/dev/null 2>&1; then
+  red "Ruby is not installed."
+  echo
+  echo "Install Ruby 3.2.2 with rbenv:"
+  echo "    brew install rbenv ruby-build"
+  echo "    rbenv install 3.2.2"
+  echo "    eval \"\$(rbenv init - bash)\"   # add to ~/.bashrc or ~/.zshrc"
+  echo
+  echo "Or with asdf:"
+  echo "    asdf plugin add ruby"
+  echo "    asdf install ruby 3.2.2"
+  exit 1
+fi
+
+RUBY_FULL="$(ruby -e 'print RUBY_VERSION')"
+RUBY_MAJOR="$(printf '%s' "$RUBY_FULL" | cut -d. -f1)"
+RUBY_MINOR="$(printf '%s' "$RUBY_FULL" | cut -d. -f2)"
+
+if [ "$RUBY_MAJOR" -lt 3 ] || { [ "$RUBY_MAJOR" -eq 3 ] && [ "$RUBY_MINOR" -lt 2 ]; }; then
+  red "Ruby $RUBY_FULL is too old — this app requires Ruby >= ${REQUIRED_RUBY}."
+  echo
+  echo "macOS system Ruby (2.6) cannot run this app. Install a real Ruby:"
+  echo
+  echo "  rbenv (recommended):"
+  echo "    brew install rbenv ruby-build"
+  echo "    rbenv install 3.2.2"
+  echo "    echo 'eval \"\$(rbenv init - zsh)\"' >> ~/.zshrc && exec zsh"
+  echo "    cd $(pwd) && rbenv local 3.2.2     # already set via .ruby-version"
+  echo
+  echo "  asdf:"
+  echo "    asdf plugin add ruby && asdf install ruby 3.2.2"
+  echo
+  yellow "After installing, re-run: bin/setup-local"
+  exit 1
+fi
+green "Ruby ${RUBY_FULL} — OK"
+
+# ── 2. Bundler ────────────────────────────────────────────────────────────────
+if ! command -v bundle >/dev/null 2>&1; then
+  echo "Installing bundler…"
+  gem install bundler --no-document
+fi
+green "Bundler $(bundle -v | awk '{print $3}') — OK"
+
+# ── 3. Gems ───────────────────────────────────────────────────────────────────
+echo
+bold "== bundle install =="
+if bundle check >/dev/null 2>&1; then
+  green "All gems already installed."
+else
+  bundle install
+fi
+
+# ── 4. Logs/tmp dirs Rails wants present ──────────────────────────────────────
+mkdir -p log tmp/pids tmp/cache
+
+# ── 5. Done ───────────────────────────────────────────────────────────────────
+echo
+green "== Setup complete =="
+echo
+bold "Next:"
+echo "  bin/dev                    # boots Rails on http://localhost:3100"
+echo
+echo "Fixture/demo mode is the default. OVERTURE_API_BASE_URL is unset, so"
+echo "the UI renders local fixture data with a visible 'Demo data' chip — this"
+echo "is the intended loop for product-surface development."

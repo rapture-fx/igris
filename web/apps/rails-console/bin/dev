@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Boot the Igris Rails console for local product-surface development.
+#
+# Defaults: port 3100, fixture/demo mode (no Overture, no DB, no secrets).
+# To point at a local Overture instead, export OVERTURE_API_BASE_URL and
+# OVERTURE_API_KEY before running this script.
+
+set -euo pipefail
+
+APP_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$APP_ROOT"
+
+PORT="${PORT:-3100}"
+
+bold()  { printf '\033[1m%s\033[0m\n' "$*"; }
+green() { printf '\033[32m%s\033[0m\n' "$*"; }
+dim()   { printf '\033[2m%s\033[0m\n' "$*"; }
+
+bold "== Igris Rails console =="
+if [ -z "${OVERTURE_API_BASE_URL:-}" ]; then
+  green "Mode: fixture/demo (OVERTURE_API_BASE_URL is unset)"
+  dim   "  UI will render fixture data with a visible 'Demo data' chip."
+  dim   "  To point at a real Overture: export OVERTURE_API_BASE_URL=… OVERTURE_API_KEY=…"
+else
+  green "Mode: real Overture (${OVERTURE_API_BASE_URL})"
+fi
+echo
+bold "Open: http://localhost:${PORT}/home"
+echo
+
+exec bin/rails server -p "$PORT" -b 127.0.0.1

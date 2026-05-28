@@ -1,39 +1,78 @@
-# Igris Rails Console — Visual Parity Spike
+# Igris Rails Console
 
-A Rails 7.1 spike that recreates the Igris developer console UI to evaluate
-whether Rails can replace the Next.js console as the product face. The Go
-Overture backend and Rust runtime are **not** touched — Rails owns views only.
+The Rails 7.1 product surface for Igris Inertial. This is the active console.
+The Go Overture backend and Rust runtime are **not** touched here — Rails
+owns views only.
 
 ## What this is
 
-- A Rails app in `web/apps/rails-console`, isolated from the existing Next.js
-  console (`web/apps/web-console`).
-- The same five lenses (Home, Actions, Runs, Runtimes, Settings) with the
-  same icon-rail + lens-sidebar + main-pane shell.
-- A 1:1 port of the design tokens from
-  `web/apps/web-console/components/console/primitives.tsx` (all `--ig-*`
-  variables) into `app/assets/stylesheets/application.css`.
-- Static fixture data (`app/services/igris/fixtures.rb`) so the spike is
-  evaluable offline without Overture running. The Home page shows a
-  visible `Demo data` chip.
+- The product console at `web/apps/rails-console`, served in production at
+  `console.igrisinertial.com` / `app.igrisinertial.com` via Render.
+- Five lenses (Home, Actions, Runs, Runtimes, Settings) with an icon-rail +
+  lens-sidebar + main-pane shell.
+- Design tokens (all `--ig-*` variables) live in
+  `app/assets/stylesheets/application.css`.
+- Static fixture data (`app/services/igris/fixtures.rb`) so the UI is
+  inspectable locally without Overture running. Pages show a visible
+  `Demo data` chip in this mode.
 
 ## What this is **not**
 
-- Not a replacement for the Next.js console.
 - Not an execution engine. Rails never owns routing, policy, runtime
   dispatch, proof verification, receipt signing, or recovery decisions.
-- Not a redesign — visual parity with the current console is the goal.
+- Not a place for durable task/run storage — Go Overture is the source of
+  truth.
 
-## Running it
+## Local product-surface development
+
+Two commands. No Docker, no Go Overture, no Neon, no Render, no secrets:
 
 ```bash
 cd web/apps/rails-console
-bundle install
-bin/rails server      # http://localhost:3100
+bin/setup-local           # checks Ruby, installs gems
+bin/dev                   # boots Rails on http://localhost:3100
 ```
 
-Requires Ruby ≥ 3.2 (see `.ruby-version`). The repo's system Ruby is 2.6 —
-install 3.2 via `rbenv install 3.2.2` or `asdf install ruby 3.2.2`.
+Then open **http://localhost:3100/home**.
+
+### Fixture / demo mode (default)
+
+When `OVERTURE_API_BASE_URL` is unset the UI runs in **fixture/demo mode**:
+every page renders local fixture data and shows a visible `Demo data` chip.
+This is the intended loop for iterating on Home, Actions, Create Action,
+Action Detail, Runs, Run Detail, Runtimes, and Settings without needing a
+backend.
+
+### Optional: point at a local Overture
+
+Only needed if you're working on real Go ↔ Rails integration. Product-surface
+work does **not** need this.
+
+```bash
+OVERTURE_API_BASE_URL=http://localhost:8081 \
+OVERTURE_API_KEY=igris_xxx \
+bin/dev
+```
+
+### Ruby
+
+Requires Ruby **≥ 3.2** (pinned to 3.2.2 in `.ruby-version`). macOS system
+Ruby is 2.6 — `bin/setup-local` will refuse to continue and print install
+instructions. The quickest path:
+
+```bash
+brew install rbenv ruby-build
+rbenv install 3.2.2
+echo 'eval "$(rbenv init - zsh)"' >> ~/.zshrc && exec zsh
+cd web/apps/rails-console        # .ruby-version selects 3.2.2 automatically
+bin/setup-local
+```
+
+### Tests
+
+```bash
+bin/rails test
+```
 
 ## Pages
 
