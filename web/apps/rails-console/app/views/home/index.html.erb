@@ -1,0 +1,85 @@
+<%# Home — guided onboarding front door (Igris). %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <span class="ig-topbar__title">Home</span>
+    <span class="ig-topbar__caption">Keep your AI stack. Route risky actions through Igris.</span>
+  </div>
+  <div class="ig-topbar__group">
+    <%= link_to 'Create your first action', new_action_path, class: 'ig-btn ig-btn--primary' %>
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<div class="ig-strip">
+  <%= chip 'Where Igris sits', tone: :ok %>
+  <span class="ig-mut" style="font-size: 11.5px;">Agent / App → Igris Action Endpoint → Tool / API / Workflow</span>
+</div>
+
+<div class="ig-body ig-body--narrow">
+  <div class="ig-grid ig-grid--3" style="margin-bottom: 24px;">
+    <div class="ig-card">
+      <div class="ig-card__title">Agent / App</div>
+      <div class="ig-mut" style="font-size: 11.5px;">Your product or LLM agent. Calls Igris with a signed request.</div>
+    </div>
+    <div class="ig-card" style="border-color: rgba(52,211,153,0.25);">
+      <div class="ig-card__title">Igris Action Endpoint</div>
+      <div class="ig-mut" style="font-size: 11.5px;">Policy → routing → recovery → proof. One endpoint per action.</div>
+    </div>
+    <div class="ig-card">
+      <div class="ig-card__title">Tool / API / Workflow</div>
+      <div class="ig-mut" style="font-size: 11.5px;">Where the side effect actually happens. Hosted API, webhook, or local runtime.</div>
+    </div>
+  </div>
+
+  <div class="ig-page-header" style="margin-top: 12px;">
+    <h2 class="ig-page-header__title">Setup guide</h2>
+    <p class="ig-page-header__sub">Five steps to a signed, policy-checked endpoint your agent can call.</p>
+  </div>
+
+  <% steps = [
+    ['Create an action',            'Name it. Define its inputs in plain language.',                                       'Create',      'ok'],
+    ['Choose where it runs',         'Mock demo, hosted API, webhook, or local runtime.',                                   'Pick target', 'ok'],
+    ['Set a policy',                 'Idempotency, retries, single-flight, manual approval — pick what fits the action.',   'Configure',   'ok'],
+    ['Copy the endpoint',            'POST /v1/actions/:name/run. Curl and fetch snippets are generated for you.',          'Copy',        'warn'],
+    ['Run it and inspect the proof', 'Every run produces a signed receipt. Open the run to read the story end-to-end.',     'Run test',    'warn'],
+  ] %>
+
+  <div class="ig-grid" style="grid-template-columns: 1fr;">
+    <% steps.each_with_index do |(title, sub, cta, tone), i| %>
+      <div class="ig-card" style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--ig-border); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--ig-text-body); flex-shrink: 0;"><%= i + 1 %></div>
+        <div style="flex: 1; min-width: 0;">
+          <div class="ig-card__title" style="margin-bottom: 2px;"><%= title %></div>
+          <div class="ig-mut" style="font-size: 11.5px;"><%= sub %></div>
+        </div>
+        <%= status_pill cta, tone: tone.to_sym %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="ig-divider"></div>
+
+  <div class="ig-row ig-row--spread" style="margin-bottom: 12px;">
+    <h2 class="ig-page-header__title" style="margin: 0;">Recent runs</h2>
+    <%= link_to 'Open Runs', runs_path, class: 'ig-btn' %>
+  </div>
+  <div class="ig-table-wrap">
+    <table class="ig-table">
+      <thead>
+        <tr><th>Run</th><th>Action</th><th>Routed via</th><th>Proof</th><th>Started</th></tr>
+      </thead>
+      <tbody>
+        <% @recent_runs.each do |r| %>
+          <tr>
+            <td><%= link_to r[:id], run_path(r[:id]) %></td>
+            <td><%= r[:action] %></td>
+            <td class="ig-mut"><%= r[:routed_via] %></td>
+            <td><%= status_pill r[:proof] %></td>
+            <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
