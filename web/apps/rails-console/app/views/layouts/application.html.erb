@@ -40,14 +40,6 @@
         <%= yield %>
       </main>
 
-      <% if demo_mode? %>
-        <div style="position: fixed; bottom: 12px; right: 12px; z-index: 80;
-                    padding: 5px 10px; border-radius: 999px; font-size: 10.5px;
-                    background: var(--ic-overlay-3); color: var(--ic-text-5);
-                    border: 1px solid var(--ic-border-soft);">
-          Demo data — OVERTURE_API_BASE_URL not set
-        </div>
-      <% end %>
     </div>
 
     <%# Syntax highlighting — loaded at end of body so every code block
