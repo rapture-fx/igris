@@ -1,0 +1,43 @@
+<%# Runs list %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <span class="ig-topbar__title">Runs</span>
+    <span class="ig-topbar__caption">Every call that went through an Igris action endpoint.</span>
+  </div>
+  <div class="ig-topbar__group">
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<div class="ig-strip">
+  <%= chip "#{@runs.size} runs", tone: :muted %>
+  <%= chip "#{@runs.count { |r| r[:proof] == 'Proof verified' }} verified", tone: :ok %>
+  <%= chip "#{@runs.count { |r| r[:proof] == 'Proof failed' }} failed", tone: :bad %>
+</div>
+
+<div class="ig-body">
+  <div class="ig-table-wrap">
+    <table class="ig-table">
+      <thead>
+        <tr>
+          <th>Status</th><th>Run</th><th>Action</th><th>Routed via</th><th>Recovery</th><th>Proof</th><th>Duration</th><th>Started</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @runs.each do |r| %>
+          <tr>
+            <td><%= status_pill r[:status] %></td>
+            <td><%= link_to r[:id], run_path(r[:id]) %></td>
+            <td><%= link_to r[:action], action_path(r[:action]) %></td>
+            <td class="ig-mut"><%= r[:routed_via] %></td>
+            <td class="ig-mut"><%= r[:recovery] %></td>
+            <td><%= status_pill r[:proof] %></td>
+            <td class="ig-mut"><%= r[:duration_ms] %> ms</td>
+            <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
