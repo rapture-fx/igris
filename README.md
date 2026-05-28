@@ -182,7 +182,8 @@ for the proof model.
 - `igris-runtime/`: runtime implementation for local execution surfaces
 - `web/apps/web-docs-hub/`: public documentation site
 - `web/apps/web-landing/`: marketing and product website
-- `web/apps/web-console/`: operator console for execution runs, events, signed records, and environment visibility
+- `web/apps/rails-console/`: **active console** — Rails app for actions, runs, runtimes, settings (served at `app.igrisinertial.com` / `console.igrisinertial.com`). See `web/apps/rails-console/README.md`.
+- `web/apps/web-console/`: **archived** — original Next.js console, kept for reference only. See `web/apps/web-console/ARCHIVED.md` for the decommission status and the operational checklist before deletion.
 - `rust-core/`: lower-level runtime and routing support code where applicable
 
 ## Architecture Context
