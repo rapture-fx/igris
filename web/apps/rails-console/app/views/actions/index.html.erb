@@ -1,59 +1,41 @@
-<%# Actions list — main product object. %>
-<div class="ig-topbar">
-  <div class="ig-topbar__group">
-    <span class="ig-topbar__title">Actions</span>
-    <span class="ig-topbar__caption">Agent → Igris Action Endpoint → Tool / API / Workflow</span>
+<%# Actions list — hero typography, full-pane (no lens sidebar). %>
+<div class="ic-topbar">
+  <div class="ic-topbar__group">
+    <span class="ic-topbar__title">Actions</span>
+    <span class="ic-chip"><%= @actions.size %> registered</span>
   </div>
-  <div class="ig-topbar__group">
-    <%= link_to 'New action', new_action_path, class: 'ig-btn ig-btn--primary' %>
+  <div class="ic-topbar__group">
+    <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
   </div>
 </div>
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<div class="ig-strip">
-  <span class="ig-chip"><span class="ig-chip__dot ig-chip__dot--ok"></span>Registry · <%= @actions.size %> <%= @actions.size == 1 ? 'action' : 'actions' %></span>
-  <span class="ig-mut" style="font-size: 11.5px;">Each action is a named endpoint your agent can call. Pick a target, set a policy, copy the URL.</span>
-</div>
-
-<div class="ig-body">
+<div class="ic-body ic-scroll">
   <% if @actions.empty? %>
-    <div class="ig-empty">
-      <h3 class="ig-empty__title">Create your first action</h3>
-      <p class="ig-empty__sub">An action is a named endpoint. Your agent POSTs to it, Igris evaluates policy, routes execution, and signs a receipt.</p>
-      <%= link_to 'New action', new_action_path, class: 'ig-btn ig-btn--primary ig-btn--lg' %>
+    <div style="text-align: center; padding: 64px 16px; color: var(--ic-text-6); font-size: 12.5px;">
+      <div style="color: var(--ic-text-bright); font-size: 14px; font-weight: 500; margin-bottom: 4px;">Create your first action</div>
+      <div style="margin-bottom: 16px;">A named endpoint your agent can POST to. Igris adds policy, routing, recovery, and a signed receipt.</div>
+      <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
     </div>
   <% else %>
-    <div class="ig-table-wrap">
-      <table class="ig-table">
-        <thead>
-          <tr>
-            <th>Action</th>
-            <th>Target</th>
-            <th>Policy</th>
-            <th>Replay</th>
-            <th>Last run</th>
-            <th>Proof</th>
-            <th>Endpoint</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @actions.each do |a| %>
-            <tr>
-              <td>
-                <%= link_to a[:name], action_path(a[:id]) %>
-                <div class="ig-mut" style="font-size: 11px; margin-top: 2px;"><%= status_pill a[:setup] %></div>
-              </td>
-              <td class="ig-mut"><%= a[:target_label] %></td>
-              <td class="ig-mut" style="max-width: 220px;"><%= a[:policy] %></td>
-              <td class="ig-mut"><%= a[:replay] %></td>
-              <td class="ig-mut"><%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'No runs yet' %></td>
-              <td><%= status_pill a[:proof] %></td>
-              <td class="ig-mut" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px;"><%= a[:endpoint] %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+    <div class="ic-actions-list">
+      <% @actions.each do |a| %>
+        <% st = a[:last_run_status].to_s %>
+        <% dot_mod = case st when 'bad' then 'failed' when 'warn' then 'running' when '' then 'ok' else 'ok' end %>
+        <%= link_to action_path(a[:id]), class: 'ic-action-row' do %>
+          <span class="ic-action-row__dot ic-action-row__dot--<%= dot_mod %>"></span>
+          <div class="ic-action-row__main">
+            <div class="ic-action-row__name"><%= a[:name] %></div>
+            <div class="ic-action-row__meta">
+              <%= a[:target_label] %> · <%= a[:policy] %>
+            </div>
+          </div>
+          <div class="ic-action-row__endpoint mono"><%= a[:endpoint] %></div>
+          <div class="ic-action-row__proof"><%= a[:proof] %></div>
+          <div class="ic-action-row__when"><%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %></div>
+        <% end %>
+      <% end %>
     </div>
   <% end %>
 </div>
