@@ -169,8 +169,9 @@ The smoke run must not leak the API key or admin password anywhere:
 - If the smoke included DNS changes (e.g., first time pointing
   `console.igrisinertial.com` at Render), give Cloudflare 5 minutes
   to settle before publishing the change to users.
-- **Do not** decommission the parked Next.js console yet. Wait for at
-  least one real workflow on Rails before flipping any user DNS.
+- The old Next.js console has been removed from the repo. Any remaining
+  Cloudflare Pages cleanup is dashboard-only — see `DEPLOY.md`
+  "Next.js console — removed".
 
 ## When smoke fails
 
