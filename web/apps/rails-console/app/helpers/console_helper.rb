@@ -79,4 +79,95 @@ module ConsoleHelper
   def code_snippet(code, language: 'bash', label: nil)
     render 'shared/code_snippet', code: code, language: language, label: label
   end
+
+  # Runs pulse — daily activity as thin vertical bars with a soft 7-day
+  # moving-average curve overlay, week-boundary tick marks, and a "today"
+  # pin on the last column. Original to the Igris console.
+  def runs_pulse(series, height: 96, bar_w: 4, gap: 2)
+    series = Array(series).map(&:to_i)
+    return ''.html_safe if series.empty?
+
+    today      = Date.today
+    start_date = today - (series.length - 1)
+    n          = series.length
+    max        = [series.max, 1].max
+    pad_x      = 4
+    pad_t      = 6
+    pad_b      = 18                       # leaves room for week ticks + today pin
+    inner_h    = height - pad_t - pad_b
+    total_w    = pad_x * 2 + n * (bar_w + gap) - gap
+
+    bar_x = ->(i) { pad_x + i * (bar_w + gap) }
+    bar_h = ->(v) { (v.to_f / max * inner_h).round(2).clamp(0, inner_h) }
+
+    # Centered 7-day moving average so the trend curve sits "inside" the bars.
+    window = 7
+    half   = window / 2
+    avgs = (0...n).map do |i|
+      lo = [i - half, 0].max
+      hi = [i + half, n - 1].min
+      slice = series[lo..hi]
+      slice.sum.to_f / slice.length
+    end
+
+    points = avgs.each_with_index.map do |a, i|
+      x = bar_x.call(i) + bar_w / 2.0
+      y = pad_t + inner_h - (a / max * inner_h)
+      [x.round(2), y.round(2)]
+    end
+    curve_path = points.each_with_index.map { |(x, y), i| "#{i.zero? ? 'M' : 'L'} #{x} #{y}" }.join(' ')
+
+    base_y = pad_t + inner_h
+    leading = start_date.wday
+    last_x  = bar_x.call(n - 1) + bar_w / 2.0
+    last_y  = pad_t + inner_h - bar_h.call(series.last)
+
+    svg = +%(<svg class="ic-pulse" viewBox="0 0 #{total_w} #{height}" )
+    svg << %(width="100%" height="#{height}" preserveAspectRatio="xMaxYMid meet" )
+    svg << %(xmlns="http://www.w3.org/2000/svg" role="img" )
+    svg << %(aria-label="Daily run activity, last #{n} days">)
+
+    # Subtle axis baseline
+    svg << %(<line class="ic-pulse__axis" x1="#{pad_x}" x2="#{total_w - pad_x}" )
+    svg << %(y1="#{base_y}" y2="#{base_y}"/>)
+
+    # Week-boundary tick marks below the axis (every 7 days)
+    (0...n).each do |i|
+      d = start_date + i
+      next unless d.wday.zero?                 # ticks on Sundays
+      x = bar_x.call(i) + bar_w / 2.0
+      svg << %(<line class="ic-pulse__tick" x1="#{x}" x2="#{x}" )
+      svg << %(y1="#{base_y}" y2="#{base_y + 4}"/>)
+      # Month label only on the first Sunday of each month
+      if d.day <= 7
+        svg << %(<text class="ic-pulse__label" x="#{x + 2}" y="#{base_y + 13}">)
+        svg << %(#{d.strftime('%b').downcase}</text>)
+      end
+    end
+
+    # Bars
+    series.each_with_index do |v, i|
+      next if v <= 0
+      x = bar_x.call(i)
+      h = bar_h.call(v)
+      y = base_y - h
+      svg << %(<rect class="ic-pulse__bar" x="#{x}" y="#{y}" )
+      svg << %(width="#{bar_w}" height="#{h}" rx="1.5" ry="1.5">)
+      date_label = (start_date + i).strftime('%b %-d')
+      svg << %(<title>#{v} run#{'s' if v != 1} on #{date_label}</title></rect>)
+    end
+
+    # Moving-average curve (drawn on top, semi-transparent)
+    svg << %(<path class="ic-pulse__avg" d="#{curve_path}" fill="none"/>)
+
+    # Today pin: vertical stem + dot at the top of today's bar
+    svg << %(<line class="ic-pulse__pin" x1="#{last_x}" x2="#{last_x}" )
+    svg << %(y1="#{last_y - 6}" y2="#{base_y}"/>)
+    svg << %(<circle class="ic-pulse__pin-dot" cx="#{last_x}" cy="#{last_y - 6}" r="2.5"/>)
+    svg << %(<text class="ic-pulse__pin-label" x="#{last_x}" y="#{last_y - 11}" )
+    svg << %(text-anchor="middle">today</text>)
+
+    svg << '</svg>'
+    svg.html_safe
+  end
 end
