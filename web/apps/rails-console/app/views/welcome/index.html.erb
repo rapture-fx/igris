@@ -1,0 +1,55 @@
+<%# Onboarding — shown to first-time visitors before they enter the console. %>
+<div class="ic-welcome">
+  <header class="ic-welcome__top">
+    <a href="<%= welcome_path %>" class="ic-welcome__brand">
+      <%= image_tag '/inertia.png',    class: 'ic-rail__logo-img ic-rail__logo-img--light', alt: '' %>
+      <%= image_tag '/fofotlight.png', class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
+      <span>Igris Inertial</span>
+    </a>
+    <%= button_to 'Skip', enter_console_path,
+        method: :post, form: { style: 'display:inline; margin:0;' },
+        class: 'ic-btn' %>
+  </header>
+
+  <main class="ic-welcome__main">
+    <h1 class="ic-welcome__title">Welcome to Igris Inertial.</h1>
+    <p class="ic-welcome__sub">
+      Five steps to a signed, policy-checked endpoint your agent can call.
+      You can skip this and jump straight into the console at any time.
+    </p>
+
+    <div class="ic-tiles ic-welcome__tiles">
+      <% steps = [
+        ['1', 'Create an action',            'Name it. Define its inputs in plain language.'],
+        ['2', 'Choose where it runs',        'Mock demo, hosted API, webhook, or local runtime.'],
+        ['3', 'Set a policy',                'Idempotency, retries, single-flight, or manual approval.'],
+        ['4', 'Copy the endpoint',           'POST /v1/actions/:name/run · curl and fetch snippets generated.'],
+        ['5', 'Run it and inspect the proof','Every run produces a signed receipt. Open the run to read it end-to-end.'],
+      ] %>
+      <% steps.each do |num, title, sub| %>
+        <div class="ic-tile">
+          <div class="ic-tile__num"><%= num %></div>
+          <div class="ic-tile__body">
+            <div class="ic-tile__title"><%= title %></div>
+            <div class="ic-tile__sub"><%= sub %></div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%= button_to enter_console_path,
+        method: :post, form: { style: 'margin:0;' },
+        class: 'ic-btn ic-btn--accent ic-welcome__cta' do %>
+      Enter console
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="margin-left: 2px;">
+        <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    <% end %>
+
+    <p class="ic-welcome__foot">
+      Already onboarded? <%= button_to 'Take me to the console', enter_console_path,
+          method: :post, form: { style: 'display:inline; margin:0;' },
+          class: 'ic-welcome__linkbtn' %>
+    </p>
+  </main>
+</div>
