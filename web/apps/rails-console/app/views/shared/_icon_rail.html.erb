@@ -31,7 +31,6 @@
   <details class="ic-rail__avatar" data-tip="Account">
     <summary aria-label="Account menu">
       <%= image_tag '/sfat.png', alt: '' %>
-      <span class="ic-rail__avatar__dot" aria-hidden="true"></span>
     </summary>
     <div class="ic-rail__menu" role="menu">
       <div class="ic-rail__menu__head">
@@ -77,6 +76,15 @@
 
       <div class="ic-rail__menu__sep" role="separator"></div>
 
+      <button type="button" class="ic-rail__menu__item" role="menuitemcheckbox" id="ic-theme-toggle" aria-checked="false">
+        <svg class="ic-rail__menu__icon ic-rail__menu__icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="ic-rail__menu__icon ic-rail__menu__icon--dark"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="ic-theme-toggle-label">Dark mode</span>
+        <span class="ic-rail__menu__hint" id="ic-theme-toggle-state">off</span>
+      </button>
+
+      <div class="ic-rail__menu__sep" role="separator"></div>
+
       <button type="button" class="ic-rail__menu__item ic-rail__menu__item--danger" role="menuitem">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Sign out</span>
@@ -85,17 +93,38 @@
   </details>
 </nav>
 
-<%# Dismiss the dropdown on outside click / ESC (no JS framework needed). %>
+<%# Dropdown dismiss + theme toggle (no JS framework needed). %>
 <script>
   (function() {
     const details = document.querySelector('.ic-rail__avatar');
-    if (!details) return;
-    document.addEventListener('click', function(e) {
-      if (!details.open) return;
-      if (!details.contains(e.target)) details.open = false;
-    });
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && details.open) details.open = false;
-    });
+    if (details) {
+      document.addEventListener('click', function(e) {
+        if (!details.open) return;
+        if (!details.contains(e.target)) details.open = false;
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && details.open) details.open = false;
+      });
+    }
+
+    function syncToggle() {
+      const dark = document.documentElement.classList.contains('dark');
+      const state = document.getElementById('ic-theme-toggle-state');
+      const btn = document.getElementById('ic-theme-toggle');
+      if (state) state.textContent = dark ? 'on' : 'off';
+      if (btn) btn.setAttribute('aria-checked', dark ? 'true' : 'false');
+    }
+    syncToggle();
+    const btn = document.getElementById('ic-theme-toggle');
+    if (btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dark = !document.documentElement.classList.contains('dark');
+        document.documentElement.classList.toggle('dark', dark);
+        try { localStorage.setItem('ic-theme', dark ? 'dark' : 'light'); } catch (e) {}
+        syncToggle();
+      });
+    }
   })();
 </script>
