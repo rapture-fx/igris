@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Welcome to Igris Inertial</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="csrf-token" content="<%= form_authenticity_token %>">
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('ic-theme');
+          var dark = saved
+            ? saved === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    <%= stylesheet_link_tag 'application' %>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <style>:root { font-family: 'Inter', sans-serif; } body { background: var(--ic-bg); color: var(--ic-text); }</style>
+  </head>
+  <body>
+    <%= yield %>
+  </body>
+</html>
