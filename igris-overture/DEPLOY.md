@@ -32,23 +32,49 @@ ever break it, `go test ./igris-overture/api/...` fails fast.
 
 ### Issuing the console service key
 
-The console's tenant must exist before deploy. Once it does, mint the
-key via the existing endpoint (called once during deploy bootstrap,
-ideally from a Render shell where you can save the output safely):
+Two paths, both produce identical output (the auth middleware can't
+tell them apart):
+
+**A. CLI — recommended for first deploy.** No Next.js login required.
+The Go binary ships a `tenant-key` subcommand that talks to Postgres
+directly. Run it from a Render shell on `igris-overture-api`:
 
 ```bash
-# Authenticate first with the BetterAuth session cookie of the owner
-# (you can grab one from a logged-in browser session), then:
-curl -X POST https://api.igrisinertial.com/v1/account/api-key \
-  -H "Cookie: __Secure-better-auth.session_token=<owner_session_cookie>" \
-  -H "Content-Type: application/json"
-# → { "api_key": "igris_<60+ chars>", "prefix": "igris_xxxxxx" }
+# Fresh DB — create the tenant row and mint a key in one shot:
+./bin/igris-overture tenant-key \
+  --email you@example.com \
+  --name "Console Operator" \
+  --create-if-missing
+
+# Existing tenant — just rotate the key:
+./bin/igris-overture tenant-key --email you@example.com
 ```
 
-Take the `api_key` value once — it's the **only** time the raw key is
-shown — and set it as `OVERTURE_API_KEY` on the Rails service in
-Render. Rotate by calling `POST /v1/account/api-key` again (revokes the
-prior key) or `DELETE /v1/account/api-key`.
+stdout receives exactly one line: the raw `igris_<…>` key.
+stderr receives a human-readable trace ("found existing tenant", etc).
+The raw key is **never** logged anywhere — capture it from stdout
+and paste it into Render → `igris-console-rails` → `OVERTURE_API_KEY`,
+then redeploy.
+
+The CLI uses `DATABASE_URL_DIRECT` when set, falls back to
+`DATABASE_URL`. It stores `sha256(key)` exactly the way
+`POST /v1/account/api-key` does, so the auth middleware lookup
+succeeds against the same `tenants.api_key_hash` column.
+
+**B. HTTP rotation — once you already have a working session.**
+Once any valid auth path exists (an existing API key or a logged-in
+session cookie), call:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/account/api-key \
+  -H "Authorization: Bearer $EXISTING_KEY"
+# → { "api_key": "igris_…", "prefix": "igris_xxxxxx", "created_at": "…" }
+```
+
+Either path revokes the previous key on success. To revoke without
+replacement: `DELETE /v1/account/api-key` (HTTP) or — for full
+parity from a Render shell —
+`psql "$DATABASE_URL_DIRECT" -c "UPDATE tenants SET api_key_hash=NULL, api_key_prefix=NULL WHERE tenant_email=lower('you@example.com')"`.
 
 ## Env vars
 
