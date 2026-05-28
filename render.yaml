@@ -92,6 +92,13 @@ services:
         value: https://api.igrisinertial.com
       - key: APP_HOST
         value: console.igrisinertial.com
+      # Front-door HTTP Basic auth — required in production. Setting
+      # both makes the console challenge for credentials on every
+      # request (except /up). Set in the Render dashboard, not here.
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
     domains:
       - console.igrisinertial.com
       - app.igrisinertial.com
