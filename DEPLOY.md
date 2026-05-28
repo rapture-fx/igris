@@ -168,16 +168,33 @@ challenge — production must have both.
 After step 5 the Rails console no longer depends on Next.js for the
 key bootstrap — the Go CLI talks to Postgres directly. After step 6
 end users have their own front door. Once `SMOKE.md` passes end-to-end
-against the Rails URL, the Next.js console can be:
+against the Rails URL, the Next.js console can be retired.
 
-1. Demoted to internal-only (remove its Render domain or restrict by IP).
-2. Left running through one billing cycle as a fallback.
-3. Suspended in Render after that cycle if no fallback fires.
-4. Deleted once a backup of any non-DB state (env vars, custom configs)
-   is taken.
+The Next.js console is deployed to **Cloudflare Pages** (project name
+`igris-console`, see `web/apps/web-console/wrangler.toml`). The retire
+sequence:
 
-Don't skip step 1 — leaving the Next.js URL public after Rails goes
-live invites confusion about which console is the source of truth.
+1. **Demote to internal-only.** In Cloudflare → Pages →
+   `igris-console`, remove the custom-domain mapping for
+   `app.igrisinertial.com`. The Pages project keeps its
+   `*.pages.dev` URL as a private fallback.
+2. **Verify DNS is clean.** `app.igrisinertial.com` must CNAME to
+   `igris-console-rails.onrender.com`, not the Cloudflare Pages target.
+3. **Soak for one billing cycle.** Watch logs/error rates on the
+   Pages URL. Zero traffic = safety net wasn't needed.
+4. **Pause auto-deploys** on the Pages project (disable GitHub
+   integration or production-branch deploys). Hold for another 24h.
+5. **Delete the Pages project.** At this point all paths to the
+   Next.js console are gone in operations.
+6. **Open a cleanup PR** that removes `web/apps/web-console/`, the
+   `dev:console`/`build:console`/`start:console`/`lint:console`
+   scripts from the root `package.json`, and any remaining doc
+   references. See `web/apps/web-console/ARCHIVED.md` for the
+   in-repo checklist.
+
+Don't skip step 1 — leaving the Cloudflare Pages URL pointed at
+`app.igrisinertial.com` after Rails goes live invites confusion about
+which console is the source of truth.
 
 ## What's intentionally out of scope for MVP
 
