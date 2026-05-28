@@ -1,22 +1,24 @@
-<%# Settings — proper settings layout: left section nav + right form panes.
-    Full-pane (no lens sidebar). Consistent with hero typography. %>
-<% section = (params[:section].presence || 'general').to_s %>
+<%# Settings — minimal MVP per product spec. Four sections: API endpoints,
+    Console front door, Environment, Advanced. Team/billing/SSO live elsewhere. %>
+<% section = (params[:section].presence || 'api').to_s %>
 <% sections = [
-  ['general',    'General',    'Workspace name, default region, plan'],
-  ['api-keys',   'API keys',   'Mint, rotate, and revoke service keys'],
-  ['team',       'Team',       'Members and roles'],
-  ['env',        'Environment','Variables, allowlist, residency'],
-  ['advanced',   'Advanced',   'Audit logs, SSO, data export'],
+  ['api',     'API endpoints',     'Base URLs for the Igris API and the console'],
+  ['front',   'Console front door','HTTP Basic credentials gating this console'],
+  ['env',     'Environment',       'Runtime variables and connection state'],
+  ['advanced','Advanced',          'Audit log export and other rarely-used ops'],
 ] %>
 
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Settings</span>
-    <span class="ic-chip">workspace</span>
+    <span class="ic-chip"><%= sections.find { |s| s[0] == section }&.dig(1) %></span>
   </div>
   <div class="ic-topbar__group">
+    <% if demo_mode? %>
+      <span class="ic-chip">demo mode · changes are inert</span>
+    <% end %>
     <button class="ic-btn">Discard</button>
-    <button class="ic-btn ic-btn--accent">Save changes</button>
+    <button class="ic-btn ic-btn--accent">Save</button>
   </div>
 </div>
 
@@ -32,142 +34,123 @@
   </nav>
 
   <div class="ic-settings__pane">
-    <% case section %>
-    <% when 'general' %>
+    <% if section == 'api' %>
       <div class="ic-settings__group">
-        <div class="ic-settings__heading">Workspace</div>
-        <p class="ic-settings__intro">Identifies your tenant in Overture, used in receipts and audit logs.</p>
+        <div class="ic-settings__heading">API endpoints</div>
+        <p class="ic-settings__intro">
+          Where this console talks to the Igris API. The console uses these
+          to read actions, runs, runtimes, and to submit run requests. None
+          of these values are secret.
+        </p>
 
         <div class="ic-field">
-          <label class="ic-field__label" for="ws-name">Workspace name</label>
-          <input id="ws-name" class="ic-input" type="text" value="igris-default" />
-          <p class="ic-field__help">Lowercase, hyphens allowed. 64 characters max.</p>
-        </div>
-
-        <div class="ic-field">
-          <label class="ic-field__label" for="ws-region">Default region</label>
-          <select id="ws-region" class="ic-input ic-input--select">
-            <option>us-east-1</option>
-            <option>eu-central-1</option>
-            <option>ap-southeast-1</option>
-          </select>
+          <label class="ic-field__label">Igris API base URL</label>
+          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_API_BASE_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" placeholder="https://api.igrisinertial.com" />
+          <p class="ic-field__help">Used by Rails to call the Igris API. Unset means fixture / demo mode.</p>
         </div>
 
         <div class="ic-field">
-          <label class="ic-field__label">Plan</label>
-          <div class="ic-row">
-            <button class="ic-btn" type="button" disabled style="opacity: 1; cursor: default;">
-              <span style="width:6px;height:6px;border-radius:999px;background:var(--ic-emerald);display:inline-block;margin-right:6px;"></span>
-              Horizon · $149/mo
-            </button>
-            <button class="ic-btn" type="button">Change plan</button>
-          </div>
+          <label class="ic-field__label">Console public URL</label>
+          <input class="ic-input" type="text" value="<%= ENV['APP_HOST'].to_s.presence || 'https://console.igrisinertial.com' %>" placeholder="https://console.igrisinertial.com" />
+          <p class="ic-field__help">Where this console is served. Shown in invitations and email links.</p>
+        </div>
+
+        <div class="ic-field">
+          <label class="ic-field__label">API key for this console</label>
+          <input class="ic-input" type="password" value="" placeholder="igris_… (set on the host, never shown)" disabled />
+          <p class="ic-field__help">Set on the host as <code>OVERTURE_API_KEY</code>. Values are never displayed here.</p>
         </div>
       </div>
 
-    <% when 'api-keys' %>
+    <% elsif section == 'front' %>
       <div class="ic-settings__group">
-        <div class="ic-settings__heading-row">
-          <div>
-            <div class="ic-settings__heading">API keys</div>
-            <p class="ic-settings__intro">Service-principal keys for programmatic access. Values are only shown once.</p>
-          </div>
-          <button class="ic-btn ic-btn--accent" type="button">+ New key</button>
-        </div>
+        <div class="ic-settings__heading">Console front door</div>
+        <p class="ic-settings__intro">
+          HTTP Basic credentials that protect this console. Both fields
+          must be set on the host for the door to lock. <code>/up</code>
+          always bypasses Basic so liveness checks keep working.
+        </p>
 
-        <div class="ic-keys">
-          <% [
-            ['prod_default', 'igris_••••pk9a', 'Active', 'Production runtime', '2 days ago'],
-            ['ci_runner',    'igris_••••2t1f', 'Active', 'GitHub Actions',     '11 days ago'],
-            ['ops_console',  'igris_••••88vz', 'Revoked','Console operator',   '38 days ago'],
-          ].each do |name, masked, state, desc, last_used| %>
-            <div class="ic-key-row">
-              <div class="ic-key-row__main">
-                <div class="ic-key-row__name"><%= name %></div>
-                <div class="ic-key-row__desc"><%= desc %> · last used <%= last_used %></div>
-              </div>
-              <div class="ic-key-row__masked"><%= masked %></div>
-              <div class="ic-key-row__state ic-key-row__state--<%= state == 'Active' ? 'ok' : 'off' %>"><%= state %></div>
-              <button class="ic-btn" type="button">Rotate</button>
-              <button class="ic-btn" type="button" style="color: var(--ic-rose);">Revoke</button>
-            </div>
-          <% end %>
+        <div class="ic-field">
+          <label class="ic-field__label">ADMIN_USERNAME</label>
+          <input class="ic-input" type="text" value="<%= ENV['ADMIN_USERNAME'].to_s %>" placeholder="set on host" disabled />
+        </div>
+        <div class="ic-field">
+          <label class="ic-field__label">ADMIN_PASSWORD</label>
+          <input class="ic-input" type="password" value="" placeholder="set on host · never shown" disabled />
+          <p class="ic-field__help">
+            Status: <strong>
+              <%= ENV['ADMIN_USERNAME'].present? && ENV['ADMIN_PASSWORD'].present? ? 'locked' : 'open (development)' %>
+            </strong>
+          </p>
         </div>
       </div>
 
-    <% when 'team' %>
-      <div class="ic-settings__group">
-        <div class="ic-settings__heading-row">
-          <div>
-            <div class="ic-settings__heading">Team</div>
-            <p class="ic-settings__intro">Members of this workspace. Roles control which lenses are available.</p>
-          </div>
-          <button class="ic-btn ic-btn--accent" type="button">+ Invite</button>
-        </div>
-
-        <div class="ic-keys">
-          <% [
-            ['Wira Mahendra', 'wira@igrisinertial.com', 'Owner',    'active 1h ago'],
-            ['Ops Console',   'ops@igrisinertial.com',  'Operator', 'active 3d ago'],
-            ['Mateo Á.',      'mateo@acme.io',          'Viewer',   'invited'],
-          ].each do |name, email, role, status| %>
-            <div class="ic-key-row">
-              <div class="ic-key-row__main">
-                <div class="ic-key-row__name"><%= name %></div>
-                <div class="ic-key-row__desc"><%= email %></div>
-              </div>
-              <div class="ic-key-row__masked"><%= role %></div>
-              <div class="ic-key-row__state ic-key-row__state--off"><%= status %></div>
-              <button class="ic-btn" type="button">Edit</button>
-            </div>
-          <% end %>
-        </div>
-      </div>
-
-    <% when 'env' %>
+    <% elsif section == 'env' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Environment</div>
-        <p class="ic-settings__intro">Variables shared with every action that runs in this workspace.</p>
+        <p class="ic-settings__intro">
+          The runtime variables that decide what mode this console is in.
+          Values are read from the process env at boot; secret values are
+          never echoed back.
+        </p>
 
-        <div class="ic-field">
-          <label class="ic-field__label">OVERTURE_API_BASE_URL</label>
-          <input class="ic-input" type="text" value="https://api.igrisinertial.com" />
-        </div>
-        <div class="ic-field">
-          <label class="ic-field__label">RUNTIME_HEARTBEAT_SECONDS</label>
-          <input class="ic-input" type="text" value="30" />
-        </div>
-        <div class="ic-field">
-          <label class="ic-field__label">IP allowlist</label>
-          <textarea class="ic-input" rows="3" placeholder="One CIDR per line"></textarea>
+        <% env_rows = [
+             ['RAILS_ENV',              Rails.env,                                   :ok],
+             ['Mode',                   demo_mode? ? 'demo (fixtures)' : 'connected',demo_mode? ? :warn : :ok],
+             ['OVERTURE_API_BASE_URL',  ENV['OVERTURE_API_BASE_URL'].to_s.presence || '— unset —', ENV['OVERTURE_API_BASE_URL'].present? ? :ok : :warn],
+             ['OVERTURE_API_KEY',       ENV['OVERTURE_API_KEY'].present? ? 'set (hidden)' : '— unset —', ENV['OVERTURE_API_KEY'].present? ? :ok : :warn],
+             ['APP_HOST',               ENV['APP_HOST'].to_s.presence || '— unset —',  :muted],
+             ['ADMIN_USERNAME',         ENV['ADMIN_USERNAME'].to_s.presence || '— unset —', :muted],
+             ['ADMIN_PASSWORD',         ENV['ADMIN_PASSWORD'].present? ? 'set (hidden)' : '— unset —', :muted],
+           ] %>
+        <div class="ic-keys">
+          <% env_rows.each do |k, v, tone| %>
+            <div class="ic-key-row">
+              <div class="ic-key-row__main">
+                <div class="ic-key-row__name"><%= k %></div>
+              </div>
+              <div class="ic-key-row__masked"><%= v %></div>
+              <div class="ic-key-row__state ic-key-row__state--<%= tone == :ok ? 'ok' : 'off' %>">
+                <%= tone == :ok ? 'set' : (tone == :warn ? 'unset' : '—') %>
+              </div>
+              <span></span>
+              <span></span>
+            </div>
+          <% end %>
         </div>
       </div>
 
-    <% when 'advanced' %>
+    <% elsif section == 'advanced' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Advanced</div>
-        <p class="ic-settings__intro">Operations you'll rarely need — and that you should reach for deliberately.</p>
+        <p class="ic-settings__intro">
+          Rarely-used operations. Reach for these deliberately.
+        </p>
 
         <div class="ic-danger">
           <div>
             <div class="ic-danger__name">Export audit log</div>
-            <div class="ic-danger__sub">Download every action, run, policy decision, and receipt for the last 90 days.</div>
+            <div class="ic-danger__sub">Every action, run, policy decision, and signed receipt for the last 90 days.</div>
           </div>
           <button class="ic-btn" type="button">Export</button>
         </div>
         <div class="ic-danger">
           <div>
             <div class="ic-danger__name">Pause all runtimes</div>
-            <div class="ic-danger__sub">Stop dispatch to every connected runtime. Hosted-API actions keep running.</div>
+            <div class="ic-danger__sub">Stop dispatch to every connected runtime. Hosted-API and webhook actions keep running.</div>
           </div>
           <button class="ic-btn" type="button">Pause</button>
         </div>
         <div class="ic-danger ic-danger--red">
           <div>
-            <div class="ic-danger__name">Delete workspace</div>
-            <div class="ic-danger__sub">Removes all actions, runs, runtimes, and receipts. Cannot be undone.</div>
+            <div class="ic-danger__name">Reset console onboarding</div>
+            <div class="ic-danger__sub">Forgets the welcomed-cookie and shows the onboarding page again on next visit.</div>
           </div>
-          <button class="ic-btn" type="button" style="color: var(--ic-rose); border-color: rgba(190,18,60,0.35);">Delete…</button>
+          <%= button_to 'Reset', enter_console_path,
+              method: :post, form: { style: 'display:inline; margin:0;' },
+              class: 'ic-btn',
+              data: { action: 'reset-onboarding' } %>
         </div>
       </div>
     <% end %>
