@@ -90,6 +90,14 @@ module Igris
       capture(e); nil
     end
 
+    # Daily run counts (14d) for the Home sparkline. Real mode would aggregate
+    # `/v1/runs` server-side; for now we just return the fixture or [].
+    def daily_run_counts
+      real? ? [] : Fixtures.daily_run_counts
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
     # ── Runtimes ──────────────────────────────────────────────────────────
 
     def runtimes
