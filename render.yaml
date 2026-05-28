@@ -1,0 +1,97 @@
+# Render blueprint — MVP deploy for Igris Inertial.
+#
+# Services:
+#   1. igris-overture-api  → api.igrisinertial.com
+#   2. igris-console-rails → app.igrisinertial.com  (alias: console.igrisinertial.com)
+#
+# Database: Neon Postgres (created separately at neon.tech, not via this file).
+# DNS: Cloudflare (records configured separately, see DEPLOY.md).
+#
+# This file declares structure only. All secret values
+# (OVERTURE_API_KEY, DATABASE_URL, BETTER_AUTH_SECRET, etc.) are set in the
+# Render dashboard under each service's Environment section — never committed.
+
+services:
+  # ── Go Overture API ──────────────────────────────────────────────────
+  - type: web
+    name: igris-overture-api
+    runtime: go
+    rootDir: .
+    region: oregon
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /healthz
+    buildCommand: go build -o ./bin/igris-overture ./cmd/igris-overture
+    startCommand: ./bin/igris-overture
+    envVars:
+      - key: ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      # Neon pooled connection — used by the running app.
+      - key: DATABASE_URL
+        sync: false
+      # Neon direct connection — used only for manual migration runs.
+      # Not strictly required at runtime; set so `psql $DATABASE_URL_DIRECT -f …` works on a Render shell.
+      - key: DATABASE_URL_DIRECT
+        sync: false
+      # BetterAuth shared with the Next.js console (will be reused if the
+      # console ever needs to validate sessions against Overture again).
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      # Polar.sh, Resend, Clerk — set per dashboard, never here.
+      - key: POLAR_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      # CORS origin for the Rails console (so browser-side requests from
+      # console.igrisinertial.com to api.igrisinertial.com work if/when
+      # we add any direct-browser endpoints; today, all calls are
+      # server-to-server from Rails).
+      - key: ALLOWED_ORIGINS
+        value: https://console.igrisinertial.com,https://app.igrisinertial.com
+      - key: REQUIRE_AUTH_FOR_INFERENCE
+        value: "true"
+    domains:
+      - api.igrisinertial.com
+
+  # ── Rails Console ────────────────────────────────────────────────────
+  - type: web
+    name: igris-console-rails
+    runtime: ruby
+    rootDir: web/apps/rails-console
+    region: oregon
+    plan: starter
+    autoDeploy: false
+    healthCheckPath: /up
+    buildCommand: |
+      bundle install
+      bin/rails assets:precompile
+    startCommand: bundle exec puma -C config/puma.rb
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "1"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "1"
+      - key: PORT
+        value: "3100"
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: OVERTURE_API_BASE_URL
+        value: https://api.igrisinertial.com
+      # Service-principal API key — must be an `igris_` prefixed key issued
+      # against the console's tenant via `POST /v1/account/api-key`.
+      # Treat as a high-impact secret; rotate on compromise.
+      - key: OVERTURE_API_KEY
+        sync: false
+      - key: OVERTURE_PUBLIC_API_URL
+        value: https://api.igrisinertial.com
+      - key: APP_HOST
+        value: console.igrisinertial.com
+    domains:
+      - console.igrisinertial.com
+      - app.igrisinertial.com
