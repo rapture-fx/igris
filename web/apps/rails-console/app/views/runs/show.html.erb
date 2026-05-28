@@ -183,7 +183,7 @@
                   <% end %>
                   <span class="ic-line__counter">
                     <% if is_running %>
-                      <%= line_spinner(size: 12, stroke: 1.2) %>
+                      <span class="dots">· · ·</span>
                     <% elsif is_failed %>
                       <span class="minus">+0 <span class="sep">/</span> −1</span>
                     <% else %>
