@@ -578,28 +578,28 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
 
 /* ── Cards ──────────────────────────────────────────────────────────── */
 .ig-card {
-  background: var(--ig-bg-surface);
-  border: 0.5px solid var(--ig-border);
-  border-radius: 10px;
-  padding: 16px 18px;
-  box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.03);
+  background: var(--ic-overlay-bg);
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: none;
 }
-.ig-card--pad-lg { padding: 22px 24px; }
-.ig-card--inset { padding: 14px 16px; }
+.ig-card--pad-lg { padding: 14px 16px; }
+.ig-card--inset { padding: 8px 10px; }
 .ig-card__title {
-  font-size: 12.5px;
-  color: var(--ig-text-body);
-  margin: 0 0 8px;
+  font-size: 11.5px;
+  color: var(--ic-text-4);
+  margin: 0 0 6px;
   letter-spacing: -0.005em;
 }
 .ig-card__hint {
-  font-size: 11.5px;
-  color: var(--ig-text-dim);
+  font-size: 11px;
+  color: var(--ic-text-6);
   margin-top: 4px;
 }
 
 /* Grid utility */
-.ig-grid { display: grid; gap: 14px; }
+.ig-grid { display: grid; gap: 10px; }
 .ig-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .ig-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 900px) {
@@ -675,20 +675,21 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
   display: flex;
   align-items: center;
   gap: 2px;
-  border-bottom: 1px solid var(--ig-border);
-  margin-bottom: 16px;
+  border-bottom: 1px solid var(--ic-border);
+  margin-bottom: 12px;
 }
 .ig-tabs__item {
-  padding: 8px 12px;
-  font-size: 12px;
-  color: var(--ig-text-dim);
+  padding: 6px 10px;
+  font-size: 11.5px;
+  color: var(--ic-text-6);
   border-bottom: 1px solid transparent;
   margin-bottom: -1px;
+  letter-spacing: -0.005em;
 }
-.ig-tabs__item:hover { color: var(--ig-text-body); }
+.ig-tabs__item:hover { color: var(--ic-text-2); }
 .ig-tabs__item.is-active {
-  color: var(--ig-text-primary);
-  border-bottom-color: var(--ig-text-primary);
+  color: var(--ic-text-bright);
+  border-bottom-color: var(--ic-text-bright);
 }
 
 /* ── Tables (surface style, no borders) ─────────────────────────────── */
