@@ -11,9 +11,29 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     assert_match 'Create an action', response.body
   end
 
-  test 'root redirects to home' do
+  test 'root sends first-time visitors to /welcome' do
+    get '/'
+    assert_redirected_to '/welcome'
+  end
+
+  test 'root sends returning visitors straight to /home' do
+    cookies[:igris_welcomed] = '1'
     get '/'
     assert_redirected_to '/home'
+  end
+
+  test '/welcome renders the onboarding page' do
+    get '/welcome'
+    assert_response :success
+    assert_match 'Welcome to Igris Inertial', response.body
+    assert_match 'Create an action', response.body
+    assert_match 'Enter console', response.body
+  end
+
+  test 'entering the console sets the cookie and redirects to /home' do
+    post '/welcome/enter'
+    assert_redirected_to '/home'
+    assert_equal '1', cookies[:igris_welcomed]
   end
 
   test 'actions index renders with fixture rows' do
