@@ -1000,7 +1000,9 @@ html.dark .ig-snippet { background: rgba(0,0,0,0.30); }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ic-topbar__group { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ic-topbar__group { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.ic-topbar--wrap { height: auto; min-height: 44px; padding-top: 6px; padding-bottom: 6px; }
+.ic-topbar__hint { font-size: 11px; color: var(--ic-text-6); margin-left: 4px; }
 .ic-topbar__crumb {
   font-size: 11.5px;
   color: var(--ic-text-6);
@@ -1413,58 +1415,129 @@ html.dark .ig-snippet { background: rgba(0,0,0,0.30); }
 }
 .ic-section-head__link:hover { color: var(--ic-text-bright); }
 
-/* ── Code snippet (hljs theme-aware) ─────────────────────────────── */
-.ic-snippet { margin: 6px 0 14px; }
-.ic-snippet__label {
-  font-size: 11px;
-  color: var(--ic-text-6);
-  margin-bottom: 4px;
-}
-.ic-snippet__shell {
-  position: relative;
+/* ── Runtime list ───────────────────────────────────────────────────── */
+.ic-runtime-list {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--ic-border);
   border-radius: 8px;
   background: var(--ic-overlay-bg);
   overflow: hidden;
 }
-.ic-snippet__pre {
-  margin: 0;
+.ic-runtime-row {
+  display: grid;
+  grid-template-columns: 8px 1fr 1fr 80px;
+  align-items: center;
+  gap: 14px;
   padding: 10px 14px;
+  border-bottom: 1px solid var(--ic-border-soft);
+}
+.ic-runtime-row:last-child { border-bottom: 0; }
+.ic-runtime-row__dot {
+  width: 6px; height: 6px; border-radius: 999px; justify-self: center;
+}
+.ic-runtime-row__dot--ok  { background: var(--ic-emerald); }
+.ic-runtime-row__dot--off { background: var(--ic-text-9); }
+.ic-runtime-row__main { display: flex; flex-direction: column; min-width: 0; }
+.ic-runtime-row__name {
+  font-size: 12.5px;
+  color: var(--ic-text-bright);
+  letter-spacing: -0.005em;
+}
+.ic-runtime-row__meta { font-size: 11px; color: var(--ic-text-6); margin-top: 1px; }
+.ic-runtime-row__meta .mono { font-family: var(--ic-mono); color: var(--ic-text-4); }
+.ic-runtime-row__caps { display: flex; flex-wrap: wrap; gap: 4px; }
+.ic-runtime-row__status { font-size: 11px; text-align: right; }
+.ic-runtime-row__status.is-ok  { color: var(--ic-emerald); }
+.ic-runtime-row__status.is-off { color: var(--ic-text-6); }
+@media (max-width: 900px) {
+  .ic-runtime-row { grid-template-columns: 8px 1fr 80px; }
+  .ic-runtime-row__caps { display: none; }
+}
+
+/* ── Code card (snippet w/ header + hljs theme) ───────────────────── */
+.ic-codecard {
+  margin: 8px 0 14px;
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  background: var(--ic-overlay-bg);
+  overflow: hidden;
+}
+.ic-codecard__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px 5px 10px;
+  border-bottom: 1px solid var(--ic-border-soft);
+  background: var(--ic-overlay-1);
+}
+.ic-codecard__lang {
   font-family: var(--ic-mono);
-  font-size: 12px;
+  font-size: 10.5px;
+  color: var(--ic-text-6);
+  letter-spacing: 0.01em;
+}
+.ic-codecard__label {
+  font-size: 11px;
+  color: var(--ic-text-5);
+}
+.ic-codecard__copy {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ic-text-6);
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.ic-codecard__copy:hover {
+  color: var(--ic-text-bright);
+  background: var(--ic-overlay-3);
+  border-color: var(--ic-border);
+}
+.ic-codecard__pre {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--ic-mono);
+  font-size: 11.5px;
   line-height: 1.55;
-  color: var(--ic-text);
   overflow-x: auto;
   background: transparent;
+  color: var(--ic-text-2);
 }
-.ic-snippet__pre code,
-.ic-snippet__pre code.hljs {
+.ic-codecard__pre code,
+.ic-codecard__pre code.hljs {
   background: transparent !important;
   padding: 0 !important;
-  color: var(--ic-text-3);
+  color: inherit;
   font-family: inherit;
   font-size: inherit;
 }
 
-/* hljs token theme — uses --ic-* tokens so it matches the surface palette.
-   Default state: muted text. Color is reserved for things you should notice. */
-.hljs-comment, .hljs-quote                      { color: var(--ic-text-7); font-style: italic; }
-.hljs-meta, .hljs-meta .hljs-keyword            { color: var(--ic-text-6); }
-.hljs-punctuation, .hljs-operator               { color: var(--ic-text-5); }
-.hljs-keyword, .hljs-built_in, .hljs-type       { color: var(--ic-emerald); }
-.hljs-string, .hljs-attr                        { color: var(--ic-amber); }
-.hljs-number, .hljs-literal, .hljs-symbol       { color: var(--ic-text-2); }
-.hljs-title, .hljs-name, .hljs-section,
-.hljs-title.function_, .hljs-title.class_       { color: var(--ic-text-bright); }
+/* hljs token theme — restrained. Most things stay var(--ic-text-2).
+   Only a few semantic classes get a colour, and never amber/red on light. */
+.hljs-comment, .hljs-quote {
+  color: var(--ic-text-7);
+  font-style: italic;
+}
+.hljs-meta, .hljs-meta .hljs-string,
+.hljs-doctag                                    { color: var(--ic-text-6); }
+.hljs-punctuation                               { color: var(--ic-text-6); }
+.hljs-keyword, .hljs-built_in, .hljs-literal,
+.hljs-symbol, .hljs-keyword .hljs-keyword       { color: var(--ic-emerald); }
+.hljs-string, .hljs-regexp                      { color: var(--ic-text); }
+.hljs-number                                    { color: var(--ic-text-3); }
+.hljs-title, .hljs-title.function_,
+.hljs-title.class_, .hljs-name, .hljs-section   { color: var(--ic-text-bright); }
+.hljs-attr, .hljs-attribute                     { color: var(--ic-text-3); }
 .hljs-variable, .hljs-template-variable,
-.hljs-params                                    { color: var(--ic-text-3); }
-.hljs-tag, .hljs-attribute                      { color: var(--ic-text-3); }
-.hljs-regexp, .hljs-link                        { color: var(--ic-emerald-2); }
+.hljs-params                                    { color: var(--ic-text-2); }
+.hljs-tag, .hljs-tag .hljs-name                 { color: var(--ic-text-3); }
 .hljs-deletion                                  { color: var(--ic-rose); }
 .hljs-addition                                  { color: var(--ic-emerald); }
-.hljs-selector-tag, .hljs-selector-id,
-.hljs-selector-class, .hljs-selector-attr,
-.hljs-selector-pseudo                           { color: var(--ic-text-bright); }
 .ic-snippet__copy {
   position: absolute;
   top: 6px;
