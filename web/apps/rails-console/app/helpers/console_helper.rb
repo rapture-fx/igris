@@ -20,27 +20,36 @@ module ConsoleHelper
     active_lens == lens
   end
 
-  # Small inline SVGs so the spike has no icon dependencies. Roughly matches
-  # the Lucide glyphs used by IconRail (Home, Workflow, Zap, Box, Settings).
-  def console_icon(name)
-    case name.to_s
-    when 'home'
-      svg = '<path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/>'
-    when 'workflow'
-      svg = '<rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M6 9v4a3 3 0 0 0 3 3h6"/>'
-    when 'zap'
-      svg = '<path d="M13 3 4 14h7l-1 7 9-11h-7l1-7Z"/>'
-    when 'box'
-      svg = '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/>'
-    when 'settings'
-      svg = '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4.9a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.5a7 7 0 0 0-2 1.2l-2.4-.9-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-.9a7 7 0 0 0 2 1.2L10 21h4l.5-2.5a7 7 0 0 0 2-1.2l2.4.9 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z"/>'
-    else
-      svg = '<circle cx="12" cy="12" r="9"/>'
-    end
+  # Lucide-faithful icon set — same pack the landing-page hero uses
+  # (lucide-react in web-landing/src/components/sections/Products.tsx).
+  # Glyph paths copied from lucide.dev so visual identity matches.
+  LUCIDE_PATHS = {
+    'layout-dashboard' => '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+    'list-checks'      => '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
+    'activity'         => '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.24 2.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4 12H2"/>',
+    'zap'              => '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+    'box'              => '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+    'settings'         => '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    'user'             => '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    # Brand mark — Igris cross-hair. Not lucide; kept distinct on purpose.
+    'igris-mark'       => '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>',
+  }.freeze
+
+  def console_icon(name, size: 14, stroke: 1.5)
+    svg = LUCIDE_PATHS[name.to_s] || LUCIDE_PATHS['igris-mark']
     content_tag :svg, svg.html_safe,
-      width: 20, height: 20, viewBox: '0 0 24 24',
-      fill: 'none', stroke: 'currentColor', 'stroke-width': 1.5,
+      width: size, height: size, viewBox: '0 0 24 24',
+      fill: 'none', stroke: 'currentColor', 'stroke-width': stroke,
       'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+  end
+
+  # ldrs LineSpinner — same loader library the landing-page hero uses
+  # (ldrs/react LineSpinner in Products.tsx). Renders the `<l-line-spinner>`
+  # web component that is auto-registered from the ESM CDN in the layout.
+  def line_spinner(size: 14, stroke: 1.4, speed: 0.9, color: nil)
+    color ||= 'rgb(52, 211, 153)' # emerald-400, matches landing's dark-mode hero
+    content_tag('l-line-spinner', '',
+                size: size, stroke: stroke, speed: speed, color: color)
   end
 
   # Status pill — picks a tone based on a string like "Proof verified" / "Ready".
