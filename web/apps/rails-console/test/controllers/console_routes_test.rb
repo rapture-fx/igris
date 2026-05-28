@@ -7,8 +7,8 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'home renders' do
     get '/home'
     assert_response :success
-    assert_match 'Keep your AI stack', response.body
-    assert_match 'Setup guide', response.body
+    assert_match 'Run agent actions that recover', response.body
+    assert_match 'Create an action', response.body
   end
 
   test 'root redirects to home' do
@@ -25,7 +25,7 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     get '/actions'
     assert_response :success
     assert_match 'send_email', response.body
-    assert_match 'Registry', response.body
+    assert_match 'registered', response.body
   end
 
   test 'actions wizard renders each step' do
