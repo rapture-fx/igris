@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+require 'fileutils'
+
+APP_ROOT = File.expand_path('..', __dir__)
+FileUtils.chdir(APP_ROOT) do
+  puts '== Installing dependencies =='
+  system!('bundle check') || system!('bundle install')
+
+  puts "\n== Removing old logs and tempfiles =="
+  system! 'bin/rails log:clear tmp:clear'
+
+  puts "\n== Restarting application server =="
+  system! 'bin/rails restart'
+end
+
+def system!(*args)
+  system(*args, exception: true)
+end
