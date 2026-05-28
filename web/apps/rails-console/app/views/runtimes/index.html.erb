@@ -1,0 +1,44 @@
+<%# Runtimes %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <span class="ig-topbar__title">Runtimes</span>
+    <span class="ig-topbar__caption">Only needed when actions touch private files, internal APIs, or local databases.</span>
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<div class="ig-strip">
+  <%= chip "#{@runtimes.size} runtimes connected", tone: :muted %>
+  <%= chip "#{@runtimes.count { |r| r[:status] == 'Healthy' }} healthy", tone: :ok %>
+</div>
+
+<div class="ig-body">
+  <div class="ig-grid ig-grid--2" style="margin-bottom: 18px;">
+    <% @runtimes.each do |rt| %>
+      <div class="ig-card">
+        <div class="ig-row ig-row--spread" style="margin-bottom: 8px;">
+          <div class="ig-card__title" style="margin: 0;"><%= rt[:name] %></div>
+          <%= status_pill rt[:status] %>
+        </div>
+        <div class="ig-def"><span class="ig-def__label">Runtime ID</span><span class="ig-def__value"><code><%= rt[:runtime_id] %></code></span></div>
+        <% if rt[:os].present? %>
+          <div class="ig-def"><span class="ig-def__label">Platform</span><span class="ig-def__value"><%= rt[:os] %></span></div>
+        <% end %>
+        <div class="ig-def"><span class="ig-def__label">Last seen</span><span class="ig-def__value"><%= time_ago(rt[:last_seen_at]) %></span></div>
+        <div class="ig-def">
+          <span class="ig-def__label">Capabilities</span>
+          <span class="ig-def__value">
+            <% rt[:capabilities].each do |c| %><%= chip c, tone: :muted %><% end %>
+          </span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="ig-card">
+    <div class="ig-card__title">Install a runtime on a new host</div>
+    <p class="ig-mut" style="font-size: 12.5px; margin: 0 0 12px;">Install the runtime where the action needs to execute — that's the only machine that needs network access to your private resources.</p>
+    <%= code_snippet 'IGRIS_API_KEY=igris_... curl -fsSL https://igrisinertial.com/install | bash', label: 'install' %>
+  </div>
+</div>
