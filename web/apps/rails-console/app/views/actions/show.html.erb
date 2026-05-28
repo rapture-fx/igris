@@ -1,29 +1,26 @@
-<%# Action detail — Overview / Endpoint / Target / Policy / Secrets / Runs. %>
-<div class="ig-topbar">
-  <div class="ig-topbar__group">
-    <%= link_to 'Actions', actions_path, class: 'ig-mut', style: 'font-size: 11.5px;' %>
-    <span class="ig-mut">/</span>
-    <span class="ig-topbar__title"><%= @action[:name] %></span>
-    <%= status_pill @action[:setup] %>
+<%# Action detail — all metadata sits in the topbar; tabs hang below it. %>
+<div class="ic-topbar ic-topbar--wrap">
+  <div class="ic-topbar__group">
+    <%= link_to 'Actions', actions_path, class: 'ic-topbar__crumb' %>
+    <span class="ic-topbar__sep">/</span>
+    <span class="ic-topbar__title"><%= @action[:name] %></span>
+    <span class="ic-chip"><%= @action[:target_label] %></span>
+    <span class="ic-chip">policy: <%= @action[:policy] %></span>
+    <span class="ic-chip">replay: <%= @action[:replay].to_s.downcase %></span>
+    <span class="ic-topbar__hint">
+      Last run <%= @action[:last_run_at] ? time_ago(@action[:last_run_at]) : 'never' %>
+    </span>
   </div>
-  <div class="ig-topbar__group">
-    <%= status_pill @action[:proof] %>
-    <%= button_to 'Run test action', run_action_path(@action[:id]),
+  <div class="ic-topbar__group">
+    <%= button_to 'Run test', run_action_path(@action[:id]),
         method: :post, params: { input: '{}' },
-        class: 'ig-btn ig-btn--primary',
+        class: 'ic-btn ic-btn--accent',
         form: { style: 'display:inline; margin:0;' },
         data: { confirm: demo_mode? ? nil : 'Submit a real run for this action?' } %>
   </div>
 </div>
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
-
-<div class="ig-strip">
-  <%= chip @action[:target_label], tone: :muted %>
-  <%= chip "policy: #{@action[:policy]}", tone: :muted %>
-  <%= chip "replay: #{@action[:replay].downcase}", tone: :muted %>
-  <span class="ig-mut" style="font-size: 11.5px;">Last run <%= @action[:last_run_at] ? time_ago(@action[:last_run_at]) : 'never' %></span>
-</div>
 
 <div class="ig-body">
   <% tabs = %w[overview endpoint target policy secrets runs] %>
