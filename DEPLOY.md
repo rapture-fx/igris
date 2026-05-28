@@ -29,8 +29,8 @@ Neon.
 **Rust runtime** stays local to the customer machine. It registers
 itself with Go through `/api/v1/runtime/register` after install.
 
-The Next.js console (`web/apps/web-console`) is **parked** — keep it
-deployed on its current URL but route no new feature work there.
+The old Next.js console (formerly `web/apps/web-console`) has been
+**removed** from the repository. Rails is now the only console surface.
 
 ## One-time setup
 
@@ -163,38 +163,24 @@ challenge — production must have both.
 | `web/apps/rails-console/DEPLOY.md`        | Rails-side deploy details, modes, security                |
 | `SMOKE.md`                                | End-to-end smoke test checklist                           |
 
-## Archiving the Next.js console
+## Next.js console — removed
 
-After step 5 the Rails console no longer depends on Next.js for the
-key bootstrap — the Go CLI talks to Postgres directly. After step 6
-end users have their own front door. Once `SMOKE.md` passes end-to-end
-against the Rails URL, the Next.js console can be retired.
+The old Next.js console (formerly `web/apps/web-console`) has been
+removed from this repository. The repo-side cleanup (workspace, root
+`package.json` scripts, `Dockerfile.console`, lockfile entry) is done.
 
-The Next.js console is deployed to **Cloudflare Pages** (project name
-`igris-console`, see `web/apps/web-console/wrangler.toml`). The retire
-sequence:
+If the Cloudflare Pages project `igris-console` still exists in the
+dashboard with `app.igrisinertial.com` mapped to it, complete the
+external-provider retire sequence:
 
-1. **Demote to internal-only.** In Cloudflare → Pages →
-   `igris-console`, remove the custom-domain mapping for
-   `app.igrisinertial.com`. The Pages project keeps its
-   `*.pages.dev` URL as a private fallback.
-2. **Verify DNS is clean.** `app.igrisinertial.com` must CNAME to
-   `igris-console-rails.onrender.com`, not the Cloudflare Pages target.
-3. **Soak for one billing cycle.** Watch logs/error rates on the
-   Pages URL. Zero traffic = safety net wasn't needed.
-4. **Pause auto-deploys** on the Pages project (disable GitHub
-   integration or production-branch deploys). Hold for another 24h.
-5. **Delete the Pages project.** At this point all paths to the
-   Next.js console are gone in operations.
-6. **Open a cleanup PR** that removes `web/apps/web-console/`, the
-   `dev:console`/`build:console`/`start:console`/`lint:console`
-   scripts from the root `package.json`, and any remaining doc
-   references. See `web/apps/web-console/ARCHIVED.md` for the
-   in-repo checklist.
+1. Remove the custom-domain mapping for `app.igrisinertial.com` from
+   the Cloudflare Pages `igris-console` project.
+2. Verify `app.igrisinertial.com` CNAMEs to
+   `igris-console-rails.onrender.com`, not the Pages target.
+3. Pause auto-deploys on the Pages project, then delete it.
 
-Don't skip step 1 — leaving the Cloudflare Pages URL pointed at
-`app.igrisinertial.com` after Rails goes live invites confusion about
-which console is the source of truth.
+This is dashboard-only work; nothing in the repo points at the Pages
+project anymore.
 
 ## What's intentionally out of scope for MVP
 
