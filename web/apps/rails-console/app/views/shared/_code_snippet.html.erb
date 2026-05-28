@@ -1,0 +1,11 @@
+<%# Copyable code snippet box (mirrors the CopyButton + snippet pattern). %>
+<div>
+  <% if label %><div class="ig-snippet__label"><%= label %></div><% end %>
+  <div class="ig-snippet" data-code="<%= code %>">
+<%= code %>
+    <button type="button" class="ig-snippet__copy"
+      onclick="(()=>{navigator.clipboard.writeText(this.parentElement.dataset.code);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1400)})()">
+      Copy
+    </button>
+  </div>
+</div>
