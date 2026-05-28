@@ -1532,6 +1532,104 @@ html.dark .ig-btn--primary {
 }
 .ic-welcome__linkbtn:hover { color: var(--ic-text-bright); }
 
+/* ── Architecture diagram (Home) ────────────────────────────────────── */
+.ic-diagram {
+  display: grid;
+  grid-template-columns: 1fr auto 1.15fr auto 1fr;
+  align-items: stretch;
+  gap: 6px;
+  margin: 14px 0 18px;
+}
+.ic-diagram__node {
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  background: var(--ic-overlay-bg);
+  padding: 9px 12px;
+  min-width: 0;
+}
+.ic-diagram__node--accent {
+  border-color: rgba(4,120,87,0.25);
+  background: rgba(4,120,87,0.04);
+}
+html.dark .ic-diagram__node--accent {
+  border-color: rgba(16,185,129,0.25);
+  background: rgba(16,185,129,0.06);
+}
+.ic-diagram__node-label {
+  font-size: 12px;
+  color: var(--ic-text-bright);
+  letter-spacing: -0.005em;
+}
+.ic-diagram__node--accent .ic-diagram__node-label { color: var(--ic-emerald); }
+.ic-diagram__node-sub {
+  font-size: 10.5px;
+  color: var(--ic-text-6);
+  margin-top: 1px;
+}
+.ic-diagram__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ic-text-7);
+}
+@media (max-width: 720px) {
+  .ic-diagram {
+    grid-template-columns: 1fr;
+  }
+  .ic-diagram__arrow { transform: rotate(90deg); padding: 4px 0; }
+}
+
+/* ── Status strip (Home) ────────────────────────────────────────────── */
+.ic-status {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 6px 0 12px;
+}
+.ic-status__cell {
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  background: var(--ic-overlay-bg);
+  padding: 8px 12px;
+  min-width: 0;
+}
+.ic-status__k {
+  font-size: 10.5px;
+  color: var(--ic-text-6);
+  letter-spacing: -0.005em;
+}
+.ic-status__v {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ic-text-bright);
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.ic-status__v--muted { color: var(--ic-text-6); font-weight: 400; font-size: 12.5px; }
+.ic-status__total { font-size: 11.5px; color: var(--ic-text-6); font-weight: 400; }
+.ic-status__sub   { font-size: 11px; color: var(--ic-text-6); font-weight: 400; }
+.ic-status__pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--ic-border);
+  background: var(--ic-overlay-2);
+  color: var(--ic-text-3);
+  font-weight: 400;
+}
+.ic-status__pill.is-ok   { color: var(--ic-emerald); border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.08); }
+.ic-status__pill.is-warn { color: var(--ic-amber);   border-color: rgba(180,83,9,0.25); background: rgba(180,83,9,0.08); }
+html.dark .ic-status__pill.is-ok   { border-color: rgba(16,185,129,0.25); background: rgba(16,185,129,0.10); }
+html.dark .ic-status__pill.is-warn { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); color: #fbbf24; }
+@media (max-width: 720px) {
+  .ic-status { grid-template-columns: 1fr 1fr; }
+}
+
 /* ── Runs pulse — original Igris data viz ───────────────────────────── */
 .ic-pulse {
   display: block;
@@ -1857,17 +1955,53 @@ html.dark {
 }
 .ic-action-row {
   display: grid;
-  grid-template-columns: 8px 1fr 1.4fr 110px 80px;
+  grid-template-columns: 8px 1.1fr 1.6fr 110px 90px auto;
   align-items: center;
   gap: 12px;
   padding: 7px 14px;
   border-bottom: 1px solid var(--ic-border-soft);
-  text-decoration: none;
   color: inherit;
   transition: background 120ms ease;
 }
 .ic-action-row:hover { background: var(--ic-overlay-2); }
 .ic-action-row:hover .ic-action-row__name { color: var(--ic-emerald); }
+.ic-action-row__open { height: 24px; padding: 0 10px; font-size: 11px; }
+
+/* Endpoint-readiness chip — Ready / Needs target / Needs runtime / Demo only */
+.ic-readiness {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--ic-border);
+  background: var(--ic-overlay-2);
+  color: var(--ic-text-3);
+  white-space: nowrap;
+}
+.ic-readiness__dot {
+  width: 6px; height: 6px; border-radius: 999px;
+  background: var(--ic-text-7);
+}
+.ic-readiness--ok    { color: var(--ic-emerald); border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.08); }
+.ic-readiness--ok    .ic-readiness__dot { background: var(--ic-emerald); }
+.ic-readiness--warn  { color: var(--ic-amber); border-color: rgba(180,83,9,0.25); background: rgba(180,83,9,0.08); }
+.ic-readiness--warn  .ic-readiness__dot { background: var(--ic-amber); }
+.ic-readiness--muted { color: var(--ic-text-5); }
+html.dark .ic-readiness--ok   { border-color: rgba(16,185,129,0.25); background: rgba(16,185,129,0.10); }
+html.dark .ic-readiness--warn { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); color: #fbbf24; }
+html.dark .ic-readiness--warn .ic-readiness__dot { background: #fbbf24; }
+
+/* Empty state used by Actions/Runs/Runtimes */
+.ic-empty {
+  text-align: center;
+  padding: 64px 16px;
+  max-width: 480px;
+  margin: 16px auto;
+}
+.ic-empty__title { font-size: 14px; font-weight: 500; color: var(--ic-text-bright); letter-spacing: -0.01em; margin-bottom: 6px; }
+.ic-empty__sub   { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 0 0 16px; }
 .ic-action-row:last-child { border-bottom: 0; }
 .ic-action-row__dot {
   width: 6px; height: 6px; border-radius: 999px; justify-self: center;
