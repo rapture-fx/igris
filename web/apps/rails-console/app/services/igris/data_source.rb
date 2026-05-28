@@ -1,0 +1,399 @@
+# frozen_string_literal: true
+
+#
+# Igris::DataSource — the single layer controllers ask for action/run/runtime
+# state. Behind it:
+#
+#   - **Real mode** (default when OVERTURE_API_BASE_URL is set) — calls
+#     Igris::OvertureClient. Rails never persists action/run state.
+#   - **Fixture mode** (only when Overture is unconfigured) — serves
+#     Igris::Fixtures so the UI is still inspectable offline. Views check
+#     `mode == :fixtures` and render a visible "Demo data" indicator.
+#
+# Boundary: this module owns adaption / normalization only. It does not
+# evaluate policy, route execution, verify proofs, sign receipts, or persist
+# state. All such logic lives in Go Overture.
+#
+module Igris
+  class DataSource
+    attr_reader :mode, :error
+
+    def initialize(client: nil)
+      @client = client || OvertureClient.new
+      @mode   = @client.configured? ? :real : :fixtures
+      @error  = nil
+    end
+
+    def fixtures?       = @mode == :fixtures
+    def real?           = @mode == :real
+    def degraded?       = !@error.nil?
+
+    # ── Actions ───────────────────────────────────────────────────────────
+
+    def actions
+      if real?
+        @client.list_actions.map { |a| normalize_action(a) }
+      else
+        Fixtures.actions
+      end
+    rescue OvertureClient::Error => e
+      capture(e)
+      [] # surface the empty state honestly; view shows the error chip
+    end
+
+    def find_action(id_or_name)
+      if real?
+        raw = @client.find_action_by_name(id_or_name) ||
+              (safe_get_action(id_or_name) if uuidish?(id_or_name))
+        raw && normalize_action(raw)
+      else
+        Fixtures.find_action(id_or_name)
+      end
+    rescue OvertureClient::NotFound
+      nil
+    rescue OvertureClient::Error => e
+      capture(e); nil
+    end
+
+    def runs_for_action(action_name, limit: 50)
+      return Fixtures.runs.select { |r| r[:action] == action_name } unless real?
+
+      @client.list_tasks(limit: limit).map { |t| normalize_run_summary(t) }
+                                       .select { |r| r[:action] == action_name }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    def recent_runs(limit: 5)
+      if real?
+        @client.list_tasks(limit: limit).map { |t| normalize_run_summary(t) }
+      else
+        Fixtures.runs.first(limit)
+      end
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    def all_runs(limit: 100)
+      recent_runs(limit: limit)
+    end
+
+    def find_run(id)
+      if real?
+        normalize_run_detail(@client.get_task(id))
+      else
+        Fixtures.run_detail(id)
+      end
+    rescue OvertureClient::NotFound
+      nil
+    rescue OvertureClient::Error => e
+      capture(e); nil
+    end
+
+    # ── Runtimes ──────────────────────────────────────────────────────────
+
+    def runtimes
+      if real?
+        @client.list_runtimes.map { |r| normalize_runtime(r) }
+      else
+        Fixtures.runtimes
+      end
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    # ── Writes ────────────────────────────────────────────────────────────
+
+    # Returns the created action hash (normalized). Raises on validation /
+    # conflict so the controller can show the message inline.
+    def create_action(params)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_action(@client.create_action(params))
+    end
+
+    # Returns the run-submission response hash. Raises typed errors.
+    def run_action(name, input: {}, metadata: nil, idempotency_key: nil)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.run_action(name, input: input, metadata: metadata, idempotency_key: idempotency_key)
+    end
+
+    # ── Normalization ─────────────────────────────────────────────────────
+
+    private
+
+    def capture(error)
+      @error = error
+      Rails.logger.warn("[Overture] #{error.class.name.split('::').last}: #{error.message} (status=#{error.status} code=#{error.code})")
+    end
+
+    def safe_get_action(id)
+      @client.get_action(id)
+    rescue OvertureClient::NotFound, OvertureClient::ValidationError
+      nil
+    end
+
+    def uuidish?(s)
+      !!s.to_s.match?(/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i)
+    end
+
+    def normalize_action(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      target_type = raw[:target_type].to_s
+      {
+        id:             raw[:id] || raw[:name],
+        name:           raw[:name],
+        display_name:   raw[:display_name].presence || raw[:name],
+        description:    raw[:description].to_s,
+        target_type:    target_type,
+        target_label:   target_label_for(target_type, raw[:target_url]),
+        target_url:     raw[:target_url].to_s,
+        method:         raw[:method].to_s.upcase.presence || 'POST',
+        policy:         policy_label_for(raw[:policy_preset], raw[:approval_required], raw[:irreversible]),
+        policy_preset:  raw[:policy_preset].to_s,
+        replay:         (raw[:replay_class].to_s == 'retryable' ? 'On' : 'Off'),
+        secrets_state:  raw[:secret_refs].is_a?(Array) && raw[:secret_refs].any? ? 'Configured' : 'Not configured',
+        endpoint:       endpoint_url(raw[:name]),
+        setup:          setup_status_for(target_type, raw[:target_url]),
+        last_run_at:    nil,
+        last_run_status: nil,
+        proof:          'No run yet',
+        approval_required: !!raw[:approval_required],
+        irreversible:   !!raw[:irreversible],
+        raw:            raw,
+      }
+    end
+
+    def normalize_run_summary(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      proof = proof_state_for(raw[:proof])
+      {
+        id:           (raw[:task_id] || raw[:id]).to_s,
+        action:       extract_action_name(raw),
+        status:       status_label_for(raw[:status]),
+        routed_via:   routed_via_for(raw[:executed_target], raw[:runtime_id]),
+        policy:       raw.dig(:proof, :policy_preset) || raw[:policy_preset] || 'default',
+        recovery:     recovery_label_for(raw[:recovery]),
+        proof:        proof[:label],
+        started_at:   parse_time(raw[:dispatched_at] || raw[:created_at]),
+        duration_ms:  raw[:duration_ms] || compute_duration_ms(raw[:dispatched_at], raw[:completed_at]),
+      }
+    end
+
+    def normalize_run_detail(raw)
+      return nil unless raw
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      summary = normalize_run_summary(raw)
+      summary.merge(
+        story: build_story(raw),
+        raw_evidence: build_raw_evidence(raw),
+        proof_payload: raw[:proof],
+        recovery_payload: raw[:recovery],
+        executed_target: raw[:executed_target].to_s,
+        runtime_id: raw[:runtime_id].to_s,
+        failure_reason: raw.dig(:failure, :reason) || raw[:failure_reason].to_s,
+      )
+    end
+
+    def normalize_runtime(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      last_seen = parse_time(raw[:last_seen_at] || raw[:last_heartbeat_at])
+      {
+        # only safe identifiers — never expose hostnames / IPs / env values
+        runtime_id:    raw[:runtime_id] || raw[:id],
+        name:          (raw[:runtime_id] || raw[:id]).to_s,
+        status:        runtime_status_label(raw[:status] || raw[:health], last_seen),
+        last_seen_at:  last_seen,
+        capabilities:  Array(raw[:capabilities] || raw[:supported_tools]),
+        os:            raw[:os].to_s,            # safe summary string if present
+        host:          nil,                       # intentionally not exposed
+      }
+    end
+
+    # ── Label helpers ────────────────────────────────────────────────────
+
+    def target_label_for(type, url)
+      case type
+      when 'hosted_api'        then 'Hosted API'
+      when 'webhook'           then 'Webhook' + (url.present? ? " · #{display_host(url)}" : '')
+      when 'local_runtime'     then 'Local runtime'
+      when 'mock_demo'         then 'Mock demo'
+      when 'hybrid_fallback'   then 'Hybrid / fallback'
+      else type.to_s.titleize
+      end
+    end
+
+    def display_host(url)
+      URI.parse(url.to_s).host
+    rescue URI::InvalidURIError
+      nil
+    end
+
+    def policy_label_for(preset, approval_required, irreversible)
+      parts = []
+      parts << case preset.to_s
+               when 'idempotent'     then 'Idempotent · safe retries'
+               when 'single_flight'  then 'Single-flight'
+               when 'manual_approval' then 'Manual approval'
+               when 'observe_only'   then 'Observe only'
+               when ''               then 'Default'
+               else preset.to_s.tr('_', ' ').capitalize
+               end
+      parts << 'approval required' if approval_required
+      parts << 'irreversible'      if irreversible
+      parts.join(', ')
+    end
+
+    def setup_status_for(target_type, url)
+      return 'Coming soon'  if target_type == 'hybrid_fallback'
+      return 'Needs runtime' if target_type == 'local_runtime'
+      return 'Needs target' if %w[webhook hosted_api].include?(target_type) && url.to_s.strip.empty?
+      'Ready'
+    end
+
+    def status_label_for(status)
+      case status.to_s
+      when 'completed'         then 'Succeeded'
+      when 'failed'            then 'Failed'
+      when 'canceled'          then 'Canceled'
+      when 'approval_required' then 'Awaiting approval'
+      when 'dispatched', 'in_flight', 'running' then 'Running'
+      when ''                  then 'Unknown'
+      else status.to_s.titleize
+      end
+    end
+
+    def proof_state_for(proof)
+      return { label: 'Proof unavailable', tone: :muted } unless proof
+      status = proof['status'] || proof[:status]
+      verified = proof['verified'] || proof[:verified]
+      return { label: 'Proof verified', tone: :ok }     if verified == true || status == 'verified'
+      return { label: 'Proof failed',   tone: :bad }    if verified == false || status == 'mismatch'
+      return { label: 'Receipt present', tone: :warn }  if status == 'present'
+      { label: 'Proof unavailable', tone: :muted }
+    end
+
+    def recovery_label_for(recovery)
+      return 'Not needed' unless recovery
+      retries = recovery['retry_count'] || recovery[:retry_count] || 0
+      return "Retried #{retries}x"      if retries.to_i > 0
+      state = recovery['state'] || recovery[:state]
+      case state.to_s
+      when 'awaiting_review' then 'Awaiting review'
+      when 'compensated'     then 'Compensated'
+      when 'failed'          then 'Recovery failed'
+      else 'Not needed'
+      end
+    end
+
+    def routed_via_for(executed_target, runtime_id)
+      case executed_target.to_s
+      when 'hosted_api'    then 'Hosted API'
+      when 'webhook'       then 'Webhook'
+      when 'local_runtime' then runtime_id.present? ? "Runtime · #{runtime_id}" : 'Local runtime'
+      when 'mock_demo'     then 'Mock demo'
+      when '' then 'Pending dispatch'
+      else executed_target.to_s.titleize
+      end
+    end
+
+    def runtime_status_label(raw, last_seen)
+      return 'Stale' if last_seen && last_seen < 2.minutes.ago
+      case raw.to_s
+      when 'healthy', 'connected', 'online', 'ok' then 'Healthy'
+      when 'stale'    then 'Stale'
+      when 'degraded' then 'Degraded'
+      when 'offline'  then 'Offline'
+      when ''         then last_seen ? 'Healthy' : 'Unknown'
+      else raw.to_s.titleize
+      end
+    end
+
+    def extract_action_name(raw)
+      raw.dig(:policy, :action_name) ||
+        raw.dig('policy', 'action_name') ||
+        raw[:action_name] ||
+        raw[:task_type].to_s.sub(/^action\./, '').presence ||
+        '—'
+    end
+
+    def parse_time(value)
+      return nil if value.blank?
+      return value if value.is_a?(Time)
+      Time.parse(value.to_s)
+    rescue ArgumentError, TypeError
+      nil
+    end
+
+    def compute_duration_ms(start_at, end_at)
+      s = parse_time(start_at)
+      e = parse_time(end_at)
+      return 0 unless s && e
+      ((e - s) * 1000).to_i
+    end
+
+    def endpoint_url(name)
+      base = ENV['OVERTURE_PUBLIC_API_URL'].presence || 'https://api.igrisinertial.com'
+      "#{base.chomp('/')}/v1/actions/#{name}/run"
+    end
+
+    def build_story(raw)
+      story = []
+      story << { title: 'Action received', tone: :ok,
+                 meta: "POST /v1/actions/#{extract_action_name(raw)}/run · request validated" }
+
+      lifecycle = raw[:lifecycle] || {}
+      if lifecycle[:policy_state] == 'denied' || lifecycle['policy_state'] == 'denied'
+        story << { title: 'Policy denied', tone: :bad, meta: 'Request did not pass policy' }
+        return story
+      end
+      story << { title: 'Policy evaluated', tone: :ok, meta: 'accepted' }
+
+      target = raw[:executed_target] || raw['executed_target']
+      story << { title: 'Routed to target', tone: :ok, meta: routed_via_for(target, raw[:runtime_id]) } if target.present?
+
+      status = raw[:status].to_s
+      case status
+      when 'completed'
+        story << { title: 'Side effect completed', tone: :ok,
+                   meta: "duration: #{compute_duration_ms(raw[:dispatched_at], raw[:completed_at])} ms" }
+      when 'failed'
+        story << { title: 'Side effect failed', tone: :bad,
+                   meta: raw[:failure_reason].to_s.presence || 'see failure details' }
+      when 'approval_required'
+        story << { title: 'Awaiting human approval', tone: :warn,
+                   meta: 'Action paused until reviewer decides' }
+      when 'dispatched', 'in_flight', 'running'
+        story << { title: 'In flight', tone: :warn, meta: 'execution underway' }
+      end
+
+      proof = raw[:proof] || raw['proof']
+      story << build_proof_step(proof) if proof
+      story
+    end
+
+    def build_proof_step(proof)
+      state = proof_state_for(proof)
+      tone = state[:tone]
+      meta = if state[:label] == 'Proof verified'
+               sig = proof['signature_digest'] || proof[:signature_digest] || 'redacted'
+               "co-signed · digest #{sig.to_s.first(20)}…"
+             elsif state[:label] == 'Proof failed'
+               'signature mismatch · receipt withheld'
+             else
+               'no verified receipt yet'
+             end
+      { title: 'Receipt signed', tone: tone, meta: meta }
+    end
+
+    def build_raw_evidence(raw)
+      receipt = raw[:receipt] || raw['receipt']
+      [
+        { key: 'task_id',         value: raw[:task_id].to_s.presence || '—' },
+        { key: 'executed_target', value: raw[:executed_target].to_s.presence || '—' },
+        { key: 'runtime_id',      value: raw[:runtime_id].to_s.presence || '—' },
+        { key: 'receipt_hash',    value: (receipt && (receipt['hash'] || receipt[:hash])).to_s.presence || '—' },
+        { key: 'receipt_signed',  value: (receipt ? (receipt['signed'] || receipt[:signed]).to_s : '—') },
+      ]
+    end
+  end
+end
