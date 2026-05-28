@@ -1,0 +1,189 @@
+<%# Action detail — Overview / Endpoint / Target / Policy / Secrets / Runs. %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <%= link_to 'Actions', actions_path, class: 'ig-mut', style: 'font-size: 11.5px;' %>
+    <span class="ig-mut">/</span>
+    <span class="ig-topbar__title"><%= @action[:name] %></span>
+    <%= status_pill @action[:setup] %>
+  </div>
+  <div class="ig-topbar__group">
+    <%= status_pill @action[:proof] %>
+    <%= button_to 'Run test action', run_action_path(@action[:id]),
+        method: :post, params: { input: '{}' },
+        class: 'ig-btn ig-btn--primary',
+        form: { style: 'display:inline; margin:0;' },
+        data: { confirm: demo_mode? ? nil : 'Submit a real run for this action?' } %>
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<div class="ig-strip">
+  <%= chip @action[:target_label], tone: :muted %>
+  <%= chip "policy: #{@action[:policy]}", tone: :muted %>
+  <%= chip "replay: #{@action[:replay].downcase}", tone: :muted %>
+  <span class="ig-mut" style="font-size: 11.5px;">Last run <%= @action[:last_run_at] ? time_ago(@action[:last_run_at]) : 'never' %></span>
+</div>
+
+<div class="ig-body">
+  <% tabs = %w[overview endpoint target policy secrets runs] %>
+  <nav class="ig-tabs">
+    <% tabs.each do |t| %>
+      <%= link_to t.titleize, action_path(@action[:id], tab: t),
+          class: "ig-tabs__item #{'is-active' if @tab == t}" %>
+    <% end %>
+  </nav>
+
+  <% case @tab %>
+  <% when 'overview' %>
+    <div class="ig-grid ig-grid--2">
+      <div class="ig-card">
+        <div class="ig-card__title">What this action does</div>
+        <p class="ig-mut" style="font-size: 12.5px;"><%= @action[:description] %></p>
+      </div>
+      <div class="ig-card">
+        <div class="ig-card__title">Endpoint</div>
+        <%= code_snippet @action[:endpoint] %>
+      </div>
+      <div class="ig-card">
+        <div class="ig-card__title">Where it runs</div>
+        <div class="ig-def">
+          <span class="ig-def__label">Target</span>
+          <span class="ig-def__value"><%= @action[:target_label] %></span>
+        </div>
+        <div class="ig-def">
+          <span class="ig-def__label">Policy</span>
+          <span class="ig-def__value"><%= @action[:policy] %></span>
+        </div>
+        <div class="ig-def">
+          <span class="ig-def__label">Replay</span>
+          <span class="ig-def__value"><%= @action[:replay] %></span>
+        </div>
+        <div class="ig-def">
+          <span class="ig-def__label">Secrets</span>
+          <span class="ig-def__value"><%= status_pill @action[:secrets_state] %></span>
+        </div>
+      </div>
+      <div class="ig-card">
+        <div class="ig-card__title">Run a test</div>
+        <%= form_with url: run_action_path(@action[:id]), method: :post, local: true do |f| %>
+          <div class="ig-field">
+            <label class="ig-field__label">Input (JSON)</label>
+            <%= text_area_tag :input, '{}', class: 'ig-textarea', rows: 4 %>
+          </div>
+          <div class="ig-field">
+            <label class="ig-field__label">Idempotency key (optional)</label>
+            <%= text_field_tag :idempotency_key, '', class: 'ig-input', placeholder: 'unique-per-call key' %>
+          </div>
+          <%= f.submit 'Submit run', class: 'ig-btn ig-btn--primary' %>
+          <% if demo_mode? %>
+            <span class="ig-mut" style="font-size: 11.5px; margin-left: 10px;">Demo — run is simulated.</span>
+          <% end %>
+        <% end %>
+      </div>
+
+      <div class="ig-card">
+        <div class="ig-card__title">Last run</div>
+        <% last = @runs_for_action.first %>
+        <% if last %>
+          <div class="ig-def"><span class="ig-def__label">Run</span><span class="ig-def__value"><%= link_to last[:id], run_path(last[:id]) %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Status</span><span class="ig-def__value"><%= status_pill last[:status] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Routed via</span><span class="ig-def__value"><%= last[:routed_via] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Proof</span><span class="ig-def__value"><%= status_pill last[:proof] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Started</span><span class="ig-def__value"><%= time_ago(last[:started_at]) %></span></div>
+        <% else %>
+          <div class="ig-mut" style="font-size: 12.5px;">No runs yet. Hit the endpoint to record one.</div>
+        <% end %>
+      </div>
+    </div>
+
+  <% when 'endpoint' %>
+    <div class="ig-card">
+      <div class="ig-card__title">POST endpoint</div>
+      <%= code_snippet @action[:endpoint] %>
+    </div>
+    <div style="height: 14px;"></div>
+    <div class="ig-card">
+      <div class="ig-card__title">curl</div>
+      <%= code_snippet "curl -X POST #{@action[:endpoint]} \\\n  -H \"Authorization: Bearer $IGRIS_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"input\": { } }'" %>
+    </div>
+    <div style="height: 14px;"></div>
+    <div class="ig-card">
+      <div class="ig-card__title">TypeScript / fetch</div>
+      <%= code_snippet <<~JS.strip
+        await fetch('#{@action[:endpoint]}', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.IGRIS_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ input: {} }),
+        })
+      JS
+      %>
+    </div>
+
+  <% when 'target' %>
+    <div class="ig-card">
+      <div class="ig-card__title"><%= @action[:target_label] %></div>
+      <div class="ig-mut" style="font-size: 12.5px;">
+        <% case @action[:target_type] %>
+        <% when 'hosted_api' %>
+          Calls travel through Igris before the upstream API. Auth lives in Secrets — we never expose the raw token in the console.
+        <% when 'webhook' %>
+          Signed POST to your endpoint. Inspect the signature header in the run detail.
+        <% when 'local_runtime' %>
+          Needs the Igris runtime installed on a host that can reach the private resource. See the Runtimes lens.
+        <% when 'mock_demo' %>
+          No real side effect. Use this to verify the proof loop end-to-end.
+        <% end %>
+      </div>
+    </div>
+
+  <% when 'policy' %>
+    <div class="ig-card">
+      <div class="ig-card__title">Policy</div>
+      <div class="ig-mut" style="font-size: 12.5px;">
+        Behavior in plain language: <strong><%= @action[:policy] %></strong>
+      </div>
+      <div class="ig-divider"></div>
+      <div class="ig-def"><span class="ig-def__label">Idempotency</span><span class="ig-def__value">Deduplicate by request key (24h window)</span></div>
+      <div class="ig-def"><span class="ig-def__label">Retries</span><span class="ig-def__value">Exponential up to 3 attempts</span></div>
+      <div class="ig-def"><span class="ig-def__label">Recovery</span><span class="ig-def__value">Auto on transient · Manual on permanent</span></div>
+      <div class="ig-def"><span class="ig-def__label">Approval</span><span class="ig-def__value">None</span></div>
+    </div>
+
+  <% when 'secrets' %>
+    <div class="ig-card">
+      <div class="ig-card__title">Secrets</div>
+      <div class="ig-mut" style="font-size: 12.5px; margin-bottom: 10px;">Values are never shown in the console — only configured / not configured.</div>
+      <div class="ig-def"><span class="ig-def__label">target_auth</span><span class="ig-def__value"><%= status_pill @action[:secrets_state] %></span></div>
+      <div class="ig-def"><span class="ig-def__label">signing_key</span><span class="ig-def__value"><%= status_pill 'Configured' %></span></div>
+    </div>
+
+  <% when 'runs' %>
+    <div class="ig-table-wrap">
+      <table class="ig-table">
+        <thead>
+          <tr><th>Run</th><th>Status</th><th>Routed via</th><th>Proof</th><th>Duration</th><th>Started</th></tr>
+        </thead>
+        <tbody>
+          <% if @runs_for_action.any? %>
+            <% @runs_for_action.each do |r| %>
+              <tr>
+                <td><%= link_to r[:id], run_path(r[:id]) %></td>
+                <td><%= status_pill r[:status] %></td>
+                <td class="ig-mut"><%= r[:routed_via] %></td>
+                <td><%= status_pill r[:proof] %></td>
+                <td class="ig-mut"><%= r[:duration_ms] %> ms</td>
+                <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr><td colspan="6" class="ig-mut" style="text-align: center; padding: 32px;">No runs yet. Call the endpoint above to record one.</td></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>
