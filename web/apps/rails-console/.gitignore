@@ -1,0 +1,10 @@
+/.bundle
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/public/assets
+.byebug_history
+.env*
+!.env.example
+/node_modules
