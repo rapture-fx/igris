@@ -1,9 +1,16 @@
-<%# Copyable code snippet box (mirrors the CopyButton + snippet pattern). %>
-<div>
-  <% if label %><div class="ig-snippet__label"><%= label %></div><% end %>
-  <div class="ig-snippet" data-code="<%= code %>">
-<%= code %>
-    <button type="button" class="ig-snippet__copy"
+<%# Copyable, syntax-highlighted code snippet (highlight.js, theme-aware).
+    `language:` picks the highlighter (bash, http, javascript, json, ruby…) %>
+<%
+  lang_cls = (defined?(language) && language.to_s.present?) ? "language-#{language}" : ''
+  data_code = code.to_s
+%>
+<div class="ic-snippet">
+  <% if defined?(label) && label.present? %>
+    <div class="ic-snippet__label"><%= label %></div>
+  <% end %>
+  <div class="ic-snippet__shell" data-code="<%= data_code %>">
+    <pre class="ic-snippet__pre"><code class="<%= lang_cls %>"><%= data_code %></code></pre>
+    <button type="button" class="ic-snippet__copy"
       onclick="(()=>{navigator.clipboard.writeText(this.parentElement.dataset.code);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1400)})()">
       Copy
     </button>

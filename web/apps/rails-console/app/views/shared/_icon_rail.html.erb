@@ -1,38 +1,101 @@
 <%#
-  Icon rail — mirrors web-console/components/console/IconRail.tsx.
-  40px wide column of lens icons. Same 5 lenses: Home, Actions, Runs, Runtimes, Settings.
+  Icon rail — 1:1 port of IconRail() in
+  web/apps/web-landing/src/components/sections/Products.tsx.
+  40px column · 36×36 buttons · 15×15 lucide icons at strokeWidth 1.5.
 %>
-<nav class="ig-rail" aria-label="Console lenses">
-  <%= link_to home_path, class: 'ig-rail__brand', 'aria-label': 'Igris' do %>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="12" r="9"/>
-      <path d="M12 3v18M3 12h18"/>
-    </svg>
+<nav class="ic-rail" aria-label="Console lenses">
+  <%= link_to home_path, class: 'ic-rail__logo', 'aria-label': 'Igris' do %>
+    <%= image_tag '/inertia.png',     class: 'ic-rail__logo-img ic-rail__logo-img--light', alt: '' %>
+    <%= image_tag '/fofotlight.png',  class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
   <% end %>
 
-  <% rail_items = [
-    [:home,     home_path,     'Home',     'home'],
-    [:actions,  actions_path,  'Actions',  'workflow'],
-    [:runs,     runs_path,     'Runs',     'zap'],
-    [:runtimes, runtimes_path, 'Runtimes', 'box'],
-    [:settings, settings_path, 'Settings', 'settings'],
-  ] %>
-
-  <% rail_items.each do |id, path, label, icon| %>
-    <%= link_to path,
-        class: "ig-rail__item #{'is-active' if active_lens?(id)}",
-        'aria-label': label,
-        title: label do %>
-      <%= console_icon(icon) %>
+  <div class="ic-rail__items">
+    <% rail_items = [
+      [:home,     home_path,     'Home',     'layout-dashboard'],
+      [:actions,  actions_path,  'Actions',  'list-checks'],
+      [:runs,     runs_path,     'Runs',     'zap'],
+      [:runtimes, runtimes_path, 'Runtimes', 'box'],
+      [:settings, settings_path, 'Settings', 'settings'],
+    ] %>
+    <% rail_items.each do |id, path, label, icon| %>
+      <%= link_to path,
+          class: "ic-rail__btn #{'is-active' if active_lens?(id)}",
+          'aria-label': label,
+          'data-tip': label do %>
+        <%= console_icon(icon, size: 18, stroke: 1.7) %>
+      <% end %>
     <% end %>
-  <% end %>
-
-  <span class="ig-rail__spacer"></span>
-
-  <div class="ig-rail__item" aria-label="Profile" title="Profile">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="8" r="4"/>
-      <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
-    </svg>
   </div>
+
+  <%# Profile — clickable dropdown (Settings, API ref, Status, Support, ...) %>
+  <details class="ic-rail__avatar" data-tip="Account">
+    <summary aria-label="Account menu">
+      <%= image_tag '/sfat.png', alt: '' %>
+      <span class="ic-rail__avatar__dot" aria-hidden="true"></span>
+    </summary>
+    <div class="ic-rail__menu" role="menu">
+      <div class="ic-rail__menu__head">
+        <span class="ic-rail__menu__name">Operator</span>
+        <span class="ic-rail__menu__email">demo@igrisinertial.com</span>
+      </div>
+
+      <%= link_to settings_path, class: 'ic-rail__menu__item', role: 'menuitem' do %>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.6.6.96 1.39 1 2.21V12a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        <span>Settings</span>
+        <span class="ic-rail__menu__hint">⌘,</span>
+      <% end %>
+
+      <a href="https://igrisinertial.com/docs/api" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+        <span>API reference</span>
+        <svg class="ic-rail__menu__hint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;color:var(--ic-text-7);"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+      </a>
+
+      <a href="https://status.igrisinertial.com" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.24 2.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4 12H2"/></svg>
+        <span>Status page</span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;">
+          <span style="width:5px;height:5px;border-radius:999px;background:var(--ic-emerald);"></span>
+          <span style="font-size:10.5px;color:var(--ic-text-7);">all systems</span>
+        </span>
+      </a>
+
+      <a href="mailto:support@igrisinertial.com" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <span>Support</span>
+      </a>
+
+      <a href="https://igrisinertial.com/docs" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Documentation</span>
+      </a>
+
+      <a href="https://igrisinertial.com/changelog" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>What's new</span>
+      </a>
+
+      <div class="ic-rail__menu__sep" role="separator"></div>
+
+      <button type="button" class="ic-rail__menu__item ic-rail__menu__item--danger" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sign out</span>
+      </button>
+    </div>
+  </details>
 </nav>
+
+<%# Dismiss the dropdown on outside click / ESC (no JS framework needed). %>
+<script>
+  (function() {
+    const details = document.querySelector('.ic-rail__avatar');
+    if (!details) return;
+    document.addEventListener('click', function(e) {
+      if (!details.open) return;
+      if (!details.contains(e.target)) details.open = false;
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && details.open) details.open = false;
+    });
+  })();
+</script>
