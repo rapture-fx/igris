@@ -383,13 +383,6 @@ Proof verification is honest. It is verified only when signed runtime artifacts
 and a registered runtime key exist. If either is missing, proof must be treated
 as unavailable or unverifiable, not as verified.
 
-Frontend console checks:
-
-```bash
-make web-console-check
-```
-
-Run the build before `tsc --noEmit` because the console TypeScript config
-includes Next-generated `.next/types/**/*.ts` files. Running `tsc --noEmit` on a
-clean tree before `next build` can fail only because those generated files do
-not exist yet.
+Frontend console checks: the old Next.js console has been removed.
+Rails is the active console — see `web/apps/rails-console/README.md`
+for its local test commands.
