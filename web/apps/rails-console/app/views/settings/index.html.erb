@@ -1,0 +1,36 @@
+<%# Settings — minimal placeholder. %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <span class="ig-topbar__title">Settings</span>
+    <span class="ig-topbar__caption">Workspace, API keys, team, and environment.</span>
+  </div>
+</div>
+
+<div class="ig-body ig-body--narrow">
+  <div class="ig-grid ig-grid--2">
+    <div class="ig-card">
+      <div class="ig-card__title">API keys</div>
+      <div class="ig-mut" style="font-size: 12.5px;">Rotate, create, or revoke. Values are never shown after creation.</div>
+      <div class="ig-divider"></div>
+      <div class="ig-def"><span class="ig-def__label">prod_default</span><span class="ig-def__value"><%= status_pill 'Active', tone: :ok %></span></div>
+      <div class="ig-def"><span class="ig-def__label">ci_runner</span><span class="ig-def__value"><%= status_pill 'Active', tone: :ok %></span></div>
+    </div>
+    <div class="ig-card">
+      <div class="ig-card__title">Team</div>
+      <div class="ig-mut" style="font-size: 12.5px;">Members and roles.</div>
+      <div class="ig-divider"></div>
+      <div class="ig-def"><span class="ig-def__label">wira</span><span class="ig-def__value">Owner</span></div>
+      <div class="ig-def"><span class="ig-def__label">ops@</span><span class="ig-def__value">Operator</span></div>
+    </div>
+    <div class="ig-card">
+      <div class="ig-card__title">Environment</div>
+      <div class="ig-def"><span class="ig-def__label">Workspace</span><span class="ig-def__value">igris-default</span></div>
+      <div class="ig-def"><span class="ig-def__label">Region</span><span class="ig-def__value">us-east</span></div>
+      <div class="ig-def"><span class="ig-def__label">Plan</span><span class="ig-def__value">Horizon</span></div>
+    </div>
+    <div class="ig-card">
+      <div class="ig-card__title">Advanced</div>
+      <div class="ig-mut" style="font-size: 12.5px;">Audit logs, IP allowlist, SSO, data residency. Placeholder for the spike.</div>
+    </div>
+  </div>
+</div>
