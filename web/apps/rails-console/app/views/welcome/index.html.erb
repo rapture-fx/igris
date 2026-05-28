@@ -18,24 +18,24 @@
       You can skip this and jump straight into the console at any time.
     </p>
 
-    <div class="ic-tiles ic-welcome__tiles">
+    <ol class="ic-steps">
       <% steps = [
-        ['1', 'Create an action',            'Name it. Define its inputs in plain language.'],
-        ['2', 'Choose where it runs',        'Mock demo, hosted API, webhook, or local runtime.'],
-        ['3', 'Set a policy',                'Idempotency, retries, single-flight, or manual approval.'],
-        ['4', 'Copy the endpoint',           'POST /v1/actions/:name/run · curl and fetch snippets generated.'],
-        ['5', 'Run it and inspect the proof','Every run produces a signed receipt. Open the run to read it end-to-end.'],
+        ['Create an action',            'Name it. Define its inputs in plain language.'],
+        ['Choose where it runs',        'Mock demo, hosted API, webhook, or local runtime.'],
+        ['Set a policy',                'Idempotency, retries, single-flight, or manual approval.'],
+        ['Copy the endpoint',           'POST /v1/actions/:name/run · curl and fetch snippets generated.'],
+        ['Run it and inspect the proof','Every run produces a signed receipt. Open the run to read it end-to-end.'],
       ] %>
-      <% steps.each do |num, title, sub| %>
-        <div class="ic-tile">
-          <div class="ic-tile__num"><%= num %></div>
-          <div class="ic-tile__body">
-            <div class="ic-tile__title"><%= title %></div>
-            <div class="ic-tile__sub"><%= sub %></div>
+      <% steps.each_with_index do |(title, sub), i| %>
+        <li class="ic-step">
+          <span class="ic-step__num"><%= i + 1 %></span>
+          <div class="ic-step__body">
+            <div class="ic-step__title"><%= title %></div>
+            <p class="ic-step__sub"><%= sub %></p>
           </div>
-        </div>
+        </li>
       <% end %>
-    </div>
+    </ol>
 
     <%= button_to enter_console_path,
         method: :post, form: { style: 'margin:0;' },
