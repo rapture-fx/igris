@@ -184,6 +184,7 @@ module Igris
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       summary = normalize_run_summary(raw)
       summary.merge(
+        steps: [],
         story: build_story(raw),
         raw_evidence: build_raw_evidence(raw),
         proof_payload: raw[:proof],
