@@ -1,0 +1,38 @@
+<%#
+  Icon rail — mirrors web-console/components/console/IconRail.tsx.
+  40px wide column of lens icons. Same 5 lenses: Home, Actions, Runs, Runtimes, Settings.
+%>
+<nav class="ig-rail" aria-label="Console lenses">
+  <%= link_to home_path, class: 'ig-rail__brand', 'aria-label': 'Igris' do %>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 3v18M3 12h18"/>
+    </svg>
+  <% end %>
+
+  <% rail_items = [
+    [:home,     home_path,     'Home',     'home'],
+    [:actions,  actions_path,  'Actions',  'workflow'],
+    [:runs,     runs_path,     'Runs',     'zap'],
+    [:runtimes, runtimes_path, 'Runtimes', 'box'],
+    [:settings, settings_path, 'Settings', 'settings'],
+  ] %>
+
+  <% rail_items.each do |id, path, label, icon| %>
+    <%= link_to path,
+        class: "ig-rail__item #{'is-active' if active_lens?(id)}",
+        'aria-label': label,
+        title: label do %>
+      <%= console_icon(icon) %>
+    <% end %>
+  <% end %>
+
+  <span class="ig-rail__spacer"></span>
+
+  <div class="ig-rail__item" aria-label="Profile" title="Profile">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+    </svg>
+  </div>
+</nav>
