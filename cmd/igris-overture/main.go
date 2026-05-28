@@ -227,6 +227,13 @@ func main() {
 		return
 	}
 
+	if len(os.Args) > 1 && os.Args[1] == "tenant-key" {
+		if err := runTenantKeyCommand(os.Args[2:]); err != nil {
+			log.Fatalf("[TenantKey] %v", err)
+		}
+		return
+	}
+
 	log.Println("🚀 Starting Igris Overture API...")
 
 	log.Println("[Auth] Better Auth session validation active — no external auth service required")
