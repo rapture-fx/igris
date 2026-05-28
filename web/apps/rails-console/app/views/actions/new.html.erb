@@ -153,7 +153,7 @@
           Review: <strong style="color: var(--ig-text-primary);"><%= @draft[:name] %></strong>
           · target <strong style="color: var(--ig-text-primary);"><%= @draft[:target_type] %></strong>
           · policy <strong style="color: var(--ig-text-primary);"><%= @draft[:policy] %></strong>
-          <% if data_source.fixtures? %><br><span style="color: var(--ig-amber);">Demo mode — submission will not call Overture.</span><% end %>
+          <% if data_source.fixtures? %><br><span style="color: var(--ic-amber);">Demo mode — submission is inert and creates no real action.</span><% end %>
         </div>
       </div>
     <% end %>
