@@ -29,6 +29,10 @@ type queuedRouteQueryExpectation struct {
 	columns []string
 	rows    [][]driver.Value
 	err     error
+	// Optional hook to inspect the query string and args the route layer
+	// actually issued (e.g. to assert tenant-id propagation from the
+	// auth middleware into the SQL WHERE clause). nil = skip.
+	checkArgs func(query string, args []driver.NamedValue)
 }
 
 type queuedRouteExecExpectation struct {
@@ -80,12 +84,15 @@ func (d *queuedRouteDriver) Open(string) (driver.Conn, error) {
 	return &queuedRouteConn{driver: d}, nil
 }
 
-func (d *queuedRouteDriver) nextQueryRows() (driver.Rows, error) {
+func (d *queuedRouteDriver) nextQueryRows(query string, args []driver.NamedValue) (driver.Rows, error) {
 	if len(d.queries) == 0 {
 		return nil, errors.New("unexpected query")
 	}
 	next := d.queries[0]
 	d.queries = d.queries[1:]
+	if next.checkArgs != nil {
+		next.checkArgs(query, args)
+	}
 	if next.err != nil {
 		return nil, next.err
 	}
@@ -135,8 +142,8 @@ func (c *queuedRouteConn) ExecContext(_ context.Context, query string, args []dr
 	return c.driver.nextExecResult(query, args)
 }
 
-func (c *queuedRouteConn) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
-	return c.driver.nextQueryRows()
+func (c *queuedRouteConn) QueryContext(_ context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
+	return c.driver.nextQueryRows(query, args)
 }
 
 func (tx queuedRouteTx) Commit() error {
@@ -151,8 +158,8 @@ func (tx queuedRouteTx) ExecContext(_ context.Context, query string, args []driv
 	return tx.driver.nextExecResult(query, args)
 }
 
-func (tx queuedRouteTx) QueryContext(_ context.Context, _ string, _ []driver.NamedValue) (driver.Rows, error) {
-	return tx.driver.nextQueryRows()
+func (tx queuedRouteTx) QueryContext(_ context.Context, query string, args []driver.NamedValue) (driver.Rows, error) {
+	return tx.driver.nextQueryRows(query, args)
 }
 
 type queuedRouteRows struct {
