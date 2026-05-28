@@ -199,6 +199,30 @@ module Igris
       )
     end
 
+    # 14-day daily run counts for the Home sparkline. Hand-tuned to feel
+    # realistic — weekend dip, midweek spike — and small enough that the
+    # SVG is calm and readable.
+    # ~15 weeks of daily run counts for the Home contribution chart.
+    # Deterministic but uneven — weekend dips, midweek peaks, a couple of
+    # empty days so the legend's "no runs" cell shows up in the real grid.
+    def daily_run_counts
+      seed = 42
+      days = 105
+      Array.new(days) do |i|
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff
+        dow = (i + 3) % 7
+        weekend = (dow == 0 || dow == 6)
+        # Most weekends and ~1-in-10 weekdays are blank, so the legend's
+        # "no runs" cell actually appears in the grid.
+        skip = (weekend && (seed % 5 < 3)) || (!weekend && (seed % 11 == 0))
+        next 0 if skip
+        base = weekend ? 1 : ([3, 4, 5][dow % 3] || 3)
+        wave = (Math.sin(i * 0.45) * 3).round.abs
+        jitter = seed % 5
+        base + wave + jitter
+      end
+    end
+
     def runtimes
       [
         {
