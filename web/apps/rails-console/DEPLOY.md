@@ -17,28 +17,55 @@ and the top-level `DEPLOY.md` for the end-to-end playbook.
 | DNS        | Cloudflare `console.igrisinertial.com` (+ `app.…`)   |
 | Backend    | Go Overture at `api.igrisinertial.com`               |
 
-## Auth model
+## Auth model (two layers)
+
+### 1. Console front door — HTTP Basic auth
+
+End users (just the founder for MVP) reach the console through HTTP
+Basic auth gated on two env vars:
+
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+
+When both are set, every request is challenged (`401 + WWW-Authenticate:
+Basic realm="Igris Console"`) unless the browser presents matching
+credentials. Comparison goes through SHA-256-hashed
+`ActiveSupport::SecurityUtils.secure_compare` so neither value nor
+length leaks via timing. The `/up` health endpoint is a Rack lambda,
+not a controller, so it always responds without challenge.
+
+When either env var is unset, the front door is open — fine for dev,
+**must not happen in production**. The `render.yaml` declares both as
+`sync: false` so they're set per-environment in the Render dashboard.
+
+Upgrade path: replace with Clerk or BetterAuth-direct when multi-user
+identity matters. The MVP runs single-tenant; one founder = one
+password is the right shape.
+
+### 2. Overture service principal — `igris_` API key
 
 The console authenticates to Overture as a **service principal** — a
-single `igris_` prefixed API key issued for the console's own tenant
-via `POST /v1/account/api-key`. The key:
+single `igris_` prefixed API key issued for the console's own tenant.
+The key:
 
 - Is set as `OVERTURE_API_KEY` on Render. Never committed.
 - Travels in `Authorization: Bearer …` headers from Rails server to
   Overture only. **Never** sent to the browser, logged, or rendered.
-- Maps to a single tenant (the console's). Every Overture call is
-  tenant-scoped by that key.
+- Maps to a single tenant. Every Overture call is tenant-scoped by it.
 
-`OvertureClient` enforces this: the only place that reads the env var
-is the constructor; the only place the header is written is in
-`headers`; the logger emits only error `class / status / code / message`,
-never the request body or auth header.
+`OvertureClient` enforces the no-leak rules: the only place that reads
+the env var is the constructor; the only place the header is written
+is in `headers`; the logger emits only error `class / status / code /
+message`, never the request body or auth header.
 
-For end-user auth (when end users come along), the console will gain
-its own front door (Clerk or BetterAuth). The service-principal key
-remains the only way Rails talks to Overture — end-user identity is
-forwarded via a separate scoping header, not by minting per-user
-Overture keys. That's a follow-up slice; the MVP runs single-tenant.
+Two ways to mint or rotate the key (both produce identical output —
+the auth middleware can't tell them apart):
+
+- **CLI** (recommended for first deploy):
+  `./bin/igris-overture tenant-key --email <you> --create-if-missing`
+  See `igris-overture/DEPLOY.md`.
+- **HTTP**: `POST /v1/account/api-key` from any authenticated session.
+  Once you have a key, the console itself can rotate it.
 
 ## Environment variables
 
@@ -50,6 +77,8 @@ Overture keys. That's a follow-up slice; the MVP runs single-tenant.
 | `OVERTURE_API_KEY`         | yes             | `igris_…` service-principal key — see auth model above                |
 | `OVERTURE_PUBLIC_API_URL`  | no              | Override of the public endpoint URL used in snippets                 |
 | `APP_HOST`                 | yes             | `console.igrisinertial.com`                                           |
+| `ADMIN_USERNAME`           | yes             | Console front-door HTTP Basic username                                |
+| `ADMIN_PASSWORD`           | yes             | Console front-door HTTP Basic password — long random, store in pw manager |
 | `PORT`                     | yes             | Render sets to `3100` (see `config/puma.rb`)                         |
 | `RAILS_SERVE_STATIC_FILES` | yes             | Set to `1` so Puma serves digested CSS from `public/`                |
 | `RAILS_LOG_TO_STDOUT`      | recommended     | Render wants logs on stdout                                          |
