@@ -28,27 +28,6 @@
       import { lineSpinner } from 'https://cdn.jsdelivr.net/npm/ldrs@1.0.2/+esm';
       lineSpinner.register();
     </script>
-    <%# highlight.js engine only — token colors come from our --ic-* palette
-        in application.css. Load core + the languages we actually use, then
-        highlight once DOM is ready (and re-run after Turbo nav, if present). %>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/http.min.js"></script>
-    <script>
-      (function() {
-        function run() {
-          if (!window.hljs) return;
-          document.querySelectorAll('pre code:not(.hljs)').forEach(function(el) {
-            try { hljs.highlightElement(el); } catch (e) {}
-          });
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', run);
-        } else {
-          run();
-        }
-        document.addEventListener('turbo:load', run);
-      })();
-    </script>
   </head>
   <body>
     <div class="ig-shell">
@@ -70,5 +49,18 @@
         </div>
       <% end %>
     </div>
+
+    <%# Syntax highlighting — loaded at end of body so every code block
+        is in the DOM before highlightAll() runs. %>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/http.min.js"></script>
+    <script>
+      if (window.hljs) {
+        hljs.configure({ ignoreUnescapedHTML: true });
+        document.querySelectorAll('pre code').forEach(function(el) {
+          try { hljs.highlightElement(el); } catch (e) {}
+        });
+      }
+    </script>
   </body>
 </html>
