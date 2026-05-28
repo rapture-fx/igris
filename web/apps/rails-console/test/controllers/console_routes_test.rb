@@ -8,7 +8,7 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     get '/home'
     assert_response :success
     assert_match 'Run agent actions that recover', response.body
-    assert_match 'Create an action', response.body
+    assert_match 'Recent runs', response.body
   end
 
   test 'root sends first-time visitors to /welcome' do
