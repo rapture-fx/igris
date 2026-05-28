@@ -1,40 +1,162 @@
 <%#
-  Lens sidebar — 236px content column. Contents vary by active lens.
-  Home renders no sidebar (matches Next.js LensSidebar behaviour).
+  Lens sidebar — 1:1 port of Sidebar() in
+  web/apps/web-landing/src/components/sections/Products.tsx.
+  Search pill + section header w/ two icons + collapsible groups w/
+  status-dot rows. Content varies by active lens.
 %>
 <% lens = active_lens %>
-<% if lens == :home %>
-<% else %>
-  <aside class="ig-sidebar" aria-label="<%= lens.to_s.titleize %> sidebar">
-    <div class="ig-sidebar__header"><%= lens.to_s.titleize %></div>
-    <div class="ig-sidebar__body">
-      <% case lens %>
-      <% when :actions %>
-        <%= link_to 'All actions', actions_path,
-            class: "ig-sidebar__nav-item #{'is-active' if request.path == actions_path}" %>
-        <%= link_to 'New action', new_action_path,
-            class: "ig-sidebar__nav-item #{'is-active' if request.path == new_action_path}" %>
-        <div class="ig-sidebar__empty" style="padding: 16px 12px; text-align: left;">
-          Filters and saved views will live here once actions sync.
-        </div>
-      <% when :runs %>
-        <%= link_to 'All runs', runs_path,
-            class: "ig-sidebar__nav-item #{'is-active' if request.path == runs_path}" %>
-        <div class="ig-sidebar__empty">
-          Filter by action, status, or proof state once runs flow through.
-        </div>
-      <% when :runtimes %>
-        <div class="ig-sidebar__empty">
-          Connected runtimes appear here.
-        </div>
-      <% when :settings %>
-        <%= link_to 'Workspace', settings_path,
-            class: "ig-sidebar__nav-item is-active" %>
-        <span class="ig-sidebar__nav-item ig-mut">API keys</span>
-        <span class="ig-sidebar__nav-item ig-mut">Team</span>
-        <span class="ig-sidebar__nav-item ig-mut">Environment</span>
-        <span class="ig-sidebar__nav-item ig-mut">Advanced</span>
-      <% end %>
+<% return if lens == :home %>
+
+<%
+  section_label, groups =
+    case lens
+    when :actions
+      acts = data_source.respond_to?(:actions) ? data_source.actions : []
+      [
+        'Actions',
+        [
+          {
+            id: 'all-actions', name: 'all actions', open: true,
+            dot: :running,
+            tasks: acts.first(6).map { |a|
+              status =
+                case a[:last_run_status]
+                when 'bad'  then :failed
+                when 'warn' then :running
+                when nil    then :ok
+                else             :ok
+                end
+              { status: status, title: a[:name].to_s, when: '—',
+                href: action_path(a[:name]),
+                active: request.path == action_path(a[:name]) }
+            },
+          },
+          {
+            id: 'create',  name: 'create', open: false, dot: :ok,
+            tasks: [
+              { status: :ok, title: 'New action', when: 'now',
+                href: new_action_path,
+                active: request.path == new_action_path },
+            ],
+          },
+        ],
+      ]
+    when :runs
+      runs = data_source.respond_to?(:recent_runs) ? data_source.recent_runs(limit: 8) : []
+      [
+        'Runs',
+        [
+          {
+            id: 'live', name: 'live', open: true, dot: :running,
+            tasks: runs.select { |r| r[:status].to_s.casecmp('Running').zero? }.map { |r|
+              { status: :running, title: r[:action].to_s,
+                when: time_ago(r[:started_at]).to_s,
+                href: run_path(r[:id]),
+                active: request.path == run_path(r[:id]) }
+            },
+          },
+          {
+            id: 'recent', name: 'recent', open: true, dot: :ok,
+            tasks: runs.reject { |r| r[:status].to_s.casecmp('Running').zero? }.map { |r|
+              st = r[:status].to_s.casecmp('Failed').zero? ? :failed : :ok
+              { status: st, title: r[:action].to_s,
+                when: time_ago(r[:started_at]).to_s,
+                href: run_path(r[:id]),
+                active: request.path == run_path(r[:id]) }
+            },
+          },
+        ],
+      ]
+    when :runtimes
+      rts = data_source.respond_to?(:runtimes) ? data_source.runtimes : []
+      [
+        'Runtimes',
+        [
+          {
+            id: 'connected', name: 'connected', open: true, dot: :running,
+            tasks: rts.first(6).map { |rt|
+              st = rt[:status].to_s.casecmp('Healthy').zero? ? :ok : :failed
+              { status: st, title: rt[:name].to_s, when: rt[:os].to_s, href: nil }
+            },
+          },
+        ],
+      ]
+    when :settings
+      [
+        'Settings',
+        [
+          {
+            id: 'workspace', name: 'workspace', open: true, dot: :running,
+            tasks: [
+              { status: :ok, title: 'General', when: '', href: settings_path, active: true },
+              { status: :ok, title: 'API keys', when: '', href: '#' },
+              { status: :ok, title: 'Team', when: '', href: '#' },
+              { status: :ok, title: 'Environment', when: '', href: '#' },
+              { status: :ok, title: 'Advanced', when: '', href: '#' },
+            ],
+          },
+        ],
+      ]
+    else
+      [lens.to_s.titleize, []]
+    end
+%>
+
+<aside class="ic-sidebar" aria-label="<%= section_label %> sidebar">
+  <div class="ic-sidebar__search-wrap">
+    <div class="ic-sidebar__search">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+        <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>Search</span>
     </div>
-  </aside>
-<% end %>
+  </div>
+
+  <div class="ic-sidebar__section-head">
+    <span class="ic-sidebar__section-head__label"><%= section_label %></span>
+    <div class="ic-sidebar__section-head__tools">
+      <button type="button" aria-label="Sort">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+          <path d="M7 8 L17 8 M7 16 L17 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 5 L17 8 L14 11 M10 13 L7 16 L10 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" aria-label="New">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="ic-sidebar__scroll">
+    <% groups.each do |g| %>
+      <details class="ic-group" <%= 'open' if g[:open] %>>
+        <summary class="ic-group__head">
+          <svg class="ic-group__chevron" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6 L15 12 L9 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="ic-group__dot" style="background: <%= g[:dot] == :running ? 'rgba(52,211,153,0.8)' : (g[:dot] == :failed ? 'var(--ic-rose)' : 'var(--ic-text-9)') %>;"></span>
+          <span class="ic-group__name"><%= g[:name] %></span>
+        </summary>
+
+        <div class="ic-group__body">
+          <% g[:tasks].each do |t| %>
+            <% st = t[:status] %>
+            <% label = st == :running ? 'Running' : (st == :failed ? 'Failed' : 'Completed') %>
+            <% href  = t[:href] || '#' %>
+            <%= link_to href, class: "ic-task #{'is-active' if t[:active]}" do %>
+              <span class="ic-task__dot ic-task__dot--<%= st %> <%= 'ic-live-dot' if st == :running %>"></span>
+              <span class="ic-task__status ic-task__status--<%= st %>"><%= label %></span>
+              <span class="ic-task__title"><%= t[:title] %></span>
+              <span class="ic-task__when"><%= t[:when] %></span>
+            <% end %>
+          <% end %>
+        </div>
+      </details>
+    <% end %>
+
+    <button class="ic-sidebar__more" type="button">Show more</button>
+  </div>
+</aside>
