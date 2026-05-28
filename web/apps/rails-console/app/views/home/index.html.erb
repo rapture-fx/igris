@@ -1,4 +1,4 @@
-<%# Home — calm front door at hero typography. Full-pane, no lens sidebar. %>
+<%# Home — overview front door. Compact hero typography. %>
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Home</span>
@@ -11,82 +11,67 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<div class="ic-body ic-scroll" style="max-width: 880px; margin: 0 auto;">
-  <h1 class="ic-h1">Run agent actions that recover and prove what happened.</h1>
-  <p class="ic-sub">
-    Agent or app → Igris action endpoint → tool, API, or workflow. Policy,
-    recovery, and signed receipts in between.
-  </p>
+<div class="ic-body ic-scroll">
+  <div style="max-width: 880px; margin: 0 auto;">
+    <h1 class="ic-h1">Run agent actions that recover and prove what happened.</h1>
+    <p class="ic-sub">
+      Agent or app → Igris action endpoint → tool, API, or workflow.
+      Policy, recovery, and signed receipts in between.
+    </p>
 
-  <div class="ic-tiles">
-    <div class="ic-tile">
-      <div class="ic-tile__num">1</div>
-      <div class="ic-tile__body">
-        <div class="ic-tile__title">Create an action</div>
-        <div class="ic-tile__sub">Name it. Define its inputs in plain language.</div>
+    <%# ── Runs pulse — vertical bars + 7d moving-average overlay ───── %>
+    <div class="ic-chartcard">
+      <div class="ic-chartcard__head">
+        <div>
+          <div class="ic-chartcard__label">Runs · last <%= @daily_runs.length %> days</div>
+          <div class="ic-chartcard__value">
+            <%= @daily_runs.sum %>
+            <span class="ic-chartcard__delta">
+              <% delta = @daily_runs.last(7).sum - @daily_runs.first(7).sum %>
+              <%= delta >= 0 ? "+#{delta}" : delta %> vs prior 7d
+            </span>
+          </div>
+        </div>
+        <div class="ic-pulse-legend" aria-hidden="true">
+          <span class="ic-pulse-legend__row"><span class="ic-pulse-legend__bar"></span> runs / day</span>
+          <span class="ic-pulse-legend__row"><span class="ic-pulse-legend__avg"></span> 7-day avg</span>
+        </div>
       </div>
-      <%= link_to 'Create', new_action_path, class: 'ic-btn' %>
-    </div>
-    <div class="ic-tile">
-      <div class="ic-tile__num">2</div>
-      <div class="ic-tile__body">
-        <div class="ic-tile__title">Choose where it runs</div>
-        <div class="ic-tile__sub">Mock demo, hosted API, webhook, or local runtime.</div>
+      <div style="overflow-x: auto; padding-top: 6px;">
+        <%= runs_pulse(@daily_runs) %>
       </div>
-      <span class="ic-chip">Pick target</span>
     </div>
-    <div class="ic-tile">
-      <div class="ic-tile__num">3</div>
-      <div class="ic-tile__body">
-        <div class="ic-tile__title">Set a policy</div>
-        <div class="ic-tile__sub">Idempotency, retries, single-flight, or manual approval.</div>
-      </div>
-      <span class="ic-chip">Configure</span>
-    </div>
-    <div class="ic-tile">
-      <div class="ic-tile__num">4</div>
-      <div class="ic-tile__body">
-        <div class="ic-tile__title">Copy the endpoint</div>
-        <div class="ic-tile__sub">POST /v1/actions/:name/run · curl and fetch snippets generated.</div>
-      </div>
-      <span class="ic-chip">Copy</span>
-    </div>
-    <div class="ic-tile">
-      <div class="ic-tile__num">5</div>
-      <div class="ic-tile__body">
-        <div class="ic-tile__title">Run it and inspect the proof</div>
-        <div class="ic-tile__sub">Every run produces a signed receipt. Open the run to read it end-to-end.</div>
-      </div>
-      <%= link_to 'Open Runs', runs_path, class: 'ic-btn' %>
-    </div>
-  </div>
 
-  <div class="ic-section-head">
-    <span class="ic-section-head__label">Recent runs</span>
-    <%= link_to 'View all', runs_path, class: 'ic-section-head__link' %>
-  </div>
-  <div class="ic-runs-list" style="border-radius: 8px;">
-    <% (@recent_runs || []).first(4).each do |r| %>
-      <% st = r[:status].to_s %>
-      <% running = st.casecmp('Running').zero? %>
-      <% failed  = st.casecmp('Failed').zero? %>
-      <% dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
-      <%= link_to run_path(r[:id]), class: 'ic-run-row' do %>
-        <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
-        <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
-          <%= running ? 'Running' : (failed ? 'Failed' : 'OK') %>
-        </span>
-        <span class="ic-run-row__title">
-          <span class="mono"><%= r[:id] %></span>
-          <%= r[:action] %>
-        </span>
-        <span class="ic-run-row__sub"><span class="mono"><%= r[:routed_via] %></span></span>
-        <span class="ic-run-row__sub"><%= r[:proof] %></span>
-        <span class="ic-run-row__time">
-          <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
-          <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
-        </span>
+    <%# Setup guide lives on the standalone /welcome page now. %>
+
+    <%# ── Recent runs ────────────────────────────────────────── %>
+    <div class="ic-section-head">
+      <span class="ic-section-head__label">Recent runs</span>
+      <%= link_to 'View all', runs_path, class: 'ic-section-head__link' %>
+    </div>
+    <div class="ic-runs-list">
+      <% (@recent_runs || []).first(4).each do |r| %>
+        <% st = r[:status].to_s %>
+        <% running = st.casecmp('Running').zero? %>
+        <% failed  = st.casecmp('Failed').zero? %>
+        <% dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
+        <%= link_to run_path(r[:id]), class: 'ic-run-row' do %>
+          <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
+          <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
+            <%= running ? 'Running' : (failed ? 'Failed' : 'OK') %>
+          </span>
+          <span class="ic-run-row__title">
+            <span class="mono"><%= r[:id] %></span>
+            <%= r[:action] %>
+          </span>
+          <span class="ic-run-row__sub"><span class="mono"><%= r[:routed_via] %></span></span>
+          <span class="ic-run-row__sub"><%= r[:proof] %></span>
+          <span class="ic-run-row__time">
+            <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
+            <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
+          </span>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
 </div>
