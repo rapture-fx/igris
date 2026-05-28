@@ -1,10 +1,11 @@
-<%# Home — overview front door. Compact hero typography. %>
+<%# Home — product front door. Hero + diagram + status + activity + recent runs. %>
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Home</span>
     <span class="ic-chip">igris-default</span>
   </div>
   <div class="ic-topbar__group">
+    <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
     <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
   </div>
 </div>
@@ -13,13 +14,79 @@
 
 <div class="ic-body ic-scroll">
   <div style="max-width: 880px; margin: 0 auto;">
-    <h1 class="ic-h1">Run agent actions that recover and prove what happened.</h1>
+
+    <%# ── Hero ─────────────────────────────────────────────── %>
+    <h1 class="ic-h1">Keep your AI stack. Route risky actions through Igris.</h1>
     <p class="ic-sub">
-      Agent or app → Igris action endpoint → tool, API, or workflow.
-      Policy, recovery, and signed receipts in between.
+      Your agent calls an Igris endpoint instead of calling the tool directly.
+      Igris applies policy, routes the action, records what happened, and
+      shows proof when signed evidence exists.
     </p>
 
-    <%# ── Runs pulse — vertical bars + 7d moving-average overlay ───── %>
+    <%# ── Architecture diagram ────────────────────────────── %>
+    <div class="ic-diagram" role="img" aria-label="Agent or app calls an Igris action endpoint, which dispatches to a tool, API, or workflow">
+      <div class="ic-diagram__node">
+        <div class="ic-diagram__node-label">Your agent / app</div>
+        <div class="ic-diagram__node-sub">Calls one endpoint</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node ic-diagram__node--accent">
+        <div class="ic-diagram__node-label">Igris action endpoint</div>
+        <div class="ic-diagram__node-sub">Policy · routing · recovery · proof</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node">
+        <div class="ic-diagram__node-label">Tool · API · workflow</div>
+        <div class="ic-diagram__node-sub">Where the side effect runs</div>
+      </div>
+    </div>
+
+    <%# ── Status strip ─────────────────────────────────────── %>
+    <% configured = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready|Ready/) }
+       last_run  = (@recent_runs || []).first
+       healthy_rt = @runtimes.count { |r| r[:status] == 'Healthy' }
+       overture_state = demo_mode? ? 'Demo · fixtures' : 'Connected' %>
+    <div class="ic-status">
+      <div class="ic-status__cell">
+        <div class="ic-status__k">Actions configured</div>
+        <div class="ic-status__v"><%= configured %><span class="ic-status__total"> / <%= @actions.size %></span></div>
+      </div>
+      <div class="ic-status__cell">
+        <div class="ic-status__k">Last run</div>
+        <div class="ic-status__v">
+          <% if last_run %>
+            <%= time_ago(last_run[:started_at]) %>
+            <span class="ic-status__sub">· <%= last_run[:action] %></span>
+          <% else %>
+            <span class="ic-status__v ic-status__v--muted">none yet</span>
+          <% end %>
+        </div>
+      </div>
+      <div class="ic-status__cell">
+        <div class="ic-status__k">Runtimes</div>
+        <div class="ic-status__v">
+          <% if @runtimes.empty? %>
+            <span class="ic-status__v--muted">none connected</span>
+          <% else %>
+            <%= healthy_rt %> healthy<span class="ic-status__total"> / <%= @runtimes.size %></span>
+          <% end %>
+        </div>
+      </div>
+      <div class="ic-status__cell">
+        <div class="ic-status__k">Igris API</div>
+        <div class="ic-status__v">
+          <span class="ic-status__pill <%= demo_mode? ? 'is-warn' : 'is-ok' %>">
+            <%= overture_state %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <%# ── Activity pulse ───────────────────────────────────── %>
     <div class="ic-chartcard">
       <div class="ic-chartcard__head">
         <div>
@@ -42,19 +109,17 @@
       </div>
     </div>
 
-    <%# Setup guide lives on the standalone /welcome page now. %>
-
-    <%# ── Recent runs ────────────────────────────────────────── %>
+    <%# ── Recent runs ──────────────────────────────────────── %>
     <div class="ic-section-head">
       <span class="ic-section-head__label">Recent runs</span>
       <%= link_to 'View all', runs_path, class: 'ic-section-head__link' %>
     </div>
     <div class="ic-runs-list">
       <% (@recent_runs || []).first(4).each do |r| %>
-        <% st = r[:status].to_s %>
-        <% running = st.casecmp('Running').zero? %>
-        <% failed  = st.casecmp('Failed').zero? %>
-        <% dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
+        <% st = r[:status].to_s
+           running = st.casecmp('Running').zero?
+           failed  = st.casecmp('Failed').zero?
+           dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
         <%= link_to run_path(r[:id]), class: 'ic-run-row' do %>
           <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
           <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
