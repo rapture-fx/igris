@@ -1,28 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" class="dark" data-theme="dark">
+<html lang="en">
   <head>
     <title>Igris Inertial Developer Console</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <meta name="csrf-token" content="<%= form_authenticity_token %>">
+    <%# Theme detection — set html.dark before stylesheet paints so light is
+        the default and prefers-color-scheme:dark switches over with no flash. %>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('ic-theme');
+          var dark = saved
+            ? saved === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
     <%= stylesheet_link_tag 'application' %>
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
     <style>:root { font-family: 'Inter', sans-serif; }</style>
+    <%# ldrs LineSpinner — same loader library the landing-page hero uses. %>
+    <script type="module">
+      import { lineSpinner } from 'https://cdn.jsdelivr.net/npm/ldrs@1.0.2/+esm';
+      lineSpinner.register();
+    </script>
+    <%# highlight.js engine only — token colors come from our --ic-* palette
+        in application.css. No external theme stylesheet, so the snippets
+        always match the rest of the surface. %>
+    <script defer src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"
+      onload="window.hljs && hljs.highlightAll();"></script>
   </head>
-  <body class="dark">
+  <body>
     <div class="ig-shell">
       <%= render 'shared/icon_rail' %>
-      <%= render 'shared/lens_sidebar' %>
+      <%# Lens sidebar is exclusive to Runs — every other lens is full-pane. %>
+      <% if active_lens == :runs %>
+        <%= render 'shared/lens_sidebar' %>
+      <% end %>
       <main class="ig-main">
         <%= yield %>
       </main>
 
       <% if demo_mode? %>
         <div style="position: fixed; bottom: 12px; right: 12px; z-index: 80;
-                    padding: 6px 10px; border-radius: 999px; font-size: 11px;
-                    background: rgba(251,191,36,0.12); color: var(--ig-amber);
-                    border: 1px solid rgba(251,191,36,0.3);">
+                    padding: 5px 10px; border-radius: 999px; font-size: 10.5px;
+                    background: var(--ic-overlay-3); color: var(--ic-text-5);
+                    border: 1px solid var(--ic-border-soft);">
           Demo data — OVERTURE_API_BASE_URL not set
         </div>
       <% end %>
