@@ -1,21 +1,111 @@
 require 'test_helper'
+require 'faraday'
 
+# Unit tests for Igris::OvertureClient — wires Faraday to a stubbed adapter
+# so we exercise real HTTP-status → typed-error mapping without needing
+# Overture running.
 class OvertureClientTest < ActiveSupport::TestCase
-  test 'not configured when env var is empty' do
-    client = Igris::OvertureClient.new(base_url: nil)
-    refute client.configured?
-    assert_nil client.list_actions.first
-  end
-
-  test 'list_actions returns empty array when unreachable' do
-    client = Igris::OvertureClient.new(base_url: 'http://127.0.0.1:1', api_key: 'k')
-    assert_equal [], client.list_actions
-  end
-
-  test 'run_action raises Unavailable when not configured' do
-    client = Igris::OvertureClient.new(base_url: nil)
-    assert_raises(Igris::OvertureClient::Unavailable) do
-      client.run_action('send_email', {})
+  def stub_client(stubs)
+    conn = Faraday.new(url: 'http://overture.test') do |f|
+      f.request :json
+      f.response :json, content_type: /\bjson$/
+      f.adapter :test, stubs
     end
+    client = Igris::OvertureClient.new(base_url: 'http://overture.test', api_key: 'test-key')
+    client.instance_variable_set(:@conn, conn)
+    client
+  end
+
+  test 'configured? false when base url is blank' do
+    refute Igris::OvertureClient.new(base_url: nil).configured?
+    refute Igris::OvertureClient.new(base_url: '').configured?
+    refute Igris::OvertureClient.new(base_url: '   ').configured?
+    assert Igris::OvertureClient.new(base_url: 'http://x').configured?
+  end
+
+  test 'reads raise Unavailable when not configured' do
+    client = Igris::OvertureClient.new(base_url: nil)
+    assert_raises(Igris::OvertureClient::Unavailable) { client.list_actions }
+    assert_raises(Igris::OvertureClient::Unavailable) { client.run_action('send_email') }
+  end
+
+  test 'list_actions returns the actions array' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.get('/v1/actions') { [200, { 'Content-Type' => 'application/json' }, { actions: [{ name: 'send_email', target_type: 'hosted_api' }] }.to_json] }
+    end
+    actions = stub_client(stubs).list_actions
+    assert_equal 1, actions.size
+    assert_equal 'send_email', actions.first['name']
+  end
+
+  test 'create_action surfaces validation errors' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions') { [400, { 'Content-Type' => 'application/json' }, { error: 'invalid_action_definition', message: 'name required' }.to_json] }
+    end
+    err = assert_raises(Igris::OvertureClient::ValidationError) do
+      stub_client(stubs).create_action(name: '')
+    end
+    assert_equal 400, err.status
+    assert_equal 'invalid_action_definition', err.code
+  end
+
+  test 'create_action surfaces conflict errors' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions') { [409, { 'Content-Type' => 'application/json' }, { error: 'action_name_conflict' }.to_json] }
+    end
+    assert_raises(Igris::OvertureClient::Conflict) do
+      stub_client(stubs).create_action(name: 'send_email')
+    end
+  end
+
+  test 'run_action surfaces runtime_unavailable as ServiceUnavailable' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/send_email/run') { [503, { 'Content-Type' => 'application/json' }, { error: 'runtime_unavailable', message: 'no runtime' }.to_json] }
+    end
+    err = assert_raises(Igris::OvertureClient::ServiceUnavailable) do
+      stub_client(stubs).run_action('send_email', input: { to: 'x' })
+    end
+    assert_equal 'runtime_unavailable', err.code
+  end
+
+  test 'run_action returns parsed body on success' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/send_email/run') do |env|
+        body = JSON.parse(env.body)
+        [200, { 'Content-Type' => 'application/json' },
+         { task_id: 'task_abc', run_id: 'task_abc', status: 'dispatched', proof_status: 'pending', echo: body }.to_json]
+      end
+    end
+    resp = stub_client(stubs).run_action('send_email', input: { to: 'a@b' })
+    assert_equal 'task_abc', resp['task_id']
+    assert_equal 'pending',  resp['proof_status']
+    assert_equal({ 'to' => 'a@b' }, resp['echo']['input'])
+  end
+
+  test 'get_task surfaces 404 as NotFound' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.get('/v1/tasks/nope') { [404, { 'Content-Type' => 'application/json' }, { error: 'task_not_found' }.to_json] }
+    end
+    assert_raises(Igris::OvertureClient::NotFound) { stub_client(stubs).get_task('nope') }
+  end
+
+  test 'network failure maps to Unavailable' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.get('/v1/actions') { raise Faraday::ConnectionFailed, 'refused' }
+    end
+    err = assert_raises(Igris::OvertureClient::Unavailable) { stub_client(stubs).list_actions }
+    assert_equal 'network', err.code
+  end
+
+  test 'auth header is set when api_key present, never logged' do
+    captured = nil
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.get('/v1/actions') do |env|
+        captured = env.request_headers['Authorization']
+        [200, { 'Content-Type' => 'application/json' }, { actions: [] }.to_json]
+      end
+    end
+    stub_client(stubs).list_actions
+    assert_equal 'Bearer test-key', captured
   end
 end
