@@ -7,7 +7,7 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'home renders' do
     get '/home'
     assert_response :success
-    assert_match 'Run agent actions that recover', response.body
+    assert_match 'Keep your AI stack', response.body
     assert_match 'Recent runs', response.body
   end
 
@@ -86,7 +86,7 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'settings index renders' do
     get '/settings'
     assert_response :success
-    assert_match 'API keys', response.body
+    assert_match 'API endpoints', response.body
   end
 
   test 'run action in fixture mode just redirects with notice' do
