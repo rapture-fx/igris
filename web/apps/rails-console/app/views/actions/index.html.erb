@@ -1,0 +1,59 @@
+<%# Actions list — main product object. %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <span class="ig-topbar__title">Actions</span>
+    <span class="ig-topbar__caption">Agent → Igris Action Endpoint → Tool / API / Workflow</span>
+  </div>
+  <div class="ig-topbar__group">
+    <%= link_to 'New action', new_action_path, class: 'ig-btn ig-btn--primary' %>
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<div class="ig-strip">
+  <span class="ig-chip"><span class="ig-chip__dot ig-chip__dot--ok"></span>Registry · <%= @actions.size %> <%= @actions.size == 1 ? 'action' : 'actions' %></span>
+  <span class="ig-mut" style="font-size: 11.5px;">Each action is a named endpoint your agent can call. Pick a target, set a policy, copy the URL.</span>
+</div>
+
+<div class="ig-body">
+  <% if @actions.empty? %>
+    <div class="ig-empty">
+      <h3 class="ig-empty__title">Create your first action</h3>
+      <p class="ig-empty__sub">An action is a named endpoint. Your agent POSTs to it, Igris evaluates policy, routes execution, and signs a receipt.</p>
+      <%= link_to 'New action', new_action_path, class: 'ig-btn ig-btn--primary ig-btn--lg' %>
+    </div>
+  <% else %>
+    <div class="ig-table-wrap">
+      <table class="ig-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Target</th>
+            <th>Policy</th>
+            <th>Replay</th>
+            <th>Last run</th>
+            <th>Proof</th>
+            <th>Endpoint</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @actions.each do |a| %>
+            <tr>
+              <td>
+                <%= link_to a[:name], action_path(a[:id]) %>
+                <div class="ig-mut" style="font-size: 11px; margin-top: 2px;"><%= status_pill a[:setup] %></div>
+              </td>
+              <td class="ig-mut"><%= a[:target_label] %></td>
+              <td class="ig-mut" style="max-width: 220px;"><%= a[:policy] %></td>
+              <td class="ig-mut"><%= a[:replay] %></td>
+              <td class="ig-mut"><%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'No runs yet' %></td>
+              <td><%= status_pill a[:proof] %></td>
+              <td class="ig-mut" style="max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px;"><%= a[:endpoint] %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>
