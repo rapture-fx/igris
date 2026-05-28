@@ -1,36 +1,172 @@
-<%# Settings — minimal placeholder. %>
-<div class="ig-topbar">
-  <div class="ig-topbar__group">
-    <span class="ig-topbar__title">Settings</span>
-    <span class="ig-topbar__caption">Workspace, API keys, team, and environment.</span>
+<%# Settings — proper settings layout: left section nav + right form panes.
+    Full-pane (no lens sidebar). Consistent with hero typography. %>
+<% section = (params[:section].presence || 'general').to_s %>
+<% sections = [
+  ['general',    'General',    'Workspace name, default region, plan'],
+  ['api-keys',   'API keys',   'Mint, rotate, and revoke service keys'],
+  ['team',       'Team',       'Members and roles'],
+  ['env',        'Environment','Variables, allowlist, residency'],
+  ['advanced',   'Advanced',   'Audit logs, SSO, data export'],
+] %>
+
+<div class="ic-topbar">
+  <div class="ic-topbar__group">
+    <span class="ic-topbar__title">Settings</span>
+    <span class="ic-chip">workspace</span>
+  </div>
+  <div class="ic-topbar__group">
+    <button class="ic-btn">Discard</button>
+    <button class="ic-btn ic-btn--accent">Save changes</button>
   </div>
 </div>
 
-<div class="ig-body ig-body--narrow">
-  <div class="ig-grid ig-grid--2">
-    <div class="ig-card">
-      <div class="ig-card__title">API keys</div>
-      <div class="ig-mut" style="font-size: 12.5px;">Rotate, create, or revoke. Values are never shown after creation.</div>
-      <div class="ig-divider"></div>
-      <div class="ig-def"><span class="ig-def__label">prod_default</span><span class="ig-def__value"><%= status_pill 'Active', tone: :ok %></span></div>
-      <div class="ig-def"><span class="ig-def__label">ci_runner</span><span class="ig-def__value"><%= status_pill 'Active', tone: :ok %></span></div>
-    </div>
-    <div class="ig-card">
-      <div class="ig-card__title">Team</div>
-      <div class="ig-mut" style="font-size: 12.5px;">Members and roles.</div>
-      <div class="ig-divider"></div>
-      <div class="ig-def"><span class="ig-def__label">wira</span><span class="ig-def__value">Owner</span></div>
-      <div class="ig-def"><span class="ig-def__label">ops@</span><span class="ig-def__value">Operator</span></div>
-    </div>
-    <div class="ig-card">
-      <div class="ig-card__title">Environment</div>
-      <div class="ig-def"><span class="ig-def__label">Workspace</span><span class="ig-def__value">igris-default</span></div>
-      <div class="ig-def"><span class="ig-def__label">Region</span><span class="ig-def__value">us-east</span></div>
-      <div class="ig-def"><span class="ig-def__label">Plan</span><span class="ig-def__value">Horizon</span></div>
-    </div>
-    <div class="ig-card">
-      <div class="ig-card__title">Advanced</div>
-      <div class="ig-mut" style="font-size: 12.5px;">Audit logs, IP allowlist, SSO, data residency. Placeholder for the spike.</div>
-    </div>
+<div class="ic-settings">
+  <nav class="ic-settings__nav" aria-label="Settings sections">
+    <% sections.each do |slug, label, sub| %>
+      <%= link_to settings_path(section: slug),
+          class: "ic-settings__nav-item #{'is-active' if section == slug}" do %>
+        <span class="ic-settings__nav-label"><%= label %></span>
+        <span class="ic-settings__nav-sub"><%= sub %></span>
+      <% end %>
+    <% end %>
+  </nav>
+
+  <div class="ic-settings__pane">
+    <% case section %>
+    <% when 'general' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Workspace</div>
+        <p class="ic-settings__intro">Identifies your tenant in Overture, used in receipts and audit logs.</p>
+
+        <div class="ic-field">
+          <label class="ic-field__label" for="ws-name">Workspace name</label>
+          <input id="ws-name" class="ic-input" type="text" value="igris-default" />
+          <p class="ic-field__help">Lowercase, hyphens allowed. 64 characters max.</p>
+        </div>
+
+        <div class="ic-field">
+          <label class="ic-field__label" for="ws-region">Default region</label>
+          <select id="ws-region" class="ic-input ic-input--select">
+            <option>us-east-1</option>
+            <option>eu-central-1</option>
+            <option>ap-southeast-1</option>
+          </select>
+        </div>
+
+        <div class="ic-field">
+          <label class="ic-field__label">Plan</label>
+          <div class="ic-row">
+            <span class="ic-chip">Horizon · $149/mo</span>
+            <button class="ic-btn" type="button">Change plan</button>
+          </div>
+        </div>
+      </div>
+
+    <% when 'api-keys' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading-row">
+          <div>
+            <div class="ic-settings__heading">API keys</div>
+            <p class="ic-settings__intro">Service-principal keys for programmatic access. Values are only shown once.</p>
+          </div>
+          <button class="ic-btn ic-btn--accent" type="button">+ New key</button>
+        </div>
+
+        <div class="ic-keys">
+          <% [
+            ['prod_default', 'igris_••••pk9a', 'Active', 'Production runtime', '2 days ago'],
+            ['ci_runner',    'igris_••••2t1f', 'Active', 'GitHub Actions',     '11 days ago'],
+            ['ops_console',  'igris_••••88vz', 'Revoked','Console operator',   '38 days ago'],
+          ].each do |name, masked, state, desc, last_used| %>
+            <div class="ic-key-row">
+              <div class="ic-key-row__main">
+                <div class="ic-key-row__name"><%= name %></div>
+                <div class="ic-key-row__desc"><%= desc %> · last used <%= last_used %></div>
+              </div>
+              <div class="ic-key-row__masked"><%= masked %></div>
+              <div class="ic-key-row__state ic-key-row__state--<%= state == 'Active' ? 'ok' : 'off' %>"><%= state %></div>
+              <button class="ic-btn" type="button">Rotate</button>
+              <button class="ic-btn" type="button" style="color: var(--ic-rose);">Revoke</button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+    <% when 'team' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading-row">
+          <div>
+            <div class="ic-settings__heading">Team</div>
+            <p class="ic-settings__intro">Members of this workspace. Roles control which lenses are available.</p>
+          </div>
+          <button class="ic-btn ic-btn--accent" type="button">+ Invite</button>
+        </div>
+
+        <div class="ic-keys">
+          <% [
+            ['Wira Mahendra', 'wira@igrisinertial.com', 'Owner',    'active 1h ago'],
+            ['Ops Console',   'ops@igrisinertial.com',  'Operator', 'active 3d ago'],
+            ['Mateo Á.',      'mateo@acme.io',          'Viewer',   'invited'],
+          ].each do |name, email, role, status| %>
+            <div class="ic-key-row">
+              <div class="ic-key-row__main">
+                <div class="ic-key-row__name"><%= name %></div>
+                <div class="ic-key-row__desc"><%= email %></div>
+              </div>
+              <div class="ic-key-row__masked"><%= role %></div>
+              <div class="ic-key-row__state ic-key-row__state--off"><%= status %></div>
+              <button class="ic-btn" type="button">Edit</button>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+    <% when 'env' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Environment</div>
+        <p class="ic-settings__intro">Variables shared with every action that runs in this workspace.</p>
+
+        <div class="ic-field">
+          <label class="ic-field__label">OVERTURE_API_BASE_URL</label>
+          <input class="ic-input" type="text" value="https://api.igrisinertial.com" />
+        </div>
+        <div class="ic-field">
+          <label class="ic-field__label">RUNTIME_HEARTBEAT_SECONDS</label>
+          <input class="ic-input" type="text" value="30" />
+        </div>
+        <div class="ic-field">
+          <label class="ic-field__label">IP allowlist</label>
+          <textarea class="ic-input" rows="3" placeholder="One CIDR per line"></textarea>
+        </div>
+      </div>
+
+    <% when 'advanced' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Advanced</div>
+        <p class="ic-settings__intro">Operations you'll rarely need — and that you should reach for deliberately.</p>
+
+        <div class="ic-danger">
+          <div>
+            <div class="ic-danger__name">Export audit log</div>
+            <div class="ic-danger__sub">Download every action, run, policy decision, and receipt for the last 90 days.</div>
+          </div>
+          <button class="ic-btn" type="button">Export</button>
+        </div>
+        <div class="ic-danger">
+          <div>
+            <div class="ic-danger__name">Pause all runtimes</div>
+            <div class="ic-danger__sub">Stop dispatch to every connected runtime. Hosted-API actions keep running.</div>
+          </div>
+          <button class="ic-btn" type="button">Pause</button>
+        </div>
+        <div class="ic-danger ic-danger--red">
+          <div>
+            <div class="ic-danger__name">Delete workspace</div>
+            <div class="ic-danger__sub">Removes all actions, runs, runtimes, and receipts. Cannot be undone.</div>
+          </div>
+          <button class="ic-btn" type="button" style="color: var(--ic-rose); border-color: rgba(190,18,60,0.35);">Delete…</button>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>
