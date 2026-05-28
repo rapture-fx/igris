@@ -87,6 +87,17 @@ module Igris
     def runs
       [
         {
+          id: 'run_01HGJ9N7P4D',
+          action: 'send_email',
+          status: 'Running',
+          routed_via: 'Hosted API · Resend',
+          policy: 'Idempotent · 3 retries',
+          recovery: 'In flight',
+          proof: 'Pending',
+          started_at: 6.seconds.ago,
+          duration_ms: nil,
+        },
+        {
           id: 'run_01HGJ8K2Z9F',
           action: 'send_email',
           status: 'Succeeded',
@@ -137,9 +148,36 @@ module Igris
       runs.find { |r| r[:id] == id }
     end
 
+    # Hero-style action steps. Mirrors STEPS in
+    # web/apps/web-landing/src/components/sections/Products.tsx so the
+    # Run detail page can render the same tree visually.
+    def steps_for(base)
+      case base[:status]
+      when 'Running'
+        [
+          { kind: :action, num: '01', name: 'read_file',  detail: '/uploads/policy-v3.pdf · 1.2KB digest', latency: 12, status: :committed, receipt: 'r₀₁', signed_at: '14:07:42.218' },
+          { kind: :action, num: '02', name: 'http_call',  detail: 'POST /v3/sync · 200 OK',               latency: 38, status: :committed, receipt: 'r₀₂', signed_at: '14:07:42.481' },
+          { kind: :fault,            name: 'host_fault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b', latency: 31, status: :committed },
+          { kind: :action, num: '03', name: 'http_call',  detail: 'retry 2 of 3 succeeded',                latency: 42, status: :committed, receipt: 'r₀₃', signed_at: '14:07:43.014' },
+          { kind: :action, num: '04', name: 'db_write',   detail: 'orders_fulfilled · r_8421',                          status: :running },
+        ]
+      when 'Failed'
+        [
+          { kind: :action, num: '01', name: 'read_file', detail: 'request body · 0.4KB', latency: 8,  status: :committed, receipt: 'r₀₁' },
+          { kind: :action, num: '02', name: 'http_call', detail: 'POST /refund · HTTP 402 ⨯',          latency: 920, status: :failed,    receipt: nil },
+        ]
+      else # Succeeded
+        [
+          { kind: :action, num: '01', name: 'read_file', detail: 'payload · 0.6KB digest',         latency: 9,  status: :committed, receipt: 'r₀₁' },
+          { kind: :action, num: '02', name: 'http_call', detail: 'POST /v1/' + base[:action] + ' · 200 OK', latency: base[:duration_ms].to_i.clamp(20, 600), status: :committed, receipt: 'r₀₂' },
+        ]
+      end
+    end
+
     def run_detail(id)
       base = find_run(id) or return nil
       base.merge(
+        steps: steps_for(base),
         story: [
           { title: 'Action received', tone: :ok,
             meta: 'POST /v1/actions/' + base[:action] + '/run · request signature valid' },
