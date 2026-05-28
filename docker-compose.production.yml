@@ -147,62 +147,9 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Igris Console (Next.js)
-  console:
-    build:
-      context: .
-      dockerfile: web/Dockerfile.console
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://overture.igrisinertial.com}
-        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://console.igrisinertial.com}
-        NEXT_PUBLIC_LANDING_URL: ${NEXT_PUBLIC_LANDING_URL:-https://igrisinertial.com}
-        NEXT_PUBLIC_API_HEALTH_CHECK_URL: /healthz
-        NEXT_PUBLIC_ENV: production
-        NEXT_PUBLIC_ENABLE_ANALYTICS: "true"
-        NEXT_PUBLIC_ENABLE_MONITORING: "true"
-        NEXT_PUBLIC_ENABLE_MOCK_DATA: "false"
-        NEXT_PUBLIC_DEV_MODE: "false"
-    container_name: igris-console
-    restart: unless-stopped
-    expose:
-      - "3005"
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_ENV: production
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://overture.igrisinertial.com}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://console.igrisinertial.com}
-      NEXT_PUBLIC_LANDING_URL: ${NEXT_PUBLIC_LANDING_URL:-https://igrisinertial.com}
-      NEXT_PUBLIC_API_HEALTH_CHECK_URL: /healthz
-      NEXT_PUBLIC_ENABLE_ANALYTICS: "true"
-      NEXT_PUBLIC_ENABLE_MONITORING: "true"
-      NEXT_PUBLIC_ENABLE_MOCK_DATA: "false"
-      NEXT_PUBLIC_DEV_MODE: "false"
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_API_KEY: ${BETTER_AUTH_API_KEY}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-https://console.igrisinertial.com}
-      DATABASE_URL: postgres://${POSTGRES_USER:-igris_user}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-igris_overture}?sslmode=disable
-      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-igrisinertial.com}
-      RESEND_API_KEY: ${RESEND_API_KEY}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3005/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    networks:
-      - igris-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # NOTE: The Next.js console service has been removed. Rails is now the only
+  # active console surface and is deployed on Render (see render.yaml /
+  # web/apps/rails-console). Do not re-introduce a `console` service here.
 
   # Caddy Reverse Proxy
   caddy:
@@ -220,7 +167,6 @@ services:
       - igris-network
     depends_on:
       - api
-      - console
 
   # Prometheus (Optional - for metrics)
   prometheus:
