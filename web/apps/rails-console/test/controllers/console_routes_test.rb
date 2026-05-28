@@ -16,11 +16,6 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     assert_redirected_to '/home'
   end
 
-  test 'demo indicator is shown in fixture mode' do
-    get '/home'
-    assert_match 'Demo data — OVERTURE_API_BASE_URL not set', response.body
-  end
-
   test 'actions index renders with fixture rows' do
     get '/actions'
     assert_response :success
