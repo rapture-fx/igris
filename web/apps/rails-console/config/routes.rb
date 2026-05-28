@@ -1,5 +1,11 @@
 Rails.application.routes.draw do
-  root to: redirect('/home')
+  # Root sends new visitors to the onboarding /welcome page until they've
+  # entered the console (cookie `igris_welcomed=1`). After that, it goes
+  # straight to /home.
+  root to: 'welcome#root'
+
+  get '/welcome', to: 'welcome#index', as: :welcome
+  post '/welcome/enter', to: 'welcome#enter', as: :enter_console
 
   get '/home', to: 'home#index', as: :home
 
