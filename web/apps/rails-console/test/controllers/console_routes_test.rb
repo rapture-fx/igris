@@ -1,5 +1,8 @@
 require 'test_helper'
 
+# Smoke tests — every page renders. Fixture mode is the default since
+# OVERTURE_API_BASE_URL is not set in the test env. Real-mode behavior
+# is exercised in overture_client_test.rb and actions_controller_test.rb.
 class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'home renders' do
     get '/home'
@@ -11,6 +14,11 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'root redirects to home' do
     get '/'
     assert_redirected_to '/home'
+  end
+
+  test 'demo indicator is shown in fixture mode' do
+    get '/home'
+    assert_match 'Demo data — OVERTURE_API_BASE_URL not set', response.body
   end
 
   test 'actions index renders with fixture rows' do
@@ -54,16 +62,23 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'runtimes index renders' do
+  test 'runtimes index renders fixture runtime ids' do
     get '/runtimes'
     assert_response :success
-    assert_match 'igris-runtime-prod-01', response.body
+    assert_match 'rt_prod_01', response.body
   end
 
   test 'settings index renders' do
     get '/settings'
     assert_response :success
     assert_match 'API keys', response.body
+  end
+
+  test 'run action in fixture mode just redirects with notice' do
+    post '/actions/send_email/run', params: { input: '{}' }
+    assert_response :redirect
+    follow_redirect!
+    assert_match 'Demo mode', response.body
   end
 
   test 'up returns 200' do
