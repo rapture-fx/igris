@@ -1,0 +1,88 @@
+<%# Run detail — flight recorder. %>
+<div class="ig-topbar">
+  <div class="ig-topbar__group">
+    <%= link_to 'Runs', runs_path, class: 'ig-mut', style: 'font-size: 11.5px;' %>
+    <span class="ig-mut">/</span>
+    <span class="ig-topbar__title"><%= @run[:id] %></span>
+    <%= status_pill @run[:status] %>
+  </div>
+  <div class="ig-topbar__group">
+    <%= status_pill @run[:proof] %>
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<%# Top status strip — mirrors the flight-recorder pattern. %>
+<div class="ig-strip">
+  <%= chip "action: #{@run[:action]}", tone: :muted %>
+  <%= chip "routed via: #{@run[:routed_via]}", tone: :muted %>
+  <%= chip "policy: #{@run[:policy]}", tone: :muted %>
+  <%= chip "recovery: #{@run[:recovery]}", tone: @run[:recovery] == 'Not needed' ? :ok : :warn %>
+  <%= chip "proof: #{@run[:proof]}", tone: @run[:proof] == 'Proof verified' ? :ok : :bad %>
+  <span class="ig-mut" style="font-size: 11.5px;">Started <%= time_ago(@run[:started_at]) %> · <%= @run[:duration_ms] %> ms</span>
+</div>
+
+<div class="ig-body">
+  <% tabs = %w[story policy recovery proof raw] %>
+  <nav class="ig-tabs">
+    <% tabs.each do |t| %>
+      <%= link_to (t == 'raw' ? 'Raw evidence' : t.titleize), run_path(@run[:id], tab: t),
+          class: "ig-tabs__item #{'is-active' if @tab == t}" %>
+    <% end %>
+  </nav>
+
+  <% case @tab %>
+  <% when 'story' %>
+    <div class="ig-card ig-card--pad-lg">
+      <div class="ig-card__title">Execution story</div>
+      <div class="ig-timeline" style="margin-top: 8px;">
+        <% @run[:story].each do |s| %>
+          <div class="ig-timeline__step is-<%= s[:tone] %>">
+            <div class="ig-timeline__title"><%= s[:title] %></div>
+            <div class="ig-timeline__meta"><%= s[:meta] %></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  <% when 'policy' %>
+    <div class="ig-card">
+      <div class="ig-card__title">Policy decision</div>
+      <div class="ig-def"><span class="ig-def__label">Policy</span><span class="ig-def__value"><%= @run[:policy] %></span></div>
+      <div class="ig-def"><span class="ig-def__label">Decision</span><span class="ig-def__value"><%= status_pill 'Accepted', tone: :ok %></span></div>
+      <div class="ig-def"><span class="ig-def__label">Request key</span><span class="ig-def__value"><code>req_<%= @run[:id].downcase %>_redacted</code></span></div>
+    </div>
+
+  <% when 'recovery' %>
+    <div class="ig-card">
+      <div class="ig-card__title">Recovery</div>
+      <div class="ig-mut" style="font-size: 12.5px;">
+        <%= @run[:recovery] == 'Not needed' ?
+              'No recovery action was taken. The first attempt succeeded.' :
+              'Recovery was triggered. See the story tab for the full sequence.' %>
+      </div>
+    </div>
+
+  <% when 'proof' %>
+    <div class="ig-card">
+      <div class="ig-card__title">Proof</div>
+      <div class="ig-def"><span class="ig-def__label">Status</span><span class="ig-def__value"><%= status_pill @run[:proof] %></span></div>
+      <% if @run[:proof] == 'Proof verified' %>
+        <div class="ig-def"><span class="ig-def__label">Receipt</span><span class="ig-def__value"><code>sha256:redacted…3f9a</code></span></div>
+        <div class="ig-def"><span class="ig-def__label">Signed by</span><span class="ig-def__value">overture-ed25519 · runtime-ed25519</span></div>
+      <% else %>
+        <div class="ig-mut" style="font-size: 12.5px;">Proof unavailable for this run. The console honestly reports the absence — never fabricates a verified receipt.</div>
+      <% end %>
+    </div>
+
+  <% when 'raw' %>
+    <div class="ig-card">
+      <div class="ig-card__title">Raw evidence</div>
+      <div class="ig-mut" style="font-size: 11.5px; margin-bottom: 8px;">Values are redacted in the spike. Production resolves them server-side with audit logging.</div>
+      <% @run[:raw_evidence].each do |row| %>
+        <div class="ig-def"><span class="ig-def__label"><%= row[:key] %></span><span class="ig-def__value"><code><%= row[:value] %></code></span></div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
