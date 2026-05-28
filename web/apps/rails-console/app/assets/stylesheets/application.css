@@ -749,12 +749,12 @@ l-line-spinner {
 /* ── Definition rows ────────────────────────────────────────────────── */
 .ig-def {
   display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 0 24px;
-  padding: 6px 0;
+  grid-template-columns: 100px 1fr;
+  gap: 0 20px;
+  padding: 4px 0;
 }
-.ig-def__label { font-size: 12px; color: var(--ig-text-dim); }
-.ig-def__value { font-size: 12.5px; color: var(--ig-text-body); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ig-def__label { font-size: 11.5px; color: var(--ic-text-6); }
+.ig-def__value { font-size: 12px; color: var(--ic-text-2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 
 /* ── Code snippet boxes ─────────────────────────────────────────────── */
 .ig-snippet {
@@ -913,7 +913,33 @@ html.dark .ig-snippet { background: rgba(0,0,0,0.30); }
 /* ── Misc ───────────────────────────────────────────────────────────── */
 .ig-row { display: flex; align-items: center; gap: 10px; }
 .ig-row--spread { justify-content: space-between; }
-.ig-mut { color: var(--ig-text-dim); }
+.ig-mut { color: var(--ic-text-6); font-size: 11.5px; }
+.ig-mut code { font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-3); }
+.ig-divider { background: var(--ic-border-soft); margin: 10px 0; }
+.ig-pill { font-size: 10.5px; padding: 1px 7px; }
+.ig-pill--ok   { color: var(--ic-emerald); border-color: rgba(4, 120, 87, 0.25); background: rgba(4, 120, 87, 0.08); }
+.ig-pill--bad  { color: var(--ic-rose);    border-color: rgba(190, 18, 60, 0.25); background: rgba(190, 18, 60, 0.06); }
+html.dark .ig-pill--ok   { color: var(--ic-emerald); border-color: rgba(16, 185, 129, 0.25); background: rgba(16, 185, 129, 0.10); }
+html.dark .ig-pill--bad  { color: var(--ic-rose);    border-color: rgba(244, 63, 94, 0.25); background: rgba(244, 63, 94, 0.08); }
+.ig-body { padding: 14px 18px; }
+.ig-field { margin: 8px 0 12px; }
+.ig-input, .ig-textarea {
+  width: 100%; font-family: inherit; font-size: 12px;
+  padding: 6px 9px; border-radius: 6px;
+  border: 1px solid var(--ic-border); background: var(--ic-overlay-bg); color: var(--ic-text);
+}
+.ig-field__label { font-size: 11px; color: var(--ic-text-5); display: block; margin-bottom: 4px; }
+.ig-btn { font-size: 11.5px; }
+.ig-btn--primary {
+  background: rgba(4, 120, 87, 0.10);
+  border-color: rgba(4, 120, 87, 0.22);
+  color: var(--ic-emerald);
+}
+html.dark .ig-btn--primary {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.22);
+  color: var(--ic-emerald);
+}
 .ig-divider { height: 1px; background: var(--ig-border-soft); margin: 16px 0; }
 
 /* ───────────────────────────────────────────────────────────────────── */
@@ -1518,27 +1544,41 @@ html.dark .ig-snippet { background: rgba(0,0,0,0.30); }
   font-size: inherit;
 }
 
-/* hljs token theme — restrained. Most things stay var(--ic-text-2).
-   Only a few semantic classes get a colour, and never amber/red on light. */
-.hljs-comment, .hljs-quote {
-  color: var(--ic-text-7);
-  font-style: italic;
+/* hljs token theme — readable but restrained. Uses the --ic-* palette
+   plus two extra hues (a steel blue + a warm magenta) tuned so they sit
+   alongside the surface without screaming. */
+:root {
+  --ic-syn-keyword: #6a1b8a;   /* magenta-violet, darker emerald comp on light */
+  --ic-syn-string:  #047857;   /* same emerald the rest of the surface uses */
+  --ic-syn-number:  #9a3412;   /* warm rust for numbers/booleans */
+  --ic-syn-fn:      #1d4ed8;   /* steel blue for function/identifier titles */
+  --ic-syn-meta:    #84817a;
 }
-.hljs-meta, .hljs-meta .hljs-string,
-.hljs-doctag                                    { color: var(--ic-text-6); }
-.hljs-punctuation                               { color: var(--ic-text-6); }
-.hljs-keyword, .hljs-built_in, .hljs-literal,
-.hljs-symbol, .hljs-keyword .hljs-keyword       { color: var(--ic-emerald); }
-.hljs-string, .hljs-regexp                      { color: var(--ic-text); }
-.hljs-number                                    { color: var(--ic-text-3); }
+html.dark {
+  --ic-syn-keyword: #c4b5fd;
+  --ic-syn-string:  #6ee7b7;
+  --ic-syn-number:  #fdba74;
+  --ic-syn-fn:      #93c5fd;
+  --ic-syn-meta:    #8a8a82;
+}
+.hljs-comment, .hljs-quote                      { color: var(--ic-text-7); font-style: italic; }
+.hljs-meta, .hljs-meta .hljs-keyword,
+.hljs-doctag                                    { color: var(--ic-syn-meta); }
+.hljs-punctuation, .hljs-operator               { color: var(--ic-text-5); }
+.hljs-keyword, .hljs-selector-tag,
+.hljs-section, .hljs-type                       { color: var(--ic-syn-keyword); font-weight: 500; }
+.hljs-built_in, .hljs-literal, .hljs-symbol     { color: var(--ic-syn-fn); }
+.hljs-string, .hljs-meta .hljs-string,
+.hljs-regexp                                    { color: var(--ic-syn-string); }
+.hljs-number                                    { color: var(--ic-syn-number); }
 .hljs-title, .hljs-title.function_,
-.hljs-title.class_, .hljs-name, .hljs-section   { color: var(--ic-text-bright); }
-.hljs-attr, .hljs-attribute                     { color: var(--ic-text-3); }
+.hljs-title.class_, .hljs-name                  { color: var(--ic-syn-fn); }
+.hljs-attr, .hljs-attribute                     { color: var(--ic-syn-keyword); }
 .hljs-variable, .hljs-template-variable,
 .hljs-params                                    { color: var(--ic-text-2); }
 .hljs-tag, .hljs-tag .hljs-name                 { color: var(--ic-text-3); }
 .hljs-deletion                                  { color: var(--ic-rose); }
-.hljs-addition                                  { color: var(--ic-emerald); }
+.hljs-addition                                  { color: var(--ic-syn-string); }
 .ic-snippet__copy {
   position: absolute;
   top: 6px;
