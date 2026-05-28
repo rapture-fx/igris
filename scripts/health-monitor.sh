@@ -68,7 +68,6 @@ declare -A SERVICES=(
     ["postgres"]="igris-postgres"
     ["cache"]="igris-dragonfly"
     ["api"]="igris-overture"
-    ["console"]="igris-console"
     ["caddy"]="igris-caddy"
 )
 
