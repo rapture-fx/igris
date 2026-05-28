@@ -12,7 +12,7 @@
 <% end %>
 <% if local_assigns[:degraded_error].is_a?(Igris::OvertureClient::Error) %>
   <div class="ig-strip" style="background: rgba(251,191,36,0.06); border-bottom-color: rgba(251,191,36,0.25);">
-    <%= chip 'Overture degraded', tone: :warn %>
+    <%= chip 'Igris API degraded', tone: :warn %>
     <span style="font-size: 12px; color: var(--ig-text-body);">
       <%= degraded_error.class.name.demodulize %><% if degraded_error.status %> · HTTP <%= degraded_error.status %><% end %>
       <% if degraded_error.code.present? %> · <code><%= degraded_error.code %></code><% end %>
