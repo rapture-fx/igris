@@ -92,34 +92,42 @@ Use `DATABASE_URL_DIRECT`, not `DATABASE_URL` — Neon's PgBouncer
 transaction-mode breaks advisory locks and some prepared statements
 used by the migrations.
 
-### 5. Mint the console's service API key
+### 5. Mint the console's service API key (no Next.js needed)
 
-The Rails console needs an `igris_…` key for the console's tenant
-(this is your tenant — for solo MVP, you are the only tenant). Steps:
+The Rails console needs an `igris_…` key for the console's tenant.
+Use the Go CLI subcommand — it talks to Postgres directly, so the
+Next.js login is **not** part of this path.
 
-1. Log in to the existing Next.js console once so a `tenants` row
-   exists for you.
-2. From a browser session with that login, hit:
+From a Render shell on `igris-overture-api`:
 
-   ```bash
-   curl -X POST https://api.igrisinertial.com/v1/account/api-key \
-     -H "Cookie: __Secure-better-auth.session_token=<your_session>" \
-     -H "Content-Type: application/json"
-   ```
+```bash
+./bin/igris-overture tenant-key \
+  --email you@example.com \
+  --name "Console Operator" \
+  --create-if-missing
+# stdout: igris_<64-hex-chars>
+# stderr: [tenant-key] created new tenant: id=… email=…
+#         [tenant-key] new key minted, prefix=igris_xxxxxx
+```
 
-   Response (only shown once):
-   ```json
-   { "api_key": "igris_<long>", "prefix": "igris_xxxxxx" }
-   ```
+Capture the raw `igris_…` line, paste it into Render →
+`igris-console-rails` → Environment → `OVERTURE_API_KEY`, and redeploy
+the Rails service. The raw key is shown **once** — store it in your
+password manager.
 
-3. Paste `api_key` into Render → `igris-console-rails` → Environment →
-   `OVERTURE_API_KEY`.
+To rotate later, run the same command without `--create-if-missing` —
+it revokes the prior key and mints a new one.
 
-4. Redeploy `igris-console-rails` so it picks the new env var.
+### 6. Set the Rails front-door credentials
 
-To rotate: call `POST /v1/account/api-key` again (revokes the prior
-key automatically) and update Render. To revoke without replacement:
-`DELETE /v1/account/api-key`.
+The Rails console is gated by HTTP Basic auth. Set:
+
+- `ADMIN_USERNAME` — your handle.
+- `ADMIN_PASSWORD` — a long random value (use `openssl rand -base64 32`).
+
+Both go on `igris-console-rails` in the Render dashboard. Store them in
+your password manager. Until both are set, the console answers without
+challenge — production must have both.
 
 ## Day-2 ops
 
@@ -155,13 +163,28 @@ key automatically) and update Render. To revoke without replacement:
 | `web/apps/rails-console/DEPLOY.md`        | Rails-side deploy details, modes, security                |
 | `SMOKE.md`                                | End-to-end smoke test checklist                           |
 
+## Archiving the Next.js console
+
+After step 5 the Rails console no longer depends on Next.js for the
+key bootstrap — the Go CLI talks to Postgres directly. After step 6
+end users have their own front door. Once `SMOKE.md` passes end-to-end
+against the Rails URL, the Next.js console can be:
+
+1. Demoted to internal-only (remove its Render domain or restrict by IP).
+2. Left running through one billing cycle as a fallback.
+3. Suspended in Render after that cycle if no fallback fires.
+4. Deleted once a backup of any non-DB state (env vars, custom configs)
+   is taken.
+
+Don't skip step 1 — leaving the Next.js URL public after Rails goes
+live invites confusion about which console is the source of truth.
+
 ## What's intentionally out of scope for MVP
 
 - **Hetzner / self-hosted infra.** Render + Neon is the MVP stack.
 - **Multi-tenant end-user auth in the console.** Single-tenant MVP
-  uses one service-principal key. Multi-tenant comes later.
-- **Decommissioning the Next.js console.** Keep it parked until the
-  smoke checklist passes against Rails in production.
+  uses HTTP Basic + one service-principal key. Multi-tenant (Clerk /
+  BetterAuth) comes later.
 - **Live streaming on run detail.** The Rails console polls on
   refresh; Turbo Streams is the next slice.
 - **Render preview environments.** Add when staging traffic justifies
