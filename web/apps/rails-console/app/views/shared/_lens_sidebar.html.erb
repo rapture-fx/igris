@@ -1,0 +1,40 @@
+<%#
+  Lens sidebar — 236px content column. Contents vary by active lens.
+  Home renders no sidebar (matches Next.js LensSidebar behaviour).
+%>
+<% lens = active_lens %>
+<% if lens == :home %>
+<% else %>
+  <aside class="ig-sidebar" aria-label="<%= lens.to_s.titleize %> sidebar">
+    <div class="ig-sidebar__header"><%= lens.to_s.titleize %></div>
+    <div class="ig-sidebar__body">
+      <% case lens %>
+      <% when :actions %>
+        <%= link_to 'All actions', actions_path,
+            class: "ig-sidebar__nav-item #{'is-active' if request.path == actions_path}" %>
+        <%= link_to 'New action', new_action_path,
+            class: "ig-sidebar__nav-item #{'is-active' if request.path == new_action_path}" %>
+        <div class="ig-sidebar__empty" style="padding: 16px 12px; text-align: left;">
+          Filters and saved views will live here once actions sync.
+        </div>
+      <% when :runs %>
+        <%= link_to 'All runs', runs_path,
+            class: "ig-sidebar__nav-item #{'is-active' if request.path == runs_path}" %>
+        <div class="ig-sidebar__empty">
+          Filter by action, status, or proof state once runs flow through.
+        </div>
+      <% when :runtimes %>
+        <div class="ig-sidebar__empty">
+          Connected runtimes appear here.
+        </div>
+      <% when :settings %>
+        <%= link_to 'Workspace', settings_path,
+            class: "ig-sidebar__nav-item is-active" %>
+        <span class="ig-sidebar__nav-item ig-mut">API keys</span>
+        <span class="ig-sidebar__nav-item ig-mut">Team</span>
+        <span class="ig-sidebar__nav-item ig-mut">Environment</span>
+        <span class="ig-sidebar__nav-item ig-mut">Advanced</span>
+      <% end %>
+    </div>
+  </aside>
+<% end %>
