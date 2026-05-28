@@ -1,43 +1,71 @@
-<%# Runs list %>
-<div class="ig-topbar">
-  <div class="ig-topbar__group">
-    <span class="ig-topbar__title">Runs</span>
-    <span class="ig-topbar__caption">Every call that went through an Igris action endpoint.</span>
+<%#
+  Runs list — adopts the hero ExecutionPreview sidebar-task aesthetic.
+  Dot + status caps + monospace id + action title + meta + time.
+%>
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-topbar">
+    <div class="ic-topbar__group">
+      <span class="ic-topbar__title">Runs</span>
+      <span class="ic-chip">all environments</span>
+    </div>
+    <div class="ic-topbar__group">
+      <button class="ic-btn">
+        Filter
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 10 L12 16 L18 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="ic-btn ic-btn--accent">
+        Live
+        <span class="ic-bullet-dot ic-bullet-dot--running ic-live-dot" style="width: 5px; height: 5px;"></span>
+      </button>
+    </div>
   </div>
-  <div class="ig-topbar__group">
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <div class="ic-runs-strip">
+    <span class="ic-chip"><%= @runs.size %> total</span>
+    <span class="ic-chip" style="color: var(--ic-emerald);">
+      <%= @runs.count { |r| r[:proof] == 'Proof verified' } %> verified
+    </span>
+    <span class="ic-chip" style="color: var(--ic-rose);">
+      <%= @runs.count { |r| r[:proof] == 'Proof failed' } %> failed
+    </span>
+    <span class="ic-chip" style="color: var(--ic-emerald);">
+      <%= @runs.count { |r| r[:status].to_s.casecmp('Running').zero? } %> running
+    </span>
   </div>
-</div>
 
-<%= render 'shared/flash', degraded_error: @degraded_error %>
-
-<div class="ig-strip">
-  <%= chip "#{@runs.size} runs", tone: :muted %>
-  <%= chip "#{@runs.count { |r| r[:proof] == 'Proof verified' }} verified", tone: :ok %>
-  <%= chip "#{@runs.count { |r| r[:proof] == 'Proof failed' }} failed", tone: :bad %>
-</div>
-
-<div class="ig-body">
-  <div class="ig-table-wrap">
-    <table class="ig-table">
-      <thead>
-        <tr>
-          <th>Status</th><th>Run</th><th>Action</th><th>Routed via</th><th>Recovery</th><th>Proof</th><th>Duration</th><th>Started</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @runs.each do |r| %>
-          <tr>
-            <td><%= status_pill r[:status] %></td>
-            <td><%= link_to r[:id], run_path(r[:id]) %></td>
-            <td><%= link_to r[:action], action_path(r[:action]) %></td>
-            <td class="ig-mut"><%= r[:routed_via] %></td>
-            <td class="ig-mut"><%= r[:recovery] %></td>
-            <td><%= status_pill r[:proof] %></td>
-            <td class="ig-mut"><%= r[:duration_ms] %> ms</td>
-            <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
-          </tr>
+  <div class="ic-body ic-scroll">
+    <div class="ic-runs-list">
+      <% @runs.each do |r| %>
+        <% st = r[:status].to_s %>
+        <% running = st.casecmp('Running').zero? %>
+        <% failed  = st.casecmp('Failed').zero?  %>
+        <% dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
+        <%= link_to run_path(r[:id]), class: "ic-run-row" do %>
+          <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
+          <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
+            <%= running ? 'Running' : (failed ? 'Failed' : 'OK') %>
+          </span>
+          <span class="ic-run-row__title">
+            <span class="mono"><%= r[:id] %></span>
+            <%= r[:action] %>
+          </span>
+          <span class="ic-run-row__sub">
+            <span class="mono"><%= r[:routed_via] %></span>
+          </span>
+          <span class="ic-run-row__sub">
+            <%= r[:proof] %>
+            <% if r[:recovery] && r[:recovery] != 'Not needed' %>
+              · <%= r[:recovery] %>
+            <% end %>
+          </span>
+          <span class="ic-run-row__time">
+            <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
+            <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
+          </span>
         <% end %>
-      </tbody>
-    </table>
+      <% end %>
+    </div>
   </div>
 </div>
