@@ -1,4 +1,4 @@
-<%# Actions list — hero typography, full-pane (no lens sidebar). %>
+<%# Actions — the core product object. Endpoints your agent calls. %>
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Actions</span>
@@ -13,28 +13,46 @@
 
 <div class="ic-body ic-scroll">
   <% if @actions.empty? %>
-    <div style="text-align: center; padding: 64px 16px; color: var(--ic-text-6); font-size: 12.5px;">
-      <div style="color: var(--ic-text-bright); font-size: 14px; font-weight: 500; margin-bottom: 4px;">Create your first action</div>
-      <div style="margin-bottom: 16px;">A named endpoint your agent can POST to. Igris adds policy, routing, recovery, and a signed receipt.</div>
+    <div class="ic-empty">
+      <div class="ic-empty__title">Create your first action</div>
+      <p class="ic-empty__sub">
+        Actions are endpoints your agent calls instead of calling tools
+        directly. Igris applies policy, routes the call, records what
+        happened, and shows proof when signed evidence exists.
+      </p>
       <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
     </div>
   <% else %>
-    <div class="ic-actions-list">
+    <div class="ic-actions-list" role="list">
       <% @actions.each do |a| %>
-        <% st = a[:last_run_status].to_s %>
-        <% dot_mod = case st when 'bad' then 'failed' when 'warn' then 'running' when '' then 'ok' else 'ok' end %>
-        <%= link_to action_path(a[:id]), class: 'ic-action-row' do %>
+        <% st = a[:last_run_status].to_s
+           dot_mod = case st when 'bad' then 'failed' when 'warn' then 'running' when '' then 'ok' else 'ok' end
+           readiness = a[:endpoint_readiness].to_s.presence || (a[:setup].to_s.casecmp('Ready').zero? ? 'ready' : 'needs_target')
+           readiness_label, readiness_tone = case readiness
+             when 'ready'         then ['Ready',         'ok']
+             when 'needs_target'  then ['Needs target',  'warn']
+             when 'needs_runtime' then ['Needs runtime', 'warn']
+             when 'demo_only'     then ['Demo only',     'muted']
+             else                     [readiness.humanize, 'muted']
+             end
+        %>
+        <div class="ic-action-row" role="listitem">
           <span class="ic-action-row__dot ic-action-row__dot--<%= dot_mod %>"></span>
           <div class="ic-action-row__main">
             <div class="ic-action-row__name"><%= a[:name] %></div>
             <div class="ic-action-row__meta">
-              <%= a[:target_label] %> · <%= a[:policy] %>
+              <%= a[:target_label] %> · <%= a[:policy] %> · replay <%= a[:replay].to_s.downcase %>
             </div>
           </div>
-          <div class="ic-action-row__endpoint mono"><%= a[:endpoint] %></div>
-          <div class="ic-action-row__proof"><%= a[:proof] %></div>
-          <div class="ic-action-row__when"><%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %></div>
-        <% end %>
+          <div class="ic-action-row__endpoint mono"><%= a[:endpoint].sub(%r{^https?://}, '') %></div>
+          <span class="ic-readiness ic-readiness--<%= readiness_tone %>">
+            <span class="ic-readiness__dot"></span><%= readiness_label %>
+          </span>
+          <span class="ic-action-row__when">
+            <%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %>
+          </span>
+          <%= link_to 'Open', action_path(a[:id]), class: 'ic-btn ic-action-row__open' %>
+        </div>
       <% end %>
     </div>
   <% end %>
