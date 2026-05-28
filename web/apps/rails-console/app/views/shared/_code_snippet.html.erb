@@ -1,18 +1,28 @@
-<%# Copyable, syntax-highlighted code snippet (highlight.js, theme-aware).
-    `language:` picks the highlighter (bash, http, javascript, json, ruby…) %>
+<%# Code snippet card — header bar (language label + copy button) +
+    monospace body. Syntax highlighting via highlight.js, themed with our
+    --ic-* palette. %>
 <%
-  lang_cls = (defined?(language) && language.to_s.present?) ? "language-#{language}" : ''
+  lang      = (defined?(language) && language.to_s.present?) ? language.to_s : 'plain'
+  lang_cls  = (lang == 'plain') ? 'nohighlight' : "language-#{lang}"
   data_code = code.to_s
+  lang_lbl  = case lang
+              when 'javascript' then 'js'
+              when 'typescript' then 'ts'
+              when 'plain'      then ''
+              else lang
+              end
 %>
-<div class="ic-snippet">
-  <% if defined?(label) && label.present? %>
-    <div class="ic-snippet__label"><%= label %></div>
-  <% end %>
-  <div class="ic-snippet__shell" data-code="<%= data_code %>">
-    <pre class="ic-snippet__pre"><code class="<%= lang_cls %>"><%= data_code %></code></pre>
-    <button type="button" class="ic-snippet__copy"
-      onclick="(()=>{navigator.clipboard.writeText(this.parentElement.dataset.code);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1400)})()">
+<div class="ic-codecard">
+  <div class="ic-codecard__head">
+    <span class="ic-codecard__lang"><%= lang_lbl %></span>
+    <% if defined?(label) && label.present? %>
+      <span class="ic-codecard__label"><%= label %></span>
+    <% end %>
+    <button type="button" class="ic-codecard__copy"
+      data-code="<%= data_code %>"
+      onclick="(()=>{navigator.clipboard.writeText(this.dataset.code);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1400)})()">
       Copy
     </button>
   </div>
+  <pre class="ic-codecard__pre"><code class="<%= lang_cls %>"><%= data_code %></code></pre>
 </div>
