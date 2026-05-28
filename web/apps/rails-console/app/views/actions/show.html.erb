@@ -43,7 +43,7 @@
       </div>
       <div class="ig-card">
         <div class="ig-card__title">Endpoint</div>
-        <%= code_snippet @action[:endpoint] %>
+        <%= code_snippet @action[:endpoint], language: 'http' %>
       </div>
       <div class="ig-card">
         <div class="ig-card__title">Where it runs</div>
@@ -100,17 +100,17 @@
   <% when 'endpoint' %>
     <div class="ig-card">
       <div class="ig-card__title">POST endpoint</div>
-      <%= code_snippet @action[:endpoint] %>
+      <%= code_snippet @action[:endpoint], language: 'http' %>
     </div>
     <div style="height: 14px;"></div>
     <div class="ig-card">
       <div class="ig-card__title">curl</div>
-      <%= code_snippet "curl -X POST #{@action[:endpoint]} \\\n  -H \"Authorization: Bearer $IGRIS_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"input\": { } }'" %>
+      <%= code_snippet "curl -X POST #{@action[:endpoint]} \\\n  -H \"Authorization: Bearer $IGRIS_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"input\": { } }'", language: 'bash' %>
     </div>
     <div style="height: 14px;"></div>
     <div class="ig-card">
       <div class="ig-card__title">TypeScript / fetch</div>
-      <%= code_snippet <<~JS.strip
+      <%= code_snippet <<~JS.strip, language: 'javascript'
         await fetch('#{@action[:endpoint]}', {
           method: 'POST',
           headers: {
