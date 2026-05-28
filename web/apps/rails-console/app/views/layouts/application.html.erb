@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" class="dark" data-theme="dark">
+  <head>
+    <title>Igris Inertial Developer Console</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-token" content="<%= form_authenticity_token %>">
+    <%= stylesheet_link_tag 'application' %>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <style>:root { font-family: 'Inter', sans-serif; }</style>
+  </head>
+  <body class="dark">
+    <div class="ig-shell">
+      <%= render 'shared/icon_rail' %>
+      <%= render 'shared/lens_sidebar' %>
+      <main class="ig-main">
+        <%= yield %>
+      </main>
+
+      <% if demo_mode? %>
+        <div style="position: fixed; bottom: 12px; right: 12px; z-index: 80;
+                    padding: 6px 10px; border-radius: 999px; font-size: 11px;
+                    background: rgba(251,191,36,0.12); color: var(--ig-amber);
+                    border: 1px solid rgba(251,191,36,0.3);">
+          Demo data — OVERTURE_API_BASE_URL not set
+        </div>
+      <% end %>
+    </div>
+  </body>
+</html>
