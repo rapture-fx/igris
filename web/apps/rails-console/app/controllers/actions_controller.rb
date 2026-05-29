@@ -83,6 +83,9 @@ class ActionsController < ApplicationController
     @tab = (params[:tab].presence || 'overview').to_s
     @just_created = params[:created].present?
     @runs_for_action = data_source.runs_for_action(@action[:name])
+    # Local-runtime actions need a connected runtime before they can run. Used
+    # by the view to show "Runtime required" guidance above the test panel.
+    @runtime_required = data_source.runtime_required_for?(@action)
     @degraded_error = data_source.error
   end
 
