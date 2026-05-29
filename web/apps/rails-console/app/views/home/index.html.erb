@@ -91,6 +91,17 @@
       </div>
     </div>
 
+    <%# ── Runtime readiness hint (only when a local action lacks one) ── %>
+    <% local_actions = @actions.select { |a| a[:target_type].to_s == 'local_runtime' }
+       any_healthy_rt = @runtimes.any? { |r| r[:status] == 'Healthy' } %>
+    <% if local_actions.any? && !any_healthy_rt %>
+      <div class="ic-hint">
+        <span class="ic-hint__dot"></span>
+        <span>Local runtime action needs a connected runtime.</span>
+        <%= link_to 'Connect a runtime', runtimes_path, class: 'ic-hint__link' %>
+      </div>
+    <% end %>
+
     <%# ── Status strip ─────────────────────────────────────── %>
     <% configured = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready/i) }
        last_run  = (@recent_runs || []).first
