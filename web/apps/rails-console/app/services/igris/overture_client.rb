@@ -128,6 +128,20 @@ module Igris
       Array(body.is_a?(Hash) ? (body['items'] || body['runtimes']) : body)
     end
 
+    # ── Runtime API key ──────────────────────────────────────────────────
+    # Dedicated runtime-connect keys, stored separately from the console
+    # service key so minting one never revokes OVERTURE_API_KEY.
+
+    # GET /v1/runtime/api-key → { has_key, prefix?, created_at? } (never raw)
+    def get_runtime_api_key
+      request(:get, '/v1/runtime/api-key')
+    end
+
+    # POST /v1/runtime/api-key → { api_key, prefix, created_at } — raw key once.
+    def create_runtime_api_key
+      request(:post, '/v1/runtime/api-key')
+    end
+
     # ── Health ───────────────────────────────────────────────────────────
     def health
       request(:get, '/v1/health')
