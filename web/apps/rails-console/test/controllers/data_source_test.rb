@@ -35,14 +35,14 @@ class DataSourceTest < ActiveSupport::TestCase
     client = FakeClient.new(actions: [{
       'id' => 'a-1', 'name' => 'send_email', 'display_name' => 'Send email',
       'target_type' => 'hosted_api', 'target_url' => 'https://api.resend.com/emails',
-      'method' => 'POST', 'policy_preset' => 'idempotent', 'replay_class' => 'retryable',
+      'method' => 'POST', 'policy_preset' => 'Safe automation', 'replay_class' => 'retryable',
       'approval_required' => false, 'irreversible' => false, 'secret_refs' => ['resend_key'],
     }])
     src = Igris::DataSource.new(client: client)
     a = src.actions.first
     assert_equal 'send_email', a[:name]
     assert_equal 'Hosted API', a[:target_label]
-    assert_match(/Idempotent/, a[:policy])
+    assert_match(/Safe automation/, a[:policy])
     assert_equal 'On', a[:replay]
     assert_equal 'Configured', a[:secrets_state]
     assert_equal 'Ready', a[:setup]
