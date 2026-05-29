@@ -2526,6 +2526,22 @@ html.dark .ic-need__card--accent {
   margin: 8px 0 0;
 }
 .ic-step__hint a { color: var(--ic-emerald); }
+.ic-keygen {
+  border: 1px solid rgba(180,83,9,0.28);
+  background: rgba(180,83,9,0.05);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+html.dark .ic-keygen {
+  border-color: rgba(251,191,36,0.24);
+  background: rgba(251,191,36,0.06);
+}
+.ic-keygen__warn {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ic-amber);
+  margin-bottom: 8px;
+}
 
 /* Action detail: local-runtime guidance cards. */
 .ic-runtime-req {
