@@ -133,6 +133,28 @@ module Igris
       action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     end
 
+    # ── Runtime API key ───────────────────────────────────────────────────
+    # The key a runtime uses to connect (IGRIS_API_KEY). Issued separately from
+    # the console service key. Never fabricated in fixture mode.
+
+    # Metadata for the tenant's runtime key: { 'has_key' => bool, 'prefix' =>,
+    # 'created_at' => } or nil. Returns nil in fixture mode (no fabrication) and
+    # on error (the page falls back to the generic instructions).
+    def runtime_api_key_status
+      return nil unless real?
+      @client.get_runtime_api_key
+    rescue OvertureClient::Error => e
+      capture(e); nil
+    end
+
+    # Mint a new runtime key. Returns the response hash including the raw
+    # 'api_key' shown exactly once. Raises in fixture mode so the controller can
+    # show the demo notice instead of a fabricated key.
+    def create_runtime_api_key
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.create_runtime_api_key
+    end
+
     # ── Writes ────────────────────────────────────────────────────────────
 
     # Returns the created action hash (normalized). Raises on validation /
