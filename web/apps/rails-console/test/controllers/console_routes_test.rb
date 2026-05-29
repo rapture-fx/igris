@@ -7,8 +7,8 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'home renders' do
     get '/home'
     assert_response :success
-    assert_match 'Keep your AI stack', response.body
-    assert_match 'Recent runs', response.body
+    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_match 'Route your first AI action through Igris', response.body
   end
 
   test 'root sends first-time visitors to /welcome' do
@@ -44,8 +44,10 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   end
 
   test 'actions wizard renders each step' do
+    # A valid name is required to advance past identity; pass one so each
+    # later step renders instead of bouncing back to identity.
     %w[identity target policy endpoint].each do |step|
-      get "/actions/new?step=#{step}"
+      get "/actions/new?step=#{step}&name=send_email"
       assert_response :success
       assert_match step.titleize, response.body
     end
