@@ -1,4 +1,5 @@
-<%# Onboarding — shown to first-time visitors before they enter the console. %>
+<%# Welcome — first-time onboarding and product education. The everyday
+    workspace lives at /home. Standalone layout (no console chrome). %>
 <div class="ic-welcome">
   <header class="ic-welcome__top">
     <a href="<%= welcome_path %>" class="ic-welcome__brand">
@@ -6,50 +7,92 @@
       <%= image_tag '/fofotlight.png', class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
       <span>Igris Inertial</span>
     </a>
-    <%= button_to 'Skip', enter_console_path,
+    <%= button_to 'Skip to Home', enter_console_path,
         method: :post, form: { style: 'display:inline; margin:0;' },
         class: 'ic-btn' %>
   </header>
 
   <main class="ic-welcome__main">
-    <h1 class="ic-welcome__title">Welcome to Igris Inertial.</h1>
+    <h1 class="ic-welcome__title">Give your AI agent a safe action endpoint.</h1>
     <p class="ic-welcome__sub">
-      Five steps to a signed, policy-checked endpoint your agent can call.
-      You can skip this and jump straight into the console at any time.
+      Your agent calls Igris instead of calling the tool directly. Igris checks
+      policy, routes the action, records what happened, and shows proof when
+      signed evidence exists.
     </p>
 
-    <ol class="ic-steps">
-      <% steps = [
-        ['Create an action',            'Name it. Define its inputs in plain language.'],
-        ['Choose where it runs',        'Mock demo, hosted API, webhook, or local runtime.'],
-        ['Set a policy',                'Idempotency, retries, single-flight, or manual approval.'],
-        ['Copy the endpoint',           'POST /v1/actions/:name/run · curl and fetch snippets generated.'],
-        ['Run it and inspect the proof','Every run produces a signed receipt. Open the run to read it end-to-end.'],
-      ] %>
-      <% steps.each_with_index do |(title, sub), i| %>
-        <li class="ic-step">
-          <span class="ic-step__num"><%= i + 1 %></span>
-          <div class="ic-step__body">
-            <div class="ic-step__title"><%= title %></div>
-            <p class="ic-step__sub"><%= sub %></p>
-          </div>
+    <%# ── Architecture diagram ────────────────────────────────── %>
+    <div class="ic-diagram" role="img" aria-label="Agent or app calls an Igris action endpoint, which dispatches to a tool, API, or runtime">
+      <div class="ic-diagram__node">
+        <div class="ic-diagram__node-label">Your agent / app</div>
+        <div class="ic-diagram__node-sub">Calls one endpoint</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node ic-diagram__node--accent">
+        <div class="ic-diagram__node-label">Igris action endpoint</div>
+        <div class="ic-diagram__node-sub">Policy · routing · recovery · proof</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node">
+        <div class="ic-diagram__node-label">Tool · API · runtime</div>
+        <div class="ic-diagram__node-sub">Where the side effect runs</div>
+      </div>
+    </div>
+
+    <%# ── First action checklist ──────────────────────────────── %>
+    <div class="ic-section-head"><span class="ic-section-head__label">Your first action</span></div>
+    <ol class="ic-checklist">
+      <% %w[Create\ action Copy\ endpoint Send\ test\ request Inspect\ run].each_with_index do |label, i| %>
+        <li class="ic-checklist__step">
+          <span class="ic-checklist__num"><%= i + 1 %></span>
+          <span class="ic-checklist__label"><%= label %></span>
+          <% unless i == 3 %><span class="ic-checklist__arrow" aria-hidden="true">→</span><% end %>
         </li>
       <% end %>
     </ol>
-
-    <%= button_to enter_console_path,
-        method: :post, form: { style: 'margin:0;' },
-        class: 'ic-btn ic-btn--accent ic-welcome__cta' do %>
-      Enter console
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="margin-left: 2px;">
-        <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    <% end %>
-
-    <p class="ic-welcome__foot">
-      Already onboarded? <%= button_to 'Take me to the console', enter_console_path,
-          method: :post, form: { style: 'display:inline; margin:0;' },
-          class: 'ic-welcome__linkbtn' %>
+    <p class="ic-welcome__sub" style="margin-top: 0;">
+      Create an action, copy the endpoint, send a test request, and inspect what happened.
     </p>
+
+    <%# ── Where actions run ───────────────────────────────────── %>
+    <div class="ic-section-head"><span class="ic-section-head__label">Where actions run</span></div>
+    <div class="ic-need">
+      <div class="ic-need__card">
+        <div class="ic-need__title">Hosted API</div>
+        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
+        <p class="ic-need__body">Igris calls the hosted API through your action target.</p>
+      </div>
+      <div class="ic-need__card">
+        <div class="ic-need__title">Webhook</div>
+        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
+        <p class="ic-need__body">Igris forwards the action request to your webhook.</p>
+      </div>
+      <div class="ic-need__card ic-need__card--accent">
+        <div class="ic-need__title">Local runtime</div>
+        <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Runtime required</span>
+        <p class="ic-need__body">For private files, internal APIs, or local databases.</p>
+      </div>
+    </div>
+    <p class="ic-welcome__sub" style="margin-top: 0;">
+      A runtime is only needed for private files, internal APIs, or local databases.
+    </p>
+
+    <%# ── CTAs ────────────────────────────────────────────────── %>
+    <div class="ic-welcome__ctarow">
+      <%= button_to enter_console_path, params: { to: 'new_action' },
+          method: :post, form: { style: 'margin:0;' },
+          class: 'ic-btn ic-btn--accent ic-welcome__cta' do %>
+        Create your first action
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="margin-left: 2px;">
+          <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      <% end %>
+      <%= button_to 'Go to Home', enter_console_path,
+          method: :post, form: { style: 'margin:0;' },
+          class: 'ic-btn' %>
+    </div>
   </main>
 </div>
