@@ -1,13 +1,15 @@
-<%# Action wizard — Identity → Target → Policy → Endpoint. %>
-<% steps = %w[identity target policy endpoint] %>
+<%# Create action — Identity → Target → Policy → Endpoint.
+    Onboarding, not configuration: every step earns the next. %>
+<% steps = ActionsController::WIZARD_STEPS %>
 <% step_index = steps.index(@step) || 0 %>
 <% next_step = steps[step_index + 1] %>
 <% prev_step = steps[step_index - 1] if step_index > 0 %>
+<% errors = @errors || {} %>
 
 <div class="ig-topbar">
   <div class="ig-topbar__group">
-    <span class="ig-topbar__title">New action</span>
-    <span class="ig-topbar__caption">Set up a signed, policy-checked endpoint your agent can call.</span>
+    <span class="ig-topbar__title">Create an action</span>
+    <span class="ig-topbar__caption">Give your AI agent a safe endpoint to call instead of the tool directly.</span>
   </div>
   <div class="ig-topbar__group">
     <%= link_to 'Cancel', actions_path, class: 'ig-btn' %>
@@ -17,7 +19,7 @@
 <%= render 'shared/flash' %>
 
 <div class="ig-body ig-body--narrow">
-  <nav class="ig-wizard" aria-label="Wizard steps">
+  <nav class="ig-wizard" aria-label="Steps">
     <% steps.each_with_index do |s, i| %>
       <% klass = i < step_index ? 'is-done' : (i == step_index ? 'is-active' : '') %>
       <span class="ig-wizard__step <%= klass %>">
@@ -27,140 +29,153 @@
     <% end %>
   </nav>
 
-  <% # Single form spanning the wizard. Action depends on step: navigation
-     # steps submit GET /actions/new (stateless), final step POSTs /actions. %>
   <% final = @step == 'endpoint' %>
-  <%= form_with url: (final ? actions_path : new_action_path), method: (final ? :post : :get), local: true do |f| %>
-    <% if final %><input type="hidden" name="step" value="endpoint"><% end %>
+  <%= form_with url: (final ? actions_path : new_action_path), method: (final ? :post : :get), local: true do %>
     <% unless final %><%= hidden_field_tag :step, next_step %><% end %>
 
-    <%# Persistent hidden state — every field must travel through every step %>
-    <% %i[name display_name description target_type target_url method policy replay_class].each do |k| %>
-      <% next if @step == 'identity' && %i[name display_name description].include?(k) %>
-      <% next if @step == 'target' && %i[target_type target_url method].include?(k) %>
-      <% next if @step == 'policy' && %i[policy replay_class].include?(k) %>
+    <%# Persistent hidden state — every field travels through every step. %>
+    <% carry = %i[name display_name description target_type target_url method policy]
+       skip_on = {
+         'identity' => %i[name display_name description],
+         'target'   => %i[target_type target_url method],
+         'policy'   => %i[policy],
+       } %>
+    <% carry.each do |k| %>
+      <% next if Array(skip_on[@step]).include?(k) %>
       <%= hidden_field_tag k, @draft[k] %>
     <% end %>
-    <%= hidden_field_tag :approval_required, (@draft[:approval_required] ? '1' : '0') unless @step == 'policy' %>
 
     <% case @step %>
     <% when 'identity' %>
       <div class="ig-card ig-card--pad-lg">
-        <h2 class="ig-page-header__title" style="font-size: 15px;">Identity</h2>
-        <p class="ig-page-header__sub" style="margin-bottom: 16px;">Name your action. This becomes part of its endpoint URL.</p>
+        <h2 class="ig-card__title" style="font-size: 14px;">Identity</h2>
+        <p class="ig-mut" style="margin: 2px 0 16px;">Name your action and describe what it does.</p>
 
         <div class="ig-field">
-          <label class="ig-field__label">Action name <span class="ig-mut" style="font-size: 11px;">(lowercase, snake_case)</span></label>
-          <%= text_field_tag :name, @draft[:name], class: 'ig-input', placeholder: 'send_email', pattern: '[a-z][a-z0-9_]{1,63}' %>
+          <label class="ig-field__label" for="name">Action name</label>
+          <%= text_field_tag :name, @draft[:name], id: 'name', class: "ig-input #{'is-error' if errors[:name]}",
+              placeholder: 'send_email', autofocus: true, autocomplete: 'off',
+              pattern: '[a-z][a-z0-9_]{1,63}', spellcheck: 'false' %>
+          <% if errors[:name] %>
+            <div class="ig-field__error"><%= errors[:name] %></div>
+          <% else %>
+            <div class="ig-field__help">This becomes the endpoint path your agent calls.</div>
+          <% end %>
+          <div class="ig-examples">
+            <% %w[send_email create_ticket update_customer_record read_private_file].each do |ex| %>
+              <code class="ig-examples__item"><%= ex %></code>
+            <% end %>
+          </div>
         </div>
+
         <div class="ig-field">
-          <label class="ig-field__label">Display name</label>
-          <%= text_field_tag :display_name, @draft[:display_name], class: 'ig-input', placeholder: 'Send email' %>
+          <label class="ig-field__label" for="display_name">Display name <span class="ig-mut">(optional)</span></label>
+          <%= text_field_tag :display_name, @draft[:display_name], id: 'display_name', class: 'ig-input', placeholder: 'Send email' %>
         </div>
+
         <div class="ig-field">
-          <label class="ig-field__label">What does this action do?</label>
-          <%= text_area_tag :description, @draft[:description], class: 'ig-textarea',
-              placeholder: 'Outbound transactional email — policy-checked, signed receipt.' %>
+          <label class="ig-field__label" for="description">What does this action do? <span class="ig-mut">(optional)</span></label>
+          <%= text_area_tag :description, @draft[:description], id: 'description', class: 'ig-textarea',
+              placeholder: 'Outbound transactional email your agent triggers — policy-checked and recorded.' %>
         </div>
       </div>
 
     <% when 'target' %>
       <div class="ig-card ig-card--pad-lg">
-        <h2 class="ig-page-header__title" style="font-size: 15px;">Target</h2>
-        <p class="ig-page-header__sub" style="margin-bottom: 16px;">Where should the side effect actually run?</p>
+        <h2 class="ig-card__title" style="font-size: 14px;">Target</h2>
+        <p class="ig-mut" style="margin: 2px 0 16px;">Choose where this action actually runs.</p>
 
         <div class="ig-radio-group">
           <% [
-            ['mock_demo',         'Mock demo',         "Doesn't touch anything real. Use it to see the proof loop end-to-end.", false],
-            ['hosted_api',        'Hosted API',        'Call a third-party API (Resend, Stripe, etc.) through Igris policy.',  false],
-            ['webhook',           'Webhook',           "POST to a URL you own. Igris signs the request.",                       false],
-            ['local_runtime',     'Local runtime',     'Use when the action needs private files, internal APIs, or local DBs.', false],
-            ['hybrid_fallback',   'Hybrid / fallback', 'Multiple targets with fallback. Coming soon.',                          true],
+            ['mock_demo',       'Mock demo',         'Try the full flow without external credentials.',                  false],
+            ['hosted_api',      'Hosted API',        'Route an agent action to an external hosted API.',                 false],
+            ['webhook',         'Webhook',           'Forward the action request to a webhook endpoint.',                false],
+            ['local_runtime',   'Local runtime',     'Run near private files, internal APIs, or local databases.',       false],
+            ['hybrid_fallback', 'Hybrid / fallback', 'Coming soon. Fallback only when policy and replay safety allow it.', true],
           ].each do |val, title, sub, disabled| %>
             <label class="ig-radio <%= 'is-disabled' if disabled %>">
               <input type="radio" name="target_type" value="<%= val %>"
                 <%= 'checked' if @draft[:target_type] == val %> <%= 'disabled' if disabled %>>
               <span>
-                <span class="ig-radio__title"><%= title %></span>
+                <span class="ig-radio__title">
+                  <%= title %>
+                  <% if disabled %><span class="ig-pill ig-pill--muted" style="margin-left: 6px;">Coming soon</span><% end %>
+                </span>
                 <span class="ig-radio__sub"><%= sub %></span>
               </span>
             </label>
           <% end %>
         </div>
+
         <div class="ig-field" style="margin-top: 16px;">
-          <label class="ig-field__label">Target URL <span class="ig-mut" style="font-size: 11px;">(required for hosted_api / webhook)</span></label>
-          <%= url_field_tag :target_url, @draft[:target_url], class: 'ig-input', placeholder: 'https://api.example.com/v1/...' %>
+          <label class="ig-field__label" for="target_url">Target URL</label>
+          <%= url_field_tag :target_url, @draft[:target_url], id: 'target_url',
+              class: "ig-input #{'is-error' if errors[:target_url]}",
+              placeholder: 'https://api.example.com/v1/...' %>
+          <% if errors[:target_url] %>
+            <div class="ig-field__error"><%= errors[:target_url] %></div>
+          <% else %>
+            <div class="ig-field__help">Required for Hosted API and Webhook. Local runtime needs a connected runtime instead — no URL.</div>
+          <% end %>
+          <% if errors[:target_type] %>
+            <div class="ig-field__error"><%= errors[:target_type] %></div>
+          <% end %>
         </div>
+
         <div class="ig-field">
-          <label class="ig-field__label">HTTP method</label>
-          <%= select_tag :method, options_for_select(%w[POST GET PUT PATCH DELETE], @draft[:method] || 'POST'), class: 'ig-select' %>
+          <label class="ig-field__label" for="method">HTTP method</label>
+          <%= select_tag :method, options_for_select(%w[POST GET PUT PATCH DELETE], @draft[:method] || 'POST'), id: 'method', class: 'ig-select' %>
         </div>
       </div>
 
     <% when 'policy' %>
       <div class="ig-card ig-card--pad-lg">
-        <h2 class="ig-page-header__title" style="font-size: 15px;">Policy</h2>
-        <p class="ig-page-header__sub" style="margin-bottom: 16px;">How Igris should behave when this action runs.</p>
+        <h2 class="ig-card__title" style="font-size: 14px;">Policy</h2>
+        <p class="ig-mut" style="margin: 2px 0 16px;">How Igris should behave when this action is called.</p>
 
         <div class="ig-radio-group">
-          <% [
-            ['idempotent',      'Idempotent · safe retries',     'Default. Retry on transient failure; deduplicate by request key.'],
-            ['single_flight',   'Single-flight',                 'Only one in-flight per key. Use for state-changing writes.'],
-            ['manual_approval', 'Manual approval',               'High-risk side effects pause for a human reviewer.'],
-            ['observe_only',    'Observe only',                  'Run, but mark side effect for review. Useful while tuning.'],
-          ].each do |val, title, sub| %>
+          <% ActionsController::POLICY_PRESETS.each do |key, cfg| %>
             <label class="ig-radio">
-              <input type="radio" name="policy" value="<%= val %>" <%= 'checked' if @draft[:policy] == val %>>
+              <input type="radio" name="policy" value="<%= key %>" <%= 'checked' if @draft[:policy] == key %>>
               <span>
-                <span class="ig-radio__title"><%= title %></span>
-                <span class="ig-radio__sub"><%= sub %></span>
+                <span class="ig-radio__title"><%= cfg[:label] %></span>
+                <span class="ig-radio__sub"><%= cfg[:blurb] %></span>
               </span>
             </label>
           <% end %>
         </div>
-        <div class="ig-field" style="margin-top: 16px;">
-          <label class="ig-field__label">Replay class</label>
-          <%= select_tag :replay_class,
-              options_for_select(
-                [['Retryable', 'retryable'], ['Non-retryable', 'non_retryable'], ['Read-only', 'read_only']],
-                @draft[:replay_class] || 'retryable'),
-              class: 'ig-select' %>
-        </div>
-        <label class="ig-row" style="margin-top: 12px;">
-          <input type="checkbox" name="approval_required" value="1" <%= 'checked' if @draft[:approval_required] %>>
-          <span style="font-size: 12.5px;">Require human approval before this action runs.</span>
-        </label>
       </div>
 
     <% when 'endpoint' %>
+      <% endpoint = action_endpoint_url(@draft[:name]) %>
       <div class="ig-card ig-card--pad-lg">
-        <h2 class="ig-page-header__title" style="font-size: 15px;">Endpoint</h2>
-        <p class="ig-page-header__sub" style="margin-bottom: 16px;">Your action will be reachable at the URL below once created. Copy the snippets into your agent.</p>
+        <h2 class="ig-card__title" style="font-size: 14px;">Endpoint</h2>
+        <p class="ig-mut" style="margin: 2px 0 16px;">
+          Use this endpoint where your agent would normally call the tool directly.
+        </p>
 
-        <% endpoint = "https://api.igrisinertial.com/v1/actions/#{@draft[:name]}/run" %>
-        <%= code_snippet endpoint, label: 'POST endpoint' %>
+        <%= code_snippet endpoint, language: 'http', label: 'POST endpoint' %>
         <div style="height: 14px;"></div>
-
-        <% curl = "curl -X POST #{endpoint} \\\n  -H \"Authorization: Bearer $IGRIS_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"input\": { } }'" %>
-        <%= code_snippet curl, label: 'curl' %>
+        <%= code_snippet action_curl_snippet(endpoint), language: 'bash', label: 'curl' %>
         <div style="height: 14px;"></div>
-
-        <% fetch_snippet = "await fetch('#{endpoint}', {\n  method: 'POST',\n  headers: {\n    Authorization: `Bearer ${process.env.IGRIS_API_KEY}`,\n    'Content-Type': 'application/json',\n  },\n  body: JSON.stringify({ input: {} }),\n})" %>
-        <%= code_snippet fetch_snippet, label: 'JavaScript fetch' %>
+        <%= code_snippet action_js_snippet(endpoint), language: 'javascript', label: 'JavaScript' %>
 
         <div class="ig-divider"></div>
         <div class="ig-mut" style="font-size: 11.5px;">
-          Review: <strong style="color: var(--ig-text-primary);"><%= @draft[:name] %></strong>
-          · target <strong style="color: var(--ig-text-primary);"><%= @draft[:target_type] %></strong>
-          · policy <strong style="color: var(--ig-text-primary);"><%= @draft[:policy] %></strong>
-          <% if data_source.fixtures? %><br><span style="color: var(--ic-amber);">Demo mode — submission is inert and creates no real action.</span><% end %>
+          Review:
+          <strong style="color: var(--ig-text-primary);"><%= @draft[:name] %></strong>
+          · target <strong style="color: var(--ig-text-primary);"><%= @draft[:target_type].titleize %></strong>
+          · policy <strong style="color: var(--ig-text-primary);"><%= ActionsController::POLICY_PRESETS.dig(@draft[:policy], :label) || @draft[:policy] %></strong>
+          <% if demo_mode? %>
+            <br><span style="color: var(--ic-amber);">Demo mode — creating this action is inert and creates no real action.</span>
+          <% end %>
         </div>
       </div>
     <% end %>
 
     <div class="ig-row ig-row--spread" style="margin-top: 16px;">
       <% if prev_step %>
-        <%= link_to "← #{prev_step.titleize}", new_action_path(step: prev_step, **@draft), class: 'ig-btn' %>
+        <%= link_to "← #{prev_step.titleize}", new_action_path(step: prev_step, **@draft.compact), class: 'ig-btn' %>
       <% else %>
         <span></span>
       <% end %>
