@@ -9,14 +9,39 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
   # Minimal Overture client stub returning one task. The task carries hostile
   # extra fields that must never reach the rendered page.
   class FakeClient
-    def initialize(task) = (@task = task)
+    def initialize(task, steps: [])
+      @task = task
+      @steps = steps
+    end
     def configured?            = true
     def list_actions           = []
     def list_tasks(**)         = [@task]
     def list_runtimes          = []
     def get_task(_id)          = @task
+    def get_task_steps(_id)    = @steps
     def get_action(_)          = nil
     def find_action_by_name(_) = nil
+  end
+
+  # WAL entries as they arrive over JSON (string keys). Includes hostile
+  # free-text fields (failure reason, robotics target, signature) that must
+  # never render.
+  def real_steps
+    [
+      { 'entry_id' => 'e1', 'step_index' => 0,
+        'step_type' => { 'ToolCall' => { 'tool_name' => 'read_file' } },
+        'status' => 'Committed', 'input_digest' => 'aaaabbbb',
+        'output_digest' => 'd1d2d3d4d5d6d7d8d9e0', 'timestamp_ms' => 1_700_000_000_000,
+        'runtime_id' => 'rt_prod_01', 'signature' => 'SIGVALUE_must_not_render==' },
+      { 'entry_id' => 'e2', 'step_index' => 1,
+        'step_type' => { 'ToolCall' => { 'tool_name' => 'http_call' } },
+        'status' => { 'Failed' => { 'reason' => 'connection refused to internal-db.corp.local:5432' } },
+        'input_digest' => 'ccccdddd', 'output_digest' => nil,
+        'timestamp_ms' => 1_700_000_001_000, 'runtime_id' => 'rt_prod_01', 'signature' => nil },
+      { 'entry_id' => 'e3', 'step_index' => 2,
+        'step_type' => { 'RoboticsAction' => { 'action' => 'navigate', 'target' => 'secret-waypoint-internal' } },
+        'status' => 'Executing', 'timestamp_ms' => 1_700_000_002_000, 'runtime_id' => 'rt_prod_01' },
+    ]
   end
 
   def real_task(overrides = {})
@@ -108,6 +133,44 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_match 'Evidence', response.body
       assert_match '—', response.body # missing fields shown honestly
+    end
+  end
+
+  # ── Ordered step evidence ───────────────────────────────────────────────
+  test 'real-mode run detail renders ordered, data-derived step evidence' do
+    with_real_ds(FakeClient.new(real_task, steps: real_steps)) do
+      get '/runs/task_real_1'
+      assert_response :success
+      assert_match 'Step evidence', response.body
+      assert_match 'read_file', response.body
+      assert_match 'http_call', response.body
+      assert_match 'Committed', response.body
+      assert_match 'Failed', response.body
+      assert_match 'Running', response.body            # Executing → Running
+      assert_match 'navigate', response.body           # RoboticsAction action label
+      assert_match 'd1d2d3d4d5d6d7', response.body     # truncated output digest
+      assert_match 'Signed', response.body             # step 0 has a signature
+      assert_match 'Step proof appears when signed receipt data is available.', response.body
+    end
+  end
+
+  test 'step evidence never leaks failure reasons, robotics targets, or signatures' do
+    with_real_ds(FakeClient.new(real_task, steps: real_steps)) do
+      get '/runs/task_real_1'
+      body = response.body
+      ['connection refused', 'internal-db.corp.local', 'secret-waypoint-internal',
+       'SIGVALUE_must_not_render', 'aaaabbbb', 'ccccdddd'].each do |secret|
+        refute_includes body, secret, "step evidence leaked: #{secret}"
+      end
+    end
+  end
+
+  test 'real-mode run detail shows honest empty state when no steps exist' do
+    with_real_ds(FakeClient.new(real_task, steps: [])) do
+      get '/runs/task_real_1'
+      assert_response :success
+      assert_match 'Step evidence', response.body
+      assert_match 'No ordered step evidence is available for this run yet.', response.body
     end
   end
 
