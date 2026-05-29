@@ -80,6 +80,52 @@ module ConsoleHelper
     render 'shared/code_snippet', code: code, language: language, label: label
   end
 
+  # Sample JSON request body for the "Test this action" panel, shaped to match
+  # the action's target type. Purely a starting point the developer can edit —
+  # Igris owns what actually runs.
+  SAMPLE_PAYLOADS = {
+    'mock_demo'     => { input: { message: 'Hello from Igris' } },
+    'hosted_api'    => { input: { method: 'POST', body: { message: 'Hello from Igris' } } },
+    'webhook'       => { input: { event: 'test.action', payload: { message: 'Hello from Igris' } } },
+    'local_runtime' => { input: { operation: 'read_file', path_label: 'example.txt' } },
+  }.freeze
+
+  def sample_payload_for(target_type)
+    body = SAMPLE_PAYLOADS[target_type.to_s] || SAMPLE_PAYLOADS['mock_demo']
+    JSON.pretty_generate(body)
+  end
+
+  # Endpoint URL for an action name. Mirrors DataSource#endpoint_url so views
+  # that only have a name (e.g. the wizard draft) stay consistent.
+  def action_endpoint_url(name)
+    base = ENV['OVERTURE_PUBLIC_API_URL'].presence || 'https://api.igrisinertial.com'
+    "#{base.chomp('/')}/v1/actions/#{name}/run"
+  end
+
+  # curl snippet for an action endpoint with a JSON body.
+  def action_curl_snippet(endpoint, body = %({ "input": {} }))
+    <<~CURL.strip
+      curl -X POST #{endpoint} \\
+        -H "Authorization: Bearer $IGRIS_API_KEY" \\
+        -H "Content-Type: application/json" \\
+        -d '#{body}'
+    CURL
+  end
+
+  # JavaScript fetch snippet for an action endpoint with a JSON body.
+  def action_js_snippet(endpoint)
+    <<~JS.strip
+      await fetch('#{endpoint}', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.IGRIS_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ input: {} }),
+      })
+    JS
+  end
+
   # Runs pulse — daily activity as thin vertical bars with a soft 7-day
   # moving-average curve overlay, week-boundary tick marks, and a "today"
   # pin on the last column. Original to the Igris console.
