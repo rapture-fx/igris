@@ -849,6 +849,19 @@ func (h *RuntimeHandler) apiKeyAuth(c *fiber.Ctx) error {
 		FROM tenants WHERE api_key_hash = $1
 	`, keyHash).Scan(&tenantID, &tenantTier, &isActive)
 
+	// Fallback: dedicated runtime keys (and other named tenant keys) live in
+	// tenant_api_keys, separate from the tenant's primary api_key_hash. This
+	// stays tenant-scoped — tenant_id is resolved from the matched row.
+	if errors.Is(err, sql.ErrNoRows) {
+		err = h.db.QueryRowContext(context.Background(), `
+			SELECT t.tenant_id, COALESCE(t.tier, 'seed'), COALESCE(t.is_active, true)
+			FROM tenant_api_keys k
+			JOIN tenants t ON t.tenant_id = k.tenant_id
+			WHERE k.key_hash = $1 AND k.status = 'active'
+			LIMIT 1
+		`, keyHash).Scan(&tenantID, &tenantTier, &isActive)
+	}
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "invalid_api_key",
