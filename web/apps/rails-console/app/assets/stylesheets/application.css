@@ -1070,13 +1070,13 @@ html.dark .ig-btn--primary {
   color: #047857;
 }
 html.dark .ic-btn--accent {
-  background: rgba(4, 120, 87, 0.12);
-  color: #047857;
-  border-color: rgba(4, 120, 87, 0.25);
+  background: rgba(52, 211, 153, 0.12);
+  color: #6ee7b7;
+  border-color: rgba(52, 211, 153, 0.25);
 }
 html.dark .ic-btn--accent:hover {
-  background: rgba(4, 120, 87, 0.18);
-  color: #047857;
+  background: rgba(52, 211, 153, 0.18);
+  color: #6ee7b7;
 }
 
 /* ── Hero body shell ────────────────────────────────────────────────── */
@@ -1908,14 +1908,14 @@ html.dark .ic-status__pill.is-warn { border-color: rgba(251,191,36,0.25); backgr
    alongside the surface without screaming. */
 :root {
   --ic-syn-keyword: #6a1b8a;   /* magenta-violet, darker emerald comp on light */
-  --ic-syn-string:  #34d399;   /* same emerald the rest of the surface uses */
+  --ic-syn-string:  #047857;   /* same emerald the rest of the surface uses */
   --ic-syn-number:  #9a3412;   /* warm rust for numbers/booleans */
   --ic-syn-fn:      #1d4ed8;   /* steel blue for function/identifier titles */
   --ic-syn-meta:    #84817a;
 }
 html.dark {
   --ic-syn-keyword: #c4b5fd;
-  --ic-syn-string:  #6ee7b7;
+  --ic-syn-string:  #34d399;
   --ic-syn-number:  #fdba74;
   --ic-syn-fn:      #93c5fd;
   --ic-syn-meta:    #8a8a82;
