@@ -16,7 +16,11 @@ Rails.application.routes.draw do
   end
 
   resources :runs, only: %i[index show]
-  resources :runtimes, only: :index
+  resources :runtimes, only: :index do
+    collection do
+      post :api_key, to: 'runtimes#create_key'
+    end
+  end
   resources :settings, only: :index
 
   # Health
