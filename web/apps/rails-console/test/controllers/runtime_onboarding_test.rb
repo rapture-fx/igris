@@ -8,12 +8,15 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
   # ── Real-mode DataSource double ─────────────────────────────────────────
   class FakeDS
     attr_reader :mode, :error
+    attr_accessor :key_status, :generated
 
-    def initialize(runtimes: [], actions: [])
+    def initialize(runtimes: [], actions: [], key_status: nil, generated: nil)
       @mode = :real
       @error = nil
       @runtimes = runtimes
       @actions = actions
+      @key_status = key_status
+      @generated = generated
     end
 
     def fixtures?  = false
@@ -30,6 +33,10 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     def healthy_runtime? = @runtimes.any? { |r| r[:status] == 'Healthy' }
     def runtime_required_for?(action)
       action && action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
+    end
+    def runtime_api_key_status = @key_status
+    def create_runtime_api_key
+      @generated || { 'api_key' => 'igris_generatedrawkey0123456789', 'prefix' => 'igris_genera', 'created_at' => '2026-05-30T00:00:00Z' }
     end
   end
 
