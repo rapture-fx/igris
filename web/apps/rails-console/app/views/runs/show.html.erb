@@ -1,12 +1,17 @@
 <%#
-  Run detail — visually identical to the landing-hero ExecutionPreview
-  main pane (web/apps/web-landing/src/components/sections/Products.tsx).
-  All chrome below is scoped under .igris-console so the --ic-* tokens
-  take over from the generic --ig-* shell.
+  Run detail.
+
+  Real mode (Overture connected): strictly data-derived evidence only —
+  the "What happened" summary, a safe evidence list, and the execution
+  story built from actual task fields. Nothing is fabricated; missing
+  fields render as "—" or an explicit unavailable state.
+
+  Fixture mode: the illustrative landing-hero execution preview is kept as
+  a clearly-labelled DEMO so the offline UI still shows the full shape.
 %>
 <div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
 
-  <%# ── Hero topbar: crumb / title / chip / actions ──────────────────── %>
+  <%# ── Topbar: crumb / title / chip ──────────────────────────────────── %>
   <div class="ic-topbar">
     <div class="ic-topbar__group">
       <%= link_to 'Runs', runs_path, class: 'ic-topbar__crumb' %>
@@ -14,189 +19,244 @@
       <span class="ic-topbar__title"><%= @run[:action] %> — <%= @run[:id] %></span>
       <span class="ic-chip"><%= @run[:routed_via].to_s.split('·').last.to_s.strip.presence || @run[:action] %></span>
     </div>
-    <div class="ic-topbar__group">
-      <button class="ic-btn">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-        Re-run
-      </button>
-      <button class="ic-btn">
-        Inspect
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 10 L12 16 L18 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <button class="ic-btn ic-btn--accent">
-        Verify chain
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 10 L12 16 L18 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
+    <% if demo_mode? %>
+      <div class="ic-topbar__group">
+        <button class="ic-btn">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Re-run
+        </button>
+        <button class="ic-btn ic-btn--accent">Verify chain</button>
+      </div>
+    <% end %>
   </div>
 
   <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-  <%# ── Hero body: def rows + narrative + committed-actions panel ─── %>
   <div class="ic-body ic-scroll">
     <% running = @run[:status].to_s.casecmp('Running').zero? %>
-    <% submitted_chip_time = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
 
-    <div class="ic-def">
-      <span class="ic-def__label">Submitter</span>
-      <div class="ic-def__value">
-        <span class="ic-chip"><span class="ic-chip__icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>mateo@acme.io</span>
-        <span class="ic-def__hint">engineer, integrations</span>
+    <%# ── What happened — the first-run summary, before any deep evidence ── %>
+    <% proof_label = @run[:proof].to_s.presence || 'Proof unavailable'
+       proof_unavailable = proof_label.match?(/unavailable|pending/i) %>
+    <div class="ic-summary">
+      <div class="ic-summary__head">What happened</div>
+      <div class="ic-summary__grid">
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Action</div>
+          <div class="ic-summary__v mono"><%= @run[:action] %></div>
+        </div>
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Status</div>
+          <div class="ic-summary__v"><%= status_pill @run[:status] %></div>
+        </div>
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Routed via</div>
+          <div class="ic-summary__v"><%= @run[:routed_via] %></div>
+        </div>
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Policy</div>
+          <div class="ic-summary__v"><%= @run[:policy] %></div>
+        </div>
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Proof</div>
+          <div class="ic-summary__v"><%= status_pill proof_label %></div>
+        </div>
       </div>
+      <% if proof_unavailable %>
+        <p class="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
+      <% end %>
     </div>
 
-    <div class="ic-def">
-      <span class="ic-def__label">Region</span>
-      <div class="ic-def__value">
-        <span class="ic-chip"><span class="ic-chip__icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </span>fra1·prod</span>
-        <span class="ic-def__hint">eu-central, primary</span>
-      </div>
-    </div>
-
-    <div class="ic-def">
-      <span class="ic-def__label">Worker</span>
-      <div class="ic-def__value">
-        <span class="ic-chip"><span class="ic-chip__icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </span>worker_b</span>
-        <span class="ic-def__hint">recovered from</span>
-        <span class="ic-chip"><span class="ic-chip__icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </span>worker_a</span>
-      </div>
-    </div>
-
-    <div class="ic-def">
-      <span class="ic-def__label">Submitted</span>
-      <div class="ic-def__value">
-        <span class="ic-chip"><span class="ic-chip__icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span><%= submitted_chip_time %></span>
-        <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %>, action workflow</span>
-      </div>
-    </div>
-
-    <div class="ic-def">
-      <span class="ic-def__label">Mode</span>
-      <div class="ic-def__value">
-        <span class="ic-chip"><span class="ic-chip__icon">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>action_workflow</span>
-        <span class="ic-def__hint">
-          <%= (@run[:steps] || []).count { |s| s[:kind] == :action } %> controlled tools, recovery <%= @run[:recovery] == 'Not needed' ? 'on standby' : 'engaged' %>
+    <% if demo_mode? %>
+      <%# ════════════ FIXTURE MODE: clearly-labelled illustrative demo ════════ %>
+      <div class="ig-strip" style="background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.25); border-radius: 8px; margin-bottom: 14px;">
+        <%= chip 'Demo data', tone: :warn %>
+        <span style="font-size: 12px; color: var(--ig-text-body);">
+          Illustrative example run. Connect Igris to see real, data-derived evidence here.
         </span>
       </div>
-    </div>
 
-    <%# Narrative %>
-    <p class="ic-narrative">
-      <% committed_count = (@run[:steps] || []).count { |s| s[:kind] == :action && s[:status] == :committed } %>
-      <% latest_committed = (@run[:steps] || []).select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
-      <% if running %>
-        The receipt chain is <span class="accent">valid</span> up to
-        <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
-        <% rn = (@run[:steps] || []).find { |s| s[:status] == :running } %>
-        <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
-        No replays were needed across the host fault.
-      <% elsif @run[:status] == 'Failed' %>
-        The receipt chain stops at the failed call. The console honestly reports
-        the absence — no fabricated proof, no replay was attempted without a
-        policy decision.
-      <% else %>
-        The receipt chain is <span class="accent">valid</span> end-to-end.
-        <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
-        <span class="mono"><%= @run[:duration_ms] %>ms</span>. No recovery was needed.
-      <% end %>
-    </p>
-
-    <%# Committed actions panel — the tree %>
-    <% steps = @run[:steps] || [] %>
-    <% total_actions = steps.count { |s| s[:kind] == :action } %>
-    <div class="ic-panel">
-      <div class="ic-panel__head">
-        <div class="ic-panel__head-l">
-          <span>Committed actions (<%= total_actions %>)</span>
-          <span class="ic-panel__count-plus">+<%= committed_count %></span>
-          <span class="ic-panel__count-minus">−<%= steps.count { |s| s[:status] == :failed } %></span>
+      <% submitted_chip_time = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
+      <div class="ic-def">
+        <span class="ic-def__label">Submitter</span>
+        <div class="ic-def__value">
+          <span class="ic-chip">mateo@acme.io</span>
+          <span class="ic-def__hint">engineer, integrations</span>
         </div>
-        <div class="ic-panel__head-r">
-          <button class="ic-panel__link" type="button">Collapse all</button>
-          <button class="ic-panel__link" type="button">View receipts</button>
+      </div>
+      <div class="ic-def">
+        <span class="ic-def__label">Region</span>
+        <div class="ic-def__value">
+          <span class="ic-chip">fra1·prod</span>
+          <span class="ic-def__hint">eu-central, primary</span>
+        </div>
+      </div>
+      <div class="ic-def">
+        <span class="ic-def__label">Worker</span>
+        <div class="ic-def__value">
+          <span class="ic-chip">worker_b</span>
+          <span class="ic-def__hint">recovered from</span>
+          <span class="ic-chip">worker_a</span>
+        </div>
+      </div>
+      <div class="ic-def">
+        <span class="ic-def__label">Submitted</span>
+        <div class="ic-def__value">
+          <span class="ic-chip"><%= submitted_chip_time %></span>
+          <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %>, action workflow</span>
         </div>
       </div>
 
-      <div class="ic-tree">
-        <div class="ic-tree__head">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style="transform: rotate(90deg);"><path d="M9 6 L15 12 L9 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="color: var(--ic-text-6);"><path d="M13 2 L4 14 L11 14 L11 22 L20 10 L13 10 Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-          <span>actions</span>
-        </div>
+      <%# Narrative %>
+      <% steps = @run[:steps] || [] %>
+      <% committed_count = steps.count { |s| s[:kind] == :action && s[:status] == :committed } %>
+      <% latest_committed = steps.select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
+      <p class="ic-narrative">
+        <% if running %>
+          The receipt chain is <span class="accent">valid</span> up to
+          <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
+          <% rn = steps.find { |s| s[:status] == :running } %>
+          <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
+        <% elsif @run[:status] == 'Failed' %>
+          The receipt chain stops at the failed call. The console honestly reports
+          the absence — no fabricated proof.
+        <% else %>
+          The receipt chain is <span class="accent">valid</span> end-to-end.
+          <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
+          <span class="mono"><%= @run[:duration_ms] %>ms</span>.
+        <% end %>
+      </p>
 
-        <div class="ic-tree__body">
-          <% steps.each_with_index do |s, i| %>
-            <% if s[:kind] == :fault %>
-              <div class="ic-step-in">
-                <div class="ic-line ic-line--fault">
-                  <span class="ic-line__bullet"><span class="ic-bullet-dot ic-bullet-dot--fault"></span></span>
-                  <span class="ic-line__num">!!</span>
-                  <div class="ic-line__main">
-                    <span class="ic-line__name"><%= s[:name] %></span>
-                    <span class="ic-line__detail"><%= s[:detail] %></span>
+      <%# Committed actions panel — the tree %>
+      <% total_actions = steps.count { |s| s[:kind] == :action } %>
+      <div class="ic-panel">
+        <div class="ic-panel__head">
+          <div class="ic-panel__head-l">
+            <span>Committed actions (<%= total_actions %>)</span>
+            <span class="ic-panel__count-plus">+<%= committed_count %></span>
+            <span class="ic-panel__count-minus">−<%= steps.count { |s| s[:status] == :failed } %></span>
+          </div>
+        </div>
+        <div class="ic-tree">
+          <div class="ic-tree__head">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style="transform: rotate(90deg);"><path d="M9 6 L15 12 L9 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>actions</span>
+          </div>
+          <div class="ic-tree__body">
+            <% steps.each do |s| %>
+              <% if s[:kind] == :fault %>
+                <div class="ic-step-in">
+                  <div class="ic-line ic-line--fault">
+                    <span class="ic-line__bullet"><span class="ic-bullet-dot ic-bullet-dot--fault"></span></span>
+                    <span class="ic-line__num">!!</span>
+                    <div class="ic-line__main">
+                      <span class="ic-line__name"><%= s[:name] %></span>
+                      <span class="ic-line__detail"><%= s[:detail] %></span>
+                    </div>
+                    <span class="ic-line__latency"><%= s[:latency] %>ms</span>
+                    <span class="ic-line__receipt">recovered</span>
                   </div>
-                  <span class="ic-line__latency"><%= s[:latency] %>ms</span>
-                  <span class="ic-line__receipt">recovered</span>
-                  <span class="ic-line__counter mono" style="color: var(--ic-text-8);">0 replays</span>
                 </div>
-              </div>
-            <% else %>
-              <% is_running = s[:status] == :running %>
-              <% is_failed  = s[:status] == :failed %>
-              <div class="ic-step-in">
-                <div class="ic-line">
-                  <span class="ic-line__bullet">
-                    <% if is_running %>
-                      <span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>
-                    <% elsif is_failed %>
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" style="color: var(--ic-rose);">
-                        <path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                      </svg>
+              <% else %>
+                <% is_running = s[:status] == :running %>
+                <% is_failed  = s[:status] == :failed %>
+                <div class="ic-step-in">
+                  <div class="ic-line">
+                    <span class="ic-line__bullet">
+                      <% if is_running %>
+                        <span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>
+                      <% elsif is_failed %>
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" style="color: var(--ic-rose);"><path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                      <% else %>
+                        <svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <% end %>
+                    </span>
+                    <span class="ic-line__num"><%= s[:num] %></span>
+                    <div class="ic-line__main">
+                      <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
+                      <span class="ic-line__detail"><%= s[:detail] %></span>
+                    </div>
+                    <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
+                    <% if s[:receipt] %>
+                      <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
                     <% else %>
-                      <svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none">
-                        <path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
+                      <span class="ic-line__receipt ic-line__receipt--none">—</span>
                     <% end %>
-                  </span>
-                  <span class="ic-line__num"><%= s[:num] %></span>
-                  <div class="ic-line__main">
-                    <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
-                    <span class="ic-line__detail"><%= s[:detail] %></span>
                   </div>
-                  <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
-                  <% if s[:receipt] %>
-                    <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
-                  <% else %>
-                    <span class="ic-line__receipt ic-line__receipt--none">—</span>
-                  <% end %>
-                  <span class="ic-line__counter">
-                    <% if is_running %>
-                      <span class="dots">· · ·</span>
-                    <% elsif is_failed %>
-                      <span class="minus">+0 <span class="sep">/</span> −1</span>
-                    <% else %>
-                      <span class="plus">+1</span><span class="sep"> / </span><span class="minus">−0</span>
-                    <% end %>
-                  </span>
                 </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+    <% else %>
+      <%# ════════════ REAL MODE: strictly data-derived evidence ═══════════════ %>
+      <% receipt_hash = (@run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_hash' }&.dig(:value)
+         receipt_signed = (@run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_signed' }&.dig(:value)
+         dash = ->(v) { v.to_s.strip.presence || '—' } %>
+
+      <div class="ic-evidence">
+        <div class="ic-evidence__head">Evidence</div>
+        <div class="ic-def"><span class="ic-def__label">Task ID</span><div class="ic-def__value mono"><%= dash.call(@run[:id]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= dash.call(@run[:action]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill @run[:status] %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Executed target</span><div class="ic-def__value mono"><%= dash.call(@run[:executed_target]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= dash.call(@run[:runtime_id]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= dash.call(@run[:policy]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value"><%= dash.call(@run[:recovery]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_pill proof_label %></div></div>
+        <div class="ic-def">
+          <span class="ic-def__label">Receipt hash</span>
+          <div class="ic-def__value mono"><%= dash.call(receipt_hash) %></div>
+        </div>
+        <% if receipt_signed.present? %>
+          <div class="ic-def"><span class="ic-def__label">Receipt signed</span><div class="ic-def__value"><%= receipt_signed %></div></div>
+        <% end %>
+      </div>
+
+      <div class="ic-evidence">
+        <div class="ic-evidence__head">Step evidence</div>
+        <% steps = @run[:execution_steps] || [] %>
+        <% if steps.any? %>
+          <div class="ic-stepev-list">
+            <% steps.each do |st| %>
+              <div class="ic-stepev">
+                <span class="ic-stepev__idx mono"><%= format('%02d', st[:index]) %></span>
+                <div class="ic-stepev__main">
+                  <span class="ic-stepev__label"><%= st[:label].presence || '—' %></span>
+                  <span class="ic-stepev__kind"><%= st[:kind] %></span>
+                </div>
+                <span class="ic-stepev__status ic-stepev__status--<%= st[:status_tone] %>"><%= st[:status] %></span>
+                <span class="ic-stepev__proof"><%= st[:proof] %></span>
+                <span class="ic-stepev__digest mono"><%= st[:digest].presence || '—' %></span>
+                <span class="ic-stepev__time"><%= st[:at].respond_to?(:strftime) ? st[:at].utc.strftime('%H:%M:%S') : '—' %></span>
               </div>
             <% end %>
-          <% end %>
-        </div>
+          </div>
+          <p class="ic-summary__note" style="margin: 10px 0 2px;">Step proof appears when signed receipt data is available.</p>
+        <% else %>
+          <p class="ic-summary__note" style="margin: 8px 0 2px;">No ordered step evidence is available for this run yet.</p>
+        <% end %>
       </div>
-    </div>
+
+      <div class="ic-evidence">
+        <div class="ic-evidence__head">Execution story</div>
+        <% story = @run[:story] || [] %>
+        <% if story.any? %>
+          <div class="ig-timeline" style="margin-top: 6px;">
+            <% story.each do |ev| %>
+              <div class="ig-timeline__step is-<%= ev[:tone] %>">
+                <div class="ig-timeline__title"><%= ev[:title] %></div>
+                <% if ev[:meta].present? %><div class="ig-timeline__meta"><%= ev[:meta] %></div><% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="ic-summary__note" style="margin: 8px 0 0;">No execution story available yet.</p>
+        <% end %>
+      </div>
+    <% end %>
 
     <div class="ic-foot-time">
       <%= @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S') : '' %>
@@ -204,25 +264,16 @@
     </div>
   </div>
 
-  <%# ── Hero footer ─────────────────────────────────────────────────── %>
-  <div class="ic-footer">
-    <div class="ic-footer__input">Submit a follow-up task or ask for a re-run with different params…</div>
-    <div class="ic-footer__bar">
-      <span class="ic-footer__chip">
-        <span class="dot"></span>
-        <span>action_workflow v1</span>
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 10 L12 16 L18 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      <span class="ic-footer__sep">·</span>
-      <span>Recovery <%= @run[:recovery] == 'Not needed' ? 'on standby' : 'on' %></span>
-      <span class="ic-footer__sep">·</span>
-      <span>Receipts ed25519</span>
-
-      <div class="ic-footer__spacer"></div>
-      <span class="ic-footer__tier">tier <strong>horizon</strong></span>
-      <button class="ic-footer__go" type="button" aria-label="Open">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+  <% if demo_mode? %>
+    <%# Illustrative footer — fixture mode only. %>
+    <div class="ic-footer">
+      <div class="ic-footer__input">Demo footer — illustrative only.</div>
+      <div class="ic-footer__bar">
+        <span class="ic-footer__chip"><span class="dot"></span><span>action_workflow v1</span></span>
+        <span class="ic-footer__sep">·</span>
+        <span>Receipts ed25519</span>
+        <div class="ic-footer__spacer"></div>
+      </div>
     </div>
-  </div>
+  <% end %>
 </div>
