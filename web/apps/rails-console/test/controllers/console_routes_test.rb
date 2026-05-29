@@ -4,11 +4,14 @@ require 'test_helper'
 # OVERTURE_API_BASE_URL is not set in the test env. Real-mode behavior
 # is exercised in overture_client_test.rb and actions_controller_test.rb.
 class ConsoleRoutesTest < ActionDispatch::IntegrationTest
-  test 'home renders' do
+  test 'home renders as a workspace, not an onboarding page' do
     get '/home'
     assert_response :success
-    assert_match 'Give your AI agent a safe action endpoint.', response.body
-    assert_match 'Route your first AI action through Igris', response.body
+    assert_match 'Workspace', response.body
+    assert_match 'Needs attention', response.body
+    # Education copy now lives on /welcome, not /home.
+    refute_match 'Give your AI agent a safe action endpoint.', response.body
+    refute_match 'Route your first AI action through Igris', response.body
   end
 
   test 'root sends first-time visitors to /welcome' do
@@ -25,9 +28,10 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test '/welcome renders the onboarding page' do
     get '/welcome'
     assert_response :success
-    assert_match 'Welcome to Igris Inertial', response.body
-    assert_match 'Create an action', response.body
-    assert_match 'Enter console', response.body
+    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_match 'Your first action', response.body
+    assert_match 'Create your first action', response.body
+    assert_match 'Go to Home', response.body
   end
 
   test 'entering the console sets the cookie and redirects to /home' do
