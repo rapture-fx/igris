@@ -13,10 +13,12 @@ class WelcomeController < ApplicationController
     # Standalone layout (no console chrome) — declared via layout below.
   end
 
-  # Mark the user as onboarded and send them into the console.
+  # Mark the user as onboarded and send them into the console. `to` is a
+  # whitelisted destination so the "Create your first action" CTA can land on
+  # the new-action wizard; everything else goes to the Home workspace.
   def enter
     cookies.permanent[:igris_welcomed] = '1'
-    redirect_to home_path
+    redirect_to(params[:to] == 'new_action' ? new_action_path : home_path)
   end
 
   layout 'welcome', only: %i[index]
