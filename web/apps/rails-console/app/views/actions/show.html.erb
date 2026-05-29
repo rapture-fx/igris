@@ -48,6 +48,29 @@
     </div>
   </div>
 
+  <%# ── Local-runtime guidance ─────────────────────────────── %>
+  <% if @action[:target_type] == 'local_runtime' %>
+    <% if @runtime_required %>
+      <div class="ic-runtime-req">
+        <div>
+          <div class="ic-runtime-req__title">Runtime required</div>
+          <p class="ic-runtime-req__sub">
+            This action runs through a local runtime because it needs
+            private/local access. Connect a runtime before sending a test request.
+          </p>
+        </div>
+        <span class="ic-runtime-req__cta"><%= link_to 'Connect a runtime', runtimes_path, class: 'ic-btn ic-btn--accent' %></span>
+      </div>
+    <% else %>
+      <div class="ic-runtime-ok">
+        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runtime available<%= ' · demo' if demo_mode? %></span>
+        <span class="ic-runtime-ok__text">
+          This action runs through a local runtime. A healthy runtime is connected, so you can send a test request.
+        </span>
+      </div>
+    <% end %>
+  <% end %>
+
   <% tabs = %w[overview endpoint target policy secrets runs] %>
   <nav class="ig-tabs">
     <% tabs.each do |t| %>
@@ -98,11 +121,14 @@
             <label class="ig-field__label" for="idempotency_key">Idempotency key <span class="ig-mut">(optional)</span></label>
             <%= text_field_tag :idempotency_key, '', id: 'idempotency_key', class: 'ig-input', placeholder: 'unique-per-call key' %>
           </div>
-          <%= f.submit 'Send test request', class: 'ig-btn ig-btn--primary' %>
-          <% if demo_mode? %>
-            <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
-          <% elsif @action[:target_type] == 'local_runtime' %>
-            <span class="ig-mut" style="margin-left: 10px;">Needs a connected runtime.</span>
+          <% if @runtime_required && !demo_mode? %>
+            <%= f.submit 'Send test request', class: 'ig-btn' %>
+            <span class="ig-mut" style="margin-left: 10px;">No runtime connected — <%= link_to 'connect one', runtimes_path %> to test.</span>
+          <% else %>
+            <%= f.submit 'Send test request', class: 'ig-btn ig-btn--primary' %>
+            <% if demo_mode? %>
+              <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
+            <% end %>
           <% end %>
         <% end %>
       </div>
@@ -149,7 +175,8 @@
         <% when 'webhook' %>
           Signed POST to your endpoint. Inspect the request in the run detail.
         <% when 'local_runtime' %>
-          Needs a connected runtime on a host that can reach the private resource. See the Runtimes lens.
+          Needs a connected runtime on a host that can reach the private resource.
+          <%= link_to 'See Runtimes', runtimes_path %> to install and connect one.
         <% when 'mock_demo' %>
           No real side effect. Use this to see the full flow end-to-end.
         <% else %>
