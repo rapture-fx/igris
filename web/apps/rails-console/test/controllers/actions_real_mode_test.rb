@@ -32,6 +32,8 @@ class ActionsRealModeTest < ActionDispatch::IntegrationTest
     def all_runs(**) = []
     def find_run(_) = nil
     def runtimes = []
+    def healthy_runtime? = false
+    def runtime_required_for?(action) = action && action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     def create_action(p) = @actions_data.first.merge(name: p[:name])
     def run_action(_name, **_)
       raise @run_error if @run_error
