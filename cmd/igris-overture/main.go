@@ -601,8 +601,10 @@ func main() {
 		api.RegisterLicenseRoutes(app, dbInstance)
 		api.RegisterUsageRoutes(app, dbInstance)
 		api.RegisterAPIKeyRoutes(app, dbInstance)
+		api.RegisterRuntimeAPIKeyRoutes(app, dbInstance)
 		log.Println("[Licensing] ✅ License and usage endpoints registered")
 		log.Println("[APIKey] ✅ API key management endpoints registered (/v1/account/api-key)")
+		log.Println("[RuntimeAPIKey] ✅ Runtime key endpoints registered (/v1/runtime/api-key)")
 	} else {
 		log.Println("[Licensing] ⚠️  Database not available — license endpoints disabled")
 	}
