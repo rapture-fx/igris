@@ -67,6 +67,17 @@ module ConsoleHelper
     end
   end
 
+  # Tone for a normalized runtime status label (Healthy / Stale / Degraded /
+  # Offline / anything else). Used to colour the connected-runtime rows.
+  def runtime_status_tone(status)
+    case status.to_s
+    when 'Healthy'           then :ok
+    when 'Stale', 'Degraded' then :warn
+    when 'Offline'           then :bad
+    else                          :muted
+    end
+  end
+
   def infer_tone(label)
     case label.to_s
     when /verified|ready|success|healthy|completed|connected/i then :ok
