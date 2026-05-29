@@ -39,6 +39,8 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
     def all_runs(**) = []
     def runtimes = []
     def daily_run_counts = []
+    def healthy_runtime? = false
+    def runtime_required_for?(action) = action && action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
 
     def find_run(_)
       @run_detail
