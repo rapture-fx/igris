@@ -87,12 +87,12 @@
 
         <div class="ig-radio-group">
           <% [
-            ['mock_demo',       'Mock demo',         'Try the full flow without external credentials.',                  false],
-            ['hosted_api',      'Hosted API',        'Route an agent action to an external hosted API.',                 false],
-            ['webhook',         'Webhook',           'Forward the action request to a webhook endpoint.',                false],
-            ['local_runtime',   'Local runtime',     'Run near private files, internal APIs, or local databases.',       false],
-            ['hybrid_fallback', 'Hybrid / fallback', 'Coming soon. Fallback only when policy and replay safety allow it.', true],
-          ].each do |val, title, sub, disabled| %>
+            ['mock_demo',       'Mock demo',         'Try the full flow without external credentials.',                  nil,        false],
+            ['hosted_api',      'Hosted API',        'Route an agent action to an external hosted API.',                 :none,      false],
+            ['webhook',         'Webhook',           'Forward the action request to a webhook endpoint.',                :none,      false],
+            ['local_runtime',   'Local runtime',     'Run near private files, internal APIs, or local databases.',       :required,  false],
+            ['hybrid_fallback', 'Hybrid / fallback', 'Coming soon. Fallback only when policy and replay safety allow it.', nil,       true],
+          ].each do |val, title, sub, runtime, disabled| %>
             <label class="ig-radio <%= 'is-disabled' if disabled %>">
               <input type="radio" name="target_type" value="<%= val %>"
                 <%= 'checked' if @draft[:target_type] == val %> <%= 'disabled' if disabled %>>
@@ -100,8 +100,13 @@
                 <span class="ig-radio__title">
                   <%= title %>
                   <% if disabled %><span class="ig-pill ig-pill--muted" style="margin-left: 6px;">Coming soon</span><% end %>
+                  <% if runtime == :none %><span class="ig-pill ig-pill--ok" style="margin-left: 6px;">No runtime needed</span><% end %>
+                  <% if runtime == :required %><span class="ig-pill ig-pill--warn" style="margin-left: 6px;">Runtime required</span><% end %>
                 </span>
                 <span class="ig-radio__sub"><%= sub %></span>
+                <% if runtime == :required %>
+                  <span class="ig-radio__sub">When to use this: the action needs private files, internal APIs, or local databases. <%= link_to 'Learn how runtimes work', runtimes_path %>.</span>
+                <% end %>
               </span>
             </label>
           <% end %>
