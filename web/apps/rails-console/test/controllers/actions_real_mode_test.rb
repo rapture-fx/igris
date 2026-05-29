@@ -73,7 +73,7 @@ class ActionsRealModeTest < ActionDispatch::IntegrationTest
       post '/actions/a-1/run', params: { input: '{}' }
       assert_response :redirect
       follow_redirect!
-      assert_match 'No runtime available', response.body
+      assert_match 'No runtime is connected', response.body
     end
   end
 
