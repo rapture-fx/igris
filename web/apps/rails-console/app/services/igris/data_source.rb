@@ -109,14 +109,28 @@ module Igris
 
     # ── Runtimes ──────────────────────────────────────────────────────────
 
+    # Memoized per request — the runtimes list is read by the controller, the
+    # lens sidebar, and the onboarding helpers below, so we fetch it once. An
+    # empty array is truthy in Ruby, so a genuinely-empty fleet is cached too.
     def runtimes
-      if real?
-        @client.list_runtimes.map { |r| normalize_runtime(r) }
-      else
-        Fixtures.runtimes
-      end
-    rescue OvertureClient::Error => e
-      capture(e); []
+      @runtimes ||= load_runtimes
+    end
+
+    # True when at least one connected runtime is currently healthy. Drives the
+    # local-runtime onboarding guidance. In fixture mode this reflects the demo
+    # runtimes — the global demo indicator already marks the data as not real,
+    # so we never imply a real connection that doesn't exist.
+    def healthy_runtime?
+      runtimes.any? { |r| r[:status] == 'Healthy' }
+    end
+
+    # Whether a local_runtime action should guide the user to connect a runtime
+    # before testing: true only for local_runtime targets when no healthy
+    # runtime is currently connected. Hosted-API and webhook actions never need
+    # a runtime, so they always return false.
+    def runtime_required_for?(action)
+      return false unless action
+      action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     end
 
     # ── Writes ────────────────────────────────────────────────────────────
@@ -137,6 +151,16 @@ module Igris
     # ── Normalization ─────────────────────────────────────────────────────
 
     private
+
+    def load_runtimes
+      if real?
+        @client.list_runtimes.map { |r| normalize_runtime(r) }
+      else
+        Fixtures.runtimes
+      end
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
 
     def capture(error)
       @error = error
