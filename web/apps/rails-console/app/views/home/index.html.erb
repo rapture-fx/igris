@@ -1,4 +1,6 @@
-<%# Home — product front door. Hero + diagram + status + activity + recent runs. %>
+<%# Home — the product front door. Hero → first-use loop → status → activity. %>
+<% has_actions = @actions.any?
+   has_runs    = (@recent_runs || []).any? %>
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Home</span>
@@ -16,11 +18,11 @@
   <div style="max-width: 880px; margin: 0 auto;">
 
     <%# ── Hero ─────────────────────────────────────────────── %>
-    <h1 class="ic-h1">Keep your AI stack. Route risky actions through Igris.</h1>
+    <h1 class="ic-h1">Give your AI agent a safe action endpoint.</h1>
     <p class="ic-sub">
-      Your agent calls an Igris endpoint instead of calling the tool directly.
-      Igris applies policy, routes the action, records what happened, and
-      shows proof when signed evidence exists.
+      Your agent calls Igris instead of calling tools directly. Igris checks
+      policy, routes the action, records what happened, and shows proof when
+      signed evidence exists.
     </p>
 
     <%# ── Architecture diagram ────────────────────────────── %>
@@ -45,14 +47,58 @@
       </div>
     </div>
 
+    <%# ── First-use loop ───────────────────────────────────── %>
+    <div class="ic-firstuse">
+      <div class="ic-firstuse__head">
+        <div>
+          <div class="ic-firstuse__title">Route your first AI action through Igris</div>
+          <p class="ic-firstuse__sub">Create an action, copy the endpoint, send a test request, and inspect what happened.</p>
+        </div>
+      </div>
+
+      <% checklist = [
+        ['Create action',     has_actions],
+        ['Copy endpoint',     false],
+        ['Send test request', has_runs],
+        ['Inspect run',       false],
+      ] %>
+      <ol class="ic-checklist">
+        <% checklist.each_with_index do |(label, done), i| %>
+          <li class="ic-checklist__step <%= 'is-done' if done %>">
+            <span class="ic-checklist__num">
+              <% if done %>
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <% else %>
+                <%= i + 1 %>
+              <% end %>
+            </span>
+            <span class="ic-checklist__label"><%= label %></span>
+            <% unless i == checklist.size - 1 %>
+              <span class="ic-checklist__arrow" aria-hidden="true">→</span>
+            <% end %>
+          </li>
+        <% end %>
+      </ol>
+
+      <div class="ic-firstuse__cta">
+        <% if has_actions %>
+          <%= link_to 'Open Actions', actions_path, class: 'ic-btn ic-btn--accent' %>
+          <%= link_to 'Create another action', new_action_path, class: 'ic-btn' %>
+        <% else %>
+          <%= link_to 'Create your first action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+          <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+        <% end %>
+      </div>
+    </div>
+
     <%# ── Status strip ─────────────────────────────────────── %>
-    <% configured = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready|Ready/) }
+    <% configured = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready/i) }
        last_run  = (@recent_runs || []).first
        healthy_rt = @runtimes.count { |r| r[:status] == 'Healthy' }
        overture_state = demo_mode? ? 'Demo · fixtures' : 'Connected' %>
     <div class="ic-status">
       <div class="ic-status__cell">
-        <div class="ic-status__k">Actions configured</div>
+        <div class="ic-status__k">Actions ready</div>
         <div class="ic-status__v"><%= configured %><span class="ic-status__total"> / <%= @actions.size %></span></div>
       </div>
       <div class="ic-status__cell">
@@ -87,56 +133,60 @@
     </div>
 
     <%# ── Activity pulse ───────────────────────────────────── %>
-    <div class="ic-chartcard">
-      <div class="ic-chartcard__head">
-        <div>
-          <div class="ic-chartcard__label">Runs · last <%= @daily_runs.length %> days</div>
-          <div class="ic-chartcard__value">
-            <%= @daily_runs.sum %>
-            <span class="ic-chartcard__delta">
-              <% delta = @daily_runs.last(7).sum - @daily_runs.first(7).sum %>
-              <%= delta >= 0 ? "+#{delta}" : delta %> vs prior 7d
-            </span>
+    <% if @daily_runs.any? %>
+      <div class="ic-chartcard">
+        <div class="ic-chartcard__head">
+          <div>
+            <div class="ic-chartcard__label">Runs · last <%= @daily_runs.length %> days</div>
+            <div class="ic-chartcard__value">
+              <%= @daily_runs.sum %>
+              <span class="ic-chartcard__delta">
+                <% delta = @daily_runs.last(7).sum - @daily_runs.first(7).sum %>
+                <%= delta >= 0 ? "+#{delta}" : delta %> vs prior 7d
+              </span>
+            </div>
+          </div>
+          <div class="ic-pulse-legend" aria-hidden="true">
+            <span class="ic-pulse-legend__row"><span class="ic-pulse-legend__bar"></span> runs / day</span>
+            <span class="ic-pulse-legend__row"><span class="ic-pulse-legend__avg"></span> 7-day avg</span>
           </div>
         </div>
-        <div class="ic-pulse-legend" aria-hidden="true">
-          <span class="ic-pulse-legend__row"><span class="ic-pulse-legend__bar"></span> runs / day</span>
-          <span class="ic-pulse-legend__row"><span class="ic-pulse-legend__avg"></span> 7-day avg</span>
+        <div style="overflow-x: auto; padding-top: 6px;">
+          <%= runs_pulse(@daily_runs) %>
         </div>
       </div>
-      <div style="overflow-x: auto; padding-top: 6px;">
-        <%= runs_pulse(@daily_runs) %>
-      </div>
-    </div>
+    <% end %>
 
     <%# ── Recent runs ──────────────────────────────────────── %>
-    <div class="ic-section-head">
-      <span class="ic-section-head__label">Recent runs</span>
-      <%= link_to 'View all', runs_path, class: 'ic-section-head__link' %>
-    </div>
-    <div class="ic-runs-list">
-      <% (@recent_runs || []).first(4).each do |r| %>
-        <% st = r[:status].to_s
-           running = st.casecmp('Running').zero?
-           failed  = st.casecmp('Failed').zero?
-           dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
-        <%= link_to run_path(r[:id]), class: 'ic-run-row' do %>
-          <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
-          <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
-            <%= running ? 'Running' : (failed ? 'Failed' : 'OK') %>
-          </span>
-          <span class="ic-run-row__title">
-            <span class="mono"><%= r[:id] %></span>
-            <%= r[:action] %>
-          </span>
-          <span class="ic-run-row__sub"><span class="mono"><%= r[:routed_via] %></span></span>
-          <span class="ic-run-row__sub"><%= r[:proof] %></span>
-          <span class="ic-run-row__time">
-            <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
-            <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
-          </span>
+    <% if has_runs %>
+      <div class="ic-section-head">
+        <span class="ic-section-head__label">Recent runs</span>
+        <%= link_to 'View all', runs_path, class: 'ic-section-head__link' %>
+      </div>
+      <div class="ic-runs-list">
+        <% (@recent_runs || []).first(4).each do |r| %>
+          <% st = r[:status].to_s
+             running = st.casecmp('Running').zero?
+             failed  = st.casecmp('Failed').zero?
+             dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
+          <%= link_to run_path(r[:id]), class: 'ic-run-row' do %>
+            <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
+            <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
+              <%= running ? 'Running' : (failed ? 'Failed' : 'OK') %>
+            </span>
+            <span class="ic-run-row__title">
+              <span class="mono"><%= r[:id] %></span>
+              <%= r[:action] %>
+            </span>
+            <span class="ic-run-row__sub"><span class="mono"><%= r[:routed_via] %></span></span>
+            <span class="ic-run-row__sub"><%= r[:proof] %></span>
+            <span class="ic-run-row__time">
+              <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
+              <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
+            </span>
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
 </div>
