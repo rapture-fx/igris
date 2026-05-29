@@ -1,4 +1,6 @@
-<%# Action detail — all metadata sits in the topbar; tabs hang below it. %>
+<%# Action detail — the place where you copy the endpoint and send the first
+    test request. Next-step card sits above the tabs. %>
+<% latest = @runs_for_action.first %>
 <div class="ic-topbar ic-topbar--wrap">
   <div class="ic-topbar__group">
     <%= link_to 'Actions', actions_path, class: 'ic-topbar__crumb' %>
@@ -6,23 +8,46 @@
     <span class="ic-topbar__title"><%= @action[:name] %></span>
     <span class="ic-chip"><%= @action[:target_label] %></span>
     <span class="ic-chip">policy: <%= @action[:policy] %></span>
-    <span class="ic-chip">replay: <%= @action[:replay].to_s.downcase %></span>
     <span class="ic-topbar__hint">
       Last run <%= @action[:last_run_at] ? time_ago(@action[:last_run_at]) : 'never' %>
     </span>
-  </div>
-  <div class="ic-topbar__group">
-    <%= button_to 'Run test', run_action_path(@action[:id]),
-        method: :post, params: { input: '{}' },
-        class: 'ic-btn ic-btn--accent',
-        form: { style: 'display:inline; margin:0;' },
-        data: { confirm: demo_mode? ? nil : 'Submit a real run for this action?' } %>
   </div>
 </div>
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
 <div class="ig-body">
+  <% if @just_created %>
+    <div class="ig-strip" style="background: rgba(52,211,153,0.06); border-bottom: none; border-radius: 8px; margin-bottom: 12px;">
+      <%= chip 'Created', tone: :ok %>
+      <span style="font-size: 12px; color: var(--ig-text-body);">
+        Your action is live. Next: copy the endpoint and send a test request.
+      </span>
+    </div>
+  <% end %>
+
+  <%# ── Next step card ──────────────────────────────────────── %>
+  <div class="ic-nextstep">
+    <div class="ic-nextstep__body">
+      <div class="ic-nextstep__kicker">Next step</div>
+      <% if latest %>
+        <div class="ic-nextstep__title">Inspect what Igris recorded</div>
+        <p class="ic-nextstep__sub">Your last request ran. Open the run to see status, routing, policy, and proof — or send another.</p>
+      <% else %>
+        <div class="ic-nextstep__title">Send a test request</div>
+        <p class="ic-nextstep__sub">Call this endpoint where your agent would normally call the tool directly. The form below sends a sample request.</p>
+      <% end %>
+    </div>
+    <div class="ic-nextstep__cta">
+      <% if latest %>
+        <%= link_to 'Inspect latest run', run_path(latest[:id]), class: 'ic-btn ic-btn--accent' %>
+        <a href="#test-request" class="ic-btn">Run again</a>
+      <% else %>
+        <a href="#test-request" class="ic-btn ic-btn--accent">Send a test request</a>
+      <% end %>
+    </div>
+  </div>
+
   <% tabs = %w[overview endpoint target policy secrets runs] %>
   <nav class="ig-tabs">
     <% tabs.each do |t| %>
@@ -35,13 +60,11 @@
   <% when 'overview' %>
     <div class="ig-grid ig-grid--2">
       <div class="ig-card">
-        <div class="ig-card__title">What this action does</div>
-        <p class="ig-mut" style="font-size: 12.5px;"><%= @action[:description] %></p>
-      </div>
-      <div class="ig-card">
         <div class="ig-card__title">Endpoint</div>
-        <%= code_snippet @action[:endpoint], language: 'http' %>
+        <%= code_snippet @action[:endpoint], language: 'http', label: 'POST' %>
+        <p class="ig-mut" style="margin-top: 8px;">Your agent calls this instead of calling the tool directly.</p>
       </div>
+
       <div class="ig-card">
         <div class="ig-card__title">Where it runs</div>
         <div class="ig-def">
@@ -61,63 +84,59 @@
           <span class="ig-def__value"><%= status_pill @action[:secrets_state] %></span>
         </div>
       </div>
-      <div class="ig-card">
-        <div class="ig-card__title">Run a test</div>
+
+      <div class="ig-card" id="test-request">
+        <div class="ig-card__title">Test this action</div>
+        <p class="ig-mut" style="margin-bottom: 10px;">Send a sample request through the endpoint. Edit the JSON as needed.</p>
         <%= form_with url: run_action_path(@action[:id]), method: :post, local: true do |f| %>
           <div class="ig-field">
-            <label class="ig-field__label">Input (JSON)</label>
-            <%= text_area_tag :input, '{}', class: 'ig-textarea', rows: 4 %>
+            <label class="ig-field__label" for="input">Request body (JSON)</label>
+            <%= text_area_tag :input, sample_payload_for(@action[:target_type]), id: 'input',
+                class: 'ig-textarea', rows: 7, spellcheck: 'false' %>
           </div>
           <div class="ig-field">
-            <label class="ig-field__label">Idempotency key (optional)</label>
-            <%= text_field_tag :idempotency_key, '', class: 'ig-input', placeholder: 'unique-per-call key' %>
+            <label class="ig-field__label" for="idempotency_key">Idempotency key <span class="ig-mut">(optional)</span></label>
+            <%= text_field_tag :idempotency_key, '', id: 'idempotency_key', class: 'ig-input', placeholder: 'unique-per-call key' %>
           </div>
-          <%= f.submit 'Submit run', class: 'ig-btn ig-btn--primary' %>
+          <%= f.submit 'Send test request', class: 'ig-btn ig-btn--primary' %>
           <% if demo_mode? %>
-            <span class="ig-mut" style="font-size: 11.5px; margin-left: 10px;">Demo — run is simulated.</span>
+            <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
+          <% elsif @action[:target_type] == 'local_runtime' %>
+            <span class="ig-mut" style="margin-left: 10px;">Needs a connected runtime.</span>
           <% end %>
         <% end %>
       </div>
 
       <div class="ig-card">
-        <div class="ig-card__title">Last run</div>
-        <% last = @runs_for_action.first %>
-        <% if last %>
-          <div class="ig-def"><span class="ig-def__label">Run</span><span class="ig-def__value"><%= link_to last[:id], run_path(last[:id]) %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Status</span><span class="ig-def__value"><%= status_pill last[:status] %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Routed via</span><span class="ig-def__value"><%= last[:routed_via] %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Proof</span><span class="ig-def__value"><%= status_pill last[:proof] %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Started</span><span class="ig-def__value"><%= time_ago(last[:started_at]) %></span></div>
+        <div class="ig-card__title">Latest run</div>
+        <% if latest %>
+          <div class="ig-def"><span class="ig-def__label">Run</span><span class="ig-def__value"><%= link_to latest[:id], run_path(latest[:id]) %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Status</span><span class="ig-def__value"><%= status_pill latest[:status] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Routed via</span><span class="ig-def__value"><%= latest[:routed_via] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Proof</span><span class="ig-def__value"><%= status_pill latest[:proof] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Started</span><span class="ig-def__value"><%= time_ago(latest[:started_at]) %></span></div>
         <% else %>
-          <div class="ig-mut" style="font-size: 12.5px;">No runs yet. Hit the endpoint to record one.</div>
+          <p class="ig-mut">No runs yet. Send a test request to record the first one.</p>
         <% end %>
       </div>
     </div>
 
   <% when 'endpoint' %>
+    <% endpoint = @action[:endpoint] %>
     <div class="ig-card">
       <div class="ig-card__title">POST endpoint</div>
-      <%= code_snippet @action[:endpoint], language: 'http' %>
+      <%= code_snippet endpoint, language: 'http' %>
+      <p class="ig-mut" style="margin-top: 8px;">Use this endpoint where your agent would normally call the tool directly.</p>
     </div>
     <div style="height: 14px;"></div>
     <div class="ig-card">
       <div class="ig-card__title">curl</div>
-      <%= code_snippet "curl -X POST #{@action[:endpoint]} \\\n  -H \"Authorization: Bearer $IGRIS_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"input\": { } }'", language: 'bash' %>
+      <%= code_snippet action_curl_snippet(endpoint), language: 'bash' %>
     </div>
     <div style="height: 14px;"></div>
     <div class="ig-card">
-      <div class="ig-card__title">TypeScript / fetch</div>
-      <%= code_snippet <<~JS.strip, language: 'javascript'
-        await fetch('#{@action[:endpoint]}', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${process.env.IGRIS_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ input: {} }),
-        })
-      JS
-      %>
+      <div class="ig-card__title">JavaScript / fetch</div>
+      <%= code_snippet action_js_snippet(endpoint), language: 'javascript' %>
     </div>
 
   <% when 'target' %>
@@ -126,13 +145,15 @@
       <div class="ig-mut" style="font-size: 12.5px;">
         <% case @action[:target_type] %>
         <% when 'hosted_api' %>
-          Calls travel through Igris before the upstream API. Auth lives in Secrets — we never expose the raw token in the console.
+          Calls travel through Igris before the upstream API. Auth lives in Secrets — the raw token is never shown in the console.
         <% when 'webhook' %>
-          Signed POST to your endpoint. Inspect the signature header in the run detail.
+          Signed POST to your endpoint. Inspect the request in the run detail.
         <% when 'local_runtime' %>
-          Needs the Igris runtime installed on a host that can reach the private resource. See the Runtimes lens.
+          Needs a connected runtime on a host that can reach the private resource. See the Runtimes lens.
         <% when 'mock_demo' %>
-          No real side effect. Use this to verify the proof loop end-to-end.
+          No real side effect. Use this to see the full flow end-to-end.
+        <% else %>
+          <%= @action[:target_label] %>
         <% end %>
       </div>
     </div>
@@ -141,13 +162,12 @@
     <div class="ig-card">
       <div class="ig-card__title">Policy</div>
       <div class="ig-mut" style="font-size: 12.5px;">
-        Behavior in plain language: <strong><%= @action[:policy] %></strong>
+        In plain language: <strong style="color: var(--ig-text-primary);"><%= @action[:policy] %></strong>
       </div>
       <div class="ig-divider"></div>
-      <div class="ig-def"><span class="ig-def__label">Idempotency</span><span class="ig-def__value">Deduplicate by request key (24h window)</span></div>
-      <div class="ig-def"><span class="ig-def__label">Retries</span><span class="ig-def__value">Exponential up to 3 attempts</span></div>
-      <div class="ig-def"><span class="ig-def__label">Recovery</span><span class="ig-def__value">Auto on transient · Manual on permanent</span></div>
-      <div class="ig-def"><span class="ig-def__label">Approval</span><span class="ig-def__value">None</span></div>
+      <div class="ig-def"><span class="ig-def__label">Replay class</span><span class="ig-def__value"><%= @action[:replay] %></span></div>
+      <div class="ig-def"><span class="ig-def__label">Approval required</span><span class="ig-def__value"><%= @action[:approval_required] ? 'Yes' : 'No' %></span></div>
+      <div class="ig-def"><span class="ig-def__label">Irreversible</span><span class="ig-def__value"><%= @action[:irreversible] ? 'Yes' : 'No' %></span></div>
     </div>
 
   <% when 'secrets' %>
@@ -155,7 +175,6 @@
       <div class="ig-card__title">Secrets</div>
       <div class="ig-mut" style="font-size: 12.5px; margin-bottom: 10px;">Values are never shown in the console — only configured / not configured.</div>
       <div class="ig-def"><span class="ig-def__label">target_auth</span><span class="ig-def__value"><%= status_pill @action[:secrets_state] %></span></div>
-      <div class="ig-def"><span class="ig-def__label">signing_key</span><span class="ig-def__value"><%= status_pill 'Configured' %></span></div>
     </div>
 
   <% when 'runs' %>
@@ -177,7 +196,7 @@
               </tr>
             <% end %>
           <% else %>
-            <tr><td colspan="6" class="ig-mut" style="text-align: center; padding: 32px;">No runs yet. Call the endpoint above to record one.</td></tr>
+            <tr><td colspan="6" class="ig-mut" style="text-align: center; padding: 32px;">No runs yet. Send a test request to record one.</td></tr>
           <% end %>
         </tbody>
       </table>
