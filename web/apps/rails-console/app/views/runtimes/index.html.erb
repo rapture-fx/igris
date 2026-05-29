@@ -1,55 +1,169 @@
-<%# Runtimes — connected runtime hosts. Counts live in the topbar. %>
-<% healthy_count = @runtimes.count { |r| r[:status] == 'Healthy' } %>
+<%# Runtimes — onboarding + status. Explains what a runtime is, when you do
+    (and don't) need one, shows connected-runtime status, and presents the
+    install/start commands. No hostnames, IPs, or env values are rendered. %>
+<% has_runtime = @runtimes.any?
+   healthy = @runtimes.select { |r| r[:status] == 'Healthy' } %>
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Runtimes</span>
-    <span class="ic-chip"><%= @runtimes.size %> connected</span>
-    <span class="ic-chip" style="color: var(--ic-emerald);">
-      <%= healthy_count %> healthy
-    </span>
+    <% if has_runtime %>
+      <span class="ic-chip"><%= @runtimes.size %> connected</span>
+      <span class="ic-chip" style="color: var(--ic-emerald);"><%= healthy.size %> healthy</span>
+    <% else %>
+      <span class="ic-chip">none connected</span>
+    <% end %>
   </div>
   <div class="ic-topbar__group">
-    <button class="ic-btn">Filter</button>
-    <button class="ic-btn ic-btn--accent">Install runtime</button>
+    <a href="#install" class="ic-btn ic-btn--accent">Install runtime</a>
   </div>
 </div>
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
 <div class="ic-body ic-scroll">
-  <div class="ic-runtime-list">
-    <% @runtimes.each do |rt| %>
-      <% healthy = rt[:status] == 'Healthy' %>
-      <div class="ic-runtime-row">
-        <span class="ic-runtime-row__dot <%= 'ic-runtime-row__dot--ok' if healthy %> <%= 'ic-runtime-row__dot--off' unless healthy %>"></span>
-        <div class="ic-runtime-row__main">
-          <div class="ic-runtime-row__name"><%= rt[:name] %></div>
-          <div class="ic-runtime-row__meta">
-            <span class="mono"><%= rt[:runtime_id] %></span>
-            <% if rt[:os].present? %> · <%= rt[:os] %><% end %>
-            · last seen <%= time_ago(rt[:last_seen_at]) %>
+  <div style="max-width: 880px; margin: 0 auto;">
+
+    <%# ── Intro ────────────────────────────────────────────── %>
+    <h1 class="ic-h1">Connect a runtime for private actions.</h1>
+    <p class="ic-sub">
+      Use a runtime when an action needs private files, internal APIs, or
+      local databases. Hosted API and webhook actions do not require a runtime.
+    </p>
+
+    <%# ── Diagram: where a runtime sits ────────────────────── %>
+    <div class="ic-diagram ic-diagram--runtime" role="img"
+         aria-label="Your agent or app calls an Igris action endpoint, which dispatches to a local runtime, which reaches your private system">
+      <div class="ic-diagram__node">
+        <div class="ic-diagram__node-label">Your agent / app</div>
+        <div class="ic-diagram__node-sub">Calls one endpoint</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node ic-diagram__node--accent">
+        <div class="ic-diagram__node-label">Igris action endpoint</div>
+        <div class="ic-diagram__node-sub">Policy · routing · proof</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node ic-diagram__node--accent">
+        <div class="ic-diagram__node-label">Local runtime</div>
+        <div class="ic-diagram__node-sub">Runs on your machine</div>
+      </div>
+      <div class="ic-diagram__arrow">
+        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="ic-diagram__node">
+        <div class="ic-diagram__node-label">Private system</div>
+        <div class="ic-diagram__node-sub">Files · internal API · DB</div>
+      </div>
+    </div>
+
+    <%# ── Do I need a runtime? ─────────────────────────────── %>
+    <div class="ic-section-head">
+      <span class="ic-section-head__label">Do I need a runtime?</span>
+    </div>
+    <div class="ic-need">
+      <div class="ic-need__card">
+        <div class="ic-need__title">Hosted API</div>
+        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
+        <p class="ic-need__body">Igris calls the hosted API through your action target.</p>
+      </div>
+      <div class="ic-need__card">
+        <div class="ic-need__title">Webhook</div>
+        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
+        <p class="ic-need__body">Igris forwards the action request to your webhook.</p>
+      </div>
+      <div class="ic-need__card ic-need__card--accent">
+        <div class="ic-need__title">Local runtime</div>
+        <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Runtime required</span>
+        <p class="ic-need__body">Use this when the action needs private files, internal APIs, or local databases.</p>
+      </div>
+    </div>
+
+    <%# ── Connected runtimes / empty state ─────────────────── %>
+    <div class="ic-section-head">
+      <span class="ic-section-head__label">Connected runtimes</span>
+    </div>
+    <% if has_runtime %>
+      <% if demo_mode? %>
+        <p class="ic-list-hint">Demo data — these are sample runtimes, not a live connection.</p>
+      <% end %>
+      <div class="ic-runtime-list">
+        <% @runtimes.each do |rt| %>
+          <% tone = runtime_status_tone(rt[:status]) %>
+          <div class="ic-runtime-row">
+            <span class="ic-runtime-row__dot <%= tone == :ok ? 'ic-runtime-row__dot--ok' : 'ic-runtime-row__dot--off' %>"></span>
+            <div class="ic-runtime-row__main">
+              <div class="ic-runtime-row__name"><%= rt[:name] %></div>
+              <div class="ic-runtime-row__meta">
+                <span class="mono"><%= rt[:runtime_id] %></span>
+                <% if rt[:os].present? %> · <%= rt[:os] %><% end %>
+                · last seen <%= time_ago(rt[:last_seen_at]) %>
+              </div>
+            </div>
+            <div class="ic-runtime-row__caps">
+              <% Array(rt[:capabilities]).each do |c| %>
+                <span class="ic-chip"><%= c %></span>
+              <% end %>
+            </div>
+            <span class="ic-runtime-row__status <%= tone == :ok ? 'is-ok' : 'is-off' %>">
+              <%= rt[:status] %>
+            </span>
           </div>
-        </div>
-        <div class="ic-runtime-row__caps">
-          <% Array(rt[:capabilities]).each do |c| %>
-            <span class="ic-chip"><%= c %></span>
-          <% end %>
-        </div>
-        <span class="ic-runtime-row__status <%= healthy ? 'is-ok' : 'is-off' %>">
-          <%= rt[:status] %>
-        </span>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="ic-empty" style="padding: 40px 16px;">
+        <div class="ic-empty__title">No runtime connected yet</div>
+        <p class="ic-empty__sub">
+          Install the runtime on the machine that has access to private files,
+          internal APIs, or local databases. The steps below get you connected.
+        </p>
+        <a href="#install" class="ic-btn ic-btn--accent">Copy install command</a>
       </div>
     <% end %>
-  </div>
 
-  <div style="margin-top: 24px;">
-    <div class="ic-section-head">
-      <span class="ic-section-head__label">Install on a new host</span>
+    <%# ── Install / connect ────────────────────────────────── %>
+    <div id="install" class="ic-section-head" style="margin-top: 24px;">
+      <span class="ic-section-head__label">Install &amp; connect a runtime</span>
     </div>
-    <p style="font-size: 12px; color: var(--ic-text-5); margin: 0 0 10px; max-width: 60ch;">
-      Install the runtime on the machine that needs network access to your
-      private resources. That's the only host involved in dispatch.
+    <p class="ic-onboard-note">
+      Install the runtime, start it on the machine that has access, then create
+      a Local runtime action. The runtime connects out to Igris — your private
+      systems do not need to be exposed to the public internet.
     </p>
-    <%= code_snippet 'IGRIS_API_KEY=igris_... curl -fsSL https://igrisinertial.com/install | bash', language: 'bash' %>
+
+    <div class="ic-steps">
+      <div class="ic-step">
+        <span class="ic-step__num">1</span>
+        <div class="ic-step__main">
+          <div class="ic-step__title">Install on the host with access</div>
+          <%= code_snippet 'IGRIS_API_KEY=igris_... curl -fsSL https://igrisinertial.com/install | bash', language: 'bash' %>
+        </div>
+      </div>
+      <div class="ic-step">
+        <span class="ic-step__num">2</span>
+        <div class="ic-step__main">
+          <div class="ic-step__title">Start the runtime</div>
+          <%= code_snippet 'IGRIS_API_KEY=igris_... igris-runtime serve', language: 'bash' %>
+          <p class="ic-step__hint">
+            It connects to Igris at <code>api.igrisinertial.com</code> and registers
+            when <code>IGRIS_API_KEY</code> is set — then appears under Connected runtimes above.
+          </p>
+        </div>
+      </div>
+      <div class="ic-step">
+        <span class="ic-step__num">3</span>
+        <div class="ic-step__main">
+          <div class="ic-step__title">Create a Local runtime action</div>
+          <p class="ic-step__hint">
+            <%= link_to 'Create an action', new_action_path %> and choose the
+            <strong>Local runtime</strong> target. It will route through this runtime.
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
