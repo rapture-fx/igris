@@ -67,22 +67,22 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds }
   end
 
-  # ── Home (fixture mode) ──────────────────────────────────────────────────
-  test 'home shows hero copy and the 4-step first-use checklist' do
-    get '/home'
+  # ── Onboarding lives on /welcome; Home is the workspace ─────────────────
+  test 'welcome shows hero copy and the 4-step first-action checklist' do
+    get '/welcome'
     assert_response :success
     assert_match 'Give your AI agent a safe action endpoint.', response.body
-    assert_match 'Route your first AI action through Igris', response.body
     %w[Create\ action Copy\ endpoint Send\ test\ request Inspect\ run].each do |label|
       assert_match label, response.body
     end
   end
 
-  test 'home with existing actions offers Open Actions and Create another' do
+  test 'home with existing actions shows the workspace, not onboarding' do
     # Fixture mode ships sample actions, so this is the populated branch.
     get '/home'
-    assert_match 'Open Actions', response.body
-    assert_match 'Create another action', response.body
+    assert_match 'Workspace', response.body
+    assert_match 'Connect runtime', response.body
+    refute_match 'Route your first AI action through Igris', response.body
   end
 
   test 'home with no actions emphasizes creating the first one' do
