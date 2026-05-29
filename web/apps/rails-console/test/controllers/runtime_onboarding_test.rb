@@ -152,6 +152,69 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     assert_match 'Learn how runtimes work', response.body
   end
 
+  # ── Runtime key issuance (read-once, safe) ───────────────────────────────
+  test 'generating a runtime key shows the raw key once and wires the commands' do
+    ds = FakeDS.new(generated: {
+      'api_key' => 'igris_rawkeyshownonce0123456789abcdef', 'prefix' => 'igris_rawkey', 'created_at' => '2026-05-30T00:00:00Z',
+    })
+    with_fake_ds(ds) do
+      post '/runtimes/api_key'
+      assert_response :success
+      assert_match 'igris_rawkeyshownonce0123456789abcdef', response.body
+      assert_match 'Shown once', response.body
+      # install + serve commands embed the freshly generated key
+      assert_match 'IGRIS_API_KEY=igris_rawkeyshownonce0123456789abcdef curl', response.body
+      assert_match 'IGRIS_API_KEY=igris_rawkeyshownonce0123456789abcdef igris-runtime serve', response.body
+    end
+  end
+
+  test 'after refresh only the prefix is shown, never the raw key' do
+    ds = FakeDS.new(key_status: { 'has_key' => true, 'prefix' => 'igris_rawkey' })
+    with_fake_ds(ds) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'igris_rawkey', response.body            # prefix shown
+      assert_match 'already exists', response.body
+      refute_match 'igris_rawkeyshownonce0123456789abcdef', response.body  # raw never shown again
+      # placeholder, not a real key, in the commands
+      assert_match 'IGRIS_API_KEY=igris_... curl', response.body
+    end
+  end
+
+  test 'fixture mode does not fabricate a runtime key on generate' do
+    post '/runtimes/api_key' # fixture mode (no injection)
+    assert_response :success
+    assert_match 'Demo mode', response.body
+    assert_match(/Demo mode does not issue real keys|connect a live Igris API/i, response.body)
+    refute_match(/igris_[0-9a-f]{16,}/, response.body) # no fabricated raw key
+  end
+
+  test 'runtimes page never renders the console service key (OVERTURE_API_KEY)' do
+    prev = ENV['OVERTURE_API_KEY']
+    ENV['OVERTURE_API_KEY'] = 'igris_service_secret_must_never_render_abc'
+    get '/runtimes'
+    assert_response :success
+    refute_match 'igris_service_secret_must_never_render_abc', response.body
+  ensure
+    ENV['OVERTURE_API_KEY'] = prev
+  end
+
+  test 'generated runtime key is never the console service key' do
+    prev = ENV['OVERTURE_API_KEY']
+    ENV['OVERTURE_API_KEY'] = 'igris_service_secret_must_never_render_abc'
+    ds = FakeDS.new(generated: {
+      'api_key' => 'igris_distinct_runtime_key_999', 'prefix' => 'igris_distin', 'created_at' => '2026-05-30T00:00:00Z',
+    })
+    with_fake_ds(ds) do
+      post '/runtimes/api_key'
+      assert_response :success
+      assert_match 'igris_distinct_runtime_key_999', response.body
+      refute_match 'igris_service_secret_must_never_render_abc', response.body
+    end
+  ensure
+    ENV['OVERTURE_API_KEY'] = prev
+  end
+
   # ── Home contextual hint ─────────────────────────────────────────────────
   test 'home hints to connect a runtime when a local action has none' do
     with_fake_ds(FakeDS.new(runtimes: [], actions: [local_action])) do
