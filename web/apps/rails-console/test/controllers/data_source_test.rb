@@ -95,6 +95,35 @@ class DataSourceTest < ActiveSupport::TestCase
     refute(detail[:raw_evidence].any? { |row| row[:value].to_s.include?('redacted') && row[:key] != 'receipt_hash' })
   end
 
+  test 'execution steps map safely and drop reasons, targets, and signatures' do
+    client = FakeClient.new(
+      tasks: [{ 'task_id' => 't9', 'status' => 'completed', 'executed_target' => 'local_runtime', 'runtime_id' => 'rt_x' }],
+      steps_by_task: { 't9' => [
+        { 'step_index' => 0, 'step_type' => { 'ToolCall' => { 'tool_name' => 'read_file' } },
+          'status' => 'Committed', 'output_digest' => 'abcdef0123456789feedface',
+          'signature' => 'SIGNATURE==', 'runtime_id' => 'rt_x', 'timestamp_ms' => 1_700_000_000_000 },
+        { 'step_index' => 1, 'step_type' => { 'RoboticsAction' => { 'action' => 'navigate', 'target' => 'host.internal' } },
+          'status' => { 'Failed' => { 'reason' => 'boom at 10.0.0.9' } }, 'input_digest' => 'rawinput' },
+      ] },
+    )
+    steps = Igris::DataSource.new(client: client).find_run('t9')[:execution_steps]
+    assert_equal 2, steps.size
+    assert_equal 'read_file', steps[0][:label]
+    assert_equal 'tool_call', steps[0][:kind]
+    assert_equal 'Committed', steps[0][:status]
+    assert_equal 'Signed', steps[0][:proof]
+    assert steps[0][:digest].start_with?('abcdef01234567')
+    assert steps[0][:digest].end_with?('…')
+    assert_equal 'Failed', steps[1][:status]
+    assert_equal 'navigate', steps[1][:label]
+    assert_equal '—', steps[1][:proof] # no signature
+
+    flat = steps.flat_map { |s| s.values.map(&:to_s) }.join(' ')
+    ['host.internal', '10.0.0.9', 'boom', 'SIGNATURE==', 'rawinput'].each do |secret|
+      refute_includes flat, secret, "step mapping leaked: #{secret}"
+    end
+  end
+
   test 'runtime normalization never exposes hostname' do
     client = FakeClient.new(runtimes: [{
       'runtime_id' => 'rt_x', 'status' => 'healthy', 'capabilities' => ['http_call'],
