@@ -293,7 +293,7 @@ function IconRail() {
       </div>
       {/* Profile avatar */}
       <div className="relative h-7 w-7 mt-1 rounded-full overflow-hidden select-none" style={{ background: 'var(--ic-avatar-bg)' }}>
-        <img src="/sfat.png" alt="" width={28} height={28} className="block h-full w-full object-cover" draggable={false} />
+        <img src="/emerald.jpg" alt="" width={28} height={28} className="block h-full w-full object-cover" draggable={false} />
         <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border" style={{ background: 'var(--ic-accent)', borderColor: 'var(--ic-dot-border)' }} />
       </div>
     </nav>
