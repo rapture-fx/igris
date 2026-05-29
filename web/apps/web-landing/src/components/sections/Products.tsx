@@ -292,9 +292,9 @@ function IconRail() {
         <RailIcon Icon={BarChart3} />
       </div>
       {/* Profile avatar */}
-      <div className="relative h-7 w-7 mt-1 rounded-full overflow-hidden select-none" style={{ background: 'var(--ic-avatar-bg)' }}>
-        <img src="/emerald.jpg" alt="" width={28} height={28} className="block h-full w-full object-cover" draggable={false} />
-        <span className="absolute -bottom-0.5 -right-0.5 h-1.5 w-1.5 rounded-full border" style={{ background: 'var(--ic-accent)', borderColor: 'var(--ic-dot-border)' }} />
+      <div className="relative h-6 w-6 mt-1 mb-1 rounded-full overflow-hidden select-none" style={{ background: 'var(--ic-avatar-bg)' }}>
+        <img src="/emerald.jpg" alt="" width={24} height={24} className="block h-full w-full object-cover" draggable={false} />
+        <span className="absolute -bottom-[1px] -right-[1px] h-1 w-1 rounded-full border" style={{ background: 'var(--ic-accent)', borderColor: 'var(--ic-dot-border)' }} />
       </div>
     </nav>
   )
