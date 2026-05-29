@@ -1520,6 +1520,13 @@ html.dark .ic-btn--accent:hover {
   padding: 0 14px;
   font-size: 12.5px;
 }
+.ic-welcome__ctarow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+}
 .ic-welcome__foot {
   margin-top: 18px;
   font-size: 11.5px;
