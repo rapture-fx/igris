@@ -8,7 +8,7 @@
   </div>
   <div class="ic-topbar__group">
     <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
-    <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+    <%= link_to 'Create action', new_action_path, class: 'ic-btn' %>
   </div>
 </div>
 
@@ -82,10 +82,10 @@
 
       <div class="ic-firstuse__cta">
         <% if has_actions %>
-          <%= link_to 'Open Actions', actions_path, class: 'ic-btn ic-btn--accent' %>
-          <%= link_to 'Create another action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+          <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
+          <%= link_to 'Create another action', new_action_path, class: 'ic-btn' %>
         <% else %>
-          <%= link_to 'Create your first action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+          <%= link_to 'Create your first action', new_action_path, class: 'ic-btn' %>
           <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
         <% end %>
       </div>
