@@ -50,6 +50,12 @@
         </div>
 
         <div class="ic-field">
+          <label class="ic-field__label">Public API URL</label>
+          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" placeholder="https://api.igrisinertial.com" readonly />
+          <p class="ic-field__help">The base URL shown in action code snippets (the endpoint your agent calls). Public, not secret.</p>
+        </div>
+
+        <div class="ic-field">
           <label class="ic-field__label">Console public URL</label>
           <input class="ic-input" type="text" value="<%= ENV['APP_HOST'].to_s.presence || 'https://console.igrisinertial.com' %>" placeholder="https://console.igrisinertial.com" />
           <p class="ic-field__help">Where this console is served. Shown in invitations and email links.</p>
