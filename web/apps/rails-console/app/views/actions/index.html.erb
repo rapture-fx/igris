@@ -5,7 +5,7 @@
     <span class="ic-chip"><%= @actions.size %> registered</span>
   </div>
   <div class="ic-topbar__group">
-    <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+      <%= link_to 'New action', new_action_path, class: 'ic-btn' %>
   </div>
 </div>
 
@@ -20,7 +20,7 @@
         directly. Igris applies policy, routes the call, records what
         happened, and shows proof when signed evidence exists.
       </p>
-      <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+    <%= link_to 'New action', new_action_path, class: 'ic-btn' %>
     </div>
   <% else %>
     <p class="ic-list-hint">Your agent calls these endpoints instead of calling tools directly.</p>
@@ -52,7 +52,7 @@
           <span class="ic-action-row__when">
             <%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %>
           </span>
-          <%= link_to 'Open', action_path(a[:id]), class: 'ic-btn ic-btn--accent ic-action-row__open' %>
+          <%= link_to 'Open', action_path(a[:id]), class: 'ic-btn ic-action-row__open' %>
         </div>
       <% end %>
     </div>
