@@ -52,7 +52,7 @@
           <span class="ic-action-row__when">
             <%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %>
           </span>
-          <%= link_to 'Open', action_path(a[:id]), class: 'ic-btn ic-action-row__open' %>
+          <%= link_to 'Open', action_path(a[:id]), class: 'ic-btn ic-btn--accent ic-action-row__open' %>
         </div>
       <% end %>
     </div>
