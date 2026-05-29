@@ -80,7 +80,8 @@ module Igris
 
     def find_run(id)
       if real?
-        normalize_run_detail(@client.get_task(id))
+        detail = normalize_run_detail(@client.get_task(id))
+        detail && detail.merge(execution_steps: fetch_execution_steps(id))
       else
         Fixtures.run_detail(id)
       end
@@ -88,6 +89,14 @@ module Igris
       nil
     rescue OvertureClient::Error => e
       capture(e); nil
+    end
+
+    # Ordered, redacted per-step WAL evidence. Returns [] (honest empty state)
+    # if the task has no checkpoints yet or the endpoint is unavailable.
+    def fetch_execution_steps(id)
+      normalize_execution_steps(@client.get_task_steps(id))
+    rescue OvertureClient::Error => e
+      capture(e); []
     end
 
     # Daily run counts (14d) for the Home sparkline. Real mode would aggregate
@@ -203,6 +212,81 @@ module Igris
       )
     end
 
+    # Map raw WAL entries → safe per-step rows for Run detail. Surfaces only
+    # operation identifiers and digests; never raw inputs/outputs, failure
+    # reason text, robotics targets, signatures, or env values.
+    def normalize_execution_steps(steps)
+      Array(steps).map do |s|
+        s = s.with_indifferent_access if s.respond_to?(:with_indifferent_access)
+        kind, label = step_type_kind_label(s[:step_type])
+        status, tone = wal_status_label(s[:status])
+        {
+          index:      s[:step_index].to_i,
+          label:      label,
+          kind:       kind,
+          status:     status,
+          status_tone: tone,
+          digest:     truncate_digest(s[:output_digest]),
+          proof:      (s[:signature].to_s.present? ? 'Signed' : '—'),
+          runtime_id: s[:runtime_id].to_s,
+          at:         parse_time_ms(s[:timestamp_ms]),
+        }
+      end
+    end
+
+    # step_type is either a unit-variant string ("Checkpoint", "tool") or an
+    # externally-tagged hash like {"ToolCall" => {"tool_name" => "http_call"}}.
+    def step_type_kind_label(step_type)
+      case step_type
+      when String
+        [step_type.underscore, step_type.underscore.tr('_', ' ')]
+      when Hash
+        variant = step_type.keys.first.to_s
+        inner   = step_type[variant] || {}
+        inner   = inner.with_indifferent_access if inner.respond_to?(:with_indifferent_access)
+        kind    = variant.underscore
+        label =
+          case variant
+          when 'ToolCall'       then inner[:tool_name].to_s.presence || 'tool call'
+          when 'Inference'      then inner[:model].to_s.presence || 'inference'
+          when 'RoboticsAction' then inner[:action].to_s.presence || 'robotics action' # never the target
+          when 'BtNode'         then inner[:node_type].to_s.presence || 'bt node'
+          when 'Checkpoint'     then 'checkpoint'
+          else variant.underscore.tr('_', ' ')
+          end
+        [kind, label]
+      else
+        ['step', 'step']
+      end
+    end
+
+    # WalStatus is "Intent"/"Executing"/"Committed" or {"Failed" => {reason}}.
+    # The failure reason is intentionally dropped — it can carry free text.
+    def wal_status_label(status)
+      variant = status.is_a?(Hash) ? status.keys.first.to_s : status.to_s
+      case variant
+      when 'Committed'  then ['Committed', :ok]
+      when 'Executing'  then ['Running',   :warn]
+      when 'Intent'     then ['Planned',   :muted]
+      when 'Failed'     then ['Failed',    :bad]
+      when ''           then ['Unknown',   :muted]
+      else [variant.tr('_', ' ').capitalize, :muted]
+      end
+    end
+
+    def truncate_digest(hex)
+      h = hex.to_s.strip
+      return nil if h.empty?
+      h.length > 14 ? "#{h[0, 14]}…" : h
+    end
+
+    def parse_time_ms(ms)
+      return nil if ms.nil? || ms.to_i.zero?
+      Time.at(ms.to_i / 1000.0)
+    rescue StandardError
+      nil
+    end
+
     def normalize_runtime(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       last_seen = parse_time(raw[:last_seen_at] || raw[:last_heartbeat_at])
@@ -240,16 +324,19 @@ module Igris
     def policy_label_for(preset, approval_required, irreversible)
       parts = []
       parts << case preset.to_s
-               when 'idempotent'     then 'Idempotent · safe retries'
-               when 'single_flight'  then 'Single-flight'
-               when 'manual_approval' then 'Manual approval'
-               when 'observe_only'   then 'Observe only'
-               when ''               then 'Default'
+               when 'Safe automation' then 'Safe automation'
+               when 'Human-gated'     then 'Human-gated'
+               when 'Non-replayable'  then 'Non-replayable'
+               when 'Read-only'       then 'Read-only'
+               # Legacy / pre-canonical presets, kept readable just in case.
+               when 'idempotent'      then 'Safe automation'
+               when 'manual_approval' then 'Human-gated'
+               when ''                then 'Safe automation'
                else preset.to_s.tr('_', ' ').capitalize
                end
       parts << 'approval required' if approval_required
       parts << 'irreversible'      if irreversible
-      parts.join(', ')
+      parts.join(' · ')
     end
 
     def setup_status_for(target_type, url)
