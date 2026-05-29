@@ -101,6 +101,14 @@ module Igris
       request(:get, "/v1/tasks/#{escape(id)}")
     end
 
+    # GET /v1/tasks/:id/steps → { steps: [WalEntry...], total }
+    # WAL entries are already digest-only (no raw inputs/outputs) and
+    # tenant-scoped server-side. Ordered by step_index ascending.
+    def get_task_steps(id)
+      body = request(:get, "/v1/tasks/#{escape(id)}/steps")
+      Array(body && body['steps'])
+    end
+
     # GET /v1/tasks → { items: [...], next_cursor: ... }
     def list_tasks(limit: 50)
       body = request(:get, '/v1/tasks', query: { limit: limit })
