@@ -5,14 +5,16 @@ require 'test_helper'
 # without requiring Overture to be reachable.
 class DataSourceTest < ActiveSupport::TestCase
   class FakeClient
-    def initialize(actions: [], tasks: [], runtimes: [], errors: {})
+    def initialize(actions: [], tasks: [], runtimes: [], errors: {}, steps_by_task: {})
       @actions = actions; @tasks = tasks; @runtimes = runtimes; @errors = errors
+      @steps_by_task = steps_by_task
     end
     def configured?      = true
     def list_actions     = raise_or(@actions, :list_actions)
     def list_tasks(**)   = raise_or(@tasks, :list_tasks)
     def list_runtimes    = raise_or(@runtimes, :list_runtimes)
     def get_task(id)     = raise_or(@tasks.find { |t| t['task_id'] == id || t[:task_id] == id }, :get_task)
+    def get_task_steps(id) = raise_or(@steps_by_task&.dig(id) || [], :get_task_steps)
     def get_action(id)   = @actions.find { |a| a['id'] == id || a[:id] == id || a['name'] == id || a[:name] == id }
     def find_action_by_name(n) = @actions.find { |a| a['name'] == n || a[:name] == n }
     def create_action(p) = p
