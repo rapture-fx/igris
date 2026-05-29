@@ -14,7 +14,7 @@
     <% end %>
   </div>
   <div class="ic-topbar__group">
-    <a href="#install" class="ic-btn ic-btn--accent">Install runtime</a>
+    <a href="#install" class="ic-btn">Install runtime</a>
   </div>
 </div>
 
@@ -121,7 +121,7 @@
           Install the runtime on the machine that has access to private files,
           internal APIs, or local databases. The steps below get you connected.
         </p>
-        <a href="#install" class="ic-btn ic-btn--accent">Copy install command</a>
+        <a href="#install" class="ic-btn">Copy install command</a>
       </div>
     <% end %>
 
@@ -135,27 +135,65 @@
       systems do not need to be exposed to the public internet.
     </p>
 
+    <% key_value = @generated_key.presence || 'igris_...' %>
     <div class="ic-steps">
+      <%# Step 1 — runtime key (read-once) %>
       <div class="ic-step">
         <span class="ic-step__num">1</span>
         <div class="ic-step__main">
-          <div class="ic-step__title">Install on the host with access</div>
-          <%= code_snippet 'IGRIS_API_KEY=igris_... curl -fsSL https://igrisinertial.com/install | bash', language: 'bash' %>
+          <div class="ic-step__title">Create a runtime key</div>
+          <% if demo_mode? %>
+            <p class="ic-step__hint">
+              Connect to a live Igris API to generate a key. Demo mode does not issue real keys.
+            </p>
+          <% elsif @generated_key.present? %>
+            <div class="ic-keygen">
+              <div class="ic-keygen__warn">Shown once. Store it in your password manager.</div>
+              <%= code_snippet @generated_key, language: 'bash', label: 'runtime key' %>
+              <p class="ic-step__hint">Use this key on the machine where the runtime runs.</p>
+            </div>
+          <% else %>
+            <% if @key_status && @key_status['has_key'] %>
+              <p class="ic-step__hint">
+                A runtime key already exists
+                (<span class="mono"><%= @key_status['prefix'] %>…</span>). It was shown
+                only once at creation — generate a new one if you've lost it.
+              </p>
+            <% else %>
+              <p class="ic-step__hint">Use this key on the machine where the runtime runs. It is shown once.</p>
+            <% end %>
+            <%= form_with url: api_key_runtimes_path, method: :post do %>
+              <%= submit_tag((@key_status && @key_status['has_key']) ? 'Generate a new key' : 'Create a runtime key', class: 'ic-btn') %>
+            <% end %>
+          <% end %>
         </div>
       </div>
+
+      <%# Step 2 — install %>
       <div class="ic-step">
         <span class="ic-step__num">2</span>
         <div class="ic-step__main">
+          <div class="ic-step__title">Install on the host with access</div>
+          <%= code_snippet "IGRIS_API_KEY=#{key_value} curl -fsSL https://igrisinertial.com/install | bash", language: 'bash' %>
+        </div>
+      </div>
+
+      <%# Step 3 — start %>
+      <div class="ic-step">
+        <span class="ic-step__num">3</span>
+        <div class="ic-step__main">
           <div class="ic-step__title">Start the runtime</div>
-          <%= code_snippet 'IGRIS_API_KEY=igris_... igris-runtime serve', language: 'bash' %>
+          <%= code_snippet "IGRIS_API_KEY=#{key_value} igris-runtime serve", language: 'bash' %>
           <p class="ic-step__hint">
             It connects to Igris at <code>api.igrisinertial.com</code> and registers
             when <code>IGRIS_API_KEY</code> is set — then appears under Connected runtimes above.
           </p>
         </div>
       </div>
+
+      <%# Step 4 — create a local action %>
       <div class="ic-step">
-        <span class="ic-step__num">3</span>
+        <span class="ic-step__num">4</span>
         <div class="ic-step__main">
           <div class="ic-step__title">Create a Local runtime action</div>
           <p class="ic-step__hint">
