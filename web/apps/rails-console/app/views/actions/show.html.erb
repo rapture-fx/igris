@@ -28,28 +28,6 @@
     </div>
   <% end %>
 
-  <%# ── Next step card ──────────────────────────────────────── %>
-  <div class="ic-nextstep">
-    <div class="ic-nextstep__body">
-      <div class="ic-nextstep__kicker">Next step</div>
-      <% if latest %>
-        <div class="ic-nextstep__title">Inspect what Igris recorded</div>
-        <p class="ic-nextstep__sub">Your last request ran. Open the run to see status, routing, policy, and proof — or send another.</p>
-      <% else %>
-        <div class="ic-nextstep__title">Send a test request</div>
-        <p class="ic-nextstep__sub">Call this endpoint where your agent would normally call the tool directly. The form below sends a sample request.</p>
-      <% end %>
-    </div>
-    <div class="ic-nextstep__cta">
-      <% if latest %>
-        <%= link_to 'Inspect latest run', run_path(latest[:id]), class: 'ic-btn ic-btn--accent' %>
-        <a href="#test-request" class="ic-btn">Run again</a>
-      <% else %>
-        <a href="#test-request" class="ic-btn ic-btn--accent">Send a test request</a>
-      <% end %>
-    </div>
-  </div>
-
   <%# ── Local-runtime guidance ─────────────────────────────── %>
   <% if @action[:target_type] == 'local_runtime' %>
     <% if @runtime_required %>
