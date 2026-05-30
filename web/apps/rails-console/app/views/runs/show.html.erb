@@ -29,13 +29,6 @@
       <% if through_runtime %>
         <%= link_to 'Open runtime', runtimes_path, class: 'ic-btn' %>
       <% end %>
-      <% if demo_mode? %>
-        <button class="ic-btn">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-          Re-run
-        </button>
-        <button class="ic-btn">Verify chain</button>
-      <% end %>
     </div>
   </div>
 
@@ -118,6 +111,25 @@
         </div>
       </div>
     <% end %>
+
+    <%# ── Audit interpretation — plain-language reading of the evidence ──── %>
+    <div class="ic-evidence ic-audit" id="audit">
+      <div class="ic-evidence__head">Audit interpretation</div>
+      <p class="ic-audit__intro">
+        A plain-language reading of this run's evidence to support audits. This is
+        interpretation only — it is not a certification and makes no legal or
+        regulatory claim.
+      </p>
+      <% audit_interpretation(@run).each do |row| %>
+        <div class="ic-audit__row">
+          <div class="ic-def">
+            <span class="ic-def__label"><%= row[:label] %></span>
+            <div class="ic-def__value"><%= row[:value] %></div>
+          </div>
+          <p class="ic-audit__note"><%= row[:note] %></p>
+        </div>
+      <% end %>
+    </div>
 
     <% if demo_mode? %>
       <%# ════════════ FIXTURE MODE: clearly-labelled illustrative demo ════════ %>
