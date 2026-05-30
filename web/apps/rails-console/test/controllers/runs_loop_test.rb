@@ -98,12 +98,12 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # ── Run detail: context bar, copyable id, linkbacks ─────────────────────
-  test 'run detail shows the context bar, copyable run id, and linkbacks' do
+  # ── Run detail: title id + copy, linkbacks, at-a-glance summary ─────────
+  test 'run detail shows the copyable run id, linkbacks, and routed-via context' do
     get '/runs/run_01HGJ3R6T7E' # export_ledger, routed through a runtime
     assert_response :success
-    assert_match 'Routed via', response.body
-    assert_match 'Run ID', response.body
+    assert_match 'run_01HGJ3R6T7E', response.body    # run id shown in the topbar
+    assert_match 'Routed via', response.body         # at-a-glance context in the summary
     assert_match 'Copy', response.body               # inline copy button
     assert_match 'Back to action', response.body     # action is known in fixtures
     assert_match 'Open runtime', response.body       # ran through a runtime
@@ -115,7 +115,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'What to do next', response.body
     assert_match 'Run completed successfully.', response.body
-    assert_match 'View step evidence', response.body
+    assert_match 'View evidence', response.body
   end
 
   test 'failed run suggests opening the action and copying the run id' do
