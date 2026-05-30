@@ -4,14 +4,15 @@
   40px column · 36×36 buttons · 15×15 lucide icons at strokeWidth 1.5.
 %>
 <nav class="ic-rail" aria-label="Console lenses">
-  <%= link_to home_path, class: 'ic-rail__logo', 'aria-label': 'Igris' do %>
+  <%= link_to welcome_path, class: 'ic-rail__logo', 'aria-label': 'Igris' do %>
     <%= image_tag '/inertia.png',     class: 'ic-rail__logo-img ic-rail__logo-img--light', alt: '' %>
     <%= image_tag '/fofotlight.png',  class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
   <% end %>
 
   <div class="ic-rail__items">
     <% rail_items = [
-      [:home,     home_path,     'Home',     'layout-dashboard'],
+      [:home,     welcome_path,  'Home',     'house'],
+      [:overview, home_path,     'Overview', 'layout-dashboard'],
       [:actions,  actions_path,  'Actions',  'list-checks'],
       [:runs,     runs_path,     'Runs',     'zap'],
       [:runtimes, runtimes_path, 'Runtimes', 'box'],
