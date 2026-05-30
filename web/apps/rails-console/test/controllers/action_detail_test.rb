@@ -69,6 +69,29 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
     assert_match 'await fetch', response.body
   end
 
+  HOSTED_ACTION = {
+    id: 'a-send', name: 'send_email', display_name: 'Send email',
+    description: '', target_type: 'hosted_api', target_label: 'Hosted API',
+    target_url: 'https://api.example.com', method: 'POST',
+    policy: 'Safe automation', policy_preset: 'Safe automation', replay: 'On',
+    secrets_state: 'Configured',
+    endpoint: 'https://api.igrisinertial.com/v1/actions/send_email/run',
+    setup: 'Ready', last_run_at: nil, last_run_status: nil, proof: 'No run yet',
+    approval_required: false, irreversible: false, raw: {},
+  }.freeze
+
+  test 'overview test panel is visible without tab hunting and explains success' do
+    with_fake_ds(FakeDS.new(action: HOSTED_ACTION, runs: [], healthy: true)) do
+      get action_path('a-send') # overview tab by default
+      assert_response :success
+      assert_match 'Test this action', response.body
+      assert_match 'What should happen', response.body
+      assert_match 'taken to the run record', response.body          # real mode success copy
+      assert_select "form[action=?]", run_action_path('a-send') # test form posts to the run action
+      assert_match 'Send test request', response.body
+    end
+  end
+
   test 'snippets reference the IGRIS_API_KEY placeholder and never a real key' do
     get '/actions/send_email'
     assert_response :success
