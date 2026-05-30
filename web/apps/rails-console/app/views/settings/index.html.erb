@@ -1,11 +1,14 @@
-<%# Settings — minimal MVP per product spec. Four sections: API endpoints,
-    Console front door, Environment, Advanced. Team/billing/SSO live elsewhere. %>
+<%# Settings — minimal, configuration-focused. Sections: API endpoints,
+    Access keys, Runtime keys, Tool & target access, Environment, Advanced.
+    Team/billing/SSO live elsewhere. No secret values are ever echoed. %>
 <% section = (params[:section].presence || 'api').to_s %>
 <% sections = [
-  ['api',     'API endpoints',     'Base URLs for the Igris API and the console'],
-  ['front',   'Console front door','HTTP Basic credentials gating this console'],
-  ['env',     'Environment',       'Runtime variables and connection state'],
-  ['advanced','Advanced',          'Audit log export and other rarely-used ops'],
+  ['api',     'API endpoints',       'Base URLs for the Igris API and the console'],
+  ['access',  'Access keys',         'How agents and this console authenticate'],
+  ['runtime', 'Runtime keys',        'Keys runtimes use to connect'],
+  ['tools',   'Tool & target access','How agents reach tools through Igris'],
+  ['env',     'Environment',         'Runtime variables and connection state'],
+  ['advanced','Advanced',            'Audit log export and other rarely-used ops'],
 ] %>
 
 <div class="ic-topbar">
@@ -68,7 +71,35 @@
         </div>
       </div>
 
-    <% elsif section == 'front' %>
+    <% elsif section == 'access' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Access keys</div>
+        <p class="ic-settings__intro">
+          Two kinds of credential. An agent calls an Igris action endpoint
+          with its own API key; this console authenticates to the Igris API
+          with a separate key set on the host. Keys are never displayed here.
+        </p>
+
+        <div class="ic-field">
+          <label class="ic-field__label">Agent API key</label>
+          <input class="ic-input" type="password" value="" placeholder="igris_… (created with the runtime key — shown once)" disabled />
+          <p class="ic-field__help">
+            Agents send <code>Authorization: Bearer $IGRIS_API_KEY</code> to an
+            action endpoint. Create one on the <%= link_to 'Runtimes', runtimes_path %> page —
+            it is shown only once.
+          </p>
+        </div>
+
+        <div class="ic-field">
+          <label class="ic-field__label">Console API key</label>
+          <input class="ic-input" type="password" value="" placeholder="igris_… (set on the host, never shown)" disabled />
+          <p class="ic-field__help">
+            Set on the host as <code>OVERTURE_API_KEY</code>. Used only by this
+            console to read actions, runs, and runtimes. Never displayed.
+          </p>
+        </div>
+      </div>
+
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Console front door</div>
         <p class="ic-settings__intro">
@@ -88,6 +119,78 @@
             Status: <strong>
               <%= ENV['ADMIN_USERNAME'].present? && ENV['ADMIN_PASSWORD'].present? ? 'locked' : 'open (development)' %>
             </strong>
+          </p>
+        </div>
+      </div>
+
+    <% elsif section == 'runtime' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Runtime keys</div>
+        <p class="ic-settings__intro">
+          A runtime key lets a local runtime connect to Igris and execute
+          Local runtime actions. It is shown only once when created — store
+          it in a password manager. Keys are managed on the Runtimes page,
+          never here, so a raw key is never re-displayed.
+        </p>
+
+        <div class="ic-field">
+          <label class="ic-field__label">Runtime key</label>
+          <input class="ic-input" type="password" value="" placeholder="igris_… (created on Runtimes — shown once)" disabled />
+          <p class="ic-field__help">
+            Generate or rotate a runtime key on the
+            <%= link_to 'Runtimes', runtimes_path %> page. The runtime uses it as
+            <code>IGRIS_API_KEY</code> when it starts.
+          </p>
+        </div>
+
+        <div class="ic-callout">
+          <div class="ic-callout__title">When do I need a runtime key?</div>
+          <p class="ic-callout__body">
+            Only for actions with a <strong>Local runtime</strong> target —
+            those that touch private files, internal APIs, or local databases.
+            Hosted API and webhook actions need no runtime and no runtime key.
+          </p>
+          <%= link_to 'Open Runtimes', runtimes_path, class: 'ic-btn' %>
+        </div>
+      </div>
+
+    <% elsif section == 'tools' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Tool &amp; target access</div>
+        <p class="ic-settings__intro">
+          The agent never gets direct tool access. It receives a safe Igris
+          action endpoint. Igris evaluates policy, routes to the target, and
+          records signed evidence — the agent only ever sees the endpoint.
+        </p>
+
+        <div class="ic-diagram ic-diagram--runtime" role="img"
+             aria-label="The agent calls one Igris action endpoint; Igris applies policy and routing before reaching the real tool or target">
+          <div class="ic-diagram__node">
+            <div class="ic-diagram__node-label">Agent</div>
+            <div class="ic-diagram__node-sub">Calls one endpoint</div>
+          </div>
+          <div class="ic-diagram__arrow">
+            <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="ic-diagram__node ic-diagram__node--accent">
+            <div class="ic-diagram__node-label">Igris action endpoint</div>
+            <div class="ic-diagram__node-sub">Policy · routing · proof</div>
+          </div>
+          <div class="ic-diagram__arrow">
+            <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="ic-diagram__node">
+            <div class="ic-diagram__node-label">Tool / target</div>
+            <div class="ic-diagram__node-sub">API · webhook · runtime</div>
+          </div>
+        </div>
+
+        <div class="ic-field">
+          <label class="ic-field__label">Where targets are configured</label>
+          <p class="ic-field__help">
+            Each action defines its own target on
+            <%= link_to 'Actions', actions_path %>. There is no global tool
+            allow-list here — the boundary is the action itself.
           </p>
         </div>
       </div>
