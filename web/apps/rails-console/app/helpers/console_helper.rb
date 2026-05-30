@@ -217,6 +217,10 @@ module ConsoleHelper
     :waiting
   end
 
+  # Ordered band descriptors, exposed as a method so views can iterate them
+  # (the bare constant isn't resolvable from a compiled ERB template).
+  def run_activity_bands = RUN_ACTIVITY_BANDS
+
   # Human label for a band key.
   def run_activity_label(band)
     RUN_ACTIVITY_BANDS.find { |b| b[:key] == band }&.dig(:label) || 'Run'
