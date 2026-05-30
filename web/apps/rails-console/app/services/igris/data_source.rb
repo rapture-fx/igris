@@ -133,6 +133,37 @@ module Igris
       action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     end
 
+    # Compact fleet status counts for the runtime summary strip.
+    def runtime_summary
+      rts = runtimes
+      {
+        total:   rts.size,
+        healthy: rts.count { |r| r[:status] == 'Healthy' },
+        stale:   rts.count { |r| %w[Stale Degraded].include?(r[:status]) },
+        offline: rts.count { |r| r[:status] == 'Offline' },
+      }
+    end
+
+    # Actions that route through a local runtime — the ones the Runtimes page
+    # should surface as "needs a runtime".
+    def local_runtime_actions
+      actions.select { |a| a[:target_type].to_s == 'local_runtime' }
+    end
+
+    # Recent runs that executed through a runtime, newest first. Used by the
+    # Runtimes page to connect runtimes back to the Runs they powered.
+    def runtime_runs(limit: 5)
+      all_runs(limit: 50).select { |r| run_through_runtime?(r) }.first(limit)
+    end
+
+    # A run touched a runtime if it bound a runtime_id or routed to the
+    # local_runtime target. Works for both normalized real runs and fixtures.
+    def run_through_runtime?(run)
+      run[:runtime_id].to_s.strip.present? ||
+        run[:executed_target].to_s == 'local_runtime' ||
+        run[:routed_via].to_s.match?(/\A(Runtime|Local runtime)/)
+    end
+
     # ── Runtime API key ───────────────────────────────────────────────────
     # The key a runtime uses to connect (IGRIS_API_KEY). Issued separately from
     # the console service key. Never fabricated in fixture mode.
@@ -234,6 +265,8 @@ module Igris
         action:       extract_action_name(raw),
         status:       status_label_for(raw[:status]),
         routed_via:   routed_via_for(raw[:executed_target], raw[:runtime_id]),
+        executed_target: raw[:executed_target].to_s,
+        runtime_id:   raw[:runtime_id].to_s,
         policy:       raw.dig(:proof, :policy_preset) || raw[:policy_preset] || 'default',
         recovery:     recovery_label_for(raw[:recovery]),
         proof:        proof[:label],
@@ -255,7 +288,22 @@ module Igris
         executed_target: raw[:executed_target].to_s,
         runtime_id: raw[:runtime_id].to_s,
         failure_reason: raw.dig(:failure, :reason) || raw[:failure_reason].to_s,
+        runtime_unavailable: runtime_unavailable?(raw),
       )
+    end
+
+    # True when a run failed because the runtime it needed was not available.
+    # Derived from the failure reason / error code as a BOOLEAN signal only —
+    # the underlying free text is never returned or rendered. Also infers the
+    # case where a local_runtime route never bound to a runtime and failed.
+    def runtime_unavailable?(raw)
+      blob = [raw.dig(:failure, :reason), raw[:failure_reason], raw[:error_code],
+              raw[:error]].compact.join(' ').downcase
+      return true if blob.match?(/runtime[ _-]?(unavailable|offline|not[ _-]?connected|disconnected)|no[ _-]runtime|runtime_unavailable/)
+
+      raw[:status].to_s == 'failed' &&
+        raw[:executed_target].to_s == 'local_runtime' &&
+        raw[:runtime_id].to_s.strip.empty?
     end
 
     # Map raw WAL entries → safe per-step rows for Run detail. Surfaces only
