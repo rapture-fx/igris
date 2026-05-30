@@ -2,13 +2,15 @@
     (and don't) need one, shows connected-runtime status, and presents the
     install/start commands. No hostnames, IPs, or env values are rendered. %>
 <% has_runtime = @runtimes.any?
-   healthy = @runtimes.select { |r| r[:status] == 'Healthy' } %>
+   healthy = @runtimes.select { |r| r[:status] == 'Healthy' }
+   sum = @runtime_summary || { total: @runtimes.size, healthy: healthy.size, stale: 0, offline: 0 } %>
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Runtimes</span>
     <% if has_runtime %>
-      <span class="ic-chip"><%= @runtimes.size %> connected</span>
-      <span class="ic-chip" style="color: var(--ic-emerald);"><%= healthy.size %> healthy</span>
+      <span class="ic-chip" style="color: var(--ic-emerald);"><%= sum[:healthy] %> healthy</span>
+      <% if sum[:stale].positive? %><span class="ic-chip" style="color: var(--ic-amber);"><%= sum[:stale] %> stale</span><% end %>
+      <% if sum[:offline].positive? %><span class="ic-chip" style="color: var(--ic-rose);"><%= sum[:offline] %> offline</span><% end %>
     <% else %>
       <span class="ic-chip">none connected</span>
     <% end %>
@@ -122,6 +124,57 @@
           internal APIs, or local databases. The steps below get you connected.
         </p>
         <a href="#install" class="ic-btn">Copy install command</a>
+      </div>
+    <% end %>
+
+    <%# ── Actions that need a runtime ───────────────────────── %>
+    <% if @runtime_actions.present? %>
+      <div class="ic-section-head" style="margin-top: 24px;">
+        <span class="ic-section-head__label">Actions that need a runtime</span>
+        <span class="ic-section-head__hint">Local runtime actions route through a connected runtime.</span>
+      </div>
+      <div class="ic-rtlink-list">
+        <% @runtime_actions.each do |a| %>
+          <% ready = healthy.any? %>
+          <%= link_to action_path(a[:id] || a[:name]), class: 'ic-rtlink' do %>
+            <span class="ic-rtlink__main">
+              <span class="ic-rtlink__name mono"><%= a[:name] %></span>
+              <span class="ic-rtlink__sub"><%= a[:target_label].presence || 'Local runtime' %></span>
+            </span>
+            <% if ready %>
+              <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Ready</span>
+            <% else %>
+              <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Runtime required</span>
+            <% end %>
+            <span class="ic-rtlink__go">Open action →</span>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# ── Recent runs through runtimes ──────────────────────── %>
+    <% if @runtime_runs.present? %>
+      <div class="ic-section-head" style="margin-top: 24px;">
+        <span class="ic-section-head__label">Recent runtime runs</span>
+        <span class="ic-section-head__hint">Executions that routed through a runtime<%= ' · demo data' if demo_mode? %>.</span>
+      </div>
+      <div class="ic-rtlink-list">
+        <% @runtime_runs.each do |r| %>
+          <% tone = run_tone(r)
+             action_known = @action_names.include?(r[:action].to_s) %>
+          <%= link_to run_path(r[:id]), class: 'ic-rtlink' do %>
+            <span class="ic-rtlink__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
+            <span class="ic-rtlink__main">
+              <span class="ic-rtlink__name">
+                <span class="mono"><%= r[:id] %></span>
+                <%= " · #{r[:action]}" if action_known %>
+              </span>
+              <span class="ic-rtlink__sub mono"><%= r[:routed_via] %></span>
+            </span>
+            <span class="ic-rtlink__sub"><%= r[:proof] %></span>
+            <span class="ic-rtlink__go"><%= time_ago(r[:started_at]) %> · Open run →</span>
+          <% end %>
+        <% end %>
       </div>
     <% end %>
 
