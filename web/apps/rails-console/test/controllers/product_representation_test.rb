@@ -157,6 +157,17 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
     assert_match 'Reset console onboarding', response.body
     refute_match 'Export audit log', response.body # was a dead button
     refute_match 'Pause all runtimes', response.body # was a dead button
+    # The reset button must post to the reset route, not the (opposite) enter route.
+    assert_select "form[action=?]", reset_onboarding_path
+  end
+
+  test 'reset onboarding forgets the welcomed cookie and returns to /welcome' do
+    # Become onboarded first, then reset.
+    post enter_console_path
+    assert cookies[:igris_welcomed].present?
+    post reset_onboarding_path
+    assert_redirected_to welcome_path
+    assert cookies[:igris_welcomed].blank?, 'reset should clear the welcomed cookie'
   end
 
   test 'settings agent-access section states agents get an endpoint, not tools' do
