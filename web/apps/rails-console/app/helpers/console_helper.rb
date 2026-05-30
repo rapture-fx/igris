@@ -103,6 +103,54 @@ module ConsoleHelper
     end
   end
 
+  # ── Run categorization — shared by the Runs controller (filters/counts)
+  # and the Runs views (row styling). Operate on a normalized run hash. ──
+  def run_failed?(run)  = run[:status].to_s.casecmp('Failed').zero?
+  def run_running?(run) = run[:status].to_s.casecmp('Running').zero?
+
+  # Proof has not been (or cannot be) established yet.
+  def run_proof_unavailable?(run)
+    run[:proof].to_s.match?(/unavailable|pending/i)
+  end
+
+  # A run a developer should look at: it failed, its proof failed, or its
+  # recovery is unresolved.
+  def run_needs_attention?(run)
+    run_failed?(run) ||
+      run[:proof].to_s.casecmp('Proof failed').zero? ||
+      run[:recovery].to_s.match?(/awaiting|failed/i)
+  end
+
+  # Tone token (ok / running / failed) for a run's status dot + caps.
+  def run_tone(run)
+    return 'running' if run_running?(run)
+    return 'failed'  if run_failed?(run)
+    'ok'
+  end
+
+  # The single most useful next step for a run, used by Run Detail's
+  # "What to do next" panel. Returns a state token; the view renders the
+  # matching message + CTAs. Ordered by urgency so a runtime-unavailable
+  # failure is never masked by the generic "failed" branch.
+  def run_guidance_state(run)
+    return :runtime_unavailable if run[:runtime_unavailable]
+    return :failed              if run_failed?(run)
+    return :running             if run_running?(run)
+    return :proof_unavailable   if run_proof_unavailable?(run)
+    return :completed           if run[:status].to_s.casecmp('Succeeded').zero?
+    nil
+  end
+
+  # Small inline "copy this value" button. Reuses the same clipboard pattern
+  # as the code-snippet card. The value is only ever a safe identifier
+  # (run/task id) — never a secret.
+  def copy_button(value, label: 'Copy')
+    content_tag :button, label, type: 'button', class: 'ic-copy',
+      data: { code: value.to_s },
+      onclick: "(()=>{navigator.clipboard.writeText(this.dataset.code);" \
+               "this.textContent='Copied';setTimeout(()=>this.textContent='#{label}',1400)})()"
+  end
+
   def infer_tone(label)
     case label.to_s
     when /verified|ready|success|healthy|completed|connected/i then :ok
