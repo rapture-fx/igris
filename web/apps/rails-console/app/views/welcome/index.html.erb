@@ -1,17 +1,20 @@
-<%# Welcome — first-time onboarding and product education. The everyday
-    workspace lives at /home. Standalone layout (no console chrome). %>
-<div class="ic-welcome">
-  <header class="ic-welcome__top">
-    <a href="<%= welcome_path %>" class="ic-welcome__brand">
-      <%= image_tag '/inertia.png',    class: 'ic-rail__logo-img ic-rail__logo-img--light', alt: '' %>
-      <%= image_tag '/fofotlight.png', class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
-      <span>Igris Inertial</span>
-    </a>
-    <%= button_to 'Skip to Home', enter_console_path,
-        method: :post, form: { style: 'display:inline; margin:0;' },
-        class: 'ic-btn' %>
-  </header>
+<%# Home — first-time onboarding and product education, rendered inside the
+    console chrome (icon rail + topbar) via the default application layout.
+    The everyday workspace is Overview at /home. %>
+<% sample_endpoint = action_endpoint_url('send_email') %>
 
+<div class="ic-topbar">
+  <div class="ic-topbar__group">
+    <span class="ic-topbar__title">Get started</span>
+    <span class="ic-chip">igris-default</span>
+  </div>
+  <div class="ic-topbar__group">
+    <a href="https://igrisinertial.com/docs" target="_blank" rel="noopener" class="ic-btn">Read docs</a>
+    <%= link_to 'Skip to Overview', home_path, class: 'ic-btn' %>
+  </div>
+</div>
+
+<div class="ic-body ic-scroll">
   <main class="ic-welcome__main">
     <h1 class="ic-welcome__title">Give your AI agent a safe action endpoint.</h1>
     <p class="ic-welcome__sub">
@@ -57,6 +60,17 @@
       Create an action, copy the endpoint, send a test request, and inspect what happened.
     </p>
 
+    <%# ── Call Igris (copyable command) ───────────────────────── %>
+    <div class="ic-section-head"><span class="ic-section-head__label">Call Igris from your agent</span></div>
+    <p class="ic-welcome__sub" style="margin-bottom: 12px;">
+      Once an action exists, your agent makes a simple HTTP request to its
+      endpoint. Igris handles policy, execution, and evidence.
+    </p>
+    <%= code_snippet sample_endpoint, language: 'http', label: 'Action endpoint' %>
+    <div style="height: 8px;"></div>
+    <%= code_snippet action_curl_snippet(sample_endpoint, %({ "input": { "message": "Hello from Igris" } })),
+        language: 'bash', label: 'Example request' %>
+
     <%# ── Where actions run ───────────────────────────────────── %>
     <div class="ic-section-head"><span class="ic-section-head__label">Where actions run</span></div>
     <div class="ic-need">
@@ -90,9 +104,8 @@
           <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       <% end %>
-      <%= button_to 'Go to Home', enter_console_path,
-          method: :post, form: { style: 'margin:0;' },
-          class: 'ic-btn' %>
+      <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+      <%= link_to 'Go to Overview', home_path, class: 'ic-btn' %>
     </div>
   </main>
 </div>
