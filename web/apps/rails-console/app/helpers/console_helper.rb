@@ -67,6 +67,31 @@ module ConsoleHelper
     end
   end
 
+  # Small status glyphs for the Home activity feed — drawn so each event reads
+  # like a notification (check / cross / spinner / alert) rather than a bare dot.
+  FEED_GLYPHS = {
+    ok:      '<path d="M5 12.5 L10 17 L19 7"/>',
+    failed:  '<path d="M6 6 L18 18 M18 6 L6 18"/>',
+    running: '<path d="M21 12a9 9 0 1 1-6.2-8.56"/>',
+    warn:    '<path d="M12 8v5"/><path d="M12 16.5h.01"/>',
+  }.freeze
+
+  def feed_icon(tone, size: 12, stroke: 2.2)
+    path = FEED_GLYPHS[tone.to_sym] || FEED_GLYPHS[:ok]
+    content_tag :svg, path.html_safe,
+      width: size, height: size, viewBox: '0 0 24 24',
+      fill: 'none', stroke: 'currentColor', 'stroke-width': stroke,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+  end
+
+  # Subtle trailing chevron on feed rows — reveals on hover via CSS.
+  def feed_chevron
+    content_tag :svg, '<path d="M9 6 L15 12 L9 18"/>'.html_safe,
+      class: 'ic-feed-item__chev', width: 13, height: 13, viewBox: '0 0 24 24',
+      fill: 'none', stroke: 'currentColor', 'stroke-width': 2,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+  end
+
   # Tone for a normalized runtime status label (Healthy / Stale / Degraded /
   # Offline / anything else). Used to colour the connected-runtime rows.
   def runtime_status_tone(status)
