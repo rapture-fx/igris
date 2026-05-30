@@ -40,6 +40,23 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 				SELECT tenant_id, COALESCE(tenant_name,''), COALESCE(tenant_email,'')
 				FROM tenants WHERE api_key_hash = $1 AND COALESCE(is_active, true) = true
 			`, keyHash).Scan(&tenantID, &name, &email)
+
+			// Fallback: named tenant keys — agent/app keys and runtime keys —
+			// live in tenant_api_keys, separate from the tenant's primary
+			// api_key_hash (the console service key). This is what lets an
+			// agent call action endpoints with a key minted in Settings without
+			// ever rotating the console's own credential. Stays tenant-scoped:
+			// the tenant_id is resolved from the matched row, never the caller.
+			if err == sql.ErrNoRows {
+				err = db.QueryRowContext(c.Context(), `
+					SELECT t.tenant_id, COALESCE(t.tenant_name,''), COALESCE(t.tenant_email,'')
+					FROM tenant_api_keys k
+					JOIN tenants t ON t.tenant_id = k.tenant_id
+					WHERE k.key_hash = $1 AND k.status = 'active'
+					  AND COALESCE(t.is_active, true) = true
+					LIMIT 1
+				`, keyHash).Scan(&tenantID, &name, &email)
+			}
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"error": "unauthorized",
