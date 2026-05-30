@@ -2281,18 +2281,17 @@ html.dark {
 }
 .ic-action-row {
   display: grid;
-  grid-template-columns: 8px 1.1fr 1.6fr min-content 90px auto;
+  grid-template-columns: 8px 1.1fr 1.6fr min-content 90px;
   align-items: center;
   gap: 12px;
   padding: 7px 14px;
   border-bottom: 1px solid var(--ic-border-soft);
   color: inherit;
+  text-decoration: none;
   transition: background 120ms ease;
 }
 .ic-action-row:hover { background: var(--ic-overlay-2); }
 .ic-action-row:hover .ic-action-row__name { color: var(--ic-emerald); }
-.ic-action-row__open { height: 24px; padding: 0 10px; font-size: 11px; }
-
 /* Endpoint-readiness chip — Ready / Needs target / Needs runtime / Demo only */
 .ic-readiness {
   display: inline-flex;
@@ -2343,6 +2342,7 @@ html.dark .ic-readiness--warn .ic-readiness__dot { background: #fbbf24; }
   font-size: 11px;
   color: var(--ic-text-4);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-align: right;
 }
 .ic-action-row__proof { font-size: 11px; color: var(--ic-text-5); }
 .ic-action-row__badge { display: block; text-align: left; }
