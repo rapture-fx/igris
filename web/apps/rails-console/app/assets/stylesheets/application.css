@@ -2370,6 +2370,18 @@ html.dark .ic-readiness--warn .ic-readiness__dot { background: #fbbf24; }
   max-width: 60ch;
   line-height: 1.45;
 }
+.ic-settings__list {
+  margin: 6px 0 14px;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ic-settings__list li {
+  font-size: 12px;
+  color: var(--ic-text-3);
+  line-height: 1.5;
+}
 
 .ic-field {
   margin: 10px 0 12px;
@@ -2646,6 +2658,25 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
 .ic-evidence .ic-def { padding: 6px 0; }
 .ic-def__value.mono { font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-3); word-break: break-all; }
 
+/* Audit interpretation — receipts/evidence translated into plain language. */
+.ic-audit__intro {
+  font-size: 12px;
+  color: var(--ic-text-5);
+  line-height: 1.55;
+  margin: 0 0 8px;
+  max-width: 70ch;
+}
+.ic-audit__row { padding: 8px 0; border-top: 1px solid var(--ic-border-soft); }
+.ic-audit__row:first-of-type { border-top: 0; }
+.ic-audit__row .ic-def { padding: 0; }
+.ic-audit__note {
+  font-size: 11.5px;
+  color: var(--ic-text-6);
+  line-height: 1.5;
+  margin: 3px 0 0;
+  max-width: 74ch;
+}
+
 /* Ordered per-step WAL evidence rows */
 .ic-stepev-list { display: flex; flex-direction: column; margin-top: 4px; }
 .ic-stepev {
@@ -2891,6 +2922,23 @@ html.dark .ic-runtime-req {
 @media (max-width: 720px) {
   .ic-runtime-req { flex-direction: column; align-items: flex-start; }
 }
+
+/* Inline result/error for the "Test this action" panel — the run outcome
+   lands right under the title, not in a top-of-page flash. */
+.ic-testresult {
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  background: var(--ic-overlay-bg);
+}
+.ic-testresult__head { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.ic-testresult__msg { font-size: 12.5px; color: var(--ic-text-2); line-height: 1.5; }
+.ic-testresult__cta { margin-top: 10px; }
+.ic-testresult--bad  { border-color: rgba(251,113,133,0.3); background: rgba(251,113,133,0.06); }
+.ic-testresult--warn { border-color: rgba(251,191,36,0.3);  background: rgba(251,191,36,0.06); }
+html.dark .ic-testresult--bad  { border-color: rgba(251,113,133,0.28); background: rgba(251,113,133,0.08); }
+html.dark .ic-testresult--warn { border-color: rgba(251,191,36,0.28);  background: rgba(251,191,36,0.08); }
 
 /* Home: contextual runtime hint (only when a local action lacks a runtime). */
 .ic-hint {
