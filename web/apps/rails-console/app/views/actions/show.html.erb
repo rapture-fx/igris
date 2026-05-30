@@ -8,6 +8,8 @@
     <span class="ic-topbar__title"><%= @action[:name] %></span>
     <span class="ic-chip"><%= @action[:target_label] %></span>
     <span class="ic-chip">policy: <%= @action[:policy] %></span>
+    <span class="ic-chip">replay: <%= @action[:replay] == 'On' ? 'allowed' : 'blocked' %></span>
+    <span class="ic-chip">proof: <%= latest ? latest[:proof] : 'no runs yet' %></span>
     <span class="ic-topbar__hint">
       Last run <%= @action[:last_run_at] ? time_ago(@action[:last_run_at]) : 'never' %>
     </span>
@@ -81,70 +83,124 @@
 
   <% case @tab %>
   <% when 'overview' %>
-    <div class="ig-grid ig-grid--2">
-      <div class="ig-card">
-        <div class="ig-card__title">Endpoint</div>
-        <%= code_snippet @action[:endpoint], language: 'http', label: 'POST' %>
-        <p class="ig-mut" style="margin-top: 8px;">Your agent calls this instead of calling the tool directly.</p>
-      </div>
+    <div class="ic-action-layout">
+      <%# ── Main column: endpoint → test → runs ───────────────── %>
+      <div class="ic-action-main">
+        <div class="ig-card ic-endpoint-hero">
+          <div class="ig-card__title">Action endpoint</div>
+          <%= code_snippet @action[:endpoint], language: 'http', label: 'POST' %>
+          <p class="ig-mut" style="margin-top: 8px;">Use this where your agent would normally call the tool directly.</p>
+          <div class="ic-ctx-label">curl</div>
+          <%= code_snippet action_curl_snippet(@action[:endpoint]), language: 'bash' %>
+          <div class="ic-ctx-label">JavaScript / fetch</div>
+          <%= code_snippet action_js_snippet(@action[:endpoint]), language: 'javascript' %>
+        </div>
 
-      <div class="ig-card">
-        <div class="ig-card__title">Where it runs</div>
-        <div class="ig-def">
-          <span class="ig-def__label">Target</span>
-          <span class="ig-def__value"><%= @action[:target_label] %></span>
-        </div>
-        <div class="ig-def">
-          <span class="ig-def__label">Policy</span>
-          <span class="ig-def__value"><%= @action[:policy] %></span>
-        </div>
-        <div class="ig-def">
-          <span class="ig-def__label">Replay</span>
-          <span class="ig-def__value"><%= @action[:replay] %></span>
-        </div>
-        <div class="ig-def">
-          <span class="ig-def__label">Secrets</span>
-          <span class="ig-def__value"><%= status_pill @action[:secrets_state] %></span>
-        </div>
-      </div>
-
-      <div class="ig-card" id="test-request">
-        <div class="ig-card__title">Test this action</div>
-        <p class="ig-mut" style="margin-bottom: 10px;">Send a sample request through the endpoint. Edit the JSON as needed.</p>
-        <%= form_with url: run_action_path(@action[:id]), method: :post, local: true do |f| %>
-          <div class="ig-field">
-            <label class="ig-field__label" for="input">Request body (JSON)</label>
-            <%= text_area_tag :input, sample_payload_for(@action[:target_type]), id: 'input',
-                class: 'ig-textarea', rows: 7, spellcheck: 'false' %>
-          </div>
-          <div class="ig-field">
-            <label class="ig-field__label" for="idempotency_key">Idempotency key <span class="ig-mut">(optional)</span></label>
-            <%= text_field_tag :idempotency_key, '', id: 'idempotency_key', class: 'ig-input', placeholder: 'unique-per-call key' %>
-          </div>
-          <% if @runtime_required && !demo_mode? %>
-            <%= f.submit 'Send test request', class: 'ig-btn' %>
-            <span class="ig-mut" style="margin-left: 10px;">No runtime connected — <%= link_to 'connect one', runtimes_path %> to test.</span>
-          <% else %>
-            <%= f.submit 'Send test request', class: 'ig-btn ig-btn--primary' %>
-            <% if demo_mode? %>
-              <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
+        <div class="ig-card" id="test-request">
+          <div class="ig-card__title">Test this action</div>
+          <p class="ig-mut" style="margin-bottom: 10px;">Send a sample request through the endpoint. Edit the JSON as needed.</p>
+          <%= form_with url: run_action_path(@action[:id]), method: :post, local: true do |f| %>
+            <div class="ig-field">
+              <label class="ig-field__label" for="input">Request body (JSON)</label>
+              <%= text_area_tag :input, sample_payload_for(@action[:target_type]), id: 'input',
+                  class: 'ig-textarea', rows: 7, spellcheck: 'false' %>
+            </div>
+            <div class="ig-field">
+              <label class="ig-field__label" for="idempotency_key">Idempotency key <span class="ig-mut">(optional)</span></label>
+              <%= text_field_tag :idempotency_key, '', id: 'idempotency_key', class: 'ig-input', placeholder: 'unique-per-call key' %>
+            </div>
+            <% if @runtime_required && !demo_mode? %>
+              <%= f.submit 'Send test request', class: 'ig-btn' %>
+              <span class="ig-mut" style="margin-left: 10px;">No runtime connected — <%= link_to 'connect one', runtimes_path %> to test.</span>
+            <% else %>
+              <%= f.submit 'Send test request', class: 'ig-btn ig-btn--primary' %>
+              <% if demo_mode? %>
+                <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
+              <% end %>
             <% end %>
           <% end %>
-        <% end %>
+        </div>
+
+        <div class="ig-card">
+          <div class="ig-card__title">Latest runs</div>
+          <% if @runs_for_action.any? %>
+            <div class="ig-table-wrap">
+              <table class="ig-table">
+                <thead>
+                  <tr><th>Run</th><th>Status</th><th>Routed via</th><th>Proof</th><th>Started</th></tr>
+                </thead>
+                <tbody>
+                  <% @runs_for_action.first(5).each do |r| %>
+                    <tr>
+                      <td><%= link_to r[:id], run_path(r[:id]) %></td>
+                      <td><%= status_pill r[:status] %></td>
+                      <td class="ig-mut"><%= r[:routed_via] %></td>
+                      <td><%= status_pill r[:proof] %></td>
+                      <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+            <% if @runs_for_action.size > 5 %>
+              <p style="margin-top: 10px;"><%= link_to 'View all runs for this action', action_path(@action[:id], tab: 'runs') %></p>
+            <% end %>
+          <% else %>
+            <p class="ig-mut">No runs yet. Send a test request to create the first run.</p>
+          <% end %>
+        </div>
       </div>
 
-      <div class="ig-card">
-        <div class="ig-card__title">Latest run</div>
-        <% if latest %>
-          <div class="ig-def"><span class="ig-def__label">Run</span><span class="ig-def__value"><%= link_to latest[:id], run_path(latest[:id]) %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Status</span><span class="ig-def__value"><%= status_pill latest[:status] %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Routed via</span><span class="ig-def__value"><%= latest[:routed_via] %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Proof</span><span class="ig-def__value"><%= status_pill latest[:proof] %></span></div>
-          <div class="ig-def"><span class="ig-def__label">Started</span><span class="ig-def__value"><%= time_ago(latest[:started_at]) %></span></div>
-        <% else %>
-          <p class="ig-mut">No runs yet. Send a test request to record the first one.</p>
-        <% end %>
-      </div>
+      <%# ── Right context panel ───────────────────────────────── %>
+      <aside class="ic-action-aside">
+        <div class="ig-card">
+          <div class="ig-card__title">Action</div>
+          <div class="ig-def"><span class="ig-def__label">Name</span><span class="ig-def__value"><%= @action[:display_name].presence || @action[:name] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Action name</span><span class="ig-def__value"><code><%= @action[:name] %></code></span></div>
+          <div class="ig-def"><span class="ig-def__label">Setup</span><span class="ig-def__value"><%= status_pill @action[:setup] %></span></div>
+        </div>
+
+        <div class="ig-card">
+          <div class="ig-card__title">Target</div>
+          <div class="ig-def"><span class="ig-def__label">Type</span><span class="ig-def__value"><%= @action[:target_label] %></span></div>
+          <p class="ig-mut" style="margin-top: 6px;">
+            <% case @action[:target_type] %>
+            <% when 'hosted_api' %>Igris routes this action to a hosted API target.
+            <% when 'webhook' %>Igris forwards this action request to your webhook.
+            <% when 'local_runtime' %>This action runs through a local runtime because it needs private/local access.
+            <% when 'mock_demo' %>Demo action for trying the flow without external credentials.
+            <% else %><%= @action[:target_label] %>
+            <% end %>
+          </p>
+        </div>
+
+        <div class="ig-card">
+          <div class="ig-card__title">Runtime requirement</div>
+          <% if @action[:target_type] == 'local_runtime' %>
+            <% if @runtime_required %>
+              <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Runtime required</span>
+              <p class="ig-mut" style="margin-top: 6px;">Connect a runtime before sending a test request. <%= link_to 'Connect a runtime', runtimes_path %>.</p>
+            <% else %>
+              <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runtime available<%= ' · demo' if demo_mode? %></span>
+            <% end %>
+          <% else %>
+            <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
+          <% end %>
+        </div>
+
+        <div class="ig-card">
+          <div class="ig-card__title">Policy</div>
+          <div class="ig-def"><span class="ig-def__label">Preset</span><span class="ig-def__value"><%= @action[:policy] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Replay</span><span class="ig-def__value"><%= @action[:replay] == 'On' ? 'Replay allowed' : 'Replay blocked' %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Approval</span><span class="ig-def__value"><%= @action[:approval_required] ? 'Human-gated' : 'Automatic' %></span></div>
+        </div>
+
+        <div class="ig-card">
+          <div class="ig-card__title">Secrets</div>
+          <div class="ig-def"><span class="ig-def__label">Status</span><span class="ig-def__value"><%= status_pill(@action[:secrets_state].presence || 'Not configured') %></span></div>
+          <p class="ig-mut" style="margin-top: 6px;">Secrets are hidden — only configured / not configured is shown.</p>
+        </div>
+      </aside>
     </div>
 
   <% when 'endpoint' %>
