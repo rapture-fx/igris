@@ -84,6 +84,14 @@
             Send a test request to confirm the action routes through Igris before
             you wire it into your agent. Edit the JSON as needed.
           </p>
+          <p class="ig-mut" style="margin-bottom: 10px; font-size: 11.5px;">
+            <strong>What should happen:</strong>
+            <% if demo_mode? %>
+              demo mode is inert — no real run is created.
+            <% else %>
+              on success you'll be taken to the run record, where its evidence appears.
+            <% end %>
+          </p>
 
           <%# ── Inline result / error — the outcome lands right here ──────── %>
           <% if (tr = flash[:test_result]).present? %>
