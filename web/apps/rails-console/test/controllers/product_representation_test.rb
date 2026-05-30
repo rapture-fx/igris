@@ -173,7 +173,7 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
   test 'settings agent-access section states agents get an endpoint, not tools' do
     get '/settings?section=access'
     assert_response :success
-    assert_match 'Agent access', response.body
+    assert_match 'Agent / app API keys', response.body
     assert_match 'never receives direct tool access', response.body
   end
 
