@@ -2,6 +2,7 @@
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Actions</span>
+    <%= project_chip %>
     <span class="ic-chip"><%= @actions.size %> registered</span>
   </div>
   <div class="ic-topbar__group">
@@ -45,9 +46,11 @@
             </div>
           </div>
           <div class="ic-action-row__endpoint mono"><%= a[:endpoint].sub(%r{^https?://}, '') %></div>
-          <span class="ic-readiness ic-readiness--<%= readiness_tone %>">
-            <span class="ic-readiness__dot"></span><%= readiness_label %>
-          </span>
+          <div class="ic-action-row__badge">
+            <span class="ic-readiness ic-readiness--<%= readiness_tone %>">
+              <span class="ic-readiness__dot"></span><%= readiness_label %>
+            </span>
+          </div>
           <span class="ic-action-row__when">
             <%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %>
           </span>
