@@ -16,7 +16,7 @@
     <% end %>
   </div>
   <div class="ic-topbar__group">
-    <a href="#install" class="ic-btn">Install runtime</a>
+    <a href="#install" class="ic-btn">Download &amp; connect</a>
   </div>
 </div>
 
@@ -180,7 +180,7 @@
 
     <%# ── Install / connect ────────────────────────────────── %>
     <div id="install" class="ic-section-head" style="margin-top: 24px;">
-      <span class="ic-section-head__label">Install &amp; connect a runtime</span>
+      <span class="ic-section-head__label">Download and connect runtime</span>
     </div>
     <p class="ic-onboard-note">
       Install the runtime, start it on the machine that has access, then create
@@ -244,9 +244,23 @@
         </div>
       </div>
 
-      <%# Step 4 — create a local action %>
+      <%# Step 4 — verify connection %>
       <div class="ic-step">
         <span class="ic-step__num">4</span>
+        <div class="ic-step__main">
+          <div class="ic-step__title">Verify the connection</div>
+          <p class="ic-step__hint">
+            How to know it worked: the runtime appears under
+            <strong>Connected runtimes</strong> above as <strong>Healthy</strong>.
+            Reload this page after starting it. Stale or Offline means the runtime
+            stopped reporting — check that the process is still running.
+          </p>
+        </div>
+      </div>
+
+      <%# Step 5 — create a local action %>
+      <div class="ic-step">
+        <span class="ic-step__num">5</span>
         <div class="ic-step__main">
           <div class="ic-step__title">Create a Local runtime action</div>
           <p class="ic-step__hint">
