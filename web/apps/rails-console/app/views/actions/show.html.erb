@@ -124,7 +124,15 @@
               <p style="margin-top: 10px;"><%= link_to 'View all runs for this action', action_path(@action[:id], tab: 'runs') %></p>
             <% end %>
           <% else %>
-            <p class="ig-mut">No runs yet. Send a test request to create the first run.</p>
+            <div class="ic-nextstep">
+              <span class="ic-nextstep__label">Next step</span>
+              <p class="ig-mut" style="margin: 4px 0 10px;">No runs yet. Send a test request to create the first run.</p>
+              <% if @runtime_required && !demo_mode? %>
+                <%= link_to 'Connect a runtime', runtimes_path, class: 'ig-btn ig-btn--primary' %>
+              <% else %>
+                <a href="#test-request" class="ig-btn ig-btn--primary">Send a test request</a>
+              <% end %>
+            </div>
           <% end %>
         </div>
       </div>
