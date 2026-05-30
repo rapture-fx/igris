@@ -7,6 +7,7 @@
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Runtimes</span>
+    <%= project_chip %>
     <% if has_runtime %>
       <span class="ic-chip" style="color: var(--ic-emerald);"><%= sum[:healthy] %> healthy</span>
       <% if sum[:stale].positive? %><span class="ic-chip" style="color: var(--ic-amber);"><%= sum[:stale] %> stale</span><% end %>
@@ -203,7 +204,10 @@
             <div class="ic-keygen">
               <div class="ic-keygen__warn">Shown once. Store it in your password manager.</div>
               <%= code_snippet @generated_key, language: 'bash', label: 'runtime key' %>
-              <p class="ic-step__hint">Use this key on the machine where the runtime runs.</p>
+              <p class="ic-step__hint">
+                This key belongs to <strong><%= project_display_name %></strong> — use it on the
+                machine where the runtime runs.
+              </p>
             </div>
           <% else %>
             <% if @key_status && @key_status['has_key'] %>
