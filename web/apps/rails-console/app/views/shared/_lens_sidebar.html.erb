@@ -76,24 +76,32 @@
             id: 'connected', name: 'connected', open: true, dot: :running,
             tasks: rts.first(6).map { |rt|
               st = rt[:status].to_s.casecmp('Healthy').zero? ? :ok : :failed
-              { status: st, title: rt[:name].to_s, when: rt[:os].to_s, href: nil }
+              { status: st, title: rt[:name].to_s, when: rt[:os].to_s,
+                href: runtimes_path, active: false }
             },
           },
         ],
       ]
     when :settings
+      cur = (params[:section].presence || 'project').to_s
       [
         'Settings',
         [
           {
-            id: 'workspace', name: 'workspace', open: true, dot: :running,
+            id: 'config', name: 'configuration', open: true, dot: :ok,
             tasks: [
-              { status: :ok, title: 'General', when: '', href: settings_path, active: true },
-              { status: :ok, title: 'API keys', when: '', href: '#' },
-              { status: :ok, title: 'Team', when: '', href: '#' },
-              { status: :ok, title: 'Environment', when: '', href: '#' },
-              { status: :ok, title: 'Advanced', when: '', href: '#' },
-            ],
+              ['project',   'Project'],
+              ['api',       'API endpoints'],
+              ['access',    'Agent / app API keys'],
+              ['runtime',   'Runtime keys'],
+              ['tools',     'Tool & target access'],
+              ['frontdoor', 'Console front door'],
+              ['env',       'Environment'],
+              ['advanced',  'Advanced'],
+            ].map { |slug, title|
+              { status: :ok, title: title, when: '',
+                href: settings_path(section: slug), active: cur == slug }
+            },
           },
         ],
       ]
