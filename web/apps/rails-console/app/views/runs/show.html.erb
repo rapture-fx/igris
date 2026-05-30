@@ -21,6 +21,7 @@
       <span class="ic-topbar__title"><%= @run[:action] %></span>
       <span class="ic-topbar__id mono"><%= @run[:id] %></span>
       <%= copy_button @run[:id] %>
+      <%= project_chip %>
     </div>
     <div class="ic-topbar__group">
       <% if @action_known %>
@@ -112,25 +113,6 @@
       </div>
     <% end %>
 
-    <%# ── Audit interpretation — plain-language reading of the evidence ──── %>
-    <div class="ic-evidence ic-audit" id="audit">
-      <div class="ic-evidence__head">Audit interpretation</div>
-      <p class="ic-audit__intro">
-        A plain-language reading of this run's evidence to support audits. This is
-        interpretation only — it is not a certification and makes no legal or
-        regulatory claim.
-      </p>
-      <% audit_interpretation(@run).each do |row| %>
-        <div class="ic-audit__row">
-          <div class="ic-def">
-            <span class="ic-def__label"><%= row[:label] %></span>
-            <div class="ic-def__value"><%= row[:value] %></div>
-          </div>
-          <p class="ic-audit__note"><%= row[:note] %></p>
-        </div>
-      <% end %>
-    </div>
-
     <% if demo_mode? %>
       <%# ════════════ FIXTURE MODE: clearly-labelled illustrative demo ════════ %>
       <div class="ig-strip" style="background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.25); border-radius: 8px; margin-bottom: 14px;">
@@ -141,59 +123,60 @@
       </div>
 
       <% submitted_chip_time = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
-      <div class="ic-def">
-        <span class="ic-def__label">Submitter</span>
-        <div class="ic-def__value">
-          <span class="ic-chip">mateo@acme.io</span>
-          <span class="ic-def__hint">engineer, integrations</span>
+      <div class="ic-evidence">
+        <div class="ic-evidence__head">Execution detail</div>
+        <div class="ic-def">
+          <span class="ic-def__label">Submitter</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">mateo@acme.io</span>
+            <span class="ic-def__hint">engineer, integrations</span>
+          </div>
         </div>
-      </div>
-      <div class="ic-def">
-        <span class="ic-def__label">Region</span>
-        <div class="ic-def__value">
-          <span class="ic-chip">fra1·prod</span>
-          <span class="ic-def__hint">eu-central, primary</span>
+        <div class="ic-def">
+          <span class="ic-def__label">Region</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">fra1·prod</span>
+            <span class="ic-def__hint">eu-central, primary</span>
+          </div>
         </div>
-      </div>
-      <div class="ic-def">
-        <span class="ic-def__label">Worker</span>
-        <div class="ic-def__value">
-          <span class="ic-chip">worker_b</span>
-          <span class="ic-def__hint">recovered from</span>
-          <span class="ic-chip">worker_a</span>
+        <div class="ic-def">
+          <span class="ic-def__label">Worker</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">worker_b</span>
+            <span class="ic-def__hint">recovered from</span>
+            <span class="ic-chip">worker_a</span>
+          </div>
         </div>
-      </div>
-      <div class="ic-def">
-        <span class="ic-def__label">Submitted</span>
-        <div class="ic-def__value">
-          <span class="ic-chip"><%= submitted_chip_time %></span>
-          <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %>, action workflow</span>
+        <div class="ic-def">
+          <span class="ic-def__label">Submitted</span>
+          <div class="ic-def__value">
+            <span class="ic-chip"><%= submitted_chip_time %></span>
+            <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %>, action workflow</span>
+          </div>
         </div>
       </div>
 
-      <%# Narrative %>
+      <%# Committed actions panel — the tree, led by the receipt-chain narrative %>
       <% steps = @run[:steps] || [] %>
       <% committed_count = steps.count { |s| s[:kind] == :action && s[:status] == :committed } %>
       <% latest_committed = steps.select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
-      <p class="ic-narrative">
-        <% if running %>
-          The receipt chain is <span class="accent">valid</span> up to
-          <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
-          <% rn = steps.find { |s| s[:status] == :running } %>
-          <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
-        <% elsif @run[:status] == 'Failed' %>
-          The receipt chain stops at the failed call. The console honestly reports
-          the absence — no fabricated proof.
-        <% else %>
-          The receipt chain is <span class="accent">valid</span> end-to-end.
-          <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
-          <span class="mono"><%= @run[:duration_ms] %>ms</span>.
-        <% end %>
-      </p>
-
-      <%# Committed actions panel — the tree %>
       <% total_actions = steps.count { |s| s[:kind] == :action } %>
       <div class="ic-panel" id="evidence">
+        <p class="ic-narrative">
+          <% if running %>
+            The receipt chain is <span class="accent">valid</span> up to
+            <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
+            <% rn = steps.find { |s| s[:status] == :running } %>
+            <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
+          <% elsif @run[:status] == 'Failed' %>
+            The receipt chain stops at the failed call. The console honestly reports
+            the absence — no fabricated proof.
+          <% else %>
+            The receipt chain is <span class="accent">valid</span> end-to-end.
+            <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
+            <span class="mono"><%= @run[:duration_ms] %>ms</span>.
+          <% end %>
+        </p>
         <div class="ic-panel__head">
           <div class="ic-panel__head-l">
             <span>Committed actions (<%= total_actions %>)</span>
@@ -321,6 +304,27 @@
         <% end %>
       </div>
     <% end %>
+
+    <%# ── Audit interpretation — plain-language reading of the evidence.
+        Sits at the bottom, after the submitter/execution detail and the
+        committed-actions evidence it interprets. ──────────────────────── %>
+    <div class="ic-evidence ic-audit" id="audit">
+      <div class="ic-evidence__head">Audit interpretation</div>
+      <p class="ic-audit__intro">
+        A plain-language reading of this run's evidence to support audits. This is
+        interpretation only — it is not a certification and makes no legal or
+        regulatory claim.
+      </p>
+      <% audit_interpretation(@run).each do |row| %>
+        <div class="ic-audit__row">
+          <div class="ic-def">
+            <span class="ic-def__label"><%= row[:label] %></span>
+            <div class="ic-def__value"><%= row[:value] %></div>
+          </div>
+          <p class="ic-audit__note"><%= row[:note] %></p>
+        </div>
+      <% end %>
+    </div>
 
     <div class="ic-foot-time">
       <%= @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S') : '' %>
