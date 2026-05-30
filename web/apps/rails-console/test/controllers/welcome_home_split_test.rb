@@ -53,10 +53,19 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     assert_match 'only needed for private files', response.body    # runtime explanation
   end
 
-  test 'welcome links to create-first-action and to home' do
+  test 'welcome links to create-first-action and to overview' do
     get '/welcome'
     assert_match 'Create your first action', response.body
-    assert_match 'Go to Home', response.body
+    assert_match 'Go to Overview', response.body
+  end
+
+  # ── Welcome lives inside the console chrome (not a standalone page) ───────
+  test 'welcome renders inside the console chrome with the icon rail' do
+    get '/welcome'
+    assert_response :success
+    assert_match 'ic-rail', response.body                      # icon rail present
+    assert_match 'Overview', response.body                     # Overview rail item
+    assert_match 'Get started', response.body                  # topbar title
   end
 
   test 'create-first-action CTA lands on the new-action wizard' do
