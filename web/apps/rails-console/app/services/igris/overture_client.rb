@@ -142,6 +142,38 @@ module Igris
       request(:post, '/v1/runtime/api-key')
     end
 
+    # ── Agent / app API keys ──────────────────────────────────────────────
+    # Named keys an agent or app uses to call action endpoints. Distinct from
+    # the runtime key and from the host-configured console service key.
+
+    # GET /v1/api-keys → { keys: [{ id, name, prefix, created_at, last_used_at }] }
+    def list_api_keys
+      body = request(:get, '/v1/api-keys')
+      Array(body && body['keys'])
+    end
+
+    # POST /v1/api-keys → { id, name, prefix, api_key, created_at } — raw once.
+    def create_api_key(name)
+      request(:post, '/v1/api-keys', body: { name: name })
+    end
+
+    # DELETE /v1/api-keys/:id → { ok: true }
+    def revoke_api_key(id)
+      request(:delete, "/v1/api-keys/#{escape(id)}")
+    end
+
+    # ── Project ──────────────────────────────────────────────────────────
+
+    # GET /v1/project → { "name": "..." }
+    def get_project
+      request(:get, '/v1/project')
+    end
+
+    # PATCH /v1/project → { "name": "..." }
+    def update_project(name)
+      request(:patch, '/v1/project', body: { name: name })
+    end
+
     # ── Health ───────────────────────────────────────────────────────────
     def health
       request(:get, '/v1/health')
