@@ -18,6 +18,14 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
+<% tabs = %w[overview endpoint target policy secrets runs] %>
+<nav class="ig-tabs">
+  <% tabs.each do |t| %>
+    <%= link_to t.titleize, action_path(@action[:id], tab: t),
+        class: "ig-tabs__item #{'is-active' if @tab == t}" %>
+  <% end %>
+</nav>
+
 <div class="ig-body">
   <% if @just_created %>
     <div class="ig-strip" style="background: rgba(52,211,153,0.06); border-bottom: none; border-radius: 8px; margin-bottom: 12px;">
@@ -50,14 +58,6 @@
       </div>
     <% end %>
   <% end %>
-
-  <% tabs = %w[overview endpoint target policy secrets runs] %>
-  <nav class="ig-tabs">
-    <% tabs.each do |t| %>
-      <%= link_to t.titleize, action_path(@action[:id], tab: t),
-          class: "ig-tabs__item #{'is-active' if @tab == t}" %>
-    <% end %>
-  </nav>
 
   <% case @tab %>
   <% when 'overview' %>
