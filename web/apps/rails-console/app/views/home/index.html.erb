@@ -1,147 +1,207 @@
-<%# Home — the everyday workspace. Onboarding/education lives on /welcome.
-    Zero actions → a compact first-action empty state. Otherwise → workspace
-    sections: Needs attention, Workspace status, Recent runs. No education hero,
-    no fake activity chart. %>
-<% has_actions = @actions.any?
-   has_runs    = (@recent_runs || []).any?
+<%# Home — everyday workspace. Wide banner (public/home.png) on top, then a
+    notification-style activity feed on the left and a plain workspace context
+    column on the right. Onboarding/education lives on /welcome, never here. %>
+<% has_actions  = @actions.any?
+   has_runs     = (@recent_runs || []).any?
    local_actions = @actions.select { |a| a[:target_type].to_s == 'local_runtime' }
    any_healthy_rt = @runtimes.any? { |r| r[:status] == 'Healthy' }
-   configured  = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready/i) }
+   configured   = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready/i) }
    needs_target = @actions.count { |a| a[:setup].to_s.casecmp('Needs target').zero? }
-   last_run    = (@recent_runs || []).first
-   healthy_rt  = @runtimes.count { |r| r[:status] == 'Healthy' } %>
+   last_run     = (@recent_runs || []).first
+   healthy_rt   = @runtimes.count { |r| r[:status] == 'Healthy' }
+
+   attention = []
+   if local_actions.any? && !any_healthy_rt
+     attention << { text: 'Local runtime action needs a connected runtime.', href: runtimes_path, cta: 'Connect a runtime' }
+   end
+   if needs_target.positive?
+     verb = needs_target == 1 ? 'needs' : 'need'
+     attention << { text: "#{pluralize(needs_target, 'action')} #{verb} a target URL.", href: actions_path, cta: 'Open Actions' }
+   end
+   if last_run && last_run[:status].to_s.casecmp('Failed').zero?
+     attention << { text: 'Last run failed.', href: run_path(last_run[:id]), cta: 'Inspect run' }
+   end
+
+   api_label, api_tone =
+     if @degraded_error then ['Degraded', 'is-bad']
+     elsif demo_mode?   then ['Demo · fixtures', 'is-warn']
+     else                    ['Connected', 'is-ok']
+     end %>
 
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Home</span>
-    <span class="ic-chip">Workspace</span>
-  </div>
-  <div class="ic-topbar__group">
-    <%= link_to 'Create action', new_action_path, class: 'ic-btn' %>
-    <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
-    <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn' %>
+    <span class="ic-chip">igris-default</span>
   </div>
 </div>
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
 <div class="ic-body ic-scroll">
-  <div style="max-width: 880px; margin: 0 auto;">
+  <div class="ic-workspace">
 
-    <% unless has_actions %>
-      <%# ── First-action empty state (no education hero) ──────── %>
-      <div class="ic-empty">
-        <div class="ic-empty__title">Create your first action</div>
-        <p class="ic-empty__sub">
-          Actions are endpoints your agent calls instead of calling tools
-          directly. Igris applies policy, routes the call, records what
-          happened, and shows proof when signed evidence exists.
-        </p>
-        <%= link_to 'Create an action', new_action_path, class: 'ic-btn' %>
-        <p style="margin-top: 14px; font-size: 11.5px; color: var(--ic-text-6);">
-          New here? <%= link_to 'See how Igris works', welcome_path %>
-        </p>
-      </div>
+    <%# ── Banner (full-width image, not boxed) ────────────────── %>
+    <%# /home.png is served from public/. Dark gradient shows if it's missing. %>
+    <%= image_tag '/home.png', class: 'ic-workspace-banner', alt: '' %>
 
-    <% else %>
-      <%# ── Needs attention ───────────────────────────────────── %>
-      <% attention = []
-         if local_actions.any? && !any_healthy_rt
-           attention << { text: 'Local runtime action needs a connected runtime.', href: runtimes_path, cta: 'Connect a runtime' }
-         end
-         if needs_target.positive?
-           verb = needs_target == 1 ? 'needs' : 'need'
-           attention << { text: "#{pluralize(needs_target, 'action')} #{verb} a target URL.", href: actions_path, cta: 'Open Actions' }
-         end
-         if last_run && last_run[:status].to_s.casecmp('Failed').zero?
-           attention << { text: 'Last run failed.', href: run_path(last_run[:id]), cta: 'Inspect run' }
-         end %>
-      <div class="ic-section-head">
-        <span class="ic-section-head__label">Needs attention</span>
-      </div>
-      <% if attention.any? %>
-        <% attention.each do |a| %>
-          <div class="ic-hint">
-            <span class="ic-hint__dot"></span>
-            <span><%= a[:text] %></span>
-            <%= link_to a[:cta], a[:href], class: 'ic-hint__link' %>
+    <%# ── Two columns: feed + workspace context ───────────────── %>
+    <div class="ic-workspace-layout">
+
+      <%# ── Main feed ────────────────────────────────────────── %>
+      <div class="ic-workspace-feed">
+        <% unless has_actions %>
+          <div class="ic-empty" style="padding: 48px 16px;">
+            <div class="ic-empty__title">Create your first action</div>
+            <p class="ic-empty__sub">
+              Actions are endpoints your agent calls instead of calling tools directly.
+            </p>
+            <%= link_to 'Create your first action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+            <p style="margin-top: 14px; font-size: 11.5px; color: var(--ic-text-6);">
+              New here? <%= link_to 'See how Igris works', welcome_path %>
+            </p>
           </div>
-        <% end %>
-      <% else %>
-        <p class="ic-list-hint">Nothing needs attention right now.</p>
-      <% end %>
 
-      <%# ── Workspace status ──────────────────────────────────── %>
-      <div class="ic-section-head" style="margin-top: 18px;">
-        <span class="ic-section-head__label">Workspace</span>
-      </div>
-      <div class="ic-status">
-        <div class="ic-status__cell">
-          <div class="ic-status__k">Actions ready</div>
-          <div class="ic-status__v"><%= configured %><span class="ic-status__total"> / <%= @actions.size %></span></div>
-        </div>
-        <div class="ic-status__cell">
-          <div class="ic-status__k">Last run</div>
-          <div class="ic-status__v">
-            <% if last_run %>
-              <%= time_ago(last_run[:started_at]) %>
-              <span class="ic-status__sub">· <%= last_run[:action] %></span>
-            <% else %>
-              <span class="ic-status__v ic-status__v--muted">none yet</span>
+        <% else %>
+          <% tabs = { 'feed' => 'Feed', 'actions' => 'Actions', 'runs' => 'Runs', 'attention' => 'Attention' } %>
+          <nav class="ig-tabs" aria-label="Workspace views">
+            <% tabs.each do |key, label| %>
+              <%= link_to label, home_path(tab: key), class: "ig-tabs__item #{'is-active' if @tab == key}" %>
             <% end %>
-          </div>
-        </div>
-        <div class="ic-status__cell">
-          <div class="ic-status__k">Runtime status</div>
-          <div class="ic-status__v">
-            <% if @runtimes.empty? %>
-              <span class="ic-status__v--muted">none connected</span>
-            <% else %>
-              <%= healthy_rt %> healthy<span class="ic-status__total"> / <%= @runtimes.size %></span>
-            <% end %>
-          </div>
-        </div>
-        <div class="ic-status__cell">
-          <div class="ic-status__k">Igris API</div>
-          <div class="ic-status__v">
-            <span class="ic-status__pill <%= demo_mode? ? 'is-warn' : 'is-ok' %>">
-              <%= demo_mode? ? 'Demo · fixtures' : 'Connected' %>
-            </span>
-          </div>
-        </div>
-      </div>
+          </nav>
 
-      <%# ── Recent runs (only when data exists) ───────────────── %>
-      <% if has_runs %>
-        <div class="ic-section-head">
-          <span class="ic-section-head__label">Recent runs</span>
-          <%= link_to 'View all', runs_path, class: 'ic-section-head__link' %>
-        </div>
-        <div class="ic-runs-list">
-          <% (@recent_runs || []).first(4).each do |r| %>
-            <% st = r[:status].to_s
-               running = st.casecmp('Running').zero?
-               failed  = st.casecmp('Failed').zero?
-               dot_mod = running ? 'running' : (failed ? 'failed' : 'ok') %>
-            <%= link_to run_path(r[:id]), class: 'ic-run-row' do %>
-              <span class="ic-run-row__dot ic-run-row__dot--<%= dot_mod %> <%= 'ic-live-dot' if running %>"></span>
-              <span class="ic-run-row__status ic-run-row__status--<%= dot_mod %>">
-                <%= running ? 'Running' : (failed ? 'Failed' : 'OK') %>
-              </span>
-              <span class="ic-run-row__title">
-                <span class="mono"><%= r[:id] %></span>
-                <%= r[:action] %>
-              </span>
-              <span class="ic-run-row__sub"><span class="mono"><%= r[:routed_via] %></span></span>
-              <span class="ic-run-row__sub"><%= r[:proof] %></span>
-              <span class="ic-run-row__time">
-                <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
-                <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
-              </span>
+          <% case @tab
+             when 'actions' %>
+            <div class="ic-feed">
+              <% @actions.first(8).each do |a|
+                   ready = a[:setup].to_s.casecmp('Ready').zero?
+                   tone = ready ? 'ok' : 'warn' %>
+                <%= link_to action_path(a[:id]), class: 'ic-feed-item' do %>
+                  <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
+                  <span class="ic-feed-item__main">
+                    <span class="ic-feed-item__title"><strong><%= a[:name] %></strong></span>
+                    <span class="ic-feed-item__sub"><%= a[:target_label] %></span>
+                  </span>
+                  <span class="ic-feed-item__meta"><%= a[:setup].presence || 'Ready' %></span>
+                  <%= feed_chevron %>
+                <% end %>
+              <% end %>
+            </div>
+
+          <% when 'runs' %>
+            <% if has_runs %>
+              <div class="ic-feed">
+                <% (@recent_runs || []).first(8).each do |r|
+                     st = r[:status].to_s
+                     running = st.casecmp('Running').zero?
+                     failed  = st.casecmp('Failed').zero?
+                     tone = running ? 'running' : (failed ? 'failed' : 'ok') %>
+                  <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
+                    <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
+                    <span class="ic-feed-item__main">
+                      <span class="ic-feed-item__title"><strong><%= r[:action] %></strong> <span class="ic-feed-item__id mono"><%= r[:id] %></span></span>
+                      <span class="ic-feed-item__sub"><span class="mono"><%= r[:routed_via] %></span> · <%= r[:proof] %></span>
+                    </span>
+                    <span class="ic-feed-item__meta">
+                      <%= r[:duration_ms] ? "#{r[:duration_ms]}ms · " : '' %><%= time_ago(r[:started_at]) %>
+                    </span>
+                    <%= feed_chevron %>
+                  <% end %>
+                <% end %>
+              </div>
+            <% else %>
+              <p class="ic-list-hint">No runs yet. Send a test request from an action to record one.</p>
+            <% end %>
+
+          <% when 'attention' %>
+            <div class="ic-section-head"><span class="ic-section-head__label">Needs attention</span></div>
+            <% if attention.any? %>
+              <% attention.each do |a| %>
+                <div class="ic-hint">
+                  <span class="ic-hint__dot"></span>
+                  <span><%= a[:text] %></span>
+                  <%= link_to a[:cta], a[:href], class: 'ic-hint__link' %>
+                </div>
+              <% end %>
+            <% else %>
+              <p class="ic-list-hint">Nothing needs attention right now.</p>
+            <% end %>
+
+          <% else # feed %>
+            <% if attention.any? %>
+              <div class="ic-section-head"><span class="ic-section-head__label">Needs attention</span></div>
+              <% attention.each do |a| %>
+                <div class="ic-hint">
+                  <span class="ic-hint__dot"></span>
+                  <span><%= a[:text] %></span>
+                  <%= link_to a[:cta], a[:href], class: 'ic-hint__link' %>
+                </div>
+              <% end %>
+            <% end %>
+
+            <% if has_runs %>
+              <div class="ic-feed">
+                <% (@recent_runs || []).first(8).each do |r|
+                     st = r[:status].to_s
+                     if st.casecmp('Failed').zero?     then tone = 'failed';  verb = 'failed'
+                     elsif st.casecmp('Running').zero? then tone = 'running'; verb = 'running'
+                     else                                   tone = 'ok';      verb = 'completed' end %>
+                  <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
+                    <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
+                    <span class="ic-feed-item__main">
+                      <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong> <%= verb %></span>
+                      <span class="ic-feed-item__sub"><span class="mono"><%= r[:routed_via] %></span> · <%= r[:proof] %></span>
+                    </span>
+                    <span class="ic-feed-item__meta"><%= time_ago(r[:started_at]) %></span>
+                    <%= feed_chevron %>
+                  <% end %>
+                <% end %>
+              </div>
+            <% elsif attention.empty? %>
+              <div class="ic-empty" style="padding: 32px 16px;">
+                <div class="ic-empty__title">No activity yet</div>
+                <p class="ic-empty__sub">Runs and signals will show up here as your agent calls actions.</p>
+                <%= link_to 'Create action', new_action_path, class: 'ic-btn' %>
+              </div>
             <% end %>
           <% end %>
+        <% end %>
+      </div>
+
+      <%# ── Workspace context (plain panel, not a card) ──────── %>
+      <aside class="ic-workspace-panel" aria-label="Workspace summary">
+        <div class="ic-workspace-panel__id">
+          <span class="ic-ws-avatar"><%= console_icon('igris-mark', size: 15) %></span>
+          <div>
+            <div class="ic-workspace-panel__name">igris-default</div>
+            <span class="ic-status__pill <%= api_tone %>"><%= api_label %></span>
+          </div>
         </div>
-      <% end %>
-    <% end %>
+
+        <div class="ic-wsrows">
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Actions ready</span>
+            <span class="ic-wsrow__v"><%= configured %> / <%= @actions.size %></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Last run</span>
+            <span class="ic-wsrow__v"><% if last_run %><%= time_ago(last_run[:started_at]) %> · <%= last_run[:action] %><% else %>—<% end %></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Runtime status</span>
+            <span class="ic-wsrow__v"><%= @runtimes.empty? ? 'No runtime' : "#{healthy_rt} healthy / #{@runtimes.size}" %></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Igris API</span>
+            <span class="ic-wsrow__v"><%= api_label %></span>
+          </div>
+        </div>
+
+        <div class="ic-workspace-panel__actions">
+          <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+          <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn' %>
+          <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+        </div>
+      </aside>
+    </div>
   </div>
 </div>
