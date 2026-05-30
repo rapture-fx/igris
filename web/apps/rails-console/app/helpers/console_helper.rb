@@ -1,7 +1,11 @@
 module ConsoleHelper
   # Lens detection mirrors web-console/components/console/IconRail.tsx#isActive.
+  # Home is the onboarding/get-started lens (/welcome); Overview is the
+  # everyday workspace (/home). The two share the icon rail with every other
+  # lens.
   LENS_MATCHERS = {
-    home:     %w[/home],
+    home:     %w[/welcome],
+    overview: %w[/home],
     actions:  %w[/actions],
     runs:     %w[/runs],
     runtimes: %w[/runtimes],
@@ -24,6 +28,7 @@ module ConsoleHelper
   # (lucide-react in web-landing/src/components/sections/Products.tsx).
   # Glyph paths copied from lucide.dev so visual identity matches.
   LUCIDE_PATHS = {
+    'house'            => '<path d="M3 9.5 12 2l9 7.5"/><path d="M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/>',
     'layout-dashboard' => '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
     'list-checks'      => '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>',
     'activity'         => '<path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.24 2.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4 12H2"/>',
