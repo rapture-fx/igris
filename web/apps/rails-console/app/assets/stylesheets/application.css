@@ -2345,7 +2345,7 @@ html.dark .ic-readiness--warn .ic-readiness__dot { background: #fbbf24; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ic-action-row__proof { font-size: 11px; color: var(--ic-text-5); }
-.ic-action-row__badge { display: flex; justify-content: flex-start; }
+.ic-action-row__badge { display: block; text-align: left; }
 .ic-action-row__when { font-size: 11px; color: var(--ic-text-7); text-align: right; }
 @media (max-width: 900px) {
   .ic-action-row { grid-template-columns: 8px 1fr 80px; }
@@ -3003,11 +3003,29 @@ html.dark .ic-hint {
 
 /* ── Run Activity Map (Runs page) ──────────────────────────────────────
    A time-ordered map of recent runs: each dot is one run, placed by time
-   (x) and outcome band (y). Server-rendered with CSS grid — no JS. */
+   (x) and outcome band (y). Server-rendered with CSS grid — no JS.
+   Band tones are deliberately muted/desaturated so the map reads as a calm
+   evidence surface, not a bright generic chart. */
+:root {
+  --ic-rm-verified:  #2f7a5a;   /* muted sage green   */
+  --ic-rm-completed: #4a6b80;   /* muted slate blue   */
+  --ic-rm-recovered: #6d5f86;   /* muted mauve        */
+  --ic-rm-waiting:   #9a7530;   /* muted ochre        */
+  --ic-rm-blocked:   #6e6b62;   /* warm grey          */
+  --ic-rm-failed:    #a8555f;   /* muted brick rose   */
+}
+html.dark, html[data-theme="dark"] {
+  --ic-rm-verified:  #5e9079;
+  --ic-rm-completed: #6b899c;
+  --ic-rm-recovered: #8d7fa6;
+  --ic-rm-waiting:   #b0904f;
+  --ic-rm-blocked:   #7c7c74;
+  --ic-rm-failed:    #b06b74;
+}
 .ic-runmap {
-  margin: 4px 0 14px;
+  margin: 14px 12px 6px;
   padding: 14px 16px;
-  background: var(--ic-panel);
+  background: var(--ic-overlay-1);
   border: 1px solid var(--ic-border);
   border-radius: 10px;
 }
@@ -3017,29 +3035,29 @@ html.dark .ic-hint {
 }
 .ic-runmap__title {
   display: block; font-size: 13px; font-weight: 600;
-  color: var(--ic-text-9); letter-spacing: .01em;
+  color: var(--ic-text); letter-spacing: .01em;
 }
 .ic-runmap__sub {
-  display: block; margin-top: 2px; font-size: 11.5px;
-  color: var(--ic-text-5); max-width: 64ch;
+  display: block; margin-top: 3px; font-size: 11.5px;
+  color: var(--ic-text-5); max-width: 64ch; line-height: 1.5;
 }
 .ic-runmap__demo {
   flex: none; font-size: 11px; color: var(--ic-amber);
-  border: 1px solid rgba(251, 191, 36, .3); background: rgba(251, 191, 36, .06);
+  border: 1px solid rgba(176, 144, 79, .35); background: rgba(176, 144, 79, .08);
   border-radius: 999px; padding: 2px 9px; white-space: nowrap;
 }
 .ic-runmap__legend {
   display: flex; flex-wrap: wrap; gap: 6px 14px;
-  list-style: none; margin: 0 0 10px; padding: 0;
+  list-style: none; margin: 0 0 12px; padding: 0;
 }
 .ic-runmap__leg {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; color: var(--ic-text-7);
+  font-size: 11px; color: var(--ic-text-4);
 }
-.ic-runmap__leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+.ic-runmap__leg-dot { width: 8px; height: 8px; border-radius: 50%; opacity: .9; }
 .ic-runmap__scroll { overflow-x: auto; padding-bottom: 2px; }
 .ic-runmap__grid {
-  display: grid; grid-auto-rows: 20px; align-items: center;
+  display: grid; grid-auto-rows: 22px; align-items: center;
   min-width: min-content;
 }
 .ic-runmap__band {
@@ -3048,29 +3066,30 @@ html.dark .ic-hint {
 }
 .ic-runmap__lane {
   height: 1px; align-self: center;
-  background: var(--ic-border); opacity: .55;
+  background: var(--ic-border); opacity: .5;
 }
 .ic-runmap__dot {
   align-self: center; justify-self: center;
   width: 9px; height: 9px; border-radius: 50%; display: block;
-  transition: transform .12s ease; position: relative;
+  opacity: .92; transition: transform .12s ease, opacity .12s ease;
+  position: relative;
 }
-.ic-runmap__dot:hover { transform: scale(1.55); z-index: 2; }
+.ic-runmap__dot:hover { transform: scale(1.5); opacity: 1; z-index: 2; }
 .ic-runmap__dot:focus-visible { outline: 2px solid var(--ic-accent); outline-offset: 2px; z-index: 2; }
-.ic-runmap__dot--verified  { background: var(--ic-emerald); }
-.ic-runmap__dot--completed { background: var(--ic-sky); }
-.ic-runmap__dot--recovered { background: var(--ic-violet); }
-.ic-runmap__dot--waiting   { background: var(--ic-amber); }
-.ic-runmap__dot--blocked   { background: var(--ic-text-5); }
-.ic-runmap__dot--failed    { background: var(--ic-rose); }
+.ic-runmap__dot--verified  { background: var(--ic-rm-verified); }
+.ic-runmap__dot--completed { background: var(--ic-rm-completed); }
+.ic-runmap__dot--recovered { background: var(--ic-rm-recovered); }
+.ic-runmap__dot--waiting   { background: var(--ic-rm-waiting); }
+.ic-runmap__dot--blocked   { background: var(--ic-rm-blocked); }
+.ic-runmap__dot--failed    { background: var(--ic-rm-failed); }
 .ic-runmap__axis {
   display: flex; justify-content: space-between; align-items: center;
-  margin-top: 8px; font-size: 10.5px; color: var(--ic-text-5);
+  margin-top: 10px; font-size: 10.5px; color: var(--ic-text-6);
 }
-.ic-runmap__axis-mid { color: var(--ic-text-7); }
-.ic-runmap__note { font-size: 12px; color: var(--ic-text-7); margin: 6px 0; }
+.ic-runmap__axis-mid { color: var(--ic-text-5); }
+.ic-runmap__note { font-size: 12px; color: var(--ic-text-5); margin: 6px 0; }
 .ic-runmap__empty { text-align: center; padding: 26px 12px; }
-.ic-runmap__empty-title { font-size: 13px; font-weight: 600; color: var(--ic-text-9); }
+.ic-runmap__empty-title { font-size: 13px; font-weight: 600; color: var(--ic-text); }
 .ic-runmap__empty-sub { font-size: 12px; color: var(--ic-text-5); margin: 6px 0 12px; }
 .ic-runmap__empty-cta { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 @media (max-width: 640px) { .ic-runmap__sub { display: none; } }
