@@ -50,30 +50,33 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   end
 
   # ── Runs index: filters are server-rendered and actually filter ─────────
-  test 'failed filter shows only failed runs' do
+  # Assertions are scoped to the run rows (`.ic-run-row`) so the always-on
+  # recent-runs lens sidebar doesn't count toward the filtered list.
+  test 'failed filter shows only the failed run' do
     get '/runs?filter=failed'
     assert_response :success
-    assert_match 'run_01HGJ5W0M3B', response.body    # refund_charge failed
-    refute_match 'run_01HGJ8K2Z9F', response.body    # a succeeded run is hidden
+    assert_select '.ic-run-row', 1
+    assert_select '.ic-run-row__title', /run_01HGJ5W0M3B/ # refund_charge failed
   end
 
   test 'needs-attention filter surfaces the run that warrants a look' do
     get '/runs?filter=attention'
     assert_response :success
-    assert_match 'run_01HGJ5W0M3B', response.body    # failed + proof failed + awaiting review
-    refute_match 'run_01HGJ3R6T7E', response.body    # a healthy runtime run is hidden
+    assert_select '.ic-run-row', 1
+    assert_select '.ic-run-row__title', /run_01HGJ5W0M3B/ # failed + proof failed + awaiting review
   end
 
   test 'proof-unavailable filter surfaces runs without established proof' do
     get '/runs?filter=proof_unavailable'
     assert_response :success
-    assert_match 'run_01HGJ9N7P4D', response.body    # the running run, proof pending
+    assert_select '.ic-run-row', 1
+    assert_select '.ic-run-row__title', /run_01HGJ9N7P4D/ # the running run, proof pending
   end
 
-  test 'an unknown filter falls back to all' do
+  test 'an unknown filter falls back to all runs' do
     get '/runs?filter=bogus'
     assert_response :success
-    assert_match 'run_01HGJ8K2Z9F', response.body
+    assert_select '.ic-run-row', 6 # every fixture run is shown
   end
 
   # ── Runs index: row next-actions connect to Action and Runtime ──────────
@@ -198,7 +201,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'settings explains agents get an action endpoint, not direct tool access' do
     get '/settings?section=tools'
     assert_response :success
-    assert_match 'Tool & target access', response.body
+    assert_match 'target access', response.body          # heading ("Tool &amp; target access")
     assert_match 'never gets direct tool access', response.body
     assert_match 'Igris action endpoint', response.body
   end
