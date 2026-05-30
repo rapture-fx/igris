@@ -29,8 +29,12 @@ class RuntimesController < ApplicationController
   private
 
   def load_index
-    @runtimes       = data_source.runtimes
-    @key_status     = data_source.runtime_api_key_status
-    @degraded_error = data_source.error
+    @runtimes        = data_source.runtimes
+    @runtime_summary = data_source.runtime_summary
+    @runtime_actions = data_source.local_runtime_actions
+    @runtime_runs    = data_source.runtime_runs
+    @action_names    = data_source.actions.map { |a| a[:name].to_s }.to_set
+    @key_status      = data_source.runtime_api_key_status
+    @degraded_error  = data_source.error
   end
 end
