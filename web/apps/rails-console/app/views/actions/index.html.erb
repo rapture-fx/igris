@@ -23,7 +23,6 @@
     <%= link_to 'New action', new_action_path, class: 'ic-btn' %>
     </div>
   <% else %>
-    <p class="ic-list-hint">Your agent calls these endpoints instead of calling tools directly.</p>
     <div class="ic-actions-list" role="list">
       <% @actions.each do |a| %>
         <% st = a[:last_run_status].to_s
