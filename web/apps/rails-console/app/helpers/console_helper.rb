@@ -156,6 +156,46 @@ module ConsoleHelper
                "this.textContent='Copied';setTimeout(()=>this.textContent='#{label}',1400)})()"
   end
 
+  # Plain-language, audit-supporting reading of a run's already-safe evidence
+  # fields. Interpretation ONLY: it never asserts legal/regulatory compliance
+  # or certification, and reads exclusively from redacted/normalized values
+  # (status, policy, proof label, recovery) — never raw bodies or signatures.
+  def audit_interpretation(run)
+    proof    = run[:proof].to_s
+    verified = proof.match?(/verified/i)
+    failed   = proof.match?(/failed|mismatch/i)
+    verification =
+      if    verified then 'Signed'
+      elsif failed   then 'Signature mismatch'
+      else                'Unsigned · not attached'
+      end
+
+    [
+      { label: 'Control decision', value: run[:policy].to_s.presence || '—',
+        note: 'Policy decision record — the policy preset Igris applied before allowing execution.' },
+      { label: 'Execution record', value: run[:status].to_s.presence || '—',
+        note: 'Tamper-evident record of what Igris did when the action was called.' },
+      { label: 'Evidence receipt', value: audit_receipt_value(proof),
+        note: 'A receipt is a signed, tamper-evident record that a runtime reported this execution event.' },
+      { label: 'Verification status', value: verification,
+        note: 'Signature shows the event was reported by a registered runtime key when available. ' \
+              'Digest records prove data consistency without exposing raw input or output.' },
+      { label: 'Recovery / replay status', value: run[:recovery].to_s.presence || 'Not needed',
+        note: 'Replay / recovery record — whether Igris retried or compensated the action.' },
+      { label: 'Data exposure', value: 'Minimized',
+        note: 'Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed.' },
+    ]
+  end
+
+  def audit_receipt_value(proof)
+    case proof.to_s
+    when /verified/i        then 'Signed runtime evidence present'
+    when /failed|mismatch/i then 'Receipt withheld — signature mismatch'
+    when /present|receipt/i then 'Receipt present'
+    else 'No signed runtime evidence attached'
+    end
+  end
+
   def infer_tone(label)
     case label.to_s
     when /verified|ready|success|healthy|completed|connected/i then :ok
@@ -167,6 +207,21 @@ module ConsoleHelper
 
   def code_snippet(code, language: 'bash', label: nil)
     render 'shared/code_snippet', code: code, language: language, label: label
+  end
+
+  # Inline test-run outcome → { tone:, label: } for the Action Detail "Test
+  # this action" panel. The `state` strings are produced by
+  # ActionsController#run; messages themselves are operator-facing copy only.
+  def test_result_meta(state)
+    case state.to_s
+    when 'demo'                            then { tone: :warn, label: 'Demo mode' }
+    when 'sent'                            then { tone: :warn, label: 'Accepted' }
+    when 'invalid_json', 'invalid_request' then { tone: :bad,  label: 'Request rejected' }
+    when 'policy_denied'                   then { tone: :bad,  label: 'Policy denied' }
+    when 'runtime_unavailable'             then { tone: :bad,  label: 'Runtime unavailable' }
+    when 'unavailable', 'api_error'        then { tone: :bad,  label: 'Igris unavailable' }
+    else { tone: :muted, label: 'Result' }
+    end
   end
 
   # Sample JSON request body for the "Test this action" panel, shaped to match
