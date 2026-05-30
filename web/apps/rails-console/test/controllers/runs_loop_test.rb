@@ -41,7 +41,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'runs index shows the title, summary strip, and status labels' do
     get '/runs'
     assert_response :success
-    assert_match 'Action executions and evidence', response.body
+    assert_match 'Action executions — evidence, policy, recovery, and proof', response.body
     assert_match 'shown', response.body              # summary strip count
     assert_match 'failed', response.body
     assert_match 'proof verified', response.body
