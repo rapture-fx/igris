@@ -25,13 +25,14 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     assert_redirected_to '/home'
   end
 
-  test '/welcome renders the onboarding page' do
+  test '/welcome renders the onboarding page inside the console chrome' do
     get '/welcome'
     assert_response :success
     assert_match 'Give your AI agent a safe action endpoint.', response.body
     assert_match 'Your first action', response.body
     assert_match 'Create your first action', response.body
-    assert_match 'Go to Home', response.body
+    assert_match 'Go to Overview', response.body
+    assert_match 'ic-rail', response.body # rendered with the icon rail, not standalone
   end
 
   test 'entering the console sets the cookie and redirects to /home' do
