@@ -37,7 +37,7 @@
              else                     [readiness.humanize, 'muted']
              end
         %>
-        <div class="ic-action-row" role="listitem">
+        <%= link_to action_path(a[:id]), class: "ic-action-row", role: 'listitem' do %>
           <span class="ic-action-row__dot ic-action-row__dot--<%= dot_mod %>"></span>
           <div class="ic-action-row__main">
             <div class="ic-action-row__name"><%= a[:name] %></div>
@@ -54,8 +54,7 @@
           <span class="ic-action-row__when">
             <%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs yet' %>
           </span>
-          <%= link_to 'Open', action_path(a[:id]), class: 'ic-btn ic-action-row__open' %>
-        </div>
+        <% end %>
       <% end %>
     </div>
   <% end %>
