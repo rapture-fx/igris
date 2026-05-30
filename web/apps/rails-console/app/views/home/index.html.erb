@@ -31,7 +31,7 @@
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Home</span>
-    <span class="ic-chip">igris-default</span>
+    <%= project_chip %>
   </div>
 </div>
 
@@ -170,9 +170,9 @@
       <%# ── Workspace context (plain panel, not a card) ──────── %>
       <aside class="ic-workspace-panel" aria-label="Workspace summary">
         <div class="ic-workspace-panel__id">
-          <span class="ic-ws-avatar"><%= console_icon('igris-mark', size: 15) %></span>
+          <span class="ic-ws-avatar"><%= image_tag '/emeralds.jpg', alt: '' %></span>
           <div>
-            <div class="ic-workspace-panel__name">igris-default</div>
+            <div class="ic-workspace-panel__name"><%= project_display_name %></div>
             <span class="ic-status__pill <%= api_tone %>"><%= api_label %></span>
           </div>
         </div>
