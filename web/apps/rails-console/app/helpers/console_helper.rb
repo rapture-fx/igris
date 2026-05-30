@@ -24,6 +24,38 @@ module ConsoleHelper
     active_lens == lens
   end
 
+  # ── Project identity ──────────────────────────────────────────────────
+  # "Project" is the user-facing name for the workspace/tenant that holds the
+  # actions, runs, runtimes, keys, and evidence. The name lives in Go; this
+  # helper exposes it to every view through the DataSource boundary.
+  #
+  # Resilient on purpose: test doubles and any DataSource that predates the
+  # project method fall back to a neutral context instead of raising, so the
+  # chip never breaks a page.
+  def project_context
+    ds = data_source
+    return ds.project if ds.respond_to?(:project)
+
+    fixtures = ds.respond_to?(:fixtures?) && ds.fixtures?
+    { name: nil, mode: fixtures ? :fixtures : :real, needs_name: false }
+  rescue StandardError
+    { name: nil, mode: :degraded, needs_name: false }
+  end
+
+  # The label to show in chips/headers. Falls back to "Demo Project" in
+  # fixture/demo mode and "igris-default" when a real project has no name yet.
+  def project_display_name
+    ctx = project_context
+    return ctx[:name] if ctx[:name].present?
+
+    ctx[:mode] == :fixtures ? 'Demo Project' : 'igris-default'
+  end
+
+  # Small project chip for page topbars. Plain, escaped, calm.
+  def project_chip
+    tag.span(project_display_name, class: 'ic-chip')
+  end
+
   # Lucide-faithful icon set — same pack the landing-page hero uses
   # (lucide-react in web-landing/src/components/sections/Products.tsx).
   # Glyph paths copied from lucide.dev so visual identity matches.
@@ -131,6 +163,94 @@ module ConsoleHelper
     return 'running' if run_running?(run)
     return 'failed'  if run_failed?(run)
     'ok'
+  end
+
+  # ── Run Activity Map ───────────────────────────────────────────────────
+  # An at-a-glance, time-ordered map of recent runs on /runs. Each run is one
+  # dot; its outcome band (not a numeric value) and tone show what happened.
+  # Pure presentation: it reads only the already-normalized, already-redacted
+  # run summary fields — never raw bodies, signatures, hosts, or env values.
+  #
+  # Bands run top→bottom from best to worst outcome, mirroring the "rising on
+  # top / falling on bottom" shape of the reference visualization.
+  RUN_ACTIVITY_BANDS = [
+    { key: :verified,  label: 'Verified' },
+    { key: :completed, label: 'Completed' },
+    { key: :recovered, label: 'Recovered' },
+    { key: :waiting,   label: 'Waiting' },
+    { key: :blocked,   label: 'Blocked' },
+    { key: :failed,    label: 'Failed' },
+  ].freeze
+
+  # Map a normalized run to its outcome band. Ordered so an in-flight or
+  # blocked run is never mislabelled as a clean completion, and so we never
+  # assert proof that isn't there.
+  def run_activity_band(run)
+    status   = run[:status].to_s
+    proof    = run[:proof].to_s
+    recovery = run[:recovery].to_s
+
+    # Not yet resolved — running, pending dispatch, or awaiting approval.
+    return :waiting if status.match?(/running|awaiting|pending|in.?flight/i)
+
+    # Stopped or withheld before a clean completion. This is actionable, and
+    # deliberately distinct from a hard failure: policy/replay block, a failed
+    # recovery, a cancel, or a local-runtime run that never bound a runtime.
+    return :blocked if run[:runtime_unavailable] ||
+                       recovery.match?(/recovery failed/i) ||
+                       status.match?(/denied|blocked|cancel/i) ||
+                       (status.match?(/failed/i) &&
+                        run[:executed_target].to_s == 'local_runtime' &&
+                        run[:runtime_id].to_s.strip.empty?)
+
+    return :failed if status.match?(/failed|error/i)
+
+    # Proof-verified completion is the strongest positive signal we can show.
+    return :verified if proof.match?(/verified/i)
+
+    # Retried / compensated / resumed / replayed and then completed.
+    return :recovered if recovery.match?(/retr|compensat|resum|replay/i)
+
+    return :completed if status.match?(/succeeded|success|completed/i)
+
+    # Indeterminate (e.g. empty status) — honest Waiting, never a fake success.
+    :waiting
+  end
+
+  # Human label for a band key.
+  def run_activity_label(band)
+    RUN_ACTIVITY_BANDS.find { |b| b[:key] == band }&.dig(:label) || 'Run'
+  end
+
+  # Accessible / tooltip summary for a single run dot. Only safe identifiers
+  # and normalized labels — no raw evidence.
+  def run_activity_aria_label(run, band = nil)
+    band ||= run_activity_band(run)
+    parts = ["Action #{run[:action].to_s.presence || '—'}", run_activity_label(band)]
+    parts << "routed via #{run[:routed_via]}" if run[:routed_via].to_s.strip.present?
+    parts << (run[:proof].to_s.presence || 'Proof unavailable')
+    parts << "runtime #{run[:runtime_id]}"    if run[:runtime_id].to_s.strip.present?
+    parts << time_ago(run[:started_at])
+    "#{parts.join(' · ')}. Open run to inspect audit-supporting evidence."
+  end
+
+  # Build the placed points for the map from a newest-first run window.
+  # Capped to the latest `limit`, then reversed so time reads left→right
+  # (oldest→newest). Each point carries its grid column/row (1-based; column 1
+  # is reserved for band labels) so the view can position it without JS.
+  def run_activity_points(runs, limit: 80)
+    ordered  = Array(runs).first(limit).reverse
+    band_row = RUN_ACTIVITY_BANDS.each_with_index.to_h { |b, i| [b[:key], i + 1] }
+    ordered.each_with_index.map do |run, i|
+      band = run_activity_band(run)
+      {
+        run:  run,
+        band: band,
+        col:  i + 2,
+        row:  band_row[band] || RUN_ACTIVITY_BANDS.length,
+        aria: run_activity_aria_label(run, band),
+      }
+    end
   end
 
   # The single most useful next step for a run, used by Run Detail's
