@@ -11,23 +11,59 @@
 %>
 <div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
 
-  <%# ── Topbar: crumb / title / chip ──────────────────────────────────── %>
+  <%# ── Topbar: crumb / title / linkbacks ─────────────────────────────── %>
+  <% through_runtime = data_source.run_through_runtime?(@run)
+     runtime_id      = @run[:runtime_id].to_s.strip %>
   <div class="ic-topbar">
     <div class="ic-topbar__group">
       <%= link_to 'Runs', runs_path, class: 'ic-topbar__crumb' %>
       <span class="ic-topbar__sep">/</span>
       <span class="ic-topbar__title"><%= @run[:action] %> — <%= @run[:id] %></span>
-      <span class="ic-chip"><%= @run[:routed_via].to_s.split('·').last.to_s.strip.presence || @run[:action] %></span>
     </div>
-    <% if demo_mode? %>
-      <div class="ic-topbar__group">
+    <div class="ic-topbar__group">
+      <% if @action_known %>
+        <%= link_to 'Back to action', action_path(@run[:action]), class: 'ic-btn' %>
+      <% end %>
+      <% if through_runtime %>
+        <%= link_to 'Open runtime', runtimes_path, class: 'ic-btn' %>
+      <% end %>
+      <% if demo_mode? %>
         <button class="ic-btn">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
           Re-run
         </button>
         <button class="ic-btn">Verify chain</button>
-      </div>
-    <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <%# ── Context bar: the run at a glance, always in view ───────────────── %>
+  <div class="ic-context">
+    <span class="ic-context__item">
+      <span class="ic-context__k">Action</span>
+      <span class="ic-context__v mono"><%= @run[:action] %></span>
+    </span>
+    <span class="ic-context__item">
+      <span class="ic-context__k">Status</span>
+      <%= status_pill @run[:status] %>
+    </span>
+    <span class="ic-context__item">
+      <span class="ic-context__k">Routed via</span>
+      <span class="ic-context__v"><%= @run[:routed_via] %></span>
+    </span>
+    <span class="ic-context__item">
+      <span class="ic-context__k">Runtime</span>
+      <span class="ic-context__v mono"><%= runtime_id.presence || '—' %></span>
+    </span>
+    <span class="ic-context__item">
+      <span class="ic-context__k">Proof</span>
+      <%= status_pill(@run[:proof].to_s.presence || 'Proof unavailable') %>
+    </span>
+    <span class="ic-context__item ic-context__item--id">
+      <span class="ic-context__k">Run ID</span>
+      <span class="ic-context__v mono"><%= @run[:id] %></span>
+      <%= copy_button @run[:id] %>
+    </span>
   </div>
 
   <%= render 'shared/flash', degraded_error: @degraded_error %>
@@ -66,6 +102,40 @@
         <p class="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
       <% end %>
     </div>
+
+    <%# ── What to do next — one clear, state-aware nudge ──────────────────── %>
+    <% guidance = run_guidance_state(@run) %>
+    <% if guidance %>
+      <div class="ic-next ic-next--<%= guidance %>">
+        <div class="ic-next__main">
+          <span class="ic-next__label">What to do next</span>
+          <p class="ic-next__msg">
+            <% case guidance
+               when :runtime_unavailable %>This run required a runtime that was unavailable.
+            <% when :failed %>Run failed.
+            <% when :running %>Run is still in flight. Evidence appears as steps commit.
+            <% when :proof_unavailable %>Proof is available when signed runtime evidence exists.
+            <% when :completed %>Run completed successfully.
+            <% end %>
+          </p>
+        </div>
+        <div class="ic-next__ctas">
+          <% case guidance
+             when :runtime_unavailable %>
+            <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn ic-btn--accent' %>
+            <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+          <% when :failed %>
+            <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+            <%= copy_button @run[:id], label: 'Copy run ID' %>
+          <% when :proof_unavailable %>
+            <a href="#evidence" class="ic-btn">View evidence</a>
+          <% when :completed %>
+            <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+            <a href="#evidence" class="ic-btn">View step evidence</a>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
 
     <% if demo_mode? %>
       <%# ════════════ FIXTURE MODE: clearly-labelled illustrative demo ════════ %>
@@ -129,7 +199,7 @@
 
       <%# Committed actions panel — the tree %>
       <% total_actions = steps.count { |s| s[:kind] == :action } %>
-      <div class="ic-panel">
+      <div class="ic-panel" id="evidence">
         <div class="ic-panel__head">
           <div class="ic-panel__head-l">
             <span>Committed actions (<%= total_actions %>)</span>
@@ -196,7 +266,7 @@
          receipt_signed = (@run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_signed' }&.dig(:value)
          dash = ->(v) { v.to_s.strip.presence || '—' } %>
 
-      <div class="ic-evidence">
+      <div class="ic-evidence" id="evidence">
         <div class="ic-evidence__head">Evidence</div>
         <div class="ic-def"><span class="ic-def__label">Task ID</span><div class="ic-def__value mono"><%= dash.call(@run[:id]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= dash.call(@run[:action]) %></div></div>
