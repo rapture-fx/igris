@@ -17,7 +17,6 @@ class RunsController < ApplicationController
   def show
     @run = data_source.find_run(params[:id])
     return head :not_found unless @run
-    @tab = (params[:tab].presence || 'story').to_s
     @action_known = data_source.actions.any? { |a| a[:name].to_s == @run[:action].to_s }
     @degraded_error = data_source.error
   end
