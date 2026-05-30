@@ -58,6 +58,31 @@ class OvertureClientTest < ActiveSupport::TestCase
     end
   end
 
+  # ── Agent / app API keys ─────────────────────────────────────────────────
+  test 'list_api_keys returns the keys array' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.get('/v1/api-keys') { [200, { 'Content-Type' => 'application/json' }, { keys: [{ id: 'k1', name: 'Agent key', prefix: 'igris_a1b2' }] }.to_json] }
+    end
+    keys = stub_client(stubs).list_api_keys
+    assert_equal 1, keys.size
+    assert_equal 'igris_a1b2', keys.first['prefix']
+  end
+
+  test 'create_api_key posts the name and returns the raw key once' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/api-keys') { [201, { 'Content-Type' => 'application/json' }, { id: 'k2', name: 'CI key', prefix: 'igris_ffee', api_key: 'igris_rawkeyonce' }.to_json] }
+    end
+    result = stub_client(stubs).create_api_key('CI key')
+    assert_equal 'igris_rawkeyonce', result['api_key']
+  end
+
+  test 'revoke_api_key issues a DELETE to the id path' do
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.delete('/v1/api-keys/k2') { [200, { 'Content-Type' => 'application/json' }, { ok: true }.to_json] }
+    end
+    assert_equal true, stub_client(stubs).revoke_api_key('k2')['ok']
+  end
+
   test 'run_action surfaces runtime_unavailable as ServiceUnavailable' do
     stubs = Faraday::Adapter::Test::Stubs.new do |s|
       s.post('/v1/actions/send_email/run') { [503, { 'Content-Type' => 'application/json' }, { error: 'runtime_unavailable', message: 'no runtime' }.to_json] }
