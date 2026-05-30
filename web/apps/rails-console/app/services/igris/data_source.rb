@@ -186,6 +186,56 @@ module Igris
       @client.create_runtime_api_key
     end
 
+    # ── Agent / app API keys ──────────────────────────────────────────────
+    # The keys an agent or app uses to call action endpoints. Read-only metadata
+    # (id/name/prefix/timestamps) — never a raw key. Empty in fixture mode (no
+    # fabrication) and on error (the view falls back to the explainer).
+    def agent_api_keys
+      return [] unless real?
+      @client.list_api_keys.map { |k| normalize_api_key(k) }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    # Mint a new agent/app key. Returns the response hash including the raw
+    # 'api_key' shown exactly once. Raises in fixture mode so the controller can
+    # show the demo notice instead of a fabricated key.
+    def create_agent_api_key(name)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.create_api_key(name)
+    end
+
+    # Revoke an agent/app key by id. Raises in fixture mode.
+    def revoke_agent_api_key(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.revoke_api_key(id)
+    end
+
+    # ── Project identity ──────────────────────────────────────────────────
+    # "Project" is the user-facing name for the container that holds this
+    # tenant's actions, runs, runtimes, keys, and evidence. The state of record
+    # is the Go tenant row (tenants.tenant_name) — Rails never persists it.
+    #
+    # Normalized shape: { name:, mode:, needs_name: }
+    #   - name       — the project name, or nil when unset
+    #   - mode       — :real | :fixtures | :degraded
+    #   - needs_name — true only in real mode with no name yet (drives the
+    #                  first-run "Create your project" prompt on /welcome)
+    def project
+      @project ||= load_project
+    end
+
+    # PATCH the project name through Go. Returns the response hash. Raises in
+    # fixture mode (the controller shows the demo notice) and on validation /
+    # network errors (the controller surfaces them inline). Busts the memo so a
+    # later read in the same request reflects the new name.
+    def update_project(name)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      raw = @client.update_project(name)
+      @project = nil
+      raw
+    end
+
     # ── Writes ────────────────────────────────────────────────────────────
 
     # Returns the created action hash (normalized). Raises on validation /
@@ -213,6 +263,33 @@ module Igris
       end
     rescue OvertureClient::Error => e
       capture(e); []
+    end
+
+    # Map a raw agent-key metadata hash → safe view row. Never carries a raw
+    # key or hash (the API never returns them); only id/name/prefix/timestamps.
+    def normalize_api_key(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        id:           raw[:id].to_s,
+        name:         raw[:name].to_s.presence || 'Agent key',
+        prefix:       raw[:prefix].to_s,
+        created_at:   parse_time(raw[:created_at]),
+        last_used_at: parse_time(raw[:last_used_at]),
+      }
+    end
+
+    def load_project
+      unless real?
+        return { name: 'Demo Project', mode: :fixtures, needs_name: false }
+      end
+
+      raw  = @client.get_project
+      name = (raw.is_a?(Hash) ? (raw['name'] || raw[:name]) : nil).to_s.strip
+      { name: name.presence, mode: :real, needs_name: name.empty? }
+    rescue OvertureClient::Error => e
+      # Degraded: don't block the console or falsely prompt for a name on error.
+      capture(e)
+      { name: nil, mode: :degraded, needs_name: false }
     end
 
     def capture(error)
