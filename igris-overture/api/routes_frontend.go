@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/cognitive"
@@ -106,6 +107,9 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 	evGroup.Post("/refresh", makePostEscapeVectorRefresh(db))
 	evGroup.Delete("/cache", makeDeleteEscapeVectorCache(db))
 
+	// ── Project endpoints ────────────────────────────────────────────────────
+	RegisterProjectRoutes(app, db)
+
 	log.Println("[Routes] ✓ Registered frontend routes:")
 	log.Println("[Routes]   GET  /v1/tenants/current           (useTenant hook)")
 	log.Println("[Routes]   GET  /v1/cognitive/status          (useCognitive hook)")
@@ -114,6 +118,7 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 	log.Println("[Routes]   Shadow:    8 endpoints under /v1/shadow/*")
 	log.Println("[Routes]   Council:   6 endpoints under /v1/council/*")
 	log.Println("[Routes]   EscapeVector: 7 endpoints under /v1/escapevector/*")
+	log.Println("[Routes]   Project:  GET+PATCH /v1/project     (project identity)")
 }
 
 // RegisterCognitiveV1Aliases adds /v1/cognitive/* aliases pointing at the same
@@ -278,6 +283,137 @@ func makeGetCurrentTenant(db *sql.DB) fiber.Handler {
 		}
 
 		return c.JSON(&resp)
+	}
+}
+
+// ============================================================================
+// PROJECT — tenant-scoped project identity (GET + PATCH /v1/project)
+// ============================================================================
+
+// RegisterProjectRoutes mounts the tenant-scoped project-identity endpoints.
+// Split out from RegisterFrontendRoutes so it can be mounted in isolation by
+// tests (mirrors RegisterRuntimeAPIKeyRoutes). The "project" is the user-facing
+// name for the tenant — it reads/writes only the tenants.tenant_name column.
+func RegisterProjectRoutes(app *fiber.App, db *sql.DB) {
+	projectGroup := app.Group("/v1/project")
+	projectGroup.Use(middleware.BetterAuth(db))
+	projectGroup.Get("/", makeGetProject(db))
+	projectGroup.Patch("/", makePatchProject(db))
+}
+
+type ProjectResponse struct {
+	Name string `json:"name"`
+}
+
+// validProjectName trims and validates a user-facing project name. It returns
+// the trimmed name and an empty reason on success, or ("", reasonCode) on
+// failure. The character allow-list deliberately excludes '<', '>', '/', and
+// '=', so HTML/script fragments are rejected outright.
+func validProjectName(raw string) (string, string) {
+	name := strings.TrimSpace(raw)
+	if len(name) < 2 || len(name) > 80 {
+		return "", "INVALID_NAME_LENGTH"
+	}
+	for _, r := range name {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') || r == ' ' || r == '-' ||
+			r == '_' || r == '\'' || r == '.' || r == '&' || r == ',') {
+			return "", "INVALID_NAME_CHARS"
+		}
+	}
+	return name, ""
+}
+
+func makeGetProject(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "unauthorized",
+				"code":  "MISSING_CLERK_USER_ID",
+			})
+		}
+
+		var tenantName sql.NullString
+		err := db.QueryRow(`
+			SELECT tenant_name
+			FROM tenants
+			WHERE tenant_id = $1
+		`, clerkUserID).Scan(&tenantName)
+
+		if err == sql.ErrNoRows {
+			return c.JSON(&ProjectResponse{Name: ""})
+		}
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed_to_retrieve_project",
+				"code":  "DB_ERROR",
+			})
+		}
+
+		return c.JSON(&ProjectResponse{Name: tenantName.String})
+	}
+}
+
+// ============================================================================
+// PROJECT — PATCH /v1/project
+// ============================================================================
+
+func makePatchProject(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		clerkUserID := middleware.GetClerkUserID(c)
+		if clerkUserID == "" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "unauthorized",
+				"code":  "MISSING_CLERK_USER_ID",
+			})
+		}
+
+		var req struct {
+			Name string `json:"name"`
+		}
+		if err := c.BodyParser(&req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid_request",
+				"code":  "INVALID_JSON",
+			})
+		}
+
+		name, reason := validProjectName(req.Name)
+		switch reason {
+		case "INVALID_NAME_LENGTH":
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Project name must be between 2 and 80 characters.",
+				"code":  reason,
+			})
+		case "INVALID_NAME_CHARS":
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Project name may only contain letters, numbers, spaces, hyphens, underscores, apostrophes, periods, ampersands, and commas.",
+				"code":  reason,
+			})
+		}
+
+		result, err := db.Exec(`
+			UPDATE tenants
+			SET tenant_name = $2
+			WHERE tenant_id = $1
+		`, clerkUserID, name)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed_to_update_project",
+				"code":  "DB_ERROR",
+			})
+		}
+
+		n, _ := result.RowsAffected()
+		if n == 0 {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "tenant_not_found",
+				"code":  "TENANT_NOT_FOUND",
+			})
+		}
+
+		return c.JSON(&ProjectResponse{Name: name})
 	}
 }
 
