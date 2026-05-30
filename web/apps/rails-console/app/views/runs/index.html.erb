@@ -34,20 +34,6 @@
     <span class="ic-runs-strip__window">Most recent <%= @counts[:total] %> run<%= 's' if @counts[:total] != 1 %><%= ' · demo data' if demo_mode? %></span>
   </div>
 
-  <%# ── Filters (server-rendered query params) ───────────────────────── %>
-  <div class="ic-filters" role="tablist" aria-label="Filter runs">
-    <% [['all', 'All', @counts[:total]],
-        ['failed', 'Failed', @counts[:failed]],
-        ['attention', 'Needs attention', @counts[:attention]],
-        ['proof_unavailable', 'Proof unavailable', @counts[:proof_unavailable]]].each do |slug, label, n| %>
-      <%= link_to runs_path(filter: slug),
-            class: "ic-filter #{'is-active' if @filter == slug}",
-            role: 'tab', 'aria-selected': (@filter == slug).to_s do %>
-        <%= label %><span class="ic-filter__n"><%= n %></span>
-      <% end %>
-    <% end %>
-  </div>
-
   <%# ── Run Activity Map — at-a-glance map of recent runs over time ─────
       Each dot is one loaded run; its band/tone show the outcome. The map
       reflects the same filtered window as the list below it. ──────────── %>
@@ -76,7 +62,7 @@
     <% else %>
       <% points = run_activity_points(@runs); n = points.size %>
       <ul class="ic-runmap__legend">
-        <% RUN_ACTIVITY_BANDS.each do |b| %>
+        <% run_activity_bands.each do |b| %>
           <li class="ic-runmap__leg">
             <span class="ic-runmap__leg-dot ic-runmap__dot--<%= b[:key] %>"></span><%= b[:label] %>
           </li>
@@ -85,7 +71,7 @@
       <div class="ic-runmap__scroll">
         <div class="ic-runmap__grid"
              style="grid-template-columns: minmax(72px, max-content) repeat(<%= n %>, 13px);">
-          <% RUN_ACTIVITY_BANDS.each_with_index do |b, ri| %>
+          <% run_activity_bands.each_with_index do |b, ri| %>
             <span class="ic-runmap__band" style="grid-column: 1; grid-row: <%= ri + 1 %>;"><%= b[:label] %></span>
             <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: <%= ri + 1 %>;" aria-hidden="true"></i>
           <% end %>
