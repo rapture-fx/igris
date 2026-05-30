@@ -66,8 +66,12 @@
       <div class="ic-action-main">
         <div class="ig-card ic-endpoint-hero">
           <div class="ig-card__title">Action endpoint</div>
+          <p class="ig-mut" style="margin: 0 0 10px;">This is the endpoint your agent calls.</p>
           <%= code_snippet @action[:endpoint], language: 'http', label: 'POST' %>
-          <p class="ig-mut" style="margin-top: 8px;">Use this where your agent would normally call the tool directly.</p>
+          <p class="ig-mut" style="margin-top: 8px;">
+            The agent does not get direct tool access — it calls this Igris endpoint.
+            The action defines the target, policy, and secret references.
+          </p>
           <div class="ic-ctx-label">curl</div>
           <%= code_snippet action_curl_snippet(@action[:endpoint]), language: 'bash' %>
           <div class="ic-ctx-label">JavaScript / fetch</div>
@@ -76,11 +80,29 @@
 
         <div class="ig-card" id="test-request">
           <div class="ig-card__title">Test this action</div>
-          <p class="ig-mut" style="margin-bottom: 10px;">Send a sample request through the endpoint. Edit the JSON as needed.</p>
+          <p class="ig-mut" style="margin-bottom: 10px;">
+            Send a test request to confirm the action routes through Igris before
+            you wire it into your agent. Edit the JSON as needed.
+          </p>
+
+          <%# ── Inline result / error — the outcome lands right here ──────── %>
+          <% if (tr = flash[:test_result]).present? %>
+            <% meta = test_result_meta(tr['state']) %>
+            <div class="ic-testresult ic-testresult--<%= meta[:tone] %>" role="status" aria-live="polite">
+              <div class="ic-testresult__head">
+                <%= chip meta[:label], tone: meta[:tone] %>
+                <span class="ic-testresult__msg"><%= tr['message'] %></span>
+              </div>
+              <% if tr['state'] == 'runtime_unavailable' %>
+                <div class="ic-testresult__cta"><%= link_to 'Connect a runtime', runtimes_path, class: 'ic-btn ic-btn--accent' %></div>
+              <% end %>
+            </div>
+          <% end %>
+
           <%= form_with url: run_action_path(@action[:id]), method: :post, local: true do |f| %>
             <div class="ig-field">
               <label class="ig-field__label" for="input">Request body (JSON)</label>
-              <%= text_area_tag :input, sample_payload_for(@action[:target_type]), id: 'input',
+              <%= text_area_tag :input, (flash[:test_input].presence || sample_payload_for(@action[:target_type])), id: 'input',
                   class: 'ig-textarea', rows: 7, spellcheck: 'false' %>
             </div>
             <div class="ig-field">
