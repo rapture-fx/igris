@@ -34,6 +34,19 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     def runtime_required_for?(action)
       action && action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     end
+    def runtime_summary
+      {
+        total:   @runtimes.size,
+        healthy: @runtimes.count { |r| r[:status] == 'Healthy' },
+        stale:   @runtimes.count { |r| %w[Stale Degraded].include?(r[:status]) },
+        offline: @runtimes.count { |r| r[:status] == 'Offline' },
+      }
+    end
+    def local_runtime_actions = @actions.select { |a| a[:target_type].to_s == 'local_runtime' }
+    def runtime_runs(**) = []
+    def run_through_runtime?(run)
+      run[:runtime_id].to_s.strip != '' || run[:executed_target].to_s == 'local_runtime'
+    end
     def runtime_api_key_status = @key_status
     def create_runtime_api_key
       @generated || { 'api_key' => 'igris_generatedrawkey0123456789', 'prefix' => 'igris_genera', 'created_at' => '2026-05-30T00:00:00Z' }
