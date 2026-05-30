@@ -1123,13 +1123,16 @@ html.dark .ic-btn--accent:hover {
 
 /* ── Committed actions panel ────────────────────────────────────────── */
 .ic-panel {
-  margin-top: 24px;
+  margin-top: 16px;
+  margin-bottom: 16px;
   border-radius: 10px;
   border: 0.5px solid var(--ic-overlay-5);
-  padding: 12px 16px;
+  padding: 14px 16px;
   background: var(--ic-overlay-bg);
   box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.03);
 }
+/* Receipt-chain narrative leads the committed-actions panel. */
+.ic-panel .ic-narrative { margin: 0 0 12px; }
 .ic-panel__head {
   display: flex;
   align-items: center;
@@ -1536,6 +1539,37 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
 }
 .ic-welcome__tiles { margin: 16px 0 24px; }
 
+/* First-run project naming card — focused, command-like, sits above the
+   onboarding hero on /welcome. Reuses .ic-field / .ic-input primitives. */
+.ic-projectcard {
+  margin: 0 0 30px;
+  padding: 20px;
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+  background: var(--ic-overlay-bg);
+}
+.ic-projectcard__title {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--ic-text-bright);
+  margin: 6px 0 4px;
+}
+.ic-projectcard__sub {
+  font-size: 12px;
+  color: var(--ic-text-5);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.ic-projectcard__cta { margin-top: 6px; }
+
+/* Inline field validation message — calm, not alarming. */
+.ic-fielderror {
+  font-size: 11px;
+  color: var(--ic-rose);
+  margin: 2px 0 0;
+}
+
 /* Vertical numbered steps — narrative, not a table.
    Each step's number sits inline with the title; subtle vertical line
    visually connects them, no card chrome. */
@@ -1835,12 +1869,14 @@ html.dark .ic-feed-item__ico--warn    { background: rgba(251,191,36,0.12); }
   margin-top: 8px;
 }
 .ic-ws-avatar {
-  width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(4,120,87,0.10); color: var(--ic-emerald);
-  border: 1px solid rgba(4,120,87,0.18);
+  width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0;
+  overflow: hidden;
 }
-html.dark .ic-ws-avatar { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.20); }
+.ic-ws-avatar > img {
+  width: 28px; height: 28px; border-radius: 999px;
+  object-fit: cover; display: block; user-select: none;
+  -webkit-user-drag: none;
+}
 .ic-workspace-panel__name {
   font-size: 14px;
   font-weight: 500;
@@ -2245,7 +2281,7 @@ html.dark {
 }
 .ic-action-row {
   display: grid;
-  grid-template-columns: 8px 1.1fr 1.6fr 110px 90px auto;
+  grid-template-columns: 8px 1.1fr 1.6fr min-content 90px auto;
   align-items: center;
   gap: 12px;
   padding: 7px 14px;
@@ -2309,6 +2345,7 @@ html.dark .ic-readiness--warn .ic-readiness__dot { background: #fbbf24; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ic-action-row__proof { font-size: 11px; color: var(--ic-text-5); }
+.ic-action-row__badge { display: flex; justify-content: flex-start; }
 .ic-action-row__when { font-size: 11px; color: var(--ic-text-7); text-align: right; }
 @media (max-width: 900px) {
   .ic-action-row { grid-template-columns: 8px 1fr 80px; }
@@ -2645,8 +2682,8 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   border: 1px solid var(--ic-border);
   border-radius: 10px;
   background: var(--ic-overlay-bg);
-  padding: 12px 16px 4px;
-  margin-bottom: 14px;
+  padding: 14px 16px 8px;
+  margin-bottom: 16px;
 }
 .ic-evidence__head {
   font-size: 11px;
@@ -2663,17 +2700,17 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   font-size: 12px;
   color: var(--ic-text-5);
   line-height: 1.55;
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   max-width: 70ch;
 }
-.ic-audit__row { padding: 8px 0; border-top: 1px solid var(--ic-border-soft); }
-.ic-audit__row:first-of-type { border-top: 0; }
-.ic-audit__row .ic-def { padding: 0; }
+.ic-audit__row { padding: 11px 0; border-top: 1px solid var(--ic-border-soft); }
+.ic-audit__row:first-of-type { border-top: 0; padding-top: 4px; }
+.ic-audit__row .ic-def { padding: 0; grid-template-columns: 140px 1fr; }
 .ic-audit__note {
   font-size: 11.5px;
   color: var(--ic-text-6);
   line-height: 1.5;
-  margin: 3px 0 0;
+  margin: 5px 0 0;
   max-width: 74ch;
 }
 
@@ -2963,3 +3000,77 @@ html.dark .ic-hint {
   background: var(--ic-amber); flex-shrink: 0;
 }
 .ic-hint__link { color: var(--ic-emerald); margin-left: auto; }
+
+/* ── Run Activity Map (Runs page) ──────────────────────────────────────
+   A time-ordered map of recent runs: each dot is one run, placed by time
+   (x) and outcome band (y). Server-rendered with CSS grid — no JS. */
+.ic-runmap {
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  background: var(--ic-panel);
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+}
+.ic-runmap__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 10px;
+}
+.ic-runmap__title {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--ic-text-9); letter-spacing: .01em;
+}
+.ic-runmap__sub {
+  display: block; margin-top: 2px; font-size: 11.5px;
+  color: var(--ic-text-5); max-width: 64ch;
+}
+.ic-runmap__demo {
+  flex: none; font-size: 11px; color: var(--ic-amber);
+  border: 1px solid rgba(251, 191, 36, .3); background: rgba(251, 191, 36, .06);
+  border-radius: 999px; padding: 2px 9px; white-space: nowrap;
+}
+.ic-runmap__legend {
+  display: flex; flex-wrap: wrap; gap: 6px 14px;
+  list-style: none; margin: 0 0 10px; padding: 0;
+}
+.ic-runmap__leg {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ic-text-7);
+}
+.ic-runmap__leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+.ic-runmap__scroll { overflow-x: auto; padding-bottom: 2px; }
+.ic-runmap__grid {
+  display: grid; grid-auto-rows: 20px; align-items: center;
+  min-width: min-content;
+}
+.ic-runmap__band {
+  align-self: center; font-size: 10.5px; color: var(--ic-text-5);
+  padding-right: 12px; white-space: nowrap; text-align: right;
+}
+.ic-runmap__lane {
+  height: 1px; align-self: center;
+  background: var(--ic-border); opacity: .55;
+}
+.ic-runmap__dot {
+  align-self: center; justify-self: center;
+  width: 9px; height: 9px; border-radius: 50%; display: block;
+  transition: transform .12s ease; position: relative;
+}
+.ic-runmap__dot:hover { transform: scale(1.55); z-index: 2; }
+.ic-runmap__dot:focus-visible { outline: 2px solid var(--ic-accent); outline-offset: 2px; z-index: 2; }
+.ic-runmap__dot--verified  { background: var(--ic-emerald); }
+.ic-runmap__dot--completed { background: var(--ic-sky); }
+.ic-runmap__dot--recovered { background: var(--ic-violet); }
+.ic-runmap__dot--waiting   { background: var(--ic-amber); }
+.ic-runmap__dot--blocked   { background: var(--ic-text-5); }
+.ic-runmap__dot--failed    { background: var(--ic-rose); }
+.ic-runmap__axis {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 8px; font-size: 10.5px; color: var(--ic-text-5);
+}
+.ic-runmap__axis-mid { color: var(--ic-text-7); }
+.ic-runmap__note { font-size: 12px; color: var(--ic-text-7); margin: 6px 0; }
+.ic-runmap__empty { text-align: center; padding: 26px 12px; }
+.ic-runmap__empty-title { font-size: 13px; font-weight: 600; color: var(--ic-text-9); }
+.ic-runmap__empty-sub { font-size: 12px; color: var(--ic-text-5); margin: 6px 0 12px; }
+.ic-runmap__empty-cta { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+@media (max-width: 640px) { .ic-runmap__sub { display: none; } }
