@@ -4,7 +4,7 @@
 <% section = (params[:section].presence || 'api').to_s %>
 <% sections = [
   ['api',     'API endpoints',       'Base URLs for the Igris API and the console'],
-  ['access',  'Access keys',         'How agents and this console authenticate'],
+  ['access',  'Agent access',        'How agents and this console authenticate'],
   ['runtime', 'Runtime keys',        'Keys runtimes use to connect'],
   ['tools',   'Tool & target access','How agents reach tools through Igris'],
   ['env',     'Environment',         'Runtime variables and connection state'],
@@ -18,10 +18,9 @@
   </div>
   <div class="ic-topbar__group">
     <% if demo_mode? %>
-      <span class="ic-chip">demo mode · changes are inert</span>
+      <span class="ic-chip">demo mode · fixtures</span>
     <% end %>
-    <button class="ic-btn">Discard</button>
-    <button class="ic-btn ic-btn--accent">Save</button>
+    <span class="ic-topbar__hint">Configured on the host · read-only here</span>
   </div>
 </div>
 
@@ -41,27 +40,27 @@
       <div class="ic-settings__group">
         <div class="ic-settings__heading">API endpoints</div>
         <p class="ic-settings__intro">
-          Where this console talks to the Igris API. The console uses these
-          to read actions, runs, runtimes, and to submit run requests. None
-          of these values are secret.
+          Where this console talks to the Igris API, and the public URL your
+          agent calls. The configured base URL is set on the host and is not
+          shown here — only the public snippet URL and the connection state.
         </p>
 
         <div class="ic-field">
-          <label class="ic-field__label">Igris API base URL</label>
-          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_API_BASE_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" placeholder="https://api.igrisinertial.com" />
-          <p class="ic-field__help">Used by Rails to call the Igris API. Unset means fixture / demo mode.</p>
-        </div>
-
-        <div class="ic-field">
           <label class="ic-field__label">Public API URL</label>
-          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" placeholder="https://api.igrisinertial.com" readonly />
+          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" readonly />
           <p class="ic-field__help">The base URL shown in action code snippets (the endpoint your agent calls). Public, not secret.</p>
         </div>
 
         <div class="ic-field">
-          <label class="ic-field__label">Console public URL</label>
-          <input class="ic-input" type="text" value="<%= ENV['APP_HOST'].to_s.presence || 'https://console.igrisinertial.com' %>" placeholder="https://console.igrisinertial.com" />
-          <p class="ic-field__help">Where this console is served. Shown in invitations and email links.</p>
+          <label class="ic-field__label">Connection</label>
+          <p class="ic-field__help">
+            <strong>
+              <%= @degraded_error ? 'Degraded' : (demo_mode? ? 'Demo (fixtures)' : 'Connected') %>
+            </strong>
+            — the Igris API base URL is configured on the host as
+            <code>OVERTURE_API_BASE_URL</code>. Unset means fixture / demo mode.
+            The value itself is never displayed here.
+          </p>
         </div>
 
         <div class="ic-field">
@@ -73,11 +72,12 @@
 
     <% elsif section == 'access' %>
       <div class="ic-settings__group">
-        <div class="ic-settings__heading">Access keys</div>
+        <div class="ic-settings__heading">Agent access</div>
         <p class="ic-settings__intro">
-          Two kinds of credential. An agent calls an Igris action endpoint
-          with its own API key; this console authenticates to the Igris API
-          with a separate key set on the host. Keys are never displayed here.
+          An agent or app calls an Igris action endpoint with its own API key —
+          it never receives direct tool access. This console authenticates to
+          the Igris API with a separate key set on the host. Keys are never
+          displayed here.
         </p>
 
         <div class="ic-field">
@@ -110,7 +110,7 @@
 
         <div class="ic-field">
           <label class="ic-field__label">ADMIN_USERNAME</label>
-          <input class="ic-input" type="text" value="<%= ENV['ADMIN_USERNAME'].to_s %>" placeholder="set on host" disabled />
+          <input class="ic-input" type="text" value="" placeholder="<%= ENV['ADMIN_USERNAME'].present? ? 'set on host · not shown' : 'not set' %>" disabled />
         </div>
         <div class="ic-field">
           <label class="ic-field__label">ADMIN_PASSWORD</label>
@@ -119,6 +119,7 @@
             Status: <strong>
               <%= ENV['ADMIN_USERNAME'].present? && ENV['ADMIN_PASSWORD'].present? ? 'locked' : 'open (development)' %>
             </strong>
+            — neither value is displayed here.
           </p>
         </div>
       </div>
@@ -185,12 +186,30 @@
           </div>
         </div>
 
+        <ul class="ic-settings__list">
+          <li>The agent does not receive direct tool access.</li>
+          <li>The agent receives an Igris action endpoint.</li>
+          <li>The <strong>Action</strong> defines what the endpoint can touch.</li>
+          <li>The <strong>Target</strong> defines where it runs.</li>
+          <li>The <strong>Policy</strong> defines how it is controlled.</li>
+          <li>Secrets are referenced, never shown.</li>
+        </ul>
+
         <div class="ic-field">
           <label class="ic-field__label">Where targets are configured</label>
           <p class="ic-field__help">
-            Each action defines its own target on
+            Each action defines its own target — start one on
+            <%= link_to 'Create action', new_action_path %> or review existing ones on
             <%= link_to 'Actions', actions_path %>. There is no global tool
             allow-list here — the boundary is the action itself.
+          </p>
+        </div>
+
+        <div class="ic-field">
+          <label class="ic-field__label">Where executions are recorded</label>
+          <p class="ic-field__help">
+            After an action runs, inspect what happened — evidence, policy,
+            recovery, and proof — on <%= link_to 'Runs', runs_path %>.
           </p>
         </div>
       </div>
@@ -204,13 +223,16 @@
           never echoed back.
         </p>
 
+        <%# Only presence/state is shown for host- and credential-bearing vars —
+            the configured values (base URL, host, username, keys) are never
+            echoed back. RAILS_ENV and Mode are safe to display in full. %>
         <% env_rows = [
              ['RAILS_ENV',              Rails.env,                                   :ok],
              ['Mode',                   demo_mode? ? 'demo (fixtures)' : 'connected',demo_mode? ? :warn : :ok],
-             ['OVERTURE_API_BASE_URL',  ENV['OVERTURE_API_BASE_URL'].to_s.presence || '— unset —', ENV['OVERTURE_API_BASE_URL'].present? ? :ok : :warn],
+             ['OVERTURE_API_BASE_URL',  ENV['OVERTURE_API_BASE_URL'].present? ? 'set (hidden)' : '— unset —', ENV['OVERTURE_API_BASE_URL'].present? ? :ok : :warn],
              ['OVERTURE_API_KEY',       ENV['OVERTURE_API_KEY'].present? ? 'set (hidden)' : '— unset —', ENV['OVERTURE_API_KEY'].present? ? :ok : :warn],
-             ['APP_HOST',               ENV['APP_HOST'].to_s.presence || '— unset —',  :muted],
-             ['ADMIN_USERNAME',         ENV['ADMIN_USERNAME'].to_s.presence || '— unset —', :muted],
+             ['APP_HOST',               ENV['APP_HOST'].present? ? 'set (hidden)' : '— unset —',  :muted],
+             ['ADMIN_USERNAME',         ENV['ADMIN_USERNAME'].present? ? 'set (hidden)' : '— unset —', :muted],
              ['ADMIN_PASSWORD',         ENV['ADMIN_PASSWORD'].present? ? 'set (hidden)' : '— unset —', :muted],
            ] %>
         <div class="ic-keys">
@@ -234,23 +256,11 @@
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Advanced</div>
         <p class="ic-settings__intro">
-          Rarely-used operations. Reach for these deliberately.
+          Rarely-used operations. Reach for these deliberately. Audit-log export
+          and runtime pause are managed through the Igris API, not from this
+          console.
         </p>
 
-        <div class="ic-danger">
-          <div>
-            <div class="ic-danger__name">Export audit log</div>
-            <div class="ic-danger__sub">Every action, run, policy decision, and signed receipt for the last 90 days.</div>
-          </div>
-          <button class="ic-btn" type="button">Export</button>
-        </div>
-        <div class="ic-danger">
-          <div>
-            <div class="ic-danger__name">Pause all runtimes</div>
-            <div class="ic-danger__sub">Stop dispatch to every connected runtime. Hosted-API and webhook actions keep running.</div>
-          </div>
-          <button class="ic-btn" type="button">Pause</button>
-        </div>
         <div class="ic-danger ic-danger--red">
           <div>
             <div class="ic-danger__name">Reset console onboarding</div>
