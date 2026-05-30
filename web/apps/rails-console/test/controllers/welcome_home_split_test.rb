@@ -102,6 +102,60 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     refute_match 'runs / day', response.body
   end
 
+  # ── Workspace profile layout ─────────────────────────────────────────────
+  test 'home renders the workspace banner using /home.png' do
+    get '/home'
+    assert_response :success
+    assert_match '/home.png', response.body
+    assert_match 'ic-workspace-banner', response.body
+  end
+
+  test 'home workspace panel shows the status rows' do
+    get '/home'
+    assert_response :success
+    assert_match 'Actions ready', response.body
+    assert_match 'Last run', response.body
+    assert_match 'Runtime status', response.body
+    assert_match 'Igris API', response.body
+  end
+
+  test 'home quick actions include create action, connect runtime, view runs' do
+    get '/home'
+    assert_response :success
+    assert_match 'Create action', response.body
+    assert_match 'Connect runtime', response.body
+    assert_match 'View runs', response.body
+  end
+
+  test 'home feed shows notification-style activity events when runs exist' do
+    get '/home' # fixtures ship runs
+    assert_response :success
+    assert_match 'ic-feed-item', response.body          # separate events, not a table
+    assert_match 'ic-feed-item__ico', response.body     # per-event status glyph
+    assert_match(%r{Action <strong>\w+</strong> (completed|failed|running)}, response.body)
+  end
+
+  test 'home feed shows an honest empty state when no runs in real mode' do
+    action = { id: 'a1', name: 'send_email', target_type: 'hosted_api',
+               target_label: 'Hosted API', setup: 'Ready', endpoint_readiness: 'ready' }
+    with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [])) do
+      get '/home'
+      assert_response :success
+      assert_match 'No activity yet', response.body
+      refute_match 'ic-chartcard', response.body
+    end
+  end
+
+  test 'home zero-actions state links to the new-action wizard and welcome' do
+    with_fake_ds(FakeDS.new(actions: [])) do
+      get '/home'
+      assert_response :success
+      assert_match new_action_path, response.body
+      assert_match welcome_path, response.body
+      assert_match 'ic-workspace-banner', response.body # banner stays
+    end
+  end
+
   # ── Copy guardrail ───────────────────────────────────────────────────────
   test 'welcome and home never expose Overture wording' do
     %w[/welcome /home].each do |path|
