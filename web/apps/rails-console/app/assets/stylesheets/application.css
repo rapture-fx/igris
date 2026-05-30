@@ -1037,6 +1037,7 @@ html.dark .ig-btn--primary {
 .ic-topbar__group { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
 .ic-topbar--wrap { height: auto; min-height: 44px; padding-top: 6px; padding-bottom: 6px; }
 .ic-topbar__hint { font-size: 11px; color: var(--ic-text-6); margin-left: 4px; }
+.ic-topbar__id { font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-6); }
 .ic-topbar__crumb {
   font-size: 11.5px;
   color: var(--ic-text-6);
@@ -2028,27 +2029,6 @@ html.dark .ic-ws-avatar { background: rgba(16,185,129,0.10); border-color: rgba(
 .ic-section-head__link:hover { color: var(--ic-text-bright); }
 .ic-section-head__hint { font-size: 11px; color: var(--ic-text-7); }
 
-/* ── Run detail: context bar (the run at a glance) ──────────────────── */
-.ic-context {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 20px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--ic-border);
-  background: var(--ic-bg);
-}
-.ic-context__item { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
-.ic-context__k {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ic-text-7);
-}
-.ic-context__v { font-size: 12px; color: var(--ic-text-2); }
-.ic-context__v.mono { font-family: var(--ic-mono); font-size: 11.5px; }
-.ic-context__item--id { margin-left: auto; }
-
 /* Small inline copy button — safe identifiers only. */
 .ic-copy {
   font-size: 10.5px;
@@ -2061,36 +2041,6 @@ html.dark .ic-ws-avatar { background: rgba(16,185,129,0.10); border-color: rgba(
   transition: color 120ms ease, background 120ms ease;
 }
 .ic-copy:hover { color: var(--ic-text-bright); background: var(--ic-overlay-5); }
-
-/* ── Run detail: "What to do next" panel ────────────────────────────── */
-.ic-next {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  border: 1px solid var(--ic-border);
-  border-left: 2px solid var(--ic-text-8);
-  border-radius: 10px;
-  background: var(--ic-overlay-bg);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-}
-.ic-next--completed          { border-left-color: var(--ic-emerald); }
-.ic-next--failed,
-.ic-next--runtime_unavailable { border-left-color: var(--ic-rose); }
-.ic-next--proof_unavailable,
-.ic-next--running             { border-left-color: var(--ic-amber); }
-.ic-next__label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ic-text-7);
-  display: block;
-  margin-bottom: 3px;
-}
-.ic-next__msg { font-size: 13px; color: var(--ic-text-2); margin: 0; }
-.ic-next__ctas { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
 /* ── Runtimes: linked actions + recent runtime runs ─────────────────── */
 .ic-rtlink-list {
@@ -2131,18 +2081,6 @@ html.dark .ic-ws-avatar { background: rgba(16,185,129,0.10); border-color: rgba(
 }
 .ic-callout__title { font-size: 12px; color: var(--ic-text-bright); margin-bottom: 4px; }
 .ic-callout__body { font-size: 12px; color: var(--ic-text-5); margin: 0 0 10px; line-height: 1.5; }
-
-/* ── Action detail: next-step prompt (empty runs) ───────────────────── */
-.ic-nextstep {
-  border-left: 2px solid var(--ic-emerald);
-  padding-left: 12px;
-}
-.ic-nextstep__label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ic-text-7);
-}
 
 /* ── Runtime list ───────────────────────────────────────────────────── */
 .ic-runtime-list {
