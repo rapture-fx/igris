@@ -6,7 +6,7 @@
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Get started</span>
-    <span class="ic-chip">igris-default</span>
+    <%= project_chip %>
   </div>
   <div class="ic-topbar__group">
     <a href="https://igrisinertial.com/docs" target="_blank" rel="noopener" class="ic-btn">Read docs</a>
@@ -14,8 +14,41 @@
   </div>
 </div>
 
+<%# First-run project naming. Shown only in real mode when the tenant has not
+    named their project yet (or after a validation error). Fixture/demo mode
+    renders "Demo Project" and never prompts. %>
+<% project_error = flash[:project_error]
+   show_project_card = @project && (@project[:needs_name] || project_error.present?)
+   project_value = flash[:project_name_value].to_s %>
+
 <div class="ic-body ic-scroll">
   <main class="ic-welcome__main">
+    <% if show_project_card %>
+      <section class="ic-projectcard" aria-labelledby="project-card-title">
+        <div class="ic-section-head"><span class="ic-section-head__label">First, name your project</span></div>
+        <h2 class="ic-projectcard__title" id="project-card-title">Create your project</h2>
+        <p class="ic-projectcard__sub">
+          This project will contain your actions, runs, runtime keys, and evidence.
+        </p>
+        <%= form_with url: project_path, method: :patch, local: true, class: 'ic-projectcard__form' do |f| %>
+          <%= f.hidden_field :source, value: 'welcome' %>
+          <div class="ic-field">
+            <%= f.label :name, 'Project name', class: 'ic-field__label' %>
+            <%= f.text_field :name, value: project_value, class: 'ic-input',
+                  autofocus: true, autocomplete: 'off', maxlength: 80,
+                  placeholder: 'Support Agent', 'aria-describedby': 'project_name_help' %>
+            <% if project_error.present? %>
+              <p class="ic-fielderror" role="alert"><%= project_error %></p>
+            <% end %>
+            <p class="ic-field__help" id="project_name_help">
+              Examples: Support Agent, Finance Ops Agent, Internal Tools Agent, Acme AI Actions.
+            </p>
+          </div>
+          <%= f.button 'Continue to create first action', class: 'ic-btn ic-btn--accent ic-projectcard__cta' %>
+        <% end %>
+      </section>
+    <% end %>
+
     <h1 class="ic-welcome__title">Give your AI agent a safe action endpoint.</h1>
     <p class="ic-welcome__sub">
       Your agent calls Igris instead of calling the tool directly. Igris checks
