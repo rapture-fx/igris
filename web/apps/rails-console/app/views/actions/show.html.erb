@@ -164,13 +164,13 @@
           <div class="ig-card__title">Target</div>
           <div class="ig-def"><span class="ig-def__label">Type</span><span class="ig-def__value"><%= @action[:target_label] %></span></div>
           <p class="ig-mut" style="margin-top: 6px;">
-            <% case @action[:target_type] %>
-            <% when 'hosted_api' %>Igris routes this action to a hosted API target.
-            <% when 'webhook' %>Igris forwards this action request to your webhook.
-            <% when 'local_runtime' %>This action runs through a local runtime because it needs private/local access.
-            <% when 'mock_demo' %>Demo action for trying the flow without external credentials.
-            <% else %><%= @action[:target_label] %>
-            <% end %>
+            <%= case @action[:target_type]
+                when 'hosted_api'    then 'Igris routes this action to a hosted API target.'
+                when 'webhook'       then 'Igris forwards this action request to your webhook.'
+                when 'local_runtime' then 'This action runs through a local runtime because it needs private/local access.'
+                when 'mock_demo'     then 'Demo action for trying the flow without external credentials.'
+                else @action[:target_label]
+                end %>
           </p>
         </div>
 
