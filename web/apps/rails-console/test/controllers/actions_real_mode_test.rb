@@ -92,7 +92,9 @@ class ActionsRealModeTest < ActionDispatch::IntegrationTest
     with_fake_ds do
       post '/actions/a-1/run', params: { input: 'not-json' }
       follow_redirect!
-      assert_match 'Input must be valid JSON', response.body
+      # The outcome now lands inline on the action's test panel, not in a flash.
+      assert_match 'Request body must be valid JSON', response.body
+      assert_match 'ic-testresult', response.body
     end
   end
 
