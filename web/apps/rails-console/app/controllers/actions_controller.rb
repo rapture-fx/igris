@@ -90,14 +90,19 @@ class ActionsController < ApplicationController
   end
 
   # POST /actions/:id/run  — fire a test run against the live Overture endpoint.
+  #
+  # Every outcome is reported *inline* on the action's Overview test panel via
+  # `flash[:test_result]` (state + safe message), so the result is visible
+  # right where the developer submitted it instead of disappearing into a
+  # top-of-page flash. The one exception is a successful real run, which
+  # redirects to /runs/:task_id where the full "What happened" evidence lives.
   def run
     @action = data_source.find_action(params[:id])
     return head :not_found unless @action
 
     if data_source.fixtures?
-      redirect_to action_path(@action[:name], tab: 'overview'),
-                  notice: 'Demo mode — submission is inert and creates no real run. Set OVERTURE_API_BASE_URL to send real requests.'
-      return
+      return test_outcome(:demo,
+        'Demo mode — no real run was created. Set OVERTURE_API_BASE_URL to send real requests.')
     end
 
     parsed_input = params[:input].present? ? JSON.parse(params[:input]) : {}
@@ -113,28 +118,40 @@ class ActionsController < ApplicationController
       redirect_to run_path(task_id),
                   notice: "Request sent · status=#{result['status']} proof=#{result['proof_status']}"
     else
-      redirect_to action_path(@action[:name], tab: 'overview'),
-                  notice: 'Request sent, but Igris returned no run id.'
+      test_outcome(:sent, 'Request was accepted, but Igris returned no run id to open.')
     end
   rescue JSON::ParserError
-    redirect_to action_path(@action[:name], tab: 'overview'), alert: 'Input must be valid JSON.'
+    test_outcome(:invalid_json,
+      'Request body must be valid JSON. Fix the highlighted body and send again.', echo_input: true)
   rescue Igris::OvertureClient::ValidationError => e
-    redirect_to action_path(@action[:name], tab: 'overview'), alert: "Invalid request: #{e.message}"
+    test_outcome(:invalid_request, "Igris rejected the request: #{e.message}", echo_input: true)
   rescue Igris::OvertureClient::PolicyDenied => e
-    redirect_to action_path(@action[:name], tab: 'overview'), alert: "Policy denied: #{e.message}"
+    test_outcome(:policy_denied, "Policy denied this request: #{e.message}")
   rescue Igris::OvertureClient::NotFound
     redirect_to actions_path, alert: 'Action not found.'
   rescue Igris::OvertureClient::ServiceUnavailable => e
-    redirect_to action_path(@action[:name], tab: 'overview'),
-                alert: e.code == 'runtime_unavailable' ?
-                       'No runtime is connected. Use Mock demo or connect a runtime, then retry.' :
-                       "Igris is unavailable right now: #{e.message}"
+    if e.code == 'runtime_unavailable'
+      test_outcome(:runtime_unavailable,
+        'No runtime is connected, so this action could not run. Connect a runtime, then send the test again.')
+    else
+      test_outcome(:unavailable, 'The Igris API is unavailable right now. Try again in a moment.')
+    end
   rescue Igris::OvertureClient::Error => e
-    redirect_to action_path(@action[:name], tab: 'overview'),
-                alert: "Igris error (#{e.status}): #{e.message}"
+    test_outcome(:api_error,
+      "Igris returned an error (HTTP #{e.status}). Check the action's target and policy, then retry.")
   end
 
   private
+
+  # Stash a safe, structured test outcome and bounce back to the Overview test
+  # panel (anchored, so the result is in view). The message is operator-facing
+  # copy only — never raw bodies, tokens, or upstream payloads. On input
+  # errors the submitted JSON is echoed back (bounded) so it can be corrected.
+  def test_outcome(state, message, echo_input: false)
+    flash[:test_result] = { 'state' => state.to_s, 'message' => message }
+    flash[:test_input] = params[:input].to_s if echo_input && params[:input].to_s.length <= 4_000
+    redirect_to action_path(@action[:name], tab: 'overview', anchor: 'test-request')
+  end
 
   # ── Wizard helpers ──────────────────────────────────────────────────────
 
