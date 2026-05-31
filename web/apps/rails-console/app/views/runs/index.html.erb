@@ -91,6 +91,7 @@
     <% end %>
   </section>
 
+  <div class="ic-runs-layout <%= 'is-inspecting' if @inspecting %>">
   <div class="ic-body ic-scroll">
     <% if @runs.empty? %>
       <% if @filter == 'all' %>
@@ -118,9 +119,11 @@
              attn = run_needs_attention?(r)
              action_known = @action_names.include?(r[:action].to_s)
              via_runtime = data_source.run_through_runtime?(r)
-             offer_runtime = via_runtime && !@any_healthy_runtime %>
-          <div class="ic-run-row <%= 'ic-run-row--attn' if attn %>">
-            <%= link_to run_path(r[:id]), class: 'ic-run-row__open' do %>
+             offer_runtime = via_runtime && !@any_healthy_runtime
+             selected = run_selected?(r, @selected_run_id) %>
+          <div class="ic-run-row <%= 'ic-run-row--attn' if attn %> <%= 'is-selected' if selected %>">
+            <%= link_to runs_path(runs_inspect_params(r[:id])), class: 'ic-run-row__open',
+                  'aria-label': "Inspect run #{r[:id]}", 'aria-current': (selected ? 'true' : nil) do %>
               <span class="ic-run-row__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
               <span class="ic-run-row__status ic-run-row__status--<%= tone %>">
                 <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'OK') %>
@@ -156,5 +159,10 @@
         <% end %>
       </div>
     <% end %>
+  </div>
+
+  <% if @inspecting %>
+    <%= render 'inspector', run: @selected_run, run_id: @selected_run_id, action_known: @selected_action_known %>
+  <% end %>
   </div>
 </div>

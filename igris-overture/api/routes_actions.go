@@ -332,7 +332,7 @@ func handleActionList(db *sql.DB) fiber.Handler {
 		rows, err := db.QueryContext(c.Context(), `
 			SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
 			       policy_preset, replay_class, approval_required, irreversible, secret_refs,
-			       target_metadata, created_at, updated_at, archived_at
+			       target_metadata, fallback_policy, created_at, updated_at, archived_at
 			FROM action_definitions
 			WHERE tenant_id = $1 AND archived_at IS NULL
 			ORDER BY updated_at DESC

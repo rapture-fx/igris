@@ -28,7 +28,7 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     def degraded? = false
 
     def project
-      return { name: 'Demo Project', mode: :fixtures, needs_name: false } if fixtures?
+      return { name: 'Support Agent', mode: :fixtures, needs_name: false } if fixtures?
       { name: @project_name, mode: :real, needs_name: @needs_name }
     end
 
@@ -86,11 +86,12 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'welcome in fixture mode shows Demo Project and never prompts' do
+  test 'welcome without a live API shows the sample project name and never prompts' do
     get '/welcome' # real fixture DataSource (no OVERTURE_API_BASE_URL in test)
     assert_response :success
     refute_match 'Create your project', response.body
-    assert_match 'Demo Project', response.body
+    assert_match 'Support Agent', response.body
+    refute_match(/demo/i, response.body)
   end
 
   # ── Project name appears across the console ──────────────────────────────
@@ -104,11 +105,19 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'fixture mode shows Demo Project on the workspace surfaces' do
+  test 'without a live API the sample project name shows on the workspace surfaces' do
     %w[/home /actions /runs /runtimes /settings].each do |path|
       get path
       assert_response :success
-      assert_match 'Demo Project', response.body, "#{path} should show Demo Project in fixture mode"
+      assert_match 'Support Agent', response.body, "#{path} should show the sample project name"
+    end
+  end
+
+  test 'the project name is never the literal "Demo Project" anywhere' do
+    %w[/home /actions /runs /runtimes /settings /welcome].each do |path|
+      get path
+      assert_response :success
+      refute_match 'Demo Project', response.body, "#{path} still shows the Demo Project name"
     end
   end
 

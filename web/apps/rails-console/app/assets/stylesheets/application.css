@@ -1346,6 +1346,9 @@ html.dark .ic-btn--accent:hover {
 .ic-run-row:hover .ic-run-row__title { color: var(--ic-emerald); }
 .ic-run-row:last-child { border-bottom: 0; }
 .ic-run-row.is-active { background: var(--ic-overlay-4); }
+/* The run currently open in the Run Inspector — a quiet emerald rail + tint. */
+.ic-run-row.is-selected { background: var(--ic-overlay-4); box-shadow: inset 2px 0 0 var(--ic-emerald); }
+.ic-run-row.is-selected .ic-run-row__title { color: var(--ic-emerald); }
 /* A run that warrants a look gets a quiet rose rail on the left. */
 .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(190,18,60,0.45); }
 html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
@@ -1488,6 +1491,123 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
     grid-template-columns: 10px 64px 1fr 100px;
   }
   .ic-run-row__sub, .ic-run-row__open > :nth-child(5) { display: none; }
+}
+
+/* ── Run Inspector drawer ───────────────────────────────────────────────
+   A right-side, server-rendered quick-inspection panel for one run. The list
+   stays the main surface; the drawer sits beside it and scrolls on its own.
+   Igris visual language only — uses the same tokens, chips, pills, and def
+   rows as the rest of the console. */
+.ic-runs-layout { display: flex; flex: 1; min-height: 0; }
+.ic-runs-layout .ic-body { flex: 1; min-width: 0; }
+.ic-runinspector {
+  flex: 0 0 420px;
+  width: 420px;
+  align-self: stretch;
+  overflow-y: auto;
+  border-left: 1px solid var(--ic-border);
+  background: var(--ic-bg-rail);
+  scrollbar-width: none;
+}
+.ic-runinspector::-webkit-scrollbar { display: none; }
+.ic-runinspector__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--ic-bg-rail);
+  border-bottom: 1px solid var(--ic-border);
+}
+.ic-runinspector__head-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ic-runinspector__title { font-size: 12.5px; font-weight: 600; color: var(--ic-text-bright); letter-spacing: -0.01em; }
+.ic-runinspector__id {
+  font-family: var(--ic-mono);
+  font-size: 11px;
+  color: var(--ic-text-5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-runinspector__close {
+  font-size: 11.5px;
+  color: var(--ic-text-5);
+  text-decoration: none;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--ic-border-soft);
+  background: var(--ic-overlay-3);
+  flex-shrink: 0;
+}
+.ic-runinspector__close:hover { color: var(--ic-text-bright); background: var(--ic-overlay-5); }
+.ic-runinspector__pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ic-border-soft);
+}
+.ic-runinspector__openfull {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ic-emerald);
+  text-decoration: none;
+}
+.ic-runinspector__openfull:hover { text-decoration: underline; }
+.ic-runinspector__scroll { padding: 6px 0 24px; }
+.ic-runinspector__section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ic-border-soft);
+}
+.ic-runinspector__section--last { border-bottom: 0; }
+.ic-runinspector__sechead {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ic-text-6);
+  margin-bottom: 8px;
+}
+.ic-runinspector__rows .ic-def { grid-template-columns: 96px 1fr; padding: 4px 0; }
+.ic-runinspector__link { color: var(--ic-emerald); text-decoration: none; }
+.ic-runinspector__link:hover { text-decoration: underline; }
+.ic-runinspector__hint { font-size: 11.5px; color: var(--ic-text-6); line-height: 1.5; margin: 0 0 8px; }
+.ic-runinspector__note { font-size: 11px; color: var(--ic-text-6); line-height: 1.5; margin: 8px 0 0; }
+.ic-runinspector__empty-line { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 2px 0 0; }
+.ic-runinspector__code {
+  font-family: var(--ic-mono);
+  font-size: 11px;
+  color: var(--ic-text-3);
+  background: var(--ic-overlay-2);
+  border: 1px solid var(--ic-border-soft);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 220px;
+  overflow: auto;
+}
+.ic-runinspector__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ic-runinspector__empty { padding: 28px 18px; }
+.ic-runinspector__empty-title { font-size: 13px; color: var(--ic-text-bright); margin-bottom: 6px; }
+.ic-runinspector__empty-sub { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 0 0 14px; }
+.ic-runinspector__empty-sub .mono { font-family: var(--ic-mono); color: var(--ic-text-3); word-break: break-all; }
+
+/* On narrow screens the drawer drops below the list as a full-width panel so
+   nothing overflows horizontally. */
+@media (max-width: 880px) {
+  .ic-runs-layout { flex-direction: column; }
+  .ic-runinspector {
+    flex: 0 0 auto;
+    width: auto;
+    border-left: 0;
+    border-top: 1px solid var(--ic-border);
+  }
+  .ic-runinspector__head { position: static; }
 }
 
 /* ── Welcome / onboarding (standalone full page) ────────────────────── */
