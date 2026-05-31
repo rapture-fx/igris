@@ -1,0 +1,177 @@
+<%#
+  Run Inspector — a server-rendered, right-side quick-inspection drawer for a
+  single run, opened via ?inspect=<run_id>. Strictly reads already-normalized,
+  already-redacted run fields: it never renders raw request/response bodies,
+  failure text, Authorization headers, keys, hosts, IPs, env values, or
+  signatures. Full ordered evidence lives on the Run detail page, which every
+  section links back to. `run` is the normalized run detail, or nil when the id
+  is unknown/unavailable (rendered as an honest error state).
+%>
+<aside class="ic-runinspector" aria-label="Run Inspector">
+  <% close_href = runs_path(runs_close_params) %>
+
+  <% if run.nil? %>
+    <%# ── Unknown / unavailable run ─────────────────────────────────────── %>
+    <div class="ic-runinspector__head">
+      <div class="ic-runinspector__head-l">
+        <span class="ic-runinspector__title">Run Inspector</span>
+      </div>
+      <%= link_to close_href, class: 'ic-runinspector__close', 'aria-label': 'Close inspector' do %>Close<% end %>
+    </div>
+    <div class="ic-runinspector__empty">
+      <div class="ic-runinspector__empty-title">Run not found or unavailable</div>
+      <p class="ic-runinspector__empty-sub">
+        This run could not be loaded. It may have been removed, or the id
+        <span class="mono"><%= run_id %></span> is not part of the loaded window.
+      </p>
+      <%= link_to 'Back to runs', close_href, class: 'ic-btn' %>
+    </div>
+  <% else %>
+    <% proof_label  = run[:proof].to_s.presence || 'Proof unavailable'
+       proof_unavail = proof_label.match?(/unavailable|pending/i)
+       via_runtime  = data_source.run_through_runtime?(run)
+       offer_runtime = run[:runtime_unavailable] || (via_runtime && !@any_healthy_runtime)
+       dash = ->(v) { v.to_s.strip.presence || '—' }
+       receipt_hash   = (run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_hash' }&.dig(:value)
+       receipt_signed = (run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_signed' }&.dig(:value)
+       steps = run[:execution_steps] || [] %>
+
+    <%# ── Header (sticky) ─────────────────────────────────────────────── %>
+    <div class="ic-runinspector__head">
+      <div class="ic-runinspector__head-l">
+        <span class="ic-runinspector__title">Run Inspector</span>
+        <span class="ic-runinspector__id mono"><%= run[:id] %></span>
+        <%= copy_button run[:id] %>
+      </div>
+      <%= link_to close_href, class: 'ic-runinspector__close', 'aria-label': 'Close inspector' do %>Close<% end %>
+    </div>
+    <div class="ic-runinspector__pills">
+      <%= status_pill run[:status] %>
+      <%= status_pill proof_label %>
+      <%= link_to 'Open full run', run_path(run[:id]), class: 'ic-runinspector__openfull' %>
+    </div>
+
+    <div class="ic-runinspector__scroll">
+      <%# ── Overview ──────────────────────────────────────────────────── %>
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Overview</div>
+        <div class="ic-runinspector__rows">
+          <div class="ic-def">
+            <span class="ic-def__label">Action</span>
+            <div class="ic-def__value">
+              <% if action_known %>
+                <%= link_to run[:action], action_path(run[:action]), class: 'ic-runinspector__link mono' %>
+              <% else %>
+                <span class="mono"><%= dash.call(run[:action]) %></span>
+              <% end %>
+            </div>
+          </div>
+          <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill run[:status] %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= dash.call(run[:routed_via]) %></div></div>
+          <% if run[:runtime_id].to_s.strip.present? %>
+            <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= run[:runtime_id] %></div></div>
+          <% end %>
+          <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= dash.call(run[:policy]) %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value"><%= dash.call(run[:recovery]) %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_pill proof_label %></div></div>
+          <div class="ic-def">
+            <span class="ic-def__label">Created</span>
+            <div class="ic-def__value">
+              <%= run[:started_at].respond_to?(:strftime) ? run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
+              <span class="ic-def__hint"><%= time_ago(run[:started_at]) %></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <%# ── Agent request ─────────────────────────────────────────────── %>
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Agent request</div>
+        <% if run[:request_summary].present? %>
+          <p class="ic-runinspector__hint">A safe, server-redacted summary of the request that triggered this run.</p>
+          <pre class="ic-runinspector__code"><%= run[:request_summary] %></pre>
+        <% elsif run[:request_digest].present? %>
+          <p class="ic-runinspector__empty-line">
+            Request content is not stored here. Digest available:
+            <span class="mono"><%= run[:request_digest] %></span>.
+          </p>
+        <% else %>
+          <p class="ic-runinspector__empty-line">No prompt or request payload is available for this run.</p>
+        <% end %>
+      </section>
+
+      <%# ── Action input ──────────────────────────────────────────────── %>
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Action input</div>
+        <div class="ic-runinspector__rows">
+          <div class="ic-def"><span class="ic-def__label">Target</span><div class="ic-def__value"><%= dash.call(run[:routed_via]) %></div></div>
+        </div>
+        <p class="ic-runinspector__empty-line">Action input is not shown here. Igris displays safe identifiers and digests instead.</p>
+      </section>
+
+      <%# ── Execution assessment ──────────────────────────────────────── %>
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Execution assessment</div>
+        <div class="ic-runinspector__rows">
+          <% run_execution_assessment(run).each do |row| %>
+            <div class="ic-def">
+              <span class="ic-def__label"><%= row[:label] %></span>
+              <div class="ic-def__value"><span class="ig-pill ig-pill--<%= row[:tone] %>"><%= row[:value] %></span></div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+
+      <%# ── Audit interpretation ──────────────────────────────────────── %>
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Audit interpretation</div>
+        <p class="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only — not a compliance certification.</p>
+        <div class="ic-runinspector__rows">
+          <% audit_interpretation(run).first(3).each do |row| %>
+            <div class="ic-def">
+              <span class="ic-def__label"><%= row[:label] %></span>
+              <div class="ic-def__value"><%= row[:value] %></div>
+            </div>
+          <% end %>
+        </div>
+        <% if proof_label.match?(/verified/i) %>
+          <p class="ic-runinspector__note">A signed receipt indicates a registered runtime reported this execution event.</p>
+        <% elsif proof_unavail %>
+          <p class="ic-runinspector__note">Proof is unavailable when signed runtime evidence was not produced or attached to this run.</p>
+        <% end %>
+        <p class="ic-runinspector__note">Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed.</p>
+      </section>
+
+      <%# ── Evidence ──────────────────────────────────────────────────── %>
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Evidence</div>
+        <div class="ic-runinspector__rows">
+          <div class="ic-def"><span class="ic-def__label">Receipt hash</span><div class="ic-def__value mono"><%= dash.call(receipt_hash) %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_pill proof_label %></div></div>
+          <% if receipt_signed.present? %>
+            <div class="ic-def"><span class="ic-def__label">Receipt signed</span><div class="ic-def__value"><%= receipt_signed %></div></div>
+          <% end %>
+          <div class="ic-def"><span class="ic-def__label">Steps recorded</span><div class="ic-def__value"><%= steps.any? ? steps.size : '—' %></div></div>
+          <% if run[:runtime_id].to_s.strip.present? %>
+            <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= run[:runtime_id] %></div></div>
+          <% end %>
+        </div>
+        <p class="ic-runinspector__note">Open the full run for ordered step evidence.</p>
+      </section>
+
+      <%# ── Next steps ────────────────────────────────────────────────── %>
+      <section class="ic-runinspector__section ic-runinspector__section--last">
+        <div class="ic-runinspector__sechead">Next steps</div>
+        <div class="ic-runinspector__actions">
+          <%= link_to 'Open full run', run_path(run[:id]), class: 'ic-btn ic-btn--accent' %>
+          <% if action_known %>
+            <%= link_to 'Open action', action_path(run[:action]), class: 'ic-btn' %>
+          <% end %>
+          <% if offer_runtime %>
+            <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn' %>
+          <% end %>
+        </div>
+      </section>
+    </div>
+  <% end %>
+</aside>

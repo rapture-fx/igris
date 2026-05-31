@@ -83,21 +83,21 @@
         ],
       ]
     when :settings
-      cur = (params[:section].presence || 'project').to_s
+      cur = SettingsController.normalize_section(params[:section])
       [
         'Settings',
         [
           {
             id: 'config', name: 'configuration', open: true, dot: :ok,
             tasks: [
-              ['project',   'Project'],
-              ['api',       'API endpoints'],
-              ['access',    'Agent / app API keys'],
-              ['runtime',   'Runtime keys'],
-              ['tools',     'Tool & target access'],
-              ['frontdoor', 'Console front door'],
-              ['env',       'Environment'],
-              ['advanced',  'Advanced'],
+              ['project',            'Project'],
+              ['api_endpoints',      'API endpoints'],
+              ['agent_keys',         'Agent / app API keys'],
+              ['runtime_keys',       'Runtime keys'],
+              ['target_access',      'Tool & target access'],
+              ['console_front_door', 'Console front door'],
+              ['environment',        'Environment'],
+              ['advanced',           'Advanced'],
             ].map { |slug, title|
               { status: :ok, title: title, when: '',
                 href: settings_path(section: slug), active: cur == slug }

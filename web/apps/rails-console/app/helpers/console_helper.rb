@@ -42,13 +42,13 @@ module ConsoleHelper
     { name: nil, mode: :degraded, needs_name: false }
   end
 
-  # The label to show in chips/headers. Falls back to "Demo Project" in
-  # fixture/demo mode and "igris-default" when a real project has no name yet.
+  # The label to show in chips/headers. Falls back to a neutral sample name in
+  # fixture mode and "igris-default" when a real project has no name yet.
   def project_display_name
     ctx = project_context
     return ctx[:name] if ctx[:name].present?
 
-    ctx[:mode] == :fixtures ? 'Demo Project' : 'igris-default'
+    ctx[:mode] == :fixtures ? 'Support Agent' : 'igris-default'
   end
 
   # Small project chip for page topbars. Plain, escaped, calm.
@@ -268,6 +268,87 @@ module ConsoleHelper
     return :proof_unavailable   if run_proof_unavailable?(run)
     return :completed           if run[:status].to_s.casecmp('Succeeded').zero?
     nil
+  end
+
+  # ── Run Inspector ──────────────────────────────────────────────────────
+  # The drawer is opened by an `inspect=<run_id>` query param and must preserve
+  # the active filter (and any other query params) so opening/closing it never
+  # drops the list context. These build the param hashes for the links.
+  def runs_inspect_params(run_id)
+    request.query_parameters.except('inspect').merge('inspect' => run_id.to_s)
+  end
+
+  def runs_close_params
+    request.query_parameters.except('inspect')
+  end
+
+  # True when the given run is the one currently open in the inspector.
+  def run_selected?(run, selected_id)
+    selected_id.present? && run[:id].to_s == selected_id.to_s
+  end
+
+  # Plain-language execution assessment for the Run Inspector. Reads only the
+  # already-normalized, already-redacted run fields (status, policy, routed_via,
+  # recovery, proof) — never raw bodies, failure text, hosts, or signatures.
+  # Each row is { label:, value:, tone: } with text values (never colour-only):
+  # Yes / No / Allowed / Denied / Not available, etc.
+  def run_execution_assessment(run)
+    [
+      { label: 'Action completed', **assess_completed(run) },
+      { label: 'Policy followed',  **assess_policy(run) },
+      { label: 'Runtime path',     **assess_runtime_path(run) },
+      { label: 'Recovery',         **assess_recovery(run) },
+      { label: 'Proof',            **assess_proof(run) },
+    ]
+  end
+
+  def assess_completed(run)
+    status = run[:status].to_s
+    return { value: 'Yes', tone: :ok }            if status.match?(/succeeded|success|completed/i)
+    return { value: 'No', tone: :bad }            if status.match?(/failed|error/i)
+    return { value: 'Running', tone: :warn }      if run_running?(run)
+    return { value: 'Awaiting approval', tone: :warn } if status.match?(/approval|awaiting/i)
+    { value: 'Not available', tone: :muted }
+  end
+
+  # We never receive a raw allow/deny verdict, but execution is itself evidence
+  # the policy permitted the call: a run that routed to a target or reached a
+  # terminal state passed policy. Denials/holds are surfaced from the status.
+  def assess_policy(run)
+    status = run[:status].to_s
+    return { value: 'Approval required', tone: :warn } if status.match?(/approval|awaiting/i)
+    return { value: 'Denied', tone: :bad }             if status.match?(/denied|blocked/i)
+    if run[:executed_target].to_s.present? || status.match?(/succeeded|success|completed|failed|running|in.?flight/i)
+      return { value: 'Allowed', tone: :ok }
+    end
+    { value: 'Not available', tone: :muted }
+  end
+
+  def assess_runtime_path(run)
+    case run[:executed_target].to_s
+    when 'hosted_api'    then { value: 'Hosted API', tone: :muted }
+    when 'webhook'       then { value: 'Webhook', tone: :muted }
+    when 'local_runtime' then { value: 'Local runtime', tone: run[:runtime_id].to_s.present? ? :ok : :warn }
+    when 'mock_demo'     then { value: 'Mock demo', tone: :muted }
+    else { value: 'Not available', tone: :muted }
+    end
+  end
+
+  def assess_recovery(run)
+    rec = run[:recovery].to_s
+    return { value: 'Not available', tone: :muted } if rec.empty?
+    return { value: 'Not needed', tone: :muted }    if rec.casecmp('Not needed').zero?
+    return { value: rec, tone: :bad }               if rec.match?(/failed/i)
+    return { value: rec, tone: :warn }              if rec.match?(/awaiting/i)
+    { value: rec, tone: :ok } # retried / compensated / resumed
+  end
+
+  def assess_proof(run)
+    proof = run[:proof].to_s
+    return { value: 'Verified', tone: :ok }   if proof.match?(/verified/i)
+    return { value: 'Failed', tone: :bad }    if proof.match?(/failed|mismatch/i)
+    return { value: 'Receipt present', tone: :warn } if proof.match?(/present|receipt/i)
+    { value: 'Not available', tone: :muted }
   end
 
   # Small inline "copy this value" button. Reuses the same clipboard pattern

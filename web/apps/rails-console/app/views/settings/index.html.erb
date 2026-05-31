@@ -1,16 +1,16 @@
 <%# Settings — minimal, configuration-focused. Sections: API endpoints,
     Access keys, Runtime keys, Tool & target access, Environment, Advanced.
     Team/billing/SSO live elsewhere. No secret values are ever echoed. %>
-<% section = (@section_override.presence || params[:section].presence || 'project').to_s %>
+<% section = (@section.presence || SettingsController.normalize_section(params[:section])) %>
 <% sections = [
-  ['project',  'Project',               'Name and identity for this project'],
-  ['api',      'API endpoints',         'Base URLs for the Igris API and the console'],
-  ['access',   'Agent / app API keys',  'Keys your agent or app uses to call Igris'],
-  ['runtime',  'Runtime keys',          'Keys runtimes use to connect'],
-  ['tools',    'Tool & target access',  'How agents reach tools through Igris'],
-  ['frontdoor','Console front door',    'HTTP Basic auth that protects this console'],
-  ['env',      'Environment',           'Runtime variables and connection state'],
-  ['advanced', 'Advanced',              'Audit log export and other rarely-used ops'],
+  ['project',            'Project',               'Name and identity for this project'],
+  ['api_endpoints',      'API endpoints',         'Base URLs for the Igris API and the console'],
+  ['agent_keys',         'Agent / app API keys',  'Keys your agent or app uses to call Igris'],
+  ['runtime_keys',       'Runtime keys',          'Keys runtimes use to connect'],
+  ['target_access',      'Tool & target access',  'How agents reach tools through Igris'],
+  ['console_front_door', 'Console front door',    'HTTP Basic auth that protects this console'],
+  ['environment',        'Environment',           'Runtime variables and connection state'],
+  ['advanced',           'Advanced',              'Audit log export and other rarely-used ops'],
 ] %>
 
 <div class="ic-topbar">
@@ -19,10 +19,7 @@
     <span class="ic-chip"><%= sections.find { |s| s[0] == section }&.dig(1) %></span>
   </div>
   <div class="ic-topbar__group">
-    <% if demo_mode? %>
-      <span class="ic-chip">demo mode · fixtures</span>
-    <% end %>
-    <span class="ic-topbar__hint">Configured on the host · read-only here</span>
+    <span class="ic-topbar__hint">Host configuration is shown but not edited here</span>
   </div>
 </div>
 
@@ -40,10 +37,7 @@
   <div class="ic-settings__pane">
     <% if section == 'project' %>
       <% proj_err   = flash[:project_error]
-         proj_value = flash[:project_name_value].presence || (@project && @project[:name]).to_s
-         mode_label = if @degraded_error then 'Degraded'
-                      elsif demo_mode?   then 'Demo (fixtures)'
-                      else                    'Connected' end %>
+         proj_value = flash[:project_name_value].presence || (@project && @project[:name]).to_s %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Project</div>
         <p class="ic-settings__intro">
@@ -52,49 +46,32 @@
           multi-project switching on this page.
         </p>
 
-        <% if demo_mode? %>
-          <%# Fixture/demo mode: visibly inert. No real write happens. %>
+        <%= form_with url: project_path, method: :patch, local: true do |f| %>
+          <%= f.hidden_field :source, value: 'settings' %>
           <div class="ic-field">
-            <label class="ic-field__label" for="project_name_demo">Project name</label>
-            <input class="ic-input" id="project_name_demo" type="text"
-                   value="<%= project_display_name %>" disabled />
-            <p class="ic-field__help">
-              Demo mode — naming is inert here. Set <code>OVERTURE_API_BASE_URL</code>
-              on the host to name your project for real.
+            <%= f.label :name, 'Project name', class: 'ic-field__label' %>
+            <%= f.text_field :name, value: proj_value, class: 'ic-input',
+                  autocomplete: 'off', maxlength: 80, placeholder: 'Support Agent',
+                  'aria-describedby': 'project_name_help' %>
+            <% if proj_err.present? %>
+              <p class="ic-fielderror" role="alert"><%= proj_err %></p>
+            <% end %>
+            <p class="ic-field__help" id="project_name_help">
+              2–80 characters. Letters, numbers, spaces, and basic punctuation.
+              Shown across Home, Actions, Runs, and Runtimes.
             </p>
           </div>
-        <% else %>
-          <%= form_with url: project_path, method: :patch, local: true do |f| %>
-            <%= f.hidden_field :source, value: 'settings' %>
-            <div class="ic-field">
-              <%= f.label :name, 'Project name', class: 'ic-field__label' %>
-              <%= f.text_field :name, value: proj_value, class: 'ic-input',
-                    autocomplete: 'off', maxlength: 80, placeholder: 'Support Agent',
-                    'aria-describedby': 'project_name_help' %>
-              <% if proj_err.present? %>
-                <p class="ic-fielderror" role="alert"><%= proj_err %></p>
-              <% end %>
-              <p class="ic-field__help" id="project_name_help">
-                2–80 characters. Letters, numbers, spaces, and basic punctuation.
-                Shown across Home, Actions, Runs, and Runtimes.
-              </p>
-            </div>
-            <%= f.button 'Save project name', class: 'ic-btn ic-btn--accent' %>
-          <% end %>
+          <%= f.button 'Save project name', class: 'ic-btn ic-btn--accent' %>
         <% end %>
 
         <div class="ic-field" style="margin-top: 16px;">
-          <label class="ic-field__label">Mode</label>
-          <p class="ic-field__help"><strong><%= mode_label %></strong> — whether this console is talking to a live Igris API or serving demo fixtures.</p>
-        </div>
-        <div class="ic-field">
           <label class="ic-field__label">Public API URL</label>
           <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" readonly />
           <p class="ic-field__help">The base URL your agent calls. Public, not secret.</p>
         </div>
       </div>
 
-    <% elsif section == 'api' %>
+    <% elsif section == 'api_endpoints' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">API endpoints</div>
         <p class="ic-settings__intro">
@@ -112,12 +89,10 @@
         <div class="ic-field">
           <label class="ic-field__label">Connection</label>
           <p class="ic-field__help">
-            <strong>
-              <%= @degraded_error ? 'Degraded' : (demo_mode? ? 'Demo (fixtures)' : 'Connected') %>
-            </strong>
+            <strong><%= @degraded_error ? 'Degraded' : 'Connected' %></strong>
             — the Igris API base URL is configured on the host as
-            <code>OVERTURE_API_BASE_URL</code>. Unset means fixture / demo mode.
-            The value itself is never displayed here.
+            <code>OVERTURE_API_BASE_URL</code>. The value itself is never
+            displayed here.
           </p>
         </div>
 
@@ -126,9 +101,19 @@
           <input class="ic-input" type="password" value="" placeholder="igris_… (set on the host, never shown)" disabled />
           <p class="ic-field__help">Set on the host as <code>OVERTURE_API_KEY</code>. Values are never displayed here.</p>
         </div>
+
+        <div class="ic-callout">
+          <div class="ic-callout__title">Who calls what</div>
+          <p class="ic-callout__body">
+            Your agent or app calls the public API URL above with its own
+            <%= link_to 'Agent / app API key', settings_path(section: 'agent_keys') %>.
+            The console service connection is configured on the host and is never
+            used by your agent.
+          </p>
+        </div>
       </div>
 
-    <% elsif section == 'access' %>
+    <% elsif section == 'agent_keys' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Agent / app API keys</div>
         <p class="ic-settings__intro">
@@ -147,50 +132,39 @@
           </div>
         <% end %>
 
-        <% if demo_mode? %>
-          <div class="ic-field">
-            <label class="ic-field__label">Agent / app API key</label>
-            <input class="ic-input" type="password" value="" placeholder="igris_… (created here — shown once)" disabled />
-            <p class="ic-field__help">
-              Demo mode — connect a live Igris API (<code>OVERTURE_API_BASE_URL</code>)
-              to create real keys. Nothing is issued here.
-            </p>
+        <%# Existing keys — prefix-only metadata, never the raw key. %>
+        <% if @agent_keys.present? %>
+          <div class="ic-keys">
+            <% @agent_keys.each do |k| %>
+              <div class="ic-key-row">
+                <div class="ic-key-row__main">
+                  <div class="ic-key-row__name"><%= k[:name] %></div>
+                  <div class="ic-key-row__desc">
+                    created <%= k[:created_at] ? time_ago(k[:created_at]) : '—' %>
+                    · last used <%= k[:last_used_at] ? time_ago(k[:last_used_at]) : 'never' %>
+                  </div>
+                </div>
+                <div class="ic-key-row__masked mono"><%= k[:prefix].presence || 'igris_…' %>…</div>
+                <div class="ic-key-row__state ic-key-row__state--ok">active</div>
+                <%= button_to 'Revoke', settings_api_key_path(k[:id]), method: :delete,
+                      form: { style: 'margin:0;' }, class: 'ic-btn',
+                      data: { confirm: 'Revoke this key? Anything using it will stop working.' } %>
+                <span></span>
+              </div>
+            <% end %>
           </div>
         <% else %>
-          <%# Existing keys — prefix-only metadata, never the raw key. %>
-          <% if @agent_keys.present? %>
-            <div class="ic-keys">
-              <% @agent_keys.each do |k| %>
-                <div class="ic-key-row">
-                  <div class="ic-key-row__main">
-                    <div class="ic-key-row__name"><%= k[:name] %></div>
-                    <div class="ic-key-row__desc">
-                      created <%= k[:created_at] ? time_ago(k[:created_at]) : '—' %>
-                      · last used <%= k[:last_used_at] ? time_ago(k[:last_used_at]) : 'never' %>
-                    </div>
-                  </div>
-                  <div class="ic-key-row__masked mono"><%= k[:prefix].presence || 'igris_…' %>…</div>
-                  <div class="ic-key-row__state ic-key-row__state--ok">active</div>
-                  <%= button_to 'Revoke', settings_api_key_path(k[:id]), method: :delete,
-                        form: { style: 'margin:0;' }, class: 'ic-btn',
-                        data: { confirm: 'Revoke this key? Anything using it will stop working.' } %>
-                  <span></span>
-                </div>
-              <% end %>
-            </div>
-          <% else %>
-            <p class="ic-list-hint">No agent keys yet. Create one to let your agent call action endpoints.</p>
-          <% end %>
+          <p class="ic-list-hint">No agent keys yet. Create one to let your agent call action endpoints.</p>
+        <% end %>
 
-          <%= form_with url: settings_api_keys_path, method: :post, local: true, class: 'ic-keyform' do %>
-            <div class="ic-field">
-              <label class="ic-field__label" for="key_name">New API key name</label>
-              <%= text_field_tag :name, '', id: 'key_name', class: 'ic-input',
-                    maxlength: 60, autocomplete: 'off', placeholder: 'e.g. Support Agent key' %>
-              <p class="ic-field__help">A label to recognise this key later. The key is shown only once at creation.</p>
-            </div>
-            <%= submit_tag 'Create API key', class: 'ic-btn ic-btn--accent' %>
-          <% end %>
+        <%= form_with url: settings_api_keys_path, method: :post, local: true, class: 'ic-keyform' do %>
+          <div class="ic-field">
+            <label class="ic-field__label" for="key_name">New API key name</label>
+            <%= text_field_tag :name, '', id: 'key_name', class: 'ic-input',
+                  maxlength: 60, autocomplete: 'off', placeholder: 'e.g. Support Agent key' %>
+            <p class="ic-field__help">A label to recognise this key later. The key is shown only once at creation.</p>
+          </div>
+          <%= submit_tag 'Create API key', class: 'ic-btn ic-btn--accent' %>
         <% end %>
 
         <div class="ic-callout" style="margin-top: 16px;">
@@ -205,14 +179,16 @@
         </div>
       </div>
 
-    <% elsif section == 'runtime' %>
+    <% elsif section == 'runtime_keys' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Runtime keys</div>
         <p class="ic-settings__intro">
-          A runtime key lets a local runtime connect to Igris and execute
-          Local runtime actions. It is shown only once when created — store
-          it in a password manager. Keys are managed on the Runtimes page,
-          never here, so a raw key is never re-displayed.
+          A runtime key is used on a machine where <code>igris-runtime</code> runs
+          — it lets that runtime connect to Igris and execute Local runtime
+          actions. This is <strong>not</strong> the same as an agent / app API
+          key, which an agent uses to call action endpoints. Runtime keys are
+          created and rotated on the <%= link_to 'Runtimes', runtimes_path %>
+          page, shown only once, so a raw key is never re-displayed here.
         </p>
 
         <div class="ic-field">
@@ -236,7 +212,7 @@
         </div>
       </div>
 
-    <% elsif section == 'tools' %>
+    <% elsif section == 'target_access' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Tool &amp; target access</div>
         <p class="ic-settings__intro">
@@ -295,13 +271,14 @@
         </div>
       </div>
 
-    <% elsif section == 'frontdoor' %>
+    <% elsif section == 'console_front_door' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Console front door</div>
         <p class="ic-settings__intro">
-          HTTP Basic credentials that protect this console. Both fields must be
-          set on the host for the door to lock. <code>/up</code> always bypasses
-          Basic so liveness checks keep working. Neither value is shown here.
+          Console access is configured on the host. HTTP Basic credentials
+          protect this console — both fields must be set on the host for the
+          door to lock. <code>/up</code> always bypasses Basic so liveness checks
+          keep working. Neither value is shown here.
         </p>
 
         <div class="ic-field">
@@ -320,7 +297,7 @@
         </div>
       </div>
 
-    <% elsif section == 'env' %>
+    <% elsif section == 'environment' %>
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Environment</div>
         <p class="ic-settings__intro">
@@ -332,9 +309,13 @@
         <%# Only presence/state is shown for host- and credential-bearing vars —
             the configured values (base URL, host, username, keys) are never
             echoed back. RAILS_ENV and Mode are safe to display in full. %>
-        <% env_rows = [
+        <% api_status = @degraded_error ? 'Degraded' : 'Connected'
+           api_tone   = @degraded_error ? :warn : :ok
+           proj_named = @project && @project[:name].present?
+           env_rows = [
+             ['Igris API',              api_status,                                  api_tone],
+             ['Project name',           proj_named ? 'Named' : 'Needs name',         proj_named ? :ok : :warn],
              ['RAILS_ENV',              Rails.env,                                   :ok],
-             ['Mode',                   demo_mode? ? 'demo (fixtures)' : 'connected',demo_mode? ? :warn : :ok],
              ['OVERTURE_API_BASE_URL',  ENV['OVERTURE_API_BASE_URL'].present? ? 'set (hidden)' : '— unset —', ENV['OVERTURE_API_BASE_URL'].present? ? :ok : :warn],
              ['OVERTURE_API_KEY',       ENV['OVERTURE_API_KEY'].present? ? 'set (hidden)' : '— unset —', ENV['OVERTURE_API_KEY'].present? ? :ok : :warn],
              ['APP_HOST',               ENV['APP_HOST'].present? ? 'set (hidden)' : '— unset —',  :muted],
@@ -359,6 +340,50 @@
       </div>
 
     <% elsif section == 'advanced' %>
+      <div class="ic-settings__group">
+        <div class="ic-settings__heading">Console appearance</div>
+        <p class="ic-settings__intro">
+          A local preference for this browser. It takes effect immediately and
+          works whether or not the console is connected to a live Igris API — no
+          account or server setting is changed.
+        </p>
+        <div class="ic-field">
+          <label class="ic-field__label">Theme</label>
+          <div class="ic-keyform" id="ic-appearance" role="group" aria-label="Theme">
+            <button type="button" class="ic-btn" data-theme="light">Light</button>
+            <button type="button" class="ic-btn" data-theme="dark">Dark</button>
+          </div>
+          <p class="ic-field__help">Saved in this browser only.</p>
+        </div>
+      </div>
+      <script>
+        (function () {
+          var wrap = document.getElementById('ic-appearance');
+          if (!wrap) return;
+          var btns = wrap.querySelectorAll('.ic-btn');
+          function current() {
+            return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+          }
+          function sync() {
+            var cur = current();
+            btns.forEach(function (b) {
+              var on = b.dataset.theme === cur;
+              b.classList.toggle('ic-btn--accent', on);
+              b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+          }
+          wrap.addEventListener('click', function (e) {
+            var b = e.target.closest('.ic-btn');
+            if (!b) return;
+            var dark = b.dataset.theme === 'dark';
+            document.documentElement.classList.toggle('dark', dark);
+            try { localStorage.setItem('ic-theme', dark ? 'dark' : 'light'); } catch (_) {}
+            sync();
+          });
+          sync();
+        })();
+      </script>
+
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Advanced</div>
         <p class="ic-settings__intro">

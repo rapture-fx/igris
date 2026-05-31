@@ -280,7 +280,7 @@ module Igris
 
     def load_project
       unless real?
-        return { name: 'Demo Project', mode: :fixtures, needs_name: false }
+        return { name: 'Support Agent', mode: :fixtures, needs_name: false }
       end
 
       raw  = @client.get_project
@@ -366,7 +366,20 @@ module Igris
         runtime_id: raw[:runtime_id].to_s,
         failure_reason: raw.dig(:failure, :reason) || raw[:failure_reason].to_s,
         runtime_unavailable: runtime_unavailable?(raw),
+        request_summary: safe_request_summary(raw),
+        request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:request, :digest)),
       )
+    end
+
+    # The Run Inspector's "Agent request" section shows a request/prompt summary
+    # ONLY when the API hands back an already-safe, server-redacted summary
+    # string (`request_summary` / `request.summary`). Igris deliberately never
+    # echoes the raw request body — so this is nil for every run the current API
+    # returns, and the drawer falls back to the honest "no payload" state. The
+    # mapping exists so a future, server-side-redacted summary renders without
+    # any further change, and a raw body never can.
+    def safe_request_summary(raw)
+      (raw[:request_summary] || raw.dig(:request, :summary)).to_s.strip.presence
     end
 
     # True when a run failed because the runtime it needed was not available.
