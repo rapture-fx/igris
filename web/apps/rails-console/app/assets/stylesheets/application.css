@@ -2118,6 +2118,21 @@ html.dark .ic-feed-item__ico--warn    { background: rgba(251,191,36,0.12); }
 .ic-callout__title { font-size: 12px; color: var(--ic-text-bright); margin-bottom: 4px; }
 .ic-callout__body { font-size: 12px; color: var(--ic-text-5); margin: 0 0 10px; line-height: 1.5; }
 
+/* ── Settings: demo-mode read-only notice ───────────────────────────── */
+.ic-demobar {
+  border: 1px solid var(--ic-border);
+  border-left: 2px solid var(--ic-text-6);
+  border-radius: 8px;
+  background: var(--ic-overlay-2);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.ic-demobar__title { font-size: 12px; font-weight: 500; color: var(--ic-text-bright); margin-bottom: 6px; }
+.ic-demobar__body  { font-size: 12px; color: var(--ic-text-5); margin: 0 0 6px; line-height: 1.5; }
+.ic-demobar__body:last-child { margin-bottom: 0; }
+.ic-demobar code { font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-4); }
+.ic-demobar--page { margin: 0 0 16px; border-left-color: var(--ic-emerald, var(--ic-text-6)); }
+
 /* ── Runtime list ───────────────────────────────────────────────────── */
 .ic-runtime-list {
   display: flex;
