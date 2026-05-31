@@ -126,13 +126,14 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
     refute_match(/>\s*Re-run\s*</, response.body)
   end
 
-  # ── Settings: read-only, no value leaks ──────────────────────────────────
-  test 'settings is read-only — no dead Save or Discard buttons' do
+  # ── Settings: no dead buttons, host config not edited here ────────────────
+  test 'settings has no dead Save or Discard buttons and never echoes host config' do
     get '/settings'
     assert_response :success
-    refute_match(/>\s*Save\s*</, response.body)
+    refute_match(/>\s*Save\s*</, response.body)      # no bare dead "Save"
     refute_match(/>\s*Discard\s*</, response.body)
-    assert_match 'read-only', response.body
+    # Host-configured values are surfaced as state, not editable fields.
+    assert_match 'Host configuration is shown but not edited here', response.body
   end
 
   test 'settings never echoes the configured base URL, host, or admin username' do
