@@ -112,7 +112,7 @@ class SettingsAccessTest < ActionDispatch::IntegrationTest
   test 'revoking an agent key calls through and redirects with a notice' do
     with_fake_ds(FakeDS.new(keys: [AGENT_KEY])) do |ds|
       delete settings_api_key_path('k-1')
-      assert_redirected_to settings_path(section: 'access')
+      assert_redirected_to settings_path(section: 'agent_keys')
       assert_equal ['k-1'], ds.revoke_calls
       assert_equal 'API key revoked.', flash[:notice]
     end
@@ -129,7 +129,7 @@ class SettingsAccessTest < ActionDispatch::IntegrationTest
   test 'fixture-mode create is inert and makes no real write' do
     with_fake_ds(FakeDS.new(mode: :fixtures)) do |ds|
       post settings_api_keys_path, params: { name: 'CI key' }
-      assert_redirected_to settings_path(section: 'access')
+      assert_redirected_to settings_path(section: 'agent_keys')
       assert_empty ds.create_calls
       assert_match(/Demo mode/i, flash[:notice])
     end

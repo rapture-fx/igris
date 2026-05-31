@@ -333,6 +333,24 @@ module ConsoleHelper
     render 'shared/code_snippet', code: code, language: language, label: label
   end
 
+  # Standardized read-only notice for write-capable Settings sections in demo /
+  # fixture mode. Explains that nothing is written here and exactly how to enable
+  # real mode — by name only. It never echoes an env *value*; it names the two
+  # host variables (OVERTURE_API_BASE_URL, OVERTURE_API_KEY) the operator sets.
+  def settings_demo_notice(action: 'create keys or update settings')
+    body = "Connect this console to a live Igris API to #{action}."
+    enable = 'To enable real mode, set <code>OVERTURE_API_BASE_URL</code> and ' \
+             '<code>OVERTURE_API_KEY</code> on the host. Values are configured ' \
+             'on the host and never shown here.'
+    content_tag :div, class: 'ic-demobar', role: 'note' do
+      safe_join([
+        content_tag(:div, 'Demo mode is read-only', class: 'ic-demobar__title'),
+        content_tag(:p, body, class: 'ic-demobar__body'),
+        content_tag(:p, enable.html_safe, class: 'ic-demobar__body'),
+      ])
+    end
+  end
+
   # Inline test-run outcome → { tone:, label: } for the Action Detail "Test
   # this action" panel. The `state` strings are produced by
   # ActionsController#run; messages themselves are operator-facing copy only.
