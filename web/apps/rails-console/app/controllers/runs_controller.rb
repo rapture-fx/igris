@@ -11,6 +11,13 @@ class RunsController < ApplicationController
     @counts   = run_counts(@all_runs)
     @action_names = data_source.actions.map { |a| a[:name].to_s }.to_set
     @any_healthy_runtime = data_source.healthy_runtime?
+
+    # Run Inspector — server-rendered right-side drawer. Loaded only when an
+    # `inspect=<run_id>` param is present, so /runs without it never renders the
+    # drawer. A missing/unavailable run is non-fatal: the drawer shows an honest
+    # error state instead of crashing the list.
+    load_selected_run
+
     @degraded_error = data_source.error
   end
 
@@ -22,6 +29,20 @@ class RunsController < ApplicationController
   end
 
   private
+
+  # Populate the inspector state. `@inspecting` flags that the drawer should
+  # render; `@selected_run` is the normalized run detail (or nil when the id is
+  # unknown / unavailable, which the drawer renders as an error state).
+  def load_selected_run
+    id = params[:inspect].to_s.strip
+    return if id.empty?
+
+    @inspecting       = true
+    @selected_run_id  = id
+    @selected_run     = data_source.find_run(id)
+    @selected_action_known =
+      @selected_run && @action_names.include?(@selected_run[:action].to_s)
+  end
 
   def filtered(runs, filter)
     case filter
