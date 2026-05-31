@@ -14,9 +14,9 @@
   </div>
 </div>
 
-<%# First-run project naming. Shown only in real mode when the tenant has not
-    named their project yet (or after a validation error). Fixture/demo mode
-    renders "Demo Project" and never prompts. %>
+<%# First-run project naming. Shown only in real mode when the project has not
+    been named yet (or after a validation error). Without a live API connection
+    it shows the sample project name and never prompts. %>
 <% project_error = flash[:project_error]
    show_project_card = @project && (@project[:needs_name] || project_error.present?)
    project_value = flash[:project_name_value].to_s %>
