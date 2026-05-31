@@ -4,8 +4,8 @@ require 'test_helper'
 # ?section= slug and renders its own content (server-rendered, no client tabs),
 # the short legacy slugs still resolve via aliases, an unknown slug falls back
 # to Project, and the nav links carry the canonical query params. Also proves
-# demo mode is informative — every write-capable section explains itself and
-# how to enable real mode — and never leaks a secret.
+# Settings represents the product directly — the real interactive controls
+# render, no "demo" scaffolding remains — and never leaks a secret.
 class SettingsNavigationTest < ActionDispatch::IntegrationTest
   # Canonical slug → a heading string that only appears when that section
   # actually renders (not just the nav label, which is present on every page).
@@ -77,29 +77,33 @@ class SettingsNavigationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # ── Demo mode is informative, not a dead end ─────────────────────────────
-  # The integration env has no OVERTURE_API_BASE_URL, so the real DataSource is
-  # in fixture/demo mode here.
-  test 'write-capable sections show the read-only demo notice with enable steps' do
-    %w[project agent_keys runtime_keys].each do |slug|
+  # ── Settings represents the product, not a demo console ──────────────────
+  # The page shows the real product UI with no "demo" scaffolding and no
+  # left-bordered demo notice, on every section. The integration env has no
+  # OVERTURE_API_BASE_URL, but the UI no longer announces that as "demo".
+  test 'no section shows the demo notice bar or demo wording' do
+    CANONICAL.each_key do |slug|
       get "/settings?section=#{slug}"
       assert_response :success
-      assert_select '.ic-settings__pane .ic-demobar', { count: 1 }, "#{slug} missing the demo notice"
-      assert_match 'Demo mode is read-only', response.body, slug
-      assert_match 'OVERTURE_API_BASE_URL', response.body, slug
-      assert_match 'OVERTURE_API_KEY', response.body, slug
+      assert_select '.ic-demobar', { count: 0 }, "#{slug} still renders a demo notice bar"
+      refute_match(/demo/i, response.body, "#{slug} still mentions demo")
     end
   end
 
-  test 'demo mode shows a page-level banner explaining what Settings is for' do
-    get '/settings'
+  test 'write-capable sections render their real, interactive controls' do
+    get '/settings?section=project'
     assert_response :success
-    assert_select '.ic-demobar--page'
-    assert_match 'looking at the demo console', response.body
+    assert_select "form[action=?]", project_path            # real project-name form
+    assert_select "input[name=?]", 'name'
+
+    get '/settings?section=agent_keys'
+    assert_response :success
+    assert_match 'Create API key', response.body            # real create form
+    assert_match 'Authorization: Bearer', response.body     # still explains usage
   end
 
-  # ── There is always something to do: theme works regardless of mode ──────
-  test 'advanced section has a working local theme control even in demo mode' do
+  # ── There is always something to do: theme + reset are real actions ──────
+  test 'advanced section has a working local theme control' do
     get '/settings?section=advanced'
     assert_response :success
     assert_match 'Console appearance', response.body
@@ -115,13 +119,6 @@ class SettingsNavigationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select 'a.ic-rail__btn[href=?]', settings_path        # rail gear
     assert_select 'a.ic-rail__menu__item[href=?]', settings_path, count: 0
-  end
-
-  test 'demo mode disables agent key creation but still explains the key' do
-    get '/settings?section=agent_keys'
-    assert_response :success
-    refute_match 'Create API key', response.body          # no live create button
-    assert_match 'Authorization: Bearer', response.body   # still explains usage
   end
 
   # ── Cross-section CTAs solve the next problem ────────────────────────────
