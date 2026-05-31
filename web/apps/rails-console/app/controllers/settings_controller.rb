@@ -44,7 +44,7 @@ class SettingsController < ApplicationController
   def create_api_key
     if data_source.fixtures?
       return redirect_to settings_path(section: 'agent_keys'),
-                         notice: 'Demo mode — connect a live Igris API to create a real key.'
+                         notice: 'No live Igris API is connected, so no key was created.'
     end
 
     result = data_source.create_agent_api_key(params[:name])
@@ -63,7 +63,7 @@ class SettingsController < ApplicationController
   def revoke_api_key
     if data_source.fixtures?
       return redirect_to settings_path(section: 'agent_keys'),
-                         notice: 'Demo mode — no real key was revoked.'
+                         notice: 'No live Igris API is connected, so no key was changed.'
     end
 
     data_source.revoke_agent_api_key(params[:id])
