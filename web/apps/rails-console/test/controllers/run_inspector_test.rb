@@ -1,9 +1,9 @@
 require 'test_helper'
 
-# Run Inspector — the server-rendered, right-side quick-inspection drawer on
-# /runs, opened with ?inspect=<run_id>. It must:
-#   - stay closed unless inspect is present, and never break the list;
-#   - preserve the active filter when opening/closing;
+# Run Inspector — the server-rendered, redacted quick-inspection block now
+# embedded inside the run detail page (/runs/:id), directly above the Audit
+# interpretation. It must:
+#   - never appear on the runs list itself (the list is just the list);
 #   - show Overview, Agent request, Action input, Execution assessment, Audit
 #     interpretation, Evidence, and Next steps from already-safe run fields;
 #   - render an honest unavailable state for prompt/request when none exists,
@@ -41,49 +41,44 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_insp }
   end
 
-  # ── Closed by default ───────────────────────────────────────────────────
-  test 'runs without inspect does not render the drawer' do
+  # ── Never on the list ────────────────────────────────────────────────────
+  test 'the runs list itself never renders the inspector' do
     get '/runs'
     assert_response :success
     assert_select '.ic-runinspector', 0
-    refute_match 'Run Inspector', response.body
   end
 
-  # ── Opens via the query param ───────────────────────────────────────────
-  test 'runs with inspect renders the Run Inspector drawer' do
-    get '/runs?inspect=run_01HGJ8K2Z9F'
+  test 'run rows link straight to the run detail page' do
+    get '/runs?filter=failed'
+    assert_response :success
+    assert_select "a.ic-run-row__open[href=?]", run_path('run_01HGJ5W0M3B')
+  end
+
+  # ── Embedded in the opened run, above the Audit interpretation ───────────
+  test 'the run detail page renders the Run Inspector' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
     assert_select '.ic-runinspector', 1
     assert_match 'Run Inspector', response.body
   end
 
-  # ── Inspect links preserve the active filter ────────────────────────────
-  test 'run rows link to the inspector preserving the active filter' do
-    get '/runs?filter=failed'
+  test 'the inspector sits above the Audit interpretation on the detail page' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
-    assert_select "a.ic-run-row__open[href*='inspect=run_01HGJ5W0M3B']" do |els|
-      assert els.first['href'].include?('filter=failed'),
-             "inspect link should preserve filter=failed, got #{els.first['href']}"
-    end
+    body = response.body
+    assert body.index('ic-runinspector') < body.index('ic-audit'),
+           'the Run Inspector should render above the Audit interpretation block'
   end
 
-  test 'closing the drawer preserves the filter and drops inspect' do
-    get '/runs?filter=failed&inspect=run_01HGJ5W0M3B'
+  test 'the inspector close link returns to the runs list' do
+    get run_path('run_01HGJ5W0M3B')
     assert_response :success
-    assert_select "a.ic-runinspector__close[href*='filter=failed']"
-    assert_select "a.ic-runinspector__close[href*='inspect=']", 0
-  end
-
-  # ── Selected row active state ───────────────────────────────────────────
-  test 'the inspected run row gets a selected state' do
-    get '/runs?inspect=run_01HGJ5W0M3B'
-    assert_response :success
-    assert_select '.ic-run-row.is-selected', 1
+    assert_select "a.ic-runinspector__close[href=?]", runs_path
   end
 
   # ── Overview ────────────────────────────────────────────────────────────
-  test 'drawer overview shows action, status, routed via, and proof' do
-    get '/runs?inspect=run_01HGJ8K2Z9F' # send_email, Succeeded, proof verified
+  test 'inspector overview shows action, status, routed via, and proof' do
+    get run_path('run_01HGJ8K2Z9F') # send_email, Succeeded, proof verified
     assert_response :success
     assert_select '.ic-runinspector' do
       assert_select '.ic-runinspector__sechead', text: 'Overview'
@@ -94,15 +89,15 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
   end
 
   # ── Agent request: honest unavailable state ─────────────────────────────
-  test 'drawer shows the agent request unavailable state when none exists' do
-    get '/runs?inspect=run_01HGJ8K2Z9F'
+  test 'inspector shows the agent request unavailable state when none exists' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
     assert_select '.ic-runinspector__sechead', text: 'Agent request'
     assert_match 'No prompt or request payload is available for this run.', response.body
   end
 
   # ── Agent request: safe summary only when the API provides one ──────────
-  test 'drawer renders a safe redacted request summary when one is provided' do
+  test 'inspector renders a safe redacted request summary when one is provided' do
     task = {
       'task_id' => 'task_safe', 'status' => 'completed',
       'executed_target' => 'hosted_api',
@@ -111,7 +106,7 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
       'request_summary' => 'tool=http_call · POST /v1/orders · body redacted',
     }
     with_real_ds(FakeClient.new(tasks: [task])) do
-      get '/runs?inspect=task_safe'
+      get run_path('task_safe')
       assert_response :success
       assert_select 'pre.ic-runinspector__code', /POST \/v1\/orders · body redacted/
       refute_match 'No prompt or request payload is available', response.body
@@ -119,8 +114,8 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
   end
 
   # ── Execution assessment ────────────────────────────────────────────────
-  test 'drawer execution assessment renders the five assessment rows' do
-    get '/runs?inspect=run_01HGJ8K2Z9F'
+  test 'inspector execution assessment renders the five assessment rows' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
     assert_select '.ic-runinspector__sechead', text: 'Execution assessment'
     ['Action completed', 'Policy followed', 'Runtime path', 'Recovery', 'Proof'].each do |label|
@@ -129,8 +124,8 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
   end
 
   # ── Audit interpretation: careful language + disclaimer ─────────────────
-  test 'drawer audit interpretation uses careful, non-certification language' do
-    get '/runs?inspect=run_01HGJ8K2Z9F'
+  test 'inspector audit interpretation uses careful, non-certification language' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
     assert_select '.ic-runinspector__sechead', text: 'Audit interpretation'
     assert_match 'Interpretation only — not a compliance certification.', response.body
@@ -138,22 +133,21 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
     assert_match 'A signed receipt indicates a registered runtime reported this execution event.', response.body
   end
 
-  test 'drawer explains proof unavailability for a run without signed evidence' do
-    get '/runs?inspect=run_01HGJ9N7P4D' # the running run, proof pending
+  test 'inspector explains proof unavailability for a run without signed evidence' do
+    get run_path('run_01HGJ9N7P4D') # the running run, proof pending
     assert_response :success
     assert_match 'Proof is unavailable when signed runtime evidence was not produced or attached to this run.', response.body
   end
 
   # ── Next steps ──────────────────────────────────────────────────────────
-  test 'drawer next steps always offer open full run and the action' do
-    get '/runs?inspect=run_01HGJ8K2Z9F'
+  test 'inspector next steps always offer open full run and the action' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
     assert_select '.ic-runinspector__sechead', text: 'Next steps'
-    assert_select "a.ic-btn[href=?]", run_path('run_01HGJ8K2Z9F')
     assert_select '.ic-runinspector__actions a', text: 'Open action'
   end
 
-  test 'a runtime-unavailable run offers connect runtime in the drawer' do
+  test 'a runtime-unavailable run offers connect runtime in the inspector' do
     task = {
       'task_id' => 'task_rt', 'status' => 'failed',
       'executed_target' => 'local_runtime', 'runtime_id' => '',
@@ -161,23 +155,14 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
       'failure' => { 'reason' => 'runtime not connected' },
     }
     with_real_ds(FakeClient.new(tasks: [task])) do
-      get '/runs?inspect=task_rt'
+      get run_path('task_rt')
       assert_response :success
       assert_select '.ic-runinspector__actions a', text: 'Connect runtime'
     end
   end
 
-  # ── Unavailable / unknown run ───────────────────────────────────────────
-  test 'inspecting an unknown run renders the error state, not a crash' do
-    with_real_ds(FakeClient.new(tasks: [])) do
-      get '/runs?inspect=does_not_exist'
-      assert_response :success
-      assert_match 'Run not found or unavailable', response.body
-    end
-  end
-
-  # ── Redaction: unsafe fields never leak into the drawer ─────────────────
-  test 'the drawer never renders auth headers, keys, hosts, env, or failure text' do
+  # ── Redaction: unsafe fields never leak into the opened run ─────────────
+  test 'the opened run never renders auth headers, keys, hosts, env, or failure text' do
     task = {
       'task_id' => 'task_leak', 'status' => 'failed',
       'executed_target' => 'hosted_api',
@@ -189,20 +174,20 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
       },
     }
     with_real_ds(FakeClient.new(tasks: [task])) do
-      get '/runs?inspect=task_leak'
+      get run_path('task_leak')
       assert_response :success
       %w[
         sk_live_LEAKTOKEN postgres:// db.internal OVERTURE_API_KEY
         ADMIN_PASSWORD Authorization:\ Bearer
       ].each do |needle|
-        refute_match needle, response.body, "drawer leaked #{needle}"
+        refute_match needle, response.body, "opened run leaked #{needle}"
       end
     end
   end
 
   # ── No legacy / compliance wording ──────────────────────────────────────
-  test 'the inspector page avoids legacy and overclaiming wording' do
-    get '/runs?inspect=run_01HGJ8K2Z9F'
+  test 'the inspector avoids legacy and overclaiming wording' do
+    get run_path('run_01HGJ8K2Z9F')
     assert_response :success
     refute_match(/Overture/, response.body)
     refute_match(/Next\.js/, response.body)
