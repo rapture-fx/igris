@@ -40,6 +40,11 @@ require RAILS_SECRET_KEY_BASE
 require ADMIN_USERNAME
 require ADMIN_PASSWORD
 
+case "${ADMIN_USERNAME}" in
+  *[![:space:]]*) : ;;
+  *) echo "ERROR: ADMIN_USERNAME must not be empty." >&2; exit 1 ;;
+esac
+
 OVERTURE_PUBLIC_API_URL="${OVERTURE_PUBLIC_API_URL:-$OVERTURE_API_BASE_URL}"
 
 case "${OVERTURE_API_KEY}" in
