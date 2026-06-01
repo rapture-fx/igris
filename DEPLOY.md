@@ -1,5 +1,9 @@
 # Igris MVP Deploy Playbook
 
+> Current live mode is Azure Container Apps + Neon, deployed manually by GHCR
+> image SHA. This Render playbook is historical. For the active workflow, use
+> `docs/AZURE_DEPLOY_RUNBOOK.md` and `docs/LIVE_MODE_BRINGUP.md`.
+
 Three pieces wire up the MVP. Two are managed services on Render. One
 is a managed Postgres at Neon. DNS rides on Cloudflare.
 

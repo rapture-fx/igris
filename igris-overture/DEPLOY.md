@@ -1,5 +1,9 @@
 # Deploying Go Overture
 
+> Current live mode is Azure Container Apps + Neon, deployed manually by GHCR
+> image SHA. Render references below are historical. For the active workflow,
+> use `docs/AZURE_DEPLOY_RUNBOOK.md` and `docs/LIVE_MODE_BRINGUP.md`.
+
 Go Overture is the execution brain (action registry, policy, routing,
 recovery, proof, receipts, task state). It is the **only** persistence
 layer for Igris MVP. The Rails console and the Rust runtime both call
