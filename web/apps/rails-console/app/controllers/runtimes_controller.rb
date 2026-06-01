@@ -32,9 +32,18 @@ class RuntimesController < ApplicationController
     @runtimes        = data_source.runtimes
     @runtime_summary = data_source.runtime_summary
     @runtime_actions = data_source.local_runtime_actions
-    @runtime_runs    = data_source.runtime_runs
     @action_names    = data_source.actions.map { |a| a[:name].to_s }.to_set
     @key_status      = data_source.runtime_api_key_status
     @degraded_error  = data_source.error
+
+    # A single run window powers both the "Runtime runs" table and the
+    # last-run lookup for the "Actions requiring runtime" table, so we fetch
+    # it once. Empty in real mode until runs exist — the tables show honest
+    # empty states rather than fabricated rows.
+    runs = data_source.all_runs(limit: 100)
+    @runtime_runs = runs.select { |r| data_source.run_through_runtime?(r) }.first(8)
+    @latest_run_by_action =
+      runs.group_by { |r| r[:action].to_s }
+          .transform_values { |rs| rs.max_by { |r| r[:started_at] || Time.at(0) } }
   end
 end
