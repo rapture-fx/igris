@@ -5,7 +5,7 @@ require 'test_helper'
 # is exercised in overture_client_test.rb and actions_controller_test.rb.
 class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'home renders as a workspace, not an onboarding page' do
-    get '/home'
+    get '/home?tab=feed' # needs-attention lives on the feed tab
     assert_response :success
     assert_match 'Workspace', response.body
     assert_match 'Needs attention', response.body
