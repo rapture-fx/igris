@@ -103,8 +103,10 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'charge_card'
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'Verified'
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'Proof verified'
-      # title attribute mirrors the aria-label for a basic browser tooltip.
-      assert_select 'a.ic-runmap__dot[title]'
+      # The custom hover tooltip reads from data-tip (the native browser title
+      # was replaced by a styled, dot-tracking tooltip).
+      assert_select 'a.ic-runmap__dot[data-tip]'
+      assert_select '.ic-runmap__tip'
     end
   end
 
