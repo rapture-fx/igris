@@ -703,7 +703,7 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
 .ig-table-wrap {
   background: var(--ig-bg-surface);
   border: 0.5px solid var(--ig-border);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
 }
 .ig-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
@@ -1025,7 +1025,7 @@ html.dark .ig-btn--primary {
   flex-shrink: 0;
 }
 .ic-topbar__title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ic-text-bright);
   letter-spacing: -0.01em;
@@ -1036,6 +1036,8 @@ html.dark .ig-btn--primary {
 }
 .ic-topbar__group { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
 .ic-topbar--wrap { height: auto; min-height: 44px; padding-top: 6px; padding-bottom: 6px; }
+.ic-topbar .ic-btn { height: 24px; padding: 0 8px; font-size: 11px; }
+.ic-topbar .ic-chip { font-size: 10px; padding: 1px 5px; }
 .ic-topbar__hint { font-size: 11px; color: var(--ic-text-6); margin-left: 4px; }
 .ic-topbar__id { font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-6); }
 .ic-topbar__crumb {
@@ -1280,7 +1282,6 @@ html.dark .ic-btn--accent:hover {
   align-items: center;
   gap: 10px;
   padding: 10px 20px;
-  border-top: 1px solid var(--ic-border);
   font-size: 11.5px;
   color: var(--ic-text-4);
 }
@@ -1674,7 +1675,6 @@ html.dark .ic-btn--accent:hover {
 .ic-runinspector__section--last { border-bottom: 0; }
 .ic-runinspector__sechead {
   font-size: 11px;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ic-text-6);
   margin-bottom: 8px;
@@ -2819,14 +2819,13 @@ html.dark .ic-checklist__step.is-done .ic-checklist__num { color: #07140f; }
   gap: 16px;
   border: 1px solid rgba(4,120,87,0.22);
   background: rgba(4,120,87,0.05);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px 16px;
   margin-bottom: 16px;
 }
 html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,120,87,0.06); }
 .ic-nextstep__kicker {
   font-size: 10px;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ic-emerald);
   margin-bottom: 4px;
@@ -2852,14 +2851,13 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
 /* ── Run detail: "What happened" summary ────────────────────────────── */
 .ic-summary {
   border: 1px solid var(--ic-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--ic-overlay-bg);
   padding: 14px 16px;
   margin-bottom: 16px;
 }
 .ic-summary__head {
   font-size: 11px;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ic-text-6);
   margin-bottom: 12px;
@@ -2899,14 +2897,13 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
 /* ── Run detail: real-data evidence sections ────────────────────────── */
 .ic-evidence {
   border: 1px solid var(--ic-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--ic-overlay-bg);
   padding: 14px 16px 8px;
   margin-bottom: 16px;
 }
 .ic-evidence__head {
   font-size: 11px;
-  text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--ic-text-6);
   margin-bottom: 6px;
@@ -3296,7 +3293,6 @@ html.dark, html[data-theme="dark"] {
   margin-bottom: 5px;
   font-size: 9.5px;
   color: var(--ic-text-7);
-  text-transform: uppercase;
   letter-spacing: .06em;
 }
 .ic-runmap__scroll { overflow-x: auto; padding-bottom: 2px; flex: 1; min-width: 0; }
