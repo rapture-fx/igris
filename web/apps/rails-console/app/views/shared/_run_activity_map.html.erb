@@ -56,10 +56,64 @@
           <%= link_to run_path(pt[:run][:id]),
                 class: "ic-runmap__dot ic-runmap__dot--#{pt[:band]}",
                 style: "grid-column: #{pt[:col]}; grid-row: #{pt[:row]};",
-                title: pt[:aria], 'aria-label': pt[:aria] do %><% end %>
+                data: { tip: pt[:aria] }, 'aria-label': pt[:aria] do %><% end %>
         <% end %>
       </div>
     </div>
+
+    <%# Custom hover tooltip — replaces the native browser title so it can be
+        styled and tracks the hovered dot. One floating node, positioned via
+        each dot's bounding rect (handles the horizontal scroll container). %>
+    <div class="ic-runmap__tip" role="tooltip" aria-hidden="true"></div>
+    <script>
+      (function () {
+        var map = document.currentScript.closest('.ic-runmap');
+        if (!map || map.dataset.tipBound) return;
+        map.dataset.tipBound = '1';
+        var tip = map.querySelector('.ic-runmap__tip');
+        var hideTimer = null;
+
+        function show(dot) {
+          if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+          var text = dot.getAttribute('data-tip');
+          if (!text) return;
+          tip.textContent = text;
+          tip.classList.add('is-on');
+          tip.setAttribute('aria-hidden', 'false');
+          var d = dot.getBoundingClientRect();
+          var m = map.getBoundingClientRect();
+          var tw = tip.offsetWidth, th = tip.offsetHeight;
+          var left = d.left - m.left + d.width / 2 - tw / 2;
+          left = Math.max(4, Math.min(left, m.width - tw - 4));
+          var top = d.top - m.top - th - 8;
+          tip.classList.toggle('ic-runmap__tip--below', top < 0);
+          if (top < 0) top = d.top - m.top + d.height + 8;
+          tip.style.left = left + 'px';
+          tip.style.top = top + 'px';
+        }
+        function hide() {
+          hideTimer = setTimeout(function () {
+            tip.classList.remove('is-on');
+            tip.setAttribute('aria-hidden', 'true');
+          }, 60);
+        }
+
+        map.addEventListener('mouseover', function (e) {
+          var dot = e.target.closest('.ic-runmap__dot');
+          if (dot) show(dot);
+        });
+        map.addEventListener('mouseout', function (e) {
+          if (e.target.closest('.ic-runmap__dot')) hide();
+        });
+        map.addEventListener('focusin', function (e) {
+          var dot = e.target.closest('.ic-runmap__dot');
+          if (dot) show(dot);
+        });
+        map.addEventListener('focusout', function (e) {
+          if (e.target.closest('.ic-runmap__dot')) hide();
+        });
+      })();
+    </script>
 
     <div class="ic-runmap__axis">
       <span><%= time_ago(points.first[:run][:started_at]) %></span>
