@@ -1,0 +1,70 @@
+<%# ── Run Activity Map — diverging skyline of recent runs over time. Each dot
+    is one run, placed by time (x) and event outcome (y). Reads only the
+    already-normalized, already-redacted run summary fields.
+    Locals: runs (newest-first window), demo (bool), flush (bool, optional). %>
+<% flush = local_assigns.fetch(:flush, false) %>
+<section class="ic-runmap <%= 'ic-runmap--flush' if flush %>" aria-label="Run Activity Map">
+  <div class="ic-runmap__head">
+    <div class="ic-runmap__heading">
+      <span class="ic-runmap__title">Run Activity Map</span>
+      <span class="ic-runmap__sub">Recent run events grouped by outcome. Each dot is one run; click a dot to open its evidence.</span>
+    </div>
+    <% if demo %>
+      <span class="ic-runmap__demo">Demo data — sample run activity</span>
+    <% end %>
+  </div>
+
+  <% if runs.empty? %>
+    <div class="ic-runmap__empty">
+      <div class="ic-runmap__empty-title">No run activity yet</div>
+      <p class="ic-runmap__empty-sub">Run activity appears after an agent or app calls an Igris action endpoint.</p>
+      <div class="ic-runmap__empty-cta">
+        <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+        <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
+      </div>
+    </div>
+  <% else %>
+    <% points = run_activity_points(runs)
+       n = points.size
+       band_counts = points.each_with_object(Hash.new(0)) { |pt, h| h[pt[:band]] += 1 } %>
+    <div class="ic-runmap__legend" aria-label="Run outcome legend">
+      <% run_activity_bands.each do |b| %>
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--<%= b[:key] %>" aria-hidden="true"></span>
+          <span><%= b[:label] %></span>
+          <span class="ic-runmap__legend-count"><%= band_counts[b[:key]] %></span>
+        </span>
+      <% end %>
+    </div>
+
+    <div class="ic-runmap__time-head">
+      <span>Outcome</span>
+      <span>Older runs</span>
+      <span>Newer runs</span>
+    </div>
+    <div class="ic-runmap__scroll">
+      <div class="ic-runmap__grid"
+           style="grid-template-columns: minmax(82px, max-content) repeat(<%= n %>, 12px);">
+        <% run_activity_bands.each_with_index do |b, ri| %>
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: <%= ri + 1 %>;">
+            <%= b[:label] %>
+            <span class="ic-runmap__band-count"><%= band_counts[b[:key]] %></span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: <%= ri + 1 %>;" aria-hidden="true"></i>
+        <% end %>
+        <% points.each do |pt| %>
+          <%= link_to run_path(pt[:run][:id]),
+                class: "ic-runmap__dot ic-runmap__dot--#{pt[:band]}",
+                style: "grid-column: #{pt[:col]}; grid-row: #{pt[:row]};",
+                title: pt[:aria], 'aria-label': pt[:aria] do %><% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="ic-runmap__axis">
+      <span><%= time_ago(points.first[:run][:started_at]) %></span>
+      <span class="ic-runmap__axis-mid">Showing latest <%= n %> run<%= 's' if n != 1 %></span>
+      <span><%= time_ago(points.last[:run][:started_at]) %></span>
+    </div>
+  <% end %>
+</section>
