@@ -1483,7 +1483,6 @@ html.dark .ic-btn--accent:hover {
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
-  border-bottom: 1px solid var(--ic-border);
   background: var(--ic-bg);
 }
 /* Custom filter dropdowns (Status / Route / Date) — <details>/<summary>, no
@@ -1617,7 +1616,7 @@ html.dark .ic-btn--accent:hover {
 .ic-runs-layout { display: flex; flex: 1; min-height: 0; }
 /* Match the filter bar / topbar gutter (20px) so the list frame lines up
    vertically with the dropdowns above it. */
-.ic-runs-layout .ic-body { flex: 1; min-width: 0; padding: 14px 20px 16px; }
+.ic-runs-layout .ic-body { flex: 1; min-width: 0; padding: 0 20px 16px; }
 .ic-runinspector {
   width: 100%;
   background: var(--ic-bg-rail);
