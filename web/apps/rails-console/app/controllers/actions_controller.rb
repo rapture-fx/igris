@@ -33,8 +33,31 @@ class ActionsController < ApplicationController
     },
   }.freeze
 
+  # Readiness buckets the Readiness dropdown offers (value => label). Mirrors
+  # the readiness tones rendered on each row.
+  READINESS = {
+    'ready'         => 'Ready',
+    'needs_target'  => 'Needs target',
+    'needs_runtime' => 'Needs runtime',
+    'demo_only'     => 'Demo only',
+  }.freeze
+
   def index
-    @actions = data_source.actions
+    @all_actions = data_source.actions
+
+    # Selected filter values (blank = no filter on that dimension).
+    @readiness = READINESS.key?(params[:readiness].to_s) ? params[:readiness].to_s : ''
+    @policy    = params[:policy].to_s
+    @query     = params[:q].to_s.strip
+
+    # Distinct policies present, for the Policy dropdown.
+    @policies = @all_actions.map { |a| a[:policy].to_s }.reject(&:empty?).uniq.sort
+
+    @actions = @all_actions
+    @actions = @actions.select { |a| action_readiness(a) == @readiness } if @readiness.present?
+    @actions = @actions.select { |a| a[:policy].to_s == @policy }        if @policy.present?
+    @actions = search_actions(@actions, @query)                          if @query.present?
+
     @degraded_error = data_source.error
   end
 
@@ -142,6 +165,25 @@ class ActionsController < ApplicationController
   end
 
   private
+
+  # Normalized readiness key for an action — the same logic the row view uses to
+  # pick a readiness chip. Falls back to setup state when the API omits it.
+  def action_readiness(action)
+    action[:endpoint_readiness].to_s.presence ||
+      (action[:setup].to_s.casecmp('Ready').zero? ? 'ready' : 'needs_target')
+  end
+
+  # Free-text search over safe, already-normalized action fields: name, target
+  # label, policy, and endpoint. Case-insensitive substring match.
+  def search_actions(actions, query)
+    needle = query.downcase
+    actions.select do |a|
+      a[:name].to_s.downcase.include?(needle) ||
+        a[:target_label].to_s.downcase.include?(needle) ||
+        a[:policy].to_s.downcase.include?(needle) ||
+        a[:endpoint].to_s.downcase.include?(needle)
+    end
+  end
 
   # Stash a safe, structured test outcome and bounce back to the Overview test
   # panel (anchored, so the result is in view). The message is operator-facing
