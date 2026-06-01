@@ -1,0 +1,61 @@
+<%# ── Run list — each row links straight to its run detail. %>
+<div class="ic-runs-layout">
+  <div class="ic-body ic-scroll">
+    <% if @runs.empty? %>
+      <% any_filter = @status.present? || @route.present? || @range.present? || @query.present? %>
+      <% if any_filter %>
+        <div class="ic-empty" style="padding: 40px 16px;">
+          <div class="ic-empty__title">No runs match your filters</div>
+          <p class="ic-empty__sub">Nothing in the loaded window matches the current status, route, date, or search.</p>
+          <%= link_to 'Clear filters', runs_path, class: 'ic-btn' %>
+        </div>
+      <% else %>
+        <div class="ic-empty" style="padding: 48px 16px;">
+          <div class="ic-empty__title">No runs yet</div>
+          <p class="ic-empty__sub">
+            Runs appear when an agent or app calls an Igris action endpoint.
+          </p>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+            <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="ic-runs-list">
+        <% @runs.each do |r| %>
+          <% tone = run_tone(r)
+             attn = run_needs_attention?(r) %>
+          <div class="ic-run-row <%= 'ic-run-row--attn' if attn %>">
+            <%= link_to run_path(r[:id]), class: 'ic-run-row__open',
+                  'aria-label': "Open run #{r[:id]}" do %>
+              <span class="ic-run-row__title"><%= r[:action] %></span>
+              <span class="ic-run-row__id-group">
+                <span class="ic-run-row__id-row">
+                  <span class="ic-run-row__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
+                  <span class="ic-run-row__id mono"><%= r[:id] %></span>
+                </span>
+                <span class="ic-run-row__status ic-run-row__status--<%= tone %>">
+                  <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'OK') %>
+                </span>
+              </span>
+              <span class="ic-run-row__sub">
+                <span class="mono"><%= r[:routed_via] %></span>
+              </span>
+              <span class="ic-run-row__sub">
+                <%= r[:proof] %>
+                <% if r[:recovery].present? && r[:recovery] != 'Not needed' %>
+                  · <%= r[:recovery] %>
+                <% end %>
+              </span>
+              <span class="ic-run-row__time">
+                <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
+                <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
