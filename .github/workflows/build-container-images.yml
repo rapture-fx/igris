@@ -1,0 +1,121 @@
+# Build and push the two live-mode container images to GHCR.
+#
+#   - igris-api     → Go Overture API   (root Dockerfile, full-repo context)
+#   - igris-console → Rails console      (web/apps/rails-console/Dockerfile)
+#
+# This workflow ONLY builds and pushes images. It never touches Azure, never
+# deploys, and never needs cloud credentials — the founder pulls these tags
+# from the Azure deploy scripts in scripts/azure/. See docs/LIVE_MODE_BRINGUP.md.
+#
+# Images are published under the repository owner's namespace:
+#   ghcr.io/igris-inertial/system/igris-api:{latest,sha-<short>}
+#   ghcr.io/igris-inertial/system/igris-console:{latest,sha-<short>}
+
+name: Build container images
+
+on:
+  # Primary trigger: run it by hand from the Actions tab.
+  workflow_dispatch:
+    inputs:
+      push:
+        description: "Push images to GHCR (uncheck for a build-only dry run)"
+        type: boolean
+        default: true
+  # Optional: rebuild on main when the build inputs actually change. Path
+  # filters keep doc-only / unrelated commits from triggering image builds.
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "go.mod"
+      - "go.sum"
+      - "cmd/**"
+      - "igris-overture/**"
+      - "rust-core/**"
+      - "config/**"
+      - "proto/**"
+      - "web/apps/rails-console/**"
+      - ".github/workflows/build-container-images.yml"
+
+# Least privilege: read the tree, write packages (GHCR). No id-token, no Azure.
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: igris-api
+            image: ghcr.io/igris-inertial/system/igris-api
+            context: .
+            dockerfile: ./Dockerfile
+          - name: igris-console
+            image: ghcr.io/igris-inertial/system/igris-console
+            context: ./web/apps/rails-console
+            dockerfile: ./web/apps/rails-console/Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # workflow_dispatch can opt out of pushing; push events always push.
+      - name: Resolve push flag
+        id: flags
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "push=${{ inputs.push }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GHCR
+        if: steps.flags.outputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      - name: Build and push ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: ${{ steps.flags.outputs.push == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+      - name: Summary
+        run: |
+          {
+            echo "### ${{ matrix.name }}"
+            echo "Pushed: \`${{ steps.flags.outputs.push }}\`"
+            echo ""
+            echo "Tags:"
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
