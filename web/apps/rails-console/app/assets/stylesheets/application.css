@@ -1486,6 +1486,22 @@ html.dark .ic-btn--accent:hover {
   padding: 10px 20px;
   background: var(--ic-bg);
 }
+.ic-filters .ic-dropdown__btn {
+  background: var(--ic-overlay-3);
+  color: var(--ic-text-2);
+}
+.ic-filters .ic-dropdown__btn:hover { background: var(--ic-overlay-4); }
+.ic-filters .ic-dropdown[open] .ic-dropdown__btn { background: var(--ic-overlay-4); border-color: var(--ic-text-6); }
+.ic-filters .ic-runsearch .ic-runsearch__input {
+  background: var(--ic-overlay-3);
+  color: var(--ic-text);
+}
+.ic-filters .ic-runsearch__ico {
+  color: var(--ic-text-5);
+}
+.ic-filters .ic-dropdown__value {
+  color: var(--ic-text-3);
+}
 /* Custom filter dropdowns (Status / Route / Date) — <details>/<summary>, no
    native <select>. Self-describing via their "All …" option, so no labels. */
 .ic-dropdown { position: relative; }
@@ -3092,19 +3108,19 @@ html.dark .ic-need__card--accent {
 }
 .ic-step__hint a { color: var(--ic-emerald); }
 .ic-keygen {
-  border: 1px solid rgba(180,83,9,0.28);
-  background: rgba(180,83,9,0.05);
+  border: 1px solid var(--ic-border);
+  background: var(--ic-overlay-bg);
   border-radius: 8px;
   padding: 10px 12px;
 }
 html.dark .ic-keygen {
-  border-color: rgba(251,191,36,0.24);
-  background: rgba(251,191,36,0.06);
+  border-color: var(--ic-border);
+  background: var(--ic-overlay-bg);
 }
 .ic-keygen__warn {
   font-size: 11.5px;
   font-weight: 500;
-  color: var(--ic-amber);
+  color: var(--ic-text-5);
   margin-bottom: 8px;
 }
 
