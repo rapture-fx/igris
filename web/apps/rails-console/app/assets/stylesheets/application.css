@@ -3357,6 +3357,79 @@ html.dark, html[data-theme="dark"] {
 .ic-runmap__dot:hover { transform: scale(1.65); opacity: 1; z-index: 2; }
 .ic-runmap__dot:focus-visible { outline: 2px solid var(--ic-accent); outline-offset: 2px; z-index: 2; }
 
+/* Custom hover tooltip for run dots — replaces the native browser title. */
+.ic-runmap__tip {
+  --tip-caret: 50%;
+  position: absolute;
+  z-index: 20;
+  left: 0; top: 0;
+  width: max-content;
+  max-width: 248px;
+  padding: 9px 11px 8px;
+  border-radius: 9px;
+  color: var(--ic-text-2);
+  background: var(--ic-tooltip-bg);
+  border: 1px solid var(--ic-menu-border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.34), 0 1px 2px rgba(0,0,0,0.2);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(3px) scale(0.98);
+  transform-origin: bottom center;
+  transition: opacity .13s ease, transform .13s ease;
+}
+.ic-runmap__tip.is-on { opacity: 1; transform: translateY(0) scale(1); }
+.ic-runmap__tip--below { transform-origin: top center; }
+
+.ic-runmap__tip-head {
+  display: flex; align-items: center; gap: 7px;
+  margin-bottom: 7px;
+}
+.ic-runmap__tip-dot {
+  flex: none; width: 7px; height: 7px; border-radius: 999px;
+  background: var(--ic-text-6);
+}
+.ic-runmap__tip-action {
+  font-size: 12px; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--ic-text); font-family: var(--ic-mono);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ic-runmap__tip-status {
+  flex: none; margin-left: auto;
+  font-size: 9.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--ic-text-5);
+  padding: 1px 6px; border-radius: 999px;
+  background: var(--ic-overlay-4); border: 1px solid var(--ic-border-soft);
+}
+.ic-runmap__tip-meta {
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 3px 12px; margin: 0;
+}
+.ic-runmap__tip-row { display: contents; }
+.ic-runmap__tip-row dt {
+  font-size: 10.5px; color: var(--ic-text-6);
+}
+.ic-runmap__tip-row dd {
+  margin: 0; font-size: 10.5px; color: var(--ic-text-3);
+  text-align: right; font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ic-runmap__tip-hint {
+  margin-top: 7px; padding-top: 6px;
+  border-top: 1px solid var(--ic-border-soft);
+  font-size: 10px; color: var(--ic-text-6);
+}
+/* Caret — tracks the dot via --tip-caret; points down by default, up below. */
+.ic-runmap__tip::after {
+  content: ""; position: absolute; left: var(--tip-caret); margin-left: -5px;
+  width: 0; height: 0; border: 5px solid transparent;
+  top: 100%; border-top-color: var(--ic-tooltip-bg);
+  filter: drop-shadow(0 1px 0 var(--ic-menu-border));
+}
+.ic-runmap__tip--below::after {
+  top: auto; bottom: 100%;
+  border-top-color: transparent; border-bottom-color: var(--ic-tooltip-bg);
+}
+
 .ic-runmap__dot--verified  { background: var(--ic-rm-verified); }
 .ic-runmap__dot--completed { background: var(--ic-rm-completed); }
 .ic-runmap__dot--recovered { background: var(--ic-rm-recovered); }
