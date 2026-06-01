@@ -83,7 +83,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   test 'home shows compact workspace sections when actions exist' do
-    get '/home'
+    get '/home?tab=feed' # the needs-attention section lives on the feed tab
     assert_response :success
     assert_match 'Needs attention', response.body
     assert_match 'Workspace', response.body
@@ -137,7 +137,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   test 'home feed shows notification-style activity events when runs exist' do
-    get '/home' # fixtures ship runs
+    get '/home?tab=feed' # fixtures ship runs; feed events live on the feed tab
     assert_response :success
     assert_match 'ic-feed-item', response.body          # separate events, not a table
     assert_match 'ic-feed-item__ico', response.body     # per-event status glyph
@@ -148,7 +148,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     action = { id: 'a1', name: 'send_email', target_type: 'hosted_api',
                target_label: 'Hosted API', setup: 'Ready', endpoint_readiness: 'ready' }
     with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [])) do
-      get '/home'
+      get '/home?tab=feed' # the no-activity empty state lives on the feed tab
       assert_response :success
       assert_match 'No activity yet', response.body
       refute_match 'ic-chartcard', response.body
