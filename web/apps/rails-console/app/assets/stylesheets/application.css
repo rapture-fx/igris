@@ -1328,61 +1328,75 @@ html.dark .ic-btn--accent:hover {
 .ic-run-row {
   display: flex;
   align-items: center;
+  position: relative;
   border-bottom: 1px solid var(--ic-border-soft);
   transition: background 120ms ease;
+}
+.ic-run-row:last-child { border-bottom: 0; }
+/* The Run Inspector block as embedded on the run detail page, above the
+   Audit interpretation. A bordered card in the run's evidence column. */
+.ic-run-expand {
+  border: 1px solid var(--ic-border);
+  border-radius: 10px;
+  background: var(--ic-bg-rail);
+  overflow: hidden;
+  margin: 14px 0;
 }
 .ic-run-row__open {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: 10px 64px 1fr 180px 160px 100px;
+  grid-template-columns: minmax(140px, 1fr) minmax(96px, 148px) minmax(118px, 168px) minmax(160px, 1.15fr) 76px;
   align-items: center;
-  gap: 10px;
-  padding: 7px 14px;
+  column-gap: 10px;
+  padding: 6px 14px 6px 8px;
   text-decoration: none;
   color: inherit;
 }
-.ic-run-row:hover { background: var(--ic-overlay-2); }
+.ic-run-row:hover {
+  background: var(--ic-overlay-2);
+}
 .ic-run-row:hover .ic-run-row__title { color: var(--ic-emerald); }
-.ic-run-row:last-child { border-bottom: 0; }
 .ic-run-row.is-active { background: var(--ic-overlay-4); }
-/* The run currently open in the Run Inspector — a quiet emerald rail + tint. */
-.ic-run-row.is-selected { background: var(--ic-overlay-4); box-shadow: inset 2px 0 0 var(--ic-emerald); }
-.ic-run-row.is-selected .ic-run-row__title { color: var(--ic-emerald); }
 /* A run that warrants a look gets a quiet rose rail on the left. */
-.ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(190,18,60,0.45); }
-html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
+
 /* Trailing next-action links — revealed on row hover, always there for a11y. */
 .ic-run-row__actions {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 12px 0 4px;
-  flex-shrink: 0;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 150px;
+  justify-content: flex-end;
   opacity: 0;
   transition: opacity 120ms ease;
 }
 .ic-run-row:hover .ic-run-row__actions,
 .ic-run-row:focus-within .ic-run-row__actions { opacity: 1; }
 .ic-run-row__act {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--ic-text-5);
   text-decoration: none;
   white-space: nowrap;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--ic-border-soft);
-  background: var(--ic-overlay-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 0;
+  background: transparent;
 }
-.ic-run-row__act:hover { color: var(--ic-text-bright); background: var(--ic-overlay-5); }
+.ic-run-row__act:hover { color: var(--ic-text-bright); background: var(--ic-overlay-3); }
 .ic-run-row__act--accent {
   color: var(--ic-emerald);
-  border-color: rgba(4,120,87,0.25);
-  background: rgba(4,120,87,0.10);
+  background: transparent;
 }
 @media (max-width: 980px) { .ic-run-row__actions { opacity: 1; } }
 @media (max-width: 720px) {
   .ic-run-row__actions { display: none; }
+  .ic-run-row__open { padding-right: 14px; }
 }
 .ic-run-row__dot {
   width: 6px;
@@ -1394,28 +1408,31 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
 .ic-run-row__dot--running { background: var(--ic-emerald); }
 .ic-run-row__dot--failed { background: var(--ic-rose); }
 .ic-run-row__status {
-  font-size: 10.5px;
+  font-size: 10px;
   letter-spacing: -0.005em;
+  white-space: nowrap;
 }
 .ic-run-row__status--ok { color: var(--ic-text-7); }
 .ic-run-row__status--running { color: var(--ic-emerald); }
 .ic-run-row__status--failed { color: var(--ic-rose); }
+.ic-run-row__id {
+  font-family: var(--ic-mono);
+  font-size: 11px;
+  color: var(--ic-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .ic-run-row__title {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--ic-text-bright);
   letter-spacing: -0.005em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ic-run-row__title .mono {
-  font-family: var(--ic-mono);
-  color: var(--ic-text-3);
-  margin-right: 8px;
-  font-size: 12px;
-}
 .ic-run-row__sub {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--ic-text-6);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1423,11 +1440,24 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
 }
 .ic-run-row__sub .mono { font-family: var(--ic-mono); }
 .ic-run-row__time {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--ic-text-8);
   font-variant-numeric: tabular-nums;
   font-family: var(--ic-mono);
   text-align: right;
+  white-space: nowrap;
+}
+.ic-run-row__id-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ic-run-row__id-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .ic-runs-strip {
@@ -1450,10 +1480,96 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
 .ic-filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
   padding: 10px 20px;
   border-bottom: 1px solid var(--ic-border);
   background: var(--ic-bg);
+}
+/* Custom filter dropdowns (Status / Route / Date) — <details>/<summary>, no
+   native <select>. Self-describing via their "All …" option, so no labels. */
+.ic-dropdown { position: relative; }
+.ic-dropdown__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  color: var(--ic-text-3);
+  background: var(--ic-overlay-bg);
+  border: 1px solid var(--ic-border);
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  list-style: none;
+  user-select: none;
+}
+.ic-dropdown__btn::-webkit-details-marker { display: none; }
+.ic-dropdown__btn:hover { background: var(--ic-overlay-2); }
+.ic-dropdown[open] .ic-dropdown__btn { border-color: var(--ic-text-7); background: var(--ic-overlay-2); }
+.ic-dropdown__value { color: var(--ic-text-6); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.ic-dropdown__value.is-set { color: var(--ic-text-bright); }
+.ic-dropdown__chev {
+  width: 12px; height: 12px; color: var(--ic-text-7);
+  flex: none; transition: transform 140ms ease;
+}
+.ic-dropdown[open] .ic-dropdown__chev { transform: rotate(180deg); }
+.ic-dropdown__menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px;
+  background: var(--ic-bg);
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+}
+.ic-dropdown__item {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  color: var(--ic-text-4);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ic-dropdown__item:hover { background: var(--ic-overlay-2); color: var(--ic-text-bright); }
+.ic-dropdown__item.is-active { background: var(--ic-overlay-4); color: var(--ic-text-bright); }
+/* Search grows to fill the remaining width of the filter bar. */
+.ic-runsearch {
+  flex: 1 1 260px;
+  min-width: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.ic-runsearch__ico {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--ic-text-7);
+  pointer-events: none;
+}
+/* Two-class selector so it beats `.ic-input { padding }` defined later in the
+   file — keeps clear space between the icon and the text. */
+.ic-runsearch .ic-runsearch__input {
+  width: 100%;
+  height: 28px;
+  padding-left: 36px;
+}
+@media (max-width: 720px) {
+  .ic-runsearch { flex-basis: 100%; }
 }
 .ic-filter {
   display: inline-flex;
@@ -1488,9 +1604,9 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
 
 @media (max-width: 980px) {
   .ic-run-row__open {
-    grid-template-columns: 10px 64px 1fr 100px;
+    grid-template-columns: minmax(120px, 1fr) minmax(96px, 148px) 76px;
   }
-  .ic-run-row__sub, .ic-run-row__open > :nth-child(5) { display: none; }
+  .ic-run-row__sub { display: none; }
 }
 
 /* ── Run Inspector drawer ───────────────────────────────────────────────
@@ -1499,21 +1615,14 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
    Igris visual language only — uses the same tokens, chips, pills, and def
    rows as the rest of the console. */
 .ic-runs-layout { display: flex; flex: 1; min-height: 0; }
-.ic-runs-layout .ic-body { flex: 1; min-width: 0; }
+/* Match the filter bar / topbar gutter (20px) so the list frame lines up
+   vertically with the dropdowns above it. */
+.ic-runs-layout .ic-body { flex: 1; min-width: 0; padding: 14px 20px 16px; }
 .ic-runinspector {
-  flex: 0 0 420px;
-  width: 420px;
-  align-self: stretch;
-  overflow-y: auto;
-  border-left: 1px solid var(--ic-border);
+  width: 100%;
   background: var(--ic-bg-rail);
-  scrollbar-width: none;
 }
-.ic-runinspector::-webkit-scrollbar { display: none; }
 .ic-runinspector__head {
-  position: sticky;
-  top: 0;
-  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1596,19 +1705,6 @@ html.dark .ic-run-row--attn { box-shadow: inset 2px 0 0 rgba(244,63,94,0.45); }
 .ic-runinspector__empty-title { font-size: 13px; color: var(--ic-text-bright); margin-bottom: 6px; }
 .ic-runinspector__empty-sub { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 0 0 14px; }
 .ic-runinspector__empty-sub .mono { font-family: var(--ic-mono); color: var(--ic-text-3); word-break: break-all; }
-
-/* On narrow screens the drawer drops below the list as a full-width panel so
-   nothing overflows horizontally. */
-@media (max-width: 880px) {
-  .ic-runs-layout { flex-direction: column; }
-  .ic-runinspector {
-    flex: 0 0 auto;
-    width: auto;
-    border-left: 0;
-    border-top: 1px solid var(--ic-border);
-  }
-  .ic-runinspector__head { position: static; }
-}
 
 /* ── Welcome / onboarding (standalone full page) ────────────────────── */
 .ic-welcome {
@@ -1918,6 +2014,9 @@ html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); backgrou
   .ic-workspace-layout { grid-template-columns: 1fr; gap: 22px; }
 }
 .ic-workspace-feed { min-width: 0; }
+/* Overview tab nav sits flush-left with the map/feed content below it
+   (the shared .ig-tabs indent is meant for full-width topbars elsewhere). */
+.ic-workspace-feed .ig-tabs { padding-left: 0; }
 
 /* Activity feed — separate notification-style events, no enclosing box. */
 .ic-feed { display: block; margin-top: 2px; }
@@ -3123,25 +3222,25 @@ html.dark .ic-hint {
 .ic-hint__link { color: var(--ic-emerald); margin-left: auto; }
 
 /* ── Run Activity Map (Runs page) ──────────────────────────────────────
-   A time-ordered map of recent runs: each dot is one run, placed by time
-   (x) and outcome band (y). Server-rendered with CSS grid — no JS.
-   Band tones are deliberately muted/desaturated so the map reads as a calm
-   evidence surface, not a bright generic chart. */
+   A diverging skyline of recent runs: each run is a box placed by time (x)
+   and outcome tier (y). Healthy outcomes rise above a centre baseline,
+   failing ones fall below it; colour follows a red→pale→green→blue diverging
+   ramp. Server-rendered with CSS grid — no JS. */
 :root {
-  --ic-rm-verified:  #2f7a5a;   /* muted sage green   */
-  --ic-rm-completed: #4a6b80;   /* muted slate blue   */
-  --ic-rm-recovered: #6d5f86;   /* muted mauve        */
-  --ic-rm-waiting:   #9a7530;   /* muted ochre        */
-  --ic-rm-blocked:   #6e6b62;   /* warm grey          */
-  --ic-rm-failed:    #a8555f;   /* muted brick rose   */
+  --ic-rm-verified:  #3f8fd0;   /* blue  — strongest positive */
+  --ic-rm-completed: #5cb85c;   /* green                      */
+  --ic-rm-recovered: #b6df7e;   /* pale green — near centre   */
+  --ic-rm-waiting:   #b7b1a4;   /* neutral — in progress      */
+  --ic-rm-blocked:   #f4a64c;   /* amber — near centre        */
+  --ic-rm-failed:    #e0503a;   /* red  — strongest negative  */
 }
 html.dark, html[data-theme="dark"] {
-  --ic-rm-verified:  #5e9079;
-  --ic-rm-completed: #6b899c;
-  --ic-rm-recovered: #8d7fa6;
-  --ic-rm-waiting:   #b0904f;
-  --ic-rm-blocked:   #7c7c74;
-  --ic-rm-failed:    #b06b74;
+  --ic-rm-verified:  #4f9bd9;
+  --ic-rm-completed: #5cb85c;
+  --ic-rm-recovered: #9fce6a;
+  --ic-rm-waiting:   #8f8a7e;
+  --ic-rm-blocked:   #e89a44;
+  --ic-rm-failed:    #d6543f;
 }
 .ic-runmap {
   margin: 14px 12px 6px;
@@ -3168,35 +3267,80 @@ html.dark, html[data-theme="dark"] {
   border-radius: 999px; padding: 2px 9px; white-space: nowrap;
 }
 .ic-runmap__legend {
-  display: flex; flex-wrap: wrap; gap: 6px 14px;
-  list-style: none; margin: 0 0 12px; padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0 0 10px;
 }
-.ic-runmap__leg {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; color: var(--ic-text-4);
+.ic-runmap__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--ic-text-5);
+  white-space: nowrap;
 }
-.ic-runmap__leg-dot { width: 8px; height: 8px; border-radius: 50%; opacity: .9; }
-.ic-runmap__scroll { overflow-x: auto; padding-bottom: 2px; }
+.ic-runmap__legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.ic-runmap__legend-count {
+  font-family: var(--ic-mono);
+  color: var(--ic-text-8);
+}
+.ic-runmap__time-head {
+  display: grid;
+  grid-template-columns: minmax(82px, max-content) 1fr auto;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 9.5px;
+  color: var(--ic-text-7);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.ic-runmap__scroll { overflow-x: auto; padding-bottom: 2px; flex: 1; min-width: 0; }
 .ic-runmap__grid {
-  display: grid; grid-auto-rows: 22px; align-items: center;
+  display: grid;
+  gap: 7px 4px;
+  align-items: center;
   min-width: min-content;
 }
 .ic-runmap__band {
-  align-self: center; font-size: 10.5px; color: var(--ic-text-5);
-  padding-right: 12px; white-space: nowrap; text-align: right;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: end;
+  padding-right: 8px;
+  font-size: 10px;
+  color: var(--ic-text-6);
+  white-space: nowrap;
+}
+.ic-runmap__band-count {
+  min-width: 15px;
+  text-align: center;
+  font-family: var(--ic-mono);
+  font-size: 9px;
+  color: var(--ic-text-8);
+  background: var(--ic-overlay-2);
+  border-radius: 999px;
+  padding: 0 4px;
 }
 .ic-runmap__lane {
-  height: 1px; align-self: center;
-  background: var(--ic-border); opacity: .5;
+  align-self: center;
+  height: 1px;
+  background: var(--ic-border-soft);
+  opacity: .8;
 }
 .ic-runmap__dot {
   align-self: center; justify-self: center;
-  width: 9px; height: 9px; border-radius: 50%; display: block;
-  opacity: .92; transition: transform .12s ease, opacity .12s ease;
-  position: relative;
+  width: 7px; height: 7px; border-radius: 999px; display: block;
+  opacity: .9; transition: transform .12s ease, opacity .12s ease;
 }
-.ic-runmap__dot:hover { transform: scale(1.5); opacity: 1; z-index: 2; }
+.ic-runmap__dot:hover { transform: scale(1.65); opacity: 1; z-index: 2; }
 .ic-runmap__dot:focus-visible { outline: 2px solid var(--ic-accent); outline-offset: 2px; z-index: 2; }
+
 .ic-runmap__dot--verified  { background: var(--ic-rm-verified); }
 .ic-runmap__dot--completed { background: var(--ic-rm-completed); }
 .ic-runmap__dot--recovered { background: var(--ic-rm-recovered); }
@@ -3214,3 +3358,6 @@ html.dark, html[data-theme="dark"] {
 .ic-runmap__empty-sub { font-size: 12px; color: var(--ic-text-5); margin: 6px 0 12px; }
 .ic-runmap__empty-cta { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 @media (max-width: 640px) { .ic-runmap__sub { display: none; } }
+/* Flush variant — no outer side margins when the map sits inside a column
+   (e.g. the Overview workspace feed) that already provides its own gutter. */
+.ic-runmap--flush { margin: 2px 0 0; }
