@@ -305,6 +305,13 @@
       </div>
     <% end %>
 
+    <%# ── Run Inspector — server-rendered, redacted quick-inspection of this
+        run. Sits inside the opened run, directly above the Audit
+        interpretation it supports. ────────────────────────────────────── %>
+    <div class="ic-run-expand">
+      <%= render 'inspector', run: @run, run_id: @run[:id], action_known: @action_known %>
+    </div>
+
     <%# ── Audit interpretation — plain-language reading of the evidence.
         Sits at the bottom, after the submitter/execution detail and the
         committed-actions evidence it interprets. ──────────────────────── %>
