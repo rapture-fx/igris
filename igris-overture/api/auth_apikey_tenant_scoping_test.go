@@ -46,7 +46,7 @@ func actionsListEmptyForTenant(t *testing.T, expectedTenantID string) queuedRout
 			"id", "tenant_id", "name", "display_name", "description",
 			"target_type", "target_url", "method",
 			"policy_preset", "replay_class", "approval_required", "irreversible",
-			"secret_refs", "target_metadata", "created_at", "updated_at", "archived_at",
+			"secret_refs", "target_metadata", "fallback_policy", "created_at", "updated_at", "archived_at",
 		},
 		rows: nil,
 		checkArgs: func(query string, args []driver.NamedValue) {
