@@ -52,8 +52,8 @@
 html.dark, html[data-theme="dark"] {
   --ic-bg: #0e0e0c;
   --ic-bg-rail: #070707;
-  --ic-text: #e8e7df;
-  --ic-text-bright: #f0efe8;
+  --ic-text: #d3d2c8;
+  --ic-text-bright: #d3d2c8;
   --ic-text-2: #d3d2c8;
   --ic-text-3: #c8c7be;
   --ic-text-4: #a8a89e;
@@ -78,8 +78,8 @@ html.dark, html[data-theme="dark"] {
   --ic-emerald: #047857;
   --ic-emerald-2: #059669;
   --ic-emerald-dim: rgba(4, 120, 87, 0.85);
-  --ic-rose: #f43f5e;
-  --ic-amber: #fbbf24;
+  --ic-rose: #cf5a68;
+  --ic-amber: #cf9a45;
   --ic-menu-bg: #14140f;
   --ic-menu-border: rgba(255,255,255,0.06);
   --ic-tooltip-bg: #161614;
@@ -116,16 +116,16 @@ html.dark, html[data-theme="dark"], body.dark {
   --ig-bg-surface: rgba(255,255,255,0.015);
   --ig-border: rgba(255,255,255,0.06);
   --ig-border-soft: rgba(255,255,255,0.05);
-  --ig-text: #e8e7df;
-  --ig-text-primary: #f0efe8;
+  --ig-text: #d3d2c8;
+  --ig-text-primary: #d3d2c8;
   --ig-text-body: #d3d2c8;
   --ig-text-muted: #a8a89e;
   --ig-text-dim: #7a7a72;
   --ig-text-dimmer: #5a5a52;
   --ig-text-deepest: #3a3a32;
   --ig-emerald: #047857;
-  --ig-rose: #fb7185;
-  --ig-amber: #fbbf24;
+  --ig-rose: #cf5a68;
+  --ig-amber: #cf9a45;
   --ig-bg-chip: rgba(255,255,255,0.045);
   --ig-border-chip: rgba(255,255,255,0.04);
   --ig-chip-icon: #8a8a82;
@@ -1416,6 +1416,10 @@ html.dark .ic-btn--accent:hover {
 .ic-run-row__status--ok { color: var(--ic-text-7); }
 .ic-run-row__status--running { color: var(--ic-emerald); }
 .ic-run-row__status--failed { color: var(--ic-rose); }
+/* Readiness tones — reused by the Actions list, which mirrors this row. */
+.ic-run-row__status--ready { color: var(--ic-emerald); }
+.ic-run-row__status--warn  { color: var(--ic-amber); }
+.ic-run-row__status--muted { color: var(--ic-text-6); }
 .ic-run-row__id {
   font-family: var(--ic-mono);
   font-size: 11px;
@@ -1993,12 +1997,12 @@ html.dark .ic-diagram__node--accent {
 .ic-status__pill.is-ok   { color: var(--ic-emerald); border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.08); }
 .ic-status__pill.is-warn { color: var(--ic-amber);   border-color: rgba(180,83,9,0.25); background: rgba(180,83,9,0.08); }
 html.dark .ic-status__pill.is-ok   { border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.10); }
-html.dark .ic-status__pill.is-warn { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); color: #fbbf24; }
+html.dark .ic-status__pill.is-warn { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); color: #cf9a45; }
 @media (max-width: 720px) {
   .ic-status { grid-template-columns: 1fr 1fr; }
 }
 .ic-status__pill.is-bad { color: var(--ic-rose); border-color: rgba(190,18,60,0.25); background: rgba(190,18,60,0.08); }
-html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); background: rgba(244,63,94,0.08); color: #f43f5e; }
+html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); background: rgba(244,63,94,0.08); color: #cf5a68; }
 
 /* ── Home workspace ─────────────────────────────────────────────────── */
 .ic-workspace { max-width: 1080px; margin: 0 auto; }
@@ -2550,7 +2554,7 @@ html.dark {
 .ic-readiness--warn  .ic-readiness__dot { background: var(--ic-amber); }
 .ic-readiness--muted { color: var(--ic-text-5); }
 html.dark .ic-readiness--ok   { border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.10); }
-html.dark .ic-readiness--warn { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); color: #fbbf24; }
+html.dark .ic-readiness--warn { border-color: rgba(251,191,36,0.25); background: rgba(251,191,36,0.08); color: #cf9a45; }
 html.dark .ic-readiness--warn .ic-readiness__dot { background: #fbbf24; }
 
 /* Empty state used by Actions/Runs/Runtimes */
@@ -3255,6 +3259,7 @@ html.dark, html[data-theme="dark"] {
   --ic-rm-failed:    #d6543f;
 }
 .ic-runmap {
+  position: relative;
   margin: 14px 12px 6px;
   padding: 14px 16px;
   background: var(--ic-overlay-1);
