@@ -471,19 +471,46 @@ module Igris
       nil
     end
 
+    # Normalize one runtime summary. The live source is the governance
+    # endpoint (GET /v1/execution/governance/runtimes), whose safe shape is
+    # { runtime_id, runtime_label, last_seen, capability_summary, trust_state,
+    #   …counts }. Older/alternate shapes (last_seen_at, capabilities, status)
+    # are still accepted so fixtures and any future endpoint keep working.
+    # Only safe identifiers are surfaced — never hostnames, IPs, or env values.
     def normalize_runtime(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
-      last_seen = parse_time(raw[:last_seen_at] || raw[:last_heartbeat_at])
+      last_seen = parse_time(raw[:last_seen] || raw[:last_seen_at] || raw[:last_heartbeat_at])
+      caps = Array(raw[:capability_summary] || raw[:capabilities] || raw[:supported_tools])
+             .map { |c| c.to_s.strip }.reject(&:empty?)
       {
-        # only safe identifiers — never expose hostnames / IPs / env values
         runtime_id:    raw[:runtime_id] || raw[:id],
-        name:          (raw[:runtime_id] || raw[:id]).to_s,
+        name:          (raw[:runtime_label] || raw[:runtime_id] || raw[:id]).to_s,
         status:        runtime_status_label(raw[:status] || raw[:health], last_seen),
+        trust_state:   trust_state_label(raw[:trust_state]),
         last_seen_at:  last_seen,
-        capabilities:  Array(raw[:capabilities] || raw[:supported_tools]),
+        capabilities:  caps,
+        # The governance endpoint does not return a runtime version; surface it
+        # only if a future/alternate source provides one (view shows "—" if nil).
+        version:       (raw[:runtime_version] || raw[:version]).to_s.strip.presence,
+        # Safe activity counts straight from the governance summary (0 when the
+        # source doesn't provide them, e.g. fixtures).
+        active_executions: raw[:active_execution_count].to_i,
+        recent_executions: raw[:recent_execution_count].to_i,
         os:            raw[:os].to_s,            # safe summary string if present
         host:          nil,                       # intentionally not exposed
       }
+    end
+
+    # Human label for the governance trust_state, or nil when absent. Kept
+    # distinct from connection status: trust is about boundary/verification
+    # history, status is about whether the runtime is currently reporting.
+    def trust_state_label(state)
+      case state.to_s
+      when 'trusted'            then 'Trusted'
+      when 'limited_trust'      then 'Limited trust'
+      when 'boundary_violation' then 'Boundary violation'
+      else state.to_s.tr('_', ' ').capitalize.presence
+      end
     end
 
     # ── Label helpers ────────────────────────────────────────────────────
@@ -576,14 +603,31 @@ module Igris
       end
     end
 
+    # Connection status from heartbeat freshness, falling back to an explicit
+    # status string when one is provided. The governance endpoint returns no
+    # status field, so liveness is derived from `last_seen`:
+    #   < 2 min  → Healthy   ·   2–30 min → Stale   ·   ≥ 30 min / never → Offline
+    # An explicit "offline"/"degraded" is always honoured; we only ever move a
+    # runtime toward "more stale", never fabricate Healthy from a stale beat.
+    HEALTHY_WITHIN = 2.minutes
+    STALE_WITHIN   = 30.minutes
+
     def runtime_status_label(raw, last_seen)
-      return 'Stale' if last_seen && last_seen < 2.minutes.ago
-      case raw.to_s
-      when 'healthy', 'connected', 'online', 'ok' then 'Healthy'
-      when 'stale'    then 'Stale'
-      when 'degraded' then 'Degraded'
-      when 'offline'  then 'Offline'
-      when ''         then last_seen ? 'Healthy' : 'Unknown'
+      explicit = raw.to_s.downcase
+      return 'Offline'  if explicit == 'offline'
+      return 'Degraded' if explicit == 'degraded'
+
+      if last_seen
+        age = Time.now - last_seen
+        return 'Healthy' if age < HEALTHY_WITHIN
+        return 'Stale'   if age < STALE_WITHIN
+        return 'Offline'
+      end
+
+      case explicit
+      when 'healthy', 'connected', 'online', 'ok', 'active' then 'Healthy'
+      when 'stale' then 'Stale'
+      when ''      then 'Offline' # registered but never reported a heartbeat
       else raw.to_s.titleize
       end
     end
