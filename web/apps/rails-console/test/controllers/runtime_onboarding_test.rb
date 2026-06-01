@@ -10,11 +10,12 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     attr_reader :mode, :error
     attr_accessor :key_status, :generated
 
-    def initialize(runtimes: [], actions: [], key_status: nil, generated: nil)
+    def initialize(runtimes: [], actions: [], runs: [], key_status: nil, generated: nil)
       @mode = :real
       @error = nil
       @runtimes = runtimes
       @actions = actions
+      @runs = runs
       @key_status = key_status
       @generated = generated
     end
@@ -26,8 +27,8 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     def actions    = @actions
     def find_action(id) = @actions.find { |a| a[:id] == id || a[:name] == id }
     def runs_for_action(_) = []
-    def recent_runs(**) = []
-    def all_runs(**) = []
+    def recent_runs(**) = @runs
+    def all_runs(**) = @runs
     def daily_run_counts = []
     def find_run(_) = nil
     def healthy_runtime? = @runtimes.any? { |r| r[:status] == 'Healthy' }
@@ -68,7 +69,24 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
 
   def healthy_runtime_row
     { runtime_id: 'rt_x', name: 'rt_x', status: 'Healthy', last_seen_at: Time.now,
-      capabilities: ['http_call'], os: 'linux-amd64', host: 'internal.example', ip: '10.0.0.9' }
+      capabilities: ['http_call'], version: '1.8.0', recent_executions: 3,
+      os: 'linux-amd64', host: 'internal.example', ip: '10.0.0.9' }
+  end
+
+  def stale_runtime_row
+    { runtime_id: 'rt_s', name: 'rt_s', status: 'Stale', last_seen_at: 20.minutes.ago,
+      capabilities: ['read_file'], os: 'linux-amd64' }
+  end
+
+  def offline_runtime_row
+    { runtime_id: 'rt_o', name: 'rt_o', status: 'Offline', last_seen_at: 2.hours.ago,
+      capabilities: [], os: 'linux-amd64' }
+  end
+
+  def runtime_run_row
+    { id: 'run_rt_1', action: 'rebuild_index', status: 'Succeeded',
+      routed_via: 'Runtime · rt_x', executed_target: 'local_runtime', runtime_id: 'rt_x',
+      proof: 'Proof verified', recovery: 'Not needed', started_at: 3.minutes.ago, duration_ms: 900 }
   end
 
   def with_fake_ds(ds)
@@ -81,15 +99,34 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_rt }
   end
 
-  # ── /runtimes explanation + commands (fixture mode) ──────────────────────
+  # ── /runtimes is a live operational surface ──────────────────────────────
   test 'runtimes page explains when a runtime is and is not needed' do
     get '/runtimes'
     assert_response :success
     assert_match 'Use a runtime when an action needs private files, internal APIs, or', response.body
     assert_match 'Hosted API and webhook actions do not require a runtime', response.body
-    assert_match 'Do I need a runtime?', response.body
-    assert_match 'Runtime required', response.body
-    assert_match 'No runtime needed', response.body
+  end
+
+  test 'runtimes page presents the operational sections in order' do
+    get '/runtimes'
+    assert_response :success
+    %w[Connection\ state Connect\ a\ runtime Connected\ runtimes
+       Actions\ requiring\ runtime Runtime\ runs].each do |label|
+      assert_match label.tr('\\', ' '), response.body
+    end
+    # control-surface actions in the topbar
+    assert_match 'Create runtime key', response.body
+    assert_match 'Install runtime', response.body
+    assert_match 'Refresh', response.body
+  end
+
+  test 'runtimes page shows the four connect steps' do
+    get '/runtimes'
+    assert_response :success
+    assert_match 'Create a runtime key', response.body
+    assert_match 'Install on the host with access', response.body
+    assert_match 'Start the runtime', response.body
+    assert_match 'Verify the heartbeat', response.body
   end
 
   test 'runtimes page shows the install and start commands' do
@@ -133,6 +170,108 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
       refute_match 'internal.example', response.body
       refute_match '10.0.0.9', response.body
     end
+  end
+
+  # ── Live mode shows real data only (no demo, no fake rows) ───────────────
+  test 'live mode never renders demo text or fixture runtime rows' do
+    with_fake_ds(FakeDS.new(runtimes: [healthy_runtime_row])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'rt_x', response.body                 # the real row
+      refute_match(/Demo data/, response.body)           # no demo label in live mode
+      refute_match 'rt_prod_01', response.body           # no fixture runtimes
+      refute_match 'rt_staging_01', response.body
+    end
+  end
+
+  test 'live mode runtime runs table shows only real runtime-routed runs' do
+    with_fake_ds(FakeDS.new(runtimes: [healthy_runtime_row], runs: [runtime_run_row])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'run_rt_1', response.body             # real runtime run
+      refute_match(/Demo data/, response.body)
+      refute_match 'rt_prod_01', response.body           # no fixture run rows
+    end
+  end
+
+  # ── Connection state copy reflects the real fleet ────────────────────────
+  test 'connection state reports healthy when a runtime is connected' do
+    with_fake_ds(FakeDS.new(runtimes: [healthy_runtime_row])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'Connection state', response.body
+      assert_match 'healthy runtime connected', response.body
+      assert_match '1.8.0', response.body                # version surfaced when present
+    end
+  end
+
+  test 'connection state reports none connected with no runtime' do
+    with_fake_ds(FakeDS.new(runtimes: [])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'No runtime connected', response.body
+      assert_match 'No runtime connected yet', response.body  # empty-state card
+    end
+  end
+
+  test 'connection state reports no-healthy when only stale or offline runtimes' do
+    with_fake_ds(FakeDS.new(runtimes: [stale_runtime_row, offline_runtime_row])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'No healthy runtime', response.body
+      assert_match 'rt_s', response.body
+      assert_match 'rt_o', response.body
+    end
+  end
+
+  # ── Actions requiring runtime: runnable vs blocked ───────────────────────
+  test 'local action shows Runnable when a healthy runtime exists' do
+    with_fake_ds(FakeDS.new(runtimes: [healthy_runtime_row], actions: [local_action])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'rebuild_index', response.body
+      assert_match 'Runnable', response.body
+      refute_match 'Blocked — runtime required', response.body
+    end
+  end
+
+  test 'local action shows Blocked when no healthy runtime exists' do
+    with_fake_ds(FakeDS.new(runtimes: [], actions: [local_action])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'rebuild_index', response.body
+      assert_match 'Blocked — runtime required', response.body
+    end
+  end
+
+  # ── Honest empty states ──────────────────────────────────────────────────
+  test 'empty states render when there are no actions or runs' do
+    with_fake_ds(FakeDS.new(runtimes: [healthy_runtime_row], actions: [], runs: [])) do
+      get '/runtimes'
+      assert_response :success
+      assert_match 'No runtime actions yet', response.body
+      assert_match 'No runtime runs yet', response.body
+    end
+  end
+
+  # ── Install/start commands use the configured public API URL ─────────────
+  test 'commands include the configured API URL when it overrides the default' do
+    prev = ENV['OVERTURE_PUBLIC_API_URL']
+    ENV['OVERTURE_PUBLIC_API_URL'] = 'https://igris-api.example.azurecontainerapps.io'
+    get '/runtimes'
+    assert_response :success
+    assert_match 'IGRIS_API_URL=https://igris-api.example.azurecontainerapps.io igris-runtime serve', response.body
+    assert_match 'igris-api.example.azurecontainerapps.io', response.body  # host in the prose
+    refute_match 'api.igrisinertial.com', response.body                    # default host not shown
+  ensure
+    ENV['OVERTURE_PUBLIC_API_URL'] = prev
+  end
+
+  test 'commands omit IGRIS_API_URL when the default endpoint is in use' do
+    get '/runtimes' # OVERTURE_PUBLIC_API_URL unset → default api.igrisinertial.com
+    assert_response :success
+    assert_match 'igris-runtime serve', response.body
+    refute_match 'IGRIS_API_URL=', response.body
   end
 
   # ── Local runtime Action Detail guidance ─────────────────────────────────
