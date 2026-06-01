@@ -37,54 +37,72 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_loop }
   end
 
-  # ── Runs index: summary strip + status display (fixture mode) ───────────
-  test 'runs index shows the title, summary strip, and status labels' do
+  # ── Runs index: just the list of runs + a filter/search bar ─────────────
+  test 'runs index shows the title and run status labels' do
     get '/runs'
     assert_response :success
     assert_match 'Action executions — evidence, policy, recovery, and proof', response.body
-    assert_match 'shown', response.body              # summary strip count
-    assert_match 'failed', response.body
-    assert_match 'proof verified', response.body
     assert_match 'Running', response.body            # the in-flight fixture run
     assert_match 'Failed', response.body             # the failed fixture run
   end
 
-  # ── Runs index: filters are server-rendered and actually filter ─────────
-  # Assertions are scoped to the run rows (`.ic-run-row`) so the always-on
-  # recent-runs lens sidebar doesn't count toward the filtered list.
-  test 'failed filter shows only the failed run' do
-    get '/runs?filter=failed'
-    assert_response :success
-    assert_select '.ic-run-row', 1
-    assert_select '.ic-run-row__title', /run_01HGJ5W0M3B/ # refund_charge failed
-  end
-
-  test 'needs-attention filter surfaces the run that warrants a look' do
-    get '/runs?filter=attention'
-    assert_response :success
-    assert_select '.ic-run-row', 1
-    assert_select '.ic-run-row__title', /run_01HGJ5W0M3B/ # failed + proof failed + awaiting review
-  end
-
-  test 'proof-unavailable filter surfaces runs without established proof' do
-    get '/runs?filter=proof_unavailable'
-    assert_response :success
-    assert_select '.ic-run-row', 1
-    assert_select '.ic-run-row__title', /run_01HGJ9N7P4D/ # the running run, proof pending
-  end
-
-  test 'an unknown filter falls back to all runs' do
-    get '/runs?filter=bogus'
-    assert_response :success
-    assert_select '.ic-run-row', 6 # every fixture run is shown
-  end
-
-  # ── Runs index: row next-actions connect to Action and Runtime ──────────
-  test 'runs index offers open-action and open-run next actions' do
+  # ── Runs index: custom dropdown filters (status / route / date) + search ─
+  test 'runs index renders the status/route/date dropdowns and a search field' do
     get '/runs'
     assert_response :success
-    assert_match 'Open run', response.body
-    assert_match 'Open action', response.body
+    assert_select 'details.ic-dropdown', 3                       # status / route / date
+    assert_select 'a.ic-dropdown__item[href*=?]', 'status=failed'
+    assert_select 'a.ic-dropdown__item[href*=?]', 'range=week'
+    assert_select 'form.ic-runsearch input[name=?]', 'q'
+    assert_select 'select', false                                # no native browser dropdowns
+    assert_select 'nav.ig-tabs', false                           # tabs removed
+    assert_select 'a.ic-filter', false                           # no count pills
+  end
+
+  test 'status filter narrows the list to failed runs' do
+    get '/runs?status=failed'
+    assert_response :success
+    assert_select '.ic-run-row', 8 # 7 Failed + 1 Error
+    assert_select '.ic-run-row__id', /run_01HGJ5W0M3B/ # refund_charge failed
+  end
+
+  test 'route filter narrows the list to one routed-via target' do
+    get '/runs', params: { route: 'Hosted API · Resend' }
+    assert_response :success
+    assert_select '.ic-run-row', 6
+    assert_select '.ic-run-row__title', text: 'send_email'
+  end
+
+  test 'an unknown status falls back to all runs' do
+    get '/runs?status=bogus'
+    assert_response :success
+    assert_select '.ic-run-row', 46 # every fixture run is shown
+  end
+
+  test 'search narrows the list by run id' do
+    get '/runs?q=run_01HGJ5W0M3B'
+    assert_response :success
+    assert_select '.ic-run-row', 1
+    assert_select '.ic-run-row__id', /run_01HGJ5W0M3B/
+  end
+
+  test 'search narrows the list by action name' do
+    get '/runs?q=refund_charge'
+    assert_response :success
+    assert_select '.ic-run-row', minimum: 1
+    assert_select '.ic-run-row__title', text: 'refund_charge'
+    refute_match 'send_email', response.body         # non-matching actions excluded
+  end
+
+  # ── Runs index: each row is itself the link to the run detail ───────────
+  # The redundant per-row "Open run" / "Open action" hover buttons were
+  # removed — the whole row is clickable.
+  test 'run rows link to the run detail with no redundant per-row buttons' do
+    get '/runs'
+    assert_response :success
+    assert_select 'a.ic-run-row__open[href=?]', run_path('run_01HGJ9N7P4D')
+    assert_select '.ic-run-row__actions', false # the hover action group is gone
+    assert_select '.ic-run-row__act', false     # …and its Open run / Open action buttons
   end
 
   # ── Runs index: empty state (real mode, no runs) ────────────────────────
