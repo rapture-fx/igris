@@ -164,18 +164,18 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'runtimes page lists the actions that need a runtime' do
     get '/runtimes'
     assert_response :success
-    assert_match 'Actions that need a runtime', response.body
+    assert_match 'Actions requiring runtime', response.body
     assert_match 'rebuild_search_index', response.body # local_runtime fixture action
     assert_match 'export_ledger', response.body        # second local_runtime action
-    assert_match 'Open action', response.body
+    assert_select 'a[href=?]', action_path('rebuild_search_index') # links to the action
   end
 
   test 'runtimes page lists recent runs that went through a runtime' do
     get '/runtimes'
     assert_response :success
-    assert_match 'Recent runtime runs', response.body
+    assert_match 'Runtime runs', response.body
     assert_match 'run_01HGJ3R6T7E', response.body      # the runtime-routed fixture run
-    assert_match 'Open run', response.body
+    assert_select 'a[href=?]', run_path('run_01HGJ3R6T7E') # links to the run
   end
 
   test 'runtimes page summarises fleet status by health' do
