@@ -1,5 +1,9 @@
 # Deploying the Rails Console
 
+> Current live mode is Azure Container Apps + Neon, deployed manually by GHCR
+> image SHA. Render references below are historical. For the active workflow,
+> use `docs/AZURE_DEPLOY_RUNBOOK.md` and `docs/LIVE_MODE_BRINGUP.md`.
+
 The Rails console is a stateless product face. It owns views and the
 Overture API client. **No database is required** — Rails stores nothing
 durably; all state lives in Go Overture / Neon Postgres.
