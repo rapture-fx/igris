@@ -2,12 +2,18 @@
 
 require 'test_helper'
 
-# Covers the Run Activity Map on /runs: it renders one dot per loaded run,
-# each dot links to its run detail and carries an accessible summary, the
-# no-runs state is honest (no fabricated dots), fixture data is clearly
-# labelled, and no unsafe fields or off-brand wording leak into the page.
-# Uses a stub DataSource so we never touch Overture.
+# Covers the Run Activity Map on the Overview page (/home?tab=map): it renders
+# one dot per loaded run, each dot links to its run detail and carries an
+# accessible summary, the no-runs state is honest (no fabricated dots), fixture
+# data is clearly labelled, and no unsafe fields or off-brand wording leak into
+# the page. Uses a stub DataSource so we never touch Overture.
 class RunActivityMapTest < ActionDispatch::IntegrationTest
+  # One ready action so Home renders the workspace tabs (and thus the map tab)
+  # instead of the zero-actions onboarding state.
+  STUB_ACTION = { id: 'charge_card', name: 'charge_card', target_type: 'hosted_api',
+                  target_label: 'Hosted API', setup: 'Ready',
+                  endpoint_readiness: 'ready' }.freeze
+
   class StubRuns
     attr_reader :mode
 
@@ -21,7 +27,9 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
     def error     = nil
 
     def all_runs(limit: 100) = @runs
-    def actions = []
+    def recent_runs(limit: 8) = @runs.first(limit)
+    def actions = [STUB_ACTION]
+    def runtimes = []
     def healthy_runtime? = false
     def find_run(id) = @runs.find { |r| r[:id] == id }
 
@@ -72,7 +80,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'renders the Run Activity Map with one dot per loaded run' do
     stub_with(sample_runs) do
-      get runs_path
+      get home_path(tab: 'map')
       assert_response :success
       assert_select 'section.ic-runmap'
       assert_select '.ic-runmap__title', text: 'Run Activity Map'
@@ -82,7 +90,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'each dot links to its run detail page' do
     stub_with(sample_runs) do
-      get runs_path
+      get home_path(tab: 'map')
       assert_select "a.ic-runmap__dot[href=?]", run_path('run_v')
       assert_select "a.ic-runmap__dot[href=?]", run_path('run_f')
     end
@@ -90,7 +98,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'dots carry an accessible label with action, status and proof' do
     stub_with(sample_runs) do
-      get runs_path
+      get home_path(tab: 'map')
       # Verified run dot — action + band + proof are all present in the label.
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'charge_card'
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'Verified'
@@ -100,21 +108,33 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'outcome bands are mapped honestly across statuses' do
+  test 'outcome lanes are mapped honestly across statuses' do
     stub_with(sample_runs) do
-      get runs_path
+      get home_path(tab: 'map')
+      assert_select '.ic-runmap__band', text: /Verified/
+      assert_select '.ic-runmap__band', text: /Waiting/
       assert_select 'a.ic-runmap__dot.ic-runmap__dot--verified'
       assert_select 'a.ic-runmap__dot.ic-runmap__dot--completed'
       assert_select 'a.ic-runmap__dot.ic-runmap__dot--recovered'
       assert_select 'a.ic-runmap__dot.ic-runmap__dot--waiting'
-      assert_select 'a.ic-runmap__dot.ic-runmap__dot--blocked'  # runtime-unavailable failure
+      assert_select 'a.ic-runmap__dot.ic-runmap__dot--blocked'
       assert_select 'a.ic-runmap__dot.ic-runmap__dot--failed'
+    end
+  end
+
+  test 'activity map renders concrete lane grid rows' do
+    stub_with(sample_runs) do
+      get home_path(tab: 'map')
+      assert_response :success
+      assert_match(/grid-template-columns: minmax\(82px, max-content\) repeat\(\d+, 12px\)/, response.body)
+      assert_match(/class="ic-runmap__band"[^>]+grid-row: \d+;/, response.body)
+      assert_no_match(/grid-row: ;/, response.body)
     end
   end
 
   test 'no-runs state renders an honest empty map with no dots' do
     stub_with([]) do
-      get runs_path
+      get home_path(tab: 'map')
       assert_response :success
       assert_select 'section.ic-runmap'
       assert_select '.ic-runmap__empty-title', text: 'No run activity yet'
@@ -124,7 +144,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'fixture mode clearly labels the map as demo data' do
     stub_with(sample_runs, mode: :fixtures) do
-      get runs_path
+      get home_path(tab: 'map')
       assert_response :success
       assert_select '.ic-runmap__demo', text: /Demo data/
     end
@@ -132,7 +152,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'real mode does not show the demo label' do
     stub_with(sample_runs) do
-      get runs_path
+      get home_path(tab: 'map')
       assert_select '.ic-runmap__demo', count: 0
     end
   end
@@ -146,7 +166,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
               signature: 'RAWSIGNATUREBYTES'),
     ]
     stub_with(runs) do
-      get runs_path
+      get home_path(tab: 'map')
       assert_response :success
       %w[SECRET_FAILURE_REASON internal-host-10-0-0-1 postgres://leaked RAWSIGNATUREBYTES].each do |leak|
         assert_not_includes response.body, leak
@@ -156,7 +176,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'map copy avoids off-brand and overclaiming wording' do
     stub_with(sample_runs) do
-      get runs_path
+      get home_path(tab: 'map')
       body = response.body.downcase
       File.write('/tmp/runs_body.html', response.body) unless body.exclude?('overture')
       assert_not_includes body, 'overture'
