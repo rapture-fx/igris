@@ -257,6 +257,186 @@ module ConsoleHelper
     end
   end
 
+  # ── Run Activity Map — diverging skyline ────────────────────────────────
+  # Each resolved run is one box placed by outcome *tier* on a diverging axis:
+  # healthy outcomes rise above the centre line, failing ones fall below it,
+  # mirroring the "winners and losers" reference layout. Indeterminate runs
+  # (running / awaiting / pending) carry no signed outcome yet, so they sit in
+  # a separate "in progress" lane below the axis rather than faking a result.
+  #
+  #   tier  +3 verified   (strongest positive — top, blue)
+  #         +2 completed  (green)
+  #         +1 recovered  (pale green, nearest centre)
+  #        ── centre baseline (0) ──
+  #         -1 blocked    (amber, nearest centre)
+  #         -2 failed     (red — bottom)
+  RUN_ACTIVITY_TIERS = {
+    verified:  3,
+    completed: 2,
+    recovered: 1,
+    blocked:  -1,
+    failed:   -2,
+  }.freeze
+
+  # Default dimensions for callers that need map geometry before a skyline is
+  # available. Rendered maps use the actual skyline stack sizes.
+  RUN_ACTIVITY_DEFAULT_MAX_UP = 3
+  RUN_ACTIVITY_DEFAULT_MAX_DOWN = 2
+
+  # Bucket a newest-first window into time-ordered columns and *stack* each
+  # column: healthy runs pile upward from the centre line, failing runs pile
+  # downward — exactly the "winners and losers" skyline. In-progress runs carry
+  # no signed outcome, so they sit in a separate lane below. Each box also
+  # carries an exact colour interpolated from the diverging ramp by its score.
+  #
+  # Returns { points:, inprog:, cols:, max_up:, max_down:, n: }. A point's
+  # :signed row is +k (k-th box up) or -k (k-th box down); the view turns that
+  # into a grid row using the centre line at max_up + 1.
+  def run_activity_skyline(runs, limit: 80, columns: nil)
+    ordered = Array(runs).first(limit).reverse # oldest → newest
+    n = ordered.size
+    return { points: [], inprog: [], cols: 0, max_up: 0, max_down: 0, n: 0 } if n.zero?
+
+    cols = columns || [[(n / 5.0).ceil, 1].max, 48].min
+    cols = [cols, n].min
+
+    buckets = Array.new(cols) { [] }
+    ordered.each_with_index do |run, i|
+      ci = cols == 1 ? 0 : ((i.to_f / (n - 1)) * (cols - 1)).round
+      buckets[ci] << run
+    end
+
+    points = []
+    inprog = []
+    max_up = 0
+    max_down = 0
+
+    buckets.each_with_index do |bucket, bi|
+      col = bi + 1
+      ups = []
+      downs = []
+      bucket.each do |run|
+        band = run_activity_band(run)
+        polarity = RUN_ACTIVITY_TIERS[band].to_i
+        if polarity > 0
+          ups << [run, band]
+        elsif polarity < 0
+          downs << [run, band]
+        else
+          inprog << { run: run, col: col, aria: run_activity_aria_label(run, band) }
+        end
+      end
+      # Strongest colour sits at the outer end of each stack (top / bottom).
+      ups   = ups.sort_by   { |run, band| run_activity_score(run, band) }
+      downs = downs.sort_by { |run, band| -run_activity_score(run, band) }
+      ups.each_with_index   { |(run, band), k| points << skyline_point(run, band, col,  (k + 1)) }
+      downs.each_with_index { |(run, band), k| points << skyline_point(run, band, col, -(k + 1)) }
+      max_up   = ups.size   if ups.size   > max_up
+      max_down = downs.size if downs.size > max_down
+    end
+
+    centre_row = run_activity_centre_row(max_up: max_up, max_down: max_down)
+    points.each { |pt| pt[:row] = centre_row - pt[:signed] }
+
+    { points: points, inprog: inprog, cols: cols, max_up: max_up, max_down: max_down, n: n }
+  end
+
+  def run_activity_total_rows(skyline = nil, max_up: nil, max_down: nil)
+    max_up ||= skyline&.fetch(:max_up, nil) || RUN_ACTIVITY_DEFAULT_MAX_UP
+    max_down ||= skyline&.fetch(:max_down, nil) || RUN_ACTIVITY_DEFAULT_MAX_DOWN
+    [max_up.to_i, 1].max + 1 + [max_down.to_i, 1].max
+  end
+
+  def run_activity_centre_row(skyline = nil, max_up: nil, max_down: nil)
+    max_up ||= skyline&.fetch(:max_up, nil) || RUN_ACTIVITY_DEFAULT_MAX_UP
+    [max_up.to_i, 1].max + 1
+  end
+
+  def run_activity_axis_ticks(skyline, runs)
+    cols = [skyline[:cols].to_i, 1].max
+    ordered = Array(runs).first(skyline[:n].to_i).reverse
+    return [] if ordered.empty?
+
+    tick_count = [5, cols].min
+    (0...tick_count).map do |i|
+      idx = tick_count == 1 ? 0 : ((i.to_f / (tick_count - 1)) * (ordered.size - 1)).round
+      col = tick_count == 1 ? 1 : ((i.to_f / (tick_count - 1)) * (cols - 1)).round + 1
+      started_at = ordered[idx][:started_at]
+      label = started_at.respond_to?(:strftime) ? started_at.strftime('%b %d') : time_ago(started_at)
+      { col: col, label: label }
+    end
+  end
+
+  # One placed skyline box.
+  def skyline_point(run, band, col, signed)
+    {
+      run:    run,
+      band:   band,
+      col:    col,
+      signed: signed,
+      color:  run_activity_color(run_activity_score(run, band)),
+      aria:   run_activity_aria_label(run, band),
+    }
+  end
+
+  # A run's outcome score on a continuous diverging axis, −1 (worst) … +1
+  # (best). The band sets the base; concrete signals (recovery effort, latency)
+  # nudge it so same-band runs read as distinct shades rather than one flat
+  # colour — mirroring the reference's per-box gradation.
+  RUN_ACTIVITY_BASE_SCORE = {
+    verified:  0.85, completed: 0.45, recovered: 0.20,
+    waiting:   0.0,  blocked:  -0.45, failed:   -0.85,
+  }.freeze
+
+  def run_activity_score(run, band = nil)
+    band ||= run_activity_band(run)
+    score = RUN_ACTIVITY_BASE_SCORE[band] || 0.0
+    score -= 0.12 if run[:recovery].to_s.match?(/retr|compensat|resum|replay/i)
+    ms = run[:duration_ms].to_i
+    if score > 0 && ms.positive?
+      score += 0.08 if ms < 300       # fast, clean success → deeper blue
+      score -= 0.08 if ms > 2_000     # slow success → pull back toward green
+    elsif score < 0 && ms > 4_000
+      score -= 0.05                   # long failure → deeper red
+    end
+    score.clamp(-1.0, 1.0)
+  end
+
+  # Diverging colour ramp stops (value → RGB), failing (red) → neutral → healthy
+  # (blue). Interpolated per run so each box gets its own shade.
+  RUN_ACTIVITY_RAMP_STOPS = [
+    [-1.0, [0xb2, 0x18, 0x2b]], # deep red
+    [-0.6, [0xe0, 0x50, 0x3a]], # red
+    [-0.3, [0xf4, 0xa6, 0x4c]], # amber
+    [ 0.0, [0xec, 0xe7, 0xd5]], # pale neutral
+    [ 0.3, [0xb6, 0xdf, 0x7e]], # pale green
+    [ 0.6, [0x5c, 0xb8, 0x5c]], # green
+    [ 1.0, [0x3f, 0x8f, 0xd0]], # blue
+  ].freeze
+
+  # Interpolate a hex colour for a score in [-1, 1] across the ramp stops.
+  def run_activity_color(score)
+    s = score.to_f.clamp(-1.0, 1.0)
+    RUN_ACTIVITY_RAMP_STOPS.each_cons(2) do |(v0, c0), (v1, c1)|
+      next unless s >= v0 && s <= v1
+      t = (v1 - v0).zero? ? 0.0 : (s - v0) / (v1 - v0)
+      rgb = c0.zip(c1).map { |a, b| (a + (b - a) * t).round }
+      return format('#%02x%02x%02x', *rgb)
+    end
+    rgb = (s <= RUN_ACTIVITY_RAMP_STOPS.first[0] ? RUN_ACTIVITY_RAMP_STOPS.first : RUN_ACTIVITY_RAMP_STOPS.last)[1]
+    format('#%02x%02x%02x', *rgb)
+  end
+
+  # CSS gradient string for the legend bar, built from the same ramp stops so
+  # the scale and the boxes always agree.
+  def run_activity_ramp_css
+    stops = RUN_ACTIVITY_RAMP_STOPS.map do |val, rgb|
+      pct = ((val + 1.0) / 2.0 * 100).round
+      "#{format('#%02x%02x%02x', *rgb)} #{pct}%"
+    end
+    "linear-gradient(to right, #{stops.join(', ')})"
+  end
+
   # The single most useful next step for a run, used by Run Detail's
   # "What to do next" panel. Returns a state token; the view renders the
   # matching message + CTAs. Ordered by urgency so a runtime-unavailable
