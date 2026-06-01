@@ -178,13 +178,13 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
     assert_match 'never receives direct tool access', response.body
   end
 
-  # ── Runtimes: download & connect, verified against the real commands ─────
-  test 'runtimes shows a Download and connect section with the verify step' do
+  # ── Runtimes: connect + verify, verified against the real commands ───────
+  test 'runtimes shows a Connect a runtime section with the verify step' do
     get '/runtimes'
     assert_response :success
-    assert_match 'Download and connect runtime', response.body
+    assert_match 'Connect a runtime', response.body
     assert_match 'Create a runtime key', response.body
-    assert_match 'Verify the connection', response.body
+    assert_match 'Verify the heartbeat', response.body
     # The actual, repo-confirmed commands — not invented flags.
     assert_match 'curl -fsSL https://igrisinertial.com/install | bash', response.body
     assert_match 'igris-runtime serve', response.body
