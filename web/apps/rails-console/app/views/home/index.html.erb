@@ -62,7 +62,7 @@
           </div>
 
         <% else %>
-          <% tabs = { 'feed' => 'Feed', 'actions' => 'Actions', 'runs' => 'Runs', 'attention' => 'Attention' } %>
+          <% tabs = { 'map' => 'Run Activity Map', 'feed' => 'Feed', 'actions' => 'Actions', 'attention' => 'Attention' } %>
           <nav class="ig-tabs" aria-label="Workspace views">
             <% tabs.each do |key, label| %>
               <%= link_to label, home_path(tab: key), class: "ig-tabs__item #{'is-active' if @tab == key}" %>
@@ -70,7 +70,10 @@
           </nav>
 
           <% case @tab
-             when 'actions' %>
+             when 'map' %>
+            <%= render 'shared/run_activity_map', runs: @activity_runs, demo: demo_mode?, flush: true %>
+
+          <% when 'actions' %>
             <div class="ic-feed">
               <% @actions.first(8).each do |a|
                    ready = a[:setup].to_s.casecmp('Ready').zero?
@@ -86,31 +89,6 @@
                 <% end %>
               <% end %>
             </div>
-
-          <% when 'runs' %>
-            <% if has_runs %>
-              <div class="ic-feed">
-                <% (@recent_runs || []).first(8).each do |r|
-                     st = r[:status].to_s
-                     running = st.casecmp('Running').zero?
-                     failed  = st.casecmp('Failed').zero?
-                     tone = running ? 'running' : (failed ? 'failed' : 'ok') %>
-                  <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
-                    <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
-                    <span class="ic-feed-item__main">
-                      <span class="ic-feed-item__title"><strong><%= r[:action] %></strong> <span class="ic-feed-item__id mono"><%= r[:id] %></span></span>
-                      <span class="ic-feed-item__sub"><span class="mono"><%= r[:routed_via] %></span> · <%= r[:proof] %></span>
-                    </span>
-                    <span class="ic-feed-item__meta">
-                      <%= r[:duration_ms] ? "#{r[:duration_ms]}ms · " : '' %><%= time_ago(r[:started_at]) %>
-                    </span>
-                    <%= feed_chevron %>
-                  <% end %>
-                <% end %>
-              </div>
-            <% else %>
-              <p class="ic-list-hint">No runs yet. Send a test request from an action to record one.</p>
-            <% end %>
 
           <% when 'attention' %>
             <div class="ic-section-head"><span class="ic-section-head__label">Needs attention</span></div>
