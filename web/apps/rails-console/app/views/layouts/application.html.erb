@@ -32,10 +32,8 @@
   <body>
     <div class="ig-shell">
       <%= render 'shared/icon_rail' %>
-      <%# Lens sidebar is exclusive to Runs — every other lens is full-pane. %>
-      <% if active_lens == :runs %>
-        <%= render 'shared/lens_sidebar' %>
-      <% end %>
+      <%# Every lens is full-pane — the icon rail is the only persistent nav.
+          The Runs view switch (Run History / Metrics) lives in-page as tabs. %>
       <main class="ig-main">
         <%= yield %>
       </main>
