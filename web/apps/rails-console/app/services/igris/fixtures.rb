@@ -105,75 +105,55 @@ module Igris
     end
 
     def runs
+      # Ordered newest-first so the activity map renders oldest-left → newest-right.
+      # Band key (run_activity_band priority): waiting > blocked > failed > verified > recovered > completed
       [
-        {
-          id: 'run_01HGJ9N7P4D',
-          action: 'send_email',
-          status: 'Running',
-          routed_via: 'Hosted API · Resend',
-          policy: 'Idempotent · 3 retries',
-          recovery: 'In flight',
-          proof: 'Pending',
-          started_at: 6.seconds.ago,
-          duration_ms: nil,
-        },
-        {
-          id: 'run_01HGJ8K2Z9F',
-          action: 'send_email',
-          status: 'Succeeded',
-          routed_via: 'Hosted API · Resend',
-          policy: 'Idempotent · 3 retries',
-          recovery: 'Not needed',
-          proof: 'Proof verified',
-          started_at: 4.minutes.ago,
-          duration_ms: 312,
-        },
-        {
-          id: 'run_01HGJ7Q4X1A',
-          action: 'create_invoice',
-          status: 'Succeeded',
-          routed_via: 'Webhook · Stripe',
-          policy: 'Single-flight',
-          recovery: 'Retried 1x',
-          proof: 'Proof verified',
-          started_at: 38.minutes.ago,
-          duration_ms: 988,
-        },
-        {
-          id: 'run_01HGJ5W0M3B',
-          action: 'refund_charge',
-          status: 'Failed',
-          routed_via: 'Hosted API · Stripe',
-          policy: 'Manual approval',
-          recovery: 'Awaiting review',
-          proof: 'Proof failed',
-          started_at: 2.hours.ago,
-          duration_ms: 4_120,
-        },
-        {
-          id: 'run_01HGJ4D8L0C',
-          action: 'send_email',
-          status: 'Succeeded',
-          routed_via: 'Hosted API · Resend',
-          policy: 'Idempotent',
-          recovery: 'Not needed',
-          proof: 'Proof verified',
-          started_at: 6.hours.ago,
-          duration_ms: 220,
-        },
-        {
-          id: 'run_01HGJ3R6T7E',
-          action: 'export_ledger',
-          status: 'Succeeded',
-          routed_via: 'Runtime · rt_prod_01',
-          executed_target: 'local_runtime',
-          runtime_id: 'rt_prod_01',
-          policy: 'Single-flight',
-          recovery: 'Not needed',
-          proof: 'Proof verified',
-          started_at: 52.minutes.ago,
-          duration_ms: 1_740,
-        },
+        { id: 'run_01HGJ9N7P4D', action: 'send_email',          status: 'Running',    routed_via: 'Hosted API · Resend',         policy: 'Idempotent · 3 retries', recovery: 'In flight',              proof: 'Pending',          started_at: 6.seconds.ago,   duration_ms: nil   }, # waiting
+        { id: 'run_01HGJ8K2Z9F', action: 'send_email',          status: 'Succeeded',  routed_via: 'Hosted API · Resend',         policy: 'Idempotent · 3 retries', recovery: 'Not needed',             proof: 'Proof verified',   started_at: 4.minutes.ago,   duration_ms: 312   }, # verified
+        { id: 'rdm_01',          action: 'process_payment',     status: 'Succeeded',  routed_via: 'Hosted API · Stripe',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: 8.minutes.ago,   duration_ms: 441   }, # verified
+        { id: 'rdm_02',          action: 'notify_webhook',      status: 'Succeeded',  routed_via: 'Webhook · Slack',             policy: 'Fire-and-forget',        recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 12.minutes.ago,  duration_ms: 87    }, # completed
+        { id: 'rdm_03',          action: 'sync_contacts',       status: 'Running',    routed_via: 'Hosted API · HubSpot',        policy: 'Idempotent',             recovery: 'In flight',              proof: 'Pending',          started_at: 15.minutes.ago,  duration_ms: nil   }, # waiting
+        { id: 'rdm_04',          action: 'validate_policy',     status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Retried 2x',             proof: 'Proof unavailable',started_at: 22.minutes.ago,  duration_ms: 1_230, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # recovered
+        { id: 'rdm_05',          action: 'generate_report',     status: 'Failed',     routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: 28.minutes.ago,  duration_ms: 5_400 }, # failed
+        { id: 'rdm_06',          action: 'archive_document',    status: 'Cancelled',  routed_via: 'Hosted API · S3',             policy: 'Manual approval',        recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 33.minutes.ago,  duration_ms: nil   }, # blocked
+        { id: 'run_01HGJ7Q4X1A', action: 'create_invoice',      status: 'Succeeded',  routed_via: 'Webhook · Stripe',            policy: 'Single-flight',          recovery: 'Retried 1x',             proof: 'Proof verified',   started_at: 38.minutes.ago,  duration_ms: 988   }, # verified (proof before recovered)
+        { id: 'rdm_07',          action: 'send_email',          status: 'Succeeded',  routed_via: 'Hosted API · Resend',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: 41.minutes.ago,  duration_ms: 198   }, # verified
+        { id: 'rdm_08',          action: 'update_subscription', status: 'Succeeded',  routed_via: 'Webhook · Polar',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 47.minutes.ago,  duration_ms: 356   }, # completed
+        { id: 'run_01HGJ3R6T7E', action: 'export_ledger',       status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof verified',   started_at: 52.minutes.ago,  duration_ms: 1_740, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # verified
+        { id: 'rdm_09',          action: 'process_payment',     status: 'Failed',     routed_via: 'Hosted API · Stripe',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: 54.minutes.ago,  duration_ms: 3_800 }, # failed
+        { id: 'rdm_10',          action: 'run_audit',           status: 'Succeeded',  routed_via: 'Runtime · rt_prod_02',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof verified',   started_at: 58.minutes.ago,  duration_ms: 2_100, executed_target: 'local_runtime', runtime_id: 'rt_prod_02' }, # verified
+        { id: 'rdm_11',          action: 'notify_webhook',      status: 'Awaiting approval', routed_via: 'Webhook · Slack',       policy: 'Human-gated',            recovery: 'Not needed',             proof: 'Pending',          started_at: (1.1 * 3600).seconds.ago, duration_ms: nil }, # waiting
+        { id: 'rdm_12',          action: 'refund_charge',       status: 'Denied',     routed_via: 'Hosted API · Stripe',         policy: 'Manual approval',        recovery: 'Not needed',             proof: 'Proof unavailable',started_at: (1.4 * 3600).seconds.ago, duration_ms: nil }, # blocked
+        { id: 'rdm_13',          action: 'export_ledger',       status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Compensated',            proof: 'Proof unavailable',started_at: (1.8 * 3600).seconds.ago, duration_ms: 2_870, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # recovered
+        { id: 'run_01HGJ5W0M3B', action: 'refund_charge',       status: 'Failed',     routed_via: 'Hosted API · Stripe',         policy: 'Manual approval',        recovery: 'Awaiting review',        proof: 'Proof failed',     started_at: 2.hours.ago,     duration_ms: 4_120 }, # failed
+        { id: 'rdm_14',          action: 'create_invoice',      status: 'Succeeded',  routed_via: 'Webhook · Stripe',            policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: (2.2 * 3600).seconds.ago, duration_ms: 620 }, # verified
+        { id: 'rdm_15',          action: 'sync_contacts',       status: 'Succeeded',  routed_via: 'Hosted API · HubSpot',        policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof unavailable',started_at: (2.7 * 3600).seconds.ago, duration_ms: 1_100 }, # completed
+        { id: 'rdm_16',          action: 'generate_report',     status: 'Failed',     routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: (3.2 * 3600).seconds.ago, duration_ms: 8_200 }, # failed
+        { id: 'rdm_17',          action: 'archive_document',    status: 'Succeeded',  routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: (3.8 * 3600).seconds.ago, duration_ms: 390 }, # verified
+        { id: 'rdm_18',          action: 'process_payment',     status: 'Blocked',    routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof unavailable',started_at: (4.3 * 3600).seconds.ago, duration_ms: nil, runtime_unavailable: true, executed_target: 'local_runtime' }, # blocked
+        { id: 'rdm_19',          action: 'send_email',          status: 'Succeeded',  routed_via: 'Hosted API · Resend',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: (4.9 * 3600).seconds.ago, duration_ms: 211 }, # verified
+        { id: 'rdm_20',          action: 'update_subscription', status: 'Succeeded',  routed_via: 'Webhook · Polar',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof unavailable',started_at: (5.4 * 3600).seconds.ago, duration_ms: 480 }, # completed
+        { id: 'rdm_21',          action: 'run_audit',           status: 'Pending',    routed_via: 'Runtime · rt_prod_02',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Pending',          started_at: (5.8 * 3600).seconds.ago, duration_ms: nil }, # waiting
+        { id: 'rdm_22',          action: 'validate_policy',     status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Retried 3x',             proof: 'Proof unavailable',started_at: (5.9 * 3600).seconds.ago, duration_ms: 3_410, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # recovered
+        { id: 'run_01HGJ4D8L0C', action: 'send_email',          status: 'Succeeded',  routed_via: 'Hosted API · Resend',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: 6.hours.ago,     duration_ms: 220 }, # verified
+        { id: 'rdm_23',          action: 'refund_charge',       status: 'Failed',     routed_via: 'Hosted API · Stripe',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: 7.hours.ago,     duration_ms: 6_700 }, # failed
+        { id: 'rdm_24',          action: 'notify_webhook',      status: 'Succeeded',  routed_via: 'Webhook · Slack',             policy: 'Fire-and-forget',        recovery: 'Not needed',             proof: 'Proof verified',   started_at: 8.hours.ago,     duration_ms: 93 }, # verified
+        { id: 'rdm_25',          action: 'export_ledger',       status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 9.hours.ago,     duration_ms: 1_980, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # completed
+        { id: 'rdm_26',          action: 'create_invoice',      status: 'Succeeded',  routed_via: 'Webhook · Stripe',            policy: 'Single-flight',          recovery: 'Resumed from checkpoint',proof: 'Proof unavailable',started_at: 11.hours.ago,    duration_ms: 4_200 }, # recovered
+        { id: 'rdm_27',          action: 'sync_contacts',       status: 'Succeeded',  routed_via: 'Hosted API · HubSpot',        policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: 12.hours.ago,    duration_ms: 760 }, # verified
+        { id: 'rdm_28',          action: 'process_payment',     status: 'Cancelled',  routed_via: 'Hosted API · Stripe',         policy: 'Manual approval',        recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 13.hours.ago,    duration_ms: nil }, # blocked
+        { id: 'rdm_29',          action: 'generate_report',     status: 'Error',      routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: 14.hours.ago,    duration_ms: 9_100 }, # failed
+        { id: 'rdm_30',          action: 'archive_document',    status: 'Succeeded',  routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: 15.hours.ago,    duration_ms: 340 }, # verified
+        { id: 'rdm_31',          action: 'send_email',          status: 'Succeeded',  routed_via: 'Hosted API · Resend',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 16.hours.ago,    duration_ms: 175 }, # completed
+        { id: 'rdm_32',          action: 'validate_policy',     status: 'Succeeded',  routed_via: 'Runtime · rt_prod_02',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof verified',   started_at: 17.hours.ago,    duration_ms: 890, executed_target: 'local_runtime', runtime_id: 'rt_prod_02' }, # verified
+        { id: 'rdm_33',          action: 'run_audit',           status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof verified',   started_at: 19.hours.ago,    duration_ms: 1_560, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # verified
+        { id: 'rdm_34',          action: 'refund_charge',       status: 'Failed',     routed_via: 'Hosted API · Stripe',         policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: 22.hours.ago,    duration_ms: 4_900 }, # failed
+        { id: 'rdm_35',          action: 'create_invoice',      status: 'Succeeded',  routed_via: 'Webhook · Stripe',            policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: 1.day.ago,       duration_ms: 530 }, # verified
+        { id: 'rdm_36',          action: 'sync_contacts',       status: 'Succeeded',  routed_via: 'Hosted API · HubSpot',        policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof unavailable',started_at: (1.5 * 86400).seconds.ago, duration_ms: 1_340 }, # completed
+        { id: 'rdm_37',          action: 'process_payment',     status: 'Succeeded',  routed_via: 'Hosted API · Stripe',         policy: 'Idempotent',             recovery: 'Retried 1x',             proof: 'Proof unavailable',started_at: 2.days.ago,      duration_ms: 2_010 }, # recovered
+        { id: 'rdm_38',          action: 'generate_report',     status: 'Failed',     routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof failed',     started_at: (2.3 * 86400).seconds.ago, duration_ms: 7_300 }, # failed
+        { id: 'rdm_39',          action: 'archive_document',    status: 'Succeeded',  routed_via: 'Hosted API · S3',             policy: 'Idempotent',             recovery: 'Not needed',             proof: 'Proof verified',   started_at: (2.7 * 86400).seconds.ago, duration_ms: 410 }, # verified
+        { id: 'rdm_40',          action: 'run_audit',           status: 'Denied',     routed_via: 'Runtime · rt_prod_02',        policy: 'Human-gated',            recovery: 'Not needed',             proof: 'Proof unavailable',started_at: 3.days.ago,      duration_ms: nil }, # blocked
       ]
     end
 
