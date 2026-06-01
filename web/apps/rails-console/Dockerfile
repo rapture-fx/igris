@@ -62,6 +62,9 @@ WORKDIR /app
 COPY --from=build --chown=rails:rails /usr/local/bundle /usr/local/bundle
 COPY --from=build --chown=rails:rails /app /app
 
+RUN mkdir -p tmp/pids tmp/cache tmp/sockets log && \
+    chown -R rails:rails tmp log
+
 USER rails
 
 EXPOSE 3100
