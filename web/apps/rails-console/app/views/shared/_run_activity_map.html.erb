@@ -56,38 +56,81 @@
           <%= link_to run_path(pt[:run][:id]),
                 class: "ic-runmap__dot ic-runmap__dot--#{pt[:band]}",
                 style: "grid-column: #{pt[:col]}; grid-row: #{pt[:row]};",
-                data: { tip: pt[:aria] }, 'aria-label': pt[:aria] do %><% end %>
+                data: {
+                  tip: pt[:aria],
+                  tip_action: pt[:run][:action].to_s.presence || '—',
+                  tip_band:   pt[:band],
+                  tip_status: run_activity_label(pt[:band]),
+                  tip_via:    pt[:run][:routed_via],
+                  tip_proof:  pt[:run][:proof].to_s.presence || 'Proof unavailable',
+                  tip_time:   time_ago(pt[:run][:started_at]),
+                },
+                'aria-label': pt[:aria] do %><% end %>
         <% end %>
       </div>
     </div>
 
     <%# Custom hover tooltip — replaces the native browser title so it can be
-        styled and tracks the hovered dot. One floating node, positioned via
-        each dot's bounding rect (handles the horizontal scroll container). %>
-    <div class="ic-runmap__tip" role="tooltip" aria-hidden="true"></div>
+        styled and tracks the hovered dot. One floating card, populated from the
+        hovered dot's data-* fields and positioned via its bounding rect (so it
+        works inside the horizontal scroll container). %>
+    <div class="ic-runmap__tip" role="tooltip" aria-hidden="true">
+      <div class="ic-runmap__tip-head">
+        <span class="ic-runmap__tip-dot"></span>
+        <span class="ic-runmap__tip-action"></span>
+        <span class="ic-runmap__tip-status"></span>
+      </div>
+      <dl class="ic-runmap__tip-meta">
+        <div class="ic-runmap__tip-row" data-row="via"><dt>Routed</dt><dd></dd></div>
+        <div class="ic-runmap__tip-row" data-row="proof"><dt>Proof</dt><dd></dd></div>
+        <div class="ic-runmap__tip-row" data-row="time"><dt>When</dt><dd></dd></div>
+      </dl>
+      <div class="ic-runmap__tip-hint">Click to open run evidence</div>
+    </div>
     <script>
       (function () {
         var map = document.currentScript.closest('.ic-runmap');
         if (!map || map.dataset.tipBound) return;
         map.dataset.tipBound = '1';
-        var tip = map.querySelector('.ic-runmap__tip');
+        var tip    = map.querySelector('.ic-runmap__tip');
+        var dotEl  = tip.querySelector('.ic-runmap__tip-dot');
+        var action = tip.querySelector('.ic-runmap__tip-action');
+        var status = tip.querySelector('.ic-runmap__tip-status');
+        var rows   = tip.querySelectorAll('.ic-runmap__tip-row');
         var hideTimer = null;
+
+        function setRow(row, value) {
+          var dd = row.querySelector('dd');
+          if (value && value.length) { dd.textContent = value; row.style.display = ''; }
+          else { row.style.display = 'none'; }
+        }
 
         function show(dot) {
           if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
-          var text = dot.getAttribute('data-tip');
-          if (!text) return;
-          tip.textContent = text;
+          var d = dot.dataset;
+          if (!d.tipAction && !d.tip) return;
+          action.textContent = d.tipAction || '—';
+          status.textContent = d.tipStatus || '';
+          status.style.display = d.tipStatus ? '' : 'none';
+          dotEl.className = 'ic-runmap__tip-dot' + (d.tipBand ? ' ic-runmap__dot--' + d.tipBand : '');
+          rows.forEach(function (row) {
+            setRow(row, { via: d.tipVia, proof: d.tipProof, time: d.tipTime }[row.dataset.row]);
+          });
+
           tip.classList.add('is-on');
           tip.setAttribute('aria-hidden', 'false');
-          var d = dot.getBoundingClientRect();
+          var r = dot.getBoundingClientRect();
           var m = map.getBoundingClientRect();
           var tw = tip.offsetWidth, th = tip.offsetHeight;
-          var left = d.left - m.left + d.width / 2 - tw / 2;
-          left = Math.max(4, Math.min(left, m.width - tw - 4));
-          var top = d.top - m.top - th - 8;
-          tip.classList.toggle('ic-runmap__tip--below', top < 0);
-          if (top < 0) top = d.top - m.top + d.height + 8;
+          var left = r.left - m.left + r.width / 2 - tw / 2;
+          left = Math.max(6, Math.min(left, m.width - tw - 6));
+          var top = r.top - m.top - th - 9;
+          var below = top < 4;
+          tip.classList.toggle('ic-runmap__tip--below', below);
+          if (below) top = r.top - m.top + r.height + 9;
+          // Point the caret at the dot even when the card is clamped sideways.
+          var caret = r.left - m.left + r.width / 2 - left;
+          tip.style.setProperty('--tip-caret', Math.max(10, Math.min(caret, tw - 10)) + 'px');
           tip.style.left = left + 'px';
           tip.style.top = top + 'px';
         }
