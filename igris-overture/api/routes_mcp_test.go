@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"io"
@@ -9,8 +10,13 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
+	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 type mcpRoundTripperFunc func(*http.Request) (*http.Response, error)
@@ -175,3 +181,280 @@ func TestMcpProxyReportsRuntimeReadFailureWithFailureSchema(t *testing.T) {
 }
 
 var _ io.ReadCloser = failingReader{}
+
+func TestMCPListActionsIsTenantScoped(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-actions"
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: scannerColumns,
+			rows: [][]driver.Value{{
+				"act-1", tenantA, "safe_ping", "Safe Ping", "health check",
+				"hosted_api", "https://internal.example.local/ping", "POST",
+				"Read-only", "read_only", false, false,
+				[]byte(`["secret/ref"]`), []byte(`{"runtime_id":"runtime-secret","hostname":"host.local"}`), []byte(`{"enabled":false}`),
+				now, now, nil,
+			}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE tenant_id = $1")
+				require.Equal(t, tenantA, args[0].Value)
+			},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":1,"method":"list_actions","params":{}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, "safe_ping")
+	require.NotContains(t, body, "secret/ref")
+	require.NotContains(t, body, "internal.example.local")
+	require.NotContains(t, body, "runtime-secret")
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestMCPGetActionRedactsUnsafeFields(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-get-action"
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: scannerColumns,
+			rows: [][]driver.Value{{
+				"act-secret", tenantA, "create_ticket", "Create Ticket", "opens a ticket",
+				"webhook", "http://10.1.2.3:8080/hook?token=secret", "POST",
+				"Approval required", "non_retryable", true, true,
+				[]byte(`["vault/token"]`), []byte(`{"runtime_key":"rk_secret","ip_address":"10.1.2.3"}`), []byte(`{"enabled":false}`),
+				now, now, nil,
+			}},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":2,"method":"get_action","params":{"action_id":"act-secret"}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, "create_ticket")
+	require.Contains(t, body, "endpoint_configured")
+	require.NotContains(t, body, "10.1.2.3")
+	require.NotContains(t, body, "token=secret")
+	require.NotContains(t, body, "vault/token")
+	require.NotContains(t, body, "rk_secret")
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestMCPCallActionUsesExistingActionRunPath(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-call-action"
+	now := time.Now().UTC()
+	taskID := uuid.New()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: scannerColumns,
+			rows: [][]driver.Value{{
+				"act-1", tenantA, "demo_action", "Demo", "safe demo",
+				"mock_demo", "", "",
+				"Safe automation", "retryable", false, false,
+				[]byte(`[]`), []byte(`{}`), []byte(`{"enabled":false}`),
+				now, now, nil,
+			}},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	var sawCompiledRun bool
+	h.submitAction = func(_ *fiber.Ctx, tenantID string, def actionDefinition, req actionRunByNameRequest) (fiber.Map, int, error) {
+		require.Equal(t, tenantA, tenantID)
+		runReq, err := buildActionRunRequestFromDefinition(def, req)
+		require.NoError(t, err)
+		taskReq, err := buildActionTaskSubmitRequest(runReq, tenantID)
+		require.NoError(t, err)
+		require.Equal(t, "execution_graph", taskReq.TaskType)
+		sawCompiledRun = true
+		return fiber.Map{
+			"task_id":     taskID.String(),
+			"run_id":      taskID.String(),
+			"status":      "dispatched",
+			"created_at":  now,
+			"inspect_url": "/v1/tasks/" + taskID.String(),
+		}, http.StatusAccepted, nil
+	}
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":3,"method":"call_action","params":{"action_id":"act-1","input":{"ok":true}}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.True(t, sawCompiledRun, "call_action must compile through the existing action run builders")
+	require.Contains(t, readBody(t, resp), taskID.String())
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestMCPListRunsOnlyReturnsTenantSafeRuns(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-runs"
+	now := time.Now().UTC()
+	taskID := uuid.New()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: []string{"task_id", "proof_status", "proof_checked_at"},
+			rows:    nil,
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE tenant_id = $1")
+				require.Equal(t, tenantA, args[0].Value)
+			},
+		},
+		{
+			columns: taskRecordColumnsForMCPTest(),
+			rows: [][]driver.Value{taskRecordRouteRow(
+				taskID, tenantA, coordinator.TaskStatusCompleted, "runtime-1", "http://runtime.internal",
+				json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[{"metadata":{"action_definition_id":"act-1","action_name":"demo_action","target_type":"mock_demo","policy_preset":"Safe automation"}}]}}`),
+				nil, "idem-1", nil, nil, &now, now,
+			)},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE tenant_id = $1")
+				require.Equal(t, tenantA, args[0].Value)
+			},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":4,"method":"list_runs","params":{"limit":10}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, taskID.String())
+	require.Contains(t, body, "demo_action")
+	require.NotContains(t, body, "runtime.internal")
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestMCPGetRunEvidenceDoesNotLeakUnsafeBodies(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-safe"
+	outputDigest := strings.Repeat("b", 64)
+	task := &coordinator.TaskRecord{
+		TaskID:    taskID,
+		TenantID:  "tenant-evidence",
+		Status:    coordinator.TaskStatusCompleted,
+		RuntimeID: &runtimeID,
+		ExecutionReceipt: json.RawMessage(`{
+			"hash":"receipt-hash-1",
+			"signature":"raw-signature-secret",
+			"raw_request_body":"password=secret",
+			"raw_response_body":"token=secret",
+			"hostname":"host.internal",
+			"database_url":"postgres://user:pass@db.internal/app"
+		}`),
+		Proof: &coordinator.TaskProofState{Status: "verified", Signature: "raw-proof-signature", StoredHash: "stored-hash"},
+	}
+	evidence := safeMCPRunEvidence(task, []coordinator.WalEntry{{
+		EntryID:      uuid.New(),
+		TaskID:       taskID,
+		StepIndex:    1,
+		Status:       "committed",
+		InputDigest:  strings.Repeat("a", 64),
+		OutputDigest: &outputDigest,
+		RuntimeID:    runtimeID,
+	}})
+	raw, err := json.Marshal(evidence)
+	require.NoError(t, err)
+	body := string(raw)
+	require.Contains(t, body, "receipt-hash-1")
+	require.Contains(t, body, outputDigest)
+	require.NotContains(t, body, "raw-signature-secret")
+	require.NotContains(t, body, "raw-proof-signature")
+	require.NotContains(t, body, "password=secret")
+	require.NotContains(t, body, "token=secret")
+	require.NotContains(t, body, "host.internal")
+	require.NotContains(t, body, "postgres://")
+}
+
+func TestMCPListRuntimesDoesNotLeakHostnamesIPsOrKeys(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-runtimes"
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: []string{"runtime_id", "status", "capabilities", "last_seen_at"},
+			rows: [][]driver.Value{{
+				"runtime-1", "active", []byte(`["filesystem","http_request"]`), now,
+			}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE tenant_id = $1")
+				require.NotContains(t, query, "hostname")
+				require.NotContains(t, query, "ip_address")
+				require.NotContains(t, query, "public_key_ed25519")
+				require.Equal(t, tenantA, args[0].Value)
+			},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":5,"method":"list_runtimes","params":{}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, "runtime-1")
+	require.Contains(t, body, "filesystem")
+	require.NotContains(t, body, "hostname")
+	require.NotContains(t, body, "ip_address")
+	require.NotContains(t, body, "public_key")
+	require.Zero(t, drv.remainingQueries())
+}
+
+func mcpPost(t *testing.T, app *fiber.App, body string) *http.Response {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPost, "/v1/mcp", strings.NewReader(body))
+	req.Header.Set("Authorization", "Bearer "+testAPIKey)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = resp.Body.Close() })
+	return resp
+}
+
+func readBody(t *testing.T, resp *http.Response) string {
+	t.Helper()
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	return string(body)
+}
+
+func taskRecordColumnsForMCPTest() []string {
+	return []string{
+		"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+		"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+		"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+		"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+		"idempotency_key", "failure_reason", "failure_details",
+		"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at", "executed_target", "fallback_reason",
+	}
+}
