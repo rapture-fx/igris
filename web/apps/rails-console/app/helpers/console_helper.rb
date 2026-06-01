@@ -627,8 +627,52 @@ module ConsoleHelper
   # Endpoint URL for an action name. Mirrors DataSource#endpoint_url so views
   # that only have a name (e.g. the wizard draft) stay consistent.
   def action_endpoint_url(name)
-    base = ENV['OVERTURE_PUBLIC_API_URL'].presence || 'https://api.igrisinertial.com'
-    "#{base.chomp('/')}/v1/actions/#{name}/run"
+    "#{runtime_api_base}/v1/actions/#{name}/run"
+  end
+
+  # ── Runtime connect commands ───────────────────────────────────────────
+  # The runtime connects out to the public Igris API. We surface the actual
+  # configured endpoint (OVERTURE_PUBLIC_API_URL) so the install/start commands
+  # are truthful in live mode instead of hardcoding api.igrisinertial.com.
+
+  # The runtime's built-in default API base (igris-runtime DEFAULT_API_BASE).
+  RUNTIME_DEFAULT_API_BASE = 'https://api.igrisinertial.com'
+
+  # The configured public API base, e.g. the live Azure Container App URL.
+  def runtime_api_base
+    (ENV['OVERTURE_PUBLIC_API_URL'].presence || RUNTIME_DEFAULT_API_BASE).chomp('/')
+  end
+
+  # Just the host, for prose ("connects to Igris at <host>").
+  def runtime_api_host
+    URI.parse(runtime_api_base).host || runtime_api_base
+  rescue URI::InvalidURIError
+    runtime_api_base
+  end
+
+  # True when the configured endpoint differs from the runtime's baked-in
+  # default — in that case the commands must pass IGRIS_API_URL so the runtime
+  # registers against the live API instead of the public default.
+  def runtime_api_overridden?
+    runtime_api_base != RUNTIME_DEFAULT_API_BASE
+  end
+
+  # `IGRIS_API_KEY=… [IGRIS_API_URL=…] ` prefix shared by the commands. The key
+  # is whatever the caller passes (a freshly minted key or the placeholder).
+  def runtime_env_prefix(key)
+    parts = ["IGRIS_API_KEY=#{key}"]
+    parts << "IGRIS_API_URL=#{runtime_api_base}" if runtime_api_overridden?
+    "#{parts.join(' ')} "
+  end
+
+  # One-liner install command (downloads + installs the runtime binary).
+  def runtime_install_command(key)
+    "#{runtime_env_prefix(key)}curl -fsSL https://igrisinertial.com/install | bash"
+  end
+
+  # Start command — registers the runtime and begins serving local actions.
+  def runtime_serve_command(key)
+    "#{runtime_env_prefix(key)}igris-runtime serve"
   end
 
   # curl snippet for an action endpoint with a JSON body.
