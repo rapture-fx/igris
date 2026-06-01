@@ -1,0 +1,24 @@
+<%# Custom filter dropdown for Actions — no native <select>. Mirrors the Runs
+    filter dropdown (details/summary, no-JS), but each option preserves the
+    active Actions filters + search and links back to actions_path.
+    Locals: param (symbol), selected (current value), placeholder (the "All …"
+    label), options ([[value, label], …]). %>
+<% base = { readiness: @readiness.presence, policy: @policy.presence,
+            q: @query.presence }.compact %>
+<% current_label = options.find { |v, _| v.to_s == selected.to_s }&.last || placeholder %>
+<details class="ic-dropdown">
+  <summary class="ic-dropdown__btn">
+    <span class="ic-dropdown__value <%= 'is-set' if selected.present? %>"><%= current_label %></span>
+    <svg class="ic-dropdown__chev" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </summary>
+  <div class="ic-dropdown__menu" role="menu">
+    <%= link_to placeholder, actions_path(base.except(param)),
+          class: "ic-dropdown__item #{'is-active' if selected.blank?}", role: 'menuitem' %>
+    <% options.each do |val, label| %>
+      <%= link_to label, actions_path(base.merge(param => val)),
+            class: "ic-dropdown__item #{'is-active' if selected.to_s == val.to_s}", role: 'menuitem' %>
+    <% end %>
+  </div>
+</details>
