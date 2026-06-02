@@ -2079,6 +2079,7 @@ html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); backgrou
 .ic-feed--scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .ic-feed-item {
   position: relative;
+  isolation: isolate;
   display: grid;
   /* icon · title · badges · time · chevron. The title takes the flexible space
      so the badge block stays compact and right-aligned; the badges track is
@@ -2086,14 +2087,24 @@ html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); backgrou
   grid-template-columns: 26px minmax(120px, 1fr) auto 64px 14px;
   align-items: center;
   gap: 11px;
-  padding: 6px 12px 6px 14px;
+  padding: 5px 12px 5px 14px;
   margin: 0 -10px;
   border-radius: 9px;
   border-bottom: 1px dashed var(--ic-border-soft);
   text-decoration: none;
 }
 .ic-feed-item:last-child { border-bottom: 0; }
-.ic-feed-item:hover {
+/* Hover frame is a vertically-inset overlay so its rounded border floats inside
+   the row and never touches the dashed divider above/below it. */
+.ic-feed-item::before {
+  content: "";
+  position: absolute;
+  inset: 3px 0;
+  border-radius: 7px;
+  z-index: -1;
+  pointer-events: none;
+}
+.ic-feed-item:hover::before {
   background: var(--ic-overlay-2);
   box-shadow: inset 0 0 0 1px var(--ic-border-soft);
 }
@@ -2121,7 +2132,7 @@ html.dark .ic-feed-item__ico--warn    { background: rgba(251,191,36,0.12); }
   font-size: 11.5px; line-height: 1.25; color: var(--ic-text-4); letter-spacing: -0.004em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.ic-feed-item__title strong { color: var(--ic-text-bright); font-weight: 600; }
+.ic-feed-item__title strong { color: var(--ic-text-3); font-weight: 400; }
 .ic-feed-item__id { color: var(--ic-text-7); font-size: 11px; }
 
 /* Badges share the title's row. Each badge gets its OWN fixed column (route ·
@@ -2131,7 +2142,7 @@ html.dark .ic-feed-item__ico--warn    { background: rgba(251,191,36,0.12); }
   display: grid;
   grid-template-columns: 80px 84px 100px;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   min-width: 0;
 }
 .ic-feed-cell { min-width: 0; display: flex; }
@@ -2216,6 +2227,13 @@ html.dark .ic-feed-badge.is-bad  { background: rgba(244,63,94,0.10);  box-shadow
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+.ic-workspace-panel__actions .ic-btn {
+  height: 24px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  gap: 5px;
+  border-radius: 5px;
 }
 
 /* ── Runs pulse — original Igris data viz ───────────────────────────── */
