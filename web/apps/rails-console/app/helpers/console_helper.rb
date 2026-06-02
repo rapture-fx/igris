@@ -121,6 +121,13 @@ module ConsoleHelper
       'stroke-linecap': 'round', 'stroke-linejoin': 'round'
   end
 
+  # Split a "·"-joined summary string (e.g. "Runtime · rt_localdev" or
+  # "Webhook · api.stripe.com") into its individual tokens so each renders as
+  # its own feed badge. Returns [] for blank input.
+  def feed_tokens(value)
+    value.to_s.split('·').map(&:strip).reject(&:blank?)
+  end
+
   # Subtle trailing chevron on feed rows — reveals on hover via CSS.
   def feed_chevron
     content_tag :svg, '<path d="M9 6 L15 12 L9 18"/>'.html_safe,
