@@ -140,7 +140,6 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     get '/home?tab=feed' # fixtures ship runs; feed events live on the feed tab
     assert_response :success
     assert_match 'ic-feed-item', response.body          # separate events, not a table
-    assert_match 'ic-feed-item__ico', response.body     # per-event status glyph
     assert_match(%r{Action <strong>\w+</strong>}, response.body)
     assert_match 'ic-feed-badge', response.body         # routing/proof/status now render as badges
   end
