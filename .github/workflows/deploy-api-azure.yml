@@ -3,7 +3,14 @@ name: Deploy API to Azure
 on:
   workflow_dispatch:
     inputs:
-      api_image:
+      target_environment:
+        description: "GitHub environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      api_image_digest:
         description: "Pinned API image digest, for example ghcr.io/igris-inertial/system/igris-api@sha256:<64 hex chars>"
         required: true
         type: string
@@ -13,16 +20,17 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-api-azure-production
+  group: deploy-api-azure-${{ inputs.target_environment }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy igris-api
+    name: Deploy igris-api to ${{ inputs.target_environment }}
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ inputs.target_environment }}
     env:
-      API_IMAGE: ${{ inputs.api_image }}
+      TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+      API_IMAGE_DIGEST: ${{ inputs.api_image_digest }}
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -41,26 +49,34 @@ jobs:
         run: |
           set -euo pipefail
 
-          case "${API_IMAGE}" in
-            ghcr.io/*@sha256:*) ;;
+          case "${TARGET_ENVIRONMENT}" in
+            staging|production) ;;
             *)
-              echo "api_image must be a pinned GHCR digest like ghcr.io/...@sha256:<digest>." >&2
+              echo "target_environment must be staging or production." >&2
               exit 1
               ;;
           esac
 
-          digest="${API_IMAGE##*@sha256:}"
+          case "${API_IMAGE_DIGEST}" in
+            ghcr.io/*@sha256:*) ;;
+            *)
+              echo "api_image_digest must be a pinned GHCR digest like ghcr.io/...@sha256:<digest>." >&2
+              exit 1
+              ;;
+          esac
+
+          digest="${API_IMAGE_DIGEST##*@sha256:}"
           if [[ ! "${digest}" =~ ^[0-9a-fA-F]{64}$ ]]; then
-            echo "api_image digest must be exactly 64 hexadecimal characters." >&2
+            echo "api_image_digest digest must be exactly 64 hexadecimal characters." >&2
             exit 1
           fi
 
-          : "${AZURE_CLIENT_ID:?AZURE_CLIENT_ID production variable is required}"
-          : "${AZURE_TENANT_ID:?AZURE_TENANT_ID production variable is required}"
-          : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID production variable is required}"
-          : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP production variable is required}"
-          : "${AZURE_CONTAINERAPPS_ENV:?AZURE_CONTAINERAPPS_ENV production variable is required}"
-          : "${AZURE_API_APP:?AZURE_API_APP production variable is required}"
+          : "${AZURE_CLIENT_ID:?AZURE_CLIENT_ID environment variable is required}"
+          : "${AZURE_TENANT_ID:?AZURE_TENANT_ID environment variable is required}"
+          : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID environment variable is required}"
+          : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP environment variable is required}"
+          : "${AZURE_CONTAINERAPPS_ENV:?AZURE_CONTAINERAPPS_ENV environment variable is required}"
+          : "${AZURE_API_APP:?AZURE_API_APP environment variable is required}"
 
       - name: Azure login
         uses: azure/login@v2
@@ -89,7 +105,7 @@ jobs:
           az containerapp update \
             --name "${AZURE_API_APP}" \
             --resource-group "${AZURE_RESOURCE_GROUP}" \
-            --image "${API_IMAGE}" \
+            --image "${API_IMAGE_DIGEST}" \
             --only-show-errors 1>/dev/null
 
       - name: Resolve API FQDN
@@ -149,7 +165,8 @@ jobs:
         run: |
           {
             echo "### API deployment"
+            echo "Environment: \`${TARGET_ENVIRONMENT}\`"
             echo "Container App: \`${AZURE_API_APP}\`"
-            echo "Image: \`${API_IMAGE}\`"
+            echo "Image: \`${API_IMAGE_DIGEST}\`"
             echo "Smoke: \`/healthz\`, \`/readyz\`"
           } >> "${GITHUB_STEP_SUMMARY}"
