@@ -155,6 +155,66 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ── Execution Machine (below the Run Activity Map on the map tab) ─────────
+  test 'map tab renders the Run Activity Map then the Execution Machine below it' do
+    get '/home?tab=map' # fixtures ship runs
+    assert_response :success
+    assert_match 'ic-runmap', response.body
+    assert_match 'ic-machine', response.body
+    # The machine sits below the map, never replaces or weakens it.
+    assert_operator response.body.index('ic-runmap'), :<, response.body.index('ic-machine')
+    # The full execution path is present as discrete nodes.
+    ['Agent / App', 'Igris API / MCP', 'Action Router',
+     'Policy Gate', 'Target / Runtime', 'Run Record / Evidence'].each do |node|
+      assert_match node, response.body
+    end
+  end
+
+  test 'execution machine shows caller unavailable (identity never invented)' do
+    get '/home?tab=map'
+    assert_response :success
+    assert_match 'Caller unavailable', response.body # run summaries carry no caller identity
+  end
+
+  test 'execution machine shows awaiting state and create-action cta with no runs' do
+    action = { id: 'a1', name: 'send_email', target_type: 'hosted_api',
+               target_label: 'Hosted API', setup: 'Ready', endpoint_readiness: 'ready' }
+    with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [])) do
+      get '/home?tab=map'
+      assert_response :success
+      assert_match 'Execution Machine', response.body
+      assert_match 'Awaiting first run', response.body # run-dependent nodes are honest, not faked
+      assert_match new_action_path, response.body
+    end
+  end
+
+  test 'execution machine shows proof unavailable when proof fields are absent' do
+    action = { id: 'a1', name: 'send_email', target_type: 'hosted_api', setup: 'Ready' }
+    run = { id: 'run_x', action: 'send_email', status: 'Succeeded',
+            proof: 'Proof unavailable', routed_via: 'Hosted API',
+            executed_target: 'hosted_api', policy: 'Safe automation' }
+    with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [run])) do
+      get '/home?tab=map'
+      assert_response :success
+      assert_match 'Proof unavailable', response.body
+      assert_match 'ic-machine__node--muted', response.body # not styled as a success
+      refute_match 'Signed', response.body                  # must not overclaim proof
+    end
+  end
+
+  test 'execution machine never leaks unsafe target detail' do
+    action = { id: 'a1', name: 'send_email', target_type: 'hosted_api', setup: 'Ready' }
+    run = { id: 'run_x', action: 'send_email', status: 'Succeeded',
+            proof: 'Proof verified', routed_via: 'Hosted API',
+            executed_target: 'hosted_api', policy: 'Safe automation',
+            target_url: 'https://secret.internal/private', runtime_id: 'rt_local' }
+    with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [run])) do
+      get '/home?tab=map'
+      assert_response :success
+      refute_match 'secret.internal', response.body # raw target URL/host never rendered
+    end
+  end
+
   test 'home zero-actions state links to the new-action wizard and welcome' do
     with_fake_ds(FakeDS.new(actions: [])) do
       get '/home'
