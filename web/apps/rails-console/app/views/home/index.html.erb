@@ -12,14 +12,14 @@
 
    attention = []
    if local_actions.any? && !any_healthy_rt
-     attention << { text: 'Local runtime action needs a connected runtime.', href: runtimes_path, cta: 'Connect a runtime' }
+     attention << { text: 'Local runtime action needs a connected runtime.', href: runtimes_path, cta: 'Connect a runtime', tone: 'warn' }
    end
    if needs_target.positive?
      verb = needs_target == 1 ? 'needs' : 'need'
-     attention << { text: "#{pluralize(needs_target, 'action')} #{verb} a target URL.", href: actions_path, cta: 'Open Actions' }
+     attention << { text: "#{pluralize(needs_target, 'action')} #{verb} a target URL.", href: actions_path, cta: 'Open Actions', tone: 'warn' }
    end
    if last_run && last_run[:status].to_s.casecmp('Failed').zero?
-     attention << { text: 'Last run failed.', href: run_path(last_run[:id]), cta: 'Inspect run' }
+     attention << { text: 'Last run failed.', href: run_path(last_run[:id]), cta: 'Inspect run', tone: 'failed' }
    end
 
    api_label, api_tone =
@@ -80,35 +80,35 @@
             <div class="ic-feed ic-feed--scroll">
               <% @actions.first(50).each do |a|
                    ready = a[:setup].to_s.casecmp('Ready').zero?
-                   tone = ready ? 'ok' : 'warn'
                    setup_tone = ready ? 'is-ok' : 'is-warn'
                    target, host = feed_tokens(a[:target_label]) %>
                 <%= link_to action_path(a[:id]), class: 'ic-feed-item' do %>
-                  <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
-                  <span class="ic-feed-item__title"><strong><%= a[:name] %></strong></span>
+                  <span class="ic-feed-item__title"><strong><%= a[:name] %></strong><% if target.present? %><span class="ic-feed-item__route"><%= target %></span><% end %></span>
                   <span class="ic-feed-item__badges">
-                    <span class="ic-feed-cell"><% if target.present? %><span class="ic-feed-badge"><%= target %></span><% end %></span>
                     <span class="ic-feed-cell"><% if host.present? %><span class="ic-feed-badge is-mono"><%= host %></span><% end %></span>
                     <span class="ic-feed-cell"><span class="ic-feed-badge <%= setup_tone %>"><%= a[:setup].presence || 'Ready' %></span></span>
                   </span>
                   <span class="ic-feed-item__meta"></span>
-                  <%= feed_chevron %>
                 <% end %>
               <% end %>
             </div>
 
           <% when 'attention' %>
-            <div class="ic-section-head"><span class="ic-section-head__label">Needs attention</span></div>
             <% if attention.any? %>
-              <% attention.each do |a| %>
-                <div class="ic-hint">
-                  <span class="ic-hint__dot"></span>
-                  <span><%= a[:text] %></span>
-                  <%= link_to a[:cta], a[:href], class: 'ic-hint__link' %>
-                </div>
-              <% end %>
+              <div class="ic-feed ic-feed--scroll" aria-label="Needs attention">
+                <% attention.each do |a|
+                     badge_tone = a[:tone] == 'failed' ? 'is-bad' : 'is-warn' %>
+                  <%= link_to a[:href], class: 'ic-feed-item ic-feed-item--attn' do %>
+                    <span class="ic-feed-item__title"><%= a[:text] %></span>
+                    <span class="ic-feed-badge <%= badge_tone %>"><%= a[:cta] %></span>
+                  <% end %>
+                <% end %>
+              </div>
             <% else %>
-              <p class="ic-list-hint">Nothing needs attention right now.</p>
+              <div class="ic-empty" style="padding: 32px 16px;" aria-label="Needs attention">
+                <div class="ic-empty__title">Nothing needs attention</div>
+                <p class="ic-empty__sub">Runtime, target, and run issues will surface here when they need a fix.</p>
+              </div>
             <% end %>
 
           <% else # feed %>
@@ -116,20 +116,17 @@
               <div class="ic-feed ic-feed--scroll">
                 <% (@recent_runs || []).first(50).each do |r|
                      st = r[:status].to_s
-                     if st.casecmp('Failed').zero?     then tone = 'failed';  badge_tone = 'is-bad'
-                     elsif st.casecmp('Running').zero? then tone = 'running'; badge_tone = 'is-warn'
-                     else                                   tone = 'ok';      badge_tone = 'is-ok' end
+                     if st.casecmp('Failed').zero?     then badge_tone = 'is-bad'
+                     elsif st.casecmp('Running').zero? then badge_tone = 'is-warn'
+                     else                                   badge_tone = 'is-ok' end
                      route, detail = feed_tokens(r[:routed_via]) %>
                   <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
-                    <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
-                    <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong></span>
+                    <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong><% if route.present? %><span class="ic-feed-item__route"><%= route %></span><% end %></span>
                     <span class="ic-feed-item__badges">
-                      <span class="ic-feed-cell"><% if route.present? %><span class="ic-feed-badge"><%= route %></span><% end %></span>
                       <span class="ic-feed-cell"><% if detail.present? %><span class="ic-feed-badge is-mono"><%= detail %></span><% end %></span>
                       <span class="ic-feed-cell"><span class="ic-feed-badge <%= badge_tone %>"><%= r[:status].presence || 'Succeeded' %></span></span>
                     </span>
                     <span class="ic-feed-item__meta"><%= time_ago(r[:started_at]) %></span>
-                    <%= feed_chevron %>
                   <% end %>
                 <% end %>
               </div>
