@@ -3345,7 +3345,7 @@ html.dark, html[data-theme="dark"] {
 .ic-runmap {
   position: relative;
   margin: 14px 12px 6px;
-  padding: 14px 16px;
+  padding: 18px 20px 20px;
   background: var(--ic-overlay-1);
   border: 1px solid var(--ic-border);
   border-radius: 10px;
@@ -3362,20 +3362,28 @@ html.dark, html[data-theme="dark"] {
   display: block; margin-top: 3px; font-size: 11.5px;
   color: var(--ic-text-5); max-width: 64ch; line-height: 1.5;
 }
-.ic-runmap__viewall { flex: none; white-space: nowrap; }
+.ic-runmap__viewall {
+  flex: none; white-space: nowrap;
+  font-size: 11.5px; color: var(--ic-text-4); text-decoration: none;
+}
+.ic-runmap__viewall:hover { color: var(--ic-text-bright); text-decoration: underline; }
 .ic-runmap__legend {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 12px;
-  margin: 0 0 10px;
+  margin: 0 0 16px;
 }
 .ic-runmap__legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  padding: 2px 8px;
   font-size: 10.5px;
   color: var(--ic-text-5);
   white-space: nowrap;
+  background: var(--ic-overlay-3);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--ic-border-soft);
 }
 .ic-runmap__legend-dot {
   width: 7px;
@@ -3391,7 +3399,7 @@ html.dark, html[data-theme="dark"] {
   display: grid;
   grid-template-columns: minmax(82px, max-content) 1fr auto;
   gap: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 12px;
   font-size: 9.5px;
   color: var(--ic-text-7);
   letter-spacing: .06em;
@@ -3399,7 +3407,7 @@ html.dark, html[data-theme="dark"] {
 .ic-runmap__scroll { overflow-x: hidden; padding-bottom: 2px; flex: 1; min-width: 0; }
 .ic-runmap__grid {
   display: grid;
-  gap: 7px 4px;
+  gap: 15px 4px;
   align-items: center;
   width: 100%;
   min-width: 0;
@@ -3451,7 +3459,7 @@ html.dark, html[data-theme="dark"] {
   color: var(--ic-text-2);
   background: var(--ic-tooltip-bg);
   border: 1px solid var(--ic-menu-border);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.34), 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.14), 0 1px 2px rgba(0,0,0,0.1);
   pointer-events: none;
   opacity: 0;
   transform: translateY(3px) scale(0.98);
@@ -3519,7 +3527,7 @@ html.dark, html[data-theme="dark"] {
 .ic-runmap__dot--failed    { background: var(--ic-rm-failed); }
 .ic-runmap__axis {
   display: flex; justify-content: space-between; align-items: center;
-  margin-top: 10px; font-size: 10.5px; color: var(--ic-text-6);
+  margin-top: 16px; font-size: 10.5px; color: var(--ic-text-6);
 }
 .ic-runmap__axis-mid { color: var(--ic-text-5); }
 .ic-runmap__note { font-size: 12px; color: var(--ic-text-5); margin: 6px 0; }
