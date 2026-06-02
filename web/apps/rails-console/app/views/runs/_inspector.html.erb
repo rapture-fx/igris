@@ -48,7 +48,6 @@
     <div class="ic-runinspector__pills">
       <%= status_pill run[:status] %>
       <%= status_pill proof_label %>
-      <%= link_to 'Open full run', run_path(run[:id]), class: 'ic-runinspector__openfull' %>
     </div>
 
     <div class="ic-runinspector__scroll">
@@ -59,11 +58,7 @@
           <div class="ic-def">
             <span class="ic-def__label">Action</span>
             <div class="ic-def__value">
-              <% if action_known %>
-                <%= link_to run[:action], action_path(run[:action]), class: 'ic-runinspector__link mono' %>
-              <% else %>
-                <span class="mono"><%= dash.call(run[:action]) %></span>
-              <% end %>
+              <span class="mono"><%= dash.call(run[:action]) %></span>
             </div>
           </div>
           <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill run[:status] %></div></div>
@@ -159,19 +154,15 @@
         <p class="ic-runinspector__note">Open the full run for ordered step evidence.</p>
       </section>
 
-      <%# ── Next steps ────────────────────────────────────────────────── %>
-      <section class="ic-runinspector__section ic-runinspector__section--last">
-        <div class="ic-runinspector__sechead">Next steps</div>
-        <div class="ic-runinspector__actions">
-          <%= link_to 'Open full run', run_path(run[:id]), class: 'ic-btn ic-btn--accent' %>
-          <% if action_known %>
-            <%= link_to 'Open action', action_path(run[:action]), class: 'ic-btn' %>
-          <% end %>
-          <% if offer_runtime %>
+      <% if offer_runtime %>
+        <%# ── Next steps ──────────────────────────────────────────────── %>
+        <section class="ic-runinspector__section ic-runinspector__section--last">
+          <div class="ic-runinspector__sechead">Next steps</div>
+          <div class="ic-runinspector__actions">
             <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn' %>
-          <% end %>
-        </div>
-      </section>
+          </div>
+        </section>
+      <% end %>
     </div>
   <% end %>
 </aside>
