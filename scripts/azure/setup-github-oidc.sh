@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # Creates the Azure Entra app registration, service principal, GitHub Actions
-# federated credential, and resource-group-scoped role assignment for manual
-# production deploy workflows. No client secret is created or stored.
+# federated credentials, and resource-group-scoped role assignment for manual
+# staging and production deploy workflows. No client secret is created or stored.
 set -euo pipefail
 
 AZURE_RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-rg-igris-prod}"
@@ -10,9 +10,8 @@ AZURE_ROLE="${AZURE_ROLE:-Container Apps Contributor}"
 AZURE_CONTAINERAPPS_ENV="${AZURE_CONTAINERAPPS_ENV:-cae-igris-prod}"
 AZURE_API_APP="${AZURE_API_APP:-igris-api}"
 AZURE_CONSOLE_APP="${AZURE_CONSOLE_APP:-igris-console}"
-APP_NAME="${APP_NAME:-igris-github-actions-production}"
-FEDERATED_CREDENTIAL_NAME="${FEDERATED_CREDENTIAL_NAME:-github-production-environment}"
-GITHUB_ENVIRONMENT="${GITHUB_ENVIRONMENT:-production}"
+APP_NAME="${APP_NAME:-igris-github-actions-azure-deploy}"
+GITHUB_ENVIRONMENTS="${GITHUB_ENVIRONMENTS:-staging production}"
 
 require() {
   if [ -z "${!1:-}" ]; then
@@ -32,7 +31,6 @@ AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o 
 AZURE_TENANT_ID="${AZURE_TENANT_ID:-$(az account show --query tenantId -o tsv)}"
 
 scope="/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/${AZURE_RESOURCE_GROUP}"
-subject="repo:${GITHUB_OWNER}/${GITHUB_REPO}:environment:${GITHUB_ENVIRONMENT}"
 
 echo ">> Ensuring Entra app registration '${APP_NAME}'..."
 app_id="$(
@@ -56,31 +54,44 @@ if [ -z "${sp_object_id}" ]; then
   sp_object_id="$(az ad sp create --id "${app_id}" --query id -o tsv)"
 fi
 
-echo ">> Ensuring federated credential for ${subject}..."
-existing_credential="$(
-  az ad app federated-credential list \
-    --id "${object_id}" \
-    --query "[?name=='${FEDERATED_CREDENTIAL_NAME}'].name | [0]" \
-    -o tsv
-)"
+for github_environment in ${GITHUB_ENVIRONMENTS}; do
+  case "${github_environment}" in
+    staging|production) ;;
+    *)
+      echo "ERROR: GITHUB_ENVIRONMENTS may only contain staging and production." >&2
+      exit 1
+      ;;
+  esac
 
-if [ -z "${existing_credential}" ]; then
-  credential_json="$(
-    jq -n \
-      --arg name "${FEDERATED_CREDENTIAL_NAME}" \
-      --arg subject "${subject}" \
-      '{
-        name: $name,
-        issuer: "https://token.actions.githubusercontent.com",
-        subject: $subject,
-        audiences: ["api://AzureADTokenExchange"]
-      }'
+  credential_name="github-${github_environment}-environment"
+  subject="repo:${GITHUB_OWNER}/${GITHUB_REPO}:environment:${github_environment}"
+
+  echo ">> Ensuring federated credential for ${subject}..."
+  existing_credential="$(
+    az ad app federated-credential list \
+      --id "${object_id}" \
+      --query "[?name=='${credential_name}'].name | [0]" \
+      -o tsv
   )"
-  az ad app federated-credential create \
-    --id "${object_id}" \
-    --parameters "${credential_json}" \
-    --only-show-errors 1>/dev/null
-fi
+
+  if [ -z "${existing_credential}" ]; then
+    credential_json="$(
+      jq -n \
+        --arg name "${credential_name}" \
+        --arg subject "${subject}" \
+        '{
+          name: $name,
+          issuer: "https://token.actions.githubusercontent.com",
+          subject: $subject,
+          audiences: ["api://AzureADTokenExchange"]
+        }'
+    )"
+    az ad app federated-credential create \
+      --id "${object_id}" \
+      --parameters "${credential_json}" \
+      --only-show-errors 1>/dev/null
+  fi
+done
 
 echo ">> Ensuring '${AZURE_ROLE}' role assignment at ${scope}..."
 assignment_count="$(
@@ -101,7 +112,7 @@ if [ "${assignment_count}" = "0" ]; then
 fi
 
 cat <<EOF
->> Add these GitHub environment variables to '${GITHUB_ENVIRONMENT}':
+>> Add these GitHub environment variables to both 'staging' and 'production':
 AZURE_CLIENT_ID=${app_id}
 AZURE_TENANT_ID=${AZURE_TENANT_ID}
 AZURE_SUBSCRIPTION_ID=${AZURE_SUBSCRIPTION_ID}
@@ -111,4 +122,5 @@ AZURE_API_APP=${AZURE_API_APP}
 AZURE_CONSOLE_APP=${AZURE_CONSOLE_APP}
 
 >> Add deployment secrets separately in GitHub. This script does not print secrets.
+>> Configure required reviewers on the GitHub 'production' environment.
 EOF
