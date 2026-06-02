@@ -370,7 +370,7 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
   # ── Home contextual hint ─────────────────────────────────────────────────
   test 'home hints to connect a runtime when a local action has none' do
     with_fake_ds(FakeDS.new(runtimes: [], actions: [local_action])) do
-      get '/home?tab=feed' # the needs-attention hint lives on the feed tab
+      get '/home?tab=attention' # the needs-attention hint lives on its own tab
       assert_response :success
       assert_match 'Local runtime action needs a connected runtime', response.body
     end
