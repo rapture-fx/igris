@@ -35,7 +35,7 @@
 
   <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-  <div class="ic-body ic-scroll">
+  <div class="ic-body ic-scroll ic-run-detail">
     <% running = @run[:status].to_s.casecmp('Running').zero? %>
 
     <%# ── What happened — the first-run summary, before any deep evidence ── %>
@@ -43,85 +43,89 @@
        proof_unavailable = proof_label.match?(/unavailable|pending/i)
        started_label = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—'
        duration_label = @run[:duration_ms].present? ? "#{@run[:duration_ms]}ms" : '—' %>
-    <div class="ic-summary">
-      <div class="ic-summary__head">What happened</div>
-      <div class="ic-summary__grid">
-        <div class="ic-summary__cell ic-summary__cell--wide">
-          <div class="ic-summary__k">Action</div>
-          <div class="ic-summary__v mono"><%= @run[:action] %></div>
-        </div>
-        <div class="ic-summary__cell">
-          <div class="ic-summary__k">Status</div>
-          <div class="ic-summary__v"><%= status_pill @run[:status] %></div>
-        </div>
-        <div class="ic-summary__cell">
-          <div class="ic-summary__k">Routed via</div>
-          <div class="ic-summary__v"><%= @run[:routed_via] %></div>
-        </div>
-        <div class="ic-summary__cell">
-          <div class="ic-summary__k">Policy</div>
-          <div class="ic-summary__v"><%= @run[:policy] %></div>
-        </div>
-        <div class="ic-summary__cell">
-          <div class="ic-summary__k">Proof</div>
-          <div class="ic-summary__v"><%= status_pill proof_label %></div>
-        </div>
-        <div class="ic-summary__cell">
-          <div class="ic-summary__k">Started</div>
-          <div class="ic-summary__v"><%= started_label %></div>
-        </div>
-        <div class="ic-summary__cell">
-          <div class="ic-summary__k">Duration</div>
-          <div class="ic-summary__v"><%= duration_label %></div>
-        </div>
-      </div>
-      <% if proof_unavailable %>
-        <p class="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
-      <% end %>
-    </div>
-
-    <%# ── What to do next — one clear nudge, reusing the next-step card ───── %>
     <% guidance = run_guidance_state(@run) %>
-    <% if guidance %>
-      <div class="ic-nextstep">
-        <div>
-          <div class="ic-nextstep__kicker">What to do next</div>
-          <div class="ic-nextstep__title">
-            <% case guidance
-               when :runtime_unavailable %>This run required a runtime that was unavailable.
-            <% when :failed %>Run failed.
-            <% when :running %>Run is still in flight.
-            <% when :proof_unavailable %>Proof is not yet available for this run.
-            <% when :completed %>Run completed successfully.
-            <% end %>
+    <div class="ic-run-detail-layout">
+      <aside class="ic-run-detail-rail" aria-label="Execution detail">
+        <div class="ic-summary">
+          <div class="ic-summary__head">Execution detail</div>
+          <div class="ic-summary__grid">
+            <div class="ic-summary__cell ic-summary__cell--wide">
+              <div class="ic-summary__k">Action</div>
+              <div class="ic-summary__v mono"><%= @run[:action] %></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Status</div>
+              <div class="ic-summary__v"><%= status_pill @run[:status] %></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Routed via</div>
+              <div class="ic-summary__v"><%= @run[:routed_via] %></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Policy</div>
+              <div class="ic-summary__v"><%= @run[:policy] %></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Proof</div>
+              <div class="ic-summary__v"><%= status_pill proof_label %></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Started</div>
+              <div class="ic-summary__v"><%= started_label %></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Duration</div>
+              <div class="ic-summary__v"><%= duration_label %></div>
+            </div>
           </div>
-          <p class="ic-nextstep__sub">
-            <% case guidance
-               when :runtime_unavailable %>Connect a runtime, then re-run the action so it can execute locally.
-            <% when :failed %>Open the action to review its target and policy, or copy the run ID to share it.
-            <% when :running %>Step evidence appears here as the run commits each step.
-            <% when :proof_unavailable %>Proof is available once signed runtime evidence exists.
-            <% when :completed %>Review the signed evidence below, or open the action to run it again.
-            <% end %>
-          </p>
-        </div>
-        <div class="ic-nextstep__cta">
-          <% case guidance
-             when :runtime_unavailable %>
-            <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn ic-btn--accent' %>
-            <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-          <% when :failed %>
-            <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-            <%= copy_button @run[:id], label: 'Copy run ID' %>
-          <% when :proof_unavailable %>
-            <a href="#evidence" class="ic-btn">View evidence</a>
-          <% when :completed %>
-            <a href="#evidence" class="ic-btn ic-btn--accent">View evidence</a>
-            <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+          <% if proof_unavailable %>
+            <p class="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
           <% end %>
         </div>
-      </div>
-    <% end %>
+
+        <% if guidance %>
+          <div class="ic-nextstep">
+            <div>
+              <div class="ic-nextstep__kicker">What to do next</div>
+              <div class="ic-nextstep__title">
+                <% case guidance
+                   when :runtime_unavailable %>This run required a runtime that was unavailable.
+                <% when :failed %>Run failed.
+                <% when :running %>Run is still in flight.
+                <% when :proof_unavailable %>Proof is not yet available for this run.
+                <% when :completed %>Run completed successfully.
+                <% end %>
+              </div>
+              <p class="ic-nextstep__sub">
+                <% case guidance
+                   when :runtime_unavailable %>Connect a runtime, then re-run the action so it can execute locally.
+                <% when :failed %>Open the action to review its target and policy, or copy the run ID to share it.
+                <% when :running %>Step evidence appears here as the run commits each step.
+                <% when :proof_unavailable %>Proof is available once signed runtime evidence exists.
+                <% when :completed %>Review the signed evidence below, or open the action to run it again.
+                <% end %>
+              </p>
+            </div>
+            <div class="ic-nextstep__cta">
+              <% case guidance
+                 when :runtime_unavailable %>
+                <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn ic-btn--accent' %>
+                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+              <% when :failed %>
+                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+                <%= copy_button @run[:id], label: 'Copy run ID' %>
+              <% when :proof_unavailable %>
+                <a href="#evidence" class="ic-btn">View evidence</a>
+              <% when :completed %>
+                <a href="#evidence" class="ic-btn ic-btn--accent">View evidence</a>
+                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </aside>
+
+      <section class="ic-run-detail-scroll" aria-label="Run evidence and audit details">
 
     <% if demo_mode? %>
       <%# ════════════ FIXTURE MODE: clearly-labelled illustrative demo ════════ %>
@@ -134,7 +138,7 @@
 
       <% submitted_chip_time = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
       <div class="ic-evidence">
-        <div class="ic-evidence__head">Execution detail</div>
+        <div class="ic-evidence__head">Demo context</div>
         <div class="ic-def">
           <span class="ic-def__label">Submitter</span>
           <div class="ic-def__value">
@@ -203,43 +207,66 @@
             <% steps.each do |s| %>
               <% if s[:kind] == :fault %>
                 <div class="ic-step-in">
-                  <div class="ic-line ic-line--fault">
-                    <span class="ic-line__bullet"><span class="ic-bullet-dot ic-bullet-dot--fault"></span></span>
-                    <span class="ic-line__num">!!</span>
-                    <div class="ic-line__main">
-                      <span class="ic-line__name"><%= s[:name] %></span>
-                      <span class="ic-line__detail"><%= s[:detail] %></span>
+                  <details class="ic-logitem ic-logitem--fault">
+                    <summary class="ic-line ic-line--fault">
+                      <span class="ic-line__chev" aria-hidden="true"></span>
+                      <span class="ic-line__bullet"><span class="ic-bullet-dot ic-bullet-dot--fault"></span></span>
+                      <span class="ic-line__num">!!</span>
+                      <div class="ic-line__main">
+                        <span class="ic-line__name"><%= s[:name] %></span>
+                        <span class="ic-line__detail"><%= s[:detail] %></span>
+                      </div>
+                      <span class="ic-line__latency"><%= s[:latency] %>ms</span>
+                      <span class="ic-line__receipt">recovered</span>
+                    </summary>
+                    <div class="ic-logitem__detail">
+                      <div class="ic-logitem__grid">
+                        <span class="ic-logitem__k">event</span><span class="ic-logitem__v"><%= s[:name] %></span>
+                        <span class="ic-logitem__k">detail</span><span class="ic-logitem__v"><%= s[:detail] %></span>
+                        <span class="ic-logitem__k">latency</span><span class="ic-logitem__v mono"><%= s[:latency] %>ms</span>
+                        <span class="ic-logitem__k">result</span><span class="ic-logitem__v"><span class="ic-chip">recovered</span></span>
+                      </div>
                     </div>
-                    <span class="ic-line__latency"><%= s[:latency] %>ms</span>
-                    <span class="ic-line__receipt">recovered</span>
-                  </div>
+                  </details>
                 </div>
               <% else %>
                 <% is_running = s[:status] == :running %>
                 <% is_failed  = s[:status] == :failed %>
                 <div class="ic-step-in">
-                  <div class="ic-line">
-                    <span class="ic-line__bullet">
-                      <% if is_running %>
-                        <span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>
-                      <% elsif is_failed %>
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" style="color: var(--ic-rose);"><path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                  <details class="ic-logitem">
+                    <summary class="ic-line">
+                      <span class="ic-line__chev" aria-hidden="true"></span>
+                      <span class="ic-line__bullet">
+                        <% if is_running %>
+                          <span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>
+                        <% elsif is_failed %>
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" style="color: var(--ic-rose);"><path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                        <% else %>
+                          <svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <% end %>
+                      </span>
+                      <span class="ic-line__num"><%= s[:num] %></span>
+                      <div class="ic-line__main">
+                        <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
+                        <span class="ic-line__detail"><%= s[:detail] %></span>
+                      </div>
+                      <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
+                      <% if s[:receipt] %>
+                        <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
                       <% else %>
-                        <svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="ic-line__receipt ic-line__receipt--none">—</span>
                       <% end %>
-                    </span>
-                    <span class="ic-line__num"><%= s[:num] %></span>
-                    <div class="ic-line__main">
-                      <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
-                      <span class="ic-line__detail"><%= s[:detail] %></span>
+                    </summary>
+                    <div class="ic-logitem__detail">
+                      <div class="ic-logitem__grid">
+                        <span class="ic-logitem__k">action</span><span class="ic-logitem__v mono"><%= s[:name] %></span>
+                        <span class="ic-logitem__k">detail</span><span class="ic-logitem__v"><%= s[:detail] %></span>
+                        <span class="ic-logitem__k">status</span><span class="ic-logitem__v"><span class="ic-chip"><%= is_running ? 'running' : (is_failed ? 'failed' : 'committed') %></span></span>
+                        <span class="ic-logitem__k">latency</span><span class="ic-logitem__v mono"><%= s[:latency] ? "#{s[:latency]}ms" : '—' %></span>
+                        <span class="ic-logitem__k">receipt</span><span class="ic-logitem__v mono"><%= s[:receipt].presence || '—' %></span>
+                      </div>
                     </div>
-                    <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
-                    <% if s[:receipt] %>
-                      <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
-                    <% else %>
-                      <span class="ic-line__receipt ic-line__receipt--none">—</span>
-                    <% end %>
-                  </div>
+                  </details>
                 </div>
               <% end %>
             <% end %>
@@ -358,6 +385,8 @@
     <div class="ic-foot-time">
       <%= @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S') : '' %>
       <%= ' · live' if running %>
+    </div>
+      </section>
     </div>
   </div>
 
