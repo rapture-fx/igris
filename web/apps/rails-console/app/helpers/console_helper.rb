@@ -107,7 +107,7 @@ module ConsoleHelper
   # Small status glyphs for the Home activity feed — drawn so each event reads
   # like a notification (check / cross / spinner / alert) rather than a bare dot.
   FEED_GLYPHS = {
-    ok:      '<path d="M5 12.5 L10 17 L19 7"/>',
+    ok:      '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>',
     failed:  '<path d="M6 6 L18 18 M18 6 L6 18"/>',
     running: '<path d="M21 12a9 9 0 1 1-6.2-8.56"/>',
     warn:    '<path d="M12 8v5"/><path d="M12 16.5h.01"/>',
