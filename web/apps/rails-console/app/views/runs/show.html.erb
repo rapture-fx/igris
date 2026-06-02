@@ -40,11 +40,13 @@
 
     <%# ── What happened — the first-run summary, before any deep evidence ── %>
     <% proof_label = @run[:proof].to_s.presence || 'Proof unavailable'
-       proof_unavailable = proof_label.match?(/unavailable|pending/i) %>
+       proof_unavailable = proof_label.match?(/unavailable|pending/i)
+       started_label = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—'
+       duration_label = @run[:duration_ms].present? ? "#{@run[:duration_ms]}ms" : '—' %>
     <div class="ic-summary">
       <div class="ic-summary__head">What happened</div>
       <div class="ic-summary__grid">
-        <div class="ic-summary__cell">
+        <div class="ic-summary__cell ic-summary__cell--wide">
           <div class="ic-summary__k">Action</div>
           <div class="ic-summary__v mono"><%= @run[:action] %></div>
         </div>
@@ -63,6 +65,14 @@
         <div class="ic-summary__cell">
           <div class="ic-summary__k">Proof</div>
           <div class="ic-summary__v"><%= status_pill proof_label %></div>
+        </div>
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Started</div>
+          <div class="ic-summary__v"><%= started_label %></div>
+        </div>
+        <div class="ic-summary__cell">
+          <div class="ic-summary__k">Duration</div>
+          <div class="ic-summary__v"><%= duration_label %></div>
         </div>
       </div>
       <% if proof_unavailable %>
@@ -244,12 +254,18 @@
          dash = ->(v) { v.to_s.strip.presence || '—' } %>
 
       <div class="ic-evidence" id="evidence">
-        <div class="ic-evidence__head">Evidence</div>
+        <div class="ic-evidence__head">Run metadata</div>
+        <p class="ic-evidence__intro">
+          Stable identifiers and routing facts for this execution. Raw inputs, outputs, secrets, and failure text are not shown on this page.
+        </p>
         <div class="ic-def"><span class="ic-def__label">Task ID</span><div class="ic-def__value mono"><%= dash.call(@run[:id]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= dash.call(@run[:action]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill @run[:status] %></div></div>
         <div class="ic-def"><span class="ic-def__label">Executed target</span><div class="ic-def__value mono"><%= dash.call(@run[:executed_target]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= dash.call(@run[:routed_via]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= dash.call(@run[:runtime_id]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Started</span><div class="ic-def__value"><%= started_label %> <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %></span></div></div>
+        <div class="ic-def"><span class="ic-def__label">Duration</span><div class="ic-def__value mono"><%= duration_label %></div></div>
         <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= dash.call(@run[:policy]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value"><%= dash.call(@run[:recovery]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_pill proof_label %></div></div>
@@ -264,6 +280,9 @@
 
       <div class="ic-evidence">
         <div class="ic-evidence__head">Step evidence</div>
+        <p class="ic-evidence__intro">
+          Ordered execution events from the run record. Digests are shown instead of raw input or output content.
+        </p>
         <% steps = @run[:execution_steps] || [] %>
         <% if steps.any? %>
           <div class="ic-stepev-list">
@@ -289,6 +308,9 @@
 
       <div class="ic-evidence">
         <div class="ic-evidence__head">Execution story</div>
+        <p class="ic-evidence__intro">
+          Human-readable sequence reconstructed from the normalized run state.
+        </p>
         <% story = @run[:story] || [] %>
         <% if story.any? %>
           <div class="ig-timeline" style="margin-top: 6px;">
