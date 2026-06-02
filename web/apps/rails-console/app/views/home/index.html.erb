@@ -37,7 +37,7 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<div class="ic-body ic-scroll">
+<div class="ic-body ic-scroll ic-body--fixed">
   <div class="ic-workspace">
 
     <%# ── Banner (full-width image, not boxed) ────────────────── %>
@@ -69,6 +69,9 @@
             <% end %>
           </nav>
 
+          <%# Only this tab body scrolls; the banner, tab nav and right-hand
+              summary stay fixed within the viewport (see .ic-body--fixed). %>
+          <div class="ic-ws-tabbody">
           <% case @tab
              when 'map' %>
             <%= render 'shared/run_activity_map', runs: @activity_runs, demo: demo_mode?, flush: true %>
@@ -138,6 +141,7 @@
               </div>
             <% end %>
           <% end %>
+          </div>
         <% end %>
       </div>
 
