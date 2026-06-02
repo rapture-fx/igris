@@ -1338,10 +1338,10 @@ html.dark .ic-btn--accent:hover {
    Audit interpretation. A bordered card in the run's evidence column. */
 .ic-run-expand {
   border: 1px solid var(--ic-border);
-  border-radius: 10px;
-  background: var(--ic-bg-rail);
+  border-radius: 8px;
+  background: var(--ic-overlay-bg);
   overflow: hidden;
-  margin: 14px 0;
+  margin-bottom: 16px;
 }
 .ic-run-row__open {
   flex: 1;
@@ -1640,7 +1640,7 @@ html.dark .ic-btn--accent:hover {
 .ic-runs-layout .ic-body { flex: 1; min-width: 0; padding: 0 20px 16px; }
 .ic-runinspector {
   width: 100%;
-  background: var(--ic-bg-rail);
+  background: var(--ic-overlay-bg);
 }
 .ic-runinspector__head {
   display: flex;
@@ -1648,7 +1648,7 @@ html.dark .ic-btn--accent:hover {
   justify-content: space-between;
   gap: 10px;
   padding: 12px 16px;
-  background: var(--ic-bg-rail);
+  background: var(--ic-overlay-bg);
   border-bottom: 1px solid var(--ic-border);
 }
 .ic-runinspector__head-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -1724,6 +1724,21 @@ html.dark .ic-btn--accent:hover {
 .ic-runinspector__empty-title { font-size: 13px; color: var(--ic-text-bright); margin-bottom: 6px; }
 .ic-runinspector__empty-sub { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 0 0 14px; }
 .ic-runinspector__empty-sub .mono { font-family: var(--ic-mono); color: var(--ic-text-3); word-break: break-all; }
+
+/* Embedded on /runs/:id: same surface as the rest of the detail page. */
+.ic-run-expand .ic-runinspector {
+  background: transparent;
+}
+.ic-run-expand .ic-runinspector__head,
+.ic-run-expand .ic-runinspector__pills {
+  background: transparent;
+}
+.ic-run-expand .ic-runinspector__scroll {
+  padding-bottom: 4px;
+}
+.ic-run-expand .ic-runinspector__section:last-child {
+  border-bottom: 0;
+}
 
 /* ── Welcome / onboarding (standalone full page) ────────────────────── */
 .ic-welcome {
@@ -2005,7 +2020,7 @@ html.dark .ic-status__pill.is-warn { border-color: rgba(251,191,36,0.25); backgr
 html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); background: rgba(244,63,94,0.08); color: #cf5a68; }
 
 /* ── Home workspace ─────────────────────────────────────────────────── */
-.ic-workspace { max-width: 1080px; margin: 0 auto; }
+.ic-workspace { max-width: 1280px; margin: 0 auto; }
 
 /* Banner: the full /home.png image, shown whole — not boxed or cropped.
    Dark gradient is a fallback if the asset is ever missing. */
@@ -2968,9 +2983,11 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
 }
 .ic-summary__grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 12px;
 }
+.ic-summary__cell { min-width: 0; }
+.ic-summary__cell--wide { grid-column: span 2; }
 .ic-summary__k {
   font-size: 10.5px;
   color: var(--ic-text-6);
@@ -2980,8 +2997,15 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   font-size: 12.5px;
   color: var(--ic-text-2);
   letter-spacing: -0.005em;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-.ic-summary__v.mono { font-family: var(--ic-mono); font-size: 12px; }
+.ic-summary__v.mono {
+  font-family: var(--ic-mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .ic-summary__note {
   font-size: 11.5px;
   color: var(--ic-text-6);
@@ -2989,6 +3013,7 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
 }
 @media (max-width: 720px) {
   .ic-summary__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ic-summary__cell--wide { grid-column: span 2; }
 }
 
 /* ── Actions index hint ─────────────────────────────────────────────── */
@@ -3011,6 +3036,13 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   letter-spacing: 0.06em;
   color: var(--ic-text-6);
   margin-bottom: 6px;
+}
+.ic-evidence__intro {
+  font-size: 11.5px;
+  color: var(--ic-text-6);
+  line-height: 1.5;
+  margin: 0 0 10px;
+  max-width: 72ch;
 }
 .ic-evidence .ic-def { padding: 6px 0; }
 .ic-def__value.mono { font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-3); word-break: break-all; }
@@ -3407,7 +3439,7 @@ html.dark, html[data-theme="dark"] {
 .ic-runmap__scroll { overflow-x: hidden; padding-bottom: 2px; flex: 1; min-width: 0; }
 .ic-runmap__grid {
   display: grid;
-  gap: 15px 4px;
+  gap: 8px 4px;
   align-items: center;
   width: 100%;
   min-width: 0;
