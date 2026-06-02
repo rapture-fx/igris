@@ -2087,7 +2087,7 @@ html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); backgrou
   grid-template-columns: minmax(120px, 1fr) auto 64px;
   align-items: center;
   gap: 11px;
-  padding: 5px 12px 5px 14px;
+  padding: 9px 12px 9px 14px;
   margin: 0 -10px;
   border-radius: 9px;
   border-bottom: 1px dashed var(--ic-border-soft);
