@@ -9,9 +9,7 @@
       <span class="ic-runmap__title">Run Activity Map</span>
       <span class="ic-runmap__sub">Recent run events grouped by outcome. Each dot is one run; click a dot to open its evidence.</span>
     </div>
-    <% if demo %>
-      <span class="ic-runmap__demo">Demo data — sample run activity</span>
-    <% end %>
+    <%= link_to 'View all', runs_path, class: 'ic-btn ic-runmap__viewall' %>
   </div>
 
   <% if runs.empty? %>
@@ -44,7 +42,7 @@
     </div>
     <div class="ic-runmap__scroll">
       <div class="ic-runmap__grid"
-           style="grid-template-columns: minmax(82px, max-content) repeat(<%= n %>, 12px);">
+           style="grid-template-columns: minmax(82px, max-content) repeat(<%= n %>, minmax(0, 1fr));">
         <% run_activity_bands.each_with_index do |b, ri| %>
           <span class="ic-runmap__band" style="grid-column: 1; grid-row: <%= ri + 1 %>;">
             <%= b[:label] %>
