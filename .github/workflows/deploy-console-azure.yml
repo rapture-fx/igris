@@ -3,7 +3,14 @@ name: Deploy Console to Azure
 on:
   workflow_dispatch:
     inputs:
-      console_image:
+      target_environment:
+        description: "GitHub environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      console_image_digest:
         description: "Pinned console image digest, for example ghcr.io/igris-inertial/system/igris-console@sha256:<64 hex chars>"
         required: true
         type: string
@@ -13,16 +20,17 @@ permissions:
   id-token: write
 
 concurrency:
-  group: deploy-console-azure-production
+  group: deploy-console-azure-${{ inputs.target_environment }}
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy igris-console
+    name: Deploy igris-console to ${{ inputs.target_environment }}
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ inputs.target_environment }}
     env:
-      CONSOLE_IMAGE: ${{ inputs.console_image }}
+      TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+      CONSOLE_IMAGE_DIGEST: ${{ inputs.console_image_digest }}
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -42,26 +50,34 @@ jobs:
         run: |
           set -euo pipefail
 
-          case "${CONSOLE_IMAGE}" in
-            ghcr.io/*@sha256:*) ;;
+          case "${TARGET_ENVIRONMENT}" in
+            staging|production) ;;
             *)
-              echo "console_image must be a pinned GHCR digest like ghcr.io/...@sha256:<digest>." >&2
+              echo "target_environment must be staging or production." >&2
               exit 1
               ;;
           esac
 
-          digest="${CONSOLE_IMAGE##*@sha256:}"
+          case "${CONSOLE_IMAGE_DIGEST}" in
+            ghcr.io/*@sha256:*) ;;
+            *)
+              echo "console_image_digest must be a pinned GHCR digest like ghcr.io/...@sha256:<digest>." >&2
+              exit 1
+              ;;
+          esac
+
+          digest="${CONSOLE_IMAGE_DIGEST##*@sha256:}"
           if [[ ! "${digest}" =~ ^[0-9a-fA-F]{64}$ ]]; then
-            echo "console_image digest must be exactly 64 hexadecimal characters." >&2
+            echo "console_image_digest digest must be exactly 64 hexadecimal characters." >&2
             exit 1
           fi
 
-          : "${AZURE_CLIENT_ID:?AZURE_CLIENT_ID production variable is required}"
-          : "${AZURE_TENANT_ID:?AZURE_TENANT_ID production variable is required}"
-          : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID production variable is required}"
-          : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP production variable is required}"
-          : "${AZURE_CONTAINERAPPS_ENV:?AZURE_CONTAINERAPPS_ENV production variable is required}"
-          : "${AZURE_CONSOLE_APP:?AZURE_CONSOLE_APP production variable is required}"
+          : "${AZURE_CLIENT_ID:?AZURE_CLIENT_ID environment variable is required}"
+          : "${AZURE_TENANT_ID:?AZURE_TENANT_ID environment variable is required}"
+          : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID environment variable is required}"
+          : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP environment variable is required}"
+          : "${AZURE_CONTAINERAPPS_ENV:?AZURE_CONTAINERAPPS_ENV environment variable is required}"
+          : "${AZURE_CONSOLE_APP:?AZURE_CONSOLE_APP environment variable is required}"
 
       - name: Azure login
         uses: azure/login@v2
@@ -90,7 +106,7 @@ jobs:
           az containerapp update \
             --name "${AZURE_CONSOLE_APP}" \
             --resource-group "${AZURE_RESOURCE_GROUP}" \
-            --image "${CONSOLE_IMAGE}" \
+            --image "${CONSOLE_IMAGE_DIGEST}" \
             --only-show-errors 1>/dev/null
 
       - name: Resolve console FQDN
@@ -136,7 +152,8 @@ jobs:
         run: |
           {
             echo "### Console deployment"
+            echo "Environment: \`${TARGET_ENVIRONMENT}\`"
             echo "Container App: \`${AZURE_CONSOLE_APP}\`"
-            echo "Image: \`${CONSOLE_IMAGE}\`"
+            echo "Image: \`${CONSOLE_IMAGE_DIGEST}\`"
             echo "Smoke: \`/up\`"
           } >> "${GITHUB_STEP_SUMMARY}"
