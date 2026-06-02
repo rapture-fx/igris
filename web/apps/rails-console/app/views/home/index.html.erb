@@ -75,11 +75,6 @@
           <% case @tab
              when 'map' %>
             <%= render 'shared/run_activity_map', runs: @activity_runs, demo: demo_mode?, flush: true %>
-            <% machine_run = (@recent_runs || []).first %>
-            <%= render 'execution_machine',
-                       nodes: execution_machine(run: machine_run, actions: @actions,
-                                                runtimes: @runtimes, degraded: !@degraded_error.nil?),
-                       run: machine_run %>
 
           <% when 'actions' %>
             <div class="ic-feed ic-feed--scroll">
