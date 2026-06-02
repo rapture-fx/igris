@@ -128,7 +128,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
     stub_with(sample_runs) do
       get home_path(tab: 'map')
       assert_response :success
-      assert_match(/grid-template-columns: minmax\(82px, max-content\) repeat\(\d+, 12px\)/, response.body)
+      assert_match(/grid-template-columns: minmax\(82px, max-content\) repeat\(\d+, minmax\(0, 1fr\)\)/, response.body)
       assert_match(/class="ic-runmap__band"[^>]+grid-row: \d+;/, response.body)
       assert_no_match(/grid-row: ;/, response.body)
     end
@@ -144,16 +144,16 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'fixture mode clearly labels the map as demo data' do
+  test 'map header has a View all link to the runs page' do
     stub_with(sample_runs, mode: :fixtures) do
       get home_path(tab: 'map')
       assert_response :success
-      assert_select '.ic-runmap__demo', text: /Demo data/
+      assert_select ".ic-runmap__head a.ic-runmap__viewall[href=?]", runs_path, text: 'View all'
     end
   end
 
-  test 'real mode does not show the demo label' do
-    stub_with(sample_runs) do
+  test 'map no longer renders the demo data badge' do
+    stub_with(sample_runs, mode: :fixtures) do
       get home_path(tab: 'map')
       assert_select '.ic-runmap__demo', count: 0
     end
