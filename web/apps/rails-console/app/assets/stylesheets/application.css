@@ -2037,12 +2037,46 @@ html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); backgrou
    (the shared .ig-tabs indent is meant for full-width topbars elsewhere). */
 .ic-workspace-feed .ig-tabs { padding-left: 0; }
 
+/* ── Fixed-viewport workspace ───────────────────────────────────────────
+   The Overview page itself does not scroll. The banner, tab nav and the
+   right-hand summary stay put; only the active tab body (the Run Activity Map
+   + ops panels, or the feed list) scrolls. Scoped to .ic-body--fixed so every
+   other console page keeps normal page scrolling. */
+.ic-body--fixed { overflow: hidden; display: flex; }
+.ic-body--fixed .ic-workspace {
+  display: flex; flex-direction: column; min-height: 0; width: 100%;
+}
+.ic-body--fixed .ic-workspace-banner { flex: none; }
+.ic-body--fixed .ic-workspace-layout { flex: 1; min-height: 0; align-items: stretch; }
+.ic-body--fixed .ic-workspace-panel { align-self: start; }
+.ic-body--fixed .ic-workspace-feed { display: flex; flex-direction: column; min-height: 0; }
+.ic-ws-tabbody { min-width: 0; }
+.ic-body--fixed .ic-ws-tabbody {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 16px;
+}
+/* Never show a scrollbar — scroll silently. */
+.ic-ws-tabbody { scrollbar-width: none; -ms-overflow-style: none; }
+.ic-ws-tabbody::-webkit-scrollbar { width: 0; height: 0; display: none; }
+/* The feed list previously capped itself at 540px; let the tab body own the
+   single full-height scroll region instead. */
+.ic-body--fixed .ic-ws-tabbody .ic-feed--scroll { max-height: none; overflow: visible; }
+
+/* Narrow screens stack the two columns — fall back to normal page scroll so
+   nothing is clipped inside a constrained height. */
+@media (max-width: 860px) {
+  .ic-body--fixed { display: block; overflow-y: auto; }
+  .ic-body--fixed .ic-workspace,
+  .ic-body--fixed .ic-workspace-feed { display: block; min-height: 0; }
+  .ic-body--fixed .ic-ws-tabbody { overflow: visible; min-height: 0; padding-bottom: 0; }
+}
+
 /* Activity feed — separate notification-style events, no enclosing box. */
 .ic-feed { display: block; margin-top: 2px; }
 /* Scroll-capped feed: ~9–10 items visible, the rest scroll inside the panel.
    Horizontal padding absorbs the items' -10px bleed so the rounded hover
    state isn't clipped on the left/right by overflow-x: hidden. */
-.ic-feed--scroll { max-height: 540px; overflow-y: auto; overflow-x: hidden; padding: 0 10px; }
+.ic-feed--scroll { max-height: 540px; overflow-y: auto; overflow-x: hidden; padding: 0 10px; scrollbar-width: none; -ms-overflow-style: none; }
+.ic-feed--scroll::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .ic-feed-item {
   position: relative;
   display: grid;
