@@ -772,141 +772,156 @@ module ConsoleHelper
     svg.html_safe
   end
 
-  # ── Execution Machine (Home overview, below the Run Activity Map) ────────
-  # A technical schematic of the live execution path:
-  #   Agent/App → Igris API/MCP → Action Router → Policy Gate →
-  #   Target/Runtime → Run Record/Evidence
-  # Each node reflects REAL state from the already-normalized, already-redacted
-  # data the controller loaded — or an honest "unavailable / awaiting" state.
-  # It never invents caller identity, counts, runtime state, or proof, and only
-  # reads safe fields (status, routed_via label, proof label, policy preset) —
-  # never hostnames, IPs, URLs, keys, or raw bodies.
+  # ── Execution readiness rail (Home overview, below the Run Activity Map) ──
+  # A thin, technical readiness rail — NOT cards. Six compact nodes show the
+  # path an agent call takes: Agent/App → API/MCP → Router → Policy → Target →
+  # Evidence. Each node carries a small status dot, a full (never truncated)
+  # label, and a one-line state. A single context line below names the current
+  # blocker with one CTA.
   #
-  # `run` is the machine's context run (latest recent run, or nil). Returns an
-  # ordered array of node hashes: { key, name, caption, state, detail, tone,
-  # cta: { label, href } | nil }.
+  # Every node reflects REAL state from the already-normalized, already-redacted
+  # data the controller loaded — or an honest "unavailable / awaiting" state. It
+  # never invents caller identity, counts, runtime state, or proof, and reads
+  # only safe fields (status, proof label, policy preset) — never hostnames,
+  # IPs, URLs, keys, or raw bodies.
+  #
+  # `run` is the rail's context run (latest recent run, or nil). Returns an
+  # ordered array of node hashes: { key, name, state, tone }.
   def execution_machine(run:, actions:, runtimes:, degraded:)
     actions  = Array(actions)
     runtimes = Array(runtimes)
     [
-      machine_agent_node(run),
-      machine_api_node(degraded),
-      machine_router_node(run, actions),
-      machine_policy_node(run),
-      machine_target_node(run, runtimes),
-      machine_evidence_node(run),
+      rail_agent_node(run),
+      rail_api_node(degraded),
+      rail_router_node(actions),
+      rail_policy_node(run),
+      rail_target_node(run, runtimes),
+      rail_evidence_node(run),
     ]
   end
 
-  # Connector tone for the rail leaving a node: a healthy node feeds an active
-  # path, an in-flight/blocked node an idle one, and bad/unavailable a broken
-  # (dashed) one. Mirrors the node tone so the path reads in one glance.
+  # Connector tone for the segment leaving a node: healthy → active, in-flight →
+  # idle, bad/unavailable → broken (dashed). Mirrors the node tone.
   def execution_flow_tone(node_tone)
     case node_tone.to_sym
-    when :ok          then 'active'
-    when :warn        then 'idle'
-    else                   'broken' # :bad, :muted
+    when :ok   then 'active'
+    when :warn then 'idle'
+    else            'broken' # :bad, :muted
     end
+  end
+
+  # The single context line below the rail: the highest-priority blocker (in
+  # path order) as one short operator sentence plus a direct CTA, or a calm
+  # ready/awaiting line when there's nothing to fix. Returns { tone, text, cta }.
+  def execution_rail_status(run:, actions:, runtimes:, degraded:)
+    actions = Array(actions)
+
+    return { tone: :bad, text: 'The Igris API is degraded — execution is paused.',
+             cta: { label: 'Open settings', href: settings_path } } if degraded
+
+    if actions.empty?
+      return { tone: :muted, text: 'No actions configured yet.',
+               cta: { label: 'Create action', href: new_action_path } }
+    end
+
+    if (na = actions.find { |a| a[:setup].to_s.casecmp('Needs target').zero? })
+      return { tone: :warn, text: "#{na[:name]} needs a target URL.",
+               cta: { label: 'Open action', href: action_path(na[:id]) } }
+    end
+
+    unless run
+      return { tone: :muted, text: 'Ready to execute — no runs yet.',
+               cta: { label: 'View actions', href: actions_path } }
+    end
+
+    status = run[:status].to_s
+    rid    = run[:id]
+    return { tone: :bad,  text: 'The latest run was denied by policy.',
+             cta: { label: 'View run', href: run_path(rid) } } if status.match?(/denied|blocked/i)
+    return { tone: :warn, text: 'The latest run is awaiting approval.',
+             cta: { label: 'View run', href: run_path(rid) } } if status.match?(/awaiting|approval/i)
+    return { tone: :bad,  text: 'The latest run had no runtime available.',
+             cta: { label: 'View runtimes', href: runtimes_path } } if run[:runtime_unavailable]
+    return { tone: :bad,  text: 'The latest run failed.',
+             cta: { label: 'Inspect run', href: run_path(rid) } } if run_failed?(run)
+    return { tone: :warn, text: 'The latest run is still in flight.',
+             cta: { label: 'View run', href: run_path(rid) } } if run_running?(run)
+    return { tone: :muted, text: 'The latest run completed without verifiable proof.',
+             cta: { label: 'Inspect run', href: run_path(rid) } } if run_proof_unavailable?(run)
+
+    signed = run[:proof].to_s.match?(/verified/i)
+    { tone: :ok, text: "Ready to execute — latest run #{signed ? 'signed and verified' : 'recorded'}.",
+      cta: { label: 'Inspect run', href: run_path(rid) } }
   end
 
   private
 
   # Caller identity is never carried in a run summary (Igris does not echo it),
   # so this is honestly "Caller unavailable" unless a future safe label appears.
-  def machine_agent_node(run)
+  def rail_agent_node(run)
     caller = run && run[:caller].to_s.strip.presence
-    {
-      key: 'agent', name: 'Agent / App', caption: 'API · MCP',
-      state: caller || 'Caller unavailable',
-      detail: caller ? nil : 'Identity not exposed',
-      tone: caller ? :ok : :muted,
-      cta: { label: 'Manage keys', href: settings_path },
-    }
+    { key: 'agent', name: 'Agent/App',
+      state: caller || 'Caller unavailable', tone: caller ? :ok : :muted }
   end
 
-  def machine_api_node(degraded)
-    {
-      key: 'api', name: 'Igris API / MCP', caption: 'Entrypoint',
-      state: degraded ? 'Degraded' : 'Ready',
-      detail: nil,
-      tone: degraded ? :bad : :ok,
-      cta: nil,
-    }
+  def rail_api_node(degraded)
+    { key: 'api', name: 'API/MCP',
+      state: degraded ? 'Degraded' : 'Ready', tone: degraded ? :bad : :ok }
   end
 
-  def machine_router_node(run, actions)
-    acted = run && actions.find { |a| a[:name].to_s == run[:action].to_s }
-    missing = actions.count { |a| a[:setup].to_s.casecmp('Needs target').zero? }
+  def rail_router_node(actions)
     state, tone =
-      if actions.empty?            then ['No actions', :muted]
-      elsif missing.positive?      then [pluralize(missing, 'action') + ' need a target', :warn]
-      else                              [pluralize(actions.size, 'action') + ' configured', :ok]
+      if actions.empty?                                                    then ['No actions', :muted]
+      elsif actions.any? { |a| a[:setup].to_s.casecmp('Needs target').zero? } then ['Target missing', :warn]
+      else                                                                      ['Ready', :ok]
       end
-    cta = acted ? { label: 'Open action', href: action_path(acted[:id]) }
-                : { label: 'Open actions', href: actions_path }
-    {
-      key: 'router', name: 'Action Router', caption: 'Routing',
-      state: state, detail: (acted ? run[:action].to_s : nil), tone: tone, cta: cta,
-    }
+    { key: 'router', name: 'Router', state: state, tone: tone }
   end
 
-  def machine_policy_node(run)
-    return machine_idle_node('policy', 'Policy Gate', 'Decision') unless run
+  def rail_policy_node(run)
+    return rail_idle_node('policy', 'Policy') unless run
     status = run[:status].to_s
     state, tone =
-      if status.match?(/awaiting|approval/i)      then ['Approval required', :warn]
-      elsif status.match?(/denied|blocked/i)      then ['Denied', :bad]
-      else                                             ['Allowed', :ok]
+      if status.match?(/awaiting|approval/i) then ['Approval required', :warn]
+      elsif status.match?(/denied|blocked/i) then ['Denied', :bad]
+      else                                        ['Allowed', :ok]
       end
-    {
-      key: 'policy', name: 'Policy Gate', caption: 'Decision',
-      state: state, detail: run[:policy].to_s.presence, tone: tone,
-      cta: { label: 'View run', href: run_path(run[:id]) },
-    }
+    { key: 'policy', name: 'Policy', state: state, tone: tone }
   end
 
-  def machine_target_node(run, runtimes)
-    return machine_idle_node('target', 'Target / Runtime', 'Execution') unless run
+  def rail_target_node(run, runtimes)
+    return rail_idle_node('target', 'Target') unless run
     via = run[:routed_via].to_s
     runtime_route = run[:executed_target].to_s == 'local_runtime' ||
                     via.match?(/\A(Runtime|Local runtime)/)
     state, tone =
       if runtime_route
-        if run[:runtime_unavailable]                                   then ['Runtime unavailable', :bad]
-        elsif runtimes.any? { |r| r[:status] == 'Healthy' }            then ['Runtime healthy', :ok]
+        if run[:runtime_unavailable]                                        then ['Runtime unavailable', :bad]
+        elsif runtimes.any? { |r| r[:status] == 'Healthy' }                 then ['Runtime healthy', :ok]
         elsif runtimes.any? { |r| %w[Stale Degraded].include?(r[:status]) } then ['Runtime stale', :warn]
-        else                                                                ['Runtime unavailable', :bad]
+        else                                                                     ['Runtime unavailable', :bad]
         end
       else
         ['Hosted target', :ok]
       end
-    {
-      key: 'target', name: 'Target / Runtime', caption: 'Execution',
-      state: state, detail: via.presence, tone: tone,
-      cta: { label: 'View runtimes', href: runtimes_path },
-    }
+    { key: 'target', name: 'Target', state: state, tone: tone }
   end
 
-  def machine_evidence_node(run)
-    return machine_idle_node('evidence', 'Run Record / Evidence', 'Proof') unless run
+  def rail_evidence_node(run)
+    return rail_idle_node('evidence', 'Evidence') unless run
     proof = run[:proof].to_s
     state, tone =
-      if run_failed?(run)               then ['Failed', :bad]
-      elsif run_running?(run)           then ['Waiting', :warn]
-      elsif proof.match?(/verified/i)   then ['Signed', :ok]
-      elsif proof.match?(/receipt/i)    then ['Receipt present', :warn]
-      else                                   ['Proof unavailable', :muted]
+      if run_failed?(run)             then ['Failed', :bad]
+      elsif run_running?(run)         then ['Waiting', :warn]
+      elsif proof.match?(/verified/i) then ['Signed', :ok]
+      elsif proof.match?(/receipt/i)  then ['Receipt present', :warn]
+      else                                 ['Proof unavailable', :muted]
       end
-    {
-      key: 'evidence', name: 'Run Record / Evidence', caption: 'Proof',
-      state: state, detail: proof.presence, tone: tone,
-      cta: { label: 'Inspect run', href: run_path(run[:id]) },
-    }
+    { key: 'evidence', name: 'Evidence', state: state, tone: tone }
   end
 
   # Run-dependent node with no run yet — honest idle, never a fake result.
-  def machine_idle_node(key, name, caption)
-    { key: key, name: name, caption: caption,
-      state: 'Awaiting first run', detail: nil, tone: :muted, cta: nil }
+  def rail_idle_node(key, name)
+    { key: key, name: name, state: 'Awaiting first run', tone: :muted }
   end
 end
