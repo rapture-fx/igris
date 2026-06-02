@@ -74,8 +74,8 @@
             <%= render 'shared/run_activity_map', runs: @activity_runs, demo: demo_mode?, flush: true %>
 
           <% when 'actions' %>
-            <div class="ic-feed">
-              <% @actions.first(8).each do |a|
+            <div class="ic-feed ic-feed--scroll">
+              <% @actions.first(50).each do |a|
                    ready = a[:setup].to_s.casecmp('Ready').zero?
                    tone = ready ? 'ok' : 'warn' %>
                 <%= link_to action_path(a[:id]), class: 'ic-feed-item' do %>
@@ -117,8 +117,8 @@
             <% end %>
 
             <% if has_runs %>
-              <div class="ic-feed">
-                <% (@recent_runs || []).first(8).each do |r|
+              <div class="ic-feed ic-feed--scroll">
+                <% (@recent_runs || []).first(50).each do |r|
                      st = r[:status].to_s
                      if st.casecmp('Failed').zero?     then tone = 'failed';  verb = 'failed'
                      elsif st.casecmp('Running').zero? then tone = 'running'; verb = 'running'
