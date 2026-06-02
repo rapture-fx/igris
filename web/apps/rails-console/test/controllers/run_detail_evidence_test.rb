@@ -80,7 +80,7 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
     with_real_ds(FakeClient.new(real_task)) do
       get '/runs/task_real_1'
       assert_response :success
-      assert_match 'What happened', response.body
+      assert_match 'Execution detail', response.body
       assert_match 'Evidence', response.body
       assert_match 'Task ID', response.body
       assert_match 'task_real_1', response.body
@@ -180,5 +180,8 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'Demo data', response.body
     assert_match 'Committed actions', response.body
+    assert_select 'details.ic-logitem'
+    assert_select 'summary.ic-line'
+    assert_select '.ic-logitem__detail'
   end
 end
