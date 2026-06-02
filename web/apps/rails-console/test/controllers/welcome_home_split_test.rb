@@ -83,7 +83,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   test 'home shows compact workspace sections when actions exist' do
-    get '/home?tab=feed' # the needs-attention section lives on the feed tab
+    get '/home?tab=attention' # the needs-attention section lives on its own tab
     assert_response :success
     assert_match 'Needs attention', response.body
     assert_match 'Workspace', response.body
@@ -141,7 +141,8 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'ic-feed-item', response.body          # separate events, not a table
     assert_match 'ic-feed-item__ico', response.body     # per-event status glyph
-    assert_match(%r{Action <strong>\w+</strong> (completed|failed|running)}, response.body)
+    assert_match(%r{Action <strong>\w+</strong>}, response.body)
+    assert_match 'ic-feed-badge', response.body         # routing/proof/status now render as badges
   end
 
   test 'home feed shows an honest empty state when no runs in real mode' do
