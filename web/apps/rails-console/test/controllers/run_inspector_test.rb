@@ -140,11 +140,13 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
   end
 
   # ── Next steps ──────────────────────────────────────────────────────────
-  test 'inspector next steps always offer open full run and the action' do
+  test 'inspector does not offer redundant action or full-run links' do
     get run_path('run_01HGJ8K2Z9F')
     assert_response :success
-    assert_select '.ic-runinspector__sechead', text: 'Next steps'
-    assert_select '.ic-runinspector__actions a', text: 'Open action'
+    assert_select '.ic-runinspector__actions a', text: 'Open action', count: 0
+    assert_select '.ic-runinspector__link', 0
+    assert_select '.ic-runinspector__openfull', 0
+    assert_select '.ic-runinspector__actions a', text: 'Open full run', count: 0
   end
 
   test 'a runtime-unavailable run offers connect runtime in the inspector' do
