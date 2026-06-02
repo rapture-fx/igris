@@ -77,14 +77,18 @@
             <div class="ic-feed ic-feed--scroll">
               <% @actions.first(50).each do |a|
                    ready = a[:setup].to_s.casecmp('Ready').zero?
-                   tone = ready ? 'ok' : 'warn' %>
+                   tone = ready ? 'ok' : 'warn'
+                   setup_tone = ready ? 'is-ok' : 'is-warn'
+                   target, host = feed_tokens(a[:target_label]) %>
                 <%= link_to action_path(a[:id]), class: 'ic-feed-item' do %>
                   <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
-                  <span class="ic-feed-item__main">
-                    <span class="ic-feed-item__title"><strong><%= a[:name] %></strong></span>
-                    <span class="ic-feed-item__sub"><%= a[:target_label] %></span>
+                  <span class="ic-feed-item__title"><strong><%= a[:name] %></strong></span>
+                  <span class="ic-feed-item__badges">
+                    <span class="ic-feed-cell"><% if target.present? %><span class="ic-feed-badge"><%= target %></span><% end %></span>
+                    <span class="ic-feed-cell"><% if host.present? %><span class="ic-feed-badge is-mono"><%= host %></span><% end %></span>
+                    <span class="ic-feed-cell"><span class="ic-feed-badge <%= setup_tone %>"><%= a[:setup].presence || 'Ready' %></span></span>
                   </span>
-                  <span class="ic-feed-item__meta"><%= a[:setup].presence || 'Ready' %></span>
+                  <span class="ic-feed-item__meta"></span>
                   <%= feed_chevron %>
                 <% end %>
               <% end %>
@@ -105,36 +109,28 @@
             <% end %>
 
           <% else # feed %>
-            <% if attention.any? %>
-              <div class="ic-section-head"><span class="ic-section-head__label">Needs attention</span></div>
-              <% attention.each do |a| %>
-                <div class="ic-hint">
-                  <span class="ic-hint__dot"></span>
-                  <span><%= a[:text] %></span>
-                  <%= link_to a[:cta], a[:href], class: 'ic-hint__link' %>
-                </div>
-              <% end %>
-            <% end %>
-
             <% if has_runs %>
               <div class="ic-feed ic-feed--scroll">
                 <% (@recent_runs || []).first(50).each do |r|
                      st = r[:status].to_s
-                     if st.casecmp('Failed').zero?     then tone = 'failed';  verb = 'failed'
-                     elsif st.casecmp('Running').zero? then tone = 'running'; verb = 'running'
-                     else                                   tone = 'ok';      verb = 'completed' end %>
+                     if st.casecmp('Failed').zero?     then tone = 'failed';  badge_tone = 'is-bad'
+                     elsif st.casecmp('Running').zero? then tone = 'running'; badge_tone = 'is-warn'
+                     else                                   tone = 'ok';      badge_tone = 'is-ok' end
+                     route, detail = feed_tokens(r[:routed_via]) %>
                   <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
                     <span class="ic-feed-item__ico ic-feed-item__ico--<%= tone %>"><%= feed_icon(tone) %></span>
-                    <span class="ic-feed-item__main">
-                      <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong> <%= verb %></span>
-                      <span class="ic-feed-item__sub"><span class="mono"><%= r[:routed_via] %></span> · <%= r[:proof] %></span>
+                    <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong></span>
+                    <span class="ic-feed-item__badges">
+                      <span class="ic-feed-cell"><% if route.present? %><span class="ic-feed-badge"><%= route %></span><% end %></span>
+                      <span class="ic-feed-cell"><% if detail.present? %><span class="ic-feed-badge is-mono"><%= detail %></span><% end %></span>
+                      <span class="ic-feed-cell"><span class="ic-feed-badge <%= badge_tone %>"><%= r[:status].presence || 'Succeeded' %></span></span>
                     </span>
                     <span class="ic-feed-item__meta"><%= time_ago(r[:started_at]) %></span>
                     <%= feed_chevron %>
                   <% end %>
                 <% end %>
               </div>
-            <% elsif attention.empty? %>
+            <% else %>
               <div class="ic-empty" style="padding: 32px 16px;">
                 <div class="ic-empty__title">No activity yet</div>
                 <p class="ic-empty__sub">Runs and signals will show up here as your agent calls actions.</p>
