@@ -168,11 +168,20 @@ module Igris
       case base[:status]
       when 'Running'
         [
-          { kind: :action, num: '01', name: 'read_file',  detail: '/uploads/policy-v3.pdf · 1.2KB digest', latency: 12, status: :committed, receipt: 'r₀₁', signed_at: '14:07:42.218' },
-          { kind: :action, num: '02', name: 'http_call',  detail: 'POST /v3/sync · 200 OK',               latency: 38, status: :committed, receipt: 'r₀₂', signed_at: '14:07:42.481' },
+          { kind: :action, num: '01', name: 'read_file',  detail: '/uploads/policy-v3.pdf · 1.2KB digest',      latency: 12,  status: :committed, receipt: 'r₀₁',  signed_at: '14:07:42.218' },
+          { kind: :action, num: '02', name: 'http_call',  detail: 'GET /v3/accounts/8821 · 200 OK',             latency: 24,  status: :committed, receipt: 'r₀₂',  signed_at: '14:07:42.301' },
+          { kind: :action, num: '03', name: 'http_call',  detail: 'POST /v3/sync · 200 OK',                     latency: 38,  status: :committed, receipt: 'r₀₃',  signed_at: '14:07:42.481' },
           { kind: :fault,            name: 'host_fault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b', latency: 31, status: :committed },
-          { kind: :action, num: '03', name: 'http_call',  detail: 'retry 2 of 3 succeeded',                latency: 42, status: :committed, receipt: 'r₀₃', signed_at: '14:07:43.014' },
-          { kind: :action, num: '04', name: 'db_write',   detail: 'orders_fulfilled · r_8421',                          status: :running },
+          { kind: :action, num: '04', name: 'http_call',  detail: 'retry 2 of 3 succeeded',                     latency: 42,  status: :committed, receipt: 'r₀₄',  signed_at: '14:07:43.014' },
+          { kind: :action, num: '05', name: 'read_file',  detail: '/tmp/manifest.json · 0.8KB digest',          latency: 9,   status: :committed, receipt: 'r₀₅',  signed_at: '14:07:43.140' },
+          { kind: :action, num: '06', name: 'inference',  detail: 'classify_intent · 128 tok · 0.31 conf',      latency: 210, status: :committed, receipt: 'r₀₆',  signed_at: '14:07:43.402' },
+          { kind: :action, num: '07', name: 'http_call',  detail: 'POST /v3/accounts/8821/ledger · 200 OK',     latency: 47,  status: :committed, receipt: 'r₀₇',  signed_at: '14:07:43.509' },
+          { kind: :action, num: '08', name: 'db_write',   detail: 'accounts_staged · r_7720',                   latency: 54,  status: :committed, receipt: 'r₀₈',  signed_at: '14:07:43.612' },
+          { kind: :action, num: '09', name: 'http_call',  detail: 'POST /v3/notify · 202 Accepted',             latency: 33,  status: :committed, receipt: 'r₀₉',  signed_at: '14:07:43.701' },
+          { kind: :fault,            name: 'rate_limit', detail: 'upstream 429 · backoff 250ms · resumed',      latency: 250, status: :committed },
+          { kind: :action, num: '10', name: 'http_call',  detail: 'POST /v3/notify · retry 1 of 3 · 202',       latency: 29,  status: :committed, receipt: 'r₁₀',  signed_at: '14:07:44.012' },
+          { kind: :action, num: '11', name: 'read_file',  detail: '/var/run/lock/orders · 0.1KB digest',        latency: 6,   status: :committed, receipt: 'r₁₁',  signed_at: '14:07:44.119' },
+          { kind: :action, num: '12', name: 'db_write',   detail: 'orders_fulfilled · r_8421',                                status: :running },
         ]
       when 'Failed'
         [
