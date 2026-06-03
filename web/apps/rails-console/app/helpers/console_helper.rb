@@ -147,6 +147,30 @@ module ConsoleHelper
     'ok'
   end
 
+  # ── Committed-actions log timestamps ───────────────────────────────────
+  # The Run detail "Committed actions" panel reads as a log, so every step
+  # line gets a monotonic HH:MM:SS.mmm timestamp. An explicit `signed_at`
+  # (already formatted) wins; otherwise the timestamp is derived from the run
+  # start plus the cumulative latency of the preceding steps, so the column
+  # always advances in step order. Returns one string per step, index-aligned
+  # with the passed steps array.
+  def committed_log_times(run, steps)
+    base = run[:started_at]
+    base = Time.now.utc unless base.respond_to?(:+)
+    cumulative_ms = 0
+    Array(steps).map do |s|
+      ts = s[:signed_at].presence || (base + cumulative_ms / 1000.0).utc.strftime('%H:%M:%S.%L')
+      cumulative_ms += s[:latency].to_i
+      ts
+    end
+  end
+
+  # Format a real-mode step-evidence timestamp for the log column. Real run
+  # records may omit the per-step time, in which case the column shows "—".
+  def step_evidence_time(at)
+    at.respond_to?(:strftime) ? at.utc.strftime('%H:%M:%S.%L') : '—'
+  end
+
   # ── Run Activity Map ───────────────────────────────────────────────────
   # An at-a-glance, time-ordered map of recent runs on /runs. Each run is one
   # dot; its outcome band (not a numeric value) and tone show what happened.
