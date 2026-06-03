@@ -180,8 +180,10 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'Demo data', response.body
     assert_match 'Committed actions', response.body
-    assert_select 'details.ic-logitem'
-    assert_select 'summary.ic-line'
-    assert_select '.ic-logitem__detail'
+    # Committed actions reads as a log: the title row is the only collapse
+    # toggle, and each step is a flat, timestamped line (no per-line collapse).
+    assert_select 'details.ic-loggroup > summary.ic-loggroup__head'
+    assert_select '.ic-log__body div.ic-line'
+    assert_select '.ic-line__ts'
   end
 end
