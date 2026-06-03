@@ -16,7 +16,6 @@
       <div class="ic-runinspector__head-l">
         <span class="ic-runinspector__title">Run Inspector</span>
       </div>
-      <%= link_to close_href, class: 'ic-runinspector__close', 'aria-label': 'Close inspector' do %>Close<% end %>
     </div>
     <div class="ic-runinspector__empty">
       <div class="ic-runinspector__empty-title">Run not found or unavailable</div>
@@ -43,7 +42,6 @@
         <span class="ic-runinspector__id mono"><%= run[:id] %></span>
         <%= copy_button run[:id] %>
       </div>
-      <%= link_to close_href, class: 'ic-runinspector__close', 'aria-label': 'Close inspector' do %>Close<% end %>
     </div>
     <div class="ic-runinspector__pills">
       <%= status_pill run[:status] %>
@@ -118,14 +116,19 @@
       </section>
 
       <%# ── Audit interpretation ──────────────────────────────────────── %>
+      <%# Full plain-language reading lives here (the standalone bottom panel
+          was removed); each row carries its interpreting note. %>
       <section class="ic-runinspector__section">
         <div class="ic-runinspector__sechead">Audit interpretation</div>
         <p class="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only — not a compliance certification.</p>
-        <div class="ic-runinspector__rows">
-          <% audit_interpretation(run).first(3).each do |row| %>
-            <div class="ic-def">
-              <span class="ic-def__label"><%= row[:label] %></span>
-              <div class="ic-def__value"><%= row[:value] %></div>
+        <div class="ic-runinspector__auditrows">
+          <% audit_interpretation(run).each do |row| %>
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-def">
+                <span class="ic-def__label"><%= row[:label] %></span>
+                <div class="ic-def__value"><%= row[:value] %></div>
+              </div>
+              <p class="ic-runinspector__auditnote"><%= row[:note] %></p>
             </div>
           <% end %>
         </div>
@@ -134,7 +137,6 @@
         <% elsif proof_unavail %>
           <p class="ic-runinspector__note">Proof is unavailable when signed runtime evidence was not produced or attached to this run.</p>
         <% end %>
-        <p class="ic-runinspector__note">Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed.</p>
       </section>
 
       <%# ── Evidence ──────────────────────────────────────────────────── %>
@@ -152,6 +154,41 @@
           <% end %>
         </div>
         <p class="ic-runinspector__note">Open the full run for ordered step evidence.</p>
+      </section>
+
+      <%# ── Execution profile (waterfall) ─────────────────────────────── %>
+      <% profile = run_execution_profile(run) %>
+      <section class="ic-runinspector__section <%= 'ic-runinspector__section--last' unless offer_runtime %>">
+        <div class="ic-runinspector__sechead">Execution profile</div>
+        <% if profile.any? %>
+          <% span  = profile.map { |p| p[:start_ms] + p[:ms] }.max.to_f %>
+          <% total = profile.sum { |p| p[:ms] } %>
+          <p class="ic-runinspector__hint">Time per step along the run timeline — <%= profile.size %> steps · <%= total %>ms total.</p>
+          <div class="ic-wfall">
+            <% profile.each do |p| %>
+              <% left  = span.positive? ? (p[:start_ms] / span * 100).round(2) : 0 %>
+              <% width = span.positive? ? [(p[:ms] / span * 100).round(2), 1.5].max : 0 %>
+              <div class="ic-wfall__row">
+                <span class="ic-wfall__label mono" title="<%= p[:meta] %>"><%= p[:label] %></span>
+                <div class="ic-wfall__track">
+                  <div class="ic-wfall__bar ic-wfall__bar--<%= p[:tone] %>"
+                       style="margin-left: <%= left %>%; width: <%= width %>%;"></div>
+                </div>
+                <span class="ic-wfall__val mono"><%= p[:ms] %>ms</span>
+              </div>
+            <% end %>
+            <div class="ic-wfall__axis">
+              <span class="ic-wfall__scale">
+                <span>0</span>
+                <span class="ic-wfall__scale-mid">time</span>
+                <span><%= span.round %>ms</span>
+              </span>
+            </div>
+          </div>
+          <p class="ic-runinspector__note">Bars are placed by when each step ran; length is time-on-step. Faults/retries appear as their own bar.</p>
+        <% else %>
+          <p class="ic-runinspector__empty-line">No per-step timing is available for this run.</p>
+        <% end %>
       </section>
 
       <% if offer_runtime %>
