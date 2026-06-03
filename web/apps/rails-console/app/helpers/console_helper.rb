@@ -171,6 +171,74 @@ module ConsoleHelper
     at.respond_to?(:strftime) ? at.utc.strftime('%H:%M:%S.%L') : '—'
   end
 
+  # Reason phrases we recognize so a 2xx/3xx code is only colored when it is
+  # clearly an HTTP status (e.g. "200 OK") and never a stray number like
+  # "128 tok". 4xx/5xx codes are colored on their own.
+  LOG_HTTP_REASON = '(?:OK|Accepted|Created|No Content|Not Modified|Moved Permanently|' \
+                    'Found|Bad Request|Unauthorized|Forbidden|Not Found|Conflict|' \
+                    'Too Many Requests|Internal Server Error|Service Unavailable|Gateway Timeout)'.freeze
+
+  # Render a committed-actions log line's detail with the HTTP status colored.
+  # The text is HTML-escaped first; only recognized status tokens are wrapped,
+  # toned ok (2xx) / warn (3xx) / bad (4xx-5xx). Returns html_safe output.
+  def log_detail_html(detail)
+    esc = ERB::Util.html_escape(detail.to_s)
+    pattern = /\b([1-5]\d{2})\b(\s#{LOG_HTTP_REASON})?/
+    esc = esc.gsub(pattern) do
+      code   = Regexp.last_match(1)
+      reason = Regexp.last_match(2)
+      n = code.to_i
+      if n >= 400 || reason
+        tone = n >= 400 ? 'bad' : (n >= 300 ? 'warn' : 'ok')
+        %(<span class="ic-http ic-http--#{tone}">#{code}#{reason}</span>)
+      else
+        "#{code}#{reason}"
+      end
+    end
+    esc.html_safe
+  end
+
+  # ── Execution profile (Run Inspector waterfall) ────────────────────────
+  # A small, JS-free profiler series for the run, read only from
+  # already-normalized fields. Each entry carries `start_ms` (when the step
+  # began, relative to the first step) and `ms` (its duration), so the view
+  # can lay the bars out along a shared time axis like a network waterfall.
+  # Two honest sources, in order:
+  #   1. demo/tree steps that carry an explicit `latency` (laid end-to-end), or
+  #   2. real execution steps, positioned by their timestamps; each bar's
+  #      duration is the gap to the next step (the last step has no successor).
+  # Returns [{ label:, ms:, start_ms:, tone:, meta: }]; empty when no timing.
+  def run_execution_profile(run)
+    tree = Array(run[:steps]).select { |s| s[:latency] }
+    if tree.any?
+      cursor = 0
+      return tree.map do |s|
+        ms = s[:latency].to_i
+        tone = case s[:status]
+               when :failed  then 'bad'
+               when :running then 'warn'
+               else s[:kind] == :fault ? 'warn' : 'ok'
+               end
+        row = { label: s[:name].to_s, ms: ms, start_ms: cursor, tone: tone, meta: s[:detail].to_s }
+        cursor += ms
+        row
+      end
+    end
+
+    ev = Array(run[:execution_steps]).select { |s| s[:at].respond_to?(:to_f) }
+    return [] if ev.size < 2
+
+    base = ev.first[:at].to_f
+    ev.each_cons(2).map do |a, b|
+      ms = ((b[:at].to_f - a[:at].to_f) * 1000).round
+      {
+        label: a[:label].to_s, ms: [ms, 0].max,
+        start_ms: [((a[:at].to_f - base) * 1000).round, 0].max,
+        tone: a[:status_tone].to_s.presence || 'muted', meta: a[:kind].to_s,
+      }
+    end
+  end
+
   # ── Run Activity Map ───────────────────────────────────────────────────
   # An at-a-glance, time-ordered map of recent runs on /runs. Each run is one
   # dot; its outcome band (not a numeric value) and tone show what happened.
