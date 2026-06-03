@@ -1177,11 +1177,11 @@ html.dark .ic-btn--accent:hover {
   padding: 6px 0;
 }
 .ic-def__label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ic-text-5);
 }
 .ic-def__value {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--ic-text-2);
   display: flex;
   align-items: center;
@@ -3208,13 +3208,13 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   margin-bottom: 4px;
 }
 .ic-nextstep__title {
-  font-size: 13.5px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--ic-text-bright);
   letter-spacing: -0.01em;
 }
 .ic-nextstep__sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ic-text-5);
   margin: 3px 0 0;
   line-height: 1.5;
@@ -3338,7 +3338,7 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
 .ic-stepev__idx { font-size: 11px; color: var(--ic-text-6); }
 .ic-stepev__main { display: flex; flex-direction: column; min-width: 0; }
 .ic-stepev__label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ic-text-2);
   letter-spacing: -0.005em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
