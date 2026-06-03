@@ -223,7 +223,7 @@
                   <span class="ic-line__ts mono"><%= ts %></span>
                   <div class="ic-line__main">
                     <span class="ic-line__name"><%= s[:name] %></span>
-                    <span class="ic-line__detail"><%= s[:detail] %></span>
+                    <span class="ic-line__detail"><%= log_detail_html(s[:detail]) %></span>
                   </div>
                   <span class="ic-line__latency"><%= s[:latency] %>ms</span>
                   <span class="ic-line__receipt">recovered</span>
@@ -234,7 +234,7 @@
                   <span class="ic-line__ts mono"><%= ts %></span>
                   <div class="ic-line__main">
                     <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
-                    <span class="ic-line__detail"><%= s[:detail] %></span>
+                    <span class="ic-line__detail"><%= log_detail_html(s[:detail]) %></span>
                   </div>
                   <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
                   <% if s[:receipt] %>
@@ -330,31 +330,10 @@
     <% end %>
 
     <%# ── Run Inspector — server-rendered, redacted quick-inspection of this
-        run. Sits inside the opened run, directly above the Audit
-        interpretation it supports. ────────────────────────────────────── %>
+        run. Carries its own Audit interpretation + Execution profile, so no
+        separate audit block is rendered below it. ───────────────────────── %>
     <div class="ic-run-expand">
       <%= render 'inspector', run: @run, run_id: @run[:id], action_known: @action_known %>
-    </div>
-
-    <%# ── Audit interpretation — plain-language reading of the evidence.
-        Sits at the bottom, after the submitter/execution detail and the
-        committed-actions evidence it interprets. ──────────────────────── %>
-    <div class="ic-evidence ic-audit" id="audit">
-      <div class="ic-evidence__head">Audit interpretation</div>
-      <p class="ic-audit__intro">
-        A plain-language reading of this run's evidence to support audits. This is
-        interpretation only — it is not a certification and makes no legal or
-        regulatory claim.
-      </p>
-      <% audit_interpretation(@run).each do |row| %>
-        <div class="ic-audit__row">
-          <div class="ic-def">
-            <span class="ic-def__label"><%= row[:label] %></span>
-            <div class="ic-def__value"><%= row[:value] %></div>
-          </div>
-          <p class="ic-audit__note"><%= row[:note] %></p>
-        </div>
-      <% end %>
     </div>
 
     <div class="ic-foot-time">
