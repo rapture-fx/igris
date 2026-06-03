@@ -1247,17 +1247,23 @@ html.dark .ic-btn--accent:hover {
   border-left: 1px solid var(--ic-border);
 }
 
-/* Action / fault lines — match Products.tsx exactly */
+/* Action / fault lines — a flat timestamped log row (ts | main | latency | receipt) */
 .ic-line {
   display: grid;
-  grid-template-columns: 12px 14px 24px minmax(0, 1fr) auto auto;
+  grid-template-columns: 82px minmax(0, 1fr) auto auto;
   align-items: center;
-  column-gap: 12px;
-  padding: 6px 8px;
-  margin-left: -8px;
-  border-radius: 4px;
+  column-gap: 10px;
+  padding: 4px 12px;
+  border-radius: 0;
 }
 .ic-line:hover { background: var(--ic-overlay-1); }
+.ic-line__ts {
+  font-family: var(--ic-mono);
+  font-size: 11px;
+  color: var(--ic-text-8);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 .ic-logitem {
   border-radius: 5px;
 }
@@ -1352,7 +1358,7 @@ html.dark .ic-btn--accent:hover {
 .ic-line--fault .ic-line__detail { color: var(--ic-fault-text); }
 .ic-line--fault .ic-line__receipt { color: rgba(251, 191, 36, 0.7); }
 .ic-logitem__detail {
-  margin: -1px 8px 8px 45px;
+  margin: -1px 12px 8px 92px;
   padding: 2px 0 4px;
 }
 .ic-logitem__grid {
@@ -1373,6 +1379,70 @@ html.dark .ic-btn--accent:hover {
 .ic-logitem__v.mono {
   font-family: var(--ic-mono);
   color: var(--ic-text-3);
+}
+
+/* ── Log group — committed actions (demo) + step evidence (real) ───────── */
+/* The whole group is the only collapse toggle: the title row is a <summary>.
+   Lines below are flat log rows, not individually collapsible, and the body
+   is not boxed in a second card — it sits directly inside the panel. */
+.ic-loggroup { margin-top: 6px; }
+.ic-loggroup__head {
+  cursor: pointer;
+  list-style: none;
+  padding: 4px 0;
+  border-radius: 4px;
+}
+.ic-loggroup__head::-webkit-details-marker { display: none; }
+.ic-loggroup__head:hover { color: var(--ic-text-3); }
+.ic-loggroup__head .ic-panel__head-l { gap: 8px; }
+.ic-loggroup__chev {
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--ic-text-6);
+  transition: transform 120ms ease;
+}
+.ic-loggroup[open] .ic-loggroup__chev { transform: rotate(90deg); }
+.ic-log__body {
+  margin-top: 8px;
+  padding: 2px 0;
+  max-height: 440px;
+  overflow-y: auto;
+}
+.ic-log__body--flush { margin-top: 4px; }
+/* Header right slot — duration + outcome, like a build-log status */
+.ic-log__dur {
+  font-size: 11px;
+  color: var(--ic-text-6);
+  font-variant-numeric: tabular-nums;
+}
+.ic-log__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+.ic-log__status .ic-bullet-check { width: 12px; height: 12px; }
+.ic-log__status--ok,
+.ic-log__status--run { color: var(--ic-emerald); }
+.ic-log__status--fail { color: var(--ic-rose); }
+
+/* Flat log rows (real-mode step evidence) */
+.ic-logline {
+  display: grid;
+  align-items: center;
+  column-gap: 10px;
+  padding: 6px 12px;
+}
+.ic-logline:hover { background: var(--ic-overlay-1); }
+.ic-logline--stepev {
+  grid-template-columns: 82px 26px minmax(0, 1fr) 96px 64px 130px;
+}
+@media (max-width: 720px) {
+  .ic-logline--stepev { grid-template-columns: 82px 26px minmax(0, 1fr) 80px; }
+  .ic-logline--stepev .ic-stepev__proof,
+  .ic-logline--stepev .ic-stepev__digest { display: none; }
 }
 
 .ic-foot-time {
