@@ -114,6 +114,9 @@
               <% when :failed %>
                 <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
                 <%= copy_button @run[:id], label: 'Copy run ID' %>
+              <% when :running %>
+                <a href="#evidence" class="ic-btn">View evidence</a>
+                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
               <% when :proof_unavailable %>
                 <a href="#evidence" class="ic-btn">View evidence</a>
               <% when :completed %>
@@ -128,14 +131,6 @@
       <section class="ic-run-detail-scroll" aria-label="Run evidence and audit details">
 
     <% if demo_mode? %>
-      <%# ════════════ FIXTURE MODE: clearly-labelled illustrative demo ════════ %>
-      <div class="ig-strip" style="background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.25); border-radius: 8px; margin-bottom: 14px;">
-        <%= chip 'Demo data', tone: :warn %>
-        <span style="font-size: 12px; color: var(--ig-text-body);">
-          Illustrative example run. Connect Igris to see real, data-derived evidence here.
-        </span>
-      </div>
-
       <% submitted_chip_time = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
       <div class="ic-evidence">
         <div class="ic-evidence__head">Demo context</div>
