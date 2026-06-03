@@ -62,18 +62,22 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
     assert_match 'Run Inspector', response.body
   end
 
-  test 'the inspector sits above the Audit interpretation on the detail page' do
+  test 'the inspector carries its own Audit interpretation and no separate block remains' do
     get run_path('run_01HGJ8K2Z9F')
     assert_response :success
-    body = response.body
-    assert body.index('ic-runinspector') < body.index('ic-audit'),
-           'the Run Inspector should render above the Audit interpretation block'
+    # The standalone bottom Audit interpretation block was removed — the
+    # inspector now carries that reading inline, so no duplicate is rendered.
+    assert_select '.ic-runinspector .ic-runinspector__sechead', text: 'Audit interpretation'
+    assert_select '.ic-audit', false
+    assert_select '#audit', false
   end
 
-  test 'the inspector close link returns to the runs list' do
+  test 'the embedded inspector renders no close control' do
     get run_path('run_01HGJ5W0M3B')
     assert_response :success
-    assert_select "a.ic-runinspector__close[href=?]", runs_path
+    # Inline on the run detail page the inspector is always present, so it has
+    # no close button.
+    assert_select 'a.ic-runinspector__close', false
   end
 
   # ── Overview ────────────────────────────────────────────────────────────
