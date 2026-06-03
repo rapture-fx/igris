@@ -170,11 +170,13 @@
         </div>
       </div>
 
-      <%# Committed actions panel — the tree, led by the receipt-chain narrative %>
+      <%# Committed actions panel — a timestamped log, led by the receipt-chain narrative %>
       <% steps = @run[:steps] || [] %>
+      <% log_times = committed_log_times(@run, steps) %>
       <% committed_count = steps.count { |s| s[:kind] == :action && s[:status] == :committed } %>
       <% latest_committed = steps.select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
       <% total_actions = steps.count { |s| s[:kind] == :action } %>
+      <% failed_count = steps.count { |s| s[:status] == :failed } %>
       <div class="ic-panel" id="evidence">
         <p class="ic-narrative">
           <% if running %>
@@ -191,87 +193,60 @@
             <span class="mono"><%= @run[:duration_ms] %>ms</span>.
           <% end %>
         </p>
-        <div class="ic-panel__head">
-          <div class="ic-panel__head-l">
-            <span>Committed actions (<%= total_actions %>)</span>
-            <span class="ic-panel__count-plus">+<%= committed_count %></span>
-            <span class="ic-panel__count-minus">−<%= steps.count { |s| s[:status] == :failed } %></span>
-          </div>
-        </div>
-        <div class="ic-tree">
-          <div class="ic-tree__head">
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style="transform: rotate(90deg);"><path d="M9 6 L15 12 L9 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span>actions</span>
-          </div>
-          <div class="ic-tree__body">
-            <% steps.each do |s| %>
+        <details class="ic-loggroup" open>
+          <summary class="ic-panel__head ic-loggroup__head">
+            <div class="ic-panel__head-l">
+              <span class="ic-loggroup__chev" aria-hidden="true"></span>
+              <span>Committed actions (<%= total_actions %>)</span>
+              <span class="ic-panel__count-plus">+<%= committed_count %></span>
+              <span class="ic-panel__count-minus">−<%= failed_count %></span>
+            </div>
+            <div class="ic-panel__head-r">
+              <% if @run[:duration_ms].present? %>
+                <span class="ic-log__dur mono"><%= @run[:duration_ms] %>ms</span>
+              <% end %>
+              <% if running %>
+                <span class="ic-log__status ic-log__status--run"><span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>running</span>
+              <% elsif failed_count.positive? %>
+                <span class="ic-log__status ic-log__status--fail">failed</span>
+              <% else %>
+                <span class="ic-log__status ic-log__status--ok"><svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>committed</span>
+              <% end %>
+            </div>
+          </summary>
+
+          <div class="ic-log__body">
+            <% steps.each_with_index do |s, i| %>
+              <% ts = log_times[i] %>
               <% if s[:kind] == :fault %>
-                <div class="ic-step-in">
-                  <details class="ic-logitem ic-logitem--fault">
-                    <summary class="ic-line ic-line--fault">
-                      <span class="ic-line__chev" aria-hidden="true"></span>
-                      <span class="ic-line__bullet"><span class="ic-bullet-dot ic-bullet-dot--fault"></span></span>
-                      <span class="ic-line__num">!!</span>
-                      <div class="ic-line__main">
-                        <span class="ic-line__name"><%= s[:name] %></span>
-                        <span class="ic-line__detail"><%= s[:detail] %></span>
-                      </div>
-                      <span class="ic-line__latency"><%= s[:latency] %>ms</span>
-                      <span class="ic-line__receipt">recovered</span>
-                    </summary>
-                    <div class="ic-logitem__detail">
-                      <div class="ic-logitem__grid">
-                        <span class="ic-logitem__k">event</span><span class="ic-logitem__v"><%= s[:name] %></span>
-                        <span class="ic-logitem__k">detail</span><span class="ic-logitem__v"><%= s[:detail] %></span>
-                        <span class="ic-logitem__k">latency</span><span class="ic-logitem__v mono"><%= s[:latency] %>ms</span>
-                        <span class="ic-logitem__k">result</span><span class="ic-logitem__v"><span class="ic-chip">recovered</span></span>
-                      </div>
-                    </div>
-                  </details>
+                <div class="ic-line ic-line--fault ic-step-in">
+                  <span class="ic-line__ts mono"><%= ts %></span>
+                  <div class="ic-line__main">
+                    <span class="ic-line__name"><%= s[:name] %></span>
+                    <span class="ic-line__detail"><%= s[:detail] %></span>
+                  </div>
+                  <span class="ic-line__latency"><%= s[:latency] %>ms</span>
+                  <span class="ic-line__receipt">recovered</span>
                 </div>
               <% else %>
                 <% is_running = s[:status] == :running %>
-                <% is_failed  = s[:status] == :failed %>
-                <div class="ic-step-in">
-                  <details class="ic-logitem">
-                    <summary class="ic-line">
-                      <span class="ic-line__chev" aria-hidden="true"></span>
-                      <span class="ic-line__bullet">
-                        <% if is_running %>
-                          <span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>
-                        <% elsif is_failed %>
-                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" style="color: var(--ic-rose);"><path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
-                        <% else %>
-                          <svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        <% end %>
-                      </span>
-                      <span class="ic-line__num"><%= s[:num] %></span>
-                      <div class="ic-line__main">
-                        <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
-                        <span class="ic-line__detail"><%= s[:detail] %></span>
-                      </div>
-                      <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
-                      <% if s[:receipt] %>
-                        <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
-                      <% else %>
-                        <span class="ic-line__receipt ic-line__receipt--none">—</span>
-                      <% end %>
-                    </summary>
-                    <div class="ic-logitem__detail">
-                      <div class="ic-logitem__grid">
-                        <span class="ic-logitem__k">action</span><span class="ic-logitem__v mono"><%= s[:name] %></span>
-                        <span class="ic-logitem__k">detail</span><span class="ic-logitem__v"><%= s[:detail] %></span>
-                        <span class="ic-logitem__k">status</span><span class="ic-logitem__v"><span class="ic-chip"><%= is_running ? 'running' : (is_failed ? 'failed' : 'committed') %></span></span>
-                        <span class="ic-logitem__k">latency</span><span class="ic-logitem__v mono"><%= s[:latency] ? "#{s[:latency]}ms" : '—' %></span>
-                        <span class="ic-logitem__k">receipt</span><span class="ic-logitem__v mono"><%= s[:receipt].presence || '—' %></span>
-                      </div>
-                    </div>
-                  </details>
+                <div class="ic-line ic-step-in">
+                  <span class="ic-line__ts mono"><%= ts %></span>
+                  <div class="ic-line__main">
+                    <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
+                    <span class="ic-line__detail"><%= s[:detail] %></span>
+                  </div>
+                  <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
+                  <% if s[:receipt] %>
+                    <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
+                  <% else %>
+                    <span class="ic-line__receipt ic-line__receipt--none">—</span>
+                  <% end %>
                 </div>
               <% end %>
             <% end %>
           </div>
-        </div>
+        </details>
       </div>
 
     <% else %>
@@ -312,9 +287,10 @@
         </p>
         <% steps = @run[:execution_steps] || [] %>
         <% if steps.any? %>
-          <div class="ic-stepev-list">
+          <div class="ic-log__body ic-log__body--flush">
             <% steps.each do |st| %>
-              <div class="ic-stepev">
+              <div class="ic-logline ic-logline--stepev">
+                <span class="ic-line__ts mono"><%= step_evidence_time(st[:at]) %></span>
                 <span class="ic-stepev__idx mono"><%= format('%02d', st[:index]) %></span>
                 <div class="ic-stepev__main">
                   <span class="ic-stepev__label"><%= st[:label].presence || '—' %></span>
@@ -323,7 +299,6 @@
                 <span class="ic-stepev__status ic-stepev__status--<%= st[:status_tone] %>"><%= st[:status] %></span>
                 <span class="ic-stepev__proof"><%= st[:proof] %></span>
                 <span class="ic-stepev__digest mono"><%= st[:digest].presence || '—' %></span>
-                <span class="ic-stepev__time"><%= st[:at].respond_to?(:strftime) ? st[:at].utc.strftime('%H:%M:%S') : '—' %></span>
               </div>
             <% end %>
           </div>
