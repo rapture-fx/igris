@@ -119,6 +119,7 @@
                 <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
               <% when :proof_unavailable %>
                 <a href="#evidence" class="ic-btn">View evidence</a>
+                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
               <% when :completed %>
                 <a href="#evidence" class="ic-btn ic-btn--accent">View evidence</a>
                 <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
