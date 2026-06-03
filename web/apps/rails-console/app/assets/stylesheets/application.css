@@ -1115,13 +1115,20 @@ html.dark .ic-btn--accent:hover {
 }
 .ic-run-detail-rail .ic-summary {
   margin-bottom: 12px;
+  padding: 12px 14px;
 }
 .ic-run-detail-rail .ic-summary__grid {
   grid-template-columns: 1fr;
+  gap: 9px;
 }
 .ic-run-detail-rail .ic-summary__cell--wide {
   grid-column: auto;
 }
+/* Denser, smaller type for the left Execution-detail rail */
+.ic-run-detail-rail .ic-summary__head { font-size: 10px; margin-bottom: 10px; }
+.ic-run-detail-rail .ic-summary__k { font-size: 9.5px; margin-bottom: 2px; }
+.ic-run-detail-rail .ic-summary__v { font-size: 11px; }
+.ic-run-detail-rail .ic-summary__v.mono { font-size: 10.5px; }
 .ic-run-detail-rail .ic-nextstep {
   flex-direction: column;
   align-items: flex-start;
@@ -1250,20 +1257,25 @@ html.dark .ic-btn--accent:hover {
 /* Action / fault lines — a flat timestamped log row (ts | main | latency | receipt) */
 .ic-line {
   display: grid;
-  grid-template-columns: 82px minmax(0, 1fr) auto auto;
+  grid-template-columns: 78px minmax(0, 1fr) auto auto;
   align-items: center;
-  column-gap: 10px;
-  padding: 4px 12px;
+  column-gap: 9px;
+  padding: 3px 12px;
   border-radius: 0;
 }
 .ic-line:hover { background: var(--ic-overlay-1); }
 .ic-line__ts {
   font-family: var(--ic-mono);
-  font-size: 11px;
-  color: var(--ic-text-8);
+  font-size: 10px;
+  color: var(--ic-text-6);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* HTTP status, colored inside the log detail */
+.ic-http { font-weight: 500; }
+.ic-http--ok   { color: var(--ic-emerald); }
+.ic-http--warn { color: var(--ic-amber); }
+.ic-http--bad  { color: var(--ic-rose); }
 .ic-logitem {
   border-radius: 5px;
 }
@@ -1304,31 +1316,31 @@ html.dark .ic-btn--accent:hover {
 }
 .ic-line__name {
   font-family: var(--ic-mono);
-  font-size: 12.5px;
-  color: var(--ic-text);
+  font-size: 11px;
+  color: var(--ic-text-2);
 }
 .ic-line__name--running { animation: ic-breathe 3.2s ease-in-out infinite; }
 .ic-line__detail {
-  font-size: 12px;
-  color: var(--ic-text-6);
+  font-size: 10.5px;
+  color: var(--ic-text-5);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ic-line__latency {
   font-family: var(--ic-mono);
-  font-size: 11px;
-  color: var(--ic-text-8);
+  font-size: 10px;
+  color: var(--ic-text-6);
   font-variant-numeric: tabular-nums;
-  min-width: 42px;
+  min-width: 40px;
   text-align: right;
 }
 .ic-line__receipt {
   font-family: var(--ic-mono);
-  font-size: 10.5px;
+  font-size: 9.5px;
 }
 .ic-line__receipt--ok { color: var(--ic-emerald); }
-.ic-line__receipt--none { color: var(--ic-text-8); }
+.ic-line__receipt--none { color: var(--ic-text-7); }
 .ic-line__counter {
   font-family: var(--ic-mono);
   font-size: 10.5px;
@@ -1881,6 +1893,9 @@ html.dark .ic-btn--accent:hover {
 .ic-runinspector__rows .ic-def { grid-template-columns: 96px 1fr; padding: 4px 0; }
 .ic-runinspector__hint { font-size: 11.5px; color: var(--ic-text-6); line-height: 1.5; margin: 0 0 8px; }
 .ic-runinspector__note { font-size: 11px; color: var(--ic-text-6); line-height: 1.5; margin: 8px 0 0; }
+.ic-runinspector__auditrows { display: flex; flex-direction: column; gap: 10px; }
+.ic-runinspector__auditrow { display: flex; flex-direction: column; gap: 2px; }
+.ic-runinspector__auditnote { font-size: 10.5px; color: var(--ic-text-6); line-height: 1.45; margin: 0; }
 .ic-runinspector__empty-line { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 2px 0 0; }
 .ic-runinspector__code {
   font-family: var(--ic-mono);
@@ -1897,6 +1912,72 @@ html.dark .ic-btn--accent:hover {
   overflow: auto;
 }
 .ic-runinspector__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Execution-profile waterfall (inspector) — JS-free profiler trace ──── */
+.ic-wfall { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+.ic-wfall__row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  padding: 1px 0;
+}
+.ic-wfall__row:hover { background: var(--ic-overlay-1); }
+.ic-wfall__label {
+  font-size: 10px;
+  color: var(--ic-text-4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-wfall__track {
+  position: relative;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--ic-overlay-2);
+  /* faint quartile gridlines */
+  background-image: repeating-linear-gradient(
+    to right, var(--ic-border-soft) 0 1px, transparent 1px 25%);
+}
+.ic-wfall__bar {
+  position: absolute;
+  top: 1.5px;
+  bottom: 1.5px;
+  min-width: 2px;
+  border-radius: 2px;
+  /* glossy top highlight + a brighter leading edge for the profiler feel */
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.35);
+  transition: width 320ms cubic-bezier(0.16, 0.84, 0.44, 1),
+              margin-left 320ms cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+.ic-wfall__bar--ok    { background-color: var(--ic-emerald); }
+.ic-wfall__bar--warn  { background-color: var(--ic-amber); }
+.ic-wfall__bar--bad   { background-color: var(--ic-rose); }
+.ic-wfall__bar--muted { background-color: var(--ic-text-6); }
+.ic-wfall__val {
+  font-size: 10px;
+  color: var(--ic-text-5);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.ic-wfall__axis {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 48px;
+  gap: 8px;
+  margin-top: 3px;
+}
+.ic-wfall__scale {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--ic-text-7);
+  font-variant-numeric: tabular-nums;
+}
+.ic-wfall__scale-mid { color: var(--ic-text-8); letter-spacing: 0.04em; }
+
 .ic-runinspector__empty { padding: 28px 18px; }
 .ic-runinspector__empty-title { font-size: 13px; color: var(--ic-text-bright); margin-bottom: 6px; }
 .ic-runinspector__empty-sub { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 0 0 14px; }
