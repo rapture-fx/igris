@@ -140,8 +140,8 @@
                 <div class="ic-key-row__main">
                   <div class="ic-key-row__name"><%= k[:name] %></div>
                   <div class="ic-key-row__desc">
-                    created <%= k[:created_at] ? time_ago(k[:created_at]) : '—' %>
-                    · last used <%= k[:last_used_at] ? time_ago(k[:last_used_at]) : 'never' %>
+                    created <%= k[:created_at] ? time_ago(k[:created_at]) : '—' %>,
+                    last used <%= k[:last_used_at] ? time_ago(k[:last_used_at]) : 'never' %>
                   </div>
                 </div>
                 <div class="ic-key-row__masked mono"><%= k[:prefix].presence || 'igris_…' %>…</div>
@@ -232,14 +232,14 @@
           </div>
           <div class="ic-diagram__node ic-diagram__node--accent">
             <div class="ic-diagram__node-label">Igris action endpoint</div>
-            <div class="ic-diagram__node-sub">Policy · routing · proof</div>
+            <div class="ic-diagram__node-sub">Policy, routing, proof</div>
           </div>
           <div class="ic-diagram__arrow">
             <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div class="ic-diagram__node">
             <div class="ic-diagram__node-label">Tool / target</div>
-            <div class="ic-diagram__node-sub">API · webhook · runtime</div>
+            <div class="ic-diagram__node-sub">API, webhook, runtime</div>
           </div>
         </div>
 
@@ -283,11 +283,11 @@
 
         <div class="ic-field">
           <label class="ic-field__label">ADMIN_USERNAME</label>
-          <input class="ic-input" type="text" value="" placeholder="<%= ENV['ADMIN_USERNAME'].present? ? 'set on host · not shown' : 'not set' %>" disabled />
+          <input class="ic-input" type="text" value="" placeholder="<%= ENV['ADMIN_USERNAME'].present? ? 'set on host (not shown)' : 'not set' %>" disabled />
         </div>
         <div class="ic-field">
           <label class="ic-field__label">ADMIN_PASSWORD</label>
-          <input class="ic-input" type="password" value="" placeholder="set on host · never shown" disabled />
+          <input class="ic-input" type="password" value="" placeholder="set on host (never shown)" disabled />
           <p class="ic-field__help">
             Status: <strong>
               <%= ENV['ADMIN_USERNAME'].present? && ENV['ADMIN_PASSWORD'].present? ? 'locked' : 'open (development)' %>
