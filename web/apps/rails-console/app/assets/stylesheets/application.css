@@ -1019,12 +1019,29 @@ html.dark .ig-btn--primary {
   border: 1px solid var(--ic-border-soft);
   white-space: nowrap;
   letter-spacing: -0.005em;
+  vertical-align: middle;
 }
 .ic-chip__icon {
   display: inline-flex;
   align-items: center;
   margin-right: 4px;
   color: var(--ic-text-5);
+}
+/* Inline group of facet chips — replaces "A · B" dot-joined labels so each
+   value sits in its own neat badge, evenly gapped and vertically centred. */
+.ic-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  vertical-align: middle;
+}
+/* Compact chip for dense rows and inline value cells. */
+.ic-chip--sm {
+  font-size: 10px;
+  padding: 0 5px;
+  line-height: 15px;
 }
 
 .ic-kbd {
@@ -1588,7 +1605,7 @@ html.dark .ic-btn--accent:hover {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(96px, 148px) minmax(118px, 168px) minmax(160px, 1.15fr) 76px;
+  grid-template-columns: minmax(140px, 1fr) minmax(96px, 148px) minmax(150px, 200px) minmax(150px, 1.1fr) 76px;
   align-items: center;
   column-gap: 10px;
   padding: 6px 14px 6px 8px;
@@ -1678,13 +1695,23 @@ html.dark .ic-btn--accent:hover {
   white-space: nowrap;
 }
 .ic-run-row__sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
   font-size: 11px;
   color: var(--ic-text-6);
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ic-run-row__sub .mono { font-family: var(--ic-mono); }
+.ic-run-row__sub .mono {
+  font-family: var(--ic-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+/* Facet chips stay on one centred line and never push the row taller. */
+.ic-run-row__sub .ic-chips { flex-wrap: nowrap; min-width: 0; overflow: hidden; }
 .ic-run-row__time {
   font-size: 10px;
   color: var(--ic-text-8);
@@ -2496,10 +2523,9 @@ html.dark .ic-status__pill.is-bad { border-color: rgba(244,63,94,0.25); backgrou
 .ic-feed-item__id { color: var(--ic-text-7); font-size: 11px; }
 
 /* Routing label (Hosted API / Webhook / Runtime) lives inline on the title row,
-   set off from the action name by a muted middot. Not a pill — it reads as a
-   secondary attribute of the title, not a status. */
-.ic-feed-item__route { color: var(--ic-text-6); font-weight: 400; }
-.ic-feed-item__route::before { content: "·"; margin: 0 6px; color: var(--ic-text-7); }
+   set off from the action name by spacing and a muted colour (no separator
+   glyph). Not a pill — it reads as a secondary attribute of the title. */
+.ic-feed-item__route { color: var(--ic-text-6); font-weight: 400; margin-left: 8px; }
 
 /* Badges share the title's row. Each badge gets its OWN fixed column (company ·
    status), so pills line up vertically across rows even when a cell is empty.
