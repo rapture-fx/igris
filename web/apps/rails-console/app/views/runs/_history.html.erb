@@ -40,16 +40,16 @@
                 </span>
               </span>
               <span class="ic-run-row__sub">
-                <span class="mono"><%= r[:routed_via] %></span>
+                <%= facet_chips(r[:routed_via]) %>
               </span>
               <span class="ic-run-row__sub">
                 <%= r[:proof] %>
                 <% if r[:recovery].present? && r[:recovery] != 'Not needed' %>
-                  · <%= r[:recovery] %>
+                  <span class="ic-chip ic-chip--sm"><%= r[:recovery] %></span>
                 <% end %>
               </span>
               <span class="ic-run-row__time">
-                <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '· · ·' %><br>
+                <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '—' %><br>
                 <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
               </span>
             <% end %>
