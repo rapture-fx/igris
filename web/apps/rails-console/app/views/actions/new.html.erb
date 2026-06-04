@@ -168,9 +168,9 @@
         <div class="ig-divider"></div>
         <div class="ig-mut" style="font-size: 11.5px;">
           Review:
-          <strong style="color: var(--ig-text-primary);"><%= @draft[:name] %></strong>
-          · target <strong style="color: var(--ig-text-primary);"><%= @draft[:target_type].titleize %></strong>
-          · policy <strong style="color: var(--ig-text-primary);"><%= ActionsController::POLICY_PRESETS.dig(@draft[:policy], :label) || @draft[:policy] %></strong>
+          <strong style="color: var(--ig-text-primary);"><%= @draft[:name] %></strong>,
+          target <strong style="color: var(--ig-text-primary);"><%= @draft[:target_type].titleize %></strong>,
+          policy <strong style="color: var(--ig-text-primary);"><%= ActionsController::POLICY_PRESETS.dig(@draft[:policy], :label) || @draft[:policy] %></strong>
           <% if demo_mode? %>
             <br><span style="color: var(--ic-amber);">Demo mode — creating this action is inert and creates no real action.</span>
           <% end %>
@@ -187,7 +187,7 @@
       <% if final %>
         <%= submit_tag 'Create action', class: 'ig-btn ig-btn--primary ig-btn--lg' %>
       <% else %>
-        <%= submit_tag "Continue · #{next_step.titleize}", class: 'ig-btn ig-btn--primary ig-btn--lg' %>
+        <%= submit_tag "Continue to #{next_step.titleize}", class: 'ig-btn ig-btn--primary ig-btn--lg' %>
       <% end %>
     </div>
   <% end %>
