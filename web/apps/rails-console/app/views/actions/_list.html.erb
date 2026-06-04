@@ -54,7 +54,10 @@
                 <span class="mono"><%= a[:endpoint].sub(%r{^https?://}, '') %></span>
               </span>
               <span class="ic-run-row__sub">
-                <%= a[:policy] %> · replay <%= a[:replay].to_s.downcase %>
+                <span class="ic-chips">
+                  <% if (preset = feed_tokens(a[:policy]).first) %><span class="ic-chip ic-chip--sm"><%= preset %></span><% end %>
+                  <span class="ic-chip ic-chip--sm">replay <%= a[:replay].to_s.downcase %></span>
+                </span>
               </span>
               <span class="ic-run-row__time">
                 <%= a[:last_run_at] ? time_ago(a[:last_run_at]) : 'no runs' %>
