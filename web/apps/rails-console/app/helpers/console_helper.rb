@@ -111,6 +111,24 @@ module ConsoleHelper
     value.to_s.split('·').map(&:strip).reject(&:blank?)
   end
 
+  # Render a "·"-joined value as one neat badge per token instead of a single
+  # dot-joined chip (e.g. "Hosted API · Resend" → two separate chips in an
+  # evenly-gapped group). Falls back to a plain em-dash when the value is blank.
+  # Display text for filter/menu options: collapses the internal "·" join to a
+  # comma so option labels never show the dot-separator style. Only the visible
+  # text is cleaned — the underlying filter value is left untouched.
+  def filter_label(label)
+    label.to_s.gsub(' · ', ', ')
+  end
+
+  def facet_chips(value)
+    toks = feed_tokens(value)
+    return '—'.html_safe if toks.empty?
+    content_tag(:span, class: 'ic-chips') do
+      safe_join(toks.map { |t| content_tag(:span, t, class: 'ic-chip ic-chip--sm') })
+    end
+  end
+
   # Tone for a normalized runtime status label (Healthy / Stale / Degraded /
   # Offline / anything else). Used to colour the connected-runtime rows.
   def runtime_status_tone(status)
@@ -182,7 +200,7 @@ module ConsoleHelper
   # The text is HTML-escaped first; only recognized status tokens are wrapped,
   # toned ok (2xx) / warn (3xx) / bad (4xx-5xx). Returns html_safe output.
   def log_detail_html(detail)
-    esc = ERB::Util.html_escape(detail.to_s)
+    esc = ERB::Util.html_escape(filter_label(detail))
     pattern = /\b([1-5]\d{2})\b(\s#{LOG_HTTP_REASON})?/
     esc = esc.gsub(pattern) do
       code   = Regexp.last_match(1)
@@ -219,7 +237,7 @@ module ConsoleHelper
                when :running then 'warn'
                else s[:kind] == :fault ? 'warn' : 'ok'
                end
-        row = { label: s[:name].to_s, ms: ms, start_ms: cursor, tone: tone, meta: s[:detail].to_s }
+        row = { label: s[:name].to_s, ms: ms, start_ms: cursor, tone: tone, meta: filter_label(s[:detail]) }
         cursor += ms
         row
       end
@@ -305,11 +323,11 @@ module ConsoleHelper
   def run_activity_aria_label(run, band = nil)
     band ||= run_activity_band(run)
     parts = ["Action #{run[:action].to_s.presence || '—'}", run_activity_label(band)]
-    parts << "routed via #{run[:routed_via]}" if run[:routed_via].to_s.strip.present?
+    parts << "routed via #{filter_label(run[:routed_via])}" if run[:routed_via].to_s.strip.present?
     parts << (run[:proof].to_s.presence || 'Proof unavailable')
     parts << "runtime #{run[:runtime_id]}"    if run[:runtime_id].to_s.strip.present?
     parts << time_ago(run[:started_at])
-    "#{parts.join(' · ')}. Open run to inspect audit-supporting evidence."
+    "#{parts.join(', ')}. Open run to inspect audit-supporting evidence."
   end
 
   # Build the placed points for the map from a newest-first run window.
@@ -626,11 +644,11 @@ module ConsoleHelper
     verification =
       if    verified then 'Signed'
       elsif failed   then 'Signature mismatch'
-      else                'Unsigned · not attached'
+      else                'Unsigned (not attached)'
       end
 
     [
-      { label: 'Control decision', value: run[:policy].to_s.presence || '—',
+      { label: 'Control decision', value: filter_label(run[:policy]).presence || '—',
         note: 'Policy decision record — the policy preset Igris applied before allowing execution.' },
       { label: 'Execution record', value: run[:status].to_s.presence || '—',
         note: 'Tamper-evident record of what Igris did when the action was called.' },
