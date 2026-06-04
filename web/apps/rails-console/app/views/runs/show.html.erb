@@ -107,23 +107,7 @@
               </p>
             </div>
             <div class="ic-nextstep__cta">
-              <% case guidance
-                 when :runtime_unavailable %>
-                <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn ic-btn--accent' %>
-                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-              <% when :failed %>
-                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-                <%= copy_button @run[:id], label: 'Copy run ID' %>
-              <% when :running %>
-                <a href="#evidence" class="ic-btn">View evidence</a>
-                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-              <% when :proof_unavailable %>
-                <a href="#evidence" class="ic-btn">View evidence</a>
-                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-              <% when :completed %>
-                <a href="#evidence" class="ic-btn ic-btn--accent">View evidence</a>
-                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn' %><% end %>
-              <% end %>
+              <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn ic-btn--accent', style: 'height: 24px; padding: 0 8px; font-size: 11px;' %><% end %>
             </div>
           </div>
         <% end %>
