@@ -257,7 +257,7 @@
     <%# ── Runtime runs ─────────────────────────────────────── %>
     <div class="ic-section-head" style="margin-top: 24px;">
       <span class="ic-section-head__label">Runtime runs</span>
-      <span class="ic-section-head__hint">Executions that routed through a runtime<%= ' · demo data' if demo_mode? %>.</span>
+      <span class="ic-section-head__hint">Executions that routed through a runtime<%= ' (demo data)' if demo_mode? %>.</span>
     </div>
     <% if @runtime_runs.present? %>
       <div class="ig-table-wrap">
