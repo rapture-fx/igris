@@ -59,7 +59,7 @@
                   tip_action: pt[:run][:action].to_s.presence || '—',
                   tip_band:   pt[:band],
                   tip_status: run_activity_label(pt[:band]),
-                  tip_via:    pt[:run][:routed_via],
+                  tip_via:    filter_label(pt[:run][:routed_via]),
                   tip_proof:  pt[:run][:proof].to_s.presence || 'Proof unavailable',
                   tip_time:   time_ago(pt[:run][:started_at]),
                 },
