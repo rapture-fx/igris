@@ -18,15 +18,15 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<% tabs = %w[overview endpoint target policy secrets runs] %>
-<nav class="ig-tabs">
+<% tabs = %w[overview endpoint target policy secrets] %>
+<nav class="ig-tabs ig-tabs--detail">
   <% tabs.each do |t| %>
     <%= link_to t.titleize, action_path(@action[:id], tab: t),
         class: "ig-tabs__item #{'is-active' if @tab == t}" %>
   <% end %>
 </nav>
 
-<div class="ig-body">
+<div class="ig-body ig-body--detail<%= ' ig-body--fixed' if @tab == 'overview' %>">
   <% if @just_created %>
     <div class="ig-strip" style="background: rgba(52,211,153,0.06); border-bottom: none; border-radius: 8px; margin-bottom: 12px;">
       <%= chip 'Created', tone: :ok %>
@@ -126,47 +126,6 @@
                 <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
               <% end %>
             <% end %>
-          <% end %>
-        </div>
-
-        <div class="ig-card">
-          <div class="ig-card__title">Latest runs</div>
-          <% if @runs_for_action.any? %>
-            <div class="ig-table-wrap">
-              <table class="ig-table">
-                <thead>
-                  <tr><th>Run</th><th>Status</th><th>Routed via</th><th>Proof</th><th>Started</th></tr>
-                </thead>
-                <tbody>
-                  <% @runs_for_action.first(5).each do |r| %>
-                    <tr>
-                      <td><%= link_to r[:id], run_path(r[:id]) %></td>
-                      <td><%= status_pill r[:status] %></td>
-                      <td class="ig-mut"><%= r[:routed_via] %></td>
-                      <td><%= status_pill r[:proof] %></td>
-                      <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
-                    </tr>
-                  <% end %>
-                </tbody>
-              </table>
-            </div>
-            <% if @runs_for_action.size > 5 %>
-              <p style="margin-top: 10px;"><%= link_to 'View all runs for this action', action_path(@action[:id], tab: 'runs') %></p>
-            <% end %>
-          <% else %>
-            <div class="ic-nextstep">
-              <div>
-                <div class="ic-nextstep__kicker">Next step</div>
-                <div class="ic-nextstep__title">No runs yet. Send a test request to create the first run.</div>
-              </div>
-              <div class="ic-nextstep__cta">
-                <% if @runtime_required && !demo_mode? %>
-                  <%= link_to 'Connect a runtime', runtimes_path, class: 'ig-btn ig-btn--primary' %>
-                <% else %>
-                  <a href="#test-request" class="ig-btn ig-btn--primary">Send a test request</a>
-                <% end %>
-              </div>
-            </div>
           <% end %>
         </div>
       </div>
@@ -278,31 +237,6 @@
       <div class="ig-card__title">Secrets</div>
       <div class="ig-mut" style="font-size: 12.5px; margin-bottom: 10px;">Values are never shown in the console — only configured / not configured.</div>
       <div class="ig-def"><span class="ig-def__label">target_auth</span><span class="ig-def__value"><%= status_pill @action[:secrets_state] %></span></div>
-    </div>
-
-  <% when 'runs' %>
-    <div class="ig-table-wrap">
-      <table class="ig-table">
-        <thead>
-          <tr><th>Run</th><th>Status</th><th>Routed via</th><th>Proof</th><th>Duration</th><th>Started</th></tr>
-        </thead>
-        <tbody>
-          <% if @runs_for_action.any? %>
-            <% @runs_for_action.each do |r| %>
-              <tr>
-                <td><%= link_to r[:id], run_path(r[:id]) %></td>
-                <td><%= status_pill r[:status] %></td>
-                <td class="ig-mut"><%= r[:routed_via] %></td>
-                <td><%= status_pill r[:proof] %></td>
-                <td class="ig-mut"><%= r[:duration_ms] %> ms</td>
-                <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
-              </tr>
-            <% end %>
-          <% else %>
-            <tr><td colspan="6" class="ig-mut" style="text-align: center; padding: 32px;">No runs yet. Send a test request to record one.</td></tr>
-          <% end %>
-        </tbody>
-      </table>
     </div>
   <% end %>
 </div>
