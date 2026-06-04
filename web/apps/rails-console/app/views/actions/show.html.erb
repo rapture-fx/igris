@@ -6,8 +6,8 @@
     <%= link_to 'Actions', actions_path, class: 'ic-topbar__crumb' %>
     <span class="ic-topbar__sep">/</span>
     <span class="ic-topbar__title"><%= @action[:name] %></span>
-    <span class="ic-chip"><%= @action[:target_label] %></span>
-    <span class="ic-chip">policy: <%= @action[:policy] %></span>
+    <% feed_tokens(@action[:target_label]).each do |tok| %><span class="ic-chip"><%= tok %></span><% end %>
+    <% feed_tokens(@action[:policy]).each_with_index do |tok, i| %><span class="ic-chip"><%= 'policy: ' if i.zero? %><%= tok %></span><% end %>
     <span class="ic-chip">replay: <%= @action[:replay] == 'On' ? 'allowed' : 'blocked' %></span>
     <span class="ic-chip">proof: <%= latest ? latest[:proof] : 'no runs yet' %></span>
     <span class="ic-topbar__hint">
@@ -51,7 +51,7 @@
       </div>
     <% else %>
       <div class="ic-runtime-ok">
-        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runtime available<%= ' · demo' if demo_mode? %></span>
+        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runtime available</span><% if demo_mode? %><span class="ic-readiness ic-readiness--muted">demo</span><% end %>
         <span class="ic-runtime-ok__text">
           This action runs through a local runtime. A healthy runtime is connected, so you can send a test request.
         </span>
@@ -141,7 +141,7 @@
 
         <div class="ig-card">
           <div class="ig-card__title">Target</div>
-          <div class="ig-def"><span class="ig-def__label">Type</span><span class="ig-def__value"><%= @action[:target_label] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Type</span><span class="ig-def__value"><%= facet_chips(@action[:target_label]) %></span></div>
           <p class="ig-mut" style="margin-top: 6px;">
             <%= case @action[:target_type]
                 when 'hosted_api'    then 'Igris routes this action to a hosted API target.'
@@ -160,7 +160,7 @@
               <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Runtime required</span>
               <p class="ig-mut" style="margin-top: 6px;">Connect a runtime before sending a test request. <%= link_to 'Connect a runtime', runtimes_path %>.</p>
             <% else %>
-              <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runtime available<%= ' · demo' if demo_mode? %></span>
+              <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runtime available</span><% if demo_mode? %><span class="ic-readiness ic-readiness--muted">demo</span><% end %>
             <% end %>
           <% else %>
             <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
@@ -169,7 +169,7 @@
 
         <div class="ig-card">
           <div class="ig-card__title">Policy</div>
-          <div class="ig-def"><span class="ig-def__label">Preset</span><span class="ig-def__value"><%= @action[:policy] %></span></div>
+          <div class="ig-def"><span class="ig-def__label">Preset</span><span class="ig-def__value"><%= facet_chips(@action[:policy]) %></span></div>
           <div class="ig-def"><span class="ig-def__label">Replay</span><span class="ig-def__value"><%= @action[:replay] == 'On' ? 'Replay allowed' : 'Replay blocked' %></span></div>
           <div class="ig-def"><span class="ig-def__label">Approval</span><span class="ig-def__value"><%= @action[:approval_required] ? 'Human-gated' : 'Automatic' %></span></div>
         </div>
@@ -202,7 +202,8 @@
 
   <% when 'target' %>
     <div class="ig-card">
-      <div class="ig-card__title"><%= @action[:target_label] %></div>
+      <% tt = feed_tokens(@action[:target_label]) %>
+      <div class="ig-card__title"><%= tt.first %><% if tt[1] %> <span class="ic-chip ic-chip--sm"><%= tt[1..].join(' ') %></span><% end %></div>
       <div class="ig-mut" style="font-size: 12.5px;">
         <% case @action[:target_type] %>
         <% when 'hosted_api' %>
@@ -224,7 +225,7 @@
     <div class="ig-card">
       <div class="ig-card__title">Policy</div>
       <div class="ig-mut" style="font-size: 12.5px;">
-        In plain language: <strong style="color: var(--ig-text-primary);"><%= @action[:policy] %></strong>
+        In plain language: <strong style="color: var(--ig-text-primary);"><%= filter_label(@action[:policy]) %></strong>
       </div>
       <div class="ig-divider"></div>
       <div class="ig-def"><span class="ig-def__label">Replay class</span><span class="ig-def__value"><%= @action[:replay] %></span></div>
