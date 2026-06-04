@@ -59,11 +59,11 @@
             </div>
             <div class="ic-summary__cell">
               <div class="ic-summary__k">Routed via</div>
-              <div class="ic-summary__v"><%= @run[:routed_via] %></div>
+              <div class="ic-summary__v"><%= facet_chips(@run[:routed_via]) %></div>
             </div>
             <div class="ic-summary__cell">
               <div class="ic-summary__k">Policy</div>
-              <div class="ic-summary__v"><%= @run[:policy] %></div>
+              <div class="ic-summary__v"><%= facet_chips(@run[:policy]) %></div>
             </div>
             <div class="ic-summary__cell">
               <div class="ic-summary__k">Proof</div>
@@ -129,7 +129,8 @@
         <div class="ic-def">
           <span class="ic-def__label">Region</span>
           <div class="ic-def__value">
-            <span class="ic-chip">fra1·prod</span>
+            <span class="ic-chip">fra1</span>
+            <span class="ic-chip">prod</span>
             <span class="ic-def__hint">eu-central, primary</span>
           </div>
         </div>
@@ -244,11 +245,11 @@
         <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= dash.call(@run[:action]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill @run[:status] %></div></div>
         <div class="ic-def"><span class="ic-def__label">Executed target</span><div class="ic-def__value mono"><%= dash.call(@run[:executed_target]) %></div></div>
-        <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= dash.call(@run[:routed_via]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= facet_chips(@run[:routed_via]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= dash.call(@run[:runtime_id]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Started</span><div class="ic-def__value"><%= started_label %> <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %></span></div></div>
         <div class="ic-def"><span class="ic-def__label">Duration</span><div class="ic-def__value mono"><%= duration_label %></div></div>
-        <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= dash.call(@run[:policy]) %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= facet_chips(@run[:policy]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value"><%= dash.call(@run[:recovery]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_pill proof_label %></div></div>
         <div class="ic-def">
@@ -299,7 +300,7 @@
             <% story.each do |ev| %>
               <div class="ig-timeline__step is-<%= ev[:tone] %>">
                 <div class="ig-timeline__title"><%= ev[:title] %></div>
-                <% if ev[:meta].present? %><div class="ig-timeline__meta"><%= ev[:meta] %></div><% end %>
+                <% if ev[:meta].present? %><div class="ig-timeline__meta"><%= filter_label(ev[:meta]) %></div><% end %>
               </div>
             <% end %>
           </div>
@@ -318,7 +319,7 @@
 
     <div class="ic-foot-time">
       <%= @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S') : '' %>
-      <%= ' · live' if running %>
+      <% if running %><span style="color: var(--ic-emerald);">live</span><% end %>
     </div>
       </section>
     </div>
@@ -328,7 +329,6 @@
     <div class="ic-footer">
       <div class="ic-footer__bar">
         <span class="ic-footer__chip"><span class="dot"></span><span>action_workflow v1</span></span>
-        <span class="ic-footer__sep">·</span>
         <span>Receipts ed25519</span>
         <div class="ic-footer__spacer"></div>
       </div>
