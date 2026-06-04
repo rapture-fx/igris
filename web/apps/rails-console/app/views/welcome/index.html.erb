@@ -56,42 +56,7 @@
       signed evidence exists.
     </p>
 
-    <%# ── Architecture diagram ────────────────────────────────── %>
-    <div class="ic-diagram" role="img" aria-label="Agent or app calls an Igris action endpoint, which dispatches to a tool, API, or runtime">
-      <div class="ic-diagram__node">
-        <div class="ic-diagram__node-label">Your agent / app</div>
-        <div class="ic-diagram__node-sub">Calls one endpoint</div>
-      </div>
-      <div class="ic-diagram__arrow">
-        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <div class="ic-diagram__node ic-diagram__node--accent">
-        <div class="ic-diagram__node-label">Igris action endpoint</div>
-        <div class="ic-diagram__node-sub">Policy · routing · recovery · proof</div>
-      </div>
-      <div class="ic-diagram__arrow">
-        <svg width="20" height="10" viewBox="0 0 20 10" fill="none"><path d="M0 5 L18 5 M13 1 L18 5 L13 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-      <div class="ic-diagram__node">
-        <div class="ic-diagram__node-label">Tool · API · runtime</div>
-        <div class="ic-diagram__node-sub">Where the side effect runs</div>
-      </div>
-    </div>
 
-    <%# ── First action checklist ──────────────────────────────── %>
-    <div class="ic-section-head"><span class="ic-section-head__label">Your first action</span></div>
-    <ol class="ic-checklist">
-      <% %w[Create\ action Copy\ endpoint Send\ test\ request Inspect\ run].each_with_index do |label, i| %>
-        <li class="ic-checklist__step">
-          <span class="ic-checklist__num"><%= i + 1 %></span>
-          <span class="ic-checklist__label"><%= label %></span>
-          <% unless i == 3 %><span class="ic-checklist__arrow" aria-hidden="true">→</span><% end %>
-        </li>
-      <% end %>
-    </ol>
-    <p class="ic-welcome__sub" style="margin-top: 0;">
-      Create an action, copy the endpoint, send a test request, and inspect what happened.
-    </p>
 
     <%# ── Call Igris (copyable command) ───────────────────────── %>
     <div class="ic-section-head"><span class="ic-section-head__label">Call Igris from your agent</span></div>
