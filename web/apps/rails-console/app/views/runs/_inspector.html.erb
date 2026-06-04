@@ -60,11 +60,11 @@
             </div>
           </div>
           <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill run[:status] %></div></div>
-          <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= dash.call(run[:routed_via]) %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= facet_chips(run[:routed_via]) %></div></div>
           <% if run[:runtime_id].to_s.strip.present? %>
             <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= run[:runtime_id] %></div></div>
           <% end %>
-          <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= dash.call(run[:policy]) %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= facet_chips(run[:policy]) %></div></div>
           <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value"><%= dash.call(run[:recovery]) %></div></div>
           <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_pill proof_label %></div></div>
           <div class="ic-def">
@@ -99,7 +99,7 @@
         <div class="ic-runinspector__kv">
           <div class="ic-runinspector__kvrow">
             <span class="ic-runinspector__kvk">Target</span>
-            <span class="ic-runinspector__kvv"><%= dash.call(run[:routed_via]) %></span>
+            <span class="ic-runinspector__kvv"><%= facet_chips(run[:routed_via]) %></span>
           </div>
         </div>
         <p class="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
@@ -166,7 +166,7 @@
         <% if profile.any? %>
           <% span  = profile.map { |p| p[:start_ms] + p[:ms] }.max.to_f %>
           <% total = profile.sum { |p| p[:ms] } %>
-          <p class="ic-runinspector__hint">Time per step along the run timeline — <%= profile.size %> steps · <%= total %>ms total.</p>
+          <p class="ic-runinspector__hint">Time per step along the run timeline — <%= profile.size %> steps over <%= total %>ms total.</p>
           <div class="ic-wfall">
             <% profile.each do |p| %>
               <% left  = span.positive? ? (p[:start_ms] / span * 100).round(2) : 0 %>
