@@ -139,7 +139,7 @@ class ActionsController < ApplicationController
     task_id = result['task_id'] || result['run_id']
     if task_id.present?
       redirect_to run_path(task_id),
-                  notice: "Request sent · status=#{result['status']} proof=#{result['proof_status']}"
+                  notice: "Request sent — status=#{result['status']} proof=#{result['proof_status']}"
     else
       test_outcome(:sent, 'Request was accepted, but Igris returned no run id to open.')
     end
