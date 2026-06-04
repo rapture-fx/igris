@@ -24,7 +24,7 @@
 
    api_label, api_tone =
      if @degraded_error then ['Degraded', 'is-bad']
-     elsif demo_mode?   then ['Demo · fixtures', 'is-warn']
+     elsif demo_mode?   then ['Demo data', 'is-warn']
      else                    ['Connected', 'is-ok']
      end %>
 
@@ -148,7 +148,7 @@
           <span class="ic-ws-avatar"><%= image_tag '/emeralds.jpg', alt: '' %></span>
           <div>
             <div class="ic-workspace-panel__name"><%= project_display_name %></div>
-            <span class="ic-status__pill <%= api_tone %>"><%= api_label %></span>
+            <% feed_tokens(api_label).each_with_index do |tok, i| %><span class="ic-status__pill <%= api_tone if i.zero? %>"><%= tok %></span> <% end %>
           </div>
         </div>
 
@@ -159,7 +159,7 @@
           </div>
           <div class="ic-wsrow">
             <span class="ic-wsrow__k">Last run</span>
-            <span class="ic-wsrow__v"><% if last_run %><%= time_ago(last_run[:started_at]) %> · <%= last_run[:action] %><% else %>—<% end %></span>
+            <span class="ic-wsrow__v"><% if last_run %><%= time_ago(last_run[:started_at]) %> <span style="color: var(--ic-text-7);">(<%= last_run[:action] %>)</span><% else %>—<% end %></span>
           </div>
           <div class="ic-wsrow">
             <span class="ic-wsrow__k">Runtime status</span>
