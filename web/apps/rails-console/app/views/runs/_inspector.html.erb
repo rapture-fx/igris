@@ -96,10 +96,13 @@
       <%# ── Action input ──────────────────────────────────────────────── %>
       <section class="ic-runinspector__section">
         <div class="ic-runinspector__sechead">Action input</div>
-        <div class="ic-runinspector__rows">
-          <div class="ic-def"><span class="ic-def__label">Target</span><div class="ic-def__value"><%= dash.call(run[:routed_via]) %></div></div>
+        <div class="ic-runinspector__kv">
+          <div class="ic-runinspector__kvrow">
+            <span class="ic-runinspector__kvk">Target</span>
+            <span class="ic-runinspector__kvv"><%= dash.call(run[:routed_via]) %></span>
+          </div>
         </div>
-        <p class="ic-runinspector__empty-line">Action input is not shown here. Igris displays safe identifiers and digests instead.</p>
+        <p class="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
       </section>
 
       <%# ── Execution assessment ──────────────────────────────────────── %>
@@ -124,9 +127,9 @@
         <div class="ic-runinspector__auditrows">
           <% audit_interpretation(run).each do |row| %>
             <div class="ic-runinspector__auditrow">
-              <div class="ic-def">
-                <span class="ic-def__label"><%= row[:label] %></span>
-                <div class="ic-def__value"><%= row[:value] %></div>
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel"><%= row[:label] %></span>
+                <span class="ic-runinspector__auditvalue"><%= row[:value] %></span>
               </div>
               <p class="ic-runinspector__auditnote"><%= row[:note] %></p>
             </div>
