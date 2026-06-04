@@ -1,0 +1,29 @@
+<%# ── Execution readiness rail — a thin, technical rail below the Run Activity
+    Map. Six compact nodes (dot + full label + one-line state) joined by hairline
+    segments, then a single context line naming the current blocker with one CTA.
+    Not cards. Reads only safe, already-redacted fields.
+    Locals: nodes (ordered node hashes), status ({ tone, text, cta }). %>
+<section class="ic-erail" aria-label="Execution readiness">
+  <div class="ic-erail__cap">Execution readiness</div>
+
+  <ol class="ic-erail__track">
+    <% nodes.each_with_index do |node, i| %>
+      <li class="ic-erail__node ic-erail__node--<%= node[:tone] %>">
+        <span class="ic-erail__dot" aria-hidden="true"></span>
+        <span class="ic-erail__label"><%= node[:name] %></span>
+        <span class="ic-erail__state"><%= node[:state] %></span>
+      </li>
+      <% unless i == nodes.size - 1 %>
+        <li class="ic-erail__seg ic-erail__seg--<%= execution_flow_tone(node[:tone]) %>" aria-hidden="true"></li>
+      <% end %>
+    <% end %>
+  </ol>
+
+  <p class="ic-erail__status ic-erail__status--<%= status[:tone] %>">
+    <span class="ic-erail__status-dot" aria-hidden="true"></span>
+    <span class="ic-erail__status-text"><%= status[:text] %></span>
+    <% if status[:cta] %>
+      <%= link_to status[:cta][:label], status[:cta][:href], class: 'ic-erail__status-cta' %>
+    <% end %>
+  </p>
+</section>
