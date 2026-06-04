@@ -1,0 +1,450 @@
+<!-- BEGIN app/views/layouts/application.html.erb --><!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Igris Inertial Developer Console</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="csrf-token" content="rp2QsoYaBQauchNL7VWGlc8yYPzIKRE6kzw8nNPG0YLGMtR3SG2VL6arZWp7KyPkB92jI-xegGP_tZijcHDnqg">
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('ic-theme');
+          var dark = saved
+            ? saved === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="/assets/application-9c022557.css" />
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <style>:root { font-family: 'Inter', sans-serif; }</style>
+    <script type="module">
+      import { lineSpinner } from 'https://cdn.jsdelivr.net/npm/ldrs@1.0.2/+esm';
+      lineSpinner.register();
+    </script>
+  </head>
+  <body>
+    <div class="ig-shell">
+      <!-- BEGIN app/views/shared/_icon_rail.html.erb --><nav class="ic-rail" aria-label="Console lenses">
+  <a class="ic-rail__logo" aria-label="Igris" href="/welcome">
+    <img class="ic-rail__logo-img ic-rail__logo-img--light" alt="" src="/inertia.png" />
+    <img class="ic-rail__logo-img ic-rail__logo-img--dark" alt="" src="/fofotlight.png" />
+</a>
+  <div class="ic-rail__items">
+      <a class="ic-rail__btn " aria-label="Home" data-tip="Home" href="/welcome">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5"/><path d="M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/></svg>
+</a>      <a class="ic-rail__btn is-active" aria-label="Overview" data-tip="Overview" href="/home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Actions" data-tip="Actions" href="/actions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Runs" data-tip="Runs" href="/runs">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Runtimes" data-tip="Runtimes" href="/runtimes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Settings" data-tip="Settings" href="/settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+</a>  </div>
+
+  <details class="ic-rail__avatar" data-tip="Account">
+    <summary aria-label="Account menu">
+      <img alt="" src="/emeralds.jpg" />
+    </summary>
+    <div class="ic-rail__menu" role="menu">
+      <div class="ic-rail__menu__head">
+        <span class="ic-rail__menu__name">Operator</span>
+        <span class="ic-rail__menu__email">operator@igrisinertial.com</span>
+      </div>
+
+      <a href="https://igrisinertial.com/docs/api" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+        <span>API reference</span>
+        <svg class="ic-rail__menu__hint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;color:var(--ic-text-7);"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+      </a>
+
+      <a href="https://status.igrisinertial.com" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.24 2.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4 12H2"/></svg>
+        <span>Status page</span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;">
+          <span style="width:5px;height:5px;border-radius:999px;background:var(--ic-emerald);"></span>
+          <span style="font-size:10.5px;color:var(--ic-text-7);">all systems</span>
+        </span>
+      </a>
+
+      <a href="mailto:support@igrisinertial.com" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <span>Support</span>
+      </a>
+
+      <a href="https://igrisinertial.com/docs" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Documentation</span>
+      </a>
+
+      <a href="https://igrisinertial.com/changelog" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>What's new</span>
+      </a>
+
+      <div class="ic-rail__menu__sep" role="separator"></div>
+
+      <button type="button" class="ic-rail__menu__item" role="menuitemcheckbox" id="ic-theme-toggle" aria-checked="false">
+        <svg class="ic-rail__menu__icon ic-rail__menu__icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="ic-rail__menu__icon ic-rail__menu__icon--dark"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="ic-theme-toggle-label">Dark mode</span>
+        <span class="ic-rail__menu__hint" id="ic-theme-toggle-state">off</span>
+      </button>
+
+      <div class="ic-rail__menu__sep" role="separator"></div>
+
+      <button type="button" class="ic-rail__menu__item ic-rail__menu__item--danger" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sign out</span>
+      </button>
+    </div>
+  </details>
+</nav>
+
+<script>
+  (function() {
+    const details = document.querySelector('.ic-rail__avatar');
+    if (details) {
+      document.addEventListener('click', function(e) {
+        if (!details.open) return;
+        if (!details.contains(e.target)) details.open = false;
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && details.open) details.open = false;
+      });
+    }
+
+    function syncToggle() {
+      const dark = document.documentElement.classList.contains('dark');
+      const state = document.getElementById('ic-theme-toggle-state');
+      const btn = document.getElementById('ic-theme-toggle');
+      if (state) state.textContent = dark ? 'on' : 'off';
+      if (btn) btn.setAttribute('aria-checked', dark ? 'true' : 'false');
+    }
+    syncToggle();
+    const btn = document.getElementById('ic-theme-toggle');
+    if (btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dark = !document.documentElement.classList.contains('dark');
+        document.documentElement.classList.toggle('dark', dark);
+        try { localStorage.setItem('ic-theme', dark ? 'dark' : 'light'); } catch (e) {}
+        syncToggle();
+      });
+    }
+  })();
+</script>
+<!-- END app/views/shared/_icon_rail.html.erb -->
+      <main class="ig-main">
+        <!-- BEGIN app/views/home/index.html.erb -->
+<div class="ic-topbar">
+  <div class="ic-topbar__group">
+    <span class="ic-topbar__title">Home</span>
+    <span class="ic-chip">Support Agent</span>
+  </div>
+</div>
+
+<!-- BEGIN app/views/shared/_flash.html.erb --><!-- END app/views/shared/_flash.html.erb -->
+
+<div class="ic-body ic-scroll ic-body--fixed">
+  <div class="ic-workspace">
+
+    <img class="ic-workspace-banner" alt="" src="/home.png" />
+
+    <div class="ic-workspace-layout">
+
+      <div class="ic-workspace-feed">
+          <nav class="ig-tabs" aria-label="Workspace views">
+              <a class="ig-tabs__item is-active" href="/home?tab=map">Run Activity Map</a>
+              <a class="ig-tabs__item " href="/home?tab=feed">Feed</a>
+              <a class="ig-tabs__item " href="/home?tab=actions">Actions</a>
+              <a class="ig-tabs__item " href="/home?tab=attention">Attention</a>
+          </nav>
+
+          <div class="ic-ws-tabbody">
+            <!-- BEGIN app/views/shared/_run_activity_map.html.erb --><section class="ic-runmap ic-runmap--flush" aria-label="Run Activity Map">
+  <div class="ic-runmap__head">
+    <div class="ic-runmap__heading">
+      <span class="ic-runmap__title">Run Activity Map</span>
+      <span class="ic-runmap__sub">Recent run events grouped by outcome. Each dot is one run; click a dot to open its evidence.</span>
+    </div>
+    <a class="ic-runmap__viewall" href="/runs">View all</a>
+  </div>
+
+    <div class="ic-runmap__legend" aria-label="Run outcome legend">
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--verified" aria-hidden="true"></span>
+          <span>Verified</span>
+          <span class="ic-runmap__legend-count">17</span>
+        </span>
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--completed" aria-hidden="true"></span>
+          <span>Completed</span>
+          <span class="ic-runmap__legend-count">7</span>
+        </span>
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--recovered" aria-hidden="true"></span>
+          <span>Recovered</span>
+          <span class="ic-runmap__legend-count">5</span>
+        </span>
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--waiting" aria-hidden="true"></span>
+          <span>Waiting</span>
+          <span class="ic-runmap__legend-count">4</span>
+        </span>
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--blocked" aria-hidden="true"></span>
+          <span>Blocked</span>
+          <span class="ic-runmap__legend-count">5</span>
+        </span>
+        <span class="ic-runmap__legend-item">
+          <span class="ic-runmap__legend-dot ic-runmap__dot--failed" aria-hidden="true"></span>
+          <span>Failed</span>
+          <span class="ic-runmap__legend-count">8</span>
+        </span>
+    </div>
+
+    <div class="ic-runmap__time-head">
+      <span>Outcome</span>
+      <span>Older runs</span>
+      <span>Newer runs</span>
+    </div>
+    <div class="ic-runmap__scroll">
+      <div class="ic-runmap__grid"
+           style="grid-template-columns: minmax(82px, max-content) repeat(46, minmax(0, 1fr));">
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: 1;">
+            Verified
+            <span class="ic-runmap__band-count">17</span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: 1;" aria-hidden="true"></i>
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: 2;">
+            Completed
+            <span class="ic-runmap__band-count">7</span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: 2;" aria-hidden="true"></i>
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: 3;">
+            Recovered
+            <span class="ic-runmap__band-count">5</span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: 3;" aria-hidden="true"></i>
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: 4;">
+            Waiting
+            <span class="ic-runmap__band-count">4</span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: 4;" aria-hidden="true"></i>
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: 5;">
+            Blocked
+            <span class="ic-runmap__band-count">5</span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: 5;" aria-hidden="true"></i>
+          <span class="ic-runmap__band" style="grid-column: 1; grid-row: 6;">
+            Failed
+            <span class="ic-runmap__band-count">8</span>
+          </span>
+          <i class="ic-runmap__lane" style="grid-column: 2 / -1; grid-row: 6;" aria-hidden="true"></i>
+          <a class="ic-runmap__dot ic-runmap__dot--blocked" style="grid-column: 2; grid-row: 5;" data-tip="Action run_audit, Blocked, routed via Runtime · rt_prod_02, Proof unavailable, 3d ago. Open run to inspect audit-supporting evidence." data-tip-action="run_audit" data-tip-band="blocked" data-tip-status="Blocked" data-tip-via="Runtime · rt_prod_02" data-tip-proof="Proof unavailable" data-tip-time="3d ago" aria-label="Action run_audit, Blocked, routed via Runtime · rt_prod_02, Proof unavailable, 3d ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_40"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 3; grid-row: 1;" data-tip="Action archive_document, Verified, routed via Hosted API · S3, Proof verified, 2d ago. Open run to inspect audit-supporting evidence." data-tip-action="archive_document" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · S3" data-tip-proof="Proof verified" data-tip-time="2d ago" aria-label="Action archive_document, Verified, routed via Hosted API · S3, Proof verified, 2d ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_39"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 4; grid-row: 6;" data-tip="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 2d ago. Open run to inspect audit-supporting evidence." data-tip-action="generate_report" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · S3" data-tip-proof="Proof failed" data-tip-time="2d ago" aria-label="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 2d ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_38"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--recovered" style="grid-column: 5; grid-row: 3;" data-tip="Action process_payment, Recovered, routed via Hosted API · Stripe, Proof unavailable, 2d ago. Open run to inspect audit-supporting evidence." data-tip-action="process_payment" data-tip-band="recovered" data-tip-status="Recovered" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof unavailable" data-tip-time="2d ago" aria-label="Action process_payment, Recovered, routed via Hosted API · Stripe, Proof unavailable, 2d ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_37"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 6; grid-row: 2;" data-tip="Action sync_contacts, Completed, routed via Hosted API · HubSpot, Proof unavailable, 1d ago. Open run to inspect audit-supporting evidence." data-tip-action="sync_contacts" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Hosted API · HubSpot" data-tip-proof="Proof unavailable" data-tip-time="1d ago" aria-label="Action sync_contacts, Completed, routed via Hosted API · HubSpot, Proof unavailable, 1d ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_36"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 7; grid-row: 1;" data-tip="Action create_invoice, Verified, routed via Webhook · Stripe, Proof verified, 1d ago. Open run to inspect audit-supporting evidence." data-tip-action="create_invoice" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Webhook · Stripe" data-tip-proof="Proof verified" data-tip-time="1d ago" aria-label="Action create_invoice, Verified, routed via Webhook · Stripe, Proof verified, 1d ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_35"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 8; grid-row: 6;" data-tip="Action refund_charge, Failed, routed via Hosted API · Stripe, Proof failed, 22h ago. Open run to inspect audit-supporting evidence." data-tip-action="refund_charge" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof failed" data-tip-time="22h ago" aria-label="Action refund_charge, Failed, routed via Hosted API · Stripe, Proof failed, 22h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_34"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 9; grid-row: 1;" data-tip="Action run_audit, Verified, routed via Runtime · rt_prod_01, Proof verified, runtime rt_prod_01, 19h ago. Open run to inspect audit-supporting evidence." data-tip-action="run_audit" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof verified" data-tip-time="19h ago" aria-label="Action run_audit, Verified, routed via Runtime · rt_prod_01, Proof verified, runtime rt_prod_01, 19h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_33"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 10; grid-row: 1;" data-tip="Action validate_policy, Verified, routed via Runtime · rt_prod_02, Proof verified, runtime rt_prod_02, 17h ago. Open run to inspect audit-supporting evidence." data-tip-action="validate_policy" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Runtime · rt_prod_02" data-tip-proof="Proof verified" data-tip-time="17h ago" aria-label="Action validate_policy, Verified, routed via Runtime · rt_prod_02, Proof verified, runtime rt_prod_02, 17h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_32"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 11; grid-row: 2;" data-tip="Action send_email, Completed, routed via Hosted API · Resend, Proof unavailable, 16h ago. Open run to inspect audit-supporting evidence." data-tip-action="send_email" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Hosted API · Resend" data-tip-proof="Proof unavailable" data-tip-time="16h ago" aria-label="Action send_email, Completed, routed via Hosted API · Resend, Proof unavailable, 16h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_31"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 12; grid-row: 1;" data-tip="Action archive_document, Verified, routed via Hosted API · S3, Proof verified, 15h ago. Open run to inspect audit-supporting evidence." data-tip-action="archive_document" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · S3" data-tip-proof="Proof verified" data-tip-time="15h ago" aria-label="Action archive_document, Verified, routed via Hosted API · S3, Proof verified, 15h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_30"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 13; grid-row: 6;" data-tip="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 14h ago. Open run to inspect audit-supporting evidence." data-tip-action="generate_report" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · S3" data-tip-proof="Proof failed" data-tip-time="14h ago" aria-label="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 14h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_29"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--blocked" style="grid-column: 14; grid-row: 5;" data-tip="Action process_payment, Blocked, routed via Hosted API · Stripe, Proof unavailable, 13h ago. Open run to inspect audit-supporting evidence." data-tip-action="process_payment" data-tip-band="blocked" data-tip-status="Blocked" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof unavailable" data-tip-time="13h ago" aria-label="Action process_payment, Blocked, routed via Hosted API · Stripe, Proof unavailable, 13h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_28"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 15; grid-row: 1;" data-tip="Action sync_contacts, Verified, routed via Hosted API · HubSpot, Proof verified, 12h ago. Open run to inspect audit-supporting evidence." data-tip-action="sync_contacts" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · HubSpot" data-tip-proof="Proof verified" data-tip-time="12h ago" aria-label="Action sync_contacts, Verified, routed via Hosted API · HubSpot, Proof verified, 12h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_27"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--recovered" style="grid-column: 16; grid-row: 3;" data-tip="Action create_invoice, Recovered, routed via Webhook · Stripe, Proof unavailable, 11h ago. Open run to inspect audit-supporting evidence." data-tip-action="create_invoice" data-tip-band="recovered" data-tip-status="Recovered" data-tip-via="Webhook · Stripe" data-tip-proof="Proof unavailable" data-tip-time="11h ago" aria-label="Action create_invoice, Recovered, routed via Webhook · Stripe, Proof unavailable, 11h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_26"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 17; grid-row: 2;" data-tip="Action export_ledger, Completed, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 9h ago. Open run to inspect audit-supporting evidence." data-tip-action="export_ledger" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof unavailable" data-tip-time="9h ago" aria-label="Action export_ledger, Completed, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 9h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_25"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 18; grid-row: 1;" data-tip="Action notify_webhook, Verified, routed via Webhook · Slack, Proof verified, 8h ago. Open run to inspect audit-supporting evidence." data-tip-action="notify_webhook" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Webhook · Slack" data-tip-proof="Proof verified" data-tip-time="8h ago" aria-label="Action notify_webhook, Verified, routed via Webhook · Slack, Proof verified, 8h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_24"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 19; grid-row: 6;" data-tip="Action refund_charge, Failed, routed via Hosted API · Stripe, Proof failed, 7h ago. Open run to inspect audit-supporting evidence." data-tip-action="refund_charge" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof failed" data-tip-time="7h ago" aria-label="Action refund_charge, Failed, routed via Hosted API · Stripe, Proof failed, 7h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_23"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 20; grid-row: 1;" data-tip="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 6h ago. Open run to inspect audit-supporting evidence." data-tip-action="send_email" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · Resend" data-tip-proof="Proof verified" data-tip-time="6h ago" aria-label="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 6h ago. Open run to inspect audit-supporting evidence." href="/runs/run_01HGJ4D8L0C"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--recovered" style="grid-column: 21; grid-row: 3;" data-tip="Action validate_policy, Recovered, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 5h ago. Open run to inspect audit-supporting evidence." data-tip-action="validate_policy" data-tip-band="recovered" data-tip-status="Recovered" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof unavailable" data-tip-time="5h ago" aria-label="Action validate_policy, Recovered, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 5h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_22"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--waiting" style="grid-column: 22; grid-row: 4;" data-tip="Action run_audit, Waiting, routed via Runtime · rt_prod_02, Pending, 5h ago. Open run to inspect audit-supporting evidence." data-tip-action="run_audit" data-tip-band="waiting" data-tip-status="Waiting" data-tip-via="Runtime · rt_prod_02" data-tip-proof="Pending" data-tip-time="5h ago" aria-label="Action run_audit, Waiting, routed via Runtime · rt_prod_02, Pending, 5h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_21"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 23; grid-row: 2;" data-tip="Action update_subscription, Completed, routed via Webhook · Polar, Proof unavailable, 5h ago. Open run to inspect audit-supporting evidence." data-tip-action="update_subscription" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Webhook · Polar" data-tip-proof="Proof unavailable" data-tip-time="5h ago" aria-label="Action update_subscription, Completed, routed via Webhook · Polar, Proof unavailable, 5h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_20"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 24; grid-row: 1;" data-tip="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 4h ago. Open run to inspect audit-supporting evidence." data-tip-action="send_email" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · Resend" data-tip-proof="Proof verified" data-tip-time="4h ago" aria-label="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 4h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_19"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--blocked" style="grid-column: 25; grid-row: 5;" data-tip="Action process_payment, Blocked, routed via Runtime · rt_prod_01, Proof unavailable, 4h ago. Open run to inspect audit-supporting evidence." data-tip-action="process_payment" data-tip-band="blocked" data-tip-status="Blocked" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof unavailable" data-tip-time="4h ago" aria-label="Action process_payment, Blocked, routed via Runtime · rt_prod_01, Proof unavailable, 4h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_18"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 26; grid-row: 1;" data-tip="Action archive_document, Verified, routed via Hosted API · S3, Proof verified, 3h ago. Open run to inspect audit-supporting evidence." data-tip-action="archive_document" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · S3" data-tip-proof="Proof verified" data-tip-time="3h ago" aria-label="Action archive_document, Verified, routed via Hosted API · S3, Proof verified, 3h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_17"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 27; grid-row: 6;" data-tip="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 3h ago. Open run to inspect audit-supporting evidence." data-tip-action="generate_report" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · S3" data-tip-proof="Proof failed" data-tip-time="3h ago" aria-label="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 3h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_16"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 28; grid-row: 2;" data-tip="Action sync_contacts, Completed, routed via Hosted API · HubSpot, Proof unavailable, 2h ago. Open run to inspect audit-supporting evidence." data-tip-action="sync_contacts" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Hosted API · HubSpot" data-tip-proof="Proof unavailable" data-tip-time="2h ago" aria-label="Action sync_contacts, Completed, routed via Hosted API · HubSpot, Proof unavailable, 2h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_15"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 29; grid-row: 1;" data-tip="Action create_invoice, Verified, routed via Webhook · Stripe, Proof verified, 2h ago. Open run to inspect audit-supporting evidence." data-tip-action="create_invoice" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Webhook · Stripe" data-tip-proof="Proof verified" data-tip-time="2h ago" aria-label="Action create_invoice, Verified, routed via Webhook · Stripe, Proof verified, 2h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_14"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 30; grid-row: 6;" data-tip="Action refund_charge, Failed, routed via Hosted API · Stripe, Proof failed, 2h ago. Open run to inspect audit-supporting evidence." data-tip-action="refund_charge" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof failed" data-tip-time="2h ago" aria-label="Action refund_charge, Failed, routed via Hosted API · Stripe, Proof failed, 2h ago. Open run to inspect audit-supporting evidence." href="/runs/run_01HGJ5W0M3B"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--recovered" style="grid-column: 31; grid-row: 3;" data-tip="Action export_ledger, Recovered, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 1h ago. Open run to inspect audit-supporting evidence." data-tip-action="export_ledger" data-tip-band="recovered" data-tip-status="Recovered" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof unavailable" data-tip-time="1h ago" aria-label="Action export_ledger, Recovered, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 1h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_13"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--blocked" style="grid-column: 32; grid-row: 5;" data-tip="Action refund_charge, Blocked, routed via Hosted API · Stripe, Proof unavailable, 1h ago. Open run to inspect audit-supporting evidence." data-tip-action="refund_charge" data-tip-band="blocked" data-tip-status="Blocked" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof unavailable" data-tip-time="1h ago" aria-label="Action refund_charge, Blocked, routed via Hosted API · Stripe, Proof unavailable, 1h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_12"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--waiting" style="grid-column: 33; grid-row: 4;" data-tip="Action notify_webhook, Waiting, routed via Webhook · Slack, Pending, 1h ago. Open run to inspect audit-supporting evidence." data-tip-action="notify_webhook" data-tip-band="waiting" data-tip-status="Waiting" data-tip-via="Webhook · Slack" data-tip-proof="Pending" data-tip-time="1h ago" aria-label="Action notify_webhook, Waiting, routed via Webhook · Slack, Pending, 1h ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_11"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 34; grid-row: 1;" data-tip="Action run_audit, Verified, routed via Runtime · rt_prod_02, Proof verified, runtime rt_prod_02, 58m ago. Open run to inspect audit-supporting evidence." data-tip-action="run_audit" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Runtime · rt_prod_02" data-tip-proof="Proof verified" data-tip-time="58m ago" aria-label="Action run_audit, Verified, routed via Runtime · rt_prod_02, Proof verified, runtime rt_prod_02, 58m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_10"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 35; grid-row: 6;" data-tip="Action process_payment, Failed, routed via Hosted API · Stripe, Proof failed, 54m ago. Open run to inspect audit-supporting evidence." data-tip-action="process_payment" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof failed" data-tip-time="54m ago" aria-label="Action process_payment, Failed, routed via Hosted API · Stripe, Proof failed, 54m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_09"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 36; grid-row: 1;" data-tip="Action export_ledger, Verified, routed via Runtime · rt_prod_01, Proof verified, runtime rt_prod_01, 52m ago. Open run to inspect audit-supporting evidence." data-tip-action="export_ledger" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof verified" data-tip-time="52m ago" aria-label="Action export_ledger, Verified, routed via Runtime · rt_prod_01, Proof verified, runtime rt_prod_01, 52m ago. Open run to inspect audit-supporting evidence." href="/runs/run_01HGJ3R6T7E"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 37; grid-row: 2;" data-tip="Action update_subscription, Completed, routed via Webhook · Polar, Proof unavailable, 47m ago. Open run to inspect audit-supporting evidence." data-tip-action="update_subscription" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Webhook · Polar" data-tip-proof="Proof unavailable" data-tip-time="47m ago" aria-label="Action update_subscription, Completed, routed via Webhook · Polar, Proof unavailable, 47m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_08"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 38; grid-row: 1;" data-tip="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 41m ago. Open run to inspect audit-supporting evidence." data-tip-action="send_email" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · Resend" data-tip-proof="Proof verified" data-tip-time="41m ago" aria-label="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 41m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_07"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 39; grid-row: 1;" data-tip="Action create_invoice, Verified, routed via Webhook · Stripe, Proof verified, 38m ago. Open run to inspect audit-supporting evidence." data-tip-action="create_invoice" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Webhook · Stripe" data-tip-proof="Proof verified" data-tip-time="38m ago" aria-label="Action create_invoice, Verified, routed via Webhook · Stripe, Proof verified, 38m ago. Open run to inspect audit-supporting evidence." href="/runs/run_01HGJ7Q4X1A"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--blocked" style="grid-column: 40; grid-row: 5;" data-tip="Action archive_document, Blocked, routed via Hosted API · S3, Proof unavailable, 33m ago. Open run to inspect audit-supporting evidence." data-tip-action="archive_document" data-tip-band="blocked" data-tip-status="Blocked" data-tip-via="Hosted API · S3" data-tip-proof="Proof unavailable" data-tip-time="33m ago" aria-label="Action archive_document, Blocked, routed via Hosted API · S3, Proof unavailable, 33m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_06"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--failed" style="grid-column: 41; grid-row: 6;" data-tip="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 28m ago. Open run to inspect audit-supporting evidence." data-tip-action="generate_report" data-tip-band="failed" data-tip-status="Failed" data-tip-via="Hosted API · S3" data-tip-proof="Proof failed" data-tip-time="28m ago" aria-label="Action generate_report, Failed, routed via Hosted API · S3, Proof failed, 28m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_05"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--recovered" style="grid-column: 42; grid-row: 3;" data-tip="Action validate_policy, Recovered, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 22m ago. Open run to inspect audit-supporting evidence." data-tip-action="validate_policy" data-tip-band="recovered" data-tip-status="Recovered" data-tip-via="Runtime · rt_prod_01" data-tip-proof="Proof unavailable" data-tip-time="22m ago" aria-label="Action validate_policy, Recovered, routed via Runtime · rt_prod_01, Proof unavailable, runtime rt_prod_01, 22m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_04"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--waiting" style="grid-column: 43; grid-row: 4;" data-tip="Action sync_contacts, Waiting, routed via Hosted API · HubSpot, Pending, 15m ago. Open run to inspect audit-supporting evidence." data-tip-action="sync_contacts" data-tip-band="waiting" data-tip-status="Waiting" data-tip-via="Hosted API · HubSpot" data-tip-proof="Pending" data-tip-time="15m ago" aria-label="Action sync_contacts, Waiting, routed via Hosted API · HubSpot, Pending, 15m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_03"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--completed" style="grid-column: 44; grid-row: 2;" data-tip="Action notify_webhook, Completed, routed via Webhook · Slack, Proof unavailable, 12m ago. Open run to inspect audit-supporting evidence." data-tip-action="notify_webhook" data-tip-band="completed" data-tip-status="Completed" data-tip-via="Webhook · Slack" data-tip-proof="Proof unavailable" data-tip-time="12m ago" aria-label="Action notify_webhook, Completed, routed via Webhook · Slack, Proof unavailable, 12m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_02"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 45; grid-row: 1;" data-tip="Action process_payment, Verified, routed via Hosted API · Stripe, Proof verified, 8m ago. Open run to inspect audit-supporting evidence." data-tip-action="process_payment" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · Stripe" data-tip-proof="Proof verified" data-tip-time="8m ago" aria-label="Action process_payment, Verified, routed via Hosted API · Stripe, Proof verified, 8m ago. Open run to inspect audit-supporting evidence." href="/runs/rdm_01"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--verified" style="grid-column: 46; grid-row: 1;" data-tip="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 4m ago. Open run to inspect audit-supporting evidence." data-tip-action="send_email" data-tip-band="verified" data-tip-status="Verified" data-tip-via="Hosted API · Resend" data-tip-proof="Proof verified" data-tip-time="4m ago" aria-label="Action send_email, Verified, routed via Hosted API · Resend, Proof verified, 4m ago. Open run to inspect audit-supporting evidence." href="/runs/run_01HGJ8K2Z9F"></a>
+          <a class="ic-runmap__dot ic-runmap__dot--waiting" style="grid-column: 47; grid-row: 4;" data-tip="Action send_email, Waiting, routed via Hosted API · Resend, Pending, 6s ago. Open run to inspect audit-supporting evidence." data-tip-action="send_email" data-tip-band="waiting" data-tip-status="Waiting" data-tip-via="Hosted API · Resend" data-tip-proof="Pending" data-tip-time="6s ago" aria-label="Action send_email, Waiting, routed via Hosted API · Resend, Pending, 6s ago. Open run to inspect audit-supporting evidence." href="/runs/run_01HGJ9N7P4D"></a>
+      </div>
+    </div>
+
+    <div class="ic-runmap__tip" role="tooltip" aria-hidden="true">
+      <div class="ic-runmap__tip-head">
+        <span class="ic-runmap__tip-dot"></span>
+        <span class="ic-runmap__tip-action"></span>
+        <span class="ic-runmap__tip-status"></span>
+      </div>
+      <dl class="ic-runmap__tip-meta">
+        <div class="ic-runmap__tip-row" data-row="via"><dt>Routed</dt><dd></dd></div>
+        <div class="ic-runmap__tip-row" data-row="proof"><dt>Proof</dt><dd></dd></div>
+        <div class="ic-runmap__tip-row" data-row="time"><dt>When</dt><dd></dd></div>
+      </dl>
+      <div class="ic-runmap__tip-hint">Click to open run evidence</div>
+    </div>
+    <script>
+      (function () {
+        var map = document.currentScript.closest('.ic-runmap');
+        if (!map || map.dataset.tipBound) return;
+        map.dataset.tipBound = '1';
+        var tip    = map.querySelector('.ic-runmap__tip');
+        var dotEl  = tip.querySelector('.ic-runmap__tip-dot');
+        var action = tip.querySelector('.ic-runmap__tip-action');
+        var status = tip.querySelector('.ic-runmap__tip-status');
+        var rows   = tip.querySelectorAll('.ic-runmap__tip-row');
+        var hideTimer = null;
+
+        function setRow(row, value) {
+          var dd = row.querySelector('dd');
+          if (value && value.length) { dd.textContent = value; row.style.display = ''; }
+          else { row.style.display = 'none'; }
+        }
+
+        function show(dot) {
+          if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+          var d = dot.dataset;
+          if (!d.tipAction && !d.tip) return;
+          action.textContent = d.tipAction || '—';
+          status.textContent = d.tipStatus || '';
+          status.style.display = d.tipStatus ? '' : 'none';
+          dotEl.className = 'ic-runmap__tip-dot' + (d.tipBand ? ' ic-runmap__dot--' + d.tipBand : '');
+          rows.forEach(function (row) {
+            setRow(row, { via: d.tipVia, proof: d.tipProof, time: d.tipTime }[row.dataset.row]);
+          });
+
+          tip.classList.add('is-on');
+          tip.setAttribute('aria-hidden', 'false');
+          var r = dot.getBoundingClientRect();
+          var m = map.getBoundingClientRect();
+          var tw = tip.offsetWidth, th = tip.offsetHeight;
+          var left = r.left - m.left + r.width / 2 - tw / 2;
+          left = Math.max(6, Math.min(left, m.width - tw - 6));
+          var top = r.top - m.top - th - 9;
+          var below = top < 4;
+          tip.classList.toggle('ic-runmap__tip--below', below);
+          if (below) top = r.top - m.top + r.height + 9;
+          // Point the caret at the dot even when the card is clamped sideways.
+          var caret = r.left - m.left + r.width / 2 - left;
+          tip.style.setProperty('--tip-caret', Math.max(10, Math.min(caret, tw - 10)) + 'px');
+          tip.style.left = left + 'px';
+          tip.style.top = top + 'px';
+        }
+        function hide() {
+          hideTimer = setTimeout(function () {
+            tip.classList.remove('is-on');
+            tip.setAttribute('aria-hidden', 'true');
+          }, 60);
+        }
+
+        map.addEventListener('mouseover', function (e) {
+          var dot = e.target.closest('.ic-runmap__dot');
+          if (dot) show(dot);
+        });
+        map.addEventListener('mouseout', function (e) {
+          if (e.target.closest('.ic-runmap__dot')) hide();
+        });
+        map.addEventListener('focusin', function (e) {
+          var dot = e.target.closest('.ic-runmap__dot');
+          if (dot) show(dot);
+        });
+        map.addEventListener('focusout', function (e) {
+          if (e.target.closest('.ic-runmap__dot')) hide();
+        });
+      })();
+    </script>
+
+    <div class="ic-runmap__axis">
+      <span>3d ago</span>
+      <span class="ic-runmap__axis-mid">Showing latest 46 runs</span>
+      <span>6s ago</span>
+    </div>
+</section>
+<!-- END app/views/shared/_run_activity_map.html.erb -->
+
+          </div>
+      </div>
+
+      <aside class="ic-workspace-panel" aria-label="Workspace summary">
+        <div class="ic-workspace-panel__id">
+          <span class="ic-ws-avatar"><img alt="" src="/emeralds.jpg" /></span>
+          <div>
+            <div class="ic-workspace-panel__name">Support Agent</div>
+            <span class="ic-status__pill is-warn">Demo data</span> 
+          </div>
+        </div>
+
+        <div class="ic-wsrows">
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Actions ready</span>
+            <span class="ic-wsrow__v">3 / 5</span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Last run</span>
+            <span class="ic-wsrow__v">6s ago <span style="color: var(--ic-text-7);">(send_email)</span></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Runtime status</span>
+            <span class="ic-wsrow__v">1 healthy / 2</span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Igris API</span>
+            <span class="ic-wsrow__v">Demo data</span>
+          </div>
+        </div>
+
+        <div class="ic-workspace-panel__actions">
+          <a class="ic-btn ic-btn--accent" href="/actions/new">Create action</a>
+          <a class="ic-btn" href="/runtimes">Connect runtime</a>
+          <a class="ic-btn" href="/runs">View runs</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+<!-- END app/views/home/index.html.erb -->
+      </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/http.min.js"></script>
+    <script>
+      if (window.hljs) {
+        hljs.configure({ ignoreUnescapedHTML: true });
+        document.querySelectorAll('pre code').forEach(function(el) {
+          try { hljs.highlightElement(el); } catch (e) {}
+        });
+      }
+    </script>
+  </body>
+</html>
+<!-- END app/views/layouts/application.html.erb -->
