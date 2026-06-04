@@ -1,0 +1,508 @@
+<!-- BEGIN app/views/layouts/application.html.erb --><!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Igris Inertial Developer Console</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <meta name="csrf-token" content="NjO3qai9ScBoY7-exvn7e19TM7lFLQ2AD534bfDRzgwGSaBhcnmL2M4U1pUunaioAsmLNul05pgE7WxE_cbXEQ">
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('ic-theme');
+          var dark = saved
+            ? saved === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="/assets/application-22bbd8cc.css" />
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <style>:root { font-family: 'Inter', sans-serif; }</style>
+    <script type="module">
+      import { lineSpinner } from 'https://cdn.jsdelivr.net/npm/ldrs@1.0.2/+esm';
+      lineSpinner.register();
+    </script>
+  </head>
+  <body>
+    <div class="ig-shell">
+      <!-- BEGIN app/views/shared/_icon_rail.html.erb --><nav class="ic-rail" aria-label="Console lenses">
+  <a class="ic-rail__logo" aria-label="Igris" href="/welcome">
+    <img class="ic-rail__logo-img ic-rail__logo-img--light" alt="" src="/inertia.png" />
+    <img class="ic-rail__logo-img ic-rail__logo-img--dark" alt="" src="/fofotlight.png" />
+</a>
+  <div class="ic-rail__items">
+      <a class="ic-rail__btn " aria-label="Home" data-tip="Home" href="/welcome">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 2l9 7.5"/><path d="M5 9v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M9 21v-6h6v6"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Overview" data-tip="Overview" href="/home">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Actions" data-tip="Actions" href="/actions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>
+</a>      <a class="ic-rail__btn is-active" aria-label="Runs" data-tip="Runs" href="/runs">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Runtimes" data-tip="Runtimes" href="/runtimes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+</a>      <a class="ic-rail__btn " aria-label="Settings" data-tip="Settings" href="/settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+</a>  </div>
+
+  <details class="ic-rail__avatar" data-tip="Account">
+    <summary aria-label="Account menu">
+      <img alt="" src="/emeralds.jpg" />
+    </summary>
+    <div class="ic-rail__menu" role="menu">
+      <div class="ic-rail__menu__head">
+        <span class="ic-rail__menu__name">Operator</span>
+        <span class="ic-rail__menu__email">operator@igrisinertial.com</span>
+      </div>
+
+      <a href="https://igrisinertial.com/docs/api" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+        <span>API reference</span>
+        <svg class="ic-rail__menu__hint" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;color:var(--ic-text-7);"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+      </a>
+
+      <a href="https://status.igrisinertial.com" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.5.5 0 0 1-.96 0L9.24 2.18a.5.5 0 0 0-.96 0l-2.35 8.36A2 2 0 0 1 4 12H2"/></svg>
+        <span>Status page</span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;">
+          <span style="width:5px;height:5px;border-radius:999px;background:var(--ic-emerald);"></span>
+          <span style="font-size:10.5px;color:var(--ic-text-7);">all systems</span>
+        </span>
+      </a>
+
+      <a href="mailto:support@igrisinertial.com" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <span>Support</span>
+      </a>
+
+      <a href="https://igrisinertial.com/docs" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        <span>Documentation</span>
+      </a>
+
+      <a href="https://igrisinertial.com/changelog" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>What's new</span>
+      </a>
+
+      <div class="ic-rail__menu__sep" role="separator"></div>
+
+      <button type="button" class="ic-rail__menu__item" role="menuitemcheckbox" id="ic-theme-toggle" aria-checked="false">
+        <svg class="ic-rail__menu__icon ic-rail__menu__icon--light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        <svg class="ic-rail__menu__icon ic-rail__menu__icon--dark"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="ic-theme-toggle-label">Dark mode</span>
+        <span class="ic-rail__menu__hint" id="ic-theme-toggle-state">off</span>
+      </button>
+
+      <div class="ic-rail__menu__sep" role="separator"></div>
+
+      <button type="button" class="ic-rail__menu__item ic-rail__menu__item--danger" role="menuitem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sign out</span>
+      </button>
+    </div>
+  </details>
+</nav>
+
+<script>
+  (function() {
+    const details = document.querySelector('.ic-rail__avatar');
+    if (details) {
+      document.addEventListener('click', function(e) {
+        if (!details.open) return;
+        if (!details.contains(e.target)) details.open = false;
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && details.open) details.open = false;
+      });
+    }
+
+    function syncToggle() {
+      const dark = document.documentElement.classList.contains('dark');
+      const state = document.getElementById('ic-theme-toggle-state');
+      const btn = document.getElementById('ic-theme-toggle');
+      if (state) state.textContent = dark ? 'on' : 'off';
+      if (btn) btn.setAttribute('aria-checked', dark ? 'true' : 'false');
+    }
+    syncToggle();
+    const btn = document.getElementById('ic-theme-toggle');
+    if (btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dark = !document.documentElement.classList.contains('dark');
+        document.documentElement.classList.toggle('dark', dark);
+        try { localStorage.setItem('ic-theme', dark ? 'dark' : 'light'); } catch (e) {}
+        syncToggle();
+      });
+    }
+  })();
+</script>
+<!-- END app/views/shared/_icon_rail.html.erb -->
+      <main class="ig-main">
+        <!-- BEGIN app/views/runs/show.html.erb --><div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+
+  <div class="ic-topbar">
+    <div class="ic-topbar__group">
+      <a class="ic-topbar__crumb" href="/runs">Runs</a>
+      <span class="ic-topbar__sep">/</span>
+      <span class="ic-topbar__title">refund_charge</span>
+      <span class="ic-topbar__id mono">run_01HGJ5W0M3B</span>
+      <button type="button" class="ic-copy" data-code="run_01HGJ5W0M3B" onclick="(()=&gt;{navigator.clipboard.writeText(this.dataset.code);this.textContent=&#39;Copied&#39;;setTimeout(()=&gt;this.textContent=&#39;Copy&#39;,1400)})()">Copy</button>
+      <span class="ic-chip">Support Agent</span>
+    </div>
+    <div class="ic-topbar__group">
+        <a class="ic-btn" href="/actions/refund_charge">Back to action</a>
+    </div>
+  </div>
+
+  <!-- BEGIN app/views/shared/_flash.html.erb --><!-- END app/views/shared/_flash.html.erb -->
+
+  <div class="ic-body ic-scroll ic-run-detail">
+
+    <div class="ic-run-detail-layout">
+      <aside class="ic-run-detail-rail" aria-label="Execution detail">
+        <div class="ic-summary">
+          <div class="ic-summary__head">Execution detail</div>
+          <div class="ic-summary__grid">
+            <div class="ic-summary__cell ic-summary__cell--wide">
+              <div class="ic-summary__k">Action</div>
+              <div class="ic-summary__v mono">refund_charge</div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Status</div>
+              <div class="ic-summary__v"><span class="ig-pill ig-pill--bad">Failed</span></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Routed via</div>
+              <div class="ic-summary__v"><span class="ic-chips"><span class="ic-chip ic-chip--sm">Hosted API</span><span class="ic-chip ic-chip--sm">Stripe</span></span></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Policy</div>
+              <div class="ic-summary__v"><span class="ic-chips"><span class="ic-chip ic-chip--sm">Manual approval</span></span></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Proof</div>
+              <div class="ic-summary__v"><span class="ig-pill ig-pill--bad">Proof failed</span></div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Started</div>
+              <div class="ic-summary__v">12:32:52 UTC</div>
+            </div>
+            <div class="ic-summary__cell">
+              <div class="ic-summary__k">Duration</div>
+              <div class="ic-summary__v">4120ms</div>
+            </div>
+          </div>
+        </div>
+
+          <div class="ic-nextstep">
+            <div>
+              <div class="ic-nextstep__kicker">What to do next</div>
+              <div class="ic-nextstep__title">
+                Run failed.
+                              </div>
+              <p class="ic-nextstep__sub">
+                Open the action to review its target and policy, or copy the run ID to share it.
+                              </p>
+            </div>
+            <div class="ic-nextstep__cta">
+              <a class="ic-btn ic-btn--accent" style="height: 24px; padding: 0 8px; font-size: 11px;" href="/actions/refund_charge">Open action</a>
+            </div>
+          </div>
+      </aside>
+
+      <section class="ic-run-detail-scroll" aria-label="Run evidence and audit details">
+
+      <div class="ic-evidence">
+        <div class="ic-evidence__head">Demo context</div>
+        <div class="ic-def">
+          <span class="ic-def__label">Submitter</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">mateo@acme.io</span>
+            <span class="ic-def__hint">engineer, integrations</span>
+          </div>
+        </div>
+        <div class="ic-def">
+          <span class="ic-def__label">Region</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">fra1</span>
+            <span class="ic-chip">prod</span>
+            <span class="ic-def__hint">eu-central, primary</span>
+          </div>
+        </div>
+        <div class="ic-def">
+          <span class="ic-def__label">Worker</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">worker_b</span>
+            <span class="ic-def__hint">recovered from</span>
+            <span class="ic-chip">worker_a</span>
+          </div>
+        </div>
+        <div class="ic-def">
+          <span class="ic-def__label">Submitted</span>
+          <div class="ic-def__value">
+            <span class="ic-chip">12:32:52 UTC</span>
+            <span class="ic-def__hint">2h ago, action workflow</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ic-panel" id="evidence">
+        <p class="ic-narrative">
+            The receipt chain stops at the failed call. The console honestly reports
+            the absence — no fabricated proof.
+        </p>
+        <details class="ic-loggroup" open>
+          <summary class="ic-panel__head ic-loggroup__head">
+            <div class="ic-panel__head-l">
+              <span class="ic-loggroup__chev" aria-hidden="true"></span>
+              <span>Committed actions (2)</span>
+              <span class="ic-panel__count-plus">+1</span>
+              <span class="ic-panel__count-minus">−1</span>
+            </div>
+            <div class="ic-panel__head-r">
+                <span class="ic-log__dur mono">4120ms</span>
+                <span class="ic-log__status ic-log__status--fail">failed</span>
+            </div>
+          </summary>
+
+          <div class="ic-log__body">
+                <div class="ic-line ic-step-in">
+                  <span class="ic-line__ts mono">12:32:52.668</span>
+                  <div class="ic-line__main">
+                    <span class="ic-line__name ">read_file</span>
+                    <span class="ic-line__detail">request body, 0.4KB</span>
+                  </div>
+                  <span class="ic-line__latency">8ms</span>
+                    <span class="ic-line__receipt ic-line__receipt--ok">r₀₁</span>
+                </div>
+                <div class="ic-line ic-step-in">
+                  <span class="ic-line__ts mono">12:32:52.676</span>
+                  <div class="ic-line__main">
+                    <span class="ic-line__name ">http_call</span>
+                    <span class="ic-line__detail">POST /refund, HTTP <span class="ic-http ic-http--bad">402</span> ⨯</span>
+                  </div>
+                  <span class="ic-line__latency">920ms</span>
+                    <span class="ic-line__receipt ic-line__receipt--none">—</span>
+                </div>
+          </div>
+        </details>
+      </div>
+
+
+    <div class="ic-run-expand">
+      <!-- BEGIN app/views/runs/_inspector.html.erb --><aside class="ic-runinspector" aria-label="Run Inspector">
+
+
+    <div class="ic-runinspector__head">
+      <div class="ic-runinspector__head-l">
+        <span class="ic-runinspector__title">Run Inspector</span>
+        <span class="ic-runinspector__id mono">run_01HGJ5W0M3B</span>
+        <button type="button" class="ic-copy" data-code="run_01HGJ5W0M3B" onclick="(()=&gt;{navigator.clipboard.writeText(this.dataset.code);this.textContent=&#39;Copied&#39;;setTimeout(()=&gt;this.textContent=&#39;Copy&#39;,1400)})()">Copy</button>
+      </div>
+    </div>
+    <div class="ic-runinspector__pills">
+      <span class="ig-pill ig-pill--bad">Failed</span>
+      <span class="ig-pill ig-pill--bad">Proof failed</span>
+    </div>
+
+    <div class="ic-runinspector__scroll">
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Overview</div>
+        <div class="ic-runinspector__rows">
+          <div class="ic-def">
+            <span class="ic-def__label">Action</span>
+            <div class="ic-def__value">
+              <span class="mono">refund_charge</span>
+            </div>
+          </div>
+          <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><span class="ig-pill ig-pill--bad">Failed</span></div></div>
+          <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><span class="ic-chips"><span class="ic-chip ic-chip--sm">Hosted API</span><span class="ic-chip ic-chip--sm">Stripe</span></span></div></div>
+          <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><span class="ic-chips"><span class="ic-chip ic-chip--sm">Manual approval</span></span></div></div>
+          <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value">Awaiting review</div></div>
+          <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><span class="ig-pill ig-pill--bad">Proof failed</span></div></div>
+          <div class="ic-def">
+            <span class="ic-def__label">Created</span>
+            <div class="ic-def__value">
+              12:32:52 UTC
+              <span class="ic-def__hint">2h ago</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Agent request</div>
+          <p class="ic-runinspector__empty-line">No prompt or request payload is available for this run.</p>
+      </section>
+
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Action input</div>
+        <div class="ic-runinspector__kv">
+          <div class="ic-runinspector__kvrow">
+            <span class="ic-runinspector__kvk">Target</span>
+            <span class="ic-runinspector__kvv"><span class="ic-chips"><span class="ic-chip ic-chip--sm">Hosted API</span><span class="ic-chip ic-chip--sm">Stripe</span></span></span>
+          </div>
+        </div>
+        <p class="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
+      </section>
+
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Execution assessment</div>
+        <div class="ic-runinspector__rows">
+            <div class="ic-def">
+              <span class="ic-def__label">Action completed</span>
+              <div class="ic-def__value"><span class="ig-pill ig-pill--bad">No</span></div>
+            </div>
+            <div class="ic-def">
+              <span class="ic-def__label">Policy followed</span>
+              <div class="ic-def__value"><span class="ig-pill ig-pill--ok">Allowed</span></div>
+            </div>
+            <div class="ic-def">
+              <span class="ic-def__label">Runtime path</span>
+              <div class="ic-def__value"><span class="ig-pill ig-pill--muted">Not available</span></div>
+            </div>
+            <div class="ic-def">
+              <span class="ic-def__label">Recovery</span>
+              <div class="ic-def__value"><span class="ig-pill ig-pill--warn">Awaiting review</span></div>
+            </div>
+            <div class="ic-def">
+              <span class="ic-def__label">Proof</span>
+              <div class="ic-def__value"><span class="ig-pill ig-pill--bad">Failed</span></div>
+            </div>
+        </div>
+      </section>
+
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Audit interpretation</div>
+        <p class="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only — not a compliance certification.</p>
+        <div class="ic-runinspector__auditrows">
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel">Control decision</span>
+                <span class="ic-runinspector__auditvalue">Manual approval</span>
+              </div>
+              <p class="ic-runinspector__auditnote">Policy decision record — the policy preset Igris applied before allowing execution.</p>
+            </div>
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel">Execution record</span>
+                <span class="ic-runinspector__auditvalue">Failed</span>
+              </div>
+              <p class="ic-runinspector__auditnote">Tamper-evident record of what Igris did when the action was called.</p>
+            </div>
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel">Evidence receipt</span>
+                <span class="ic-runinspector__auditvalue">Receipt withheld — signature mismatch</span>
+              </div>
+              <p class="ic-runinspector__auditnote">A receipt is a signed, tamper-evident record that a runtime reported this execution event.</p>
+            </div>
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel">Verification status</span>
+                <span class="ic-runinspector__auditvalue">Signature mismatch</span>
+              </div>
+              <p class="ic-runinspector__auditnote">Signature shows the event was reported by a registered runtime key when available. Digest records prove data consistency without exposing raw input or output.</p>
+            </div>
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel">Recovery / replay status</span>
+                <span class="ic-runinspector__auditvalue">Awaiting review</span>
+              </div>
+              <p class="ic-runinspector__auditnote">Replay / recovery record — whether Igris retried or compensated the action.</p>
+            </div>
+            <div class="ic-runinspector__auditrow">
+              <div class="ic-runinspector__audittop">
+                <span class="ic-runinspector__auditlabel">Data exposure</span>
+                <span class="ic-runinspector__auditvalue">Minimized</span>
+              </div>
+              <p class="ic-runinspector__auditnote">Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed.</p>
+            </div>
+        </div>
+      </section>
+
+      <section class="ic-runinspector__section">
+        <div class="ic-runinspector__sechead">Evidence</div>
+        <div class="ic-runinspector__rows">
+          <div class="ic-def"><span class="ic-def__label">Receipt hash</span><div class="ic-def__value mono">—</div></div>
+          <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><span class="ig-pill ig-pill--bad">Proof failed</span></div></div>
+          <div class="ic-def"><span class="ic-def__label">Steps recorded</span><div class="ic-def__value">—</div></div>
+        </div>
+        <p class="ic-runinspector__note">Open the full run for ordered step evidence.</p>
+      </section>
+
+      <section class="ic-runinspector__section ic-runinspector__section--last">
+        <div class="ic-runinspector__sechead">Execution profile</div>
+          <p class="ic-runinspector__hint">Time per step along the run timeline — 2 steps over 928ms total.</p>
+          <div class="ic-wfall">
+              <div class="ic-wfall__row">
+                <span class="ic-wfall__label mono" title="request body, 0.4KB">read_file</span>
+                <div class="ic-wfall__track">
+                  <div class="ic-wfall__bar ic-wfall__bar--ok"
+                       style="margin-left: 0.0%; width: 1.5%;"></div>
+                </div>
+                <span class="ic-wfall__val mono">8ms</span>
+              </div>
+              <div class="ic-wfall__row">
+                <span class="ic-wfall__label mono" title="POST /refund, HTTP 402 ⨯">http_call</span>
+                <div class="ic-wfall__track">
+                  <div class="ic-wfall__bar ic-wfall__bar--bad"
+                       style="margin-left: 0.86%; width: 99.14%;"></div>
+                </div>
+                <span class="ic-wfall__val mono">920ms</span>
+              </div>
+            <div class="ic-wfall__axis">
+              <span class="ic-wfall__scale">
+                <span>0</span>
+                <span class="ic-wfall__scale-mid">time</span>
+                <span>928ms</span>
+              </span>
+            </div>
+          </div>
+          <p class="ic-runinspector__note">Bars are placed by when each step ran; length is time-on-step. Faults/retries appear as their own bar.</p>
+      </section>
+
+    </div>
+</aside>
+<!-- END app/views/runs/_inspector.html.erb -->
+    </div>
+
+    <div class="ic-foot-time">
+      12:32:52
+      
+    </div>
+      </section>
+    </div>
+  </div>
+
+    <div class="ic-footer">
+      <div class="ic-footer__bar">
+        <span class="ic-footer__chip"><span class="dot"></span><span>action_workflow v1</span></span>
+        <span>Receipts ed25519</span>
+        <div class="ic-footer__spacer"></div>
+      </div>
+    </div>
+</div>
+<!-- END app/views/runs/show.html.erb -->
+      </main>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/http.min.js"></script>
+    <script>
+      if (window.hljs) {
+        hljs.configure({ ignoreUnescapedHTML: true });
+        document.querySelectorAll('pre code').forEach(function(el) {
+          try { hljs.highlightElement(el); } catch (e) {}
+        });
+      }
+    </script>
+  </body>
+</html>
+<!-- END app/views/layouts/application.html.erb -->
