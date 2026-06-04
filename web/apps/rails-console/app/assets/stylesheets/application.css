@@ -698,6 +698,33 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
   color: var(--ic-text-bright);
   border-bottom-color: var(--ic-text-bright);
 }
+/* Detail pages: the tab row is left-aligned and constrained to the same
+   centered content width, with a refined underline-on-accent style. */
+.ig-tabs--detail {
+  width: min(100%, 1180px);
+  align-self: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 0 20px;
+  margin: 0 auto 8px;
+  border-bottom: 0;
+}
+.ig-tabs--detail .ig-tabs__item {
+  padding: 7px 12px;
+  font-size: 12px;
+  border-radius: 6px 6px 0 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms ease, background 120ms ease;
+}
+.ig-tabs--detail .ig-tabs__item:hover {
+  color: var(--ic-text-2);
+  background: var(--ic-overlay-1);
+}
+.ig-tabs--detail .ig-tabs__item.is-active {
+  color: var(--ic-text-bright);
+  border-bottom-color: var(--ic-emerald);
+}
 
 /* ── Tables (surface style, no borders) ─────────────────────────────── */
 .ig-table-wrap {
@@ -929,6 +956,22 @@ html.dark .ig-snippet { background: rgba(0,0,0,0.30); }
 html.dark .ig-pill--ok   { color: var(--ic-emerald); border-color: rgba(4, 120, 87, 0.25); background: rgba(4, 120, 87, 0.10); }
 html.dark .ig-pill--bad  { color: var(--ic-rose);    border-color: rgba(244, 63, 94, 0.25); background: rgba(244, 63, 94, 0.08); }
 .ig-body { padding: 14px 18px; }
+/* Detail pages (e.g. Action detail) match the Run detail content width:
+   centered, capped at 1180px, with the same 20px gutters. */
+.ig-body--detail {
+  width: min(100%, 1180px);
+  align-self: center;
+  padding: 8px 20px 20px;
+}
+/* Overview tab: turn the body into a fixed two-column shell, identical to the
+   Run detail page — the body itself never scrolls, only the main column does,
+   so the left context rail stays put. */
+.ig-body--fixed {
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .ig-field { margin: 8px 0 12px; }
 .ig-input, .ig-textarea {
   width: 100%; font-family: inherit; font-size: 12px;
@@ -1893,9 +1936,67 @@ html.dark .ic-btn--accent:hover {
 .ic-runinspector__rows .ic-def { grid-template-columns: 96px 1fr; padding: 4px 0; }
 .ic-runinspector__hint { font-size: 11.5px; color: var(--ic-text-6); line-height: 1.5; margin: 0 0 8px; }
 .ic-runinspector__note { font-size: 11px; color: var(--ic-text-6); line-height: 1.5; margin: 8px 0 0; }
-.ic-runinspector__auditrows { display: flex; flex-direction: column; gap: 10px; }
-.ic-runinspector__auditrow { display: flex; flex-direction: column; gap: 2px; }
-.ic-runinspector__auditnote { font-size: 10.5px; color: var(--ic-text-6); line-height: 1.45; margin: 0; }
+/* Action input — clean key/value with a separated explanatory footnote. */
+.ic-runinspector__kv { display: flex; flex-direction: column; gap: 4px; }
+.ic-runinspector__kvrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+}
+.ic-runinspector__kvk { font-size: 11px; color: var(--ic-text-5); }
+.ic-runinspector__kvv {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: var(--ic-overlay-4);
+  color: var(--ic-text-2);
+  border: 1px solid var(--ic-border-soft);
+  text-align: right;
+  word-break: break-word;
+}
+.ic-runinspector__kvfoot {
+  font-size: 10.5px;
+  color: var(--ic-text-6);
+  line-height: 1.5;
+  margin: 9px 0 0;
+  padding-top: 9px;
+  border-top: 1px solid var(--ic-border-soft);
+}
+
+/* Audit interpretation — flat list: each reading is a label/value header on
+   one baseline with its plain-language note below, separated by a hairline. */
+.ic-runinspector__auditrows { display: flex; flex-direction: column; }
+.ic-runinspector__auditrow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 0;
+  border-top: 1px solid var(--ic-border-soft);
+}
+.ic-runinspector__auditrow:first-child { border-top: 0; padding-top: 2px; }
+.ic-runinspector__audittop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ic-runinspector__auditlabel {
+  font-size: 11px;
+  color: var(--ic-text-5);
+  letter-spacing: 0.02em;
+}
+.ic-runinspector__auditvalue {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ic-text-2);
+  text-align: right;
+  word-break: break-word;
+}
+.ic-runinspector__auditnote { font-size: 10.5px; color: var(--ic-text-6); line-height: 1.5; margin: 0; }
 .ic-runinspector__empty-line { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 2px 0 0; }
 .ic-runinspector__code {
   font-family: var(--ic-mono);
@@ -3545,16 +3646,36 @@ html.dark .ic-runtime-req {
 }
 .ic-runtime-ok__text { font-size: 12px; color: var(--ic-text-5); }
 
-/* Action Detail — two-column workspace (main + context aside) */
+/* Action Detail — two-column workspace. Mirrors the Run detail layout:
+   the context aside sits in a 300px left rail, main content on the right. */
 .ic-action-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 14px;
-  align-items: start;
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
 }
+.ic-action-aside { order: -1; }
 .ic-action-main,
 .ic-action-aside { display: flex; flex-direction: column; gap: 14px; }
 .ic-action-aside .ig-card { padding: 14px 16px; }
+/* The left context rail stays fixed; only the main column scrolls — and its
+   scrollbar is hidden, matching the Run detail page. */
+.ic-action-aside {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100%;
+  overflow: hidden;
+}
+.ic-action-main {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ic-action-main::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .ic-endpoint-hero .ig-card__title { margin-bottom: 8px; }
 .ic-ctx-label {
   font-size: 11px;
@@ -3564,7 +3685,10 @@ html.dark .ic-runtime-req {
   margin: 14px 0 6px;
 }
 @media (max-width: 980px) {
-  .ic-action-layout { grid-template-columns: 1fr; }
+  .ig-body--fixed { display: block; overflow-y: auto; }
+  .ic-action-layout { grid-template-columns: 1fr; grid-template-rows: auto; min-height: 0; }
+  .ic-action-aside { position: static; max-height: none; overflow: visible; }
+  .ic-action-main { overflow: visible; }
 }
 @media (max-width: 720px) {
   .ic-runtime-req { flex-direction: column; align-items: flex-start; }
