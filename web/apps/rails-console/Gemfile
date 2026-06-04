@@ -13,7 +13,7 @@ gem 'propshaft', '~> 0.9'
 gem 'faraday', '~> 2.9'
 
 group :development, :test do
-  gem 'debug', platforms: %i[mri windows]
+  gem 'debug', platforms: %i[mri]
 end
 
 group :development do
