@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"net/url"
+	"path/filepath"
 	"strings"
 )
 
@@ -32,6 +34,9 @@ var sensitiveResponseKeyPatterns = []string{
 	"file_content",
 	"file_contents",
 	"full_text",
+	"file_path",
+	"absolute_path",
+	"full_absolute_path",
 }
 
 var safeResponseRedactionMetadataKeys = map[string]struct{}{
@@ -40,6 +45,12 @@ var safeResponseRedactionMetadataKeys = map[string]struct{}{
 	"content_digest_sha256":    {},
 	"content_bytes":            {},
 	"content_type":             {},
+	"input_redacted":           {},
+	"input_digest_sha256":      {},
+	"input_bytes":              {},
+	"input_content_type":       {},
+	"safe_summary":             {},
+	"sensitive_fields_redacted": {},
 	"redaction_policy_version": {},
 }
 
@@ -63,8 +74,15 @@ func sanitizeResponseValue(value interface{}) interface{} {
 	case map[string]interface{}:
 		out := make(map[string]interface{}, len(typed))
 		for key, child := range typed {
+			normalized := strings.ReplaceAll(strings.ToLower(key), "-", "_")
 			if responseKeySensitive(key) {
 				out[key] = redactedMap("sensitive_key", sha256HexString(valueToString(child)), len(valueToString(child)))
+			} else if normalized == "path" && looksLikePrivateResponsePath(valueToString(child)) {
+				out[key] = safeResponsePathEnvelope(valueToString(child))
+			} else if normalized == "url" {
+				out[key] = safeResponseURL(valueToString(child))
+			} else if normalized == "headers" {
+				out[key] = sanitizeResponseHeaders(child)
 			} else {
 				out[key] = sanitizeResponseValue(child)
 			}
@@ -105,6 +123,118 @@ func sanitizeTargetSummary(actionType, target string) string {
 	}
 }
 
+func sanitizeActionTargetURL(target string) string {
+	safe := safeResponseURL(target)
+	switch typed := safe.(type) {
+	case map[string]interface{}:
+		if value, ok := typed["safe_url"].(string); ok {
+			return value
+		}
+		return ""
+	case string:
+		return typed
+	default:
+		return ""
+	}
+}
+
+func sanitizeActionMetadata(metadata map[string]interface{}) map[string]interface{} {
+	if metadata == nil {
+		return map[string]interface{}{}
+	}
+	sanitized, ok := sanitizeResponseValue(metadata).(map[string]interface{})
+	if !ok || sanitized == nil {
+		return map[string]interface{}{
+			"input_redacted":           true,
+			"safe_summary":             "metadata_redaction_failed",
+			"redaction_policy_version": responseRedactionPolicyVersion,
+		}
+	}
+	return sanitized
+}
+
+func safeInputSummaryRaw(raw json.RawMessage) map[string]interface{} {
+	if len(raw) == 0 {
+		return nil
+	}
+	return map[string]interface{}{
+		"input_redacted":           true,
+		"safe_summary":             "execution input redacted; raw task definition is not returned",
+		"input_digest_sha256":      sha256HexBytes(raw),
+		"input_bytes":              len(raw),
+		"redaction_policy_version": responseRedactionPolicyVersion,
+	}
+}
+
+func safeResponseURL(raw string) interface{} {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return ""
+	}
+	parsed, err := url.Parse(trimmed)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return redactInlineAuth(trimmed)
+	}
+	resp := map[string]interface{}{
+		"safe_url":                 parsed.Scheme + "://" + parsed.Host + parsed.EscapedPath(),
+		"safe_host":                parsed.Hostname(),
+		"redaction_policy_version": responseRedactionPolicyVersion,
+	}
+	if parsed.RawQuery != "" || parsed.User != nil {
+		resp["input_redacted"] = true
+		resp["input_digest_sha256"] = sha256HexString(trimmed)
+		resp["input_bytes"] = len(trimmed)
+		resp["sensitive_fields_redacted"] = []string{"url_query_or_credentials"}
+	}
+	return resp
+}
+
+func sanitizeResponseHeaders(value interface{}) interface{} {
+	headers, ok := value.(map[string]interface{})
+	if !ok {
+		return inputRedactedMap("headers", sha256HexString(valueToString(value)), len(valueToString(value)))
+	}
+	out := map[string]interface{}{
+		"input_redacted":           true,
+		"sensitive_fields_redacted": []string{},
+		"redaction_policy_version": responseRedactionPolicyVersion,
+	}
+	for key, child := range headers {
+		normalized := strings.ReplaceAll(strings.ToLower(key), "-", "_")
+		switch {
+		case responseKeySensitive(key):
+			out[key] = inputRedactedMap("sensitive_header", sha256HexString(valueToString(child)), len(valueToString(child)))
+			out["sensitive_fields_redacted"] = append(out["sensitive_fields_redacted"].([]string), key)
+		case normalized == "content_type" || normalized == "content_length" || normalized == "etag" ||
+			normalized == "last_modified" || normalized == "cache_control" ||
+			normalized == "x_request_id" || normalized == "x_correlation_id":
+			out[key] = sanitizeResponseValue(child)
+		default:
+			out[key] = inputRedactedMap("non_allowlisted_header", sha256HexString(valueToString(child)), len(valueToString(child)))
+		}
+	}
+	return out
+}
+
+func safeResponsePathEnvelope(path string) map[string]interface{} {
+	trimmed := strings.TrimSpace(path)
+	resp := inputRedactedMap("private_path", sha256HexString(trimmed), len(trimmed))
+	base := filepath.Base(trimmed)
+	if base != "." && base != "/" && base != "" {
+		resp["safe_basename"] = base
+	}
+	resp["safe_path_digest"] = sha256HexString(trimmed)
+	return resp
+}
+
+func looksLikePrivateResponsePath(value string) bool {
+	trimmed := strings.TrimSpace(value)
+	return strings.HasPrefix(trimmed, "/") ||
+		strings.HasPrefix(trimmed, "~/") ||
+		strings.HasPrefix(trimmed, `\\`) ||
+		(len(trimmed) >= 3 && trimmed[1] == ':' && (trimmed[2] == '\\' || trimmed[2] == '/'))
+}
+
 func redactURLQuery(value string) string {
 	value = strings.TrimSpace(value)
 	if idx := strings.Index(value, "?"); idx >= 0 {
@@ -137,6 +267,17 @@ func redactedMap(reason, digest string, bytes int) map[string]interface{} {
 		"reason":                   reason,
 		"content_digest_sha256":    digest,
 		"content_bytes":            bytes,
+		"redaction_policy_version": responseRedactionPolicyVersion,
+	}
+}
+
+func inputRedactedMap(reason, digest string, bytes int) map[string]interface{} {
+	return map[string]interface{}{
+		"input_redacted":           true,
+		"safe_summary":             reason,
+		"input_digest_sha256":      digest,
+		"input_bytes":              bytes,
+		"sensitive_fields_redacted": []string{reason},
 		"redaction_policy_version": responseRedactionPolicyVersion,
 	}
 }
