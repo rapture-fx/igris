@@ -1025,10 +1025,10 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 		resp["failure"] = failure
 	}
 	if len(task.ExecutionEnvelope) > 0 {
-		resp["execution_envelope"] = task.ExecutionEnvelope
+		resp["execution_envelope"] = sanitizeJSONRawMessage(task.ExecutionEnvelope)
 	}
 	if len(task.ExecutionReceipt) > 0 {
-		resp["execution_receipt"] = task.ExecutionReceipt
+		resp["execution_receipt"] = sanitizeJSONRawMessage(task.ExecutionReceipt)
 		if receipt := buildTaskReceiptResponse(task.ExecutionReceipt); receipt != nil {
 			resp["receipt"] = receipt
 		}
