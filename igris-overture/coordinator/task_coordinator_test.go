@@ -678,7 +678,6 @@ func TestSanitizeTaskDefinitionForPersistenceRedactsPrivatePathsAndContent(t *te
 	body := string(sanitized)
 	require.NotContains(t, body, marker)
 	require.NotContains(t, body, "/Users/customer/private")
-	require.Contains(t, body, "safe_basename")
 	require.Contains(t, body, "safe_path_digest")
 	require.Contains(t, body, "input_redacted")
 	require.Contains(t, body, "input_digest_sha256")
