@@ -366,7 +366,7 @@ func (h *ProofHandler) VerifyReceipt(c *fiber.Ctx) error {
 
 // receiptVerifyRow holds every stored execution_lineage column needed to
 // re-derive the canonical receipt JSON, plus the runtime's registered public
-// key. Each text field is COALESCE'd to '' in SQL so a sparse row never
+// key. Each text field is COALESCE'd to ” in SQL so a sparse row never
 // causes a NULL-scan failure.
 type receiptVerifyRow struct {
 	receiptID         string
