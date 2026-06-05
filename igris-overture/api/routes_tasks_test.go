@@ -3890,7 +3890,8 @@ func TestBuildTaskResponseIncludesActionEvidence(t *testing.T) {
 	require.Equal(t, "read_file-0", evidence[0]["node_id"])
 	require.Equal(t, "read_file", evidence[0]["action_type"])
 	require.Equal(t, "filesystem", evidence[0]["tool_name"])
-	require.Equal(t, "/tmp/igris-action/input.txt", evidence[0]["target_summary"])
+	require.NotContains(t, evidence[0]["target_summary"], "/tmp/igris-action/input.txt")
+	require.Contains(t, evidence[0]["target_summary"], "file:")
 	require.Equal(t, "committed", evidence[0]["status"])
 	require.Equal(t, "aa00", evidence[0]["result_digest"])
 	require.Equal(t, "runtime-1", evidence[0]["runtime_id"])
@@ -3915,11 +3916,49 @@ func TestBuildTaskResponseIncludesActionEvidence(t *testing.T) {
 	serialized, err := json.Marshal(evidence)
 	require.NoError(t, err)
 	require.NotContains(t, string(serialized), "shhh")
+	require.NotContains(t, string(serialized), "/tmp/igris-action/input.txt")
 	require.NotContains(t, string(serialized), "top-secret")
 	require.NotContains(t, string(serialized), "123-45-6789")
 	require.NotContains(t, string(serialized), `"body"`)
 	require.NotContains(t, string(serialized), `"record"`)
 	require.NotContains(t, string(serialized), `"headers"`)
+}
+
+func TestBuildTaskResponseRedactsHistoricalCheckpointMetadata(t *testing.T) {
+	t.Parallel()
+
+	marker := "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"
+	task := &coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{"type":"agent_workflow","steps":[{"model":"m","messages":[{"role":"user","content":"hi"}]}]}`),
+		LastCheckpoint: &coordinator.CheckpointPayload{
+			ResumeToken: coordinator.ResumeToken{LastCommittedStep: 1, CheckpointDigest: "digest-1", RuntimeID: "runtime-1"},
+			Metadata: json.RawMessage(`{
+				"graph_blackboard": {
+					"nodes": {
+						"tool-1": {
+							"content": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET",
+							"metadata": {
+								"raw_body": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET",
+								"authorization": "Bearer IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"
+							}
+						}
+					},
+					"slots": {
+						"tool.fetch": {"password": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"}
+					}
+				}
+			}`),
+		},
+	}
+
+	resp := buildTaskResponse(task)
+	serialized, err := json.Marshal(resp)
+	require.NoError(t, err)
+	require.NotContains(t, string(serialized), marker)
+	require.Contains(t, string(serialized), responseRedactionPolicyVersion)
+	require.Contains(t, string(serialized), "content_digest_sha256")
 }
 
 func TestBuildTaskResponseOmitsActionEvidenceForNonActionGraphs(t *testing.T) {
