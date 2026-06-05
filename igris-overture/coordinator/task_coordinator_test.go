@@ -683,6 +683,125 @@ func TestSanitizeTaskDefinitionForPersistenceRedactsPrivatePathsAndContent(t *te
 	require.Contains(t, body, "input_digest_sha256")
 }
 
+func TestProtectTaskDefinitionInputsCreatesEncryptedRefsWithoutPlaintext(t *testing.T) {
+	const marker = "IGRIS_ENCRYPTED_INPUT_SECRET_MARKER"
+	t.Setenv(executionInputRefKeyEnv, base64.StdEncoding.EncodeToString([]byte("0123456789abcdef0123456789abcdef")))
+	t.Setenv(executionInputRefKeyVersionEnv, "test:v1")
+
+	taskID := uuid.New()
+	protected, err := protectTaskDefinitionInputs(json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{
+			"kind":"tool",
+			"node_id":"unsafe-http",
+			"tool_name":"http_request",
+			"args":{
+				"method":"POST",
+				"url":"https://api.example.test/hook?token=`+marker+`",
+				"body":"`+marker+`",
+				"headers":{"Authorization":"Bearer `+marker+`","Content-Type":"application/json"}
+			}
+		}]}
+	}`), "tenant-input-ref", taskID)
+	require.NoError(t, err)
+	require.NotEmpty(t, protected.Refs)
+
+	persisted := string(protected.Definition)
+	require.NotContains(t, persisted, marker)
+	require.NotContains(t, persisted, "Bearer")
+	require.NotContains(t, persisted, "?token=")
+	require.Contains(t, persisted, "encrypted_input_ref_id")
+	require.Contains(t, persisted, inputReferenceRedactionPolicyVersion)
+	for _, ref := range protected.Refs {
+		require.NotContains(t, string(ref.Ciphertext), marker)
+		require.Equal(t, "tenant-input-ref", ref.TenantID)
+		require.Equal(t, taskID, ref.TaskID)
+		require.NotEmpty(t, ref.KeyVersion)
+		require.NotEmpty(t, ref.DigestSHA256)
+		require.Positive(t, ref.PlaintextBytes)
+	}
+}
+
+func TestEncryptedInputRefDecryptRequiresCorrectScopeAndTamperFails(t *testing.T) {
+	const marker = "IGRIS_ENCRYPTED_INPUT_SECRET_MARKER"
+	key := base64.StdEncoding.EncodeToString([]byte("abcdef0123456789abcdef0123456789"))
+	cipherSvc, err := newExecutionInputCipher(key, "test:v2")
+	require.NoError(t, err)
+	tenantID := "tenant-a"
+	taskID := uuid.New()
+	refID := uuid.New()
+	purpose := "execution_payload"
+	aad, err := executionInputAssociatedData(tenantID, taskID, refID, purpose, cipherSvc.keyVersion)
+	require.NoError(t, err)
+	ciphertext, nonce, err := cipherSvc.encrypt([]byte(marker), aad)
+	require.NoError(t, err)
+
+	plaintext, err := cipherSvc.decrypt(ciphertext, nonce, aad)
+	require.NoError(t, err)
+	require.Equal(t, marker, string(plaintext))
+
+	wrongTenantAAD, err := executionInputAssociatedData("tenant-b", taskID, refID, purpose, cipherSvc.keyVersion)
+	require.NoError(t, err)
+	_, err = cipherSvc.decrypt(ciphertext, nonce, wrongTenantAAD)
+	require.ErrorIs(t, err, ErrExecutionInputRefDecrypt)
+
+	wrongTaskAAD, err := executionInputAssociatedData(tenantID, uuid.New(), refID, purpose, cipherSvc.keyVersion)
+	require.NoError(t, err)
+	_, err = cipherSvc.decrypt(ciphertext, nonce, wrongTaskAAD)
+	require.ErrorIs(t, err, ErrExecutionInputRefDecrypt)
+
+	wrongPurposeAAD, err := executionInputAssociatedData(tenantID, taskID, refID, "private_path", cipherSvc.keyVersion)
+	require.NoError(t, err)
+	_, err = cipherSvc.decrypt(ciphertext, nonce, wrongPurposeAAD)
+	require.ErrorIs(t, err, ErrExecutionInputRefDecrypt)
+
+	tampered := append([]byte(nil), ciphertext...)
+	tampered[0] ^= 0xff
+	_, err = cipherSvc.decrypt(tampered, nonce, aad)
+	require.ErrorIs(t, err, ErrExecutionInputRefDecrypt)
+}
+
+func TestProtectTaskDefinitionInputsFailsClosedWhenKeyMissing(t *testing.T) {
+	t.Setenv(executionInputRefKeyEnv, "")
+
+	_, err := protectTaskDefinitionInputs(json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{"kind":"tool","node_id":"http","tool_name":"http_request","args":{"body":"secret"}}]}
+	}`), "tenant-input-ref", uuid.New())
+	require.ErrorIs(t, err, ErrExecutionInputRefKeyMissing)
+}
+
+func TestRecoveryRehydratesEncryptedInputRefsOnlyThroughResolver(t *testing.T) {
+	const marker = "IGRIS_ENCRYPTED_INPUT_SECRET_MARKER"
+	t.Setenv(executionInputRefKeyEnv, base64.StdEncoding.EncodeToString([]byte("22222222222222222222222222222222")))
+	t.Setenv(executionInputRefKeyVersionEnv, "test:recovery")
+
+	tenantID := "tenant-recovery"
+	taskID := uuid.New()
+	protected, err := protectTaskDefinitionInputs(json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{"kind":"tool","node_id":"unsafe-file","tool_name":"filesystem","args":{"path":"/private/`+marker+`.txt"}}]}
+	}`), tenantID, taskID)
+	require.NoError(t, err)
+	require.NotContains(t, string(protected.Definition), marker)
+
+	refs := map[uuid.UUID]ExecutionInputRef{}
+	for _, ref := range protected.Refs {
+		refs[ref.ID] = ref
+	}
+	cipherSvc, err := newExecutionInputCipherFromEnv()
+	require.NoError(t, err)
+	rehydrated, err := rehydrateTaskDefinitionInputRefs(protected.Definition, tenantID, taskID, func(refID uuid.UUID, purpose string) ([]byte, error) {
+		ref, ok := refs[refID]
+		require.True(t, ok)
+		require.Equal(t, purpose, ref.Purpose)
+		return cipherSvc.decrypt(ref.Ciphertext, ref.Nonce, ref.AAD)
+	})
+	require.NoError(t, err)
+	require.Contains(t, string(rehydrated), marker)
+	require.Contains(t, string(rehydrated), "/private/")
+}
+
 func TestNormalizePublicTaskDefinitionRejectsInvalidExecutionGraphSlotFields(t *testing.T) {
 	t.Parallel()
 
