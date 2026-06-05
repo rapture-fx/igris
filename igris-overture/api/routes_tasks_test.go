@@ -3510,6 +3510,48 @@ func TestBuildTaskResponseDoesNotReturnRawHistoricalInputs(t *testing.T) {
 	require.Contains(t, body, "input_digest_sha256")
 }
 
+func TestBuildTaskResponseReturnsEncryptedInputRefMetadataOnly(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_ENCRYPTED_INPUT_SECRET_MARKER"
+	task := &coordinator.TaskRecord{
+		TaskID: uuid.New(),
+		Status: coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{
+				"kind":"tool",
+				"node_id":"unsafe-http",
+				"tool_name":"http_request",
+				"args":{"body":{
+					"input_redacted":true,
+					"encrypted_input_ref":true,
+					"encrypted_input_ref_id":"11111111-1111-1111-1111-111111111111",
+					"purpose":"execution_payload",
+					"input_digest_sha256":"abc123",
+					"input_bytes":42,
+					"key_version":"test:v1",
+					"safe_summary":"redacted",
+					"redaction_policy_version":"input-reference-redaction-v1"
+				}}
+			}]}
+		}`),
+		ExecutionReceipt: json.RawMessage(`{"ciphertext":"` + marker + `"}`),
+		CreatedAt:        time.Now().UTC(),
+	}
+
+	resp := buildTaskResponse(task)
+	raw, err := json.Marshal(resp)
+	require.NoError(t, err)
+	body := string(raw)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "ciphertext")
+	require.NotContains(t, body, "task_definition")
+	require.Contains(t, body, "encrypted_input_refs")
+	require.Contains(t, body, "11111111-1111-1111-1111-111111111111")
+	require.Contains(t, body, "execution_payload")
+}
+
 func TestBuildTaskSubmitRequestIncludesAgentGovernance(t *testing.T) {
 	t.Parallel()
 
