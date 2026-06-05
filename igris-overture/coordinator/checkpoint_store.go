@@ -452,7 +452,9 @@ func normalizeWalStatus(status string) string {
 
 // CreateTask inserts a new TaskRecord in PENDING state.
 // It returns true when a new row was inserted and false when the idempotency
-// key already existed.
+// key already existed for this tenant. Idempotency is tenant-scoped: the
+// (tenant_id, idempotency_key) conflict target deduplicates only within the
+// same tenant, so different tenants may reuse the same idempotency key.
 func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 	defBytes, err := json.Marshal(task.TaskDefinition)
 	if err != nil {
@@ -462,7 +464,7 @@ func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 		INSERT INTO task_records
 			(task_id, tenant_id, status, task_definition, idempotency_key, deadline_at, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW())
-		ON CONFLICT (idempotency_key) DO NOTHING`,
+		ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
 		task.TaskID, task.TenantID, TaskStatusPending, defBytes,
 		task.IdempotencyKey, task.DeadlineAt,
 	)
