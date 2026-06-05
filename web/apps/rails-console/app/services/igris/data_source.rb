@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'digest'
+
 #
 # Igris::DataSource — the single layer controllers ask for action/run/runtime
 # state. Behind it:
@@ -310,21 +312,22 @@ module Igris
     def normalize_action(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       target_type = raw[:target_type].to_s
+      target_url = sanitize_display_url(raw[:target_url])
       {
         id:             raw[:id] || raw[:name],
         name:           raw[:name],
         display_name:   raw[:display_name].presence || raw[:name],
         description:    raw[:description].to_s,
         target_type:    target_type,
-        target_label:   target_label_for(target_type, raw[:target_url]),
-        target_url:     raw[:target_url].to_s,
+        target_label:   target_label_for(target_type, target_url),
+        target_url:     target_url,
         method:         raw[:method].to_s.upcase.presence || 'POST',
         policy:         policy_label_for(raw[:policy_preset], raw[:approval_required], raw[:irreversible]),
         policy_preset:  raw[:policy_preset].to_s,
         replay:         (raw[:replay_class].to_s == 'retryable' ? 'On' : 'Off'),
         secrets_state:  raw[:secret_refs].is_a?(Array) && raw[:secret_refs].any? ? 'Configured' : 'Not configured',
         endpoint:       endpoint_url(raw[:name]),
-        setup:          setup_status_for(target_type, raw[:target_url]),
+        setup:          setup_status_for(target_type, target_url),
         last_run_at:    nil,
         last_run_status: nil,
         proof:          'No run yet',
