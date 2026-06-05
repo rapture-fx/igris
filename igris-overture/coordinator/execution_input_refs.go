@@ -275,6 +275,40 @@ func (s *CheckpointStore) MarkExecutionInputRefDecrypted(ctx context.Context, re
 	return err
 }
 
+func (s *CheckpointStore) RevokeExecutionInputRef(ctx context.Context, tenantID string, taskID uuid.UUID, refID uuid.UUID, purpose, reason string) error {
+	if s == nil || s.db == nil || refID == uuid.Nil || isSQLMockDB(s.db) {
+		return nil
+	}
+	result, err := s.db.ExecContext(ctx, `
+		UPDATE execution_input_refs
+		SET revoked_at = COALESCE(revoked_at, NOW())
+		WHERE id = $1 AND tenant_id = $2 AND (task_id = $3 OR task_id IS NULL) AND purpose = $4`,
+		refID, tenantID, taskID, purpose,
+	)
+	if err != nil {
+		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
+			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
+			EventType: "input_ref_revoked", ActorType: "system", Reason: reason,
+			Success: false, FailureCode: "revoke_failed",
+		})
+		return err
+	}
+	affected, _ := result.RowsAffected()
+	if affected == 0 {
+		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
+			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
+			EventType: "input_ref_revoked", ActorType: "system", Reason: reason,
+			Success: false, FailureCode: "not_found",
+		})
+		return ErrExecutionInputRefNotFound
+	}
+	return s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
+		TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
+		EventType: "input_ref_revoked", ActorType: "system", Reason: reason,
+		Success: true,
+	})
+}
+
 type ExecutionInputRefAuditEvent struct {
 	TenantID    string
 	TaskID      uuid.UUID
