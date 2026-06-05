@@ -48,6 +48,12 @@ var safeResponseRedactionMetadataKeys = map[string]struct{}{
 	"input_digest_sha256":       {},
 	"input_bytes":               {},
 	"input_content_type":        {},
+	"encrypted_input_ref":       {},
+	"encrypted_input_ref_id":    {},
+	"purpose":                   {},
+	"key_version":               {},
+	"created_at":                {},
+	"expires_at":                {},
 	"safe_summary":              {},
 	"sensitive_fields_redacted": {},
 	"redaction_policy_version":  {},
@@ -156,13 +162,61 @@ func safeInputSummaryRaw(raw json.RawMessage) map[string]interface{} {
 	if len(raw) == 0 {
 		return nil
 	}
-	return map[string]interface{}{
+	resp := map[string]interface{}{
 		"input_redacted":           true,
 		"safe_summary":             "execution input redacted; raw task definition is not returned",
 		"input_digest_sha256":      sha256HexBytes(raw),
 		"input_bytes":              len(raw),
 		"redaction_policy_version": responseRedactionPolicyVersion,
 	}
+	if refs := encryptedInputRefSummaries(raw); len(refs) > 0 {
+		resp["encrypted_input_refs"] = refs
+	}
+	return resp
+}
+
+func encryptedInputRefSummaries(raw json.RawMessage) []map[string]interface{} {
+	var value interface{}
+	if len(raw) == 0 || json.Unmarshal(raw, &value) != nil {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	refs := []map[string]interface{}{}
+	var walk func(interface{})
+	walk = func(current interface{}) {
+		switch typed := current.(type) {
+		case map[string]interface{}:
+			if encrypted, _ := typed["encrypted_input_ref"].(bool); encrypted {
+				id := stringFromAny(typed["encrypted_input_ref_id"])
+				if id != "" {
+					if _, ok := seen[id]; !ok {
+						seen[id] = struct{}{}
+						refs = append(refs, map[string]interface{}{
+							"encrypted_input_ref":       true,
+							"encrypted_input_ref_id":    id,
+							"purpose":                   stringFromAny(typed["purpose"]),
+							"input_digest_sha256":       stringFromAny(typed["input_digest_sha256"]),
+							"input_bytes":               typed["input_bytes"],
+							"input_content_type":        stringFromAny(typed["input_content_type"]),
+							"key_version":               stringFromAny(typed["key_version"]),
+							"redaction_policy_version":  stringFromAny(typed["redaction_policy_version"]),
+							"safe_summary":              stringFromAny(typed["safe_summary"]),
+							"sensitive_fields_redacted": typed["sensitive_fields_redacted"],
+						})
+					}
+				}
+			}
+			for _, child := range typed {
+				walk(child)
+			}
+		case []interface{}:
+			for _, child := range typed {
+				walk(child)
+			}
+		}
+	}
+	walk(value)
+	return refs
 }
 
 func safeResponseURL(raw string) interface{} {
