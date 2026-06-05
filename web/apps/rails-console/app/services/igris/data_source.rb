@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'digest'
+require 'uri'
 
 #
 # Igris::DataSource — the single layer controllers ask for action/run/runtime
