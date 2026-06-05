@@ -27,6 +27,15 @@ const SENSITIVE_KEY_PATTERNS: &[&str] = &[
     "full_text",
 ];
 
+const SAFE_REDACTION_METADATA_KEYS: &[&str] = &[
+    "content_redacted",
+    "content_digest",
+    "content_digest_sha256",
+    "content_bytes",
+    "content_type",
+    "redaction_policy_version",
+];
+
 pub const SAFE_HTTP_RESPONSE_HEADERS: &[&str] = &[
     "content-type",
     "content-length",
@@ -192,6 +201,9 @@ pub fn sanitize_string(text: &str) -> String {
 
 fn is_sensitive_key(key: &str) -> bool {
     let normalized = key.to_lowercase().replace('-', "_");
+    if SAFE_REDACTION_METADATA_KEYS.contains(&normalized.as_str()) {
+        return false;
+    }
     SENSITIVE_KEY_PATTERNS
         .iter()
         .any(|pattern| normalized.contains(&pattern.replace('-', "_")))
