@@ -131,7 +131,7 @@ func (h *ProofHandler) ListReceipts(c *fiber.Ctx) error {
 		FROM execution_lineage el
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = el.execution_id
-		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
+		      AND ec.tenant_id = el.tenant_id
 		%s
 		WHERE el.tenant_id = $1
 		ORDER BY el.timestamp_utc ` + sortDir + `
@@ -414,12 +414,12 @@ func (h *ProofHandler) fetchReceiptVerifyRow(ctx context.Context, executionID, t
 		FROM execution_lineage el
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = el.execution_id
-		      AND (ec.tenant_id = el.tenant_id OR ec.tenant_id IS NULL)
+		      AND ec.tenant_id = el.tenant_id
 		LEFT JOIN runtime_instances ri
 		       ON ri.runtime_id::text = COALESCE(NULLIF(el.runtime_id, ''), NULLIF(ec.runtime_id, ''))
 		%s
 		WHERE el.execution_id = $1
-		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
+		  AND el.tenant_id = $2
 	`
 	query = fmt.Sprintf(query, executionTaskProofLookupJoinSQL(schemaCaps.taskProofLookup, "el"))
 
@@ -554,7 +554,7 @@ func fetchReceiptForChain(ctx context.Context, db *sql.DB, tenantID, previousHas
 		       '' AS proof_status
 		FROM execution_lineage el
 		WHERE el.receipt_hash = $1
-		  AND (el.tenant_id = $2 OR el.tenant_id IS NULL)
+		  AND el.tenant_id = $2
 		LIMIT 1
 	`, previousHash, tenantID).Scan(
 		&row.receiptID,
