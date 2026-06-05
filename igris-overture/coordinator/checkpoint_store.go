@@ -2095,6 +2095,16 @@ func validateRoboticsAuditReplay(replay *RoboticsAuditReplay) {
 	replay.Valid = len(errors) == 0
 }
 
+// syncTaskProofLineageLookupSQL reads the stored receipt hash/signature for an
+// execution. execution_lineage is a tenant-bound trust object: the lookup is
+// ALWAYS filtered by tenant_id and must never accept `OR tenant_id IS NULL`, or
+// a tenant-null (legacy) receipt could leak into another tenant's proof state.
+const syncTaskProofLineageLookupSQL = `
+		SELECT receipt_hash, signature
+		FROM execution_lineage
+		WHERE execution_id = $1
+		  AND tenant_id = $2`
+
 func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) (*TaskProofState, error) {
 	var executionID, expectedHash sql.NullString
 	if err := s.db.QueryRow(`
@@ -2114,11 +2124,7 @@ func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) 
 	state := buildTaskProofState(executionID.String, expectedHash.String, "", "", false, now)
 
 	var storedHash, signature sql.NullString
-	err := s.db.QueryRow(`
-		SELECT receipt_hash, signature
-		FROM execution_lineage
-		WHERE execution_id = $1
-		  AND tenant_id = $2`,
+	err := s.db.QueryRow(syncTaskProofLineageLookupSQL,
 		executionID.String, tenantID,
 	).Scan(&storedHash, &signature)
 	if err == sql.ErrNoRows {
