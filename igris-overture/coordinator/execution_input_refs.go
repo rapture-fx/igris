@@ -81,6 +81,84 @@ func (s *CheckpointStore) SaveExecutionInputRef(ctx context.Context, ref Executi
 	return err
 }
 
+func (s *CheckpointStore) CreateTaskWithExecutionInputRefs(ctx context.Context, task *TaskRecord, refs []ExecutionInputRef) (bool, error) {
+	if len(refs) == 0 || s == nil || s.db == nil || isSQLMockDB(s.db) {
+		return s.CreateTask(task)
+	}
+	defBytes, err := json.Marshal(task.TaskDefinition)
+	if err != nil {
+		return false, fmt.Errorf("marshal task definition: %w", err)
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.ExecContext(ctx, `
+		INSERT INTO task_records
+			(task_id, tenant_id, status, task_definition, idempotency_key, deadline_at, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, NOW())
+		ON CONFLICT (idempotency_key) DO NOTHING`,
+		task.TaskID, task.TenantID, TaskStatusPending, defBytes, task.IdempotencyKey, task.DeadlineAt,
+	)
+	if err != nil {
+		return false, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if rowsAffected == 0 {
+		if err := tx.Commit(); err != nil {
+			return false, err
+		}
+		return false, nil
+	}
+	for _, ref := range refs {
+		if err := insertExecutionInputRef(ctx, tx, ref); err != nil {
+			return false, err
+		}
+		eventType := "input_ref_created"
+		if err := insertExecutionInputRefAudit(ctx, tx, ExecutionInputRefAuditEvent{
+			TenantID:   ref.TenantID,
+			TaskID:     ref.TaskID,
+			ActionID:   ref.ActionID,
+			InputRefID: ref.ID,
+			Purpose:    ref.Purpose,
+			ActorType:  "system",
+			EventType:  eventType,
+			Reason:     "task submission stored encrypted execution input reference",
+			Success:    true,
+		}); err != nil {
+			return false, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+type sqlExecerContext interface {
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+}
+
+func insertExecutionInputRef(ctx context.Context, execer sqlExecerContext, ref ExecutionInputRef) error {
+	_, err := execer.ExecContext(ctx, `
+		INSERT INTO execution_input_refs (
+			id, tenant_id, task_id, action_id, purpose, ciphertext, nonce, aad,
+			digest_sha256, plaintext_bytes, content_type, redaction_policy_version,
+			key_version, created_at, expires_at, revoked_at
+		) VALUES ($1,$2,NULLIF($3,'')::uuid,$4,$5,$6,$7,$8::jsonb,$9,$10,NULLIF($11,''),$12,$13,NOW(),$14,$15)
+		ON CONFLICT (id) DO NOTHING`,
+		ref.ID, ref.TenantID, nullUUIDString(ref.TaskID), ref.ActionID, ref.Purpose, ref.Ciphertext, ref.Nonce,
+		string(ref.AAD), ref.DigestSHA256, ref.PlaintextBytes, ref.ContentType, ref.RedactionPolicyVersion,
+		ref.KeyVersion, ref.ExpiresAt, ref.RevokedAt,
+	)
+	return err
+}
+
 func (s *CheckpointStore) LoadExecutionInputRef(ctx context.Context, tenantID string, taskID uuid.UUID, refID uuid.UUID, purpose string) (*ExecutionInputRef, error) {
 	if s == nil || s.db == nil {
 		return nil, ErrExecutionInputRefNotFound
