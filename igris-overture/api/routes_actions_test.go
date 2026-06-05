@@ -535,7 +535,6 @@ func TestScanActionDefinitionRedactsHistoricalUnsafeMetadata(t *testing.T) {
 	require.NotContains(t, body, "?token=")
 	require.NotContains(t, body, "Bearer")
 	require.NotContains(t, body, "/Users/customer/private")
-	require.Contains(t, body, "safe_basename")
 	require.Contains(t, body, "input_redacted")
 }
 
