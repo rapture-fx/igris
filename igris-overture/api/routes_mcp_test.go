@@ -256,6 +256,45 @@ func TestMCPGetActionRedactsUnsafeFields(t *testing.T) {
 	require.Zero(t, drv.remainingQueries())
 }
 
+func TestMCPSafeRunResponsesDoNotExposeHistoricalCheckpointPayloads(t *testing.T) {
+	t.Parallel()
+
+	marker := "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"
+	task := &coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusCompleted,
+		CreatedAt:      time.Now().UTC(),
+		TaskDefinition: json.RawMessage(`{"type":"agent_workflow","steps":[{"model":"m","messages":[{"role":"user","content":"hi"}]}]}`),
+		LastCheckpoint: &coordinator.CheckpointPayload{
+			ResumeToken: coordinator.ResumeToken{LastCommittedStep: 1, CheckpointDigest: "digest-1", RuntimeID: "runtime-1"},
+			Metadata: json.RawMessage(`{
+				"graph_blackboard": {
+					"nodes": {
+						"tool-1": {
+							"content": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET",
+							"raw_body": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET",
+							"authorization": "Bearer IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"
+						}
+					}
+				}
+			}`),
+		},
+	}
+
+	detail := safeMCPRunDetail(task)
+	evidence := safeMCPRunEvidence(task, []coordinator.WalEntry{{
+		EntryID:     uuid.New(),
+		StepIndex:   1,
+		Status:      "committed",
+		InputDigest: "input-digest",
+	}})
+	encoded, err := json.Marshal(fiber.Map{"detail": detail, "evidence": evidence})
+	require.NoError(t, err)
+	require.NotContains(t, string(encoded), marker)
+	require.NotContains(t, string(encoded), "raw_body")
+	require.Contains(t, string(encoded), "input-digest")
+}
+
 func TestMCPCallActionUsesExistingActionRunPath(t *testing.T) {
 	t.Parallel()
 
