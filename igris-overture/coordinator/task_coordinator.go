@@ -86,11 +86,12 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		idempotencyKey = taskID.String()
 	}
 
+	persistedDefinition := sanitizeTaskDefinitionForPersistence(normalizedDefinition)
 	task := &TaskRecord{
 		TaskID:               taskID,
 		TenantID:             req.TenantID,
 		Status:               TaskStatusPending,
-		TaskDefinition:       normalizedDefinition,
+		TaskDefinition:       persistedDefinition,
 		AgentIdentity:        governance.AgentIdentity,
 		RequiredCapabilities: governance.RequiredCapabilities,
 		CredentialRequests:   governance.CredentialRequests,
@@ -154,19 +155,22 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 	task.Status = TaskStatusDispatched
 	task.RuntimeID = &runtime.RuntimeID
 	task.RuntimeEndpoint = &runtime.Endpoint
+	runtimeTask := *task
+	runtimeTask.TaskDefinition = normalizedDefinition
 	envelope, err := tc.buildTaskPermissionEnvelope(ctx, task, governance)
 	if err != nil {
 		_ = tc.store.MarkFailedWithDetails(taskID, "task capability policy denied", overtureTaskFailureDetails("submit", "capability_policy_denied", err.Error()))
 		return nil, err
 	}
 	task.PermissionEnvelope = envelope
+	runtimeTask.PermissionEnvelope = envelope
 	if err := tc.store.SaveTaskPermissionEnvelope(task.TaskID, envelope); err != nil {
 		_ = tc.store.MarkFailedWithDetails(taskID, "task permission audit persistence failed", overtureTaskFailureDetails("submit", "permission_audit_persistence_failed", err.Error()))
 		return nil, fmt.Errorf("persist task permission envelope: %w", err)
 	}
 
 	// Dispatch asynchronously so Submit returns immediately.
-	go tc.dispatchToRuntime(context.Background(), task, nil)
+	go tc.dispatchToRuntime(context.Background(), &runtimeTask, nil)
 
 	return task, nil
 }
