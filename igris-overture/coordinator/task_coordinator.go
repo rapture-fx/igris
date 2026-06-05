@@ -86,12 +86,15 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		idempotencyKey = taskID.String()
 	}
 
-	persistedDefinition := sanitizeTaskDefinitionForPersistence(normalizedDefinition)
+	protectedDefinition, err := protectTaskDefinitionInputs(normalizedDefinition, req.TenantID, taskID)
+	if err != nil {
+		return nil, err
+	}
 	task := &TaskRecord{
 		TaskID:               taskID,
 		TenantID:             req.TenantID,
 		Status:               TaskStatusPending,
-		TaskDefinition:       persistedDefinition,
+		TaskDefinition:       protectedDefinition.Definition,
 		AgentIdentity:        governance.AgentIdentity,
 		RequiredCapabilities: governance.RequiredCapabilities,
 		CredentialRequests:   governance.CredentialRequests,
@@ -100,7 +103,7 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		CreatedAt:            time.Now(),
 	}
 
-	inserted, err := tc.store.CreateTask(task)
+	inserted, err := tc.store.CreateTaskWithExecutionInputRefs(ctx, task, protectedDefinition.Refs)
 	if err != nil {
 		return nil, fmt.Errorf("create task record: %w", err)
 	}
