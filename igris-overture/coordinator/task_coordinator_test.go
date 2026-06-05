@@ -611,6 +611,79 @@ func TestNormalizePublicTaskDefinitionAcceptsToolExecutionGraphNode(t *testing.T
 	require.Equal(t, "execution_graph", definition["type"])
 }
 
+func TestSanitizeTaskDefinitionForPersistenceRedactsExecutionInputs(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	raw := json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{
+			"nodes":[{
+				"kind":"tool",
+				"node_id":"unsafe-http",
+				"tool_name":"http_request",
+				"args":{
+					"method":"POST",
+					"url":"https://api.internal.example/write?token=` + marker + `",
+					"body":"` + marker + `",
+					"headers":{
+						"Authorization":"Bearer ` + marker + `",
+						"Cookie":"session=` + marker + `",
+						"Content-Type":"application/json"
+					}
+				}
+			}]
+		}
+	}`)
+
+	sanitized := sanitizeTaskDefinitionForPersistence(raw)
+	body := string(sanitized)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "Bearer")
+	require.NotContains(t, body, "session=")
+	require.NotContains(t, body, "?token=")
+	require.Contains(t, body, "input_redacted")
+	require.Contains(t, body, "input_digest_sha256")
+	require.Contains(t, body, "input_bytes")
+	require.Contains(t, body, inputRedactionPolicyVersion)
+	require.Contains(t, body, "Content-Type")
+}
+
+func TestSanitizeTaskDefinitionForPersistenceRedactsPrivatePathsAndContent(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	raw := json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{
+			"nodes":[{
+				"kind":"tool",
+				"node_id":"unsafe-file",
+				"tool_name":"filesystem",
+				"args":{
+					"operation":"read",
+					"path":"/Users/customer/private/` + marker + `.txt",
+					"content":"` + marker + `"
+				}
+			},{
+				"kind":"reason",
+				"node_id":"unsafe-prompt",
+				"model":"gpt-4.1-mini",
+				"messages":[{"role":"user","content":"` + marker + `"}]
+			}]
+		}
+	}`)
+
+	sanitized := sanitizeTaskDefinitionForPersistence(raw)
+	body := string(sanitized)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "/Users/customer/private")
+	require.Contains(t, body, "safe_basename")
+	require.Contains(t, body, "safe_path_digest")
+	require.Contains(t, body, "input_redacted")
+	require.Contains(t, body, "input_digest_sha256")
+}
+
 func TestNormalizePublicTaskDefinitionRejectsInvalidExecutionGraphSlotFields(t *testing.T) {
 	t.Parallel()
 
