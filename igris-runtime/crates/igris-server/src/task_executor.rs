@@ -34,6 +34,8 @@ use igris_safety::{Bounds as SafetyBounds, ContainmentGuard};
 use igris_wal::{CheckpointPayload, ResumeToken, StepType, WalEntry, WalLog, WalStatus};
 use std::sync::Arc;
 
+use igris_tools::{sanitize_json_value, sanitize_tool_output, REDACTION_POLICY_VERSION};
+
 use crate::receipt::ExecutionReceipt;
 use crate::runtime_callback::{RuntimeCallbackAuth, RuntimeCallbackClient};
 use crate::runtime_execute::{
@@ -1653,7 +1655,7 @@ pub async fn handle_task_submit(
             &step_result,
         ));
         attach_graph_blackboard_metadata(&mut checkpoint_metadata, &graph_blackboard);
-        last_output = Some(step_result.output_text);
+        last_output = Some(redacted_output_text(&step_result.output_text));
         last_usage = Some(step_result.usage);
         last_envelope = Some(execution_envelope);
         if let Some(receipt) = execution_receipt.as_ref() {
@@ -3393,6 +3395,7 @@ fn update_graph_blackboard(
         .clone()
         .or_else(|| serde_json::from_str::<serde_json::Value>(&result.output_text).ok())
         .unwrap_or_else(|| serde_json::Value::String(result.output_text.clone()));
+    let output_value = sanitize_json_value(output_value);
     let slot_value = output_value.clone();
     let node_id = step.node_id().to_string();
     ensure_graph_blackboard_object(graph_blackboard);
@@ -3435,6 +3438,7 @@ fn attach_graph_blackboard_metadata(
     checkpoint_metadata: &mut Option<serde_json::Value>,
     graph_blackboard: &serde_json::Value,
 ) {
+    let graph_blackboard = sanitize_json_value(graph_blackboard.clone());
     match checkpoint_metadata {
         Some(metadata) => merge_checkpoint_metadata(
             metadata,
@@ -3832,7 +3836,7 @@ async fn execute_agent_step_stream(
     .ok();
 
     Ok(StreamCompletionResult {
-        final_output: content,
+        final_output: redacted_output_text(&content),
         usage,
         checkpoint,
         execution_envelope,
@@ -5191,17 +5195,25 @@ async fn execute_tool_step(
         );
     }
 
-    let graph_output = serde_json::json!({
+    let sanitized_output = sanitize_tool_output(&result.output);
+    let sanitized_metadata = sanitize_json_value(serde_json::json!(result.metadata));
+    let sanitized_args = sanitize_json_value(args);
+    let graph_output = sanitize_json_value(serde_json::json!({
         "tool_name": result.tool_name,
-        "output": result.output,
+        "output": sanitized_output,
         "execution_time_ms": result.execution_time_ms,
-        "metadata": result.metadata,
-        "args": args,
+        "metadata": sanitized_metadata,
+        "args": sanitized_args,
+        "redaction_policy_version": REDACTION_POLICY_VERSION,
+    }));
+    let output_text = serde_json::to_string(&graph_output["output"]).unwrap_or_else(|_| {
+        serde_json::json!({
+            "content_redacted": true,
+            "summary": "tool output redacted",
+            "redaction_policy_version": REDACTION_POLICY_VERSION,
+        })
+        .to_string()
     });
-    let output_text = graph_output["output"]
-        .as_str()
-        .map(|text| text.to_string())
-        .unwrap_or_else(|| serde_json::to_string(&graph_output).unwrap_or_default());
 
     Ok(StepExecutionResult {
         output_text,
@@ -5814,7 +5826,7 @@ fn build_step_checkpoint_metadata(
             "requested_mode": requested_mode_label(agent_step.mode.as_deref()),
             "resolved_strategy": resolved_strategy_for_mode(agent_step.mode.as_deref()),
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
         RuntimeTaskStep::Robotics(robotics_step) => serde_json::json!({
             "domain": "robotics",
@@ -5826,7 +5838,7 @@ fn build_step_checkpoint_metadata(
             "steps_completed": steps_completed,
             "action": robotics_action_name(&robotics_step.action),
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
         RuntimeTaskStep::Tool(tool_step) => serde_json::json!({
             "domain": "tool",
@@ -5838,7 +5850,7 @@ fn build_step_checkpoint_metadata(
             "steps_completed": steps_completed,
             "tool_name": tool_step.tool_name,
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
         RuntimeTaskStep::HumanApproval(approval_step) => serde_json::json!({
             "domain": "human_approval",
@@ -5850,7 +5862,7 @@ fn build_step_checkpoint_metadata(
             "steps_completed": steps_completed,
             "task": approval_step.task,
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
         RuntimeTaskStep::MemoryRecall(recall_step) => serde_json::json!({
             "domain": "memory_recall",
@@ -5862,7 +5874,7 @@ fn build_step_checkpoint_metadata(
             "steps_completed": steps_completed,
             "query": recall_step.query,
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
         RuntimeTaskStep::MemoryStore(store_step) => serde_json::json!({
             "domain": "memory_store",
@@ -5874,7 +5886,7 @@ fn build_step_checkpoint_metadata(
             "steps_completed": steps_completed,
             "key": store_step.key,
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
         RuntimeTaskStep::BehaviorTree(bt_step) => serde_json::json!({
             "domain": "behavior_tree",
@@ -5885,7 +5897,7 @@ fn build_step_checkpoint_metadata(
             "step_index": bt_step.step_index,
             "steps_completed": steps_completed,
             "provider": result.provider_name,
-            "output_preview": truncate_preview(&result.output_text, 240),
+            "output_preview": redacted_output_preview(&result.output_text),
         }),
     };
 
@@ -5896,7 +5908,7 @@ fn build_step_checkpoint_metadata(
         metadata["governed_action"] = serde_json::json!(governed_action);
     }
 
-    metadata
+    sanitize_json_value(metadata)
 }
 
 fn merge_checkpoint_metadata(base: &mut serde_json::Value, extra: &serde_json::Value) {
@@ -5907,8 +5919,22 @@ fn merge_checkpoint_metadata(base: &mut serde_json::Value, extra: &serde_json::V
         return;
     };
     for (key, value) in extra_object {
-        base_object.insert(key.clone(), value.clone());
+        base_object.insert(key.clone(), sanitize_json_value(value.clone()));
     }
+}
+
+fn redacted_output_preview(text: &str) -> serde_json::Value {
+    serde_json::json!({
+        "content_redacted": true,
+        "content_digest_sha256": format!("{:x}", Sha256::digest(text.as_bytes())),
+        "content_bytes": text.len(),
+        "summary": "output preview redacted",
+        "redaction_policy_version": REDACTION_POLICY_VERSION,
+    })
+}
+
+fn redacted_output_text(text: &str) -> String {
+    redacted_output_preview(text).to_string()
 }
 
 fn requested_mode_label(mode: Option<&str>) -> String {
@@ -7629,7 +7655,7 @@ mod tests {
     }
 
     #[test]
-    fn update_graph_blackboard_persists_named_write_slots() {
+    fn update_graph_blackboard_sanitizes_named_write_slots() {
         let mut blackboard = serde_json::json!({});
         let step = RuntimeTaskStep::Tool(ToolStep {
             step_index: 2,
@@ -7641,20 +7667,60 @@ mod tests {
             args: None,
         });
         let result = StepExecutionResult {
-            output_text: "fetched".to_string(),
+            output_text: "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET".to_string(),
             provider_name: "tool:web.fetch".to_string(),
             usage: ExecuteUsage {
                 prompt_tokens: 0,
                 completion_tokens: 0,
                 total_tokens: 0,
             },
-            graph_output: Some(serde_json::json!({"content":"fetched"})),
+            graph_output: Some(serde_json::json!({
+                "content": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET",
+                "token": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"
+            })),
             checkpoint_metadata: None,
             checkpoint_requested: false,
         };
 
         update_graph_blackboard(&mut blackboard, &step, &result);
-        assert_eq!(blackboard["nodes"]["tool-2"]["content"], "fetched");
-        assert_eq!(blackboard["slots"]["tool.fetch"]["content"], "fetched");
+        let encoded = blackboard.to_string();
+        assert!(!encoded.contains("IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"));
+        assert_eq!(blackboard["nodes"]["tool-2"]["content"]["redacted"], true);
+        assert_eq!(blackboard["slots"]["tool.fetch"]["token"]["redacted"], true);
+    }
+
+    #[test]
+    fn checkpoint_metadata_redacts_output_preview_and_extra_content() {
+        let step = RuntimeTaskStep::Tool(ToolStep {
+            step_index: 2,
+            node_id: "tool-2".to_string(),
+            checkpoint_key: Some("tool-key".to_string()),
+            read_slots: None,
+            write_slot: None,
+            tool_name: "filesystem".to_string(),
+            args: None,
+        });
+        let result = StepExecutionResult {
+            output_text: "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET".to_string(),
+            provider_name: "tool:filesystem".to_string(),
+            usage: ExecuteUsage {
+                prompt_tokens: 0,
+                completion_tokens: 0,
+                total_tokens: 0,
+            },
+            graph_output: None,
+            checkpoint_metadata: Some(serde_json::json!({
+                "raw_body": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET",
+                "nested": { "password": "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET" }
+            })),
+            checkpoint_requested: false,
+        };
+
+        let metadata = build_step_checkpoint_metadata(&step, 3, &result);
+        let encoded = metadata.to_string();
+        assert!(!encoded.contains("IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"));
+        assert_eq!(metadata["output_preview"]["content_redacted"], true);
+        assert_eq!(metadata["raw_body"]["redacted"], true);
+        assert_eq!(metadata["nested"]["password"]["redacted"], true);
     }
 }
