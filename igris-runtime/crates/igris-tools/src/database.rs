@@ -63,9 +63,7 @@ impl DatabaseWriteTool {
 
     fn gateway_is_local(&self) -> bool {
         match self.gateway_host() {
-            Some(host) => {
-                host == "127.0.0.1" || host == "localhost" || host == "::1"
-            }
+            Some(host) => host == "127.0.0.1" || host == "localhost" || host == "::1",
             None => false,
         }
     }
@@ -138,10 +136,7 @@ impl Tool for DatabaseWriteTool {
         self.validate_args(&args).await?;
 
         let table = args["table"].as_str().unwrap_or_default().to_string();
-        let record = args
-            .get("record")
-            .cloned()
-            .unwrap_or_else(|| json!({}));
+        let record = args.get("record").cloned().unwrap_or_else(|| json!({}));
         debug!("database_write: table={}", table);
 
         let client = reqwest::Client::builder()
@@ -175,19 +170,20 @@ impl Tool for DatabaseWriteTool {
                 if row_id.is_empty() {
                     return Ok(ToolResult::failure(
                         "database_write".to_string(),
-                        format!("database write gateway did not return a row_id: {}", body_text),
+                        format!(
+                            "database write gateway did not return a row_id: {}",
+                            body_text
+                        ),
                         elapsed,
                     ));
                 }
                 let summary = json!({ "table": table, "inserted": true, "row_id": row_id });
                 info!("database_write: inserted into {} row_id={}", table, row_id);
-                Ok(ToolResult::success(
-                    "database_write".to_string(),
-                    summary.to_string(),
-                    elapsed,
+                Ok(
+                    ToolResult::success("database_write".to_string(), summary.to_string(), elapsed)
+                        .with_metadata("table".to_string(), table)
+                        .with_metadata("row_id".to_string(), row_id),
                 )
-                .with_metadata("table".to_string(), table)
-                .with_metadata("row_id".to_string(), row_id))
             }
             Err(e) => Ok(ToolResult::failure(
                 "database_write".to_string(),
@@ -252,7 +248,9 @@ mod tests {
             .await
             .is_err());
         assert!(tool
-            .validate_args(&json!({ "table": "action_task_events", "record": { "status": "processed" } }))
+            .validate_args(
+                &json!({ "table": "action_task_events", "record": { "status": "processed" } })
+            )
             .await
             .is_ok());
     }
