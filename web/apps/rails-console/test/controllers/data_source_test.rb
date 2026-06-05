@@ -112,6 +112,28 @@ class DataSourceTest < ActiveSupport::TestCase
     refute(detail[:raw_evidence].any? { |row| row[:value].to_s.include?('redacted') && row[:key] != 'receipt_hash' })
   end
 
+  test 'run detail uses safe input summary digest only' do
+    marker = 'IGRIS_ENCRYPTED_INPUT_SECRET_MARKER'
+    digest = 'abc123def456abc123def456abc123def456abc123def456abc123def456abcd'
+    client = FakeClient.new(tasks: [{
+      'task_id' => 't-input', 'status' => 'completed',
+      'input_summary' => {
+        'input_redacted' => true,
+        'input_digest_sha256' => digest,
+        'encrypted_input_refs' => [{
+          'encrypted_input_ref_id' => '11111111-1111-1111-1111-111111111111',
+          'purpose' => 'execution_payload',
+        }],
+      },
+      'request' => { 'body' => marker, 'ciphertext' => marker },
+    }])
+
+    detail = Igris::DataSource.new(client: client).find_run('t-input')
+
+    assert_equal 'abc123def456ab…', detail[:request_digest]
+    refute_equal marker, detail[:request_summary]
+  end
+
   test 'execution steps map safely and drop reasons, targets, and signatures' do
     client = FakeClient.new(
       tasks: [{ 'task_id' => 't9', 'status' => 'completed', 'executed_target' => 'local_runtime', 'runtime_id' => 'rt_x' }],
