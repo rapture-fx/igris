@@ -1,5 +1,5 @@
 /// HTTP tool provider for making web requests
-use crate::{Tool, ToolResult};
+use crate::{allowlisted_http_headers, safe_content_output, safe_error_message, Tool, ToolResult};
 use anyhow::Result;
 use serde_json::json;
 use std::time::Instant;
@@ -119,7 +119,11 @@ impl Tool for HttpTool {
             .as_str()
             .ok_or_else(|| anyhow::anyhow!("Missing 'url' field"))?;
 
-        debug!("HTTP request: {} {}", method, url);
+        debug!(
+            "HTTP request: method={} host={}",
+            method,
+            extract_url_host(url).unwrap_or_default()
+        );
 
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(30))
@@ -151,33 +155,67 @@ impl Tool for HttpTool {
         match request.send().await {
             Ok(response) => {
                 let status = response.status();
+                let content_type = response
+                    .headers()
+                    .get(reqwest::header::CONTENT_TYPE)
+                    .and_then(|value| value.to_str().ok())
+                    .map(|value| value.to_string());
+                let safe_headers = allowlisted_http_headers(response.headers());
                 let body = response.text().await.unwrap_or_default();
 
-                info!("HTTP response: {} ({})", url, status);
+                info!(
+                    "HTTP response: host={} status={}",
+                    extract_url_host(url).unwrap_or_default(),
+                    status
+                );
 
                 let execution_time = start.elapsed().as_millis() as u64;
-                // Safe result envelope: the status code and a digest of the
-                // response body — never the body or headers themselves.
                 let response_digest = crate::sha256_hex(body.as_bytes());
+                let content_bytes = body.len();
+                let output = safe_content_output(
+                    "http.request",
+                    "http_request",
+                    "success",
+                    body.as_bytes(),
+                    content_type.as_deref(),
+                    "HTTP response body redacted",
+                    json!({
+                        "status_code": status.as_u16(),
+                        "url_host": extract_url_host(url).unwrap_or_default(),
+                        "response_headers": safe_headers,
+                    }),
+                );
 
-                Ok(ToolResult::success(
-                    "http_request".to_string(),
-                    format!("Status: {}\nBody: {}", status, body),
-                    execution_time,
+                Ok(
+                    ToolResult::success("http_request".to_string(), output, execution_time)
+                        .with_metadata("status_code".to_string(), status.as_u16().to_string())
+                        .with_metadata("content_redacted".to_string(), "true".to_string())
+                        .with_metadata("content_bytes".to_string(), content_bytes.to_string())
+                        .with_metadata("response_digest".to_string(), response_digest.clone())
+                        .with_metadata("content_digest_sha256".to_string(), response_digest),
                 )
-                .with_metadata("status_code".to_string(), status.as_u16().to_string())
-                .with_metadata("url".to_string(), url.to_string())
-                .with_metadata("response_digest".to_string(), response_digest))
             }
             Err(e) => {
                 let execution_time = start.elapsed().as_millis() as u64;
                 Ok(ToolResult::failure(
                     "http_request".to_string(),
-                    format!("HTTP request failed: {}", e),
+                    safe_error_message(http_error_code(&e)),
                     execution_time,
                 ))
             }
         }
+    }
+}
+
+fn http_error_code(error: &reqwest::Error) -> &'static str {
+    if error.is_timeout() {
+        "timeout"
+    } else if error.is_connect() {
+        "connect_error"
+    } else if error.is_status() {
+        "http_status_error"
+    } else {
+        "http_error"
     }
 }
 
@@ -226,5 +264,37 @@ mod tests {
         });
 
         assert!(tool.validate_args(&invalid_args).await.is_err());
+    }
+
+    #[test]
+    fn http_safe_envelope_does_not_persist_raw_body_or_sensitive_headers() {
+        let marker = "IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET";
+        let body = format!("private response body {marker}");
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(reqwest::header::CONTENT_TYPE, "text/plain".parse().unwrap());
+        headers.insert("set-cookie", format!("session={marker}").parse().unwrap());
+        headers.insert("x-request-id", "req-123".parse().unwrap());
+        let output = crate::safe_content_output(
+            "http.request",
+            "http_request",
+            "success",
+            body.as_bytes(),
+            Some("text/plain"),
+            "HTTP response body redacted",
+            json!({
+                "status_code": 200,
+                "url_host": "127.0.0.1",
+                "response_headers": crate::allowlisted_http_headers(&headers),
+            }),
+        );
+        let serialized = output;
+        assert!(!serialized.contains(marker));
+        assert!(!serialized.to_lowercase().contains("authorization"));
+        assert!(!serialized.to_lowercase().contains("set-cookie"));
+        assert!(serialized.contains("\"content_redacted\":true"));
+        assert!(serialized.contains("\"content_digest_sha256\""));
+        assert!(serialized.contains("\"content_bytes\""));
+        assert!(serialized.contains("\"status_code\":200"));
+        assert!(serialized.contains("\"x-request-id\""));
     }
 }
