@@ -3715,7 +3715,9 @@ async fn main() -> anyhow::Result<()> {
                 println!("Created igris.actions.json");
             }
             println!("Next: igris actions register ./igris.actions.json");
-            println!("Then route tool calls with the TypeScript SDK: igris.runAction(action, input)");
+            println!(
+                "Then route tool calls with the TypeScript SDK: igris.runAction(action, input)"
+            );
             return Ok(());
         }
         Command::Doctor => {
@@ -3945,57 +3947,51 @@ async fn main() -> anyhow::Result<()> {
             }
             return Ok(());
         }
-        Command::Runtime(sub) => {
-            match sub {
-                cli::RuntimeSub::Start => {
-                    println!("Starting Igris runtime. Press Ctrl-C to stop.");
-                }
+        Command::Runtime(sub) => match sub {
+            cli::RuntimeSub::Start => {
+                println!("Starting Igris runtime. Press Ctrl-C to stop.");
             }
-        }
-        Command::Actions(sub) => {
-            match sub {
-                cli::ActionsSub::Register { file } => {
-                    let manifest = std::fs::read_to_string(&file)
-                        .map_err(|e| anyhow::anyhow!("could not read {}: {}", file, e))?;
-                    let value: serde_json::Value = serde_json::from_str(&manifest)
-                        .map_err(|e| anyhow::anyhow!("{} is not valid JSON: {}", file, e))?;
-                    validate_action_manifest_cli(&value)?;
-                    let count = value["actions"].as_array().map(|v| v.len()).unwrap_or(0);
-                    println!("Registered {} action manifest entries from {}", count, file);
-                    println!("Use SDK runtimeTarget values from the manifest when calling igris.runAction().");
-                    return Ok(());
-                }
-                cli::ActionsSub::List { file } => {
-                    let manifest = std::fs::read_to_string(&file)
-                        .map_err(|e| anyhow::anyhow!("could not read {}: {}", file, e))?;
-                    let value: serde_json::Value = serde_json::from_str(&manifest)
-                        .map_err(|e| anyhow::anyhow!("{} is not valid JSON: {}", file, e))?;
-                    validate_action_manifest_cli(&value)?;
-                    if let Some(actions) = value["actions"].as_array() {
-                        for action in actions {
-                            let name = action["name"].as_str().unwrap_or("");
-                            let risk = action["risk"].as_str().unwrap_or("medium");
-                            let target = action["runtime_target"].as_str().unwrap_or("unregistered");
-                            println!("{}  risk={}  target={}", name, risk, target);
-                        }
+        },
+        Command::Actions(sub) => match sub {
+            cli::ActionsSub::Register { file } => {
+                let manifest = std::fs::read_to_string(&file)
+                    .map_err(|e| anyhow::anyhow!("could not read {}: {}", file, e))?;
+                let value: serde_json::Value = serde_json::from_str(&manifest)
+                    .map_err(|e| anyhow::anyhow!("{} is not valid JSON: {}", file, e))?;
+                validate_action_manifest_cli(&value)?;
+                let count = value["actions"].as_array().map(|v| v.len()).unwrap_or(0);
+                println!("Registered {} action manifest entries from {}", count, file);
+                println!("Use SDK runtimeTarget values from the manifest when calling igris.runAction().");
+                return Ok(());
+            }
+            cli::ActionsSub::List { file } => {
+                let manifest = std::fs::read_to_string(&file)
+                    .map_err(|e| anyhow::anyhow!("could not read {}: {}", file, e))?;
+                let value: serde_json::Value = serde_json::from_str(&manifest)
+                    .map_err(|e| anyhow::anyhow!("{} is not valid JSON: {}", file, e))?;
+                validate_action_manifest_cli(&value)?;
+                if let Some(actions) = value["actions"].as_array() {
+                    for action in actions {
+                        let name = action["name"].as_str().unwrap_or("");
+                        let risk = action["risk"].as_str().unwrap_or("medium");
+                        let target = action["runtime_target"].as_str().unwrap_or("unregistered");
+                        println!("{}  risk={}  target={}", name, risk, target);
                     }
-                    return Ok(());
                 }
+                return Ok(());
             }
-        }
-        Command::Secrets(sub) => {
-            match sub {
-                cli::SecretsSub::Set { name } => {
-                    let normalized = name.trim();
-                    if normalized.is_empty() {
-                        anyhow::bail!("secret name is required");
-                    }
-                    println!("Secret storage is not enabled in this CLI build yet.");
-                    println!("Do not put secret values in manifests or logs. Configure {} in the Igris runtime/console when available.", normalized);
-                    return Ok(());
+        },
+        Command::Secrets(sub) => match sub {
+            cli::SecretsSub::Set { name } => {
+                let normalized = name.trim();
+                if normalized.is_empty() {
+                    anyhow::bail!("secret name is required");
                 }
+                println!("Secret storage is not enabled in this CLI build yet.");
+                println!("Do not put secret values in manifests or logs. Configure {} in the Igris runtime/console when available.", normalized);
+                return Ok(());
             }
-        }
+        },
         Command::Auth(sub) => {
             match sub {
                 cli::AuthSub::Login { api_url } => {
