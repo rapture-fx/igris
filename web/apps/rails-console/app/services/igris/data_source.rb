@@ -371,7 +371,7 @@ module Igris
         failure_reason: raw.dig(:failure, :reason) || raw[:failure_reason].to_s,
         runtime_unavailable: runtime_unavailable?(raw),
         request_summary: safe_request_summary(raw),
-        request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:request, :digest)),
+        request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:input_summary, :input_digest_sha256) || raw.dig(:request, :digest)),
       )
     end
 
