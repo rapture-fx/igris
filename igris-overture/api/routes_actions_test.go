@@ -507,6 +507,22 @@ func TestNormalizeActionDefinitionRedactsSensitiveInputMetadata(t *testing.T) {
 	require.Contains(t, body, "input_digest_sha256")
 }
 
+func TestNormalizeActionDefinitionRejectsRawSecretRefs(t *testing.T) {
+	t.Parallel()
+
+	_, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "send_email",
+		TargetType:   "webhook",
+		TargetURL:    "https://api.example.test/send",
+		Method:       "POST",
+		PolicyPreset: "Safe automation",
+		SecretRefs:   []string{"sk-live-IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"},
+	}, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "secret_refs must contain references")
+	require.NotContains(t, err.Error(), "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET")
+}
+
 func TestScanActionDefinitionRedactsHistoricalUnsafeMetadata(t *testing.T) {
 	t.Parallel()
 
@@ -536,6 +552,36 @@ func TestScanActionDefinitionRedactsHistoricalUnsafeMetadata(t *testing.T) {
 	require.NotContains(t, body, "Bearer")
 	require.NotContains(t, body, "/Users/customer/private")
 	require.Contains(t, body, "input_redacted")
+}
+
+func TestScanActionDefinitionRedactsHistoricalUnsafeSecretRefs(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	now := time.Now().UTC()
+	actionID := uuid.NewString()
+	db, _ := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		rows: [][]driver.Value{{
+			actionID, "tenant-a", "send_email", "send_email", "",
+			"webhook", "https://api.example.test/send", "POST",
+			"Safe automation", "retryable", false, false,
+			[]byte(`["vault:send-email","sk-live-` + marker + `"]`),
+			[]byte(`{}`),
+			[]byte(`{"enabled": false}`),
+			now, now, nil,
+		}},
+	}})
+
+	def, err := loadActionDefinitionByID(t.Context(), db, "tenant-a", actionID)
+	require.NoError(t, err)
+	raw, err := json.Marshal(def)
+	require.NoError(t, err)
+	body := string(raw)
+	require.Contains(t, body, "vault:send-email")
+	require.Contains(t, body, "redacted:")
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "sk-live")
 }
 
 func TestHandleActionCreatePersistsDefinition(t *testing.T) {
@@ -572,6 +618,80 @@ func TestHandleActionCreatePersistsDefinition(t *testing.T) {
 	app.Post("/v1/actions", handleActionCreate(db))
 
 	body := `{"name":"send_email","description":"Let the agent request an email send.","target_type":"mock_demo","policy_preset":"Safe automation"}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	require.Equal(t, 0, driver.remainingQueries())
+}
+
+func TestHandleActionCreateDoesNotPersistRawSensitiveInputMetadata(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	actionID := uuid.NewString()
+	now := time.Now().UTC()
+	db, driver := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: actionDefinitionColumns(),
+			rows: [][]driver.Value{{
+				actionID,
+				"tenant-a",
+				"unsafe_action",
+				"unsafe_action",
+				"",
+				"webhook",
+				"https://api.example.test/hook",
+				"POST",
+				"Safe automation",
+				"retryable",
+				false,
+				false,
+				[]byte(`["vault:send-email"]`),
+				[]byte(`{"headers":{"Content-Type":"application/json"},"request_body":{"input_redacted":true,"input_digest_sha256":"digest","input_bytes":64,"redaction_policy_version":"api-response-redaction-v1"}}`),
+				[]byte(`{"enabled": false}`),
+				now,
+				now,
+				nil,
+			}},
+			checkArgs: func(_ string, args []driver.NamedValue) {
+				require.Len(t, args, 15)
+				targetURL := args[6].Value.(string)
+				secretRefs := args[12].Value.(string)
+				targetMetadata := args[13].Value.(string)
+				combined := targetURL + " " + secretRefs + " " + targetMetadata
+				require.NotContains(t, combined, marker)
+				require.NotContains(t, combined, "?token=")
+				require.NotContains(t, combined, "Bearer")
+				require.NotContains(t, combined, "session=")
+				require.NotContains(t, combined, "/Users/customer/private")
+				require.Contains(t, targetURL, "https://api.example.test/hook")
+				require.Contains(t, targetMetadata, "input_redacted")
+				require.Contains(t, targetMetadata, "input_digest_sha256")
+			},
+		},
+	})
+	app := actionTestApp()
+	app.Post("/v1/actions", handleActionCreate(db))
+
+	body := `{
+		"name":"unsafe_action",
+		"target_type":"webhook",
+		"target_url":"https://api.example.test/hook?token=` + marker + `",
+		"method":"POST",
+		"policy_preset":"Safe automation",
+		"secret_refs":["vault:send-email"],
+		"target_metadata":{
+			"headers":{
+				"Authorization":"Bearer ` + marker + `",
+				"Cookie":"session=` + marker + `",
+				"Content-Type":"application/json"
+			},
+			"request_body":"` + marker + `",
+			"file_path":"/Users/customer/private/` + marker + `.json"
+		}
+	}`
 	req := httptest.NewRequest(http.MethodPost, "/v1/actions", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req)
