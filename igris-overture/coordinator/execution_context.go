@@ -3,12 +3,20 @@ package coordinator
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+// ErrExecutionLineageMissingTenant is returned when a product execution lineage
+// record is persisted without a tenant_id. Lineage is a tenant-bound trust
+// object: writing a tenant-null row would create a record that normal,
+// tenant-scoped read paths must (and now do) refuse to return. Fail closed at
+// write time rather than create an orphaned, unreadable receipt.
+var ErrExecutionLineageMissingTenant = errors.New("execution lineage record missing tenant_id")
 
 type ExecutionContextRecord struct {
 	ExecutionID        string
@@ -192,6 +200,10 @@ func saveExecutionContext(execer executionContextExecer, record *ExecutionContex
 func saveExecutionLineage(execer executionContextExecer, record *ExecutionLineageRecord) error {
 	if record == nil || strings.TrimSpace(record.ExecutionID) == "" || strings.TrimSpace(record.ReceiptHash) == "" {
 		return nil
+	}
+	// Product lineage must be tenant-bound. Refuse to persist a tenant-null row.
+	if strings.TrimSpace(record.TenantID) == "" {
+		return ErrExecutionLineageMissingTenant
 	}
 	timestamp := record.TimestampUTC
 	if timestamp.IsZero() {
