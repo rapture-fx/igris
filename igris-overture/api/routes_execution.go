@@ -317,7 +317,7 @@ func (h *ExecutionHandler) ListRuns(c *fiber.Ctx) error {
 		FROM execution_lineage
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = execution_lineage.execution_id
-		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
+		      AND ec.tenant_id = execution_lineage.tenant_id
 		%s
 		` + whereClause + `
 		ORDER BY execution_lineage.timestamp_utc ` + sortDir + `
@@ -428,7 +428,7 @@ func (h *ExecutionHandler) GetRunDetail(c *fiber.Ctx) error {
 		FROM execution_lineage
 		LEFT JOIN execution_context ec
 		       ON ec.execution_id = execution_lineage.execution_id
-		      AND (ec.tenant_id = execution_lineage.tenant_id OR ec.tenant_id IS NULL)
+		      AND ec.tenant_id = execution_lineage.tenant_id
 		%s
 		WHERE execution_lineage.execution_id = $1
 		  AND execution_lineage.tenant_id = $2
