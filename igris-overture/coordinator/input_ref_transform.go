@@ -21,7 +21,12 @@ func protectTaskDefinitionInputs(raw json.RawMessage, tenantID string, taskID uu
 	if err := json.Unmarshal(raw, &value); err != nil {
 		return nil, err
 	}
-	cipherSvc, err := newExecutionInputCipherFromEnv()
+	// Encryption always uses the active key version from the keyring.
+	keyring, err := newExecutionInputKeyringFromEnv()
+	var activeCipher *executionInputCipher
+	if err == nil {
+		activeCipher, err = keyring.active()
+	}
 	if err != nil {
 		if containsSensitiveInput(value) {
 			return nil, err
@@ -31,7 +36,7 @@ func protectTaskDefinitionInputs(raw json.RawMessage, tenantID string, taskID uu
 	state := &inputRefProtectionState{
 		tenantID: tenantID,
 		taskID:   taskID,
-		cipher:   cipherSvc,
+		cipher:   activeCipher,
 	}
 	protectedValue, err := state.protect(value, "")
 	if err != nil {
