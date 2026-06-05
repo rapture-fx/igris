@@ -1044,7 +1044,8 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 		resp["checkpoint_runtime_id"] = task.LastCheckpoint.ResumeToken.RuntimeID
 		resp["checkpoint_summary"] = buildTaskCheckpointSummaryResponse(task)
 		if len(task.LastCheckpoint.Metadata) > 0 && !isActionTaskDefinition(task.TaskDefinition) {
-			resp["checkpoint_metadata"] = json.RawMessage(task.LastCheckpoint.Metadata)
+			safeMetadata := sanitizeJSONRawMessage(task.LastCheckpoint.Metadata)
+			resp["checkpoint_metadata"] = safeMetadata
 			if requestedMode, resolvedStrategy := extractModeSemantics(task.LastCheckpoint.Metadata); requestedMode != "" || resolvedStrategy != "" {
 				if requestedMode != "" {
 					resp["requested_mode"] = requestedMode
@@ -1053,7 +1054,7 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 					resp["resolved_strategy"] = resolvedStrategy
 				}
 			}
-			if graphBlackboard, graphNodes, graphSlots := extractGraphCheckpointViews(task.LastCheckpoint.Metadata); graphBlackboard != nil {
+			if graphBlackboard, graphNodes, graphSlots := extractGraphCheckpointViews(safeMetadata); graphBlackboard != nil {
 				resp["graph_blackboard"] = graphBlackboard
 				if graphNodes != nil {
 					resp["graph_nodes"] = graphNodes
@@ -1999,7 +2000,7 @@ func buildActionEvidence(task *coordinator.TaskRecord, sources ...actionEvidence
 			"tool_name":   ca.toolName,
 		}
 		if ca.target != "" {
-			row["target_summary"] = ca.target
+			row["target_summary"] = sanitizeTargetSummary(ca.actionType, ca.target)
 		}
 		if e, ok := walByIndex[uint32(ca.stepIndex)]; ok {
 			if e.Status != "" {
@@ -2137,18 +2138,24 @@ func summarizeActionResult(actionType string, node map[string]interface{}) fiber
 	out := fiber.Map{}
 	switch actionType {
 	case "read_file":
-		if n, ok := pickInt("bytes_read", "bytes", "received_bytes", "size"); ok {
+		if n, ok := pickInt("bytes_read", "content_bytes", "bytes", "received_bytes", "size"); ok {
 			out["bytes_read"] = n
 		}
-		if d := pickString("content_digest", "digest"); d != "" {
+		if d := pickString("content_digest_sha256", "content_digest", "digest"); d != "" {
 			out["content_digest"] = d
+		}
+		if redacted := pickString("content_redacted"); redacted != "" {
+			out["content_redacted"] = redacted
 		}
 	case "http_call":
 		if n, ok := pickInt("status_code", "http_status", "response_status"); ok {
 			out["status_code"] = n
 		}
-		if d := pickString("response_digest", "digest"); d != "" {
+		if d := pickString("content_digest_sha256", "response_digest", "digest"); d != "" {
 			out["response_digest"] = d
+		}
+		if n, ok := pickInt("content_bytes", "response_bytes"); ok {
+			out["content_bytes"] = n
 		}
 	case "db_write":
 		if t := pickString("table"); t != "" {
