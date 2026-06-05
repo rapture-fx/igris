@@ -34,6 +34,15 @@ var sensitiveResponseKeyPatterns = []string{
 	"full_text",
 }
 
+var safeResponseRedactionMetadataKeys = map[string]struct{}{
+	"content_redacted":         {},
+	"content_digest":           {},
+	"content_digest_sha256":    {},
+	"content_bytes":            {},
+	"content_type":             {},
+	"redaction_policy_version": {},
+}
+
 func sanitizeJSONRawMessage(raw json.RawMessage) json.RawMessage {
 	if len(raw) == 0 {
 		return raw
@@ -106,6 +115,9 @@ func redactURLQuery(value string) string {
 
 func responseKeySensitive(key string) bool {
 	normalized := strings.ReplaceAll(strings.ToLower(key), "-", "_")
+	if _, ok := safeResponseRedactionMetadataKeys[normalized]; ok {
+		return false
+	}
 	for _, pattern := range sensitiveResponseKeyPatterns {
 		if strings.Contains(normalized, strings.ReplaceAll(pattern, "-", "_")) {
 			return true
