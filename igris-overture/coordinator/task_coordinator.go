@@ -1383,6 +1383,17 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 		// task.RuntimeID, otherwise the replacement runtime correctly rejects the
 		// resume request as a runtime-binding mismatch.
 		task.PermissionEnvelope = nil
+		rehydratedDefinition, err := rehydrateTaskDefinitionInputRefs(task.TaskDefinition, task.TenantID, task.TaskID, func(refID uuid.UUID, purpose string) ([]byte, error) {
+			return tc.store.DecryptExecutionInputRef(ctx, task.TenantID, task.TaskID, refID, purpose, "runtime recovery redispatch")
+		})
+		if err != nil {
+			safeErr := safeInputRefError(err)
+			log.Warn().Err(safeErr).Str("task_id", taskID.String()).Msg("[Coordinator] Could not rehydrate encrypted input refs for recovery")
+			_ = tc.store.MarkFailedWithDetails(taskID, "encrypted input unavailable for recovery", overtureTaskFailureDetails("recovery", "encrypted_input_unavailable", safeErr.Error()))
+			continue
+		}
+		runtimeTask := *task
+		runtimeTask.TaskDefinition = rehydratedDefinition
 
 		log.Info().
 			Str("task_id", taskID.String()).
@@ -1401,7 +1412,7 @@ func (tc *TaskCoordinator) recoverRuntime(ctx context.Context, runtimeID string)
 			ReplayAllowed:     &allowed,
 			Reason:            "recovery redispatch accepted",
 		})
-		go tc.dispatchToRuntime(ctx, task, cp)
+		go tc.dispatchToRuntime(ctx, &runtimeTask, cp)
 	}
 }
 
