@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/url"
-	"path/filepath"
 	"strings"
 )
 
@@ -40,18 +39,18 @@ var sensitiveResponseKeyPatterns = []string{
 }
 
 var safeResponseRedactionMetadataKeys = map[string]struct{}{
-	"content_redacted":         {},
-	"content_digest":           {},
-	"content_digest_sha256":    {},
-	"content_bytes":            {},
-	"content_type":             {},
-	"input_redacted":           {},
-	"input_digest_sha256":      {},
-	"input_bytes":              {},
-	"input_content_type":       {},
-	"safe_summary":             {},
+	"content_redacted":          {},
+	"content_digest":            {},
+	"content_digest_sha256":     {},
+	"content_bytes":             {},
+	"content_type":              {},
+	"input_redacted":            {},
+	"input_digest_sha256":       {},
+	"input_bytes":               {},
+	"input_content_type":        {},
+	"safe_summary":              {},
 	"sensitive_fields_redacted": {},
-	"redaction_policy_version": {},
+	"redaction_policy_version":  {},
 }
 
 func sanitizeJSONRawMessage(raw json.RawMessage) json.RawMessage {
@@ -195,9 +194,9 @@ func sanitizeResponseHeaders(value interface{}) interface{} {
 		return inputRedactedMap("headers", sha256HexString(valueToString(value)), len(valueToString(value)))
 	}
 	out := map[string]interface{}{
-		"input_redacted":           true,
+		"input_redacted":            true,
 		"sensitive_fields_redacted": []string{},
-		"redaction_policy_version": responseRedactionPolicyVersion,
+		"redaction_policy_version":  responseRedactionPolicyVersion,
 	}
 	for key, child := range headers {
 		normalized := strings.ReplaceAll(strings.ToLower(key), "-", "_")
@@ -219,10 +218,6 @@ func sanitizeResponseHeaders(value interface{}) interface{} {
 func safeResponsePathEnvelope(path string) map[string]interface{} {
 	trimmed := strings.TrimSpace(path)
 	resp := inputRedactedMap("private_path", sha256HexString(trimmed), len(trimmed))
-	base := filepath.Base(trimmed)
-	if base != "." && base != "/" && base != "" {
-		resp["safe_basename"] = base
-	}
 	resp["safe_path_digest"] = sha256HexString(trimmed)
 	return resp
 }
@@ -273,12 +268,12 @@ func redactedMap(reason, digest string, bytes int) map[string]interface{} {
 
 func inputRedactedMap(reason, digest string, bytes int) map[string]interface{} {
 	return map[string]interface{}{
-		"input_redacted":           true,
-		"safe_summary":             reason,
-		"input_digest_sha256":      digest,
-		"input_bytes":              bytes,
+		"input_redacted":            true,
+		"safe_summary":              reason,
+		"input_digest_sha256":       digest,
+		"input_bytes":               bytes,
 		"sensitive_fields_redacted": []string{reason},
-		"redaction_policy_version": responseRedactionPolicyVersion,
+		"redaction_policy_version":  responseRedactionPolicyVersion,
 	}
 }
 
