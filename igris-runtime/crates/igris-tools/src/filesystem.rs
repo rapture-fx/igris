@@ -1,5 +1,8 @@
 /// File system operations tool (sandboxed)
-use crate::{Tool, ToolResult};
+use crate::{
+    safe_content_output, safe_empty_output, safe_error_message, safe_file_metadata, Tool,
+    ToolResult,
+};
 use anyhow::Result;
 use serde_json::json;
 use std::path::{Component, Path};
@@ -89,7 +92,7 @@ impl Tool for FileSystemTool {
             .ok_or_else(|| anyhow::anyhow!("Missing 'path' field"))?;
 
         if !self.is_path_allowed(path) {
-            anyhow::bail!("Path not allowed. Allowed paths: {:?}", self.allowed_paths);
+            anyhow::bail!("path_not_allowed");
         }
 
         Ok(())
@@ -107,29 +110,38 @@ impl Tool for FileSystemTool {
             .as_str()
             .ok_or_else(|| anyhow::anyhow!("Missing 'path' field"))?;
 
-        debug!("Filesystem operation: {} on {}", operation, path);
+        debug!("Filesystem operation: {}", operation);
 
         match operation {
             "read" => match fs::read_to_string(path).await {
                 Ok(content) => {
                     let execution_time = start.elapsed().as_millis() as u64;
-                    // Safe result envelope: how much was read and a digest of it —
-                    // never the file contents themselves.
                     let bytes_read = content.as_bytes().len();
                     let content_digest = crate::sha256_hex(content.as_bytes());
+                    let output = safe_content_output(
+                        "filesystem.read",
+                        "read_file",
+                        "success",
+                        content.as_bytes(),
+                        Some("text/plain"),
+                        "file content redacted",
+                        safe_file_metadata(path, json!({ "read_success": true })),
+                    );
                     Ok(
-                        ToolResult::success("filesystem".to_string(), content, execution_time)
+                        ToolResult::success("filesystem".to_string(), output, execution_time)
                             .with_metadata("operation".to_string(), "read".to_string())
-                            .with_metadata("path".to_string(), path.to_string())
+                            .with_metadata("content_redacted".to_string(), "true".to_string())
                             .with_metadata("bytes_read".to_string(), bytes_read.to_string())
-                            .with_metadata("content_digest".to_string(), content_digest),
+                            .with_metadata("content_bytes".to_string(), bytes_read.to_string())
+                            .with_metadata("content_digest".to_string(), content_digest.clone())
+                            .with_metadata("content_digest_sha256".to_string(), content_digest),
                     )
                 }
                 Err(e) => {
                     let execution_time = start.elapsed().as_millis() as u64;
                     Ok(ToolResult::failure(
                         "filesystem".to_string(),
-                        format!("Failed to read file: {}", e),
+                        safe_error_message(filesystem_error_code(&e)),
                         execution_time,
                     ))
                 }
@@ -144,18 +156,23 @@ impl Tool for FileSystemTool {
                         let execution_time = start.elapsed().as_millis() as u64;
                         Ok(ToolResult::success(
                             "filesystem".to_string(),
-                            format!("Successfully wrote {} bytes", content.len()),
+                            safe_empty_output(
+                                "filesystem.write",
+                                "write_file",
+                                "success",
+                                "file write completed",
+                                safe_file_metadata(path, json!({ "bytes_written": content.len() })),
+                            ),
                             execution_time,
                         )
                         .with_metadata("operation".to_string(), "write".to_string())
-                        .with_metadata("path".to_string(), path.to_string())
                         .with_metadata("bytes_written".to_string(), content.len().to_string()))
                     }
                     Err(e) => {
                         let execution_time = start.elapsed().as_millis() as u64;
                         Ok(ToolResult::failure(
                             "filesystem".to_string(),
-                            format!("Failed to write file: {}", e),
+                            safe_error_message(filesystem_error_code(&e)),
                             execution_time,
                         ))
                     }
@@ -167,7 +184,7 @@ impl Tool for FileSystemTool {
                     let execution_time = start.elapsed().as_millis() as u64;
                     return Ok(ToolResult::failure(
                         "filesystem".to_string(),
-                        "Path is not a directory".to_string(),
+                        safe_error_message("not_directory"),
                         execution_time,
                     ));
                 }
@@ -184,18 +201,23 @@ impl Tool for FileSystemTool {
                         let execution_time = start.elapsed().as_millis() as u64;
                         Ok(ToolResult::success(
                             "filesystem".to_string(),
-                            files.join("\n"),
+                            safe_empty_output(
+                                "filesystem.list",
+                                "list_directory",
+                                "success",
+                                "directory listing redacted",
+                                safe_file_metadata(path, json!({ "entry_count": files.len() })),
+                            ),
                             execution_time,
                         )
                         .with_metadata("operation".to_string(), "list".to_string())
-                        .with_metadata("path".to_string(), path.to_string())
                         .with_metadata("file_count".to_string(), files.len().to_string()))
                     }
                     Err(e) => {
                         let execution_time = start.elapsed().as_millis() as u64;
                         Ok(ToolResult::failure(
                             "filesystem".to_string(),
-                            format!("Failed to list directory: {}", e),
+                            safe_error_message(filesystem_error_code(&e)),
                             execution_time,
                         ))
                     }
@@ -205,11 +227,20 @@ impl Tool for FileSystemTool {
                 let execution_time = start.elapsed().as_millis() as u64;
                 Ok(ToolResult::failure(
                     "filesystem".to_string(),
-                    format!("Unsupported operation: {}", operation),
+                    safe_error_message("unsupported_operation"),
                     execution_time,
                 ))
             }
         }
+    }
+}
+
+fn filesystem_error_code(error: &std::io::Error) -> &'static str {
+    match error.kind() {
+        std::io::ErrorKind::NotFound => "not_found",
+        std::io::ErrorKind::PermissionDenied => "permission_denied",
+        std::io::ErrorKind::InvalidInput => "invalid_input",
+        _ => "filesystem_error",
     }
 }
 
@@ -241,7 +272,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("igris-tools-fs-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let file = dir.join("input.txt");
-        let contents = "igris action task v1 — payload-token=deadbeef\n";
+        let contents = "igris action task v1 — IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET\n";
         std::fs::write(&file, contents).unwrap();
 
         let tool = FileSystemTool::new(vec![dir.to_string_lossy().to_string()]);
@@ -260,9 +291,20 @@ mod tests {
             result.metadata.get("content_digest").map(String::as_str),
             Some(crate::sha256_hex(contents.as_bytes()).as_str())
         );
+        assert!(!result
+            .output
+            .contains("IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"));
+        assert!(!result.output.contains(file.to_string_lossy().as_ref()));
+        assert!(result.output.contains("\"content_redacted\":true"));
+        assert!(result.output.contains("\"content_digest_sha256\""));
+        assert!(result.output.contains("\"redaction_policy_version\""));
+
         // The metadata must not leak the file contents.
         for value in result.metadata.values() {
-            assert!(!value.contains("payload-token"), "metadata leaked file contents: {value}");
+            assert!(
+                !value.contains("IGRIS_SHOULD_NEVER_PERSIST_THIS_SECRET"),
+                "metadata leaked file contents: {value}"
+            );
         }
 
         let _ = std::fs::remove_dir_all(&dir);
