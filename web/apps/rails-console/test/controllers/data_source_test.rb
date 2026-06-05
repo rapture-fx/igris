@@ -50,6 +50,23 @@ class DataSourceTest < ActiveSupport::TestCase
     assert_equal 'Ready', a[:setup]
   end
 
+  test 'action normalization redacts unsafe target url before rendering' do
+    marker = 'IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET'
+    client = FakeClient.new(actions: [{
+      'id' => 'a-unsafe', 'name' => 'unsafe_webhook',
+      'target_type' => 'webhook',
+      'target_url' => "https://user:#{marker}@api.example.test/hook?token=#{marker}",
+      'method' => 'POST',
+    }])
+
+    action = Igris::DataSource.new(client: client).actions.first
+
+    assert_equal 'https://api.example.test/hook?[redacted]', action[:target_url]
+    refute_includes action[:target_url], marker
+    refute_includes action[:target_url], 'user:'
+    assert_equal 'Ready', action[:setup]
+  end
+
   test 'local_runtime action without runtime shows Needs runtime setup' do
     client = FakeClient.new(actions: [{
       'name' => 'rebuild_index', 'target_type' => 'local_runtime',
