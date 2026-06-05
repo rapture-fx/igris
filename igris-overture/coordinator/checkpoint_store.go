@@ -2297,9 +2297,11 @@ func (s *CheckpointStore) GetTask(taskID uuid.UUID, tenantID string) (*TaskRecor
 	return scanTaskRecord(row)
 }
 
-// GetTaskByIdempotencyKey returns a task record by tenant and idempotency key.
-func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey string) (*TaskRecord, error) {
-	row := s.db.QueryRow(`
+// getTaskByIdempotencyKeySQL looks up a task by idempotency key. Idempotency is
+// tenant-scoped, so the lookup is ALWAYS filtered by tenant_id and must never be
+// reduced to idempotency_key alone — otherwise a key could resolve another
+// tenant's task.
+const getTaskByIdempotencyKeySQL = `
 		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
 		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
 		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
@@ -2308,9 +2310,11 @@ func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey strin
 		       deadline_at, dispatched_at, completed_at, canceled_at, created_at,
 		       executed_target, fallback_reason
 		FROM task_records
-		WHERE tenant_id = $1 AND idempotency_key = $2`,
-		tenantID, idempotencyKey,
-	)
+		WHERE tenant_id = $1 AND idempotency_key = $2`
+
+// GetTaskByIdempotencyKey returns a task record by tenant and idempotency key.
+func (s *CheckpointStore) GetTaskByIdempotencyKey(tenantID, idempotencyKey string) (*TaskRecord, error) {
+	row := s.db.QueryRow(getTaskByIdempotencyKeySQL, tenantID, idempotencyKey)
 	return scanTaskRecord(row)
 }
 
