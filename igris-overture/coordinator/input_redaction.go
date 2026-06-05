@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/url"
-	"path/filepath"
 	"strings"
 )
 
@@ -41,18 +40,18 @@ var sensitiveInputKeyPatterns = []string{
 }
 
 var safeInputMetadataKeys = map[string]struct{}{
-	"content_redacted":         {},
-	"content_digest":           {},
-	"content_digest_sha256":    {},
-	"content_bytes":            {},
-	"content_type":             {},
-	"input_redacted":           {},
-	"input_digest_sha256":      {},
-	"input_bytes":              {},
-	"input_content_type":       {},
-	"safe_summary":             {},
+	"content_redacted":          {},
+	"content_digest":            {},
+	"content_digest_sha256":     {},
+	"content_bytes":             {},
+	"content_type":              {},
+	"input_redacted":            {},
+	"input_digest_sha256":       {},
+	"input_bytes":               {},
+	"input_content_type":        {},
+	"safe_summary":              {},
 	"sensitive_fields_redacted": {},
-	"redaction_policy_version": {},
+	"redaction_policy_version":  {},
 }
 
 func sanitizeTaskDefinitionForPersistence(raw json.RawMessage) json.RawMessage {
@@ -131,12 +130,12 @@ func normalizeInputKey(key string) string {
 
 func inputRedactedJSON(reason string, raw []byte) json.RawMessage {
 	encoded, _ := json.Marshal(map[string]interface{}{
-		"input_redacted":           true,
-		"safe_summary":             reason,
-		"input_digest_sha256":      sha256InputBytes(raw),
-		"input_bytes":              len(raw),
+		"input_redacted":            true,
+		"safe_summary":              reason,
+		"input_digest_sha256":       sha256InputBytes(raw),
+		"input_bytes":               len(raw),
 		"sensitive_fields_redacted": []string{"task_definition"},
-		"redaction_policy_version": inputRedactionPolicyVersion,
+		"redaction_policy_version":  inputRedactionPolicyVersion,
 	})
 	return encoded
 }
@@ -144,22 +143,18 @@ func inputRedactedJSON(reason string, raw []byte) json.RawMessage {
 func inputRedactedEnvelope(value interface{}, reason string) map[string]interface{} {
 	raw := []byte(valueToInputString(value))
 	return map[string]interface{}{
-		"input_redacted":           true,
-		"safe_summary":             reason,
-		"input_digest_sha256":      sha256InputBytes(raw),
-		"input_bytes":              len(raw),
+		"input_redacted":            true,
+		"safe_summary":              reason,
+		"input_digest_sha256":       sha256InputBytes(raw),
+		"input_bytes":               len(raw),
 		"sensitive_fields_redacted": []string{reason},
-		"redaction_policy_version": inputRedactionPolicyVersion,
+		"redaction_policy_version":  inputRedactionPolicyVersion,
 	}
 }
 
 func safePathEnvelope(path string) map[string]interface{} {
 	trimmed := strings.TrimSpace(path)
 	resp := inputRedactedEnvelope(trimmed, "private_path")
-	base := filepath.Base(trimmed)
-	if base != "." && base != "/" && base != "" {
-		resp["safe_basename"] = base
-	}
 	resp["safe_path_digest"] = sha256InputBytes([]byte(trimmed))
 	return resp
 }
@@ -193,9 +188,9 @@ func safeHeaderMetadata(value interface{}) interface{} {
 		return inputRedactedEnvelope(value, "headers")
 	}
 	out := map[string]interface{}{
-		"input_redacted":           true,
+		"input_redacted":            true,
 		"sensitive_fields_redacted": []string{},
-		"redaction_policy_version": inputRedactionPolicyVersion,
+		"redaction_policy_version":  inputRedactionPolicyVersion,
 	}
 	for key, child := range headers {
 		normalized := normalizeInputKey(key)
@@ -219,7 +214,7 @@ func looksLikePrivatePath(value string) bool {
 	return strings.HasPrefix(trimmed, "/") ||
 		strings.HasPrefix(trimmed, "~/") ||
 		strings.HasPrefix(trimmed, `\\`) ||
-		(len(trimmed) >= 3 && ((trimmed[1] == ':' && (trimmed[2] == '\\' || trimmed[2] == '/'))))
+		(len(trimmed) >= 3 && (trimmed[1] == ':' && (trimmed[2] == '\\' || trimmed[2] == '/')))
 }
 
 func valueToInputString(value interface{}) string {
