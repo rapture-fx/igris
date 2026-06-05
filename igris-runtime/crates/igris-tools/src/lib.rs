@@ -13,9 +13,14 @@ use std::collections::HashMap;
 pub mod database;
 pub mod filesystem;
 pub mod http;
+pub mod redaction;
 pub mod registry;
 pub mod shell;
 
+pub use redaction::{
+    allowlisted_http_headers, safe_content_output, safe_empty_output, safe_error_message,
+    safe_file_metadata, sanitize_json_value, sanitize_tool_output, REDACTION_POLICY_VERSION,
+};
 pub use registry::{ToolDefinition, ToolRegistry};
 
 /// SHA-256 of `bytes`, lowercase hex. Used to expose a *safe* digest of a tool's
