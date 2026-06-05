@@ -797,7 +797,7 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 			SELECT execution_id, agent_id, wall_time_ms, violation_occurred, timestamp_utc
 			FROM execution_lineage
 			WHERE runtime_id = $1
-			  AND (tenant_id = $2 OR tenant_id IS NULL)
+			  AND tenant_id = $2
 			ORDER BY timestamp_utc DESC
 			LIMIT $3
 		`, deviceID, clerkUserID, limit)
@@ -856,7 +856,7 @@ func RegisterDeviceRoutes(app *fiber.App, db *sql.DB) {
 			FROM execution_lineage
 			WHERE runtime_id = $1
 			  AND violation_occurred = TRUE
-			  AND (tenant_id = $2 OR tenant_id IS NULL)
+			  AND tenant_id = $2
 			ORDER BY timestamp_utc DESC
 			LIMIT $3
 		`, deviceID, clerkUserID, limit)
