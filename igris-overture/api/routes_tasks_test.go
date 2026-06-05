@@ -3479,6 +3479,37 @@ func TestBuildTaskTransitionRejectedPayloadWithoutTask(t *testing.T) {
 	require.Equal(t, fiber.Map{"error": "task_transition_rejected"}, resp)
 }
 
+func TestBuildTaskResponseDoesNotReturnRawHistoricalInputs(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	task := &coordinator.TaskRecord{
+		TaskID: uuid.New(),
+		Status: coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{
+				"kind":"tool",
+				"node_id":"unsafe-file",
+				"tool_name":"filesystem",
+				"args":{"path":"/Users/customer/private/` + marker + `.txt","body":"` + marker + `"}
+			}]}
+		}`),
+		CreatedAt: time.Now().UTC(),
+	}
+
+	resp := buildTaskResponse(task)
+	raw, err := json.Marshal(resp)
+	require.NoError(t, err)
+	body := string(raw)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "/Users/customer/private")
+	require.NotContains(t, body, "task_definition")
+	require.Contains(t, body, "input_summary")
+	require.Contains(t, body, "input_redacted")
+	require.Contains(t, body, "input_digest_sha256")
+}
+
 func TestBuildTaskSubmitRequestIncludesAgentGovernance(t *testing.T) {
 	t.Parallel()
 
