@@ -220,12 +220,23 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 		})
 		return nil, err
 	}
-	cipherSvc, err := newExecutionInputCipherFromEnv()
+	keyring, err := newExecutionInputKeyringFromEnv()
 	if err != nil {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
 			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
 			Success: false, FailureCode: "key_unavailable",
+		})
+		return nil, err
+	}
+	// Select the key by the ref's stored key_version. A version that is not in
+	// the keyring fails closed with no fallback to any other key.
+	cipherSvc, err := keyring.forVersion(ref.KeyVersion)
+	if err != nil {
+		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
+			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
+			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
+			Success: false, FailureCode: "missing_key_version",
 		})
 		return nil, err
 	}
@@ -363,6 +374,8 @@ func safeInputRefFailureCode(err error) string {
 		return "scope_mismatch"
 	case errors.Is(err, ErrExecutionInputRefDecrypt):
 		return "auth_failed"
+	case errors.Is(err, ErrExecutionInputRefKeyVersionMissing):
+		return "missing_key_version"
 	case errors.Is(err, ErrExecutionInputRefKeyMissing):
 		return "key_unavailable"
 	default:
