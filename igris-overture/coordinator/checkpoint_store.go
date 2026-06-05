@@ -2118,7 +2118,7 @@ func (s *CheckpointStore) SyncTaskProofState(taskID uuid.UUID, tenantID string) 
 		SELECT receipt_hash, signature
 		FROM execution_lineage
 		WHERE execution_id = $1
-		  AND (tenant_id = $2 OR tenant_id IS NULL)`,
+		  AND tenant_id = $2`,
 		executionID.String, tenantID,
 	).Scan(&storedHash, &signature)
 	if err == sql.ErrNoRows {
