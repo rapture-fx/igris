@@ -464,6 +464,47 @@ func TestMCPGetRunDoesNotReturnRawHistoricalInputs(t *testing.T) {
 	require.Contains(t, body, "input_digest_sha256")
 }
 
+func TestMCPGetRunReturnsEncryptedInputRefMetadataOnly(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_ENCRYPTED_INPUT_SECRET_MARKER"
+	task := &coordinator.TaskRecord{
+		TaskID:   uuid.New(),
+		TenantID: "tenant-inputs",
+		Status:   coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{
+				"metadata":{"action_name":"unsafe_action","policy_preset":"Safe automation"},
+				"kind":"tool",
+				"node_id":"unsafe-http",
+				"tool_name":"http_request",
+				"args":{"body":{
+					"input_redacted":true,
+					"encrypted_input_ref":true,
+					"encrypted_input_ref_id":"22222222-2222-2222-2222-222222222222",
+					"purpose":"execution_payload",
+					"input_digest_sha256":"def456",
+					"input_bytes":24,
+					"key_version":"test:v1",
+					"redaction_policy_version":"input-reference-redaction-v1"
+				}}
+			}]}
+		}`),
+		ExecutionReceipt: json.RawMessage(`{"ciphertext":"` + marker + `"}`),
+		Proof:            &coordinator.TaskProofState{Status: "verified"},
+	}
+	detail := safeMCPRunDetail(task)
+	raw, err := json.Marshal(detail)
+	require.NoError(t, err)
+	body := string(raw)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "ciphertext")
+	require.Contains(t, body, "encrypted_input_refs")
+	require.Contains(t, body, "22222222-2222-2222-2222-222222222222")
+	require.Contains(t, body, "execution_payload")
+}
+
 func TestMCPListRuntimesDoesNotLeakHostnamesIPsOrKeys(t *testing.T) {
 	t.Parallel()
 
