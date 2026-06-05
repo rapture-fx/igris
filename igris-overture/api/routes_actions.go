@@ -699,6 +699,9 @@ func buildActionRunResponse(task *coordinator.TaskRecord) fiber.Map {
 	if task.Status == coordinator.TaskStatusCompleted {
 		resp["result"] = fiber.Map{"status": "completed"}
 	}
+	if inputSummary := safeInputSummaryRaw(task.TaskDefinition); inputSummary != nil {
+		resp["input_summary"] = inputSummary
+	}
 	if consoleURL := actionConsoleURL(task.TaskID.String()); consoleURL != "" {
 		resp["console_url"] = consoleURL
 	}
@@ -782,6 +785,8 @@ func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, er
 	// alias — rows persisted before the rename keep working but always present
 	// as `hosted_api` to the world.
 	def.TargetType = canonicalActionTargetType(def.TargetType)
+	def.TargetURL = sanitizeActionTargetURL(def.TargetURL)
+	def.TargetMetadata = sanitizeActionMetadata(def.TargetMetadata)
 	def.FallbackPolicy.PrimaryTarget = canonicalActionTargetType(def.FallbackPolicy.PrimaryTarget)
 	def.FallbackPolicy.SecondaryTarget = canonicalActionTargetType(def.FallbackPolicy.SecondaryTarget)
 	for i, allowed := range def.FallbackPolicy.AllowedTargets {
@@ -833,7 +838,7 @@ func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *acti
 		)
 	}
 	if strings.TrimSpace(req.TargetURL) != "" || current == nil {
-		def.TargetURL = strings.TrimSpace(req.TargetURL)
+		def.TargetURL = sanitizeActionTargetURL(req.TargetURL)
 	}
 	if strings.TrimSpace(req.Method) != "" {
 		def.Method = strings.ToUpper(strings.TrimSpace(req.Method))
@@ -872,7 +877,7 @@ func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *acti
 		def.SecretRefs = append([]string(nil), req.SecretRefs...)
 	}
 	if req.TargetMetadata != nil {
-		def.TargetMetadata = copyActionMap(req.TargetMetadata)
+		def.TargetMetadata = sanitizeActionMetadata(copyActionMap(req.TargetMetadata))
 	}
 	if req.FallbackPolicy != nil {
 		def.FallbackPolicy = *req.FallbackPolicy
