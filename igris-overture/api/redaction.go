@@ -25,6 +25,8 @@ var sensitiveResponseKeyPatterns = []string{
 	"refresh_token",
 	"private_key",
 	"credential",
+	"ciphertext",
+	"nonce",
 	"body",
 	"raw_body",
 	"response_body",
@@ -80,6 +82,9 @@ func sanitizeResponseValue(value interface{}) interface{} {
 		out := make(map[string]interface{}, len(typed))
 		for key, child := range typed {
 			normalized := strings.ReplaceAll(strings.ToLower(key), "-", "_")
+			if responseKeyDropped(normalized) {
+				continue
+			}
 			if responseKeySensitive(key) {
 				out[key] = redactedMap("sensitive_key", sha256HexString(valueToString(child)), len(valueToString(child)))
 			} else if normalized == "path" && looksLikePrivateResponsePath(valueToString(child)) {
@@ -106,6 +111,15 @@ func sanitizeResponseValue(value interface{}) interface{} {
 		return redactInlineAuth(typed)
 	default:
 		return value
+	}
+}
+
+func responseKeyDropped(normalized string) bool {
+	switch normalized {
+	case "ciphertext", "nonce":
+		return true
+	default:
+		return false
 	}
 }
 
