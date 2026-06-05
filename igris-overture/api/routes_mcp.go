@@ -554,6 +554,9 @@ func safeMCPRunDetail(task *coordinator.TaskRecord) fiber.Map {
 	resp["recovery"] = buildTaskRecoveryResponse(task)
 	resp["proof"] = safeProofState(task.Proof)
 	resp["safe_execution_summary"] = safeExecutionSummary(task)
+	if inputSummary := safeInputSummaryRaw(task.TaskDefinition); inputSummary != nil {
+		resp["input_summary"] = inputSummary
+	}
 	return resp
 }
 
