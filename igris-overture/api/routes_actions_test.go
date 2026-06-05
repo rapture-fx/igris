@@ -472,6 +472,73 @@ func TestNormalizeActionDefinitionDoesNotExposeSecretValues(t *testing.T) {
 	require.NotContains(t, string(raw), "sk-live")
 }
 
+func TestNormalizeActionDefinitionRedactsSensitiveInputMetadata(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "send_email",
+		TargetType:   "webhook",
+		TargetURL:    "https://api.example.test/send?token=" + marker,
+		Method:       "POST",
+		PolicyPreset: "Safe automation",
+		TargetMetadata: map[string]interface{}{
+			"headers": map[string]interface{}{
+				"Authorization": "Bearer " + marker,
+				"Cookie":        "session=" + marker,
+				"Content-Type":  "application/json",
+			},
+			"request_body": marker,
+			"file_path":    "/Users/customer/private/" + marker + ".json",
+		},
+	}, nil)
+	require.NoError(t, err)
+
+	raw, err := json.Marshal(def)
+	require.NoError(t, err)
+	body := string(raw)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "?token=")
+	require.NotContains(t, body, "Bearer")
+	require.NotContains(t, body, "session=")
+	require.NotContains(t, body, "/Users/customer/private")
+	require.Contains(t, body, "https://api.example.test/send")
+	require.Contains(t, body, "input_redacted")
+	require.Contains(t, body, "input_digest_sha256")
+}
+
+func TestScanActionDefinitionRedactsHistoricalUnsafeMetadata(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	now := time.Now().UTC()
+	actionID := uuid.NewString()
+	db, _ := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		rows: [][]driver.Value{{
+			actionID, "tenant-a", "send_email", "send_email", "",
+			"webhook", "https://api.example.test/send?token=" + marker, "POST",
+			"Safe automation", "retryable", false, false,
+			[]byte(`[]`),
+			[]byte(`{"headers":{"Authorization":"Bearer ` + marker + `"},"path":"/Users/customer/private/` + marker + `.txt","body":"` + marker + `"}`),
+			[]byte(`{"enabled": false}`),
+			now, now, nil,
+		}},
+	}})
+
+	def, err := loadActionDefinitionByID(t.Context(), db, "tenant-a", actionID)
+	require.NoError(t, err)
+	raw, err := json.Marshal(def)
+	require.NoError(t, err)
+	body := string(raw)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "?token=")
+	require.NotContains(t, body, "Bearer")
+	require.NotContains(t, body, "/Users/customer/private")
+	require.Contains(t, body, "safe_basename")
+	require.Contains(t, body, "input_redacted")
+}
+
 func TestHandleActionCreatePersistsDefinition(t *testing.T) {
 	t.Parallel()
 
