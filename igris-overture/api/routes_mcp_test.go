@@ -431,6 +431,39 @@ func TestMCPGetRunEvidenceDoesNotLeakUnsafeBodies(t *testing.T) {
 	require.NotContains(t, body, "postgres://")
 }
 
+func TestMCPGetRunDoesNotReturnRawHistoricalInputs(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	taskID := uuid.New()
+	task := &coordinator.TaskRecord{
+		TaskID:   taskID,
+		TenantID: "tenant-inputs",
+		Status:   coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{
+				"metadata":{"action_name":"unsafe_action","policy_preset":"Safe automation"},
+				"kind":"tool",
+				"node_id":"unsafe-http",
+				"tool_name":"http_request",
+				"args":{"body":"` + marker + `","path":"/Users/customer/private/` + marker + `.txt"}
+			}]}
+		}`),
+		Proof: &coordinator.TaskProofState{Status: "verified"},
+	}
+	detail := safeMCPRunDetail(task)
+	raw, err := json.Marshal(detail)
+	require.NoError(t, err)
+	body := string(raw)
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "/Users/customer/private")
+	require.NotContains(t, body, "body")
+	require.Contains(t, body, "input_summary")
+	require.Contains(t, body, "input_redacted")
+	require.Contains(t, body, "input_digest_sha256")
+}
+
 func TestMCPListRuntimesDoesNotLeakHostnamesIPsOrKeys(t *testing.T) {
 	t.Parallel()
 
