@@ -1001,6 +1001,9 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 	if taskType := extractTaskType(task.TaskDefinition); taskType != "" {
 		resp["task_type"] = taskType
 	}
+	if inputSummary := safeInputSummaryRaw(task.TaskDefinition); inputSummary != nil {
+		resp["input_summary"] = inputSummary
+	}
 	// executed_target is the canonical Action execution surface that ran this
 	// task. Surfaced so Run detail can render "Routed via …" without guessing.
 	// fallback_reason is only set by a future hybrid_fallback resolver — until
@@ -1136,6 +1139,9 @@ func buildTaskAcceptedResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 	if taskType := extractTaskType(task.TaskDefinition); taskType != "" {
 		resp["task_type"] = taskType
+	}
+	if inputSummary := safeInputSummaryRaw(task.TaskDefinition); inputSummary != nil {
+		resp["input_summary"] = inputSummary
 	}
 	return resp
 }
