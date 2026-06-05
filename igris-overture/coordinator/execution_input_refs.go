@@ -99,7 +99,7 @@ func (s *CheckpointStore) CreateTaskWithExecutionInputRefs(ctx context.Context, 
 		INSERT INTO task_records
 			(task_id, tenant_id, status, task_definition, idempotency_key, deadline_at, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, NOW())
-		ON CONFLICT (idempotency_key) DO NOTHING`,
+		ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
 		task.TaskID, task.TenantID, TaskStatusPending, defBytes, task.IdempotencyKey, task.DeadlineAt,
 	)
 	if err != nil {
