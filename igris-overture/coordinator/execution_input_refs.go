@@ -292,10 +292,14 @@ func (s *CheckpointStore) SaveExecutionInputRefAudit(ctx context.Context, event 
 	if s == nil || s.db == nil || isSQLMockDB(s.db) {
 		return nil
 	}
+	return insertExecutionInputRefAudit(ctx, s.db, event)
+}
+
+func insertExecutionInputRefAudit(ctx context.Context, execer sqlExecerContext, event ExecutionInputRefAuditEvent) error {
 	if event.ActorType == "" {
 		event.ActorType = "system"
 	}
-	_, err := s.db.ExecContext(ctx, `
+	_, err := execer.ExecContext(ctx, `
 		INSERT INTO execution_input_ref_audit (
 			event_id, tenant_id, task_id, action_id, input_ref_id, purpose,
 			actor_type, event_type, reason, success, failure_code, created_at
