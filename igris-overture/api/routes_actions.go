@@ -775,6 +775,7 @@ func scanActionDefinition(scanner actionDefinitionScanner) (actionDefinition, er
 	if def.SecretRefs == nil {
 		def.SecretRefs = []string{}
 	}
+	def.SecretRefs = sanitizeActionSecretRefs(def.SecretRefs)
 	if def.TargetMetadata == nil {
 		def.TargetMetadata = map[string]interface{}{}
 	}
@@ -870,11 +871,11 @@ func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *acti
 	}
 	if req.SecretRefs != nil {
 		for _, ref := range req.SecretRefs {
-			if strings.TrimSpace(ref) == "" {
-				return actionDefinition{}, fmt.Errorf("secret_refs cannot contain empty values")
+			if err := validateActionSecretRef(ref); err != nil {
+				return actionDefinition{}, err
 			}
 		}
-		def.SecretRefs = append([]string(nil), req.SecretRefs...)
+		def.SecretRefs = sanitizeActionSecretRefs(req.SecretRefs)
 	}
 	if req.TargetMetadata != nil {
 		def.TargetMetadata = sanitizeActionMetadata(copyActionMap(req.TargetMetadata))
@@ -960,6 +961,73 @@ func marshalActionJSON(def actionDefinition) ([]byte, []byte, []byte, error) {
 		return nil, nil, nil, err
 	}
 	return secretRefs, targetMetadata, fallbackPolicy, nil
+}
+
+func sanitizeActionSecretRefs(refs []string) []string {
+	if refs == nil {
+		return []string{}
+	}
+	safe := make([]string, 0, len(refs))
+	for _, ref := range refs {
+		trimmed := strings.TrimSpace(ref)
+		if trimmed == "" {
+			continue
+		}
+		if looksLikeRawActionSecret(trimmed) {
+			safe = append(safe, "redacted:"+sha256HexString(trimmed))
+			continue
+		}
+		safe = append(safe, trimmed)
+	}
+	return safe
+}
+
+func validateActionSecretRef(ref string) error {
+	trimmed := strings.TrimSpace(ref)
+	if trimmed == "" {
+		return fmt.Errorf("secret_refs cannot contain empty values")
+	}
+	if len(trimmed) > 160 {
+		return fmt.Errorf("secret_refs must contain references, not secret values")
+	}
+	for _, r := range trimmed {
+		if !(r >= 'a' && r <= 'z') &&
+			!(r >= 'A' && r <= 'Z') &&
+			!(r >= '0' && r <= '9') &&
+			r != '_' && r != '-' && r != '.' && r != '/' && r != ':' && r != '@' {
+			return fmt.Errorf("secret_refs must contain safe reference identifiers only")
+		}
+	}
+	if looksLikeRawActionSecret(trimmed) {
+		return fmt.Errorf("secret_refs must contain references, not secret values")
+	}
+	return nil
+}
+
+func looksLikeRawActionSecret(value string) bool {
+	lower := strings.ToLower(strings.TrimSpace(value))
+	if lower == "" {
+		return false
+	}
+	if strings.Contains(lower, "bearer") ||
+		strings.Contains(lower, "basic") ||
+		strings.Contains(lower, "password") ||
+		strings.Contains(lower, "authorization") ||
+		strings.Contains(lower, "cookie") ||
+		strings.Contains(lower, "private_key") ||
+		strings.Contains(lower, "-----begin") ||
+		strings.Contains(lower, "://") {
+		return true
+	}
+	rawPrefixes := []string{
+		"sk-", "sk_", "rk-", "rk_", "pk-", "pk_", "xoxb-", "xoxp-", "ghp_", "github_pat_", "ya29.",
+	}
+	for _, prefix := range rawPrefixes {
+		if strings.HasPrefix(lower, prefix) {
+			return true
+		}
+	}
+	return strings.Count(value, ".") == 2 && strings.HasPrefix(value, "eyJ")
 }
 
 func inferRuntimeTarget(input map[string]interface{}) string {
