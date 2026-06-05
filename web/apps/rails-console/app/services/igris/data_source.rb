@@ -385,6 +385,31 @@ module Igris
       (raw[:request_summary] || raw.dig(:request, :summary)).to_s.strip.presence
     end
 
+    def sanitize_display_url(value)
+      raw = value.to_s.strip
+      return '' if raw.empty?
+
+      uri = URI.parse(raw)
+      return sanitize_sensitive_string(raw) unless uri.scheme && uri.host
+
+      safe = +"#{uri.scheme}://#{uri.host}"
+      safe << ":#{uri.port}" if uri.port && ![80, 443].include?(uri.port)
+      safe << uri.path.to_s
+      safe << '?[redacted]' if uri.query.present? || uri.userinfo.present?
+      safe
+    rescue URI::InvalidURIError
+      sanitize_sensitive_string(raw)
+    end
+
+    def sanitize_sensitive_string(value)
+      raw = value.to_s
+      return '' if raw.empty?
+      return '[redacted]' if raw.match?(/authorization|bearer|cookie|token|secret|password|api[_-]?key/i)
+      return "[redacted:#{Digest::SHA256.hexdigest(raw)[0, 16]}]" if raw.start_with?('/', '~/', '\\\\')
+
+      raw
+    end
+
     # True when a run failed because the runtime it needed was not available.
     # Derived from the failure reason / error code as a BOOLEAN signal only —
     # the underlying free text is never returned or rendered. Also infers the
