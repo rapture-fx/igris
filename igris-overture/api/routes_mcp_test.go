@@ -302,7 +302,14 @@ func TestMCPToolsListReturnsStrictSchemas(t *testing.T) {
 	for _, name := range []string{"list_actions", "get_action", "call_action", "list_runs", "get_run", "get_run_evidence", "list_runtimes"} {
 		require.True(t, seen[name], name)
 	}
-	callSchema := schemaForMCPTool(t, envelope.Result.Tools, "call_action")
+	var callSchema map[string]interface{}
+	for _, tool := range envelope.Result.Tools {
+		if tool.Name == "call_action" {
+			callSchema = tool.InputSchema
+			break
+		}
+	}
+	require.NotNil(t, callSchema)
 	callProps := callSchema["properties"].(map[string]interface{})
 	for _, forbidden := range []string{"task_definition", "task_type", "runtime_target", "execution_graph", "tenant_id", "ciphertext", "nonce", "key_material"} {
 		require.NotContains(t, callProps, forbidden)
@@ -1408,6 +1415,101 @@ func TestMCPCallActionRawTaskPayloadDoesNotDispatch(t *testing.T) {
 	require.Equal(t, int32(0), atomic.LoadInt32(&dispatchCount))
 	require.Zero(t, drv.remainingQueries())
 	require.Zero(t, drv.remainingExecs())
+}
+
+func TestMCPStrictValidationRejectsInvalidParamsBeforeHandlers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		method string
+		params string
+		detail string
+	}{
+		{
+			name:   "get_run missing id",
+			method: "get_run",
+			params: `{}`,
+			detail: "exactly one action or run identifier is required",
+		},
+		{
+			name:   "get_run wrong id type",
+			method: "get_run",
+			params: `{"task_id":123}`,
+			detail: "task_id must be a string",
+		},
+		{
+			name:   "get_run_evidence missing id",
+			method: "get_run_evidence",
+			params: `{}`,
+			detail: "exactly one action or run identifier is required",
+		},
+		{
+			name:   "unknown field",
+			method: "list_actions",
+			params: `{"tenant_id":"tenant-b"}`,
+			detail: "unsupported MCP argument",
+		},
+		{
+			name:   "get_action unknown field",
+			method: "get_action",
+			params: `{"action_id":"act-1","tenant_id":"tenant-b"}`,
+			detail: "unsupported MCP argument",
+		},
+		{
+			name:   "call_action missing action identifier",
+			method: "call_action",
+			params: `{"input":{"ok":true}}`,
+			detail: "exactly one action or run identifier is required",
+		},
+		{
+			name:   "call_action forbidden tenant override",
+			method: "call_action",
+			params: `{"action_id":"act-1","tenant_id":"tenant-b","input":{"ok":true}}`,
+			detail: "unsupported call_action field",
+		},
+		{
+			name:   "call_action forbidden raw task definition",
+			method: "call_action",
+			params: `{"action_id":"act-1","task_definition":{"type":"execution_graph"},"input":{"ok":true}}`,
+			detail: "unsupported call_action field",
+		},
+		{
+			name:   "list_runs wrong limit type",
+			method: "list_runs",
+			params: `{"limit":"100"}`,
+			detail: "limit must be an integer",
+		},
+		{
+			name:   "list_runtimes unknown field",
+			method: "list_runtimes",
+			params: `{"tenant_id":"tenant-b"}`,
+			detail: "unsupported MCP argument",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+				tenantLookupRowFor("tenant-mcp-validation", "Tenant MCP", "mcp@example.test"),
+			})
+			app := fiber.New()
+			h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+			app.Use(middleware.BetterAuth(db))
+			app.Post("/v1/mcp", h.handle)
+
+			resp := mcpPost(t, app, fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"method":%q,"params":%s}`, tc.name, tc.method, tc.params))
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+			body := readBody(t, resp)
+			require.Contains(t, body, `"jsonrpc":"2.0"`)
+			require.Contains(t, body, `"message":"validation_error"`)
+			require.Contains(t, body, tc.detail)
+			require.NotContains(t, body, "tenant-b")
+			require.Zero(t, drv.remainingQueries())
+			require.Zero(t, drv.remainingExecs())
+		})
+	}
 }
 
 func TestMCPListRunsOnlyReturnsTenantSafeRuns(t *testing.T) {
