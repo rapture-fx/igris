@@ -241,6 +241,71 @@ func TestBuildActionRunRequestFromDefinitionLocalRuntimeHTTPInput(t *testing.T) 
 	require.Equal(t, "http_request", node["tool_name"])
 }
 
+func TestHandleActionRunLocalRuntimeFailsSafelyWithNoRoutableRuntime(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now().UTC()
+	db, driver := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: actionDefinitionColumns(),
+			rows: [][]driver.Value{{
+				"action-local-runtime",
+				"tenant-a",
+				"read_private_doc",
+				"Read Private Doc",
+				"",
+				"local_runtime",
+				"",
+				"",
+				"read_only",
+				"retryable",
+				false,
+				false,
+				[]byte(`[]`),
+				[]byte(`{}`),
+				[]byte(`{"enabled": false}`),
+				now,
+				now,
+				nil,
+			}},
+		},
+		{
+			columns: []string{"endpoint"},
+			rows: [][]driver.Value{
+				{" "},
+				{"not-a-url"},
+				{"ftp://runtime.internal"},
+			},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "FROM runtime_instances")
+				require.Contains(t, query, "BTRIM(endpoint) <> ''")
+				require.Equal(t, "tenant-a", args[0].Value)
+			},
+		},
+	})
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, coordinator.NewTaskCoordinator(db)))
+
+	body := `{
+		"action_id": "action-local-runtime",
+		"input": {"tool_name":"filesystem","args":{"path":"/private/doc.txt"}},
+		"idempotency_key": "local-runtime-no-route"
+	}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
+
+	raw, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(raw), "runtime_unavailable")
+	require.NotContains(t, string(raw), "not-a-url")
+	require.NotContains(t, string(raw), "runtime.internal")
+	require.Equal(t, 0, driver.remainingQueries())
+	require.Equal(t, 0, driver.remainingExecs())
+}
+
 func TestBuildActionRunRequestFromDefinitionLocalRuntimePinsRuntime(t *testing.T) {
 	t.Parallel()
 
