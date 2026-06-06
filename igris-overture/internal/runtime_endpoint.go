@@ -28,7 +28,7 @@ func NormalizeHTTPRuntimeEndpoint(raw string) (string, error) {
 	if u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
 		return "", ErrInvalidRuntimeEndpoint
 	}
-	u.Path = strings.TrimRight(u.EscapedPath(), "/")
+	u.Path = strings.TrimRight(u.Path, "/")
 	return u.String(), nil
 }
 
