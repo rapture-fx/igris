@@ -188,6 +188,7 @@ func TestMalformedKeyringConfigRejected(t *testing.T) {
 	}{
 		{name: "duplicate versions", keyring: "v1:" + good + ",v1:" + keyringTestKey(2), active: "v1"},
 		{name: "invalid base64", keyring: "v1:not*base64*key", active: "v1"},
+		{name: "raw key not accepted in keyring", keyring: "v1:0123456789abcdef0123456789abcdef", active: "v1"},
 		{name: "wrong key length", keyring: "v1:" + base64.StdEncoding.EncodeToString([]byte("tooshort")), active: "v1"},
 		{name: "empty active version", keyring: "v1:" + good, active: ""},
 		{name: "active not present", keyring: "v1:" + good, active: "v2"},
