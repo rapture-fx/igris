@@ -743,6 +743,150 @@ func TestHandleActionRunByNameReturnsActionNotFound(t *testing.T) {
 	require.Equal(t, 0, driver.remainingQueries())
 }
 
+func TestHandleActionRunRejectsRawTaskPayloadWithoutRegisteredAction(t *testing.T) {
+	t.Parallel()
+
+	db, driver := newQueuedRouteDB(t, nil)
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, nil))
+
+	body := `{
+		"task_type":"execution_graph",
+		"task_definition":{"graph":{"nodes":[{"kind":"tool","tool_name":"http_request","args":{"url":"https://example.test"}}]}},
+		"runtime_target":"http_request",
+		"input":{"url":"https://example.test"}
+	}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Equal(t, 0, driver.remainingQueries(), "raw payload must be rejected before action lookup")
+	require.Equal(t, 0, driver.remainingExecs(), "raw payload must not create a task")
+}
+
+func TestHandleActionRunRequiresRegisteredAction(t *testing.T) {
+	t.Parallel()
+
+	db, driver := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		err:     sql.ErrNoRows,
+		checkArgs: func(query string, args []driver.NamedValue) {
+			require.Contains(t, query, "FROM action_definitions")
+			require.Contains(t, query, "WHERE tenant_id = $1")
+			require.Equal(t, "tenant-a", args[0].Value)
+			require.Equal(t, "missing_action", args[1].Value)
+		},
+	}})
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, nil))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(`{"action":"missing_action","input":{"ok":true}}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	require.Equal(t, 0, driver.remainingQueries())
+	require.Equal(t, 0, driver.remainingExecs())
+}
+
+func TestHandleActionRunDoesNotRevealCrossTenantActionID(t *testing.T) {
+	t.Parallel()
+
+	db, driver := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		err:     sql.ErrNoRows,
+		checkArgs: func(query string, args []driver.NamedValue) {
+			require.Contains(t, query, "WHERE tenant_id = $1 AND id = $2")
+			require.Equal(t, "tenant-a", args[0].Value)
+			require.Equal(t, "action-owned-by-tenant-b", args[1].Value)
+		},
+	}})
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, nil))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(`{"action_id":"action-owned-by-tenant-b","input":{"ok":true}}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	require.Equal(t, 0, driver.remainingQueries())
+	require.Equal(t, 0, driver.remainingExecs())
+}
+
+func TestHandleActionRunUsesRegisteredActionDefinition(t *testing.T) {
+	t.Parallel()
+
+	now := time.Now().UTC()
+	db, driver := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		rows: [][]driver.Value{{
+			"action-webhook",
+			"tenant-a",
+			"send_webhook",
+			"send_webhook",
+			"",
+			"webhook",
+			"",
+			"POST",
+			"Safe automation",
+			"retryable",
+			false,
+			false,
+			[]byte(`[]`),
+			[]byte(`{}`),
+			[]byte(`{"enabled": false}`),
+			now,
+			now,
+			nil,
+		}},
+		checkArgs: func(query string, args []driver.NamedValue) {
+			require.Contains(t, query, "WHERE tenant_id = $1 AND id = $2")
+			require.Equal(t, "tenant-a", args[0].Value)
+			require.Equal(t, "action-webhook", args[1].Value)
+		},
+	}})
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, nil))
+
+	body := `{
+		"action_id":"action-webhook",
+		"runtime_target":"database_write",
+		"input":{"raw":"caller input"}
+	}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+	require.Equal(t, 0, driver.remainingQueries())
+	require.Equal(t, 0, driver.remainingExecs(), "registered-action validation must happen before task creation")
+}
+
+func TestHandleActionRunIgnoresBodyTenantOverride(t *testing.T) {
+	t.Parallel()
+
+	db, driver := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: actionDefinitionColumns(),
+		err:     sql.ErrNoRows,
+		checkArgs: func(query string, args []driver.NamedValue) {
+			require.Contains(t, query, "WHERE tenant_id = $1 AND id = $2")
+			require.Equal(t, "tenant-a", args[0].Value)
+			require.Equal(t, "action-1", args[1].Value)
+		},
+	}})
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, nil))
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(`{"tenant_id":"tenant-b","action_id":"action-1","input":{"ok":true}}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	require.Equal(t, 0, driver.remainingQueries())
+	require.Equal(t, 0, driver.remainingExecs())
+}
+
 func actionTestApp() *fiber.App {
 	app := fiber.New()
 	app.Use(func(c *fiber.Ctx) error {
