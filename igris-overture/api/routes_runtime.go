@@ -27,6 +27,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/billing"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/security"
 )
 
@@ -156,6 +157,13 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 			"message": err.Error(),
 		})
 	}
+	normalizedEndpoint, err := internal.NormalizeHTTPRuntimeEndpoint(req.Endpoint)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "invalid_runtime_endpoint",
+			"message": "runtime endpoint must be a valid http:// or https:// URL reachable by Igris for task routing",
+		})
+	}
 
 	// Check if this machine_id is already registered for this tenant.
 	// If so, treat as re-registration (runtime restarted).
@@ -206,7 +214,6 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 		}
 
 		var runtimeID string
-		endpoint := nullableString(req.Endpoint)
 		err = h.db.QueryRowContext(ctx, `
 			INSERT INTO runtime_instances
 				(runtime_id, tenant_id, machine_id, hostname_cached, ip_address,
@@ -214,11 +221,11 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 				 is_edge, is_healthy, status, last_heartbeat, last_seen_at, registered_at)
 			VALUES
 				(gen_random_uuid()::text, $1, $2, $3, $4,
-				 $5, COALESCE($6, ''), '[]', $7, $8,
+				 $5, $6, '[]', $7, $8,
 				 true, true, 'active', $9, $9, $9)
 			RETURNING runtime_id
 		`, tenantID, req.MachineID, req.Hostname, clientIP,
-			req.PublicKeyEd25519, endpoint, req.Platform, req.RuntimeVersion, now,
+			req.PublicKeyEd25519, normalizedEndpoint, req.Platform, req.RuntimeVersion, now,
 		).Scan(&runtimeID)
 
 		if err != nil {
@@ -265,12 +272,12 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 		        WHEN COALESCE(public_key_ed25519, '') = '' THEN $4
 		        ELSE public_key_ed25519
 		    END,
-		    endpoint = COALESCE($5, endpoint),
+		    endpoint = $5,
 		    platform = $6,
 		    last_heartbeat = $7, last_seen_at = $7,
 		    is_healthy = true, status = 'active'
 		WHERE tenant_id = $8 AND machine_id = $9
-	`, req.Hostname, clientIP, req.RuntimeVersion, req.PublicKeyEd25519, nullableString(req.Endpoint), req.Platform, now, tenantID, req.MachineID)
+	`, req.Hostname, clientIP, req.RuntimeVersion, req.PublicKeyEd25519, normalizedEndpoint, req.Platform, now, tenantID, req.MachineID)
 	if err != nil {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Runtime] Failed to update runtime instance on re-registration")
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
