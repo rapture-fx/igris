@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS execution_input_ref_audit (
     reason TEXT NOT NULL DEFAULT '',
     success BOOLEAN NOT NULL DEFAULT false,
     failure_code TEXT NOT NULL DEFAULT '',
+    key_version TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
