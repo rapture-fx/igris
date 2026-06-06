@@ -804,11 +804,15 @@ func mcpInputSchemaForTool(name string) fiber.Map {
 	for key, field := range schema.Properties {
 		props[key] = mcpFieldSchemaMap(field)
 	}
+	required := schema.Required
+	if required == nil {
+		required = []string{}
+	}
 	out := fiber.Map{
 		"schema_version":       mcpToolSchemaVersion,
 		"type":                 "object",
 		"properties":           props,
-		"required":             schema.Required,
+		"required":             required,
 		"additionalProperties": schema.AdditionalProperties,
 	}
 	if len(schema.OneOfRequired) > 0 {
