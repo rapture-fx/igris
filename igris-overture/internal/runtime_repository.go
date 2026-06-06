@@ -39,6 +39,8 @@ func (r *RuntimeRepository) ListHealthy(ctx context.Context) ([]RuntimeInstance,
 		       is_edge, is_healthy, last_seen_at
 		FROM runtime_instances
 		WHERE is_healthy = TRUE
+		  AND endpoint IS NOT NULL
+		  AND BTRIM(endpoint) <> ''
 		ORDER BY is_edge DESC, last_seen_at DESC`
 
 	rows, err := r.db.QueryContext(ctx, q)
@@ -77,6 +79,11 @@ func (r *RuntimeRepository) UpdateHealth(ctx context.Context, runtimeID string, 
 
 // Upsert inserts or updates a runtime_instances row on runtime_id conflict.
 func (r *RuntimeRepository) Upsert(ctx context.Context, inst RuntimeInstance) error {
+	normalizedEndpoint, err := NormalizeHTTPRuntimeEndpoint(inst.Endpoint)
+	if err != nil {
+		return fmt.Errorf("runtime_repository: upsert: %w", ErrInvalidRuntimeEndpoint)
+	}
+	inst.Endpoint = normalizedEndpoint
 	caps, err := json.Marshal(inst.Capabilities)
 	if err != nil {
 		caps = []byte("[]")
