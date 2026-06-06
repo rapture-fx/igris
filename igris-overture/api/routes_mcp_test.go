@@ -497,7 +497,6 @@ func TestMCPCallActionRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 				createdTaskID = requireDriverUUID(t, args[0].Value)
 				defBytes := requireDriverBytes(t, args[3].Value)
 				require.NoError(t, json.Unmarshal(defBytes, &persistedDefinition))
-				require.NotContains(t, string(defBytes), "caller-filesystem-override")
 			},
 		},
 		queuedRouteExecExpectation{
@@ -530,9 +529,7 @@ func TestMCPCallActionRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 		"params":{
 			"name":"call_action",
 			"arguments":{
-				"tenant_id":"tenant-b",
 				"action_id":"act-mcp-dispatch",
-				"runtime_target":"caller-filesystem-override",
 				"input":{"ok":true,"message":"mcp route-to-runtime"},
 				"metadata":{"agent_id":"agent-mcp-route","user_id":"user-mcp-route"},
 				"idempotency_key":"mcp-idempotency-1"
@@ -544,7 +541,6 @@ func TestMCPCallActionRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 	require.Contains(t, body, `"jsonrpc":"2.0"`)
 	require.Contains(t, body, createdTaskID.String())
 	require.Contains(t, body, `"registered_mcp_action"`)
-	require.NotContains(t, body, "caller-filesystem-override")
 	require.NotContains(t, body, runtimeEndpoint)
 
 	require.Equal(t, "execution_graph", persistedDefinition["type"])
@@ -563,7 +559,6 @@ func TestMCPCallActionRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 	require.Equal(t, createdTaskID.String(), captured.body["task_id"])
 	require.Equal(t, tenantA, captured.body["tenant_id"])
 	require.Equal(t, "mcp-idempotency-1", captured.body["idempotency_key"])
-	require.NotContains(t, captured.rawBody, "caller-filesystem-override")
 
 	taskType, ok := captured.body["task_type"].(map[string]interface{})
 	require.True(t, ok)
@@ -1359,7 +1354,7 @@ func TestMCPCallActionRawTaskPayloadDoesNotDispatch(t *testing.T) {
 	body := readBody(t, resp)
 	require.Contains(t, body, `"jsonrpc":"2.0"`)
 	require.Contains(t, body, `"message":"validation_error"`)
-	require.Contains(t, body, `"detail":"action_id or action_name is required"`)
+	require.Contains(t, body, `"detail":"unsupported call_action field"`)
 	require.NotContains(t, body, "/tmp/should-not-run")
 	require.Equal(t, int32(0), atomic.LoadInt32(&dispatchCount))
 	require.Zero(t, drv.remainingQueries())
@@ -1453,7 +1448,7 @@ func TestMCPGetRunRecoveringTaskIsMetadataSafe(t *testing.T) {
 	app.Use(middleware.BetterAuth(db))
 	app.Post("/v1/mcp", h.handle)
 
-	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"get-run-safe","method":"get_run","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantB+`"}}`)
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"get-run-safe","method":"get_run","params":{"run_id":"`+taskID.String()+`"}}`)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	body := readBody(t, resp)
 	require.Contains(t, body, `"jsonrpc":"2.0"`)
@@ -1464,7 +1459,7 @@ func TestMCPGetRunRecoveringTaskIsMetadataSafe(t *testing.T) {
 	require.NotContains(t, body, tenantB)
 	requireMCPInspectionBodySafe(t, body, secretMarker)
 
-	crossResp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"get-run-cross","method":"get_run","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantA+`"}}`)
+	crossResp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"get-run-cross","method":"get_run","params":{"run_id":"`+taskID.String()+`"}}`)
 	require.Equal(t, http.StatusNotFound, crossResp.StatusCode)
 	crossBody := readBody(t, crossResp)
 	require.Contains(t, crossBody, `"jsonrpc":"2.0"`)
@@ -1540,7 +1535,7 @@ func TestMCPGetRunEvidenceRecoveringTaskIsMetadataSafe(t *testing.T) {
 	app.Use(middleware.BetterAuth(db))
 	app.Post("/v1/mcp", h.handle)
 
-	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"evidence-safe","method":"get_run_evidence","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantB+`"}}`)
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"evidence-safe","method":"get_run_evidence","params":{"run_id":"`+taskID.String()+`"}}`)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	body := readBody(t, resp)
 	require.Contains(t, body, `"jsonrpc":"2.0"`)
@@ -1551,7 +1546,7 @@ func TestMCPGetRunEvidenceRecoveringTaskIsMetadataSafe(t *testing.T) {
 	require.NotContains(t, body, tenantB)
 	requireMCPInspectionBodySafe(t, body, secretMarker)
 
-	crossResp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"evidence-cross","method":"get_run_evidence","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantA+`"}}`)
+	crossResp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"evidence-cross","method":"get_run_evidence","params":{"run_id":"`+taskID.String()+`"}}`)
 	require.Equal(t, http.StatusNotFound, crossResp.StatusCode)
 	crossBody := readBody(t, crossResp)
 	require.Contains(t, crossBody, `"jsonrpc":"2.0"`)
@@ -1831,10 +1826,7 @@ func mcpCapabilityPolicyQuery(t *testing.T, tenantID string) queuedRouteQueryExp
 }
 
 func mcpCallActionBody(id, actionID, idempotencyKey, message, bodyTenantID string) string {
-	tenantField := ""
-	if bodyTenantID != "" {
-		tenantField = fmt.Sprintf(`"tenant_id":%q,`, bodyTenantID)
-	}
+	_ = bodyTenantID
 	return fmt.Sprintf(`{
 		"jsonrpc":"2.0",
 		"id":%q,
@@ -1842,13 +1834,12 @@ func mcpCallActionBody(id, actionID, idempotencyKey, message, bodyTenantID strin
 		"params":{
 			"name":"call_action",
 			"arguments":{
-				%s
 				"action_id":%q,
 				"input":{"ok":true,"message":%q},
 				"idempotency_key":%q
 			}
 		}
-	}`, id, tenantField, actionID, message, idempotencyKey)
+	}`, id, actionID, message, idempotencyKey)
 }
 
 func mcpTaskIDFromBody(t *testing.T, body string) string {
