@@ -445,6 +445,53 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	}, resp["receipt"])
 }
 
+func TestBuildTaskResponseRedactsHistoricalUnsafeTaskDefinitionInputs(t *testing.T) {
+	t.Parallel()
+
+	const marker = "IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET"
+	task := &coordinator.TaskRecord{
+		TaskID: uuid.New(),
+		Status: coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{
+				"kind":"tool",
+				"node_id":"unsafe-http",
+				"tool_name":"http_request",
+				"args":{
+					"method":"POST",
+					"url":"https://api.example.test/hook?token=` + marker + `",
+					"body":"` + marker + `",
+					"headers":{"Authorization":"Bearer ` + marker + `","Cookie":"session=` + marker + `"}
+				}
+			},{
+				"kind":"tool",
+				"node_id":"unsafe-file",
+				"tool_name":"filesystem",
+				"args":{"path":"/Users/customer/private/` + marker + `.txt"}
+			}]}
+		}`),
+		CreatedAt: time.Now().UTC(),
+	}
+
+	resp := buildTaskResponse(task)
+	raw, err := json.Marshal(resp)
+	require.NoError(t, err)
+	body := string(raw)
+
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "Bearer")
+	require.NotContains(t, body, "session=")
+	require.NotContains(t, body, "/Users/customer/private")
+	require.NotContains(t, body, "?token=")
+	require.NotContains(t, resp, "task_definition")
+	require.Contains(t, body, "input_summary")
+	require.Contains(t, body, "input_redacted")
+	require.Contains(t, body, "input_digest_sha256")
+	require.Contains(t, body, "input_bytes")
+	require.Contains(t, body, responseRedactionPolicyVersion)
+}
+
 func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	t.Parallel()
 
