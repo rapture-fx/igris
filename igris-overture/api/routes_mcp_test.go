@@ -1410,6 +1410,160 @@ func TestMCPListRunsOnlyReturnsTenantSafeRuns(t *testing.T) {
 	require.Zero(t, drv.remainingQueries())
 }
 
+func TestMCPGetRunRecoveringTaskIsMetadataSafe(t *testing.T) {
+	const (
+		tenantA      = "tenant-mcp-inspect-a"
+		tenantB      = "tenant-mcp-inspect-b"
+		runtimeID    = "runtime-mcp-inspect"
+		idemKey      = "mcp-inspect-idempotency"
+		secretMarker = "IGRIS_MCP_INSPECTION_SECRET_MARKER"
+	)
+	now := time.Now().UTC()
+	taskID := uuid.New()
+	taskDefinition := mcpRecoveringTaskDefinition(secretMarker)
+	checkpoint := mcpUnsafeCheckpointPayload(taskID, runtimeID, secretMarker)
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: taskRecordColumnsForMCPTest(),
+			rows: [][]driver.Value{taskRecordRouteRow(
+				taskID, tenantA, coordinator.TaskStatusRecovering, runtimeID, "http://runtime.mcp.inspect.internal",
+				taskDefinition, checkpoint, idemKey, nil, nil, nil, now,
+			)},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE task_id = $1 AND tenant_id = $2")
+				require.Equal(t, taskID.String(), driverValueString(args[0].Value))
+				require.Equal(t, tenantA, args[1].Value)
+			},
+		},
+		tenantLookupRowFor(tenantB, "Tenant B", "b@example.test"),
+		{
+			columns: taskRecordColumnsForMCPTest(),
+			err:     sql.ErrNoRows,
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE task_id = $1 AND tenant_id = $2")
+				require.Equal(t, taskID.String(), driverValueString(args[0].Value))
+				require.Equal(t, tenantB, args[1].Value)
+			},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"get-run-safe","method":"get_run","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantB+`"}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, `"jsonrpc":"2.0"`)
+	require.Contains(t, body, taskID.String())
+	require.Contains(t, body, `"status":"recovering"`)
+	require.Contains(t, body, "registered_inspection_action")
+	require.Contains(t, body, "encrypted_input_refs")
+	require.NotContains(t, body, tenantB)
+	requireMCPInspectionBodySafe(t, body, secretMarker)
+
+	crossResp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"get-run-cross","method":"get_run","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantA+`"}}`)
+	require.Equal(t, http.StatusNotFound, crossResp.StatusCode)
+	crossBody := readBody(t, crossResp)
+	require.Contains(t, crossBody, `"jsonrpc":"2.0"`)
+	require.Contains(t, crossBody, `"message":"not_found"`)
+	require.NotContains(t, crossBody, taskID.String())
+	require.NotContains(t, crossBody, tenantA)
+	require.NotContains(t, crossBody, "registered_inspection_action")
+	requireMCPInspectionBodySafe(t, crossBody, secretMarker)
+	require.Zero(t, drv.remainingQueries())
+	require.Zero(t, drv.remainingExecs())
+}
+
+func TestMCPGetRunEvidenceRecoveringTaskIsMetadataSafe(t *testing.T) {
+	const (
+		tenantA      = "tenant-mcp-evidence-a"
+		tenantB      = "tenant-mcp-evidence-b"
+		runtimeID    = "runtime-mcp-evidence"
+		idemKey      = "mcp-evidence-idempotency"
+		secretMarker = "IGRIS_MCP_EVIDENCE_SECRET_MARKER"
+	)
+	now := time.Now().UTC()
+	taskID := uuid.New()
+	outputDigest := strings.Repeat("b", 64)
+	checkpoint := mcpUnsafeCheckpointPayload(taskID, runtimeID, secretMarker)
+	checkpoint.WalEntries = []coordinator.WalEntry{{
+		EntryID:      uuid.New(),
+		TaskID:       taskID,
+		StepIndex:    2,
+		StepType:     map[string]interface{}{"raw_body": secretMarker, "private_path": "/Users/customer/private/evidence.txt"},
+		Status:       "committed",
+		InputDigest:  strings.Repeat("a", 64),
+		OutputDigest: &outputDigest,
+		RuntimeID:    runtimeID,
+	}}
+	checkpointBytes, err := json.Marshal(checkpoint)
+	require.NoError(t, err)
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: taskRecordColumnsForMCPTest(),
+			rows: [][]driver.Value{taskRecordRouteRow(
+				taskID, tenantA, coordinator.TaskStatusRecovering, runtimeID, "http://runtime.mcp.evidence.internal",
+				mcpRecoveringTaskDefinition(secretMarker), checkpoint, idemKey, nil, nil, nil, now,
+			)},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE task_id = $1 AND tenant_id = $2")
+				require.Equal(t, taskID.String(), driverValueString(args[0].Value))
+				require.Equal(t, tenantA, args[1].Value)
+			},
+		},
+		{
+			columns: []string{"wal_entries"},
+			rows:    [][]driver.Value{{checkpointBytes}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "FROM wal_checkpoints")
+				require.Equal(t, taskID.String(), driverValueString(args[0].Value))
+			},
+		},
+		tenantLookupRowFor(tenantB, "Tenant B", "b@example.test"),
+		{
+			columns: taskRecordColumnsForMCPTest(),
+			err:     sql.ErrNoRows,
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "WHERE task_id = $1 AND tenant_id = $2")
+				require.Equal(t, taskID.String(), driverValueString(args[0].Value))
+				require.Equal(t, tenantB, args[1].Value)
+			},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"evidence-safe","method":"get_run_evidence","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantB+`"}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, `"jsonrpc":"2.0"`)
+	require.Contains(t, body, `"safe_step_count":1`)
+	require.Contains(t, body, strings.Repeat("a", 64))
+	require.Contains(t, body, outputDigest)
+	require.NotContains(t, body, taskID.String())
+	require.NotContains(t, body, tenantB)
+	requireMCPInspectionBodySafe(t, body, secretMarker)
+
+	crossResp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"evidence-cross","method":"get_run_evidence","params":{"run_id":"`+taskID.String()+`","tenant_id":"`+tenantA+`"}}`)
+	require.Equal(t, http.StatusNotFound, crossResp.StatusCode)
+	crossBody := readBody(t, crossResp)
+	require.Contains(t, crossBody, `"jsonrpc":"2.0"`)
+	require.Contains(t, crossBody, `"message":"not_found"`)
+	require.NotContains(t, crossBody, taskID.String())
+	require.NotContains(t, crossBody, tenantA)
+	require.NotContains(t, crossBody, strings.Repeat("a", 64))
+	requireMCPInspectionBodySafe(t, crossBody, secretMarker)
+	require.Zero(t, drv.remainingQueries())
+	require.Zero(t, drv.remainingExecs())
+}
+
 func TestMCPGetRunEvidenceDoesNotLeakUnsafeBodies(t *testing.T) {
 	t.Parallel()
 
@@ -1678,6 +1832,82 @@ func mcpTaskIDFromBody(t *testing.T, body string) string {
 	require.True(t, ok, "MCP result must include task_id: %s", body)
 	require.NotEmpty(t, taskID)
 	return taskID
+}
+
+func mcpRecoveringTaskDefinition(marker string) json.RawMessage {
+	return json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{
+			"kind":"tool",
+			"node_id":"inspect-action-0",
+			"tool_name":"database_write",
+			"metadata":{
+				"action_definition_id":"act-mcp-inspection",
+				"action_name":"registered_inspection_action",
+				"target_type":"mock_demo",
+				"policy_preset":"safe_automation",
+				"replay_class":"retryable",
+				"approval_required":false
+			},
+			"args":{
+				"body":{
+					"input_redacted":true,
+					"encrypted_input_ref":true,
+					"encrypted_input_ref_id":"44444444-4444-4444-4444-444444444444",
+					"purpose":"execution_payload",
+					"input_digest_sha256":"input-digest-4444",
+					"input_bytes":64,
+					"key_version":"test:v3",
+					"redaction_policy_version":"input-reference-redaction-v1",
+					"ciphertext":"` + marker + `",
+					"nonce":"nonce-should-not-return",
+					"key_material":"key-should-not-return",
+					"raw_body":"raw-body-should-not-return",
+					"request_body":"request-body-should-not-return",
+					"response_body":"response-body-should-not-return",
+					"private_path":"/Users/customer/private/should-not-return.txt"
+				}
+			}
+		}]}
+	}`)
+}
+
+func mcpUnsafeCheckpointPayload(taskID uuid.UUID, runtimeID, marker string) *coordinator.CheckpointPayload {
+	return &coordinator.CheckpointPayload{
+		TaskID: taskID,
+		ResumeToken: coordinator.ResumeToken{
+			LastCommittedStep: 1,
+			CheckpointDigest:  "digest-inspection-1",
+			RuntimeID:         runtimeID,
+		},
+		Metadata: json.RawMessage(`{
+			"raw_body":"` + marker + `",
+			"request_body":"request-body-should-not-return",
+			"response_body":"response-body-should-not-return",
+			"ciphertext":"ciphertext-should-not-return",
+			"nonce":"nonce-should-not-return",
+			"key_material":"key-should-not-return",
+			"private_path":"/Users/customer/private/checkpoint.txt"
+		}`),
+		CapturedAt: time.Now().UTC(),
+	}
+}
+
+func requireMCPInspectionBodySafe(t *testing.T, body, marker string) {
+	t.Helper()
+	require.NotContains(t, body, marker)
+	require.NotContains(t, body, "ciphertext")
+	require.NotContains(t, body, "nonce")
+	require.NotContains(t, body, "key_material")
+	require.NotContains(t, body, "key-should-not-return")
+	require.NotContains(t, body, "raw_body")
+	require.NotContains(t, body, "request_body")
+	require.NotContains(t, body, "response_body")
+	require.NotContains(t, body, "raw-body-should-not-return")
+	require.NotContains(t, body, "request-body-should-not-return")
+	require.NotContains(t, body, "response-body-should-not-return")
+	require.NotContains(t, body, "/Users/customer/private")
+	require.NotContains(t, body, "private_path")
 }
 
 func taskRecordColumnsForMCPTest() []string {
