@@ -1,12 +1,16 @@
 package api
 
 import (
+	"crypto/ed25519"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -863,6 +867,223 @@ func TestHandleActionRunUsesRegisteredActionDefinition(t *testing.T) {
 	require.Equal(t, 0, driver.remainingExecs(), "registered-action validation must happen before task creation")
 }
 
+func TestHandleActionRunRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
+	now := time.Now().UTC()
+	_, privateKey, err := ed25519.GenerateKey(nil)
+	require.NoError(t, err)
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY", hex.EncodeToString(privateKey))
+	t.Setenv("IGRIS_OVERTURE_SIGNING_KEY_VERSION", "action-route-runtime-test")
+
+	type capturedDispatch struct {
+		method       string
+		path         string
+		tenantHeader string
+		body         map[string]interface{}
+		rawBody      string
+	}
+	dispatches := make(chan capturedDispatch, 1)
+	var dispatchCount int32
+	originalTransport := http.DefaultTransport
+	http.DefaultTransport = actionRunRoundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		atomic.AddInt32(&dispatchCount, 1)
+		raw, readErr := io.ReadAll(req.Body)
+		if readErr != nil {
+			return &http.Response{
+				StatusCode: http.StatusInternalServerError,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(`{"error":"read_failed"}`)),
+				Request:    req,
+			}, nil
+		}
+		var payload map[string]interface{}
+		if err := json.Unmarshal(raw, &payload); err != nil {
+			return &http.Response{
+				StatusCode: http.StatusBadRequest,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(strings.NewReader(`{"error":"bad_json"}`)),
+				Request:    req,
+			}, nil
+		}
+		dispatches <- capturedDispatch{
+			method:       req.Method,
+			path:         req.URL.Path,
+			tenantHeader: req.Header.Get("X-Igris-Tenant"),
+			body:         payload,
+			rawBody:      string(raw),
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+			Request:    req,
+		}, nil
+	})
+	t.Cleanup(func() {
+		http.DefaultTransport = originalTransport
+	})
+
+	var createdTaskID uuid.UUID
+	var persistedDefinition map[string]interface{}
+	const runtimeEndpoint = "http://runtime.actions.test"
+	db, driver := newQueuedExecRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: actionDefinitionColumns(),
+			rows: [][]driver.Value{{
+				"action-mock-dispatch",
+				"tenant-a",
+				"registered_mock_action",
+				"Registered Mock Action",
+				"",
+				"mock_demo",
+				"",
+				"",
+				"safe_automation",
+				"retryable",
+				false,
+				false,
+				[]byte(`[]`),
+				[]byte(`{}`),
+				[]byte(`{"enabled": false}`),
+				now,
+				now,
+				nil,
+			}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "FROM action_definitions")
+				require.Contains(t, query, "WHERE tenant_id = $1 AND id = $2")
+				require.Equal(t, "tenant-a", args[0].Value)
+				require.Equal(t, "action-mock-dispatch", args[1].Value)
+			},
+		},
+		{
+			columns: []string{"runtime_id", "endpoint"},
+			rows:    [][]driver.Value{{"runtime-actions-fake", runtimeEndpoint}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "FROM runtime_instances")
+				require.Contains(t, query, "WHERE ri.tenant_id = $1")
+				require.Equal(t, "tenant-a", args[0].Value)
+			},
+		},
+		{
+			columns: []string{"policy"},
+			rows: [][]driver.Value{{
+				[]byte(`{"policy_version":"capabilities.action-route-test","allowed_capabilities":["tools.database_write"]}`),
+			}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "ai_capability_policy_settings")
+				require.Equal(t, "tenant-a", args[0].Value)
+			},
+		},
+	},
+		queuedRouteExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "INSERT INTO task_records")
+				require.Equal(t, "tenant-a", args[1].Value)
+				require.Equal(t, string(coordinator.TaskStatusPending), args[2].Value)
+				require.Equal(t, "action-run-idempotency-1", args[4].Value)
+
+				createdTaskID = requireDriverUUID(t, args[0].Value)
+
+				defBytes := requireDriverBytes(t, args[3].Value)
+				require.NoError(t, json.Unmarshal(defBytes, &persistedDefinition))
+				require.NotContains(t, string(defBytes), "caller-filesystem-override")
+			},
+		},
+		queuedRouteExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "UPDATE task_records")
+				require.Contains(t, query, "runtime_id = $2")
+				require.Equal(t, string(coordinator.TaskStatusDispatched), args[0].Value)
+				require.Equal(t, "runtime-actions-fake", args[1].Value)
+				require.Equal(t, runtimeEndpoint, args[2].Value)
+				require.Equal(t, createdTaskID.String(), driverValueString(args[4].Value))
+			},
+		},
+		queuedRouteExecExpectation{
+			rowsAffected: 1,
+			check: func(query string, args []driver.NamedValue) {
+				require.Contains(t, query, "SET executed_target = $3")
+				require.Equal(t, createdTaskID.String(), driverValueString(args[0].Value))
+				require.Equal(t, "tenant-a", args[1].Value)
+				require.Equal(t, actionTargetMockDemo, args[2].Value)
+			},
+		},
+	)
+	app := actionTestApp()
+	app.Post("/v1/actions/run", handleActionRun(db, coordinator.NewTaskCoordinator(db)))
+
+	body := `{
+		"tenant_id": "tenant-b",
+		"action_id": "action-mock-dispatch",
+		"runtime_target": "caller-filesystem-override",
+		"input": {"ok": true, "message": "route-to-runtime"},
+		"metadata": {"agent_id": "agent-route-test", "user_id": "user-route-test"},
+		"idempotency_key": "action-run-idempotency-1"
+	}`
+	req := httptest.NewRequest(http.MethodPost, "/v1/actions/run", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusAccepted, resp.StatusCode)
+
+	var apiResp map[string]interface{}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&apiResp))
+	require.Equal(t, createdTaskID.String(), apiResp["task_id"])
+	require.Equal(t, "dispatched", apiResp["status"])
+	require.Equal(t, "registered_mock_action", apiResp["action_name"])
+	require.Equal(t, "mock_demo", apiResp["target_type"])
+	require.Equal(t, actionTargetMockDemo, apiResp["selected_target"])
+
+	require.Equal(t, "execution_graph", persistedDefinition["type"])
+	require.Equal(t, "tenant-a", persistedDefinition["tenant_id"])
+	require.Equal(t, []interface{}{"tools.database_write"}, persistedDefinition["required_capabilities"])
+
+	var captured capturedDispatch
+	select {
+	case captured = <-dispatches:
+	case <-time.After(2 * time.Second):
+		t.Fatal("fake runtime did not receive dispatch")
+	}
+	require.Equal(t, int32(1), atomic.LoadInt32(&dispatchCount))
+	require.Equal(t, http.MethodPost, captured.method)
+	require.Equal(t, "/v1/runtime/task/submit", captured.path)
+	require.Equal(t, "tenant-a", captured.tenantHeader)
+	require.Equal(t, createdTaskID.String(), captured.body["task_id"])
+	require.Equal(t, "tenant-a", captured.body["tenant_id"])
+	require.Equal(t, "action-run-idempotency-1", captured.body["idempotency_key"])
+	require.NotContains(t, captured.rawBody, "caller-filesystem-override")
+
+	taskType, ok := captured.body["task_type"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "execution_graph", taskType["type"])
+	graph, ok := taskType["graph"].(map[string]interface{})
+	require.True(t, ok)
+	nodes, ok := graph["nodes"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, nodes, 1)
+	node, ok := nodes[0].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "tool", node["kind"])
+	require.Equal(t, "database_write", node["tool_name"])
+	nodeArgs, ok := node["args"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "action_task_mock_demo", nodeArgs["table"])
+	record, ok := nodeArgs["record"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "registered_mock_action", record["action"])
+	require.Equal(t, "action-mock-dispatch", record["action_definition_id"])
+	require.Equal(t, true, record["created_by_gateway"])
+	requestedInput, ok := record["requested_input"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, true, requestedInput["ok"])
+	require.Equal(t, "route-to-runtime", requestedInput["message"])
+
+	require.Equal(t, 0, driver.remainingQueries())
+	require.Equal(t, 0, driver.remainingExecs())
+}
+
 func TestHandleActionRunIgnoresBodyTenantOverride(t *testing.T) {
 	t.Parallel()
 
@@ -916,5 +1137,73 @@ func actionDefinitionColumns() []string {
 		"created_at",
 		"updated_at",
 		"archived_at",
+	}
+}
+
+type queuedExecDriver struct {
+	inner *queuedRouteDriver
+}
+
+func newQueuedExecRouteDB(t *testing.T, queries []queuedRouteQueryExpectation, execs ...queuedRouteExecExpectation) (*sql.DB, *queuedRouteDriver) {
+	t.Helper()
+
+	name := "queued-exec-route-" + uuid.NewString()
+	inner := &queuedRouteDriver{
+		queries: append([]queuedRouteQueryExpectation(nil), queries...),
+		execs:   append([]queuedRouteExecExpectation(nil), execs...),
+	}
+	sql.Register(name, &queuedExecDriver{inner: inner})
+
+	db, err := sql.Open(name, "")
+	require.NoError(t, err)
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	return db, inner
+}
+
+func (d *queuedExecDriver) Open(string) (driver.Conn, error) {
+	return &queuedRouteConn{driver: d.inner}, nil
+}
+
+type actionRunRoundTripperFunc func(*http.Request) (*http.Response, error)
+
+func (fn actionRunRoundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+func requireDriverUUID(t *testing.T, value interface{}) uuid.UUID {
+	t.Helper()
+	id, err := uuid.Parse(driverValueString(value))
+	require.NoError(t, err)
+	return id
+}
+
+func requireDriverBytes(t *testing.T, value interface{}) []byte {
+	t.Helper()
+	switch typed := value.(type) {
+	case []byte:
+		return typed
+	case string:
+		return []byte(typed)
+	default:
+		require.Failf(t, "unexpected driver value", "type %T cannot be converted to bytes", value)
+		return nil
+	}
+}
+
+func driverValueString(value interface{}) string {
+	switch typed := value.(type) {
+	case string:
+		return typed
+	case []byte:
+		return string(typed)
+	case uuid.UUID:
+		return typed.String()
+	default:
+		return ""
 	}
 }
