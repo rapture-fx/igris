@@ -48,7 +48,11 @@ func canonicalActionTargetType(targetType string) string {
 }
 
 type actionRunRequest struct {
+	ActionID       string                 `json:"action_id,omitempty"`
+	ID             string                 `json:"id,omitempty"`
 	Action         string                 `json:"action"`
+	Name           string                 `json:"name,omitempty"`
+	ActionName     string                 `json:"action_name,omitempty"`
 	Input          map[string]interface{} `json:"input"`
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 	RuntimeTarget  string                 `json:"runtime_target,omitempty"`
@@ -132,7 +136,7 @@ func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordi
 
 	v1.Get("", handleActionList(db))
 	v1.Post("", handleActionCreate(db))
-	v1.Post("/run", handleActionRun(tc))
+	v1.Post("/run", handleActionRun(db, tc))
 	v1.Get("/runs/:id", handleActionGetRun(tc))
 	v1.Post("/:name/run", handleActionRunByName(db, tc))
 	v1.Get("/:id", handleActionGet(db))
@@ -140,7 +144,7 @@ func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordi
 	v1.Delete("/:id", handleActionArchive(db))
 }
 
-func handleActionRun(tc *coordinator.TaskCoordinator) fiber.Handler {
+func handleActionRun(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		tenantID := middleware.GetClerkUserID(c)
 		if tenantID == "" {
@@ -152,7 +156,41 @@ func handleActionRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
 
-		return submitActionRun(c, tc, tenantID, req, nil)
+		def, err := loadActionDefinitionForRun(c.Context(), db, tenantID, req)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "action_not_found"})
+		}
+		if err != nil {
+			if strings.Contains(err.Error(), "action_id or action_name is required") {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+					"error":   "action_required",
+					"message": "action_id or action_name is required",
+				})
+			}
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+
+		runReq, err := buildActionRunRequestFromDefinition(def, actionRunByNameRequest{
+			Input:          req.Input,
+			Metadata:       req.Metadata,
+			IdempotencyKey: req.IdempotencyKey,
+			DeadlineAt:     req.DeadlineAt,
+		})
+		if err != nil {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":   "target_not_configured",
+				"message": err.Error(),
+			})
+		}
+		if runReq.executedTarget == actionTargetLocalRuntime {
+			if !tenantHasHealthyRuntime(c.Context(), db, tenantID, runReq.preferredRuntimeID) {
+				return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+					"error":   "runtime_unavailable",
+					"message": "no connected runtime is available to execute this local_runtime action; install or reconnect a runtime and retry",
+				})
+			}
+		}
+		return submitActionRun(c, tc, tenantID, runReq, &def)
 	}
 }
 
@@ -488,6 +526,18 @@ func handleActionArchive(db *sql.DB) fiber.Handler {
 		}
 		return c.SendStatus(http.StatusNoContent)
 	}
+}
+
+func loadActionDefinitionForRun(ctx context.Context, db *sql.DB, tenantID string, req actionRunRequest) (actionDefinition, error) {
+	id := firstNonEmptyString(req.ActionID, req.ID)
+	if strings.TrimSpace(id) != "" {
+		return loadActionDefinitionByID(ctx, db, tenantID, id)
+	}
+	name := firstNonEmptyString(req.ActionName, req.Name, req.Action)
+	if strings.TrimSpace(name) != "" {
+		return loadActionDefinitionByName(ctx, db, tenantID, name)
+	}
+	return actionDefinition{}, fmt.Errorf("action_id or action_name is required")
 }
 
 func buildActionTaskSubmitRequest(req actionRunRequest, tenantID string) (*coordinator.TaskSubmitRequest, error) {
