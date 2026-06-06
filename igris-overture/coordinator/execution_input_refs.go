@@ -126,6 +126,7 @@ func (s *CheckpointStore) CreateTaskWithExecutionInputRefs(ctx context.Context, 
 			ActionID:   ref.ActionID,
 			InputRefID: ref.ID,
 			Purpose:    ref.Purpose,
+			KeyVersion: ref.KeyVersion,
 			ActorType:  "system",
 			EventType:  eventType,
 			Reason:     "task submission stored encrypted execution input reference",
@@ -224,7 +225,8 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if err != nil {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
-			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
+			KeyVersion: ref.KeyVersion,
+			EventType:  "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
 			Success: false, FailureCode: "key_unavailable",
 		})
 		return nil, err
@@ -235,7 +237,8 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if err != nil {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
-			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
+			KeyVersion: ref.KeyVersion,
+			EventType:  "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
 			Success: false, FailureCode: "missing_key_version",
 		})
 		return nil, err
@@ -247,7 +250,8 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if string(expectedAAD) != string(ref.AAD) {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
-			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
+			KeyVersion: ref.KeyVersion,
+			EventType:  "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
 			Success: false, FailureCode: "aad_mismatch",
 		})
 		return nil, ErrExecutionInputRefScope
@@ -256,7 +260,8 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if err != nil {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
-			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
+			KeyVersion: ref.KeyVersion,
+			EventType:  "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
 			Success: false, FailureCode: "auth_failed",
 		})
 		return nil, err
@@ -264,7 +269,8 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if sha256InputBytes(plaintext) != ref.DigestSHA256 || len(plaintext) != ref.PlaintextBytes {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
-			EventType: "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
+			KeyVersion: ref.KeyVersion,
+			EventType:  "input_ref_decrypt_denied", ActorType: "system", Reason: reason,
 			Success: false, FailureCode: "digest_mismatch",
 		})
 		return nil, ErrExecutionInputRefDecrypt
@@ -272,7 +278,8 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	_ = s.MarkExecutionInputRefDecrypted(ctx, refID)
 	_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 		TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
-		EventType: "input_ref_decrypted_for_recovery", ActorType: "system", Reason: reason,
+		KeyVersion: ref.KeyVersion,
+		EventType:  "input_ref_decrypted_for_recovery", ActorType: "system", Reason: reason,
 		Success: true,
 	})
 	return plaintext, nil
@@ -326,6 +333,7 @@ type ExecutionInputRefAuditEvent struct {
 	ActionID    *uuid.UUID
 	InputRefID  uuid.UUID
 	Purpose     string
+	KeyVersion  string
 	ActorType   string
 	EventType   string
 	Reason      string
@@ -347,10 +355,11 @@ func insertExecutionInputRefAudit(ctx context.Context, execer sqlExecerContext, 
 	_, err := execer.ExecContext(ctx, `
 		INSERT INTO execution_input_ref_audit (
 			event_id, tenant_id, task_id, action_id, input_ref_id, purpose,
-			actor_type, event_type, reason, success, failure_code, created_at
-		) VALUES ($1,$2,NULLIF($3,'')::uuid,$4,$5,$6,$7,$8,$9,$10,$11,NOW())`,
+			actor_type, event_type, reason, success, failure_code, key_version, created_at
+		) VALUES ($1,$2,NULLIF($3,'')::uuid,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())`,
 		uuid.New(), event.TenantID, nullUUIDString(event.TaskID), event.ActionID, event.InputRefID,
 		event.Purpose, event.ActorType, event.EventType, event.Reason, event.Success, event.FailureCode,
+		event.KeyVersion,
 	)
 	return err
 }
