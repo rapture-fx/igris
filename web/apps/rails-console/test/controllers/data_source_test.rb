@@ -67,6 +67,37 @@ class DataSourceTest < ActiveSupport::TestCase
     assert_equal 'Ready', action[:setup]
   end
 
+  test 'action normalization scrubs unsafe metadata before views receive it' do
+    marker = 'IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET'
+    client = FakeClient.new(actions: [{
+      'id' => 'a-sensitive', 'name' => 'sensitive_webhook',
+      'target_type' => 'webhook',
+      'target_url' => "https://user:#{marker}@api.example.test/hook?token=#{marker}",
+      'method' => 'POST',
+      'target_metadata' => {
+        'headers' => {
+          'Authorization' => "Bearer #{marker}",
+          'Cookie' => "session=#{marker}",
+          'Content-Type' => 'application/json',
+        },
+        'request_body' => marker,
+        'file_path' => "/Users/customer/private/#{marker}.json",
+      },
+    }])
+
+    action = Igris::DataSource.new(client: client).actions.first
+    encoded = action.to_json
+
+    refute_includes encoded, marker
+    refute_includes encoded, 'Bearer'
+    refute_includes encoded, 'session='
+    refute_includes encoded, '/Users/customer/private'
+    refute_includes encoded, '?token='
+    assert_includes encoded, 'input_redacted'
+    assert_includes encoded, 'input_digest_sha256'
+    assert_includes encoded, Igris::DataSource::REDACTION_POLICY_VERSION
+  end
+
   test 'local_runtime action without runtime shows Needs runtime setup' do
     client = FakeClient.new(actions: [{
       'name' => 'rebuild_index', 'target_type' => 'local_runtime',
@@ -132,6 +163,41 @@ class DataSourceTest < ActiveSupport::TestCase
 
     assert_equal 'abc123def456ab…', detail[:request_digest]
     refute_equal marker, detail[:request_summary]
+  end
+
+  test 'run detail recursively scrubs historical unsafe input fields' do
+    marker = 'IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET'
+    digest = 'abc123def456abc123def456abc123def456abc123def456abc123def456abcd'
+    client = FakeClient.new(tasks: [{
+      'task_id' => 't-sensitive', 'status' => 'failed',
+      'executed_target' => 'hosted_api',
+      'input_summary' => {
+        'input_redacted' => true,
+        'input_digest_sha256' => digest,
+        'input_bytes' => 128,
+      },
+      'request' => {
+        'body' => marker,
+        'headers' => {
+          'Authorization' => "Bearer #{marker}",
+          'Cookie' => "session=#{marker}",
+        },
+        'path' => "/Users/customer/private/#{marker}.json",
+      },
+      'failure_reason' => "Authorization: Bearer #{marker}",
+    }])
+
+    detail = Igris::DataSource.new(client: client).find_run('t-sensitive')
+    encoded = detail.to_json
+
+    assert_equal 'abc123def456ab…', detail[:request_digest]
+    assert_equal 'failure details redacted', detail[:failure_reason]
+    refute_includes encoded, marker
+    refute_includes encoded, 'Bearer'
+    refute_includes encoded, 'session='
+    refute_includes encoded, '/Users/customer/private'
+    assert_includes encoded, 'input_redacted'
+    assert_includes encoded, 'input_digest_sha256'
   end
 
   test 'execution steps map safely and drop reasons, targets, and signatures' do
