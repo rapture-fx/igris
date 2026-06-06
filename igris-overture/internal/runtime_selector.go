@@ -120,12 +120,17 @@ func (s *RuntimeSelector) ForwardExecution(
 	}
 
 	for _, inst := range instances {
+		normalizedEndpoint, err := NormalizeHTTPRuntimeEndpoint(inst.Endpoint)
+		if err != nil {
+			log.Printf("[RuntimeSelector] runtime %s has unroutable endpoint — skipping", inst.RuntimeID)
+			continue
+		}
 		if !s.breakers.IsProviderAvailable(inst.RuntimeID) {
 			log.Printf("[RuntimeSelector] circuit open for %s — skipping", inst.RuntimeID)
 			continue
 		}
 
-		client := s.getOrCreateClient(inst.Endpoint)
+		client := s.getOrCreateClient(normalizedEndpoint)
 		resp, ferr := client.ForwardExecution(ctx, tenantID, req, boundsHeader)
 		if ferr != nil {
 			log.Printf("[RuntimeSelector] runtime %s failed: %v — trying next", inst.RuntimeID, ferr)
@@ -161,12 +166,17 @@ func (s *RuntimeSelector) OpenStreamingExecution(
 	}
 
 	for _, inst := range instances {
+		normalizedEndpoint, err := NormalizeHTTPRuntimeEndpoint(inst.Endpoint)
+		if err != nil {
+			log.Printf("[RuntimeSelector] runtime %s has unroutable endpoint — skipping stream", inst.RuntimeID)
+			continue
+		}
 		if !s.breakers.IsProviderAvailable(inst.RuntimeID) {
 			log.Printf("[RuntimeSelector] circuit open for %s — skipping stream", inst.RuntimeID)
 			continue
 		}
 
-		client := s.getOrCreateClient(inst.Endpoint)
+		client := s.getOrCreateClient(normalizedEndpoint)
 		resp, ferr := client.OpenStreamingExecution(ctx, tenantID, req, boundsHeader)
 		if ferr != nil {
 			log.Printf("[RuntimeSelector] runtime %s stream failed: %v — trying next", inst.RuntimeID, ferr)
@@ -231,8 +241,16 @@ func (s *RuntimeSelector) pollHealth(ctx context.Context) {
 	}
 
 	for _, inst := range instances {
+		normalizedEndpoint, err := NormalizeHTTPRuntimeEndpoint(inst.Endpoint)
+		if err != nil {
+			if dbErr := s.repo.UpdateHealth(ctx, inst.RuntimeID, false); dbErr != nil {
+				log.Printf("[RuntimeSelector] health poll: UpdateHealth(%s) failed: %v", inst.RuntimeID, dbErr)
+			}
+			log.Printf("[RuntimeSelector] health poll: %s unroutable endpoint", inst.RuntimeID)
+			continue
+		}
 		hctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		client := s.getOrCreateClient(inst.Endpoint)
+		client := s.getOrCreateClient(normalizedEndpoint)
 		err := client.Health(hctx)
 		cancel()
 
