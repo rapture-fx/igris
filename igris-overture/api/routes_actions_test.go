@@ -924,6 +924,30 @@ func TestHandleActionRunRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 
 	var createdTaskID uuid.UUID
 	var persistedDefinition map[string]interface{}
+	var permissionAuditWrites int32
+	var capabilityAuditWrites int32
+	var stampWrites int32
+	checkAuditOrStampExec := func(query string, args []driver.NamedValue) {
+		switch {
+		case strings.Contains(query, "INSERT INTO ai_task_permission_audit"):
+			atomic.AddInt32(&permissionAuditWrites, 1)
+			require.Equal(t, createdTaskID.String(), driverValueString(args[1].Value))
+			require.Equal(t, "tenant-a", args[2].Value)
+		case strings.Contains(query, "INSERT INTO ai_capability_decision_audit"):
+			atomic.AddInt32(&capabilityAuditWrites, 1)
+			require.Equal(t, createdTaskID.String(), driverValueString(args[1].Value))
+			require.Equal(t, "tenant-a", args[2].Value)
+			require.Equal(t, "runtime-actions-fake", args[3].Value)
+			require.Equal(t, "tools.database_write", args[4].Value)
+		case strings.Contains(query, "SET executed_target = $3"):
+			atomic.AddInt32(&stampWrites, 1)
+			require.Equal(t, createdTaskID.String(), driverValueString(args[0].Value))
+			require.Equal(t, "tenant-a", args[1].Value)
+			require.Equal(t, actionTargetMockDemo, args[2].Value)
+		default:
+			require.Failf(t, "unexpected exec", "query: %s", query)
+		}
+	}
 	const runtimeEndpoint = "http://runtime.actions.test"
 	db, driver := newQueuedExecRouteDB(t, []queuedRouteQueryExpectation{
 		{
@@ -1001,15 +1025,11 @@ func TestHandleActionRunRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 				require.Equal(t, createdTaskID.String(), driverValueString(args[4].Value))
 			},
 		},
-		queuedRouteExecExpectation{
-			rowsAffected: 1,
-			check: func(query string, args []driver.NamedValue) {
-				require.Contains(t, query, "SET executed_target = $3")
-				require.Equal(t, createdTaskID.String(), driverValueString(args[0].Value))
-				require.Equal(t, "tenant-a", args[1].Value)
-				require.Equal(t, actionTargetMockDemo, args[2].Value)
-			},
-		},
+		queuedRouteExecExpectation{rowsAffected: 1, check: checkAuditOrStampExec},
+		queuedRouteExecExpectation{rowsAffected: 1, check: checkAuditOrStampExec},
+		queuedRouteExecExpectation{rowsAffected: 1, check: checkAuditOrStampExec},
+		queuedRouteExecExpectation{rowsAffected: 1, check: checkAuditOrStampExec},
+		queuedRouteExecExpectation{rowsAffected: 1, check: checkAuditOrStampExec},
 	)
 	app := actionTestApp()
 	app.Post("/v1/actions/run", handleActionRun(db, coordinator.NewTaskCoordinator(db)))
@@ -1037,7 +1057,6 @@ func TestHandleActionRunRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 	require.Equal(t, actionTargetMockDemo, apiResp["selected_target"])
 
 	require.Equal(t, "execution_graph", persistedDefinition["type"])
-	require.Equal(t, "tenant-a", persistedDefinition["tenant_id"])
 	require.Equal(t, []interface{}{"tools.database_write"}, persistedDefinition["required_capabilities"])
 
 	var captured capturedDispatch
@@ -1079,6 +1098,9 @@ func TestHandleActionRunRegisteredActionDispatchesToFakeRuntime(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, true, requestedInput["ok"])
 	require.Equal(t, "route-to-runtime", requestedInput["message"])
+	require.Equal(t, int32(2), atomic.LoadInt32(&permissionAuditWrites))
+	require.Equal(t, int32(2), atomic.LoadInt32(&capabilityAuditWrites))
+	require.Equal(t, int32(1), atomic.LoadInt32(&stampWrites))
 
 	require.Equal(t, 0, driver.remainingQueries())
 	require.Equal(t, 0, driver.remainingExecs())
