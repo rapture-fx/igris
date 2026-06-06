@@ -47,6 +47,13 @@ func newExecutionInputCipher(rawKey, keyVersion string) (*executionInputCipher, 
 	if err != nil {
 		return nil, err
 	}
+	return newExecutionInputCipherFromKeyBytes(key, keyVersion)
+}
+
+func newExecutionInputCipherFromKeyBytes(key []byte, keyVersion string) (*executionInputCipher, error) {
+	if len(key) != 32 {
+		return nil, fmt.Errorf("execution input ref key must decode to 32 bytes")
+	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("create input ref cipher: %w", err)
@@ -149,7 +156,11 @@ func parseExecutionInputKeyring(raw, activeVersionRaw string) (*executionInputKe
 		if _, exists := ciphers[version]; exists {
 			return nil, errExecutionInputKeyringConfig("duplicate key version")
 		}
-		cipherSvc, err := newExecutionInputCipher(keyPart, version)
+		key, err := decodeExecutionInputKeyringKey(keyPart)
+		if err != nil {
+			return nil, errExecutionInputKeyringConfig("invalid key for version " + version)
+		}
+		cipherSvc, err := newExecutionInputCipherFromKeyBytes(key, version)
 		if err != nil {
 			return nil, errExecutionInputKeyringConfig("invalid key for version " + version)
 		}
@@ -234,6 +245,25 @@ func decodeExecutionInputKey(rawKey string) ([]byte, error) {
 		return []byte(rawKey), nil
 	}
 	return nil, fmt.Errorf("execution input ref key must decode to 32 bytes")
+}
+
+func decodeExecutionInputKeyringKey(rawKey string) ([]byte, error) {
+	rawKey = strings.TrimSpace(rawKey)
+	if rawKey == "" {
+		return nil, ErrExecutionInputRefKeyMissing
+	}
+	decoders := []func(string) ([]byte, error){
+		base64.StdEncoding.DecodeString,
+		base64.RawStdEncoding.DecodeString,
+		base64.URLEncoding.DecodeString,
+		base64.RawURLEncoding.DecodeString,
+	}
+	for _, decode := range decoders {
+		if key, err := decode(rawKey); err == nil && len(key) == 32 {
+			return key, nil
+		}
+	}
+	return nil, fmt.Errorf("execution input ref keyring key must decode from base64 to 32 bytes")
 }
 
 func (c *executionInputCipher) encrypt(plaintext, aad []byte) (ciphertext, nonce []byte, err error) {
