@@ -251,7 +251,7 @@ func (s *RuntimeSelector) pollHealth(ctx context.Context) {
 		}
 		hctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		client := s.getOrCreateClient(normalizedEndpoint)
-		err := client.Health(hctx)
+		err = client.Health(hctx)
 		cancel()
 
 		healthy := err == nil
