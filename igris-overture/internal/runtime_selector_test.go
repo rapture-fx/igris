@@ -174,6 +174,53 @@ func TestSelector_EdgeUnhealthy_FallbackToCloud(t *testing.T) {
 	}
 }
 
+func TestSelector_SkipsInvalidEndpoint(t *testing.T) {
+	validEndpoint := "http://runtime.valid.test"
+	invalid := RuntimeInstance{RuntimeID: "edge-invalid", Endpoint: "not-a-url", IsEdge: true, IsHealthy: true}
+	valid := RuntimeInstance{RuntimeID: "edge-valid", Endpoint: validEndpoint + "/", IsEdge: true, IsHealthy: true}
+	repo := newMockRepo([]RuntimeInstance{invalid, valid}, nil)
+	sel := NewRuntimeSelector(repo)
+	sel.clients.Store(validEndpoint, &RuntimeClient{
+		baseURL: validEndpoint,
+		httpClient: &http.Client{Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+			if req.URL.String() != validEndpoint+"/v1/runtime/task/submit" {
+				t.Fatalf("unexpected runtime URL: %s", req.URL.String())
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body: io.NopCloser(strings.NewReader(`{
+					"task_id":"exec-test",
+					"steps_completed":1,
+					"steps_total":1,
+					"status":{"status":"completed"},
+					"final_output":"hello",
+					"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2},
+					"execution_envelope":{
+						"execution_id":"exec-selector",
+						"finish_reason":"stop",
+						"model":"mock",
+						"request_hash":"aabb",
+						"response_hash":"ccdd",
+						"routing_decision":"runtime",
+						"timestamp":"2026-02-20T12:00:00Z",
+						"signature":"placeholder"
+					}
+				}`)),
+			}, nil
+		})},
+	})
+
+	req := &models.InferRequest{Model: "mock", Messages: []models.Message{{Role: "user", Content: "hi"}}}
+	resp, err := sel.ForwardExecution(context.Background(), "tenant-1", req, "")
+	if err != nil {
+		t.Fatalf("expected valid runtime success, got: %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected non-nil response")
+	}
+}
+
 // TestSelector_NoRuntime_Returns503 verifies that an empty registry produces
 // an error that the caller can map to 503 / direct routing fallback.
 func TestSelector_NoRuntime_Returns503(t *testing.T) {
