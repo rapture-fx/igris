@@ -26,9 +26,10 @@ import (
 )
 
 type queuedRouteQueryExpectation struct {
-	columns []string
-	rows    [][]driver.Value
-	err     error
+	columns  []string
+	rows     [][]driver.Value
+	rowsFunc func() [][]driver.Value
+	err      error
 	// Optional hook to inspect the query string and args the route layer
 	// actually issued (e.g. to assert tenant-id propagation from the
 	// auth middleware into the SQL WHERE clause). nil = skip.
@@ -95,6 +96,9 @@ func (d *queuedRouteDriver) nextQueryRows(query string, args []driver.NamedValue
 	}
 	if next.err != nil {
 		return nil, next.err
+	}
+	if next.rowsFunc != nil {
+		return &queuedRouteRows{columns: next.columns, values: next.rowsFunc()}, nil
 	}
 	return &queuedRouteRows{columns: next.columns, values: next.rows}, nil
 }
