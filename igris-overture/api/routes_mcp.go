@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/models"
 	"github.com/gofiber/fiber/v2"
@@ -344,7 +345,7 @@ func (h *agentMcpHandler) getRunEvidence(c *fiber.Ctx, tenantID string, args jso
 
 func (h *agentMcpHandler) listRuntimes(c *fiber.Ctx, tenantID string) (interface{}, int, error) {
 	rows, err := h.db.QueryContext(c.Context(), `
-		SELECT runtime_id, status, capabilities, last_seen_at
+		SELECT runtime_id, status, capabilities, last_seen_at, COALESCE(endpoint, ''), COALESCE(is_healthy, false)
 		FROM runtime_instances
 		WHERE tenant_id = $1
 		ORDER BY last_seen_at DESC NULLS LAST
@@ -358,12 +359,20 @@ func (h *agentMcpHandler) listRuntimes(c *fiber.Ctx, tenantID string) (interface
 		var runtimeID, status string
 		var capabilitiesRaw []byte
 		var lastSeen *time.Time
-		if err := rows.Scan(&runtimeID, &status, &capabilitiesRaw, &lastSeen); err != nil {
+		var endpoint string
+		var healthy bool
+		if err := rows.Scan(&runtimeID, &status, &capabilitiesRaw, &lastSeen, &endpoint, &healthy); err != nil {
 			return nil, http.StatusServiceUnavailable, errBackend("scan runtime failed")
+		}
+		routable := healthy && status == "active" && internal.IsRoutableHTTPRuntimeEndpoint(endpoint)
+		safeStatus := status
+		if !routable && status == "active" {
+			safeStatus = "unroutable"
 		}
 		runtimes = append(runtimes, fiber.Map{
 			"runtime_id":   runtimeID,
-			"status":       status,
+			"status":       safeStatus,
+			"routable":     routable,
 			"capabilities": safeJSONList(capabilitiesRaw),
 			"last_seen_at": lastSeen,
 		})
