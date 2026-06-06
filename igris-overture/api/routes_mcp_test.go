@@ -1689,9 +1689,9 @@ func TestMCPListRuntimesDoesNotLeakHostnamesIPsOrKeys(t *testing.T) {
 	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
 		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
 		{
-			columns: []string{"runtime_id", "status", "capabilities", "last_seen_at"},
+			columns: []string{"runtime_id", "status", "capabilities", "last_seen_at", "endpoint", "is_healthy"},
 			rows: [][]driver.Value{{
-				"runtime-1", "active", []byte(`["filesystem","http_request"]`), now,
+				"runtime-1", "active", []byte(`["filesystem","http_request"]`), now, "https://runtime.test", true,
 			}},
 			checkArgs: func(query string, args []driver.NamedValue) {
 				require.Contains(t, query, "WHERE tenant_id = $1")
@@ -1716,6 +1716,39 @@ func TestMCPListRuntimesDoesNotLeakHostnamesIPsOrKeys(t *testing.T) {
 	require.NotContains(t, body, "hostname")
 	require.NotContains(t, body, "ip_address")
 	require.NotContains(t, body, "public_key")
+	require.Contains(t, body, `"routable":true`)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestMCPListRuntimesDoesNotMarkEndpointlessRuntimeRoutable(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-runtimes-unroutable"
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+		{
+			columns: []string{"runtime_id", "status", "capabilities", "last_seen_at", "endpoint", "is_healthy"},
+			rows: [][]driver.Value{
+				{"runtime-empty", "active", []byte(`["filesystem"]`), now, "", true},
+				{"runtime-invalid", "active", []byte(`["http_request"]`), now, "not-a-url", true},
+			},
+		},
+	})
+
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":6,"method":"list_runtimes","params":{}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+	require.Contains(t, body, "runtime-empty")
+	require.Contains(t, body, "runtime-invalid")
+	require.Contains(t, body, `"routable":false`)
+	require.Contains(t, body, `"status":"unroutable"`)
+	require.NotContains(t, body, "not-a-url")
 	require.Zero(t, drv.remainingQueries())
 }
 
