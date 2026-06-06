@@ -261,6 +261,55 @@ func TestMCPGetActionRedactsUnsafeFields(t *testing.T) {
 	require.Zero(t, drv.remainingQueries())
 }
 
+func TestMCPToolsListReturnsStrictSchemas(t *testing.T) {
+	t.Parallel()
+
+	const tenantA = "tenant-mcp-schema"
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		tenantLookupRowFor(tenantA, "Tenant A", "a@example.test"),
+	})
+	app := fiber.New()
+	h := newAgentMcpHandler(db, coordinator.NewTaskCoordinator(db))
+	app.Use(middleware.BetterAuth(db))
+	app.Post("/v1/mcp", h.handle)
+
+	resp := mcpPost(t, app, `{"jsonrpc":"2.0","id":"schemas","method":"tools/list","params":{}}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	body := readBody(t, resp)
+
+	var envelope struct {
+		Result struct {
+			Tools []struct {
+				Name        string                 `json:"name"`
+				InputSchema map[string]interface{} `json:"inputSchema"`
+			} `json:"tools"`
+		} `json:"result"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(body), &envelope))
+	require.Len(t, envelope.Result.Tools, 7)
+	seen := map[string]bool{}
+	for _, tool := range envelope.Result.Tools {
+		seen[tool.Name] = true
+		schema := tool.InputSchema
+		require.Equal(t, "object", schema["type"], tool.Name)
+		require.Equal(t, "2026-06-06", schema["schema_version"], tool.Name)
+		require.Contains(t, schema, "properties", tool.Name)
+		require.Contains(t, schema, "required", tool.Name)
+		require.Equal(t, false, schema["additionalProperties"], tool.Name)
+		props := schema["properties"].(map[string]interface{})
+		require.Contains(t, props, "schema_version", tool.Name)
+	}
+	for _, name := range []string{"list_actions", "get_action", "call_action", "list_runs", "get_run", "get_run_evidence", "list_runtimes"} {
+		require.True(t, seen[name], name)
+	}
+	callSchema := schemaForMCPTool(t, envelope.Result.Tools, "call_action")
+	callProps := callSchema["properties"].(map[string]interface{})
+	for _, forbidden := range []string{"task_definition", "task_type", "runtime_target", "execution_graph", "tenant_id", "ciphertext", "nonce", "key_material"} {
+		require.NotContains(t, callProps, forbidden)
+	}
+	require.Zero(t, drv.remainingQueries())
+}
+
 func TestMCPSafeRunResponsesDoNotExposeHistoricalCheckpointPayloads(t *testing.T) {
 	t.Parallel()
 
