@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/google/uuid"
 )
 
@@ -102,6 +103,7 @@ type RuntimeOperationsSummary struct {
 	RuntimeLabel                 string                    `json:"runtime_label"`
 	LastSeen                     *time.Time                `json:"last_seen,omitempty"`
 	CapabilitySummary            json.RawMessage           `json:"capability_summary,omitempty"`
+	Routable                     bool                      `json:"routable"`
 	TrustState                   string                    `json:"trust_state"`
 	ActiveExecutionCount         int                       `json:"active_execution_count"`
 	RecentExecutionCount         int                       `json:"recent_execution_count"`
@@ -979,12 +981,13 @@ func (s *CheckpointStore) ListRuntimeOperations(tenantID string, opts Governance
 			       COALESCE(ri.capabilities, '[]'::jsonb) AS capabilities,
 			       COALESCE(ri.last_heartbeat, ri.last_seen_at) AS last_seen,
 			       COALESCE(ri.status, '') AS status,
-			       COALESCE(ri.is_healthy, false) AS is_healthy
+			       COALESCE(ri.is_healthy, false) AS is_healthy,
+			       COALESCE(ri.endpoint, '') AS endpoint
 			FROM runtime_ids r
 			LEFT JOIN runtime_instances ri
 			  ON ri.tenant_id = $1 AND ri.runtime_id = r.runtime_id
 		)
-		SELECT runtime_id, capabilities, last_seen, status, is_healthy,
+		SELECT runtime_id, capabilities, last_seen, status, is_healthy, endpoint,
 		       (SELECT COUNT(*) FROM task_records tr
 		        WHERE tr.tenant_id = $1 AND tr.runtime_id = runtime_rows.runtime_id
 		          AND tr.status IN ('dispatched','checkpointed','recovering')) AS active_execution_count,
@@ -1029,7 +1032,8 @@ func (s *CheckpointStore) ListRuntimeOperations(tenantID string, opts Governance
 		var lastSeen sql.NullTime
 		var status string
 		var healthy bool
-		if err := rows.Scan(&r.RuntimeID, &r.CapabilitySummary, &lastSeen, &status, &healthy,
+		var endpoint string
+		if err := rows.Scan(&r.RuntimeID, &r.CapabilitySummary, &lastSeen, &status, &healthy, &endpoint,
 			&r.ActiveExecutionCount, &r.RecentExecutionCount, &r.BoundaryCount, &r.ViolationCount,
 			&r.HandoffCount, &r.VerifiedProofCount, &r.FailedVerificationCount,
 			&r.CheckpointPortabilitySummary.SameRuntimeOnly,
@@ -1043,7 +1047,8 @@ func (s *CheckpointStore) ListRuntimeOperations(tenantID string, opts Governance
 			t := lastSeen.Time
 			r.LastSeen = &t
 		}
-		r.TrustState = runtimeTrustState(status, healthy, r)
+		r.Routable = healthy && status == "active" && internal.IsRoutableHTTPRuntimeEndpoint(endpoint)
+		r.TrustState = runtimeTrustState(status, r.Routable, r)
 		if r.BoundaryCount > 0 && len(r.CapabilitySummary) <= 2 {
 			r.EnforcementWarning = "Runtime capability evidence not available; boundary enforcement depends on runtime support."
 		}
