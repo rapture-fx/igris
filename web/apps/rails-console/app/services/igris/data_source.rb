@@ -672,10 +672,13 @@ module Igris
       last_seen = parse_time(raw[:last_seen] || raw[:last_seen_at] || raw[:last_heartbeat_at])
       caps = Array(raw[:capability_summary] || raw[:capabilities] || raw[:supported_tools])
              .map { |c| c.to_s.strip }.reject(&:empty?)
+      status = runtime_status_label(raw[:status] || raw[:health], last_seen)
+      status = 'Degraded' if raw.key?(:routable) && raw[:routable] == false
       {
         runtime_id:    raw[:runtime_id] || raw[:id],
         name:          (raw[:runtime_label] || raw[:runtime_id] || raw[:id]).to_s,
-        status:        runtime_status_label(raw[:status] || raw[:health], last_seen),
+        status:        status,
+        routable:      raw.key?(:routable) ? !!raw[:routable] : nil,
         trust_state:   trust_state_label(raw[:trust_state]),
         last_seen_at:  last_seen,
         capabilities:  caps,
