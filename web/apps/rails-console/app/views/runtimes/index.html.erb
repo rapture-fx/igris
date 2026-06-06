@@ -83,8 +83,9 @@
     </div>
     <p class="ic-onboard-note">
       Install the runtime, start it on the machine that has access, then create
-      a Local runtime action. The runtime connects out to Igris — your private
-      systems do not need to be exposed to the public internet.
+      a Local runtime action. Under the current routing model, the runtime
+      endpoint must be reachable by Igris; do not expose private systems beyond
+      that runtime endpoint.
     </p>
 
     <div class="ic-steps">
@@ -143,8 +144,9 @@
           <div class="ic-step__title">Start the runtime</div>
           <%= code_snippet runtime_serve_command(key_value), language: 'bash' %>
           <p class="ic-step__hint">
-            It connects to Igris at <code><%= runtime_api_host %></code> and registers
-            when <code>IGRIS_API_KEY</code> is set — then appears under Connected runtimes below.
+            It registers with Igris at <code><%= runtime_api_host %></code> when
+            <code>IGRIS_API_KEY</code> is set, and the runtime endpoint must remain
+            reachable by Igris for task dispatch.
           </p>
         </div>
       </div>
