@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
+	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -251,29 +252,40 @@ func tenantHasHealthyRuntime(ctx context.Context, db *sql.DB, tenantID, preferre
 	}
 	preferredRuntimeID = strings.TrimSpace(preferredRuntimeID)
 	query := `
-		SELECT 1
+		SELECT endpoint
 		FROM runtime_instances
 		WHERE tenant_id = $1
 		  AND is_healthy = true
 		  AND status = 'active'
 		  AND endpoint IS NOT NULL
+		  AND BTRIM(endpoint) <> ''
 		  AND last_heartbeat > NOW() - INTERVAL '90 seconds'`
 	args := []interface{}{tenantID}
 	if preferredRuntimeID != "" {
 		query += ` AND runtime_id = $2`
 		args = append(args, preferredRuntimeID)
 	}
-	query += ` LIMIT 1`
-	var one int
-	err := db.QueryRowContext(ctx, query, args...).Scan(&one)
-	if err == sql.ErrNoRows {
-		return false
-	}
+	query += ` LIMIT 10`
+	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Actions] runtime availability check failed")
 		return false
 	}
-	return true
+	defer rows.Close()
+	for rows.Next() {
+		var endpoint string
+		if err := rows.Scan(&endpoint); err != nil {
+			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Actions] runtime availability scan failed")
+			return false
+		}
+		if internal.IsRoutableHTTPRuntimeEndpoint(endpoint) {
+			return true
+		}
+	}
+	if err := rows.Err(); err != nil {
+		log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Actions] runtime availability rows failed")
+	}
+	return false
 }
 
 func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest, def *actionDefinition) error {
