@@ -169,7 +169,7 @@ func (h *RuntimeHandler) Register(c *fiber.Ctx) error {
 	// If so, treat as re-registration (runtime restarted).
 	var existingID string
 	var existingPublicKey string
-	err := h.db.QueryRowContext(ctx, `
+	err = h.db.QueryRowContext(ctx, `
 		SELECT runtime_id, COALESCE(public_key_ed25519, '') FROM runtime_instances
 		WHERE tenant_id = $1 AND machine_id = $2
 		LIMIT 1
