@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -210,6 +211,7 @@ func TestRuntimeRegisterPersistsVerifiedPublicKey(t *testing.T) {
 		"hostname":           "host-a",
 		"platform":           "linux-amd64",
 		"runtime_version":    "1.8.0",
+		"endpoint":           " http://runtime.test/ ",
 		"public_key_ed25519": hex.EncodeToString(publicKey),
 		"timestamp_unix_ms":  time.Now().UnixMilli(),
 	}
@@ -224,6 +226,51 @@ func TestRuntimeRegisterPersistsVerifiedPublicKey(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	require.Equal(t, 0, queued.remainingQueries())
 	require.Equal(t, 0, queued.remainingExecs())
+}
+
+func TestRuntimeRegisterRejectsInvalidEndpoint(t *testing.T) {
+	for _, endpoint := range []string{"", "   ", "runtime.test", "ftp://runtime.test", "://bad", "http://user:pass@runtime.test"} {
+		t.Run(endpoint, func(t *testing.T) {
+			publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+			require.NoError(t, err)
+
+			db, queued := newQueuedRouteDB(t, nil)
+			handler := NewRuntimeHandler(db, nil)
+			app := fiber.New()
+			app.Post("/register", func(c *fiber.Ctx) error {
+				c.Locals("tenant_id", "tenant-1")
+				return handler.Register(c)
+			})
+
+			body := map[string]any{
+				"machine_id":         "dev-machine-1",
+				"hostname":           "host-a",
+				"platform":           "linux-amd64",
+				"runtime_version":    "1.8.0",
+				"endpoint":           endpoint,
+				"public_key_ed25519": hex.EncodeToString(publicKey),
+				"timestamp_unix_ms":  time.Now().UnixMilli(),
+			}
+			body["signature"] = signRuntimeRegisterRequest(t, privateKey, body)
+			payload, err := json.Marshal(body)
+			require.NoError(t, err)
+
+			req := httptest.NewRequest(http.MethodPost, "/register", strings.NewReader(string(payload)))
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+			raw, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			require.Contains(t, string(raw), "invalid_runtime_endpoint")
+			if strings.TrimSpace(endpoint) != "" {
+				require.NotContains(t, string(raw), endpoint)
+			}
+			require.Equal(t, 0, queued.remainingQueries())
+			require.Equal(t, 0, queued.remainingExecs())
+		})
+	}
 }
 
 func TestRuntimeHeartbeatRejectsInvalidSignature(t *testing.T) {
