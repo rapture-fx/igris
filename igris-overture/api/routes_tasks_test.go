@@ -3747,6 +3747,28 @@ func TestBuildTaskSubmitRequestCompilesActionTask(t *testing.T) {
 	require.Equal(t, "processed", dbRecord["status"])
 }
 
+func TestBuildTaskSubmitRequestUsesAuthenticatedTenantForIdempotency(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{
+		"tenant_id": "attacker-tenant",
+		"task_type": "execution_graph",
+		"task_definition": {
+			"graph": {
+				"nodes": [
+					{"kind":"tool","node_id":"noop","tool_name":"noop","args":{}}
+				]
+			}
+		},
+		"idempotency_key": "same-key"
+	}`)
+
+	req, err := buildTaskSubmitRequest(body, "authenticated-tenant")
+	require.NoError(t, err)
+	require.Equal(t, "authenticated-tenant", req.TenantID)
+	require.Equal(t, "same-key", req.IdempotencyKey)
+}
+
 func TestBuildTaskSubmitRequestRejectsUnknownAction(t *testing.T) {
 	t.Parallel()
 
