@@ -117,6 +117,47 @@ func signedReceiptJSON(t *testing.T, privateKey ed25519.PrivateKey, payload map[
 	return signed
 }
 
+func TestSelectRuntimeSkipsInvalidEndpoints(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		columns: []string{"runtime_id", "endpoint"},
+		rows: [][]driver.Value{
+			{"runtime-empty", " "},
+			{"runtime-invalid", "not-a-url"},
+			{"runtime-ftp", "ftp://runtime.test"},
+			{"runtime-valid", " https://runtime.valid.test/ "},
+		},
+	}})
+	tc := &TaskCoordinator{db: db}
+
+	runtime, err := tc.selectRuntime(context.Background(), "tenant-runtime", "")
+	require.NoError(t, err)
+	require.Equal(t, "runtime-valid", runtime.RuntimeID)
+	require.Equal(t, "https://runtime.valid.test", runtime.Endpoint)
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestSelectRuntimeFailsWhenOnlyInvalidEndpointsExist(t *testing.T) {
+	t.Parallel()
+
+	db, queued := newQueuedCheckpointDB(t, []queuedQueryExpectation{{
+		columns: []string{"runtime_id", "endpoint"},
+		rows: [][]driver.Value{
+			{"runtime-empty", ""},
+			{"runtime-invalid", "not-a-url"},
+		},
+	}})
+	tc := &TaskCoordinator{db: db}
+
+	runtime, err := tc.selectRuntime(context.Background(), "tenant-runtime", "")
+	require.Error(t, err)
+	require.Nil(t, runtime)
+	require.Contains(t, err.Error(), "no routable runtime")
+	require.NotContains(t, err.Error(), "not-a-url")
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
 func receiptTestFieldString(receipt map[string]any, key string) string {
 	value, ok := receipt[key]
 	if !ok || value == nil {
