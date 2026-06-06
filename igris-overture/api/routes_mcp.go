@@ -158,6 +158,25 @@ type mcpToolCallParams struct {
 	Arguments json.RawMessage `json:"arguments"`
 }
 
+const mcpToolSchemaVersion = "2026-06-06"
+
+type mcpFieldSchema struct {
+	Type    string
+	Enum    []string
+	Minimum *int
+	Maximum *int
+	Format  string
+}
+
+type mcpArgumentSchema struct {
+	Name                 string
+	Properties           map[string]mcpFieldSchema
+	Required             []string
+	OneOfRequired        [][]string
+	Forbidden            map[string]struct{}
+	AdditionalProperties bool
+}
+
 func newAgentMcpHandler(db *sql.DB, tc *coordinator.TaskCoordinator) *agentMcpHandler {
 	h := &agentMcpHandler{db: db, tc: tc}
 	h.submitAction = h.submitActionThroughGateway
@@ -192,8 +211,8 @@ func (h *agentMcpHandler) dispatch(c *fiber.Ctx, tenantID string, req mcpJSONRPC
 	case "tools/list":
 		return fiber.Map{"tools": mcpToolDefinitions()}, http.StatusOK, nil
 	case "tools/call":
-		var params mcpToolCallParams
-		if err := json.Unmarshal(req.Params, &params); err != nil {
+		params, err := validateMCPToolCallParams(req.Params)
+		if err != nil {
 			return nil, http.StatusBadRequest, errValidation("invalid tools/call params")
 		}
 		result, status, err := h.callTool(c, tenantID, params.Name, params.Arguments)
@@ -211,9 +230,12 @@ func (h *agentMcpHandler) dispatch(c *fiber.Ctx, tenantID string, req mcpJSONRPC
 }
 
 func (h *agentMcpHandler) callTool(c *fiber.Ctx, tenantID, name string, args json.RawMessage) (interface{}, int, error) {
+	if err := validateMCPToolArguments(name, args); err != nil {
+		return nil, http.StatusBadRequest, err
+	}
 	switch name {
 	case "list_actions":
-		return h.listActions(c, tenantID)
+		return h.listActions(c, tenantID, args)
 	case "get_action":
 		return h.getAction(c, tenantID, args)
 	case "call_action":
@@ -225,13 +247,14 @@ func (h *agentMcpHandler) callTool(c *fiber.Ctx, tenantID, name string, args jso
 	case "get_run_evidence":
 		return h.getRunEvidence(c, tenantID, args)
 	case "list_runtimes":
-		return h.listRuntimes(c, tenantID)
+		return h.listRuntimes(c, tenantID, args)
 	default:
 		return nil, http.StatusBadRequest, errValidation("unknown MCP tool")
 	}
 }
 
-func (h *agentMcpHandler) listActions(c *fiber.Ctx, tenantID string) (interface{}, int, error) {
+func (h *agentMcpHandler) listActions(c *fiber.Ctx, tenantID string, args json.RawMessage) (interface{}, int, error) {
+	limit := mcpLimitArg(args, 200)
 	rows, err := h.db.QueryContext(c.Context(), `
 		SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
 		       policy_preset, replay_class, approval_required, irreversible, secret_refs,
@@ -239,7 +262,7 @@ func (h *agentMcpHandler) listActions(c *fiber.Ctx, tenantID string) (interface{
 		FROM action_definitions
 		WHERE tenant_id = $1 AND archived_at IS NULL
 		ORDER BY updated_at DESC
-		LIMIT 200`, tenantID)
+		LIMIT $2`, tenantID, limit)
 	if err != nil {
 		return nil, http.StatusServiceUnavailable, errBackend("list actions failed")
 	}
@@ -343,7 +366,8 @@ func (h *agentMcpHandler) getRunEvidence(c *fiber.Ctx, tenantID string, args jso
 	return fiber.Map{"evidence": safeMCPRunEvidence(task, steps)}, http.StatusOK, nil
 }
 
-func (h *agentMcpHandler) listRuntimes(c *fiber.Ctx, tenantID string) (interface{}, int, error) {
+func (h *agentMcpHandler) listRuntimes(c *fiber.Ctx, tenantID string, args json.RawMessage) (interface{}, int, error) {
+	filter := mcpRuntimeListArgs(args)
 	rows, err := h.db.QueryContext(c.Context(), `
 		SELECT runtime_id, status, capabilities, last_seen_at, COALESCE(endpoint, ''), COALESCE(is_healthy, false)
 		FROM runtime_instances
@@ -369,6 +393,12 @@ func (h *agentMcpHandler) listRuntimes(c *fiber.Ctx, tenantID string) (interface
 		if !routable && status == "active" {
 			safeStatus = "unroutable"
 		}
+		if filter.Status != "" && safeStatus != filter.Status {
+			continue
+		}
+		if filter.HasRoutable && routable != filter.Routable {
+			continue
+		}
 		runtimes = append(runtimes, fiber.Map{
 			"runtime_id":   runtimeID,
 			"status":       safeStatus,
@@ -376,6 +406,9 @@ func (h *agentMcpHandler) listRuntimes(c *fiber.Ctx, tenantID string) (interface
 			"capabilities": safeJSONList(capabilitiesRaw),
 			"last_seen_at": lastSeen,
 		})
+		if len(runtimes) >= filter.Limit {
+			break
+		}
 	}
 	if err := rows.Err(); err != nil {
 		return nil, http.StatusServiceUnavailable, errBackend("list runtimes failed")
@@ -750,10 +783,393 @@ func mcpToolDefinitions() []fiber.Map {
 		tools = append(tools, fiber.Map{
 			"name":        name,
 			"description": mcpToolDescription(name),
-			"inputSchema": fiber.Map{"type": "object"},
+			"inputSchema": mcpInputSchemaForTool(name),
 		})
 	}
 	return tools
+}
+
+func mcpInputSchemaForTool(name string) fiber.Map {
+	schema, ok := mcpArgumentSchemas()[name]
+	if !ok {
+		return fiber.Map{
+			"schema_version":       mcpToolSchemaVersion,
+			"type":                 "object",
+			"properties":           fiber.Map{"schema_version": fiber.Map{"type": "string", "const": mcpToolSchemaVersion}},
+			"required":             []string{},
+			"additionalProperties": false,
+		}
+	}
+	props := fiber.Map{"schema_version": fiber.Map{"type": "string", "const": mcpToolSchemaVersion}}
+	for key, field := range schema.Properties {
+		props[key] = mcpFieldSchemaMap(field)
+	}
+	out := fiber.Map{
+		"schema_version":       mcpToolSchemaVersion,
+		"type":                 "object",
+		"properties":           props,
+		"required":             schema.Required,
+		"additionalProperties": schema.AdditionalProperties,
+	}
+	if len(schema.OneOfRequired) > 0 {
+		oneOf := make([]fiber.Map, 0, len(schema.OneOfRequired))
+		for _, group := range schema.OneOfRequired {
+			oneOf = append(oneOf, fiber.Map{"required": group})
+		}
+		out["oneOf"] = oneOf
+	}
+	return out
+}
+
+func mcpFieldSchemaMap(field mcpFieldSchema) fiber.Map {
+	out := fiber.Map{"type": field.Type}
+	if len(field.Enum) > 0 {
+		out["enum"] = field.Enum
+	}
+	if field.Minimum != nil {
+		out["minimum"] = *field.Minimum
+	}
+	if field.Maximum != nil {
+		out["maximum"] = *field.Maximum
+	}
+	if field.Format != "" {
+		out["format"] = field.Format
+	}
+	return out
+}
+
+func mcpArgumentSchemas() map[string]mcpArgumentSchema {
+	limitMin, limitMax := 1, 100
+	return map[string]mcpArgumentSchema{
+		"list_actions": {
+			Name: "list_actions",
+			Properties: map[string]mcpFieldSchema{
+				"limit": {Type: "integer", Minimum: &limitMin, Maximum: &limitMax},
+			},
+		},
+		"get_action": {
+			Name: "get_action",
+			Properties: map[string]mcpFieldSchema{
+				"action_id":   {Type: "string"},
+				"action_name": {Type: "string"},
+				"id":          {Type: "string"},
+				"name":        {Type: "string"},
+			},
+			OneOfRequired: [][]string{{"action_id"}, {"action_name"}, {"id"}, {"name"}},
+		},
+		"call_action": {
+			Name: "call_action",
+			Properties: map[string]mcpFieldSchema{
+				"action_id":        {Type: "string"},
+				"action_name":      {Type: "string"},
+				"id":               {Type: "string"},
+				"name":             {Type: "string"},
+				"input":            {Type: "object"},
+				"metadata":         {Type: "object"},
+				"idempotency_key":  {Type: "string"},
+				"deadline_at":      {Type: "string", Format: "date-time"},
+			},
+			OneOfRequired: [][]string{{"action_id"}, {"action_name"}, {"id"}, {"name"}},
+			Forbidden: forbiddenMCPCallActionFields(),
+		},
+		"list_runs": {
+			Name: "list_runs",
+			Properties: map[string]mcpFieldSchema{
+				"limit": {Type: "integer", Minimum: &limitMin, Maximum: &limitMax},
+			},
+		},
+		"get_run": {
+			Name: "get_run",
+			Properties: map[string]mcpFieldSchema{
+				"task_id": {Type: "string"},
+				"run_id":  {Type: "string"},
+				"id":      {Type: "string"},
+			},
+			OneOfRequired: [][]string{{"task_id"}, {"run_id"}, {"id"}},
+		},
+		"get_run_evidence": {
+			Name: "get_run_evidence",
+			Properties: map[string]mcpFieldSchema{
+				"task_id": {Type: "string"},
+				"run_id":  {Type: "string"},
+				"id":      {Type: "string"},
+			},
+			OneOfRequired: [][]string{{"task_id"}, {"run_id"}, {"id"}},
+		},
+		"list_runtimes": {
+			Name: "list_runtimes",
+			Properties: map[string]mcpFieldSchema{
+				"limit":    {Type: "integer", Minimum: &limitMin, Maximum: &limitMax},
+				"routable": {Type: "boolean"},
+				"status":   {Type: "string", Enum: []string{"active", "stale", "offline", "unroutable", "deregistered"}},
+			},
+		},
+	}
+}
+
+func forbiddenMCPCallActionFields() map[string]struct{} {
+	fields := []string{
+		"tenant_id", "task_definition", "task_type", "runtime_target", "execution_graph",
+		"ciphertext", "nonce", "key_material", "private_key", "raw_body", "request_body",
+		"response_body", "runtime_endpoint", "runtime_id",
+	}
+	out := make(map[string]struct{}, len(fields))
+	for _, field := range fields {
+		out[field] = struct{}{}
+	}
+	return out
+}
+
+func validateMCPToolCallParams(raw json.RawMessage) (mcpToolCallParams, error) {
+	var fields map[string]json.RawMessage
+	if err := unmarshalMCPObject(raw, &fields); err != nil {
+		return mcpToolCallParams{}, err
+	}
+	for key := range fields {
+		if key != "name" && key != "arguments" {
+			return mcpToolCallParams{}, errValidation("unsupported tools/call field")
+		}
+	}
+	nameRaw, ok := fields["name"]
+	if !ok {
+		return mcpToolCallParams{}, errValidation("tool name is required")
+	}
+	name, err := mcpStringField(nameRaw, "name")
+	if err != nil {
+		return mcpToolCallParams{}, err
+	}
+	args := json.RawMessage(`{}`)
+	if rawArgs, ok := fields["arguments"]; ok {
+		if !isJSONObject(rawArgs) {
+			return mcpToolCallParams{}, errValidation("tool arguments must be an object")
+		}
+		args = rawArgs
+	}
+	return mcpToolCallParams{Name: name, Arguments: args}, nil
+}
+
+func validateMCPToolArguments(name string, raw json.RawMessage) error {
+	schema, ok := mcpArgumentSchemas()[name]
+	if !ok {
+		return nil
+	}
+	var fields map[string]json.RawMessage
+	if err := unmarshalMCPObject(raw, &fields); err != nil {
+		return err
+	}
+	if versionRaw, ok := fields["schema_version"]; ok {
+		version, err := mcpStringField(versionRaw, "schema_version")
+		if err != nil {
+			return err
+		}
+		if version != mcpToolSchemaVersion {
+			return errValidation("unsupported schema_version")
+		}
+	}
+	for key, rawValue := range fields {
+		if key == "schema_version" {
+			continue
+		}
+		if _, forbidden := schema.Forbidden[key]; forbidden {
+			return errValidation("unsupported call_action field")
+		}
+		field, ok := schema.Properties[key]
+		if !ok {
+			return errValidation("unsupported MCP argument")
+		}
+		if err := validateMCPField(key, rawValue, field); err != nil {
+			return err
+		}
+	}
+	for _, required := range schema.Required {
+		if !mcpNonEmptyFieldPresent(fields, required) {
+			return errValidation(required + " is required")
+		}
+	}
+	if len(schema.OneOfRequired) > 0 {
+		matches := 0
+		for _, group := range schema.OneOfRequired {
+			groupPresent := true
+			for _, field := range group {
+				if !mcpNonEmptyFieldPresent(fields, field) {
+					groupPresent = false
+					break
+				}
+			}
+			if groupPresent {
+				matches++
+			}
+		}
+		if matches != 1 {
+			return errValidation("exactly one action or run identifier is required")
+		}
+	}
+	return nil
+}
+
+func validateMCPField(name string, raw json.RawMessage, field mcpFieldSchema) error {
+	switch field.Type {
+	case "string":
+		value, err := mcpStringField(raw, name)
+		if err != nil {
+			return err
+		}
+		if len(field.Enum) > 0 {
+			for _, allowed := range field.Enum {
+				if value == allowed {
+					return nil
+				}
+			}
+			return errValidation(name + " has unsupported value")
+		}
+		if field.Format == "date-time" {
+			if _, err := time.Parse(time.RFC3339, value); err != nil {
+				return errValidation(name + " must be an RFC3339 timestamp")
+			}
+		}
+		if name == "idempotency_key" && len(value) > 200 {
+			return errValidation("idempotency_key is too long")
+		}
+	case "integer":
+		value, err := mcpIntegerField(raw, name)
+		if err != nil {
+			return err
+		}
+		if field.Minimum != nil && value < *field.Minimum {
+			return errValidation(name + " is below the allowed minimum")
+		}
+		if field.Maximum != nil && value > *field.Maximum {
+			return errValidation(name + " exceeds the allowed maximum")
+		}
+	case "boolean":
+		if !isJSONBool(raw) {
+			return errValidation(name + " must be a boolean")
+		}
+	case "object":
+		if !isJSONObject(raw) {
+			return errValidation(name + " must be an object")
+		}
+	default:
+		return errValidation("unsupported MCP schema field")
+	}
+	return nil
+}
+
+type mcpRuntimeListFilter struct {
+	Limit       int
+	Status      string
+	HasRoutable bool
+	Routable    bool
+}
+
+func mcpLimitArg(raw json.RawMessage, fallback int) int {
+	var fields map[string]json.RawMessage
+	if err := unmarshalMCPObject(raw, &fields); err != nil {
+		return fallback
+	}
+	if limitRaw, ok := fields["limit"]; ok {
+		limit, err := mcpIntegerField(limitRaw, "limit")
+		if err == nil && limit > 0 && limit <= 100 {
+			return limit
+		}
+	}
+	if fallback > 100 {
+		return 100
+	}
+	return fallback
+}
+
+func mcpRuntimeListArgs(raw json.RawMessage) mcpRuntimeListFilter {
+	filter := mcpRuntimeListFilter{Limit: mcpLimitArg(raw, 100)}
+	var fields map[string]json.RawMessage
+	if err := unmarshalMCPObject(raw, &fields); err != nil {
+		return filter
+	}
+	if statusRaw, ok := fields["status"]; ok {
+		status, err := mcpStringField(statusRaw, "status")
+		if err == nil {
+			filter.Status = status
+		}
+	}
+	if routableRaw, ok := fields["routable"]; ok {
+		var routable bool
+		if err := json.Unmarshal(routableRaw, &routable); err == nil {
+			filter.HasRoutable = true
+			filter.Routable = routable
+		}
+	}
+	return filter
+}
+
+func unmarshalMCPObject(raw json.RawMessage, out *map[string]json.RawMessage) error {
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		*out = map[string]json.RawMessage{}
+		return nil
+	}
+	if !strings.HasPrefix(trimmed, "{") {
+		return errValidation("MCP arguments must be an object")
+	}
+	if err := json.Unmarshal(raw, out); err != nil {
+		return errValidation("invalid MCP arguments")
+	}
+	if *out == nil {
+		*out = map[string]json.RawMessage{}
+	}
+	return nil
+}
+
+func mcpStringField(raw json.RawMessage, name string) (string, error) {
+	var value string
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return "", errValidation(name + " must be a string")
+	}
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", errValidation(name + " must not be empty")
+	}
+	return value, nil
+}
+
+func mcpIntegerField(raw json.RawMessage, name string) (int, error) {
+	var value int
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return 0, errValidation(name + " must be an integer")
+	}
+	return value, nil
+}
+
+func mcpNonEmptyFieldPresent(fields map[string]json.RawMessage, name string) bool {
+	raw, ok := fields[name]
+	if !ok {
+		return false
+	}
+	if strings.TrimSpace(string(raw)) == "null" {
+		return false
+	}
+	if isJSONString(raw) {
+		value, err := mcpStringField(raw, name)
+		return err == nil && value != ""
+	}
+	return true
+}
+
+func isJSONString(raw json.RawMessage) bool {
+	trimmed := strings.TrimSpace(string(raw))
+	return strings.HasPrefix(trimmed, `"`)
+}
+
+func isJSONObject(raw json.RawMessage) bool {
+	var value map[string]interface{}
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return false
+	}
+	return value != nil
+}
+
+func isJSONBool(raw json.RawMessage) bool {
+	var value bool
+	return json.Unmarshal(raw, &value) == nil
 }
 
 func mcpToolDescription(name string) string {
