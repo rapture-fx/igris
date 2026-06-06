@@ -33,6 +33,22 @@ class DataSourceTest < ActiveSupport::TestCase
     assert_operator src.runtimes.size, :>, 0
   end
 
+  test 'runtime normalization treats unroutable live runtime as degraded' do
+    client = FakeClient.new(runtimes: [{
+      'runtime_id' => 'rt_unroutable',
+      'status' => 'active',
+      'routable' => false,
+      'last_seen' => Time.now.iso8601,
+      'capability_summary' => ['filesystem'],
+    }])
+
+    runtime = Igris::DataSource.new(client: client).runtimes.first
+
+    assert_equal 'rt_unroutable', runtime[:runtime_id]
+    assert_equal 'Degraded', runtime[:status]
+    assert_equal false, runtime[:routable]
+  end
+
   test 'real mode normalizes hosted_api action' do
     client = FakeClient.new(actions: [{
       'id' => 'a-1', 'name' => 'send_email', 'display_name' => 'Send email',
