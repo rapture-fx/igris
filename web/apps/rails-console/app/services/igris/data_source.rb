@@ -21,6 +21,25 @@ module Igris
   class DataSource
     attr_reader :mode, :error
 
+    REDACTION_POLICY_VERSION = 'rails-console-input-redaction-v1'
+    SAFE_METADATA_KEYS = %w[
+      content_redacted content_digest content_digest_sha256 content_bytes content_type
+      input_redacted input_digest_sha256 input_bytes input_content_type
+      encrypted_input_ref encrypted_input_ref_id encrypted_input_refs purpose key_version
+      created_at updated_at expires_at safe_summary sensitive_fields_redacted
+      redaction_policy_version safe_path_digest safe_basename safe_host
+    ].freeze
+    SENSITIVE_KEY_PATTERN = /
+      authorization|cookie|set[_-]?cookie|token|secret|password|api[_-]?key|apikey|
+      access[_-]?key|refresh[_-]?token|private[_-]?key|credential|body|raw[_-]?body|
+      request[_-]?body|response[_-]?body|payload|content|file[_-]?content|
+      file[_-]?contents|full[_-]?text|file[_-]?path|absolute[_-]?path|full[_-]?absolute[_-]?path|
+      hostname|ip[_-]?address|database[_-]?url|dsn
+    /ix
+    SAFE_HEADER_KEYS = %w[
+      content_type content_length etag last_modified cache_control x_request_id x_correlation_id
+    ].freeze
+
     def initialize(client: nil)
       @client = client || OvertureClient.new
       @mode   = @client.configured? ? :real : :fixtures
@@ -311,9 +330,11 @@ module Igris
     end
 
     def normalize_action(raw)
+      display_raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      raw = scrub_sensitive_payload(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       target_type = raw[:target_type].to_s
-      target_url = sanitize_display_url(raw[:target_url])
+      target_url = sanitize_display_url((display_raw || raw)[:target_url])
       {
         id:             raw[:id] || raw[:name],
         name:           raw[:name],
@@ -339,6 +360,7 @@ module Igris
     end
 
     def normalize_run_summary(raw)
+      raw = scrub_sensitive_payload(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       proof = proof_state_for(raw[:proof])
       {
@@ -358,6 +380,8 @@ module Igris
 
     def normalize_run_detail(raw)
       return nil unless raw
+      runtime_unavailable = runtime_unavailable?(raw.with_indifferent_access)
+      raw = scrub_sensitive_payload(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       summary = normalize_run_summary(raw)
       summary.merge(
@@ -368,8 +392,8 @@ module Igris
         recovery_payload: raw[:recovery],
         executed_target: raw[:executed_target].to_s,
         runtime_id: raw[:runtime_id].to_s,
-        failure_reason: raw.dig(:failure, :reason) || raw[:failure_reason].to_s,
-        runtime_unavailable: runtime_unavailable?(raw),
+        failure_reason: safe_failure_text(raw.dig(:failure, :reason) || raw[:failure_reason]),
+        runtime_unavailable: runtime_unavailable,
         request_summary: safe_request_summary(raw),
         request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:input_summary, :input_digest_sha256) || raw.dig(:request, :digest)),
       )
@@ -383,7 +407,10 @@ module Igris
     # mapping exists so a future, server-side-redacted summary renders without
     # any further change, and a raw body never can.
     def safe_request_summary(raw)
-      (raw[:request_summary] || raw.dig(:request, :summary)).to_s.strip.presence
+      summary = sanitize_sensitive_string(raw[:request_summary] || raw.dig(:request, :summary)).to_s.strip
+      return nil if summary.blank? || summary == '[redacted]'
+
+      summary
     end
 
     def sanitize_display_url(value)
@@ -406,9 +433,143 @@ module Igris
       raw = value.to_s
       return '' if raw.empty?
       return '[redacted]' if raw.match?(/authorization|bearer|cookie|token|secret|password|api[_-]?key/i)
-      return "[redacted:#{Digest::SHA256.hexdigest(raw)[0, 16]}]" if raw.start_with?('/', '~/', '\\\\')
+      return redacted_string_digest(raw, 'private_path') if private_path_string?(raw)
+
+      uri = URI.parse(raw)
+      if uri.scheme && uri.host
+        return redacted_string_digest(raw, 'url') if uri.userinfo.present? || uri.query.present? || !%w[http https].include?(uri.scheme)
+
+        return safe_url_string(uri, raw)
+      end
 
       raw
+    rescue URI::InvalidURIError
+      raw
+    end
+
+    def scrub_sensitive_payload(value, parent_key = nil)
+      case value
+      when Hash
+        value.each_with_object({}) do |(key, child), out|
+          normalized = normalize_sensitive_key(key)
+          out[key] =
+            if SAFE_METADATA_KEYS.include?(normalized)
+              scrub_sensitive_payload(child, normalized)
+            elsif normalized == 'headers'
+              scrub_headers(child)
+            elsif normalized == 'url' || normalized == 'target_url'
+              sanitize_url_or_envelope(child)
+            elsif sensitive_key?(normalized)
+              redacted_input_envelope(child, normalized)
+            elsif normalized == 'path' && private_path_string?(child.to_s)
+              redacted_path_envelope(child.to_s)
+            else
+              scrub_sensitive_payload(child, normalized)
+            end
+        end
+      when Array
+        value.map { |child| scrub_sensitive_payload(child, parent_key) }
+      when String
+        if sensitive_key?(parent_key)
+          redacted_input_envelope(value, parent_key)
+        elsif private_path_string?(value)
+          redacted_path_envelope(value)
+        else
+          sanitize_sensitive_string(value)
+        end
+      else
+        value
+      end
+    end
+
+    def scrub_headers(value)
+      return redacted_input_envelope(value, 'headers') unless value.is_a?(Hash)
+
+      redacted = []
+      safe = {
+        'input_redacted' => true,
+        'sensitive_fields_redacted' => redacted,
+        'redaction_policy_version' => REDACTION_POLICY_VERSION,
+      }
+      value.each do |key, child|
+        normalized = normalize_sensitive_key(key)
+        if SAFE_HEADER_KEYS.include?(normalized)
+          safe[key] = scrub_sensitive_payload(child, normalized)
+        else
+          safe[key] = redacted_input_envelope(child, sensitive_key?(normalized) ? 'sensitive_header' : 'non_allowlisted_header')
+          redacted << key.to_s
+        end
+      end
+      safe
+    end
+
+    def sanitize_url_or_envelope(value)
+      raw = value.to_s.strip
+      return '' if raw.empty?
+
+      uri = URI.parse(raw)
+      return sanitize_sensitive_string(raw) unless uri.scheme && uri.host
+
+      safe = safe_url_string(uri, raw)
+      return safe unless uri.query.present? || uri.userinfo.present?
+
+      redacted_input_envelope(raw, 'url_query_or_credentials').merge(
+        'safe_url' => safe.delete_suffix('?[redacted]'),
+        'safe_host' => uri.host,
+      )
+    rescue URI::InvalidURIError
+      sanitize_sensitive_string(raw)
+    end
+
+    def safe_url_string(uri, _raw)
+      safe = +"#{uri.scheme}://#{uri.host}"
+      safe << ":#{uri.port}" if uri.port && ![80, 443].include?(uri.port)
+      safe << uri.path.to_s
+      safe << '?[redacted]' if uri.query.present? || uri.userinfo.present?
+      safe
+    end
+
+    def safe_failure_text(value)
+      text = sanitize_sensitive_string(value).to_s
+      text == '[redacted]' ? 'failure details redacted' : text
+    end
+
+    def redacted_input_envelope(value, reason)
+      raw = value.is_a?(String) ? value : value.to_json
+      {
+        'input_redacted' => true,
+        'safe_summary' => "#{reason} redacted",
+        'input_digest_sha256' => Digest::SHA256.hexdigest(raw),
+        'input_bytes' => raw.bytesize,
+        'sensitive_fields_redacted' => [reason.to_s],
+        'redaction_policy_version' => REDACTION_POLICY_VERSION,
+      }
+    end
+
+    def redacted_path_envelope(path)
+      basename = File.basename(path.to_s)
+      basename = '[redacted]' if sanitize_sensitive_string(basename) == '[redacted]'
+      redacted_input_envelope(path, 'private_path').merge(
+        'safe_path_digest' => Digest::SHA256.hexdigest(path.to_s),
+        'safe_basename' => basename,
+      )
+    end
+
+    def redacted_string_digest(value, reason)
+      "[redacted:#{reason}:#{Digest::SHA256.hexdigest(value.to_s)[0, 16]}]"
+    end
+
+    def normalize_sensitive_key(key)
+      key.to_s.strip.downcase.tr('-', '_')
+    end
+
+    def sensitive_key?(key)
+      normalize_sensitive_key(key).match?(SENSITIVE_KEY_PATTERN)
+    end
+
+    def private_path_string?(value)
+      raw = value.to_s.strip
+      raw.start_with?('/', '~/', '\\\\') || raw.match?(/[A-Za-z]:[\\\/]/)
     end
 
     # True when a run failed because the runtime it needed was not available.
@@ -711,7 +872,7 @@ module Igris
                    meta: "duration: #{compute_duration_ms(raw[:dispatched_at], raw[:completed_at])} ms" }
       when 'failed'
         story << { title: 'Side effect failed', tone: :bad,
-                   meta: raw[:failure_reason].to_s.presence || 'see failure details' }
+                   meta: safe_failure_text(raw[:failure_reason]).presence || 'see failure details' }
       when 'approval_required'
         story << { title: 'Awaiting human approval', tone: :warn,
                    meta: 'Action paused until reviewer decides' }
