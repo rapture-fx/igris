@@ -136,9 +136,10 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     assert_match 'igris-runtime serve', response.body
   end
 
-  test 'runtimes page security note: private systems are not exposed publicly' do
+  test 'runtimes page states runtime endpoint must be reachable by Igris' do
     get '/runtimes'
-    assert_match 'do not need to be exposed to the public internet', response.body
+    assert_match 'runtime endpoint must be reachable by Igris', response.body
+    refute_match 'do not need to be exposed to the public internet', response.body
   end
 
   # ── Fixture mode stays visibly labelled ──────────────────────────────────
