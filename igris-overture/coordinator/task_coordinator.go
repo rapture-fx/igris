@@ -307,25 +307,47 @@ func (tc *TaskCoordinator) selectRuntime(ctx context.Context, tenantID, preferre
 		  AND ri.is_healthy = true
 		  AND ri.status = 'active'
 		  AND ri.endpoint IS NOT NULL
+		  AND BTRIM(ri.endpoint) <> ''
 		  AND ri.last_heartbeat > NOW() - INTERVAL '90 seconds'`
 	args := []interface{}{tenantID}
 	if preferredRuntimeID != "" {
 		query += ` AND ri.runtime_id = $2`
 		args = append(args, preferredRuntimeID)
 	}
-	query += ` ORDER BY COALESCE(t.active_count, 0) ASC LIMIT 1`
+	query += ` ORDER BY COALESCE(t.active_count, 0) ASC LIMIT 10`
 
-	row := tc.db.QueryRowContext(ctx, query, args...)
-	var r runtimeInfo
-	if err := row.Scan(&r.RuntimeID, &r.Endpoint); err == sql.ErrNoRows {
-		if preferredRuntimeID != "" {
-			return nil, fmt.Errorf("no healthy runtime %s for tenant %s", preferredRuntimeID, tenantID)
-		}
-		return nil, fmt.Errorf("no healthy runtime for tenant %s", tenantID)
-	} else if err != nil {
+	rows, err := tc.db.QueryContext(ctx, query, args...)
+	if err != nil {
 		return nil, err
 	}
-	return &r, nil
+	defer rows.Close()
+	for rows.Next() {
+		var r runtimeInfo
+		if err := rows.Scan(&r.RuntimeID, &r.Endpoint); err != nil {
+			return nil, err
+		}
+		normalizedEndpoint, err := internal.NormalizeHTTPRuntimeEndpoint(r.Endpoint)
+		if err != nil {
+			log.Warn().Str("tenant_id", tenantID).Str("runtime_id", r.RuntimeID).Msg("[Coordinator] Skipping runtime with unroutable endpoint")
+			continue
+		}
+		r.Endpoint = normalizedEndpoint
+		return &r, nil
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if preferredRuntimeID != "" {
+		return nil, fmt.Errorf("no routable runtime %s for tenant %s", preferredRuntimeID, tenantID)
+	}
+	return nil, fmt.Errorf("no routable runtime for tenant %s", tenantID)
+}
+
+func normalizeTaskRuntimeEndpoint(task *TaskRecord) (string, error) {
+	if task == nil || task.RuntimeEndpoint == nil {
+		return "", internal.ErrInvalidRuntimeEndpoint
+	}
+	return internal.NormalizeHTTPRuntimeEndpoint(*task.RuntimeEndpoint)
 }
 
 // dispatchToRuntime sends the task definition to a runtime's /v1/runtime/task/submit.
@@ -343,9 +365,10 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 	if tc.store == nil && tc.db != nil {
 		tc.store = NewCheckpointStore(tc.db)
 	}
-	if task.RuntimeEndpoint == nil {
-		log.Error().Str("task_id", task.TaskID.String()).Msg("[Coordinator] No endpoint for dispatch")
-		_ = tc.store.MarkFailedWithDetails(task.TaskID, "missing runtime endpoint", overtureTaskFailureDetails("dispatch", "missing_runtime_endpoint", "missing runtime endpoint"))
+	normalizedEndpoint, err := normalizeTaskRuntimeEndpoint(task)
+	if err != nil {
+		log.Error().Str("task_id", task.TaskID.String()).Msg("[Coordinator] Invalid endpoint for dispatch")
+		_ = tc.store.MarkFailedWithDetails(task.TaskID, "invalid runtime endpoint", overtureTaskFailureDetails("dispatch", "invalid_runtime_endpoint", "invalid runtime endpoint"))
 		return
 	}
 
@@ -444,7 +467,7 @@ func (tc *TaskCoordinator) dispatchToRuntime(ctx context.Context, task *TaskReco
 		return
 	}
 
-	url := fmt.Sprintf("%s/v1/runtime/task/submit", *task.RuntimeEndpoint)
+	url := fmt.Sprintf("%s/v1/runtime/task/submit", normalizedEndpoint)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		_ = tc.store.MarkFailedWithDetails(task.TaskID, err.Error(), overtureTaskFailureDetails("dispatch", "request_build_failed", err.Error()))
