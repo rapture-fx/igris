@@ -40,7 +40,7 @@ const columns: { heading: string; ref: string; links: FooterLink[] }[] = [
     heading: 'COMPANY',
     ref: 'R.2',
     links: [
-      { label: 'GitHub', href: 'https://github.com/igrisinertial', external: true },
+      { label: 'GitHub', href: 'https://github.com/Igris-inertial', external: true },
       { label: 'X (Twitter)', href: 'https://x.com/igrisinertial', external: true },
     ],
   },
@@ -71,8 +71,18 @@ export default function Footer() {
                   </span>
                 </div>
                 <ul className="flex flex-col gap-1.5">
-                  {col.links.map((link) =>
-                    link.external ? (
+                  {col.links.map((link) => {
+                    const isProduct = col.heading === 'PRODUCT'
+                    return isProduct ? (
+                      <li key={link.label}>
+                        <span
+                          className="text-gray-600 dark:text-[#a8a898]"
+                          style={{ fontFamily: SANS, fontSize: '0.875rem' }}
+                        >
+                          {link.label}
+                        </span>
+                      </li>
+                    ) : link.external ? (
                       <li key={link.label}>
                         <a
                           href={link.href}
@@ -95,8 +105,8 @@ export default function Footer() {
                           {link.label}
                         </Link>
                       </li>
-                    ),
-                  )}
+                    );
+                  })}
                 </ul>
               </div>
             ))}
