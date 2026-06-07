@@ -136,3 +136,117 @@ func TestExecutionLineageTenantIsolationPostgres(t *testing.T) {
 		VALUES ('exec-reject', 'agent', 'h', 's', NULL, NOW())`)
 	require.Error(t, err, "tenant-null lineage insert must be rejected after migration 058")
 }
+
+// TestExecutionContextTenantBoundMigrationPostgres exercises migration 060
+// against a live Postgres database. It proves deterministic backfill from
+// task_records and execution_lineage, proves tenant-null inserts are rejected
+// when all rows are resolvable, and proves ambiguous legacy rows are not
+// guessed.
+//
+// Set IGRIS_OVERTURE_POSTGRES_TEST_DSN (or POSTGRES_TEST_DSN) to run it.
+func TestExecutionContextTenantBoundMigrationPostgres(t *testing.T) {
+	dsn := os.Getenv("IGRIS_OVERTURE_POSTGRES_TEST_DSN")
+	if dsn == "" {
+		dsn = os.Getenv("POSTGRES_TEST_DSN")
+	}
+	if dsn == "" {
+		t.Skip("set IGRIS_OVERTURE_POSTGRES_TEST_DSN or POSTGRES_TEST_DSN to run execution_context tenant-bound Postgres test")
+	}
+
+	db, err := sql.Open("postgres", dsn)
+	require.NoError(t, err)
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = db.Close() })
+
+	applyBase := func(schema string) {
+		t.Helper()
+		_, err := db.Exec(`CREATE SCHEMA ` + schema)
+		require.NoError(t, err)
+		t.Cleanup(func() { _, _ = db.Exec(`DROP SCHEMA ` + schema + ` CASCADE`) })
+		_, err = db.Exec(`SET search_path TO ` + schema + `, public`)
+		require.NoError(t, err)
+
+		for _, name := range []string{
+			"006_execution_lineage.sql",
+			"031_task_records.sql",
+			"033_task_proof_state.sql",
+			"047_execution_context.sql",
+		} {
+			sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", name))
+			require.NoError(t, err)
+			_, err = db.Exec(string(sqlBytes))
+			require.NoError(t, err)
+		}
+	}
+
+	insertTask := func(taskID uuid.UUID, tenantID, idempotencyKey, proofExecutionID string) {
+		t.Helper()
+		_, err := db.Exec(`
+			INSERT INTO task_records
+				(task_id, tenant_id, status, task_definition, idempotency_key, proof_execution_id, proof_expected_hash, created_at)
+			VALUES ($1, $2, 'completed', '{}'::jsonb, $3, NULLIF($4, ''), 'hash', NOW())`,
+			taskID, tenantID, idempotencyKey, proofExecutionID)
+		require.NoError(t, err)
+	}
+
+	runMigration060 := func() {
+		t.Helper()
+		sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", "060_execution_context_tenant_bound.sql"))
+		require.NoError(t, err)
+		_, err = db.Exec(string(sqlBytes))
+		require.NoError(t, err)
+	}
+
+	resolvedSchema := "context_tenant_resolved_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+	applyBase(resolvedSchema)
+
+	taskDirect := uuid.New()
+	insertTask(taskDirect, "tenant-direct", "idem-direct", "")
+	_, err = db.Exec(`INSERT INTO execution_context (execution_id, tenant_id, task_id) VALUES ($1, NULL, $2)`, "exec-direct", taskDirect)
+	require.NoError(t, err)
+
+	taskProof := uuid.New()
+	insertTask(taskProof, "tenant-proof", "idem-proof", "exec-proof")
+	_, err = db.Exec(`INSERT INTO execution_context (execution_id, tenant_id) VALUES ($1, NULL)`, "exec-proof")
+	require.NoError(t, err)
+
+	_, err = db.Exec(`
+		INSERT INTO execution_lineage
+			(execution_id, agent_id, receipt_hash, signature, tenant_id, timestamp_utc)
+		VALUES ('exec-lineage', 'agent', 'hash-lineage', 'sig-lineage', 'tenant-lineage', NOW())`)
+	require.NoError(t, err)
+	_, err = db.Exec(`INSERT INTO execution_context (execution_id, tenant_id) VALUES ($1, NULL)`, "exec-lineage")
+	require.NoError(t, err)
+
+	runMigration060()
+
+	for executionID, wantTenant := range map[string]string{
+		"exec-direct":  "tenant-direct",
+		"exec-proof":   "tenant-proof",
+		"exec-lineage": "tenant-lineage",
+	} {
+		var gotTenant string
+		require.NoError(t, db.QueryRow(`SELECT tenant_id FROM execution_context WHERE execution_id = $1`, executionID).Scan(&gotTenant))
+		require.Equal(t, wantTenant, gotTenant)
+	}
+
+	_, err = db.Exec(`INSERT INTO execution_context (execution_id, tenant_id) VALUES ('exec-reject-null', NULL)`)
+	require.Error(t, err, "tenant-null execution_context insert must be rejected after migration 060 when all rows are resolvable")
+
+	ambiguousSchema := "context_tenant_ambiguous_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+	applyBase(ambiguousSchema)
+
+	insertTask(uuid.New(), "tenant-A", "idem-a", "exec-ambiguous")
+	insertTask(uuid.New(), "tenant-B", "idem-b", "exec-ambiguous")
+	_, err = db.Exec(`INSERT INTO execution_context (execution_id, tenant_id) VALUES ($1, NULL)`, "exec-ambiguous")
+	require.NoError(t, err)
+
+	runMigration060()
+
+	var ambiguousTenant sql.NullString
+	require.NoError(t, db.QueryRow(`SELECT tenant_id FROM execution_context WHERE execution_id = $1`, "exec-ambiguous").Scan(&ambiguousTenant))
+	require.False(t, ambiguousTenant.Valid, "ambiguous tenant-null execution_context row must not be guessed")
+	_, err = db.Exec(`INSERT INTO execution_context (execution_id, tenant_id) VALUES ('exec-still-legacy', NULL)`)
+	require.NoError(t, err, "migration 060 must not apply NOT NULL while unresolvable tenant-null rows remain")
+}
