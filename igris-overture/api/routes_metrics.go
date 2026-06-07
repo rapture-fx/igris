@@ -3,13 +3,13 @@ package api
 import (
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/adaptor/v2"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/Igris-inertial/system/igris-overture/database"
 	"github.com/Igris-inertial/system/igris-overture/metrics"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/tracing"
+	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // RegisterMetricsRoutes registers metrics and telemetry endpoints
@@ -36,7 +36,7 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 
 		// Get metrics collector
 		collector := metrics.GetMetricsCollector()
-		
+
 		// Get aggregated metrics
 		providerMetrics := collector.GetProviderMetrics()
 		topProviders := collector.GetTopProviders(10)
@@ -46,9 +46,9 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 
 		return c.JSON(fiber.Map{
 			"provider_metrics": providerMetrics,
-			"top_providers":     topProviders,
-			"timestamp":         traceCtx.StartTime.Unix(),
-			"trace_id":          traceCtx.TraceID,
+			"top_providers":    topProviders,
+			"timestamp":        traceCtx.StartTime.Unix(),
+			"trace_id":         traceCtx.TraceID,
 		})
 	})
 	log.Println("[Routes] ✓ GET /v1/metrics (Aggregated metrics)")
@@ -65,11 +65,11 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 
 		// Basic health indicators
 		health := fiber.Map{
-			"status":         "healthy",
+			"status":                "healthy",
 			"collector_initialized": true,
-			"total_providers": len(collector.GetProviderMetrics()),
-			"timestamp":      traceCtx.StartTime.Unix(),
-			"trace_id":       traceCtx.TraceID,
+			"total_providers":       len(collector.GetProviderMetrics()),
+			"timestamp":             traceCtx.StartTime.Unix(),
+			"trace_id":              traceCtx.TraceID,
 		}
 
 		// Add trace ID to response
@@ -92,21 +92,21 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 		// Debug information
 		debug := fiber.Map{
 			"collector_memory_info": fiber.Map{
-				"provider_count": len(collector.GetProviderMetrics()),
+				"provider_count":   len(collector.GetProviderMetrics()),
 				"sample_retention": collector.GetMaxLatencySamples(),
 			},
 			"trace_info": fiber.Map{
-				"trace_id": traceCtx.TraceID,
-				"span_id":  traceCtx.SpanID,
-				"span_name": traceCtx.SpanName,
+				"trace_id":   traceCtx.TraceID,
+				"span_id":    traceCtx.SpanID,
+				"span_name":  traceCtx.SpanName,
 				"start_time": traceCtx.StartTime,
 				"attributes": traceCtx.Attributes,
 			},
 			"request_info": fiber.Map{
-				"path":      c.Path(),
-				"method":    c.Method(),
+				"path":       c.Path(),
+				"method":     c.Method(),
 				"user_agent": c.Get("User-Agent"),
-				"ip":        c.IP(),
+				"ip":         c.IP(),
 			},
 			"timestamp": traceCtx.StartTime.Unix(),
 		}
@@ -122,7 +122,7 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 	return nil
 }
 
-// RegisterAllRoutes registers all API routes including metrics and multi-tenancy
+// RegisterAllRoutes registers optional model and debug routes.
 // Phase 2: Now accepts optional tenant auth middleware and database for inference endpoints
 func RegisterAllRoutes(app *fiber.App, tenantAuth interface{}, db interface{}) error {
 	// Type assert tenant auth middleware (can be nil for backward compatibility)
@@ -141,14 +141,20 @@ func RegisterAllRoutes(app *fiber.App, tenantAuth interface{}, db interface{}) e
 		}
 	}
 
-	// Register inference routes with optional tenant auth and database
-	if err := RegisterInferRoutes(app, ta, dbInstance); err != nil {
-		return err
+	if ExperimentalModelRoutesEnabled() {
+		if err := RegisterInferRoutes(app, ta, dbInstance); err != nil {
+			return err
+		}
+	} else {
+		log.Printf("[Routes] Experimental model routes disabled (%s not enabled)", ExperimentalModelRoutesFlag)
 	}
 
-	// Register metrics routes
-	if err := RegisterMetricsRoutes(app); err != nil {
-		return err
+	if DebugMetricsRoutesEnabled() {
+		if err := RegisterMetricsRoutes(app); err != nil {
+			return err
+		}
+	} else {
+		log.Printf("[Routes] Debug metrics routes disabled (%s not enabled)", DebugMetricsRoutesFlag)
 	}
 
 	// Note: Multi-tenancy routes are registered separately via SetupMultiTenancy
