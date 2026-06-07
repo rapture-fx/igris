@@ -2152,7 +2152,7 @@ html.dark .ic-btn--accent:hover {
               margin-left 320ms cubic-bezier(0.16, 0.84, 0.44, 1);
 }
 .ic-wfall__bar--ok    { background-color: var(--ic-emerald); }
-.ic-wfall__bar--warn  { background-color: var(--ic-amber); }
+.ic-wfall__bar--warn  { background-color: var(--ic-emerald); }
 .ic-wfall__bar--bad   { background-color: var(--ic-rose); }
 .ic-wfall__bar--muted { background-color: var(--ic-text-6); }
 .ic-wfall__val {
