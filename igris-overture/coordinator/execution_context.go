@@ -18,6 +18,16 @@ import (
 // write time rather than create an orphaned, unreadable receipt.
 var ErrExecutionLineageMissingTenant = errors.New("execution lineage record missing tenant_id")
 
+// ErrExecutionContextMissingTenant is returned when product execution context
+// would be persisted without a tenant_id. execution_context enriches proof and
+// inspection reads, so tenant-null rows are legacy/invalid for normal product
+// paths.
+var ErrExecutionContextMissingTenant = errors.New("execution context record missing tenant_id")
+
+// ErrExecutionContextTenantMismatch is returned when an execution_id conflict
+// targets an existing execution_context row owned by another tenant.
+var ErrExecutionContextTenantMismatch = errors.New("execution context tenant mismatch")
+
 type ExecutionContextRecord struct {
 	ExecutionID        string
 	TenantID           string
@@ -135,11 +145,15 @@ func saveExecutionContext(execer executionContextExecer, record *ExecutionContex
 	if record == nil || strings.TrimSpace(record.ExecutionID) == "" {
 		return nil
 	}
+	tenantID := strings.TrimSpace(record.TenantID)
+	if tenantID == "" {
+		return ErrExecutionContextMissingTenant
+	}
 
 	events := ensureJSONArray(record.Events)
 	logs := ensureJSONArray(record.Logs)
 
-	_, err := execer.Exec(`
+	result, err := execer.Exec(`
 		INSERT INTO execution_context (
 			execution_id, tenant_id, task_id, runtime_id, runtime_label, provider,
 			route_decision, execution_path, fallback_used, fallback_reason,
@@ -147,7 +161,7 @@ func saveExecutionContext(execer executionContextExecer, record *ExecutionContex
 			receipt_id, receipt_hash, created_at, updated_at
 		)
 		VALUES (
-			$1, NULLIF($2, ''), $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, ''),
+			$1, $2, $3, NULLIF($4, ''), NULLIF($5, ''), NULLIF($6, ''),
 			NULLIF($7, ''), NULLIF($8, ''), $9, NULLIF($10, ''),
 			$11, $12, $13, $14, NULLIF($15, ''), NULLIF($16, ''), NULLIF($17, ''),
 			NOW(), NOW()
@@ -175,9 +189,10 @@ func saveExecutionContext(execer executionContextExecer, record *ExecutionContex
 		    verification_status = COALESCE(EXCLUDED.verification_status, execution_context.verification_status),
 		    receipt_id = COALESCE(EXCLUDED.receipt_id, execution_context.receipt_id),
 		    receipt_hash = COALESCE(EXCLUDED.receipt_hash, execution_context.receipt_hash),
-		    updated_at = NOW()`,
+		    updated_at = NOW()
+		WHERE execution_context.tenant_id = EXCLUDED.tenant_id`,
 		record.ExecutionID,
-		record.TenantID,
+		tenantID,
 		record.TaskID,
 		record.RuntimeID,
 		record.RuntimeLabel,
@@ -194,7 +209,14 @@ func saveExecutionContext(execer executionContextExecer, record *ExecutionContex
 		record.ReceiptID,
 		record.ReceiptHash,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err == nil && rowsAffected == 0 {
+		return ErrExecutionContextTenantMismatch
+	}
+	return nil
 }
 
 func saveExecutionLineage(execer executionContextExecer, record *ExecutionLineageRecord) error {
