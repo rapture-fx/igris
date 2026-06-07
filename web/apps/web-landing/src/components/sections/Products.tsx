@@ -126,7 +126,7 @@ export function ExecutionPreview() {
           style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
         >
           <ConsoleStyles />
-          <div className="grid" style={{ gridTemplateColumns: '40px 236px 1fr', height: 640 }}>
+          <div className="grid" style={{ gridTemplateColumns: '40px 200px 1fr', height: 640 }}>
             <IconRail />
             <Sidebar query={query} setQuery={setQuery} />
             <Main />
@@ -144,15 +144,15 @@ function ConsoleStyles() {
         color-scheme: dark;
         --ic-bg: #0e0e0c;
         --ic-bg-rail: #070707;
-        --ic-text: #e8e7df;
-        --ic-text-bright: #f0efe8;
-        --ic-text-2: #d3d2c8;
-        --ic-text-3: #c8c7be;
-        --ic-text-4: #a8a89e;
-        --ic-text-5: #8a8a82;
-        --ic-text-6: #7a7a72;
-        --ic-text-7: #6a6a62;
-        --ic-text-8: #5a5a52;
+        --ic-text: #b0ada5;
+        --ic-text-bright: #d3d2c8;
+        --ic-text-2: #a8a89e;
+        --ic-text-3: #9a978f;
+        --ic-text-4: #8a8a82;
+        --ic-text-5: #7a7a72;
+        --ic-text-6: #6a6a62;
+        --ic-text-7: #5a5a52;
+        --ic-text-8: #4a4a42;
         --ic-text-9: #3a3a32;
         --ic-avatar-bg: #2a2a25;
         --ic-fault-text: #9a9a8e;
@@ -164,11 +164,11 @@ function ConsoleStyles() {
         --ic-overlay-4: rgba(255,255,255,0.045);
         --ic-overlay-5: rgba(255,255,255,0.06);
         --ic-overlay-bg: rgba(255,255,255,0.015);
-        --ic-rail-active: #f0efe8;
+        --ic-rail-active: #d3d2c8;
         --ic-dot-border: #070707;
-        --ic-accent: #34d399;
-        --ic-emerald: #34d399;
-        --ic-emerald-dim: rgba(52,211,153,0.8);
+        --ic-accent: #059669;
+        --ic-emerald: #059669;
+        --ic-emerald-dim: rgba(5,150,105,0.85);
         --ic-amber: #fbbf24;
         --ic-rose: #fb7185;
         --ic-mono: ${MONO};
@@ -181,12 +181,12 @@ function ConsoleStyles() {
         --ic-text-bright: #000000;
         --ic-text-2: #2a2820;
         --ic-text-3: #3a3830;
-        --ic-text-4: #555248;
-        --ic-text-5: #6e6b62;
-        --ic-text-6: #84817a;
-        --ic-text-7: #9a978f;
-        --ic-text-8: #b0ada5;
-        --ic-text-9: #d6d3cb;
+        --ic-text-4: #3a3830;
+        --ic-text-5: #4a4740;
+        --ic-text-6: #5a574e;
+        --ic-text-7: #6e6b62;
+        --ic-text-8: #84817a;
+        --ic-text-9: #b0ada5;
         --ic-avatar-bg: #d8d5cc;
         --ic-fault-text: #5a574e;
         --ic-border: rgba(0,0,0,0.08);
@@ -242,8 +242,22 @@ function ConsoleStyles() {
         color: var(--ic-text-5);
       }
 
+      /* Dark mode: darken the emerald accent so it reads as a dark emerald green */
+      .igris-console .text-emerald-300,
+      .igris-console .text-emerald-400,
+      .igris-console .text-emerald-500,
+      .igris-console .text-emerald-400\\/80 { color: #059669; }
+      .igris-console .bg-emerald-400 { background-color: #059669; }
+      .igris-console .bg-emerald-500,
+      .igris-console .bg-emerald-500\\/80 { background-color: #047857; }
+      .igris-console .bg-emerald-500\\/\\[0\\.12\\] { background-color: rgb(5 150 105 / 0.10); }
+      .igris-console .bg-emerald-500\\/\\[0\\.14\\] { background-color: rgb(5 150 105 / 0.12); }
+      .igris-console .hover\\:bg-emerald-500\\/\\[0\\.16\\]:hover { background-color: rgb(5 150 105 / 0.16); }
+      .igris-console .hover\\:bg-emerald-500\\/\\[0\\.2\\]:hover { background-color: rgb(5 150 105 / 0.2); }
+      .igris-console .border-emerald-500\\/20 { border-color: rgb(5 150 105 / 0.3); }
+      .igris-console .border-emerald-500\\/25 { border-color: rgb(5 150 105 / 0.35); }
+
       /* Light mode: darken the emerald + amber + rose accents so they read on the warm-white surface */
-      /* Light mode: darken the emerald + amber + rose accents and drop opacity so the +1 / −0 counters read properly */
       .igris-console--light .text-emerald-300,
       .igris-console--light .text-emerald-400,
       .igris-console--light .text-emerald-500,
@@ -299,9 +313,10 @@ function ConsoleStyles() {
 
       .igris-console .ic-chips { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; vertical-align: middle; }
       .igris-console .ic-chip--sm { font-size: 10px; padding: 0 5px; line-height: 15px; }
-      .igris-console .ic-chip__icon { display: inline-flex; align-items: center; margin-right: 4px; color: var(--ic-text-5); }
-      .igris-console .ic-chip__logo { display: inline-flex; align-items: center; justify-content: center; width: 12px; height: 12px; margin-right: 4px; color: var(--ic-text-3); }
-      .igris-console .ic-chip__logo svg { width: 100%; height: 100%; }
+      .igris-console .ic-chip__icon { display: inline-flex; align-items: center; margin-right: 4px; color: var(--ic-text-5); vertical-align: middle; }
+      .igris-console .ic-chip__logo { display: inline-flex; align-items: center; justify-content: center; width: 12px; height: 12px; margin-right: 4px; color: var(--ic-text-3); vertical-align: middle; }
+      .igris-console .ic-chip__logo svg,
+      .igris-console .ic-chip__logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 2px; }
 
       /* Pills */
       .igris-console .ig-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--ic-overlay-3); border: 1px solid var(--ic-border); color: var(--ic-text-3); white-space: nowrap; }
@@ -371,7 +386,7 @@ function ConsoleStyles() {
       .igris-console .ic-foot-time { margin: 12px 0 0; font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-8); font-variant-numeric: tabular-nums; }
 
       /* Run detail layout: evidence column + sticky execution-detail rail */
-      .igris-console .ic-run-detail-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; height: 100%; min-height: 0; }
+      .igris-console .ic-run-detail-layout { display: grid; grid-template-columns: minmax(0,1fr) 240px; gap: 16px; height: 100%; min-height: 0; }
       .igris-console .ic-run-detail-scroll { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 2px; scrollbar-width: none; }
       .igris-console .ic-run-detail-scroll::-webkit-scrollbar { display: none; }
       .igris-console .ic-run-detail-rail { min-width: 0; align-self: stretch; position: sticky; top: 0; border-left: 1px solid var(--ic-border); padding-left: 14px; }
@@ -458,12 +473,22 @@ function ConsoleStyles() {
 
 function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
   return (
-    <div
-      className="relative flex items-center justify-center h-9 w-9 rounded-md"
-      style={{ background: active ? 'var(--ic-overlay-5)' : 'transparent' }}
-    >
-      {active && <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r" style={{ background: 'var(--ic-rail-active)' }} />}
-      <Icon className="h-[15px] w-[15px]" strokeWidth={1.5} style={{ color: active ? 'var(--ic-rail-active)' : 'var(--ic-text-6)' }} />
+    <div className="relative flex items-center justify-center h-[30px] w-9">
+      {active && (
+        <span
+          className="absolute rounded-[6px]"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: 28,
+            height: 24,
+            background: 'var(--ic-overlay-3)',
+            zIndex: 0,
+          }}
+        />
+      )}
+      <Icon className="relative h-[15px] w-[15px]" strokeWidth={1.5} style={{ color: active ? 'var(--ic-rail-active)' : 'var(--ic-text-6)' }} />
     </div>
   )
 }
@@ -696,8 +721,9 @@ function RoutedVia() {
       </span>
       <span className="ic-chip ic-chip--sm">
         <span className="ic-chip__logo">
-          <svg role="img" viewBox="0 0 24 24" fill="#635BFF" xmlns="http://www.w3.org/2000/svg"><title>Stripe</title><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></svg>
-        </span>Stripe
+          <img src="/stripe.png" alt="" width={10} height={10} draggable={false} />
+        </span>
+        Stripe
       </span>
     </span>
   )
@@ -751,19 +777,19 @@ function Evidence() {
         <div className="ic-evidence__head">Demo context</div>
         <div className="ic-def">
           <span className="ic-def__label">Submitter</span>
-          <div className="ic-def__value"><span className="ic-chip">mateo@acme.io</span><span className="ic-def__hint">engineer, integrations</span></div>
+          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">mateo@acme.io</span><span className="ic-def__hint">engineer, integrations</span></div>
         </div>
         <div className="ic-def">
           <span className="ic-def__label">Region</span>
-          <div className="ic-def__value"><span className="ic-chip">fra1</span><span className="ic-chip">prod</span><span className="ic-def__hint">eu-central, primary</span></div>
+          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">fra1</span><span className="ic-chip ic-chip--sm">prod</span><span className="ic-def__hint">eu-central, primary</span></div>
         </div>
         <div className="ic-def">
           <span className="ic-def__label">Worker</span>
-          <div className="ic-def__value"><span className="ic-chip">worker_b</span><span className="ic-def__hint">recovered from</span><span className="ic-chip">worker_a</span></div>
+          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">worker_b</span><span className="ic-def__hint">recovered from</span><span className="ic-chip ic-chip--sm">worker_a</span></div>
         </div>
         <div className="ic-def">
           <span className="ic-def__label">Submitted</span>
-          <div className="ic-def__value"><span className="ic-chip">{RUN.started}</span><span className="ic-def__hint">{RUN.ago}, action workflow</span></div>
+          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">{RUN.started}</span><span className="ic-def__hint">{RUN.ago}, action workflow</span></div>
         </div>
       </div>
 
