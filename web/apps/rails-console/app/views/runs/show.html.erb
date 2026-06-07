@@ -59,7 +59,7 @@
             </div>
             <div class="ic-summary__cell">
               <div class="ic-summary__k">Routed via</div>
-              <div class="ic-summary__v"><%= facet_chips(@run[:routed_via]) %></div>
+                <div class="ic-summary__v"><%= route_chips(@run[:routed_via]) %></div>
             </div>
             <div class="ic-summary__cell">
               <div class="ic-summary__k">Policy</div>
@@ -245,7 +245,7 @@
         <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= dash.call(@run[:action]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill @run[:status] %></div></div>
         <div class="ic-def"><span class="ic-def__label">Executed target</span><div class="ic-def__value mono"><%= dash.call(@run[:executed_target]) %></div></div>
-        <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= facet_chips(@run[:routed_via]) %></div></div>
+                  <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= route_chips(@run[:routed_via]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= dash.call(@run[:runtime_id]) %></div></div>
         <div class="ic-def"><span class="ic-def__label">Started</span><div class="ic-def__value"><%= started_label %> <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %></span></div></div>
         <div class="ic-def"><span class="ic-def__label">Duration</span><div class="ic-def__value mono"><%= duration_label %></div></div>
