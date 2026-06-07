@@ -145,16 +145,6 @@ export default function Footer() {
               className="flex items-center gap-4"
               style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
             >
-              {mounted && (
-                <button
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  aria-label="Toggle theme"
-                  className="inline-flex items-baseline gap-1.5 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
-                >
-                  <span aria-hidden className="inline-block w-3 border-t border-current translate-y-[-3px]" />
-                  {theme === 'dark' ? 'Light' : 'Dark'}
-                </button>
-              )}
             </div>
           </div>
 
