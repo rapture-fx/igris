@@ -6,7 +6,8 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "guard:claims": "node scripts/landing-claim-guard.mjs"
   },
   "dependencies": {
     "@types/three": "^0.182.0",
