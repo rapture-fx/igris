@@ -1,295 +1,403 @@
-<%# Runtimes — live operational surface. The runtime is the private execution
-    bridge: it lets Igris route local/private actions to a machine that has
-    access to files, internal APIs, or databases. This page lets an engineer
-    create a runtime key, install + start a runtime, verify the heartbeat, and
-    see whether local actions can run. No hostnames, IPs, env values, runtime
-    keys, or private paths are ever rendered. %>
+<%# Runtimes — master-detail operational surface in the landing-hero console
+    design. The left mini-sidebar (hero Sidebar() port) is the picker: it lists
+    the connected runtimes. The main pane is the detail for the selected one —
+    overview definition rows, a per-runtime narrative, and the runs routed
+    through it — followed by the shared fleet sections (connection state,
+    connect steps, actions requiring runtime). The persistent icon rail in the
+    layout is the only nav chrome above this; this page does not re-create it.
+
+    The runtime is the private execution bridge: it lets Igris route
+    local/private actions to a machine that has access to files, internal
+    APIs, or databases. No hostnames, IPs, env values, runtime keys, or
+    private paths are ever rendered. %>
 <%
-  has_runtime = @runtimes.any?
-  healthy     = @runtimes.select { |r| r[:status] == 'Healthy' }
-  sum = @runtime_summary || { total: @runtimes.size, healthy: healthy.size, stale: 0, offline: 0 }
+  has_runtime   = @runtimes.any?
+  healthy       = @runtimes.select { |r| r[:status] == 'Healthy' }
+  sum           = @runtime_summary || { total: @runtimes.size, healthy: healthy.size, stale: 0, offline: 0 }
   runtime_ready = healthy.any?
-  key_value = @generated_key.presence || 'igris_...'
+  key_value     = @generated_key.presence || 'igris_...'
+  group_tone    = runtime_ready ? :ok : (has_runtime ? :warn : :muted)
+  group_dot     = { ok: 'var(--ic-emerald)', warn: 'var(--ic-amber)', muted: 'var(--ic-text-9)' }[group_tone]
+
+  # Master-detail selection: ?runtime=<id>, defaulting to the first healthy
+  # runtime (or the first of any) so the detail pane always has a subject.
+  selected_id   = params[:runtime].to_s.presence
+  selected      = (@runtimes.find { |r| r[:runtime_id].to_s == selected_id } if selected_id)
+  selected    ||= healthy.first || @runtimes.first
+  sel_healthy   = selected && selected[:status] == 'Healthy'
+  sel_runs      = has_runtime ? @runtime_runs.select { |r| r[:runtime_id].to_s == selected[:runtime_id].to_s } : []
 %>
-<div class="ic-topbar">
-  <div class="ic-topbar__group">
-    <span class="ic-topbar__title">Runtime</span>
-    <%= project_chip %>
-    <% if has_runtime %>
-      <% if sum[:healthy].positive? %><span class="ic-chip" style="color: var(--ic-emerald);"><%= sum[:healthy] %> healthy</span><% end %>
-      <% if sum[:stale].positive? %><span class="ic-chip" style="color: var(--ic-amber);"><%= sum[:stale] %> stale</span><% end %>
-      <% if sum[:offline].positive? %><span class="ic-chip" style="color: var(--ic-rose);"><%= sum[:offline] %> offline</span><% end %>
-    <% else %>
-      <span class="ic-chip">none connected</span>
-    <% end %>
-  </div>
-  <div class="ic-topbar__group">
-    <a href="#connect" class="ic-btn">Create runtime key</a>
-    <a href="#install" class="ic-btn">Install runtime</a>
-    <%= link_to 'Refresh', runtimes_path, class: 'ic-btn' %>
-  </div>
-</div>
 
-<%= render 'shared/flash', degraded_error: @degraded_error %>
+<div class="ic-runtime-shell">
 
-<div class="ic-body ic-scroll">
-  <div style="max-width: 880px; margin: 0 auto;">
-
-    <%# ── Intro (one line, truthful) ───────────────────────── %>
-    <h1 class="ic-h1">The private execution bridge.</h1>
-    <p class="ic-sub">
-      Use a runtime when an action needs private files, internal APIs, or
-      local databases. Hosted API and webhook actions do not require a runtime.
-    </p>
-
-    <%# ── Connection state ─────────────────────────────────── %>
-    <div class="ic-section-head">
-      <span class="ic-section-head__label">Connection state</span>
+  <%# ── Mini-sidebar — the runtimes picker (hero Sidebar port). Selecting a
+      runtime drives the detail pane via ?runtime=<id>. ── %>
+  <aside class="ic-sidebar" aria-label="Connected runtimes">
+    <div class="ic-sidebar__search-wrap">
+      <div class="ic-sidebar__search">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Search runtimes</span>
+      </div>
     </div>
-    <div class="ic-callout">
-      <% if !has_runtime %>
-        <div class="ic-callout__title">
-          <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>No runtime connected</span>
-        </div>
-        <p class="ic-callout__body">
-          Local runtime actions cannot run until a runtime is connected and
-          healthy. Follow the steps below to connect one.
-        </p>
-      <% elsif runtime_ready %>
-        <div class="ic-callout__title">
-          <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span><%= sum[:healthy] %> healthy <%= 'runtime'.pluralize(sum[:healthy]) %> connected</span>
-        </div>
-        <p class="ic-callout__body">
-          Local runtime actions can run.
-          <% if sum[:stale].positive? || sum[:offline].positive? %>
-            <%= sum[:stale] %> stale and <%= sum[:offline] %> offline — those are not reporting heartbeats.
-          <% end %>
-        </p>
+
+    <div class="ic-sidebar__section-head">
+      <span class="ic-sidebar__section-head__label">Connected runtimes</span>
+      <div class="ic-sidebar__section-head__tools">
+        <% if has_runtime %><span class="ic-section-head__hint" style="font-size: 10.5px;"><%= sum[:total] %></span><% end %>
+        <a href="#connect" aria-label="Connect a runtime">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="ic-sidebar__scroll">
+      <% if has_runtime %>
+        <details class="ic-group" open>
+          <summary class="ic-group__head">
+            <svg class="ic-group__chevron" viewBox="0 0 24 24" fill="none"><path d="M9 6 L15 12 L9 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="ic-group__dot" style="background: <%= group_dot %>;"></span>
+            <span class="ic-group__name"><%= project_display_name %></span>
+          </summary>
+          <div class="ic-group__body">
+            <% @runtimes.each do |rt| %>
+              <% rt_tone = runtime_status_tone(rt[:status]) %>
+              <% dot_cls, st_cls = case rt_tone
+                   when :ok   then ['ic-task__dot--running', 'ic-task__status--running']
+                   when :warn then ['ic-task__dot--warn',    'ic-task__status--warn']
+                   when :bad  then ['ic-task__dot--failed',  'ic-task__status--failed']
+                   else            ['ic-task__dot--ok',      'ic-task__status--ok']
+                 end %>
+              <% active = selected && selected[:runtime_id] == rt[:runtime_id] %>
+              <%= link_to runtimes_path(runtime: rt[:runtime_id]),
+                    class: "ic-task #{'is-active' if active}",
+                    title: "#{rt[:status]} · #{rt[:runtime_id]}",
+                    'aria-current': (active ? 'true' : nil) do %>
+                <span class="ic-task__dot <%= dot_cls %> <%= 'ic-breathing' if rt_tone == :ok %>"></span>
+                <span class="ic-task__status <%= st_cls %>"><%= rt[:status] %></span>
+                <span class="ic-task__title"><%= rt[:runtime_id] %></span>
+                <span class="ic-task__when"><%= time_ago(rt[:last_seen_at]) %></span>
+              <% end %>
+            <% end %>
+          </div>
+        </details>
+        <% if demo_mode? %>
+          <p class="ic-list-hint" style="padding: 8px 10px 0; margin: 0;">Demo data — these are sample runtimes, not a live connection.</p>
+        <% end %>
       <% else %>
-        <div class="ic-callout__title">
-          <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>No healthy runtime</span>
+        <div class="ic-sidebar__empty">
+          <p class="ic-list-hint" style="margin: 0 0 10px;">No runtime connected.</p>
+          <a href="#connect" class="ic-btn" style="height: 24px; padding: 0 8px; font-size: 11px;">Create a runtime key</a>
         </div>
-        <p class="ic-callout__body">
-          <%= sum[:stale] %> stale, <%= sum[:offline] %> offline. A runtime stopped
-          reporting heartbeats — local runtime actions are blocked until one is
-          healthy again. Check that the runtime process is still running, then Refresh.
-        </p>
       <% end %>
     </div>
+  </aside>
 
-    <%# ── Connect a runtime (steps) ────────────────────────── %>
-    <div id="connect" class="ic-section-head" style="margin-top: 24px;">
-      <span class="ic-section-head__label">Connect a runtime</span>
+  <%# ── Main pane — topbar / detail body / footer ───────────────────────── %>
+  <div class="ic-runtime-main">
+
+    <div class="ic-topbar">
+      <div class="ic-topbar__group">
+        <span class="ic-topbar__title">Runtime</span>
+        <% if has_runtime && selected %>
+          <span class="ic-topbar__sep">/</span>
+          <span class="ic-topbar__id mono"><%= selected[:runtime_id] %></span>
+          <%= status_pill selected[:status], tone: runtime_status_tone(selected[:status]) %>
+        <% else %>
+          <%= project_chip %>
+          <span class="ic-chip">none connected</span>
+        <% end %>
+      </div>
+      <div class="ic-topbar__group">
+        <a href="#connect" class="ic-btn">Create runtime key</a>
+        <a href="#install" class="ic-btn">Install runtime</a>
+        <%= link_to 'Refresh', runtimes_path(runtime: selected && selected[:runtime_id]), class: 'ic-btn ic-btn--accent' %>
+      </div>
     </div>
-    <p class="ic-onboard-note">
-      Install the runtime, start it on the machine that has access, then create
-      a Local runtime action. Under the current routing model, the runtime
-      endpoint must be reachable by Igris; do not expose private systems beyond
-      that runtime endpoint.
-    </p>
 
-    <div class="ic-steps">
-      <%# Step 1 — runtime key (read-once) %>
-      <div class="ic-step">
-        <span class="ic-step__num">1</span>
-        <div class="ic-step__main">
-          <div class="ic-step__title">Create a runtime key</div>
-          <% if demo_mode? %>
-            <p class="ic-step__hint">
-              Connect to a live Igris API to generate a key. Demo mode does not issue real keys.
-            </p>
-          <% elsif @generated_key.present? %>
-            <div class="ic-keygen">
-              <div class="ic-keygen__warn">Shown once. Store it in your password manager.</div>
-              <%= code_snippet @generated_key, language: 'bash', label: 'runtime key' %>
-              <p class="ic-step__hint">
-                This key authenticates the runtime to Igris and binds it to
-                <strong><%= project_display_name %></strong>. Use it on the machine where
-                the runtime runs — it is the <code>IGRIS_API_KEY</code> in the commands below.
-              </p>
+    <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+    <div class="ic-body ic-scroll">
+      <div style="max-width: 880px; margin: 0 auto;">
+
+        <p class="ic-sub" style="margin-top: 0;">
+          Use a runtime when an action needs private files, internal APIs, or
+          local databases. Hosted API and webhook actions do not require a runtime.
+        </p>
+
+        <% if has_runtime && selected %>
+          <%# ── Selected runtime — detail definition rows ─────────────── %>
+          <div class="ic-def">
+            <span class="ic-def__label">Runtime</span>
+            <div class="ic-def__value"><span class="ic-chip mono"><%= selected[:runtime_id] %></span></div>
+          </div>
+          <div class="ic-def">
+            <span class="ic-def__label">Status</span>
+            <div class="ic-def__value"><%= status_pill selected[:status], tone: runtime_status_tone(selected[:status]) %></div>
+          </div>
+          <div class="ic-def">
+            <span class="ic-def__label">Last seen</span>
+            <div class="ic-def__value"><%= time_ago(selected[:last_seen_at]) %> <span class="ic-def__hint">heartbeat every minute when healthy</span></div>
+          </div>
+          <div class="ic-def">
+            <span class="ic-def__label">Version</span>
+            <div class="ic-def__value mono"><%= selected[:version].presence || '—' %></div>
+          </div>
+          <div class="ic-def">
+            <span class="ic-def__label">Capabilities</span>
+            <div class="ic-def__value">
+              <% caps = Array(selected[:capabilities]) %>
+              <% if caps.any? %>
+                <% caps.each do |c| %><span class="ic-chip"><%= c %></span><% end %>
+              <% else %>
+                <span class="ic-def__hint">none reported</span>
+              <% end %>
+            </div>
+          </div>
+          <div class="ic-def">
+            <span class="ic-def__label">Recent (24h)</span>
+            <div class="ic-def__value mono"><%= selected[:recent_executions].to_i.positive? ? selected[:recent_executions] : '—' %></div>
+          </div>
+          <div class="ic-def">
+            <span class="ic-def__label">Local actions</span>
+            <div class="ic-def__value">
+              <% if sel_healthy %>
+                <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runnable</span>
+              <% else %>
+                <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Blocked — runtime required</span>
+              <% end %>
+              <span class="ic-def__hint">hosted API and webhook actions do not need a runtime</span>
+            </div>
+          </div>
+
+          <p class="ic-narrative" style="margin-top: 16px;">
+            <span class="mono"><%= selected[:runtime_id] %></span> is <%= selected[:status] %>.
+            <% if sel_healthy %>
+              It is reporting heartbeats, so local runtime actions can <span class="accent">route through it</span>.
+            <% else %>
+              It stopped reporting heartbeats, so local runtime actions are
+              <span style="color: var(--ic-amber);">blocked</span> on this runtime until it is healthy again —
+              check the process is still running, then Refresh.
+            <% end %>
+          </p>
+
+          <%# ── Runs through the selected runtime ───────────────────────── %>
+          <div id="runs" class="ic-section-head" style="margin-top: 24px;">
+            <span class="ic-section-head__label">Runtime runs</span>
+            <span class="ic-section-head__hint">through <%= selected[:runtime_id] %><%= ' (demo data)' if demo_mode? %></span>
+          </div>
+          <% if sel_runs.present? %>
+            <div class="ig-table-wrap">
+              <table class="ig-table">
+                <thead>
+                  <tr><th>Run</th><th>Action</th><th>Status</th><th>Evidence</th><th>Opened</th></tr>
+                </thead>
+                <tbody>
+                  <% sel_runs.each do |r| %>
+                    <% action_known = @action_names.include?(r[:action].to_s) %>
+                    <tr class="<%= 'is-running' if run_tone(r) == 'running' %>">
+                      <td><%= link_to r[:id], run_path(r[:id]) %></td>
+                      <td class="ig-mut"><%= action_known ? r[:action] : '—' %></td>
+                      <td><%= status_pill r[:status] %></td>
+                      <td><%= status_pill r[:proof] %></td>
+                      <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
             </div>
           <% else %>
-            <% if @key_status && @key_status['has_key'] %>
-              <p class="ic-step__hint">
-                A runtime key already exists
-                (<span class="mono"><%= @key_status['prefix'] %>…</span>). It was shown
-                only once at creation — generate a new one if you've lost it.
+            <div class="ic-empty" style="padding: 28px 16px;">
+              <div class="ic-empty__title">No runtime runs yet</div>
+              <p class="ic-empty__sub">
+                Runs that route through this runtime will appear here with their
+                status and signed evidence.
               </p>
-            <% else %>
-              <p class="ic-step__hint">
-                The runtime key authenticates the runtime to Igris. It is shown
-                once at creation — use it on the machine where the runtime runs.
-              </p>
-            <% end %>
-            <%= form_with url: api_key_runtimes_path, method: :post do %>
-              <%= submit_tag((@key_status && @key_status['has_key']) ? 'Generate a new key' : 'Create a runtime key', class: 'ic-btn') %>
-            <% end %>
+            </div>
           <% end %>
-        </div>
-      </div>
+        <% end %>
 
-      <%# Step 2 — install %>
-      <div id="install" class="ic-step">
-        <span class="ic-step__num">2</span>
-        <div class="ic-step__main">
-          <div class="ic-step__title">Install on the host with access</div>
-          <%= code_snippet runtime_install_command(key_value), language: 'bash' %>
+        <%# ── Connection state — fleet narrative (honest, data-derived) ── %>
+        <div class="ic-section-head" style="margin-top: 24px;">
+          <span class="ic-section-head__label">Connection state</span>
         </div>
-      </div>
-
-      <%# Step 3 — start %>
-      <div class="ic-step">
-        <span class="ic-step__num">3</span>
-        <div class="ic-step__main">
-          <div class="ic-step__title">Start the runtime</div>
-          <%= code_snippet runtime_serve_command(key_value), language: 'bash' %>
-          <p class="ic-step__hint">
-            It registers with Igris at <code><%= runtime_api_host %></code> when
-            <code>IGRIS_API_KEY</code> is set, and the runtime endpoint must remain
-            reachable by Igris for task dispatch.
-          </p>
-        </div>
-      </div>
-
-      <%# Step 4 — verify heartbeat %>
-      <div class="ic-step">
-        <span class="ic-step__num">4</span>
-        <div class="ic-step__main">
-          <div class="ic-step__title">Verify the heartbeat</div>
-          <p class="ic-step__hint">
-            Use <strong>Refresh</strong> above. A connected runtime reports a
-            heartbeat every minute and shows as <strong>Healthy</strong> below.
-            <strong>Stale</strong> or <strong>Offline</strong> means it stopped
-            reporting — check that the process is still running.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <%# ── Connected runtimes ───────────────────────────────── %>
-    <div class="ic-section-head" style="margin-top: 24px;">
-      <span class="ic-section-head__label">Connected runtimes</span>
-      <% if has_runtime %><span class="ic-section-head__hint"><%= sum[:total] %> total</span><% end %>
-    </div>
-    <% if has_runtime %>
-      <% if demo_mode? %>
-        <p class="ic-list-hint">Demo data — these are sample runtimes, not a live connection.</p>
-      <% end %>
-      <div class="ig-table-wrap">
-        <table class="ig-table">
-          <thead>
-            <tr><th>Runtime</th><th>Status</th><th>Last seen</th><th>Version</th><th>Capabilities</th><th>Recent (24h)</th></tr>
-          </thead>
-          <tbody>
-            <% @runtimes.each do |rt| %>
-              <% tone = runtime_status_tone(rt[:status]) %>
-              <tr>
-                <td><%= rt[:runtime_id] %></td>
-                <td><%= status_pill rt[:status], tone: tone %></td>
-                <td class="ig-mut"><%= time_ago(rt[:last_seen_at]) %></td>
-                <td class="ig-mut"><%= rt[:version].presence || '—' %></td>
-                <td>
-                  <% caps = Array(rt[:capabilities]) %>
-                  <% if caps.any? %>
-                    <% caps.first(4).each do |c| %><span class="ic-chip"><%= c %></span><% end %>
-                    <% if caps.size > 4 %><span class="ig-mut">+<%= caps.size - 4 %></span><% end %>
-                  <% else %>
-                    <span class="ig-mut">—</span>
-                  <% end %>
-                </td>
-                <td class="ig-mut"><%= rt[:recent_executions].to_i.positive? ? rt[:recent_executions] : '—' %></td>
-              </tr>
+        <p class="ic-narrative" style="margin-top: 8px;">
+          <% if !has_runtime %>
+            No runtime connected. <span class="mono">local runtime</span> actions are
+            <span style="color: var(--ic-amber);">blocked</span> until one is connected and healthy —
+            follow the steps below on the machine that has access.
+          <% elsif runtime_ready %>
+            <%= sum[:healthy] %> healthy <%= 'runtime'.pluralize(sum[:healthy]) %> connected.
+            Local runtime actions can <span class="accent">run</span>.
+            <% if sum[:stale].positive? || sum[:offline].positive? %>
+              <%= sum[:stale] %> stale and <%= sum[:offline] %> offline are not reporting heartbeats.
             <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div class="ic-empty" style="padding: 32px 16px;">
-        <div class="ic-empty__title">No runtime connected yet</div>
-        <p class="ic-empty__sub">
-          Install the runtime on the machine that has access to private files,
-          internal APIs, or local databases. The steps above get you connected.
+          <% else %>
+            No healthy runtime: <%= sum[:stale] %> stale, <%= sum[:offline] %> offline. A runtime
+            stopped reporting heartbeats — local runtime actions are
+            <span style="color: var(--ic-amber);">blocked</span> until one is healthy again.
+          <% end %>
         </p>
-        <a href="#connect" class="ic-btn">Create a runtime key</a>
-      </div>
-    <% end %>
 
-    <%# ── Actions requiring runtime ────────────────────────── %>
-    <div class="ic-section-head" style="margin-top: 24px;">
-      <span class="ic-section-head__label">Actions requiring runtime</span>
-      <span class="ic-section-head__hint">Local runtime actions route through a connected runtime.</span>
-    </div>
-    <% if @runtime_actions.present? %>
-      <div class="ig-table-wrap">
-        <table class="ig-table">
-          <thead>
-            <tr><th>Action</th><th>Status</th><th>Routed runtime</th><th>Last run</th></tr>
-          </thead>
-          <tbody>
-            <% @runtime_actions.each do |a| %>
-              <% lr = (@latest_run_by_action || {})[a[:name].to_s] %>
-              <tr>
-                <td><%= link_to a[:name], action_path(a[:id] || a[:name]) %></td>
-                <td>
-                  <% if runtime_ready %>
-                    <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runnable</span>
-                  <% else %>
-                    <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Blocked — runtime required</span>
-                  <% end %>
-                </td>
-                <td class="ig-mut"><%= lr && lr[:runtime_id].to_s.presence ? lr[:runtime_id] : '—' %></td>
-                <td class="ig-mut">
-                  <% if lr %><%= link_to time_ago(lr[:started_at]), run_path(lr[:id]) %><% else %>No run yet<% end %>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div class="ic-empty" style="padding: 28px 16px;">
-        <div class="ic-empty__title">No runtime actions yet</div>
-        <p class="ic-empty__sub">
-          <%= link_to 'Create an action', new_action_path %> with the
-          <strong>Local runtime</strong> target to route work through a connected runtime.
-        </p>
-      </div>
-    <% end %>
+        <% unless has_runtime %>
+          <div class="ic-empty" style="padding: 32px 16px;">
+            <div class="ic-empty__title">No runtime connected yet</div>
+            <p class="ic-empty__sub">
+              Install the runtime on the machine that has access to private files,
+              internal APIs, or local databases. The steps below get you connected.
+            </p>
+            <a href="#connect" class="ic-btn">Create a runtime key</a>
+          </div>
+        <% end %>
 
-    <%# ── Runtime runs ─────────────────────────────────────── %>
-    <div class="ic-section-head" style="margin-top: 24px;">
-      <span class="ic-section-head__label">Runtime runs</span>
-      <span class="ic-section-head__hint">Executions that routed through a runtime<%= ' (demo data)' if demo_mode? %>.</span>
-    </div>
-    <% if @runtime_runs.present? %>
-      <div class="ig-table-wrap">
-        <table class="ig-table">
-          <thead>
-            <tr><th>Run</th><th>Action</th><th>Runtime</th><th>Status</th><th>Evidence</th><th>Opened</th></tr>
-          </thead>
-          <tbody>
-            <% @runtime_runs.each do |r| %>
-              <% action_known = @action_names.include?(r[:action].to_s) %>
-              <tr class="<%= 'is-running' if run_tone(r) == 'running' %>">
-                <td><%= link_to r[:id], run_path(r[:id]) %></td>
-                <td class="ig-mut"><%= action_known ? r[:action] : '—' %></td>
-                <td class="ig-mut"><%= r[:runtime_id].to_s.presence || 'Local runtime' %></td>
-                <td><%= status_pill r[:status] %></td>
-                <td><%= status_pill r[:proof] %></td>
-                <td class="ig-mut"><%= time_ago(r[:started_at]) %></td>
-              </tr>
-            <% end %>
-          </tbody>
-        </table>
-      </div>
-    <% else %>
-      <div class="ic-empty" style="padding: 28px 16px;">
-        <div class="ic-empty__title">No runtime runs yet</div>
-        <p class="ic-empty__sub">
-          Runs that route through a connected runtime will appear here with their
-          status and signed evidence.
+        <%# ── Connect a runtime (steps) ────────────────────────────────── %>
+        <div id="connect" class="ic-section-head" style="margin-top: 24px;">
+          <span class="ic-section-head__label">Connect a runtime</span>
+          <% if has_runtime %><span class="ic-section-head__hint">add another</span><% end %>
+        </div>
+        <p class="ic-onboard-note">
+          Install the runtime, start it on the machine that has access, then create
+          a Local runtime action. Under the current routing model, the
+          runtime endpoint must be reachable by Igris; do not expose private
+          systems beyond that runtime endpoint.
         </p>
+
+        <div class="ic-steps">
+          <%# Step 1 — runtime key (read-once) %>
+          <div class="ic-step">
+            <span class="ic-step__num">1</span>
+            <div class="ic-step__main">
+              <div class="ic-step__title">Create a runtime key</div>
+              <% if demo_mode? %>
+                <p class="ic-step__hint">
+                  Connect to a live Igris API to generate a key. Demo mode does not issue real keys.
+                </p>
+              <% elsif @generated_key.present? %>
+                <div class="ic-keygen">
+                  <div class="ic-keygen__warn">Shown once. Store it in your password manager.</div>
+                  <%= code_snippet @generated_key, language: 'bash', label: 'runtime key' %>
+                  <p class="ic-step__hint">
+                    This key authenticates the runtime to Igris and binds it to
+                    <strong><%= project_display_name %></strong>. Use it on the machine where
+                    the runtime runs — it is the <code>IGRIS_API_KEY</code> in the commands below.
+                  </p>
+                </div>
+              <% else %>
+                <% if @key_status && @key_status['has_key'] %>
+                  <p class="ic-step__hint">
+                    A runtime key already exists
+                    (<span class="mono"><%= @key_status['prefix'] %>…</span>). It was shown
+                    only once at creation — generate a new one if you've lost it.
+                  </p>
+                <% else %>
+                  <p class="ic-step__hint">
+                    The runtime key authenticates the runtime to Igris. It is shown
+                    once at creation — use it on the machine where the runtime runs.
+                  </p>
+                <% end %>
+                <%= form_with url: api_key_runtimes_path, method: :post do %>
+                  <%= submit_tag((@key_status && @key_status['has_key']) ? 'Generate a new key' : 'Create a runtime key', class: 'ic-btn') %>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+
+          <%# Step 2 — install %>
+          <div id="install" class="ic-step">
+            <span class="ic-step__num">2</span>
+            <div class="ic-step__main">
+              <div class="ic-step__title">Install on the host with access</div>
+              <%= code_snippet runtime_install_command(key_value), language: 'bash' %>
+            </div>
+          </div>
+
+          <%# Step 3 — start %>
+          <div class="ic-step">
+            <span class="ic-step__num">3</span>
+            <div class="ic-step__main">
+              <div class="ic-step__title">Start the runtime</div>
+              <%= code_snippet runtime_serve_command(key_value), language: 'bash' %>
+              <p class="ic-step__hint">
+                It registers with Igris at <code><%= runtime_api_host %></code> when
+                <code>IGRIS_API_KEY</code> is set, and the runtime endpoint must remain
+                reachable by Igris for task dispatch.
+              </p>
+            </div>
+          </div>
+
+          <%# Step 4 — verify heartbeat %>
+          <div class="ic-step">
+            <span class="ic-step__num">4</span>
+            <div class="ic-step__main">
+              <div class="ic-step__title">Verify the heartbeat</div>
+              <p class="ic-step__hint">
+                Use <strong>Refresh</strong> above. A connected runtime reports a
+                heartbeat every minute and shows as <strong>Healthy</strong> in the
+                sidebar. <strong>Stale</strong> or <strong>Offline</strong> means it
+                stopped reporting — check that the process is still running.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <%# ── Actions requiring runtime ────────────────────────────────── %>
+        <div class="ic-section-head" style="margin-top: 24px;">
+          <span class="ic-section-head__label">Actions requiring runtime</span>
+          <span class="ic-section-head__hint">Local runtime actions route through a connected runtime.</span>
+        </div>
+        <% if @runtime_actions.present? %>
+          <div class="ig-table-wrap">
+            <table class="ig-table">
+              <thead>
+                <tr><th>Action</th><th>Status</th><th>Routed runtime</th><th>Last run</th></tr>
+              </thead>
+              <tbody>
+                <% @runtime_actions.each do |a| %>
+                  <% lr = (@latest_run_by_action || {})[a[:name].to_s] %>
+                  <tr>
+                    <td><%= link_to a[:name], action_path(a[:id] || a[:name]) %></td>
+                    <td>
+                      <% if runtime_ready %>
+                        <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>Runnable</span>
+                      <% else %>
+                        <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Blocked — runtime required</span>
+                      <% end %>
+                    </td>
+                    <td class="ig-mut"><%= lr && lr[:runtime_id].to_s.presence ? lr[:runtime_id] : '—' %></td>
+                    <td class="ig-mut">
+                      <% if lr %><%= link_to time_ago(lr[:started_at]), run_path(lr[:id]) %><% else %>No run yet<% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="ic-empty" style="padding: 28px 16px;">
+            <div class="ic-empty__title">No runtime actions yet</div>
+            <p class="ic-empty__sub">
+              <%= link_to 'Create an action', new_action_path %> with the
+              <strong>Local runtime</strong> target to route work through a connected runtime.
+            </p>
+          </div>
+        <% end %>
       </div>
-    <% end %>
+    </div>
+
+    <%# ── Footer status bar (hero main-pane foot) ──────────────────────── %>
+    <div class="ic-footer">
+      <div class="ic-footer__bar">
+        <span class="ic-footer__chip">
+          <span class="dot" style="background: <%= group_dot %>;"></span>
+          <span><%= sum[:healthy] %> healthy</span>
+        </span>
+        <span class="ic-footer__sep">·</span>
+        <span>Heartbeat 60s</span>
+        <span class="ic-footer__sep">·</span>
+        <span>Routes local runtime actions</span>
+        <div class="ic-footer__spacer"></div>
+        <span class="ic-footer__tier mono"><%= runtime_api_host %></span>
+      </div>
+    </div>
+
   </div>
 </div>
