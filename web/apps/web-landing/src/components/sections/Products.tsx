@@ -1177,49 +1177,29 @@ export default function Products() {
               style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
             >
               <p>
-                Igris sits between AI and the actions it wants to perform. When
-                your AI needs to read a file, call an API, update a database, or
-                trigger a workflow, Igris runs that action safely, records what
-                happened, and gives your team proof afterward. If execution
-                breaks mid-run, Igris resumes from the last recorded step
-                instead of starting from zero.
+                Igris helps AI agents run real actions safely.
               </p>
               <p>
-                AI systems should be able to operate in real environments
-                without becoming unreliable, hard to understand, or impossible
-                to trust.{' '}
-                As agents begin interacting with infrastructure, APIs, files,
-                workflows, and eventually physical systems, execution
-                reliability becomes as important as intelligence itself.
-              </p>
-
-            </div>
-            <div className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
-              style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-            >
-              <p>
-                Igris is infrastructure for AI actions. It helps{' '}
-                <span className="underline decoration-dashed underline-offset-[5px] decoration-gray-400 dark:decoration-[#7a7a72]">
-                  AI systems execute work with recovery, operational boundaries,
-                  and verifiable execution records built in
-                </span>
-                . Instead of relying on retries and scattered logs, Igris gives
-                operators a clear view of what happened, what failed, what
-                recovered, and how each action was executed.
+                When an agent needs to read a file, call an API, update a
+                database, or trigger a workflow, Igris sits in the middle. It
+                runs the action, records what happened, and gives your team a
+                clear trail afterward.
               </p>
               <p>
-                Tasks run with checkpointed recovery, replay safety,
-                runtime-aware boundaries, and execution verification. Install
-                Igris with{' '}
-                <code
-                  className="inline-flex items-baseline rounded-md px-2 py-0.5 border bg-white dark:bg-white/[0.08] border-gray-300 dark:border-white/[0.18] text-gray-900 dark:text-[#f6f6f4] align-baseline whitespace-nowrap shadow-[0_1px_2px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.5),0_2px_10px_rgba(0,0,0,0.4)]"
-                  style={{ fontFamily: MONO, fontSize: '0.85em' }}
-                >
-                  {INSTALL_CMD}
-                </code>
-                {' '}to start running agent actions with recovery and proof
-                built in.
+                If something breaks halfway through, Igris does not blindly
+                start over. It resumes from the last recorded step, so actions
+                are easier to recover, inspect, and trust.
               </p>
+              <p>
+                AI agents are starting to touch real systems. That means
+                execution matters as much as intelligence. Igris gives those
+                actions boundaries, recovery, and proof, so teams can see what
+                ran, what failed, what recovered, and why.
+              </p>
+              <p className="mt-6">
+                Install Igris:
+              </p>
+              <InstallCommand />
             </div>
             <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
               <img
