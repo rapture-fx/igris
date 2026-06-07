@@ -1158,7 +1158,7 @@ export default function Products() {
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="px-0">
         <div className="px-0">
-          <div className="pt-6 md:pt-8 pb-6 md:pb-8">
+          <div className="pt-16 md:pt-24 pb-6 md:pb-8">
             <h2
               className="text-[#000000] dark:text-[#f6f6f4] font-normal"
               style={{
@@ -1188,31 +1188,13 @@ export default function Products() {
                 AI systems should be able to operate in real environments
                 without becoming unreliable, hard to understand, or impossible
                 to trust.{' '}
-                <span className="bg-purple-200/70 dark:bg-purple-400/20 text-gray-900 dark:text-purple-100 px-1 rounded-sm">
-                  As agents begin interacting with infrastructure, APIs, files,
-                  workflows, and eventually physical systems, execution
-                  reliability becomes as important as intelligence itself.
-                </span>
+                As agents begin interacting with infrastructure, APIs, files,
+                workflows, and eventually physical systems, execution
+                reliability becomes as important as intelligence itself.
               </p>
 
             </div>
-            <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
-              <img
-                src="/rohzf.png"
-                alt=""
-                className="block w-full h-auto select-none"
-                draggable={false}
-              />
-              <div
-                aria-hidden
-                className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-t from-transparent to-dark-bg"
-              />
-              <div
-                aria-hidden
-                className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-dark-bg"
-              />
-            </div>
-            <div className="mt-8 px-4 md:px-6 text-gray-600 dark:text-[#a8a898] space-y-5 md:max-w-[50%] md:ml-auto"
+            <div className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
               style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
             >
               <p>
@@ -1238,6 +1220,22 @@ export default function Products() {
                 {' '}to start running agent actions with recovery and proof
                 built in.
               </p>
+            </div>
+            <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
+              <img
+                src="/rohzf.png"
+                alt=""
+                className="block w-full h-auto select-none"
+                draggable={false}
+              />
+              <div
+                aria-hidden
+                className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-t from-transparent to-dark-bg"
+              />
+              <div
+                aria-hidden
+                className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-dark-bg"
+              />
             </div>
           </div>
         </div>
