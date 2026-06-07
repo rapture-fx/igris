@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 import { LineSpinner } from 'ldrs/react'
 import 'ldrs/react/LineSpinner.css'
 import {
-  LayoutDashboard, ListChecks, RotateCcw, Activity, BarChart3, type LucideIcon,
+  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -38,46 +38,53 @@ const STEPS: Step[] = [
   { id: 's5', kind: 'action', num: '04', name: 'db_write',  detail: 'orders_fulfilled · r_8421',                                                 status: 'running' },
 ]
 
-interface SidebarTask {
+interface RunRow {
   id: string
-  status: 'completed' | 'running' | 'failed'
-  title: string
+  action: string
+  status: 'running' | 'completed' | 'failed' | 'blocked'
+  statusLabel: string
   when: string
   active?: boolean
 }
 
-interface SidebarGroup {
-  id: string
+interface ProjectGroup {
   name: string
-  collapsed?: boolean
-  tasks: SidebarTask[]
+  runs: RunRow[]
 }
 
-const SIDEBAR: SidebarGroup[] = [
+// Mirrors the rails-console runs picker: runs grouped into projects by their
+// target, action name leading each row. The active run drives the detail pane.
+const PROJECTS: ProjectGroup[] = [
   {
-    id: 'acme-orders',
-    name: 'acme-orders',
-    tasks: [
-      { id: 't-now', status: 'running',   title: 'Fulfill order — policy v3',   when: 'just now', active: true },
-      { id: 't-1',   status: 'completed', title: 'Reconcile inventory snapshot', when: '4m ago' },
-      { id: 't-2',   status: 'completed', title: 'Sync customer accounts',       when: '12m ago' },
+    name: 'web-app',
+    runs: [
+      { id: 'rdm_01', action: 'deploy_preview',    status: 'completed', statusLabel: 'Succeeded', when: '8m ago' },
+      { id: 'rdm_08', action: 'open_pull_request', status: 'completed', statusLabel: 'Succeeded', when: '47m ago' },
+      { id: 'rdm_06', action: 'purge_cache',       status: 'blocked',   statusLabel: 'Cancelled', when: '33m ago' },
+      { id: 'rdm_09', action: 'deploy_preview',    status: 'failed',    statusLabel: 'Failed',    when: '54m ago' },
     ],
   },
   {
-    id: 'enterprise-sync',
-    name: 'enterprise-sync',
-    tasks: [
-      { id: 't-3', status: 'completed', title: 'Rotate signing keys',       when: '1h ago' },
-      { id: 't-4', status: 'completed', title: 'Reindex catalog',           when: '2h ago' },
-      { id: 't-5', status: 'completed', title: 'Replay overnight backlog',  when: '6h ago' },
+    name: 'payments-api',
+    runs: [
+      { id: 'run_01HGJ9N7P4D', action: 'charge_customer', status: 'running',   statusLabel: 'Running',   when: 'just now', active: true },
+      { id: 'rdm_37',          action: 'charge_customer', status: 'completed', statusLabel: 'Succeeded', when: '2d ago' },
+      { id: 'rdm_12',          action: 'refund_charge',   status: 'blocked',   statusLabel: 'Denied',    when: '1h ago' },
     ],
   },
   {
-    id: 'mateo-pipeline',
-    name: "mateo's-pipeline",
-    collapsed: true,
-    tasks: [
-      { id: 't-6', status: 'failed', title: 'Webhook retry', when: '1d ago' },
+    name: 'data-platform',
+    runs: [
+      { id: 'rdm_05', action: 'run_migration',     status: 'failed',    statusLabel: 'Failed',    when: '28m ago' },
+      { id: 'rdm_04', action: 'validate_policy',   status: 'completed', statusLabel: 'Succeeded', when: '22m ago' },
+      { id: 'rdm_02', action: 'capture_exception', status: 'completed', statusLabel: 'Succeeded', when: '12m ago' },
+    ],
+  },
+  {
+    name: 'growth-ops',
+    runs: [
+      { id: 'rdm_03', action: 'create_issue', status: 'running',   statusLabel: 'Running',   when: '15m ago' },
+      { id: 'rdm_07', action: 'send_email',   status: 'completed', statusLabel: 'Succeeded', when: '41m ago' },
     ],
   },
 ]
@@ -87,6 +94,7 @@ const SIDEBAR: SidebarGroup[] = [
 export function ExecutionPreview() {
   const { resolvedTheme } = useTheme()
   const isLight = resolvedTheme === 'light'
+  const [query, setQuery] = useState('')
   return (
     <div
       className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]"
@@ -104,7 +112,7 @@ export function ExecutionPreview() {
           <ConsoleStyles />
           <div className="grid" style={{ gridTemplateColumns: '40px 236px 1fr', height: 640 }}>
             <IconRail />
-            <Sidebar />
+            <Sidebar query={query} setQuery={setQuery} />
             <Main />
           </div>
         </div>
@@ -284,12 +292,13 @@ function IconRail() {
       <div className="flex items-center justify-center h-9 w-9 mb-1">
         <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
-      <div className="flex flex-col items-center flex-1">
+      <div className="flex flex-col items-center flex-1 gap-0.5">
+        <RailIcon Icon={Home} />
         <RailIcon Icon={LayoutDashboard} />
-        <RailIcon Icon={ListChecks} active />
-        <RailIcon Icon={RotateCcw} />
-        <RailIcon Icon={Activity} />
-        <RailIcon Icon={BarChart3} />
+        <RailIcon Icon={ListChecks} />
+        <RailIcon Icon={Zap} active />
+        <RailIcon Icon={Box} />
+        <RailIcon Icon={Settings} />
       </div>
       {/* Profile avatar */}
       <div className="relative h-6 w-6 mt-1 mb-1 rounded-full overflow-hidden select-none" style={{ background: 'var(--ic-avatar-bg)' }}>
@@ -302,101 +311,109 @@ function IconRail() {
 
 // ── Sidebar ────────────────────────────────────────────────────────
 
-function Sidebar() {
+function Sidebar({ query, setQuery }: { query: string; setQuery: (v: string) => void }) {
+  const q = query.trim().toLowerCase()
+  const groups = PROJECTS
+    .map((g) => ({
+      name: g.name,
+      runs: g.runs.filter((r) => !q || (r.action + ' ' + r.statusLabel + ' ' + r.id).toLowerCase().includes(q)),
+    }))
+    .filter((g) => g.runs.length > 0)
+  const total = PROJECTS.reduce((n, g) => n + g.runs.length, 0)
+
   return (
     <aside className="flex flex-col border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
-      {/* search */}
+      {/* search — filters the runs picker live */}
       <div className="px-3 pt-3 pb-2">
-        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px]" style={{ background: 'var(--ic-bg)', borderColor: 'var(--ic-border-soft)' }}>
+        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] focus-within:border-[color:var(--ic-border)]" style={{ background: 'var(--ic-bg)', borderColor: 'var(--ic-border-soft)' }}>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--ic-text-7)' }}>
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          <span className="flex-1 text-[10.5px]" style={{ color: 'var(--ic-text-7)' }}>Search</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search runs"
+            aria-label="Search runs"
+            className="flex-1 min-w-0 bg-transparent border-0 outline-none text-[10.5px] placeholder:text-[var(--ic-text-7)]"
+            style={{ color: 'var(--ic-text-2)' }}
+          />
         </div>
       </div>
 
       {/* section header */}
       <div className="flex items-center justify-between px-4 mt-1 mb-1">
-        <span className="text-[11px] text-[var(--ic-text-6)]">Tasks</span>
+        <span className="text-[11px] text-[var(--ic-text-6)]">Recent runs</span>
         <div className="flex items-center gap-1.5">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-8)] hover:text-[var(--ic-text-4)] cursor-pointer">
-            <path d="M7 8 L17 8 M7 16 L17 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            <path d="M14 5 L17 8 L14 11 M10 13 L7 16 L10 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-8)] hover:text-[var(--ic-text-4)] cursor-pointer">
-            <path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <span className="text-[10.5px] text-[var(--ic-text-7)] tabular-nums">{total}</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-8)]">
+            <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </div>
       </div>
 
-      {/* groups */}
+      {/* project groups */}
       <div className="ic-scroll flex-1 overflow-y-auto px-2 pb-2">
-        {SIDEBAR.map((g) => (
-          <SidebarGroupView key={g.id} group={g} />
-        ))}
-        <button className="w-full text-left text-[11px] text-[var(--ic-text-8)] hover:text-[var(--ic-text-4)] px-2 py-1.5 mt-1">
-          Show more
-        </button>
+        {groups.length > 0 ? (
+          groups.map((g) => <ProjectGroupView key={g.name} group={g} />)
+        ) : (
+          <p className="text-[11px] text-[var(--ic-text-7)] px-2.5 py-2.5">No runs match your search.</p>
+        )}
       </div>
-
     </aside>
   )
 }
 
-function SidebarGroupView({ group }: { group: SidebarGroup }) {
-  const expanded = !group.collapsed
+function ProjectGroupView({ group }: { group: { name: string; runs: RunRow[] } }) {
   return (
     <div className="mt-1">
-      <button className="flex items-center gap-1.5 w-full px-1.5 py-1 text-left text-[12px] text-[var(--ic-text-3)] hover:bg-[var(--ic-overlay-2)] rounded">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className={'text-[var(--ic-text-7)] transition-transform ' + (expanded ? 'rotate-90' : '')}>
+      <div className="flex items-center gap-1.5 w-full px-1.5 py-1 text-[12px] text-[var(--ic-text-3)] rounded">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-7)] rotate-90">
           <path d="M9 6 L15 12 L9 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="flex items-center justify-center w-3.5 h-3.5">
-          <span className="block w-1.5 h-1.5 rounded-full bg-emerald-500/80" />
-        </span>
-        <span className="truncate" style={{ letterSpacing: '-0.005em' }}>{group.name}</span>
-      </button>
-      {expanded && (
-        <div className="mt-px">
-          {group.tasks.map((t) => (
-            <SidebarTaskView key={t.id} task={t} />
-          ))}
-        </div>
-      )}
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ic-text-6)]">
+          <path d="M4 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z" />
+        </svg>
+        <span className="flex-1 truncate" style={{ letterSpacing: '-0.005em' }}>{group.name}</span>
+        <span className="text-[10px] text-[var(--ic-text-7)] tabular-nums">{group.runs.length}</span>
+      </div>
+      <div className="mt-px">
+        {group.runs.map((r) => (
+          <RunRowView key={r.id} run={r} />
+        ))}
+      </div>
     </div>
   )
 }
 
-function SidebarTaskView({ task }: { task: SidebarTask }) {
+function RunRowView({ run }: { run: RunRow }) {
   const dotColor =
-    task.status === 'running'  ? 'bg-emerald-400' :
-    task.status === 'failed'   ? 'bg-rose-500'    :
-                                 'bg-[var(--ic-text-9)]'
-  const label =
-    task.status === 'running'   ? 'Running'   :
-    task.status === 'failed'    ? 'Failed'    :
-                                  'Completed'
-  const labelColor =
-    task.status === 'running'   ? 'text-emerald-400' :
-    task.status === 'failed'    ? 'text-rose-400'    :
-                                  'text-[var(--ic-text-7)]'
-
+    run.status === 'running' ? 'bg-emerald-400 ic-live-dot' :
+    run.status === 'failed'  ? 'bg-rose-500' :
+    run.status === 'blocked' ? 'bg-amber-400' :
+                               'bg-[var(--ic-text-9)]'
+  const stColor =
+    run.status === 'running' ? 'text-emerald-400' :
+    run.status === 'failed'  ? 'text-rose-400' :
+    run.status === 'blocked' ? 'text-amber-400' :
+                               'text-[var(--ic-text-7)]'
   return (
     <div
       className={
-        'group flex items-center gap-2 pl-7 pr-2 py-1.5 rounded transition-colors cursor-default ' +
-        (task.active ? 'bg-[var(--ic-overlay-4)]' : 'hover:bg-[var(--ic-overlay-1)]')
+        'group grid items-center gap-2 pl-7 pr-2 py-1.5 rounded transition-colors cursor-default ' +
+        (run.active ? 'bg-[var(--ic-overlay-4)]' : 'hover:bg-[var(--ic-overlay-1)]')
       }
+      style={{ gridTemplateColumns: '10px minmax(0,1fr) auto auto' }}
     >
-      <span className="flex items-center justify-center w-2.5">
-        <span className={'block w-1.5 h-1.5 rounded-full ' + dotColor + (task.status === 'running' ? ' ic-live-dot' : '')} />
+      <span className="flex items-center justify-center">
+        <span className={'block w-1.5 h-1.5 rounded-full ' + dotColor} />
       </span>
-      <span className={'text-[10.5px] tracking-[0.04em] flex-shrink-0 w-[58px] ' + labelColor}>{label}</span>
-      <span className={'text-[11.5px] truncate flex-1 ' + (task.active ? 'text-[var(--ic-text-bright)]' : 'text-[var(--ic-text-4)]')} style={{ letterSpacing: '-0.005em' }}>
-        {task.title}
+      <span className={'text-[11.5px] truncate ' + (run.active ? 'text-[var(--ic-text-bright)]' : 'text-[var(--ic-text-2)]')} style={{ fontFamily: MONO, letterSpacing: '-0.005em' }}>
+        {run.action}
       </span>
-      <span className="text-[10.5px] text-[var(--ic-text-8)] tabular-nums flex-shrink-0 hidden md:inline">{task.when}</span>
+      <span className={'text-[10.5px] ' + stColor}>{run.statusLabel}</span>
+      <span className="text-[10.5px] text-[var(--ic-text-8)] tabular-nums flex-shrink-0 hidden md:inline">{run.when}</span>
     </div>
   )
 }
@@ -407,7 +424,12 @@ function Main() {
   return (
     <div className="flex flex-col min-h-0">
       <MainTopBar />
-      <MainBody />
+      <div className="ic-scroll flex-1 overflow-y-auto px-5 py-4 min-h-0">
+        <div className="grid gap-4 items-start" style={{ gridTemplateColumns: 'minmax(0,1fr) 260px' }}>
+          <Evidence />
+          <ExecDetailRail />
+        </div>
+      </div>
       <MainFooter />
     </div>
   )
@@ -416,15 +438,21 @@ function Main() {
 function MainTopBar() {
   return (
     <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-[color:var(--ic-border)]">
-      <div className="flex items-center gap-2.5 min-w-0">
-        <span className="text-[13px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em' }}>
-          Fulfill order — policy v3
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-[12px] text-[var(--ic-text-6)]">Runs</span>
+        <span className="text-[var(--ic-text-8)]">/</span>
+        <span className="text-[13px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em', fontFamily: MONO }}>
+          charge_customer
         </span>
-        <span className="ic-chip">acme-orders</span>
+        <span className="text-[11px] text-[var(--ic-text-6)] truncate" style={{ fontFamily: MONO }}>run_01HGJ9N7P4D</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-7)] flex-shrink-0">
+          <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <span className="ic-chip">payments-api</span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <TopBtn label="Re-run" iconPlus />
-        <TopBtn label="Inspect" iconCaret />
+        <TopBtn label="Back to action" iconCaret />
         <TopBtn label="Verify chain" iconCaret accent />
       </div>
     </div>
@@ -457,7 +485,7 @@ function TopBtn({ label, iconPlus, iconCaret, accent }: { label: string; iconPlu
   )
 }
 
-function MainBody() {
+function Evidence() {
   const [visible, setVisible] = useState(1)
   const [cycle, setCycle] = useState(0)
   const [fading, setFading] = useState(false)
@@ -490,7 +518,7 @@ function MainBody() {
   const total = STEPS.filter((s) => s.kind === 'action').length
 
   return (
-    <div className="ic-scroll flex-1 overflow-y-auto px-7 pt-6 pb-2">
+    <div className="min-w-0">
       {/* definition rows — Submitter / Region / Worker / Submitted / Mode */}
       <DefRow label="Submitter" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>mateo@acme.io</span> <span className="text-[var(--ic-text-6)]">engineer, integrations</span></>} />
       <DefRow label="Region"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>fra1·prod</span> <span className="text-[var(--ic-text-6)]">eu-central, primary</span></>} />
@@ -653,6 +681,62 @@ function FaultLine({ step }: { step: Step }) {
       <span className="text-[10.5px] text-amber-400/70">recovered</span>
       <span className="text-[10.5px] text-[var(--ic-text-8)]" style={{ fontFamily: MONO }}>0 replays</span>
     </div>
+  )
+}
+
+// ── Execution detail rail (right side of the main pane) ────────────
+
+function ExecDetailRail() {
+  return (
+    <aside className="flex flex-col gap-3 min-w-0">
+      <div className="rounded-lg border-[0.5px] px-3.5 py-3" style={{ borderColor: 'var(--ic-overlay-5)', background: 'rgba(255,255,255,0.015)' }}>
+        <div className="text-[10px] uppercase tracking-wide text-[var(--ic-text-6)] mb-2.5">Execution detail</div>
+        <div className="flex flex-col gap-2.5">
+          <RailCell k="Action"><span className="text-[11px] text-[var(--ic-text-2)]" style={{ fontFamily: MONO }}>charge_customer</span></RailCell>
+          <RailCell k="Status"><Pill tone="ok" label="Running" /></RailCell>
+          <RailCell k="Routed via"><span className="inline-flex items-center gap-1.5"><StripeMark /><span className="text-[11px] text-[var(--ic-text-2)]">Stripe</span></span></RailCell>
+          <RailCell k="Policy"><span className="ic-chip">Idempotent</span> <span className="ic-chip">3 retries</span></RailCell>
+          <RailCell k="Proof"><Pill tone="muted" label="Pending" /></RailCell>
+          <RailCell k="Started"><span className="text-[11px] text-[var(--ic-text-2)]">14:07:42 UTC</span></RailCell>
+          <RailCell k="Duration"><span className="text-[11px] text-[var(--ic-text-2)]">—</span></RailCell>
+        </div>
+        <p className="mt-3 text-[10.5px] text-[var(--ic-text-6)] leading-relaxed">Proof is available when signed runtime evidence exists.</p>
+      </div>
+
+      <div className="rounded-lg border-[0.5px] px-3.5 py-3" style={{ borderColor: 'var(--ic-overlay-5)', background: 'rgba(255,255,255,0.015)' }}>
+        <div className="text-[10px] uppercase tracking-wide text-[var(--ic-text-6)] mb-1">What to do next</div>
+        <div className="text-[12px] text-[var(--ic-text-2)]">Run is still in flight.</div>
+        <p className="mt-1 text-[11px] text-[var(--ic-text-5)] leading-relaxed">Step evidence appears here as the run commits each step.</p>
+      </div>
+    </aside>
+  )
+}
+
+function RailCell({ k, children }: { k: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-[9.5px] text-[var(--ic-text-6)] mb-0.5">{k}</div>
+      <div className="flex items-center gap-1.5 flex-wrap">{children}</div>
+    </div>
+  )
+}
+
+function Pill({ tone, label }: { tone: 'ok' | 'warn' | 'bad' | 'muted'; label: string }) {
+  const cls =
+    tone === 'ok'   ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/[0.12]' :
+    tone === 'bad'  ? 'text-rose-400 border-rose-500/25 bg-rose-500/[0.12]' :
+    tone === 'warn' ? 'text-amber-300 border-amber-500/25 bg-amber-500/[0.12]' :
+                      'text-[var(--ic-text-4)] border-[color:var(--ic-border)] bg-[var(--ic-overlay-3)]'
+  return <span className={'inline-flex items-center h-[18px] px-1.5 rounded text-[10.5px] border ' + cls}>{label}</span>
+}
+
+// Genuine Stripe mark (Simple Icons), brand-coloured to match the rails console
+// runs-detail "Routed via" chip.
+function StripeMark() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden style={{ flexShrink: 0 }}>
+      <path fill="#635BFF" d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z" />
+    </svg>
   )
 }
 
