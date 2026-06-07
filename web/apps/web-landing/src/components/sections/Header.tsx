@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
-import { useTheme } from 'next-themes';
 
 
 const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
@@ -44,13 +43,8 @@ export default function Header() {
   const [docsOpen, setDocsOpen] = useState(false);
 
   const [consoleUrl, setConsoleUrl] = useState('https://console.igrisinertial.com');
-  const [mounted, setMounted] = useState(false);
 
   const navRef = useRef<HTMLElement>(null);
-
-  const { theme } = useTheme();
-
-  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
@@ -77,8 +71,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const isDark = mounted && theme === 'dark';
-
   const closeAll = () => {
     setMobileOpen(false);
     setProductOpen(false);
@@ -86,7 +78,7 @@ export default function Header() {
   };
 
   const DesktopDropdownPanel = (items: DropdownItem[]) => (
-    <div className="absolute left-0 top-full mt-2 w-48 rounded-lg bg-white dark:bg-[#161313] border border-black/[0.08] dark:border-white/[0.08] shadow-lg shadow-black/[0.04] dark:shadow-black/40 p-1.5 z-50">
+    <div className="absolute left-0 top-full mt-2 w-48 rounded-lg bg-[#161313] border border-white/[0.12] shadow-lg shadow-black/40 p-1.5 z-50">
       {items.map((item) =>
         item.external ? (
           <a
@@ -95,7 +87,7 @@ export default function Header() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={closeAll}
-            className="block rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+            className="block rounded-md px-3 py-1.5 text-[#f6f6f4] hover:bg-white/[0.08] transition-colors"
             style={NAV_ITEM_STYLE}
           >
             {item.label}
@@ -106,7 +98,7 @@ export default function Header() {
             href={item.href}
             prefetch={false}
             onClick={closeAll}
-            className="block rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+            className="block rounded-md px-3 py-1.5 text-[#f6f6f4] hover:bg-white/[0.08] transition-colors"
             style={NAV_ITEM_STYLE}
           >
             {item.label}
@@ -119,14 +111,14 @@ export default function Header() {
   return (
     <>
       {/* Top navigation bar — fixed, full width */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/85 dark:bg-[rgba(17,15,15,0.85)] backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#010203]/90 backdrop-blur-md">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
 
             {/* Logo */}
             <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center">
               <img
-                src={isDark ? '/inertiadm.png' : '/inertia.png'}
+                src="/inertiadm.png"
                 alt="Igris Inertial"
                 className="h-7 w-auto rounded-lg"
               />
@@ -139,7 +131,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }}
-                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[#f6f6f4] hover:bg-white/[0.08] transition-colors"
                   style={NAV_ITEM_STYLE}
                 >
                   <span>Product</span>
@@ -153,7 +145,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }}
-                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                  className="flex items-center gap-1 rounded-md px-3 py-1.5 text-[#f6f6f4] hover:bg-white/[0.08] transition-colors"
                   style={NAV_ITEM_STYLE}
                 >
                   <span>Docs</span>
@@ -167,19 +159,19 @@ export default function Header() {
                 href="/pricing"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                className="rounded-md px-3 py-1.5 text-[#f6f6f4] hover:bg-white/[0.08] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Pricing
               </Link>
 
-              <span className="mx-1 h-4 w-px bg-black/[0.08] dark:bg-white/[0.08]" />
+              <span className="mx-1 h-4 w-px bg-white/[0.12]" />
 
               {/* Sign in */}
               <a
                 href={`${consoleUrl}/auth?mode=signin`}
                 onClick={closeAll}
-                className="rounded-md px-3 py-1.5 text-black dark:text-[#f6f6f4] hover:bg-black/[0.04] dark:hover:bg-white/[0.05] transition-colors"
+                className="rounded-md px-3 py-1.5 text-[#f6f6f4] hover:bg-white/[0.08] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Sign in
@@ -189,7 +181,7 @@ export default function Header() {
               <a
                 href={`${consoleUrl}/auth?mode=signup`}
                 onClick={closeAll}
-                className="rounded-xl px-3.5 py-1.5 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912] hover:opacity-80 transition-opacity"
+                className="rounded-xl px-3.5 py-1.5 bg-[#f6f6f4] text-[#010203] hover:opacity-80 transition-opacity"
                 style={NAV_ITEM_STYLE}
               >
                 Get started
@@ -200,7 +192,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden text-gray-700 dark:text-[#c8c8b8]"
+              className="md:hidden text-[#c8c8b8]"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -212,12 +204,12 @@ export default function Header() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 pt-14 bg-white dark:bg-[#110f0f] overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-40 pt-14 bg-[#010203] overflow-y-auto">
           <nav className="flex flex-col px-5 py-6">
             <a
               href={`${consoleUrl}/auth?mode=signin`}
               onClick={closeAll}
-              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="block w-full py-2 text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Sign in
@@ -227,7 +219,7 @@ export default function Header() {
               href="/pricing"
               prefetch={false}
               onClick={closeAll}
-              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="block w-full py-2 text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Pricing
@@ -237,21 +229,21 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setProductOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="w-full flex items-center justify-between gap-2 py-2 text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               <span>Product</span>
               <ChevronDown className={`h-4 w-4 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
             </button>
             {productOpen && (
-              <div className="mb-2 pl-3 border-l border-black/[0.08] dark:border-white/[0.08]">
+              <div className="mb-2 pl-3 border-l border-white/[0.12]">
                 {productItems.map((item) => (
                   <Link
                     key={item.label}
                     href={item.href}
                     prefetch={false}
                     onClick={closeAll}
-                    className="block w-full py-1.5 text-[13px] text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                    className="block w-full py-1.5 text-[13px] text-[#a8a898] hover:text-[#f6f6f4] transition-colors"
                     style={{ fontFamily: NAV_FONT }}
                   >
                     {item.label}
@@ -264,14 +256,14 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setDocsOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="w-full flex items-center justify-between gap-2 py-2 text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               <span>Docs</span>
               <ChevronDown className={`h-4 w-4 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
             </button>
             {docsOpen && (
-              <div className="mb-2 pl-3 border-l border-black/[0.08] dark:border-white/[0.08]">
+              <div className="mb-2 pl-3 border-l border-white/[0.12]">
                 {docsItems.map((item) => (
                   <a
                     key={item.label}
@@ -279,7 +271,7 @@ export default function Header() {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={closeAll}
-                    className="block w-full py-1.5 text-[13px] text-gray-600 dark:text-[#a8a898] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
+                    className="block w-full py-1.5 text-[13px] text-[#a8a898] hover:text-[#f6f6f4] transition-colors"
                     style={{ fontFamily: NAV_FONT }}
                   >
                     {item.label}
@@ -291,7 +283,7 @@ export default function Header() {
             <a
               href={`${consoleUrl}/auth?mode=signup`}
               onClick={closeAll}
-               className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912] hover:opacity-80 transition-opacity"
+               className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-[#f6f6f4] text-[#010203] hover:opacity-80 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Get started
