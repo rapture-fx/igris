@@ -19,12 +19,12 @@
   --ic-text-bright: #000000;
   --ic-text-2: #2a2820;
   --ic-text-3: #3a3830;
-  --ic-text-4: #555248;
-  --ic-text-5: #6e6b62;
-  --ic-text-6: #84817a;
-  --ic-text-7: #9a978f;
-  --ic-text-8: #b0ada5;
-  --ic-text-9: #d6d3cb;
+  --ic-text-4: #3a3830;
+  --ic-text-5: #4a4740;
+  --ic-text-6: #5a574e;
+  --ic-text-7: #6e6b62;
+  --ic-text-8: #84817a;
+  --ic-text-9: #b0ada5;
   --ic-avatar-bg: #d8d5cc;
   --ic-fault-text: #5a574e;
   --ic-border: rgba(0,0,0,0.08);
@@ -52,15 +52,15 @@
 html.dark, html[data-theme="dark"] {
   --ic-bg: #0e0e0c;
   --ic-bg-rail: #070707;
-  --ic-text: #d3d2c8;
-  --ic-text-bright: #c8c7be;
-  --ic-text-2: #c8c7be;
-  --ic-text-3: #c8c7be;
-  --ic-text-4: #a8a89e;
-  --ic-text-5: #8a8a82;
-  --ic-text-6: #7a7a72;
-  --ic-text-7: #6a6a62;
-  --ic-text-8: #5a5a52;
+  --ic-text: #b0ada5;
+  --ic-text-bright: #d3d2c8;
+  --ic-text-2: #a8a89e;
+  --ic-text-3: #9a978f;
+  --ic-text-4: #8a8a82;
+  --ic-text-5: #7a7a72;
+  --ic-text-6: #6a6a62;
+  --ic-text-7: #5a5a52;
+  --ic-text-8: #4a4a42;
   --ic-text-9: #3a3a32;
   --ic-avatar-bg: #2a2a25;
   --ic-fault-text: #9a9a8e;
@@ -72,7 +72,7 @@ html.dark, html[data-theme="dark"] {
   --ic-overlay-4: rgba(255,255,255,0.045);
   --ic-overlay-5: rgba(255,255,255,0.06);
   --ic-overlay-bg: rgba(255,255,255,0.015);
-  --ic-rail-active: #f0efe8;
+  --ic-rail-active: #d3d2c8;
   --ic-dot-border: #070707;
   --ic-accent: #047857;
   --ic-emerald: #047857;
@@ -1074,6 +1074,7 @@ html.dark .ig-btn--primary {
   align-items: center;
   margin-right: 4px;
   color: var(--ic-text-5);
+  vertical-align: middle;
 }
 /* Self-hosted brand logo, inlined as SVG. Each file carries its own fill —
    a brand colour for vivid marks, or fill="currentColor" for marks that are
@@ -1087,10 +1088,14 @@ html.dark .ig-btn--primary {
   height: 12px;
   margin-right: 4px;
   color: var(--ic-text-3);
+  vertical-align: middle;
 }
-.ic-chip__logo svg {
+.ic-chip__logo svg,
+.ic-chip__logo img {
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  border-radius: 2px;
 }
 /* Inline group of facet chips — replaces "A · B" dot-joined labels so each
    value sits in its own neat badge, evenly gapped and vertically centred. */
