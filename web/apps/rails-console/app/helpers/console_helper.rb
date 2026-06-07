@@ -68,6 +68,8 @@ module ConsoleHelper
     'box'              => '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
     'settings'         => '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
     'user'             => '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    'globe'            => '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    'link'             => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
     # Brand mark — Igris cross-hair. Not lucide; kept distinct on purpose.
     'igris-mark'       => '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>',
   }.freeze
@@ -126,6 +128,74 @@ module ConsoleHelper
     return '—'.html_safe if toks.empty?
     content_tag(:span, class: 'ic-chips') do
       safe_join(toks.map { |t| content_tag(:span, t, class: 'ic-chip ic-chip--sm') })
+    end
+  end
+
+  # Route chips with icons for the routed_via field.
+  # Token 0 = route type (globe/link/box), token 1+ = brand name (Simple Icons).
+  def route_chips(value)
+    toks = feed_tokens(value)
+    return '—'.html_safe if toks.empty?
+    content_tag(:span, class: 'ic-chips') do
+      safe_join(toks.each_with_index.map { |t, i| i.zero? ? chip_with_icon(t) : brand_chip(t) })
+    end
+  end
+
+  private
+
+  # Brand marks are self-hosted SVGs in public/logos/<slug>.svg — genuine,
+  # owner-supplied glyphs only, never hand-drawn. They are inlined and tinted
+  # with the chip's currentColor, so they adapt to light/dark. A slug with no
+  # file on disk falls back to a plain text label rather than a broken image,
+  # so dropping in an official SVG is all it takes to light a provider up.
+  # A provider rebrand (e.g. Stripe's new mark) is handled by replacing the file.
+  BRAND_LOGO_SLUGS = %w[stripe hubspot resend slack polar s3 sendgrid].freeze
+
+  def route_icon(name)
+    case name.to_s
+    when 'Hosted API' then 'globe'
+    when 'Webhook'    then 'link'
+    when 'Runtime', 'Local runtime' then 'box'
+    else nil
+    end
+  end
+
+  def chip_with_icon(text)
+    icon = route_icon(text)
+    content = icon ? safe_join([
+      content_tag(:span, console_icon(icon, size: 12, stroke: 1.8), class: 'ic-chip__icon', style: route_icon_color(text)),
+      text
+    ]) : text
+    content_tag(:span, content, class: 'ic-chip ic-chip--sm')
+  end
+
+  def route_icon_color(name)
+    case name.to_s
+    when 'Hosted API'       then 'color: rgb(192, 132, 252);'
+    when 'Runtime', 'Local runtime' then 'color: rgb(59, 130, 246);'
+    when 'Webhook'          then 'color: rgb(96, 165, 250);'
+    else nil
+    end
+  end
+
+  def brand_chip(text)
+    svg = brand_logo_svg(text.to_s.downcase)
+    return content_tag(:span, text, class: 'ic-chip ic-chip--sm') unless svg
+
+    content_tag(:span, class: 'ic-chip ic-chip--sm') do
+      safe_join([content_tag(:span, svg, class: 'ic-chip__logo'), text])
+    end
+  end
+
+  # Inlined SVG for a brand slug, read from public/logos/<slug>.svg and memoized
+  # for the request. Whitelisted slugs only (no path traversal), and only files
+  # that exist — a missing logo returns nil so the chip degrades to plain text.
+  def brand_logo_svg(slug)
+    return nil unless BRAND_LOGO_SLUGS.include?(slug)
+
+    (@brand_logo_cache ||= {}).fetch(slug) do
+      path = Rails.root.join('public', 'logos', "#{slug}.svg")
+      @brand_logo_cache[slug] = path.file? ? path.read.html_safe : nil
     end
   end
 
