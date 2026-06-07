@@ -53,15 +53,15 @@ html.dark {
   body {
     margin: 0;
     padding: 0;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
     box-sizing: border-box;
   }
 
-  /* Ensure consistent background on mobile overscroll */
+  /* Light-mode overscroll matches the navbar (#010203); body stays white so
+     page content reads light. The root element's background fills the
+     rubber-band / overscroll canvas. */
   html {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #010203 !important;
+    background-color: #010203 !important;
     overflow-x: hidden;
   }
 
@@ -123,7 +123,7 @@ html.dark {
   /* Force background on all viewport areas including overscroll */
   @media screen {
     html {
-      background: #ffffff !important;
+      background: #010203 !important;
     }
 
     html.dark {
@@ -131,10 +131,10 @@ html.dark {
     }
   }
 
-  /* Remove any black from browser defaults */
+  /* Root/canvas background = navbar color in light mode (overscroll match) */
   :root {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
+    background: #010203 !important;
+    background-color: #010203 !important;
   }
 
   :root:has(html.dark) {
