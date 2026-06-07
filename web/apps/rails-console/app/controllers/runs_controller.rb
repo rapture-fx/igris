@@ -36,12 +36,44 @@ class RunsController < ApplicationController
   def show
     @run = data_source.find_run(params[:id])
     return head :not_found unless @run
+    # Recent runs power the master-detail mini-sidebar picker on this page,
+    # grouped into plausible projects by their target so it reads like a real
+    # multi-project workspace rather than one flat list.
+    @all_runs = data_source.all_runs
+    @run_groups = group_runs_by_project(@all_runs)
     @action_known = data_source.actions.any? { |a| a[:name].to_s == @run[:action].to_s }
     @any_healthy_runtime = data_source.healthy_runtime?
     @degraded_error = data_source.error
   end
 
   private
+
+  # Stable project order for the mini-sidebar, plus the target brands that
+  # belong to each. Runtime-executed jobs (no external brand) fall under the
+  # data-platform project.
+  RUN_PROJECT_ORDER = %w[web-app payments-api data-platform growth-ops].freeze
+  RUN_PROJECT_BY_BRAND = {
+    'Vercel' => 'web-app', 'GitHub' => 'web-app', 'Cloudflare' => 'web-app',
+    'Stripe' => 'payments-api',
+    'Neon' => 'data-platform', 'Sentry' => 'data-platform',
+    'Resend' => 'growth-ops', 'Linear' => 'growth-ops',
+  }.freeze
+
+  def project_for_run(run)
+    via = run[:routed_via].to_s
+    return 'data-platform' if via.include?('Runtime')
+    brand = via.split('·').last.to_s.strip
+    RUN_PROJECT_BY_BRAND[brand] || 'web-app'
+  end
+
+  # => [[project, [runs...]], ...] in RUN_PROJECT_ORDER, skipping empty
+  # projects and appending any unmapped ones at the end.
+  def group_runs_by_project(runs)
+    grouped = runs.group_by { |r| project_for_run(r) }
+    ordered = RUN_PROJECT_ORDER.filter_map { |p| [p, grouped[p]] if grouped[p]&.any? }
+    extras  = grouped.reject { |p, _| RUN_PROJECT_ORDER.include?(p) }.to_a
+    ordered + extras
+  end
 
   def by_status(runs, status)
     case status
