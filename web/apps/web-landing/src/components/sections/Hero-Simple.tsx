@@ -11,7 +11,12 @@ export default function Hero() {
   return (
     <section
       className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
-      style={{ minHeight: 'calc(100vh - 3.5rem)' }}
+      style={{
+        backgroundImage: 'url(/herobg.png)',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center bottom',
+        backgroundSize: 'cover',
+      }}
     >
       <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div>
@@ -31,13 +36,36 @@ export default function Hero() {
                 >
                   Run agent actions that recover<br />and prove what happened.
                 </h1>
-                <a
-                  href="https://console.igrisinertial.com/auth?mode=signup"
-                  className="mt-5 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
-                  style={{ fontFamily: SANS }}
+                <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                  <a
+                    href="https://console.igrisinertial.com/auth?mode=signup"
+                    className="inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                    style={{ fontFamily: SANS }}
+                  >
+                    Get started
+                  </a>
+                  <a
+                    href="#how-it-works"
+                    className="inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl border transition-colors border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-[rgba(246,246,244,0.18)] dark:text-[#c8c8b8] dark:hover:bg-white/[0.04]"
+                    style={{ fontFamily: SANS }}
+                  >
+                    See how it works
+                  </a>
+                </div>
+              </div>
+
+              <div className="md:col-span-5">
+                <p
+                  className="text-[#3a3830] dark:text-[#a8a89e] max-w-[360px] ml-auto text-right"
+                  style={{
+                    fontFamily: SANS,
+                    fontSize: 'clamp(0.95rem, 1.4vw, 1.2rem)',
+                    lineHeight: 1.45,
+                    letterSpacing: '-0.01em',
+                  }}
                 >
-                  Get started
-                </a>
+                  Give agents safe action endpoints. Igris routes the work, records the run, recovers failures, and keeps evidence you can inspect.
+                </p>
               </div>
 
 
