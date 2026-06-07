@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import {
-  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
+  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, Sun, Moon, type LucideIcon,
 } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -35,20 +35,20 @@ interface Step {
 // web/apps/rails-console/app/services/igris/fixtures.rb so the hero renders the
 // same committed-actions log as the rails-console Run detail page.
 const STEPS: Step[] = [
-  { id: 's01', kind: 'action', num: '01', name: 'read_file',  detail: '/uploads/policy-v3.pdf · 1.2KB digest',                          latency: 12,  status: 'committed', receipt: 'r₀₁', at: '14:07:42.218' },
-  { id: 's02', kind: 'action', num: '02', name: 'http_call',  detail: 'GET /v3/accounts/8821 · 200 OK',                                 latency: 24,  status: 'committed', receipt: 'r₀₂', at: '14:07:42.301' },
-  { id: 's03', kind: 'action', num: '03', name: 'http_call',  detail: 'POST /v3/sync · 200 OK',                                         latency: 38,  status: 'committed', receipt: 'r₀₃', at: '14:07:42.481' },
-  { id: 's04', kind: 'fault',              name: 'host_fault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b',  latency: 31,  status: 'committed', at: '14:07:42.074' },
-  { id: 's05', kind: 'action', num: '04', name: 'http_call',  detail: 'retry 2 of 3 succeeded',                                        latency: 42,  status: 'committed', receipt: 'r₀₄', at: '14:07:43.014' },
-  { id: 's06', kind: 'action', num: '05', name: 'read_file',  detail: '/tmp/manifest.json · 0.8KB digest',                             latency: 9,   status: 'committed', receipt: 'r₀₅', at: '14:07:43.140' },
-  { id: 's07', kind: 'action', num: '06', name: 'inference',  detail: 'classify_intent · 128 tok · 0.31 conf',                         latency: 210, status: 'committed', receipt: 'r₀₆', at: '14:07:43.402' },
-  { id: 's08', kind: 'action', num: '07', name: 'http_call',  detail: 'POST /v3/accounts/8821/ledger · 200 OK',                        latency: 47,  status: 'committed', receipt: 'r₀₇', at: '14:07:43.509' },
-  { id: 's09', kind: 'action', num: '08', name: 'db_write',   detail: 'accounts_staged · r_7720',                                      latency: 54,  status: 'committed', receipt: 'r₀₈', at: '14:07:43.612' },
-  { id: 's10', kind: 'action', num: '09', name: 'http_call',  detail: 'POST /v3/notify · 202 Accepted',                                latency: 33,  status: 'committed', receipt: 'r₀₉', at: '14:07:43.701' },
-  { id: 's11', kind: 'fault',              name: 'rate_limit', detail: 'upstream 429 · backoff 250ms · resumed',                       latency: 250, status: 'committed', at: '14:07:42.500' },
-  { id: 's12', kind: 'action', num: '10', name: 'http_call',  detail: 'POST /v3/notify · retry 1 of 3 · 202',                          latency: 29,  status: 'committed', receipt: 'r₁₀', at: '14:07:44.012' },
-  { id: 's13', kind: 'action', num: '11', name: 'read_file',  detail: '/var/run/lock/orders · 0.1KB digest',                          latency: 6,   status: 'committed', receipt: 'r₁₁', at: '14:07:44.119' },
-  { id: 's14', kind: 'action', num: '12', name: 'db_write',   detail: 'orders_fulfilled · r_8421',                                                   status: 'running', at: '14:07:42.785' },
+  { id: 's01', kind: 'action', num: '01', name: 'http_call', detail: 'POST /v1/charges · 200 OK', latency: 45, status: 'committed', receipt: 'r₀₁', at: '14:07:42.218' },
+  { id: 's02', kind: 'action', num: '02', name: 'http_call', detail: 'GET /v1/customers/cus_8821 · 200 OK', latency: 28, status: 'committed', receipt: 'r₀₂', at: '14:07:42.301' },
+  { id: 's03', kind: 'action', num: '03', name: 'http_call', detail: 'POST /v1/payment_intents · 200 OK', latency: 52, status: 'committed', receipt: 'r₀₃', at: '14:07:42.481' },
+  { id: 's04', kind: 'fault', name: 'rate_limit', detail: 'Stripe 429 · backoff 200ms · resumed', latency: 200, status: 'committed', at: '14:07:42.074' },
+  { id: 's05', kind: 'action', num: '04', name: 'http_call', detail: 'POST /v1/payment_intents/pi_128/confirm · retry 2 of 3 · 200', latency: 62, status: 'committed', receipt: 'r₀₄', at: '14:07:43.014' },
+  { id: 's06', kind: 'action', num: '05', name: 'http_call', detail: 'GET /v1/balance · 200 OK', latency: 15, status: 'committed', receipt: 'r₀₅', at: '14:07:43.140' },
+  { id: 's07', kind: 'action', num: '06', name: 'http_call', detail: 'POST /v1/refunds · 200 OK', latency: 38, status: 'committed', receipt: 'r₀₆', at: '14:07:43.402' },
+  { id: 's08', kind: 'action', num: '07', name: 'db_write', detail: 'transactions · r_7720', latency: 22, status: 'committed', receipt: 'r₀₇', at: '14:07:43.509' },
+  { id: 's09', kind: 'action', num: '08', name: 'http_call', detail: 'POST /v1/invoices · 200 OK', latency: 41, status: 'committed', receipt: 'r₀₈', at: '14:07:43.612' },
+  { id: 's10', kind: 'action', num: '09', name: 'http_call', detail: 'POST /webhooks/stripe · 202 Accepted', latency: 19, status: 'committed', receipt: 'r₀₉', at: '14:07:43.701' },
+  { id: 's11', kind: 'fault', name: 'host_fault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b', latency: 120, status: 'committed', at: '14:07:42.500' },
+  { id: 's12', kind: 'action', num: '10', name: 'http_call', detail: 'POST /webhooks/stripe · retry 1 of 3 · 202', latency: 24, status: 'committed', receipt: 'r₁₀', at: '14:07:44.012' },
+  { id: 's13', kind: 'action', num: '11', name: 'http_call', detail: 'POST /v1/subscriptions · 200 OK', latency: 33, status: 'committed', receipt: 'r₁₁', at: '14:07:44.119' },
+  { id: 's14', kind: 'action', num: '12', name: 'db_write', detail: 'ledger_sync · r_8421', status: 'running', at: '14:07:42.785' },
 ]
 
 interface RunRow {
@@ -80,7 +80,7 @@ const PROJECTS: ProjectGroup[] = [
   {
     name: 'payments-api',
     runs: [
-      { id: 'rdm_36',          action: 'charge_customer', status: 'running',   statusLabel: 'Running',   when: 'just now' },
+      { id: 'run_01HGJ9N7P4D', action: 'charge_customer', status: 'running',   statusLabel: 'Running',   when: 'just now', active: true },
       { id: 'rdm_37',          action: 'charge_customer', status: 'completed', statusLabel: 'Succeeded', when: '2d ago' },
       { id: 'rdm_12',          action: 'refund_charge',   status: 'blocked',   statusLabel: 'Denied',    when: '1h ago' },
     ],
@@ -88,7 +88,6 @@ const PROJECTS: ProjectGroup[] = [
   {
     name: 'data-platform',
     runs: [
-      { id: 'run_01HGJ9N7P4D', action: 'fulfill_order',     status: 'running',   statusLabel: 'Running',   when: 'just now', active: true },
       { id: 'rdm_05', action: 'run_migration',     status: 'failed',    statusLabel: 'Failed',    when: '28m ago' },
       { id: 'rdm_04', action: 'validate_policy',   status: 'completed', statusLabel: 'Succeeded', when: '22m ago' },
       { id: 'rdm_02', action: 'capture_exception', status: 'completed', statusLabel: 'Succeeded', when: '12m ago' },
@@ -337,7 +336,7 @@ function ConsoleStyles() {
       .igris-console--light .ig-pill--ok   { background: rgba(4,120,87,0.08); }
 
       /* Definition rows */
-      .igris-console .ic-def { display: grid; grid-template-columns: 90px 1fr; column-gap: 24px; padding: 6px 0; }
+      .igris-console .ic-def { display: grid; grid-template-columns: 90px 1fr; column-gap: 24px; padding: 6px 0; align-items: center; }
       .igris-console .ic-def__label { font-size: 11px; color: var(--ic-text-5); }
       .igris-console .ic-def__value { font-size: 11px; color: var(--ic-text-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
       .igris-console .ic-def__value.mono { font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-3); word-break: break-all; }
@@ -365,7 +364,8 @@ function ConsoleStyles() {
       .igris-console .ic-loggroup { margin-top: 6px; }
       .igris-console .ic-loggroup__head { cursor: default; list-style: none; padding: 4px 0; border-radius: 4px; }
       .igris-console .ic-loggroup__head .ic-panel__head-l { gap: 8px; }
-      .igris-console .ic-loggroup__chev { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 5px solid var(--ic-text-6); transform: rotate(90deg); }
+      .igris-console .ic-loggroup__chev { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 5px solid var(--ic-text-6); transform: rotate(0deg); transition: transform 160ms ease; }
+      .igris-console .ic-loggroup__chev--open { transform: rotate(90deg); }
       .igris-console .ic-log__body { margin-top: 8px; padding: 2px 0; max-height: 440px; overflow-y: auto; scrollbar-width: none; }
       .igris-console .ic-log__body::-webkit-scrollbar { display: none; }
       .igris-console .ic-log__dur { font-size: 11px; color: var(--ic-text-6); font-variant-numeric: tabular-nums; }
@@ -422,8 +422,8 @@ function ConsoleStyles() {
       /* What-to-do-next */
       .igris-console .ic-nextstep { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
       .igris-console .ic-nextstep__kicker { font-size: 10px; letter-spacing: 0.08em; color: var(--ic-emerald); margin-bottom: 4px; }
-      .igris-console .ic-nextstep__title { font-size: 11px; font-weight: 500; color: var(--ic-text-bright); letter-spacing: -0.01em; }
-      .igris-console .ic-nextstep__sub { font-size: 11px; color: var(--ic-text-5); margin: 3px 0 0; line-height: 1.5; max-width: 60ch; }
+      .igris-console .ic-nextstep__title { font-size: 10.5px; font-weight: 500; color: var(--ic-text-bright); letter-spacing: -0.01em; }
+      .igris-console .ic-nextstep__sub { font-size: 10.5px; color: var(--ic-text-5); margin: 3px 0 0; line-height: 1.5; max-width: 60ch; }
       .igris-console .ic-nextstep__cta { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
 
       /* Run Inspector */
@@ -461,7 +461,7 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__track { position: relative; height: 11px; border-radius: 3px; background: var(--ic-overlay-2); background-image: repeating-linear-gradient(to right, var(--ic-border-soft) 0 1px, transparent 1px 25%); }
       .igris-console .ic-wfall__bar { position: absolute; top: 1.5px; bottom: 1.5px; min-width: 2px; border-radius: 2px; background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0)); box-shadow: inset 2px 0 0 rgba(255,255,255,0.35); }
       .igris-console .ic-wfall__bar--ok { background-color: var(--ic-emerald); }
-      .igris-console .ic-wfall__bar--warn { background-color: var(--ic-emerald); }
+      .igris-console .ic-wfall__bar--warn { background-color: var(--ic-amber); }
       .igris-console .ic-wfall__bar--bad { background-color: var(--ic-rose); }
       .igris-console .ic-wfall__bar--muted { background-color: var(--ic-text-6); }
       .igris-console .ic-wfall__val { font-size: 10px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; text-align: right; font-family: var(--ic-mono); }
@@ -587,10 +587,15 @@ function Sidebar({ query, setQuery }: { query: string; setQuery: (v: string) => 
 }
 
 function ProjectGroupView({ group }: { group: { name: string; runs: RunRow[] } }) {
+  const [open, setOpen] = useState(group.name !== 'web-app' && group.name !== 'data-platform')
   return (
     <div className="mt-1">
-      <div className="flex items-center gap-1.5 w-full px-1.5 py-1 text-[12px] text-[var(--ic-text-3)] rounded">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-7)] rotate-90">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 w-full px-1.5 py-1 text-[12px] text-[var(--ic-text-3)] rounded hover:bg-[var(--ic-overlay-1)] transition-colors cursor-default text-left"
+      >
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className={`text-[var(--ic-text-7)] transition-transform ${open ? 'rotate-90' : ''}`}>
           <path d="M9 6 L15 12 L9 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="text-[var(--ic-text-6)]">
@@ -598,22 +603,19 @@ function ProjectGroupView({ group }: { group: { name: string; runs: RunRow[] } }
         </svg>
         <span className="flex-1 truncate" style={{ letterSpacing: '-0.005em' }}>{group.name}</span>
         <span className="text-[10px] text-[var(--ic-text-7)] tabular-nums">{group.runs.length}</span>
-      </div>
-      <div className="mt-px">
-        {group.runs.map((r) => (
-          <RunRowView key={r.id} run={r} />
-        ))}
-      </div>
+      </button>
+      {open && (
+        <div className="mt-px">
+          {group.runs.map((r) => (
+            <RunRowView key={r.id} run={r} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }
 
 function RunRowView({ run }: { run: RunRow }) {
-  const dotColor =
-    run.status === 'running' ? 'bg-emerald-400 ic-live-dot' :
-    run.status === 'failed'  ? 'bg-rose-500' :
-    run.status === 'blocked' ? 'bg-amber-400' :
-                               'bg-[var(--ic-text-9)]'
   const stColor =
     run.status === 'running' ? 'text-emerald-400' :
     run.status === 'failed'  ? 'text-rose-400' :
@@ -622,14 +624,11 @@ function RunRowView({ run }: { run: RunRow }) {
   return (
     <div
       className={
-        'group grid items-center gap-2 pl-7 pr-2 py-1.5 rounded transition-colors cursor-default ' +
+        `group grid items-center gap-2 pl-6 pr-3 ${run.active ? 'py-1.5' : 'py-2.5'} rounded transition-colors cursor-default ` +
         (run.active ? 'bg-[var(--ic-overlay-4)]' : 'hover:bg-[var(--ic-overlay-1)]')
       }
-      style={{ gridTemplateColumns: '10px minmax(0,1fr) auto auto' }}
+      style={{ gridTemplateColumns: 'minmax(0,1fr) auto auto' }}
     >
-      <span className="flex items-center justify-center">
-        <span className={'block w-1.5 h-1.5 rounded-full ' + dotColor} />
-      </span>
       <span className={'text-[11.5px] truncate ' + (run.active ? 'text-[var(--ic-text-bright)]' : 'text-[var(--ic-text-2)]')} style={{ fontFamily: MONO, letterSpacing: '-0.005em' }}>
         {run.action}
       </span>
@@ -644,9 +643,9 @@ function RunRowView({ run }: { run: RunRow }) {
 // _inspector.html.erb) for a single Running action_workflow execution.
 
 const RUN = {
-  action: 'fulfill_order',
+  action: 'charge_customer',
   id: 'run_01HGJ9N7P4D',
-  project: 'data-platform',
+  project: 'payments-api',
   status: 'Running',
   runtimeId: 'rt_prod_01',
   started: '14:07:42 UTC',
@@ -678,19 +677,19 @@ function MainTopBar() {
     <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-[color:var(--ic-border)]">
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-[11.5px] text-[var(--ic-text-6)]">Runs</span>
-        <span className="text-[var(--ic-text-8)]">/</span>
-        <span className="text-[12px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em', fontFamily: MONO }}>
+        <span className="text-[11.5px] text-[var(--ic-text-8)]">/</span>
+        <span className="text-[11.5px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em', fontFamily: MONO }}>
           {RUN.action}
         </span>
         <span className="text-[11.5px] text-[var(--ic-text-6)] truncate" style={{ fontFamily: MONO }}>{RUN.id}</span>
         <button
           type="button"
           onClick={() => { navigator.clipboard?.writeText(RUN.id); setCopied(true); setTimeout(() => setCopied(false), 1400) }}
-          className="inline-flex items-center text-[10.5px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-bright)] border border-[color:var(--ic-border-soft)] bg-[var(--ic-overlay-3)] rounded px-1.5 h-[18px]"
+          className="inline-flex items-center text-[11.5px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-bright)] border border-[color:var(--ic-border-soft)] bg-[var(--ic-overlay-3)] rounded px-1.5 h-[20px]"
         >
           {copied ? 'Copied' : 'Copy'}
         </button>
-        <span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></span>{RUN.project}</span>
+        <span className="ic-chip"><span className="ic-chip-icon" style={{ color: 'rgb(192,132,252)', verticalAlign: 'middle' }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg></span>{RUN.project}</span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         <TopBtn label="Back to action" />
@@ -751,6 +750,7 @@ function Evidence() {
   const [visible, setVisible] = useState(1)
   const [cycle, setCycle] = useState(0)
   const [fading, setFading] = useState(false)
+  const [committedOpen, setCommittedOpen] = useState(true)
 
   useEffect(() => {
     const reduced =
@@ -806,15 +806,22 @@ function Evidence() {
       {/* ── Receipt-chain narrative ──────────────────────────────────── */}
       <p className="ic-narrative">
         The receipt chain is <span className="accent">valid</span> up to{' '}
-        <span className="mono">action 11</span>. Action 12 (<span className="mono">db_write</span>) is currently running.
+        <span className="mono">action 11</span>. Action 12 (<span className="mono">ledger_sync</span>) is currently running.
       </p>
 
       {/* ── Committed actions panel ──────────────────────────────────── */}
       <div className="ic-panel" id="evidence">
         <div className="ic-loggroup">
-          <div className="ic-panel__head ic-loggroup__head">
+          <button
+            type="button"
+            onClick={() => setCommittedOpen((v) => !v)}
+            className="w-full ic-panel__head ic-loggroup__head cursor-pointer text-left"
+          >
             <div className="ic-panel__head-l">
-              <span className="ic-loggroup__chev" aria-hidden />
+              <span
+                className={'ic-loggroup__chev' + (committedOpen ? ' ic-loggroup__chev--open' : '')}
+                aria-hidden
+              />
               <span>Committed actions ({totalActions})</span>
               <span className="ic-panel__count-plus">+{committed}</span>
               <span className="ic-panel__count-minus">−0</span>
@@ -824,40 +831,42 @@ function Evidence() {
                 <span className="ic-bullet-dot ic-bullet-dot--running ic-breathing" />running
               </span>
             </div>
-          </div>
+          </button>
 
-          <div className={'ic-log__body ' + (fading ? 'ic-cycle-fade' : '')}>
-            {steps.map((s) => {
-              const isRunning = s.status === 'running'
-              if (s.kind === 'fault') {
+          {committedOpen && (
+            <div className={'ic-log__body ' + (fading ? 'ic-cycle-fade' : '')}>
+              {steps.map((s) => {
+                const isRunning = s.status === 'running'
+                if (s.kind === 'fault') {
+                  return (
+                    <div key={`${cycle}-${s.id}`} className="ic-line ic-line--fault ic-step-in">
+                      <span className="ic-line__ts mono">{s.at}</span>
+                      <div className="ic-line__main">
+                        <span className="ic-line__name">{s.name}</span>
+                        <span className="ic-line__detail">{s.detail}</span>
+                      </div>
+                      <span className="ic-line__latency">{s.latency}ms</span>
+                      <span className="ic-line__receipt">recovered</span>
+                    </div>
+                  )
+                }
                 return (
-                  <div key={`${cycle}-${s.id}`} className="ic-line ic-line--fault ic-step-in">
+                  <div key={`${cycle}-${s.id}`} className="ic-line ic-step-in">
                     <span className="ic-line__ts mono">{s.at}</span>
                     <div className="ic-line__main">
-                      <span className="ic-line__name">{s.name}</span>
+                      <span className={'ic-line__name' + (isRunning ? ' ic-line__name--running' : '')}>{s.name}</span>
                       <span className="ic-line__detail">{s.detail}</span>
                     </div>
-                    <span className="ic-line__latency">{s.latency}ms</span>
-                    <span className="ic-line__receipt">recovered</span>
+                    <span className="ic-line__latency">{s.latency != null ? `${s.latency}ms` : ''}</span>
+                    {s.receipt
+                      ? <span className="ic-line__receipt ic-line__receipt--ok">{s.receipt}</span>
+                      : <span className="ic-line__receipt ic-line__receipt--none">—</span>}
                   </div>
                 )
-              }
-              return (
-                <div key={`${cycle}-${s.id}`} className="ic-line ic-step-in">
-                  <span className="ic-line__ts mono">{s.at}</span>
-                  <div className="ic-line__main">
-                    <span className={'ic-line__name' + (isRunning ? ' ic-line__name--running' : '')}>{s.name}</span>
-                    <span className="ic-line__detail">{s.detail}</span>
-                  </div>
-                  <span className="ic-line__latency">{s.latency != null ? `${s.latency}ms` : ''}</span>
-                  {s.receipt
-                    ? <span className="ic-line__receipt ic-line__receipt--ok">{s.receipt}</span>
-                    : <span className="ic-line__receipt ic-line__receipt--none">—</span>}
-                </div>
-              )
-            })}
-            {!running && visible >= STEPS.length ? null : null}
-          </div>
+              })}
+              {!running && visible >= STEPS.length ? null : null}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -981,7 +990,7 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
 }
 
 // run_execution_profile(run): one bar per step that has a latency, placed by
-// cumulative start time, length = time-on-step. The in-flight db_write (no
+// cumulative start time, length = time-on-step. The in-flight ledger_sync (no
 // latency) is excluded — matching the rails helper.
 function ExecutionProfile() {
   let cursor = 0
@@ -1080,12 +1089,26 @@ function ExecDetailRail() {
 }
 
 function MainFooter() {
+  const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const isDark = mounted && resolvedTheme === 'dark'
   return (
     <div className="ic-footer">
       <div className="ic-footer__bar">
         <span className="ic-footer__chip"><span className="dot" /><span>action_workflow v1</span></span>
         <span>Receipts ed25519</span>
         <div className="ic-footer__spacer" />
+        {mounted && (
+          <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="inline-flex items-center justify-center w-5 h-5 rounded text-[var(--ic-text-4)] hover:text-[var(--ic-text-bright)] hover:bg-[var(--ic-overlay-3)] transition-colors"
+          >
+            {isDark ? <Sun size={11} strokeWidth={1.8} /> : <Moon size={11} strokeWidth={1.8} />}
+          </button>
+        )}
       </div>
     </div>
   )
