@@ -181,24 +181,36 @@ module ConsoleHelper
   end
 
   def brand_chip(text)
-    svg = brand_logo_svg(text.to_s.downcase)
-    return content_tag(:span, text, class: 'ic-chip ic-chip--sm') unless svg
+    slug = text.to_s.downcase
+    logo = brand_logo_markup(slug)
+    return content_tag(:span, text, class: 'ic-chip ic-chip--sm') unless logo
 
     content_tag(:span, class: 'ic-chip ic-chip--sm') do
-      safe_join([content_tag(:span, svg, class: 'ic-chip__logo'), text])
+      safe_join([logo, text])
     end
   end
 
-  # Inlined SVG for a brand slug, read from public/logos/<slug>.svg and memoized
-  # for the request. Whitelisted slugs only (no path traversal), and only files
-  # that exist — a missing logo returns nil so the chip degrades to plain text.
-  def brand_logo_svg(slug)
+  # Brand logo markup — prefers public/logos/<slug>.png as an <img> wrapped in a
+  # span, falls back to public/logos/<slug>.svg inlined. Missing files degrade
+  # to plain text.
+  def brand_logo_markup(slug)
     return nil unless BRAND_LOGO_SLUGS.include?(slug)
 
     (@brand_logo_cache ||= {}).fetch(slug) do
-      path = Rails.root.join('public', 'logos', "#{slug}.svg")
-      @brand_logo_cache[slug] = path.file? ? path.read.html_safe : nil
+      png = Rails.root.join('public', 'logos', "#{slug}.png")
+      if png.file?
+        img = content_tag(:img, nil, src: "/logos/#{slug}.png", alt: '', width: 10, height: 10)
+        @brand_logo_cache[slug] = content_tag(:span, img, class: 'ic-chip__logo')
+      else
+        svg = Rails.root.join('public', 'logos', "#{slug}.svg")
+        @brand_logo_cache[slug] = svg.file? ? content_tag(:span, svg.read.html_safe, class: 'ic-chip__logo') : nil
+      end
     end
+  end
+
+  # Kept for backward compatibility; new code should use brand_logo_markup.
+  def brand_logo_svg(slug)
+    brand_logo_markup(slug)
   end
 
   # Tone for a normalized runtime status label (Healthy / Stale / Degraded /
