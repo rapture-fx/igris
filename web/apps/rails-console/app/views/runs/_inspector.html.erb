@@ -60,7 +60,7 @@
             </div>
           </div>
           <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill run[:status] %></div></div>
-          <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= facet_chips(run[:routed_via]) %></div></div>
+          <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= route_chips(run[:routed_via]) %></div></div>
           <% if run[:runtime_id].to_s.strip.present? %>
             <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= run[:runtime_id] %></div></div>
           <% end %>
@@ -99,7 +99,7 @@
         <div class="ic-runinspector__kv">
           <div class="ic-runinspector__kvrow">
             <span class="ic-runinspector__kvk">Target</span>
-            <span class="ic-runinspector__kvv"><%= facet_chips(run[:routed_via]) %></span>
+            <span class="ic-runinspector__kvv"><%= route_chips(run[:routed_via]) %></span>
           </div>
         </div>
         <p class="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
