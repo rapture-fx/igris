@@ -166,11 +166,11 @@ function ConsoleStyles() {
         --ic-overlay-bg: rgba(255,255,255,0.015);
         --ic-rail-active: #d3d2c8;
         --ic-dot-border: #070707;
-        --ic-accent: #059669;
-        --ic-emerald: #059669;
-        --ic-emerald-dim: rgba(5,150,105,0.85);
-        --ic-amber: #fbbf24;
-        --ic-rose: #fb7185;
+        --ic-accent: #0f835c;
+        --ic-emerald: #0f835c;
+        --ic-emerald-dim: rgba(15,131,92,0.85);
+        --ic-amber: #b45309;
+        --ic-rose: #9d4b57;
         --ic-mono: ${MONO};
       }
       .igris-console.igris-console--light {
@@ -242,20 +242,30 @@ function ConsoleStyles() {
         color: var(--ic-text-5);
       }
 
-      /* Dark mode: darken the emerald accent so it reads as a dark emerald green */
+      /* Dark mode: map all accent colors to dark emerald green */
       .igris-console .text-emerald-300,
       .igris-console .text-emerald-400,
       .igris-console .text-emerald-500,
-      .igris-console .text-emerald-400\\/80 { color: #059669; }
-      .igris-console .bg-emerald-400 { background-color: #059669; }
+      .igris-console .text-emerald-400\\/80 { color: #0f835c; }
+      .igris-console .bg-emerald-400 { background-color: #0f835c; }
       .igris-console .bg-emerald-500,
-      .igris-console .bg-emerald-500\\/80 { background-color: #047857; }
-      .igris-console .bg-emerald-500\\/\\[0\\.12\\] { background-color: rgb(5 150 105 / 0.10); }
-      .igris-console .bg-emerald-500\\/\\[0\\.14\\] { background-color: rgb(5 150 105 / 0.12); }
-      .igris-console .hover\\:bg-emerald-500\\/\\[0\\.16\\]:hover { background-color: rgb(5 150 105 / 0.16); }
-      .igris-console .hover\\:bg-emerald-500\\/\\[0\\.2\\]:hover { background-color: rgb(5 150 105 / 0.2); }
-      .igris-console .border-emerald-500\\/20 { border-color: rgb(5 150 105 / 0.3); }
-      .igris-console .border-emerald-500\\/25 { border-color: rgb(5 150 105 / 0.35); }
+      .igris-console .bg-emerald-500\\/80 { background-color: #0a6b4a; }
+      .igris-console .bg-emerald-500\\/\\[0\\.12\\] { background-color: rgb(15 131 92 / 0.10); }
+      .igris-console .bg-emerald-500\\/\\[0\\.14\\] { background-color: rgb(15 131 92 / 0.12); }
+      .igris-console .hover\\:bg-emerald-500\\/\\[0\\.16\\]:hover { background-color: rgb(15 131 92 / 0.16); }
+      .igris-console .hover\\:bg-emerald-500\\/\\[0\\.2\\]:hover { background-color: rgb(15 131 92 / 0.2); }
+      .igris-console .border-emerald-500\\/20 { border-color: rgb(15 131 92 / 0.3); }
+      .igris-console .border-emerald-500\\/25 { border-color: rgb(15 131 92 / 0.35); }
+
+      .igris-console .text-rose-400,
+      .igris-console .text-rose-400\\/60,
+      .igris-console .text-rose-400\\/70 { color: #9d4b57; }
+      .igris-console .bg-rose-500 { background-color: #9d4b57; }
+
+      .igris-console .text-amber-400,
+      .igris-console .text-amber-400\\/60,
+      .igris-console .text-amber-400\\/70 { color: #b45309; }
+      .igris-console .bg-amber-400 { background-color: #b45309; }
 
       /* Light mode: darken the emerald + amber + rose accents so they read on the warm-white surface */
       .igris-console--light .text-emerald-300,
