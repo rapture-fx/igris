@@ -1,6 +1,12 @@
 <%#
   Run detail.
 
+  Master-detail surface in the landing-hero console design: the left
+  mini-sidebar is a recent-runs picker (mirrors the runtimes page); the main
+  pane is the detail for the selected run — evidence in the main column with a
+  sticky Execution-detail rail on the right. The persistent icon rail in the
+  layout is the only nav chrome above this; this page does not re-create it.
+
   Real mode (Overture connected): strictly data-derived evidence only —
   the "What happened" summary, a safe evidence list, and the execution
   story built from actual task fields. Nothing is fabricated; missing
@@ -9,115 +15,142 @@
   Fixture mode: the illustrative landing-hero execution preview is kept as
   a clearly-labelled DEMO so the offline UI still shows the full shape.
 %>
-<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+<div class="ic-runtime-shell">
 
-  <%# ── Topbar: crumb / title / linkbacks ─────────────────────────────── %>
-  <% through_runtime = data_source.run_through_runtime?(@run)
-     runtime_id      = @run[:runtime_id].to_s.strip %>
-  <div class="ic-topbar">
-    <div class="ic-topbar__group">
-      <%= link_to 'Runs', runs_path, class: 'ic-topbar__crumb' %>
-      <span class="ic-topbar__sep">/</span>
-      <span class="ic-topbar__title"><%= @run[:action] %></span>
-      <span class="ic-topbar__id mono"><%= @run[:id] %></span>
-      <%= copy_button @run[:id] %>
-      <%= project_chip %>
+  <%# ── Mini-sidebar — recent-runs picker. Selecting a run drives the detail
+      pane via /runs/:id, mirroring the runtimes master-detail layout. ─────── %>
+  <aside class="ic-sidebar" aria-label="Recent runs">
+    <div class="ic-sidebar__search-wrap">
+      <div class="ic-sidebar__search">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="search" id="run-search" class="ic-sidebar__search-input" placeholder="Search runs" autocomplete="off" aria-label="Search runs by action, status, or id">
+      </div>
     </div>
-    <div class="ic-topbar__group">
-      <% if @action_known %>
-        <%= link_to 'Back to action', action_path(@run[:action]), class: 'ic-btn' %>
-      <% end %>
-      <% if through_runtime %>
-        <%= link_to 'Open runtime', runtimes_path, class: 'ic-btn' %>
-      <% end %>
-    </div>
-  </div>
 
-  <%= render 'shared/flash', degraded_error: @degraded_error %>
-
-  <div class="ic-body ic-scroll ic-run-detail">
-    <% running = @run[:status].to_s.casecmp('Running').zero? %>
-
-    <%# ── What happened — the first-run summary, before any deep evidence ── %>
-    <% proof_label = @run[:proof].to_s.presence || 'Proof unavailable'
-       proof_unavailable = proof_label.match?(/unavailable|pending/i)
-       started_label = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—'
-       duration_label = @run[:duration_ms].present? ? "#{@run[:duration_ms]}ms" : '—' %>
-    <% guidance = run_guidance_state(@run) %>
-    <div class="ic-run-detail-layout">
-      <aside class="ic-run-detail-rail" aria-label="Execution detail">
-        <div class="ic-summary">
-          <div class="ic-summary__head">Execution detail</div>
-          <div class="ic-summary__grid">
-            <div class="ic-summary__cell ic-summary__cell--wide">
-              <div class="ic-summary__k">Action</div>
-              <div class="ic-summary__v mono"><%= @run[:action] %></div>
-            </div>
-            <div class="ic-summary__cell">
-              <div class="ic-summary__k">Status</div>
-              <div class="ic-summary__v"><%= status_pill @run[:status] %></div>
-            </div>
-            <div class="ic-summary__cell">
-              <div class="ic-summary__k">Routed via</div>
-                <div class="ic-summary__v"><%= route_chips(@run[:routed_via]) %></div>
-            </div>
-            <div class="ic-summary__cell">
-              <div class="ic-summary__k">Policy</div>
-              <div class="ic-summary__v"><%= facet_chips(@run[:policy]) %></div>
-            </div>
-            <div class="ic-summary__cell">
-              <div class="ic-summary__k">Proof</div>
-              <div class="ic-summary__v"><%= status_pill proof_label %></div>
-            </div>
-            <div class="ic-summary__cell">
-              <div class="ic-summary__k">Started</div>
-              <div class="ic-summary__v"><%= started_label %></div>
-            </div>
-            <div class="ic-summary__cell">
-              <div class="ic-summary__k">Duration</div>
-              <div class="ic-summary__v"><%= duration_label %></div>
-            </div>
-          </div>
-          <% if proof_unavailable %>
-            <p class="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
-          <% end %>
-        </div>
-
-        <% if guidance %>
-          <div class="ic-nextstep">
-            <div>
-              <div class="ic-nextstep__kicker">What to do next</div>
-              <div class="ic-nextstep__title">
-                <% case guidance
-                   when :runtime_unavailable %>This run required a runtime that was unavailable.
-                <% when :failed %>Run failed.
-                <% when :running %>Run is still in flight.
-                <% when :proof_unavailable %>Proof is not yet available for this run.
-                <% when :completed %>Run completed successfully.
-                <% end %>
-              </div>
-              <p class="ic-nextstep__sub">
-                <% case guidance
-                   when :runtime_unavailable %>Connect a runtime, then re-run the action so it can execute locally.
-                <% when :failed %>Open the action to review its target and policy, or copy the run ID to share it.
-                <% when :running %>Step evidence appears here as the run commits each step.
-                <% when :proof_unavailable %>Proof is available once signed runtime evidence exists.
-                <% when :completed %>Review the signed evidence below, or open the action to run it again.
-                <% end %>
-              </p>
-            </div>
-            <div class="ic-nextstep__cta">
-              <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn ic-btn--accent', style: 'height: 24px; padding: 0 8px; font-size: 11px;' %><% end %>
-            </div>
-          </div>
+    <div class="ic-sidebar__section-head">
+      <span class="ic-sidebar__section-head__label">Recent runs</span>
+      <div class="ic-sidebar__section-head__tools">
+        <span class="ic-section-head__hint" style="font-size: 10.5px;"><%= (@all_runs || []).size %></span>
+        <%= link_to runs_path, 'aria-label': 'All runs' do %>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <% end %>
-      </aside>
+      </div>
+    </div>
 
-      <section class="ic-run-detail-scroll" aria-label="Run evidence and audit details">
+    <div class="ic-sidebar__scroll ic-runs-picker">
+      <% (@run_groups || []).each do |project, project_runs| %>
+        <details class="ic-group" open data-run-group>
+          <summary class="ic-group__head">
+            <svg class="ic-group__chevron" viewBox="0 0 24 24" fill="none"><path d="M9 6 L15 12 L9 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="ic-group__folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z"/></svg>
+            <span class="ic-group__name"><%= project %></span>
+            <span class="ic-group__count"><%= project_runs.size %></span>
+          </summary>
+          <div class="ic-group__body">
+            <% project_runs.each do |r| %>
+              <% band = run_activity_band(r) %>
+              <% dot_cls, st_cls = case band
+                   when :waiting then ['ic-task__dot--running', 'ic-task__status--running']
+                   when :failed  then ['ic-task__dot--failed',  'ic-task__status--failed']
+                   when :blocked then ['ic-task__dot--warn',    'ic-task__status--warn']
+                   else               ['ic-task__dot--ok',      'ic-task__status--ok']
+                 end %>
+              <% active = r[:id] == @run[:id] %>
+              <%= link_to run_path(r[:id]),
+                    class: "ic-task ic-task--run #{'is-active' if active}",
+                    title: "#{r[:action]} · #{r[:status]}",
+                    data: { search: "#{r[:action]} #{r[:status]} #{r[:id]} #{r[:routed_via]}".downcase },
+                    'aria-current': (active ? 'true' : nil) do %>
+                <span class="ic-task__dot <%= dot_cls %> <%= 'ic-breathing' if band == :waiting %>"></span>
+                <span class="ic-task__title mono"><%= r[:action] %></span>
+                <span class="ic-task__status <%= st_cls %>"><%= r[:status] %></span>
+                <span class="ic-task__when"><%= time_ago(r[:started_at]) %></span>
+              <% end %>
+            <% end %>
+          </div>
+        </details>
+      <% end %>
+      <p id="run-search-empty" class="ic-list-hint" style="display: none; padding: 10px;">No runs match your search.</p>
+    </div>
+  </aside>
+
+  <%# Client-side filter for the runs picker — no framework: matches the typed
+      query against each task's data-search text, hides empty project groups,
+      and shows an empty-state when nothing matches. %>
+  <script>
+    (function() {
+      var input = document.getElementById('run-search');
+      if (!input) return;
+      var tasks  = Array.prototype.slice.call(document.querySelectorAll('.ic-runs-picker .ic-task--run'));
+      var groups = Array.prototype.slice.call(document.querySelectorAll('.ic-runs-picker [data-run-group]'));
+      var empty  = document.getElementById('run-search-empty');
+
+      function apply() {
+        var q = input.value.trim().toLowerCase();
+        tasks.forEach(function(t) {
+          var hay = t.getAttribute('data-search') || '';
+          t.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
+        });
+        var anyVisible = false;
+        groups.forEach(function(g) {
+          var visible = 0;
+          g.querySelectorAll('.ic-task--run').forEach(function(t) {
+            if (t.style.display !== 'none') visible++;
+          });
+          g.style.display = visible ? '' : 'none';
+          if (visible) { anyVisible = true; if (q) g.open = true; }
+        });
+        if (empty) empty.style.display = anyVisible ? 'none' : '';
+      }
+
+      input.addEventListener('input', apply);
+      input.addEventListener('search', apply); // clear (×) button
+    })();
+  </script>
+
+  <%# ── Main pane — topbar / detail body / footer ───────────────────────── %>
+  <div class="ic-runtime-main">
+
+    <%# ── Topbar: crumb / title / linkbacks ─────────────────────────────── %>
+    <% through_runtime = data_source.run_through_runtime?(@run)
+       runtime_id      = @run[:runtime_id].to_s.strip %>
+    <div class="ic-topbar">
+      <div class="ic-topbar__group">
+        <%= link_to 'Runs', runs_path, class: 'ic-topbar__crumb' %>
+        <span class="ic-topbar__sep">/</span>
+        <span class="ic-topbar__title"><%= @run[:action] %></span>
+        <span class="ic-topbar__id mono"><%= @run[:id] %></span>
+        <%= copy_button @run[:id] %>
+        <%= project_chip %>
+      </div>
+      <div class="ic-topbar__group">
+        <% if @action_known %>
+          <%= link_to 'Back to action', action_path(@run[:action]), class: 'ic-btn' %>
+        <% end %>
+        <% if through_runtime %>
+          <%= link_to 'Open runtime', runtimes_path, class: 'ic-btn' %>
+        <% end %>
+      </div>
+    </div>
+
+    <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+    <div class="ic-body ic-scroll ic-run-detail">
+      <% running = @run[:status].to_s.casecmp('Running').zero? %>
+
+      <%# ── What happened — the first-run summary, before any deep evidence ── %>
+      <% proof_label = @run[:proof].to_s.presence || 'Proof unavailable'
+         proof_unavailable = proof_label.match?(/unavailable|pending/i)
+         started_label = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—'
+         duration_label = @run[:duration_ms].present? ? "#{@run[:duration_ms]}ms" : '—' %>
+      <% guidance = run_guidance_state(@run) %>
+      <div class="ic-run-detail-layout">
+
+        <section class="ic-run-detail-scroll" aria-label="Run evidence and audit details">
 
     <% if demo_mode? %>
       <% submitted_chip_time = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—' %>
-      <div class="ic-evidence">
+      <div class="ic-evidence--flat">
         <div class="ic-evidence__head">Demo context</div>
         <div class="ic-def">
           <span class="ic-def__label">Submitter</span>
@@ -158,22 +191,22 @@
       <% latest_committed = steps.select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
       <% total_actions = steps.count { |s| s[:kind] == :action } %>
       <% failed_count = steps.count { |s| s[:status] == :failed } %>
+      <p class="ic-narrative">
+        <% if running %>
+          The receipt chain is <span class="accent">valid</span> up to
+          <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
+          <% rn = steps.find { |s| s[:status] == :running } %>
+          <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
+        <% elsif @run[:status] == 'Failed' %>
+          The receipt chain stops at the failed call. The console honestly reports
+          the absence — no fabricated proof.
+        <% else %>
+          The receipt chain is <span class="accent">valid</span> end-to-end.
+          <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
+          <span class="mono"><%= @run[:duration_ms] %>ms</span>.
+        <% end %>
+      </p>
       <div class="ic-panel" id="evidence">
-        <p class="ic-narrative">
-          <% if running %>
-            The receipt chain is <span class="accent">valid</span> up to
-            <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
-            <% rn = steps.find { |s| s[:status] == :running } %>
-            <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
-          <% elsif @run[:status] == 'Failed' %>
-            The receipt chain stops at the failed call. The console honestly reports
-            the absence — no fabricated proof.
-          <% else %>
-            The receipt chain is <span class="accent">valid</span> end-to-end.
-            <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
-            <span class="mono"><%= @run[:duration_ms] %>ms</span>.
-          <% end %>
-        </p>
         <details class="ic-loggroup" open>
           <summary class="ic-panel__head ic-loggroup__head">
             <div class="ic-panel__head-l">
@@ -321,17 +354,87 @@
       <%= @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S') : '' %>
       <% if running %><span style="color: var(--ic-emerald);">live</span><% end %>
     </div>
-      </section>
-    </div>
-  </div>
+        </section>
 
-  <% if demo_mode? %>
-    <div class="ic-footer">
-      <div class="ic-footer__bar">
-        <span class="ic-footer__chip"><span class="dot"></span><span>action_workflow v1</span></span>
-        <span>Receipts ed25519</span>
-        <div class="ic-footer__spacer"></div>
+        <%# ── Execution detail — sticky context rail, right side of the pane ── %>
+        <aside class="ic-run-detail-rail" aria-label="Execution detail">
+          <div class="ic-summary">
+            <div class="ic-summary__head">Execution detail</div>
+            <div class="ic-summary__grid">
+              <div class="ic-summary__cell ic-summary__cell--wide">
+                <div class="ic-summary__k">Action</div>
+                <div class="ic-summary__v mono"><%= @run[:action] %></div>
+              </div>
+              <div class="ic-summary__cell">
+                <div class="ic-summary__k">Status</div>
+                <div class="ic-summary__v"><%= status_pill @run[:status] %></div>
+              </div>
+              <div class="ic-summary__cell">
+                <div class="ic-summary__k">Routed via</div>
+                  <div class="ic-summary__v"><%= route_chips(@run[:routed_via]) %></div>
+              </div>
+              <div class="ic-summary__cell">
+                <div class="ic-summary__k">Policy</div>
+                <div class="ic-summary__v"><%= facet_chips(@run[:policy]) %></div>
+              </div>
+              <div class="ic-summary__cell">
+                <div class="ic-summary__k">Proof</div>
+                <div class="ic-summary__v"><%= status_pill proof_label %></div>
+              </div>
+              <div class="ic-summary__cell">
+                <div class="ic-summary__k">Started</div>
+                <div class="ic-summary__v"><%= started_label %></div>
+              </div>
+              <div class="ic-summary__cell">
+                <div class="ic-summary__k">Duration</div>
+                <div class="ic-summary__v"><%= duration_label %></div>
+              </div>
+            </div>
+            <% if proof_unavailable %>
+              <p class="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
+            <% end %>
+          </div>
+
+          <% if guidance %>
+            <div class="ic-nextstep">
+              <div>
+                <div class="ic-nextstep__kicker">What to do next</div>
+                <div class="ic-nextstep__title">
+                  <% case guidance
+                     when :runtime_unavailable %>This run required a runtime that was unavailable.
+                  <% when :failed %>Run failed.
+                  <% when :running %>Run is still in flight.
+                  <% when :proof_unavailable %>Proof is not yet available for this run.
+                  <% when :completed %>Run completed successfully.
+                  <% end %>
+                </div>
+                <p class="ic-nextstep__sub">
+                  <% case guidance
+                     when :runtime_unavailable %>Connect a runtime, then re-run the action so it can execute locally.
+                  <% when :failed %>Open the action to review its target and policy, or copy the run ID to share it.
+                  <% when :running %>Step evidence appears here as the run commits each step.
+                  <% when :proof_unavailable %>Proof is available once signed runtime evidence exists.
+                  <% when :completed %>Review the signed evidence below, or open the action to run it again.
+                  <% end %>
+                </p>
+              </div>
+              <div class="ic-nextstep__cta">
+                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-btn ic-btn--accent', style: 'height: 24px; padding: 0 8px; font-size: 11px;' %><% end %>
+              </div>
+            </div>
+          <% end %>
+        </aside>
       </div>
     </div>
-  <% end %>
+
+    <% if demo_mode? %>
+      <div class="ic-footer">
+        <div class="ic-footer__bar">
+          <span class="ic-footer__chip"><span class="dot"></span><span>action_workflow v1</span></span>
+          <span>Receipts ed25519</span>
+          <div class="ic-footer__spacer"></div>
+        </div>
+      </div>
+    <% end %>
+  </div>
 </div>
