@@ -10,7 +10,7 @@ const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospac
 export default function Hero() {
   return (
     <section
-      className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+      className="relative w-full overflow-hidden bg-dark-bg text-[#f6f6f4]"
       style={{
         backgroundImage: 'url(/herobg.png)',
         backgroundRepeat: 'no-repeat',
@@ -25,7 +25,7 @@ export default function Hero() {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6 w-full items-start">
               <div className="md:col-span-7">
                 <h1
-                  className="text-[#000000] dark:text-[#f6f6f4]"
+                  className="text-[#f6f6f4]"
                   style={{
                     fontFamily: PIXEL,
                     fontWeight: 500,
@@ -36,27 +36,18 @@ export default function Hero() {
                 >
                   Run agent actions that recover<br />and prove what happened.
                 </h1>
-                <div className="mt-5 flex flex-wrap items-center gap-2.5">
-                  <a
-                    href="https://console.igrisinertial.com/auth?mode=signup"
-                    className="inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
-                    style={{ fontFamily: SANS }}
-                  >
-                    Get started
-                  </a>
-                  <a
-                    href="#how-it-works"
-                    className="inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl border transition-colors border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-[rgba(246,246,244,0.18)] dark:text-[#c8c8b8] dark:hover:bg-white/[0.04]"
-                    style={{ fontFamily: SANS }}
-                  >
-                    See how it works
-                  </a>
-                </div>
+                <a
+                  href="https://console.igrisinertial.com/auth?mode=signup"
+                  className="mt-5 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#f6f6f4] text-[#1b1912]"
+                  style={{ fontFamily: SANS }}
+                >
+                  Get started
+                </a>
               </div>
 
               <div className="md:col-span-5">
                 <p
-                  className="text-[#3a3830] dark:text-[#a8a89e] max-w-[360px] ml-auto text-right"
+                  className="text-[#a8a89e] max-w-[360px] ml-auto text-right"
                   style={{
                     fontFamily: SANS,
                     fontSize: 'clamp(0.95rem, 1.4vw, 1.2rem)',
