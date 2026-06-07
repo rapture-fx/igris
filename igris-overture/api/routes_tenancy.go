@@ -6,22 +6,21 @@ import (
 	"log"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/Igris-inertial/system/cmd/igris-overture/handlers"
 	apihandlers "github.com/Igris-inertial/system/igris-overture/api/handlers"
 	"github.com/Igris-inertial/system/igris-overture/billing"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/security"
+	"github.com/gofiber/fiber/v2"
 )
-
 
 // TenancyRouteConfig holds configuration for tenancy routes
 type TenancyRouteConfig struct {
-	DB          *sql.DB
-	JWTManager  *security.JWTManager
-	KeyVault    *security.KeyVault
-	TenantAuth  *middleware.TenantAuth
-	APIKeyAuth  *middleware.APIKeyAuth
+	DB         *sql.DB
+	JWTManager *security.JWTManager
+	KeyVault   *security.KeyVault
+	TenantAuth *middleware.TenantAuth
+	APIKeyAuth *middleware.APIKeyAuth
 }
 
 // RegisterTenancyRoutes registers all Phase 14 multi-tenancy endpoints
@@ -55,11 +54,11 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	admin.Use(config.TenantAuth.RequireAdmin())
 
 	// Tenant Management (Admin only)
-	admin.Post("/", tenantHandler.CreateTenant)                   // POST /v1/tenants
-	admin.Get("/", tenantHandler.ListTenants)                     // GET /v1/tenants
-	admin.Post("/:tenant_id/suspend", tenantHandler.SuspendTenant) // POST /v1/tenants/:id/suspend
+	admin.Post("/", tenantHandler.CreateTenant)                      // POST /v1/tenants
+	admin.Get("/", tenantHandler.ListTenants)                        // GET /v1/tenants
+	admin.Post("/:tenant_id/suspend", tenantHandler.SuspendTenant)   // POST /v1/tenants/:id/suspend
 	admin.Post("/:tenant_id/activate", tenantHandler.ActivateTenant) // POST /v1/tenants/:id/activate
-	admin.Delete("/:tenant_id", tenantHandler.DeleteTenant)       // DELETE /v1/tenants/:id
+	admin.Delete("/:tenant_id", tenantHandler.DeleteTenant)          // DELETE /v1/tenants/:id
 
 	log.Println("[Routes] ✓ Registered 5 admin tenant management endpoints")
 
@@ -88,12 +87,12 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	vault.Use(middleware.BetterAuth(config.DB))
 
 	// Vault key management
-	vault.Post("/keys", vaultHandler.StoreKey)                          // POST /v1/vault/keys
-	vault.Get("/keys", vaultHandler.ListKeys)                           // GET /v1/vault/keys
-	vault.Get("/keys/:provider", vaultHandler.GetKey)                   // GET /v1/vault/keys/:provider
-	vault.Delete("/keys/:provider", vaultHandler.DeleteKey)             // DELETE /v1/vault/keys/:provider
-	vault.Post("/keys/:provider/rotate", vaultHandler.RotateKey)        // POST /v1/vault/keys/:provider/rotate
-	vault.Post("/keys/:provider/validate", vaultHandler.ValidateKey)    // POST /v1/vault/keys/:provider/validate
+	vault.Post("/keys", vaultHandler.StoreKey)                       // POST /v1/vault/keys
+	vault.Get("/keys", vaultHandler.ListKeys)                        // GET /v1/vault/keys
+	vault.Get("/keys/:provider", vaultHandler.GetKey)                // GET /v1/vault/keys/:provider
+	vault.Delete("/keys/:provider", vaultHandler.DeleteKey)          // DELETE /v1/vault/keys/:provider
+	vault.Post("/keys/:provider/rotate", vaultHandler.RotateKey)     // POST /v1/vault/keys/:provider/rotate
+	vault.Post("/keys/:provider/validate", vaultHandler.ValidateKey) // POST /v1/vault/keys/:provider/validate
 
 	log.Println("[Routes] ✓ Registered 6 BYOK vault endpoints")
 
@@ -105,9 +104,9 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	policy.Use(middleware.BetterAuth(config.DB))
 
 	// Policy management
-	policy.Get("/", policyHandler.GetPolicy)           // GET /v1/policy
-	policy.Put("/", policyHandler.UpdatePolicy)        // PUT /v1/policy
-	policy.Post("/reset", policyHandler.ResetPolicy)   // POST /v1/policy/reset
+	policy.Get("/", policyHandler.GetPolicy)               // GET /v1/policy
+	policy.Put("/", policyHandler.UpdatePolicy)            // PUT /v1/policy
+	policy.Post("/reset", policyHandler.ResetPolicy)       // POST /v1/policy/reset
 	policy.Get("/history", policyHandler.GetPolicyHistory) // GET /v1/policy/history
 
 	log.Println("[Routes] ✓ Registered 4 policy management endpoints")
@@ -120,7 +119,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	usage.Use(middleware.BetterAuth(config.DB))
 
 	// Usage reporting
-	usage.Get("/", usageHandler.GetCurrentUsage)       // GET /v1/usage
+	usage.Get("/", usageHandler.GetCurrentUsage)           // GET /v1/usage
 	usage.Get("/history", usageHandler.GetHistoricalUsage) // GET /v1/usage/history
 
 	log.Println("[Routes] ✓ Registered 2 usage reporting endpoints")
@@ -142,7 +141,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	traces.Use(middleware.BetterAuth(config.DB))
 
 	// Trace access
-	traces.Get("/", tracesHandler.ListTraces)           // GET /v1/traces
+	traces.Get("/", tracesHandler.ListTraces)             // GET /v1/traces
 	traces.Get("/summary", tracesHandler.GetTraceSummary) // GET /v1/traces/summary
 
 	log.Println("[Routes] ✓ Registered 2 trace endpoints")
@@ -177,18 +176,18 @@ func RegisterAuthRoutes(app *fiber.App, db *sql.DB) {
 	// The frontend sends Clerk session tokens directly; there is no server-side login flow.
 	auth.Post("/login", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusGone).JSON(fiber.Map{
-			"error":   "This endpoint has been retired. Authentication is now handled by Clerk.",
-			"code":    "ENDPOINT_RETIRED",
-			"docs":    "https://docs.igrisinertial.com/auth",
+			"error": "This endpoint has been retired. Authentication is now handled by Clerk.",
+			"code":  "ENDPOINT_RETIRED",
+			"docs":  "https://docs.igrisinertial.com/auth",
 		})
 	})
 
 	// Refresh token endpoint — retired. Clerk manages session token refresh automatically.
 	auth.Post("/refresh", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusGone).JSON(fiber.Map{
-			"error":   "This endpoint has been retired. Token refresh is managed by Clerk.",
-			"code":    "ENDPOINT_RETIRED",
-			"docs":    "https://docs.igrisinertial.com/auth",
+			"error": "This endpoint has been retired. Token refresh is managed by Clerk.",
+			"code":  "ENDPOINT_RETIRED",
+			"docs":  "https://docs.igrisinertial.com/auth",
 		})
 	})
 
@@ -247,26 +246,32 @@ func SetupMultiTenancy(app *fiber.App, db *sql.DB, jwtSecret, vaultMasterKey str
 	RegisterTenancyRoutes(app, config)
 	RegisterAuthRoutes(app, db)
 
-	// Register provider registry routes
-	providerConfig := &ProviderRegistryRouteConfig{
-		DB:         db,
-		KeyVault:   keyVault,
-		TenantAuth: tenantAuth,
-		APIKeyAuth: apiKeyAuth,
+	if ExperimentalModelRoutesEnabled() {
+		providerConfig := &ProviderRegistryRouteConfig{
+			DB:         db,
+			KeyVault:   keyVault,
+			TenantAuth: tenantAuth,
+			APIKeyAuth: apiKeyAuth,
+		}
+		RegisterProviderRegistryRoutes(app, providerConfig)
+	} else {
+		log.Printf("[Setup] Provider registry routes disabled (%s not enabled)", ExperimentalModelRoutesFlag)
 	}
-	RegisterProviderRegistryRoutes(app, providerConfig)
 
-	// Register intelligent routing routes
-	routingConfig := &RoutingRouteConfig{
-		DB:         db,
-		KeyVault:   keyVault,
-		TenantAuth: tenantAuth,
+	if ExperimentalRoutingRoutesEnabled() {
+		routingConfig := &RoutingRouteConfig{
+			DB:         db,
+			KeyVault:   keyVault,
+			TenantAuth: tenantAuth,
+		}
+		RegisterRoutingRoutes(app, routingConfig)
+	} else {
+		log.Printf("[Setup] Intelligent routing routes disabled (%s not enabled)", ExperimentalRoutingRoutesFlag)
 	}
-	RegisterRoutingRoutes(app, routingConfig)
 
 	// Register subscription status and plans endpoints (used by web-console billing page)
 	polarAPIKey := os.Getenv("POLAR_API_KEY")
-	if polarAPIKey != "" {
+	if polarAPIKey != "" && ExperimentalConsoleGapRoutesEnabled() {
 		// GatingMiddleware only needs polar client for GetTierUsage
 		polarCfg := &billing.PolarConfig{APIKey: polarAPIKey, Redis: nil}
 		polarClient, _ := billing.NewPolarClient(*polarCfg)
@@ -282,6 +287,8 @@ func SetupMultiTenancy(app *fiber.App, db *sql.DB, jwtSecret, vaultMasterKey str
 
 			log.Println("[Setup] ✓ Registered subscription endpoints (/api/subscription)")
 		}
+	} else if polarAPIKey != "" {
+		log.Printf("[Setup] subscription endpoints disabled (%s not enabled)", ExperimentalConsoleGapRoutesFlag)
 	} else {
 		log.Println("[Setup] ⚠ POLAR_API_KEY not set — subscription status endpoints disabled")
 	}
