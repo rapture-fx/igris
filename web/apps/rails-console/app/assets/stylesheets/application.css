@@ -466,7 +466,7 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
 
 .ic-task {
   display: grid;
-  grid-template-columns: 10px 60px 1fr auto;
+  grid-template-columns: 10px 66px 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 5px 8px 5px 28px;
@@ -489,6 +489,9 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
 .ic-task__status {
   font-size: 10.5px;
   letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ic-task__status--ok      { color: var(--ic-text-7); }
 .ic-task__status--running { color: var(--ic-emerald); }
@@ -520,6 +523,30 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
   font-family: inherit;
 }
 .ic-sidebar__more:hover { color: var(--ic-text-4); }
+
+/* Warn-toned task row (stale/degraded runtimes) — sits alongside the
+   existing --ok / --running / --failed dot + status variants. */
+.ic-task__dot--warn      { background: var(--ic-amber); }
+.ic-task__status--warn   { color: var(--ic-amber); }
+
+.ic-sidebar__empty { padding: 8px 10px; }
+
+/* ── Runtime page — hero two-pane shell (mini-sidebar + main pane) ───── */
+.ic-runtime-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.ic-runtime-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (max-width: 860px) {
+  .ic-runtime-shell > .ic-sidebar { display: none; }
+}
 
 /* Main pane */
 .ig-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
@@ -1026,6 +1053,22 @@ html.dark .ig-btn--primary {
   align-items: center;
   margin-right: 4px;
   color: var(--ic-text-5);
+}
+/* Self-hosted brand logo, inlined as SVG and tinted with the chip's text
+   colour (currentColor) so it stays monochrome and adapts to light/dark. */
+.ic-chip__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  color: var(--ic-text-4);
+}
+.ic-chip__logo svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 /* Inline group of facet chips — replaces "A · B" dot-joined labels so each
    value sits in its own neat badge, evenly gapped and vertically centred. */
