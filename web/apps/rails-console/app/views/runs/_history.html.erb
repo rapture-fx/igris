@@ -36,11 +36,11 @@
                   <span class="ic-run-row__id mono"><%= r[:id] %></span>
                 </span>
                 <span class="ic-run-row__status ic-run-row__status--<%= tone %>">
-                  <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'OK') %>
+                  <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'Succeeded') %>
                 </span>
               </span>
               <span class="ic-run-row__sub">
-                <%= facet_chips(r[:routed_via]) %>
+                <%= route_chips(r[:routed_via]) %>
               </span>
               <span class="ic-run-row__sub">
                 <%= r[:proof] %>
