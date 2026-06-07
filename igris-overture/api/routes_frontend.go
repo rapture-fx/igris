@@ -40,6 +40,8 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 		return
 	}
 
+	RegisterProjectRoutes(app, db)
+
 	// Priority 1: GET /v1/tenants/current is now registered inside
 	// RegisterTenancyRoutes (routes_tenancy.go) BEFORE the /:tenant_id
 	// parameterized route so Fiber matches the literal path correctly.
@@ -48,77 +50,73 @@ func RegisterFrontendRoutes(app *fiber.App, db *sql.DB) {
 	// Priority 2: GET /v1/usage/summary is already registered by RegisterStatsRoutes.
 	// No additional registration needed here.
 
-	// ── Priority 3: /v1/cognitive/* aliases ──────────────────────────────────
-	// The web-console calls /v1/cognitive/* but the backend registers
-	// /api/v1/cognitive/*.  We add /v1/cognitive/* aliases that proxy to the
-	// same handlers.  We only set up the alias group if the cognitive applier is
-	// nil (i.e. cognitive advisor not running) — otherwise the existing
-	// RegisterCognitiveV1Routes already created the routes.  We always create
-	// the /v1/cognitive/status endpoint since the console polls it for feature
-	// availability regardless of whether the full advisor is wired up.
-	cogGroup := app.Group("/v1/cognitive")
-	cogGroup.Use(middleware.BetterAuth(db))
-	cogGroup.Get("/status", makeGetCognitiveStatus(db))
+	if ExperimentalCognitiveRoutesEnabled() {
+		// ── Priority 3: /v1/cognitive/* aliases ──────────────────────────────
+		cogGroup := app.Group("/v1/cognitive")
+		cogGroup.Use(middleware.BetterAuth(db))
+		cogGroup.Get("/status", makeGetCognitiveStatus(db))
+	}
 
-	// ── Priority 5: GET /v1/routing/speculative/races ─────────────────────────
-	specGroup := app.Group("/v1/routing")
-	specGroup.Use(middleware.BetterAuth(db))
-	specGroup.Get("/speculative/races", makeGetSpeculativeRaces(db))
+	if ExperimentalRoutingRoutesEnabled() {
+		// ── Priority 5: GET /v1/routing/speculative/races ─────────────────────
+		specGroup := app.Group("/v1/routing")
+		specGroup.Use(middleware.BetterAuth(db))
+		specGroup.Get("/speculative/races", makeGetSpeculativeRaces(db))
 
-	// ── Priority 6a: Shadow endpoints ────────────────────────────────────────
-	shadowGroup := app.Group("/v1/shadow")
-	shadowGroup.Use(middleware.BetterAuth(db))
-	shadowGroup.Get("/status", makeGetShadowStatus(db))
-	shadowGroup.Get("/config", makeGetShadowConfig(db))
-	shadowGroup.Patch("/config", makePatchShadowConfig(db))
-	shadowGroup.Get("/analytics", makeGetShadowAnalytics(db))
-	shadowGroup.Get("/logs", makeGetShadowLogs(db))
-	shadowGroup.Post("/start", makePostShadowToggle(db, true))
-	shadowGroup.Post("/stop", makePostShadowToggle(db, false))
-	shadowGroup.Post("/promote", makePostShadowPromote(db))
+		// ── Priority 6a: Shadow endpoints ────────────────────────────────────
+		shadowGroup := app.Group("/v1/shadow")
+		shadowGroup.Use(middleware.BetterAuth(db))
+		shadowGroup.Get("/status", makeGetShadowStatus(db))
+		shadowGroup.Get("/config", makeGetShadowConfig(db))
+		shadowGroup.Patch("/config", makePatchShadowConfig(db))
+		shadowGroup.Get("/analytics", makeGetShadowAnalytics(db))
+		shadowGroup.Get("/logs", makeGetShadowLogs(db))
+		shadowGroup.Post("/start", makePostShadowToggle(db, true))
+		shadowGroup.Post("/stop", makePostShadowToggle(db, false))
+		shadowGroup.Post("/promote", makePostShadowPromote(db))
 
-	// ── Priority 6b: Council endpoints ────────────────────────────────────────
-	councilGroup := app.Group("/v1/council")
-	councilGroup.Use(middleware.BetterAuth(db))
-	councilGroup.Get("/status", makeGetCouncilStatus(db))
-	councilGroup.Get("/config", makeGetCouncilConfig(db))
-	councilGroup.Patch("/config", makePatchCouncilConfig(db))
-	councilGroup.Get("/analytics", makeGetCouncilAnalytics(db))
-	councilGroup.Get("/history", makeGetCouncilHistory(db))
-	councilGroup.Post("/test", makePostCouncilTest(db))
+		// ── Priority 6b: Council endpoints ───────────────────────────────────
+		councilGroup := app.Group("/v1/council")
+		councilGroup.Use(middleware.BetterAuth(db))
+		councilGroup.Get("/status", makeGetCouncilStatus(db))
+		councilGroup.Get("/config", makeGetCouncilConfig(db))
+		councilGroup.Patch("/config", makePatchCouncilConfig(db))
+		councilGroup.Get("/analytics", makeGetCouncilAnalytics(db))
+		councilGroup.Get("/history", makeGetCouncilHistory(db))
+		councilGroup.Post("/test", makePostCouncilTest(db))
 
-	// ── Priority 4: Analytics cost endpoints ──────────────────────────────────
-	// The CostAnalyticsHandler.RegisterRoutes() registers at /v1/analytics/*
-	// but is never called from main.go. Wire the DB-backed version here.
-	analyticsGroup := app.Group("/v1/analytics")
-	analyticsGroup.Use(middleware.BetterAuth(db))
-	analyticsGroup.Get("/cost", makeGetCostAnalytics(db))
-	analyticsGroup.Get("/cost/providers", makeGetCostProviders(db))
-	analyticsGroup.Get("/cost/trend", makeGetCostTrend(db))
+		// ── Priority 6c: EscapeVector endpoints ──────────────────────────────
+		evGroup := app.Group("/v1/escapevector")
+		evGroup.Use(middleware.BetterAuth(db))
+		evGroup.Get("/status", makeGetEscapeVectorStatus(db))
+		evGroup.Get("/config", makeGetEscapeVectorConfig(db))
+		evGroup.Patch("/config", makePatchEscapeVectorConfig(db))
+		evGroup.Get("/history", makeGetEscapeVectorHistory(db))
+		evGroup.Get("/analytics", makeGetEscapeVectorAnalytics(db))
+		evGroup.Post("/refresh", makePostEscapeVectorRefresh(db))
+		evGroup.Delete("/cache", makeDeleteEscapeVectorCache(db))
+	}
 
-	// ── Priority 6c: EscapeVector endpoints ───────────────────────────────────
-	evGroup := app.Group("/v1/escapevector")
-	evGroup.Use(middleware.BetterAuth(db))
-	evGroup.Get("/status", makeGetEscapeVectorStatus(db))
-	evGroup.Get("/config", makeGetEscapeVectorConfig(db))
-	evGroup.Patch("/config", makePatchEscapeVectorConfig(db))
-	evGroup.Get("/history", makeGetEscapeVectorHistory(db))
-	evGroup.Get("/analytics", makeGetEscapeVectorAnalytics(db))
-	evGroup.Post("/refresh", makePostEscapeVectorRefresh(db))
-	evGroup.Delete("/cache", makeDeleteEscapeVectorCache(db))
-
-	// ── Project endpoints ────────────────────────────────────────────────────
-	RegisterProjectRoutes(app, db)
+	if ExperimentalConsoleGapRoutesEnabled() {
+		// ── Priority 4: Analytics cost endpoints ─────────────────────────────
+		analyticsGroup := app.Group("/v1/analytics")
+		analyticsGroup.Use(middleware.BetterAuth(db))
+		analyticsGroup.Get("/cost", makeGetCostAnalytics(db))
+		analyticsGroup.Get("/cost/providers", makeGetCostProviders(db))
+		analyticsGroup.Get("/cost/trend", makeGetCostTrend(db))
+	}
 
 	log.Println("[Routes] ✓ Registered frontend routes:")
-	log.Println("[Routes]   GET  /v1/tenants/current           (useTenant hook)")
-	log.Println("[Routes]   GET  /v1/cognitive/status          (useCognitive hook)")
-	log.Println("[Routes]   GET  /v1/routing/speculative/races (speculative races)")
-	log.Println("[Routes]   Analytics: /v1/analytics/cost, /cost/providers, /cost/trend")
-	log.Println("[Routes]   Shadow:    8 endpoints under /v1/shadow/*")
-	log.Println("[Routes]   Council:   6 endpoints under /v1/council/*")
-	log.Println("[Routes]   EscapeVector: 7 endpoints under /v1/escapevector/*")
 	log.Println("[Routes]   Project:  GET+PATCH /v1/project     (project identity)")
+	if ExperimentalCognitiveRoutesEnabled() {
+		log.Println("[Routes]   Cognitive: GET /v1/cognitive/status")
+	}
+	if ExperimentalRoutingRoutesEnabled() {
+		log.Println("[Routes]   Routing experiments: /v1/routing/speculative/races, /v1/shadow/*, /v1/council/*, /v1/escapevector/*")
+	}
+	if ExperimentalConsoleGapRoutesEnabled() {
+		log.Println("[Routes]   Console gap analytics: /v1/analytics/cost, /cost/providers, /cost/trend")
+	}
 }
 
 // RegisterCognitiveV1Aliases adds /v1/cognitive/* aliases pointing at the same
