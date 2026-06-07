@@ -461,7 +461,7 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__track { position: relative; height: 11px; border-radius: 3px; background: var(--ic-overlay-2); background-image: repeating-linear-gradient(to right, var(--ic-border-soft) 0 1px, transparent 1px 25%); }
       .igris-console .ic-wfall__bar { position: absolute; top: 1.5px; bottom: 1.5px; min-width: 2px; border-radius: 2px; background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0)); box-shadow: inset 2px 0 0 rgba(255,255,255,0.35); }
       .igris-console .ic-wfall__bar--ok { background-color: var(--ic-emerald); }
-      .igris-console .ic-wfall__bar--warn { background-color: var(--ic-amber); }
+      .igris-console .ic-wfall__bar--warn { background-color: var(--ic-emerald); }
       .igris-console .ic-wfall__bar--bad { background-color: var(--ic-rose); }
       .igris-console .ic-wfall__bar--muted { background-color: var(--ic-text-6); }
       .igris-console .ic-wfall__val { font-size: 10px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; text-align: right; font-family: var(--ic-mono); }
