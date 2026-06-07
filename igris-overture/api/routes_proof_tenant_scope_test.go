@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"database/sql/driver"
 	"net/http"
 	"net/http/httptest"
@@ -72,6 +73,47 @@ func TestListReceiptsQueryIsTenantScoped(t *testing.T) {
 	require.NotEmpty(t, capturedArgs)
 	require.Equal(t, "tenant-a", capturedArgs[0].Value,
 		"tenant_id ($1) must be the authenticated tenant from middleware")
+}
+
+func TestFetchReceiptVerifyRowExecutionContextJoinIsTenantScoped(t *testing.T) {
+	t.Parallel()
+
+	timestamp := time.Date(2026, 6, 5, 10, 0, 0, 0, time.UTC)
+	var capturedQuery string
+	var capturedArgs []driver.NamedValue
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
+		{
+			columns: []string{
+				"id", "execution_id", "agent_id", "runtime_id", "runtime_label",
+				"transaction_id", "transaction_hash", "cpu_time_ms", "wall_time_ms",
+				"memory_peak_mb", "fs_bytes_written", "tool_calls", "violation_occurred",
+				"receipt_hash", "previous_hash", "signature", "timestamp_utc",
+				"runtime_public_key", "proof_status",
+			},
+			rows: [][]driver.Value{{
+				"receipt-1", "exec-1", "agent-1", "runtime-1", "Runtime 1",
+				"", "", int64(1), int64(1), int64(1), int64(0), int64(1), false,
+				"hash-1", "hash-0", "sig-1", timestamp, "", "verified",
+			}},
+			checkArgs: func(query string, args []driver.NamedValue) {
+				capturedQuery = query
+				capturedArgs = args
+			},
+		},
+	})
+
+	handler := NewProofHandler(db)
+	row, err := handler.fetchReceiptVerifyRow(context.Background(), "exec-1", "tenant-a", executionSchemaCapabilities{})
+	require.NoError(t, err)
+	require.Equal(t, "verified", row.proofStatus)
+	require.Equal(t, 0, queued.remainingQueries())
+
+	normalized := strings.Join(strings.Fields(capturedQuery), " ")
+	require.Contains(t, normalized, "ec.tenant_id = el.tenant_id")
+	require.NotContains(t, strings.ToUpper(normalized), "TENANT_ID IS NULL")
+	require.Len(t, capturedArgs, 2)
+	require.Equal(t, "exec-1", capturedArgs[0].Value)
+	require.Equal(t, "tenant-a", capturedArgs[1].Value)
 }
 
 // TestProofAndLineageReadPathsHaveNoTenantNullException is a source-level
