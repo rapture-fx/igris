@@ -111,7 +111,7 @@ export default function Header() {
   return (
     <>
       {/* Top navigation bar — fixed, full width */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#010203]/90 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#010203] backdrop-blur-md">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
 
