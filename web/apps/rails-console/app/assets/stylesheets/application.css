@@ -391,8 +391,22 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
   background: var(--ic-bg);
   border: 0.5px solid var(--ic-border-soft);
 }
-.ic-sidebar__search svg { color: var(--ic-text-7); width: 9px; height: 9px; }
+.ic-sidebar__search svg { color: var(--ic-text-7); width: 9px; height: 9px; flex-shrink: 0; }
 .ic-sidebar__search span { flex: 1; font-size: 10.5px; color: var(--ic-text-7); }
+.ic-sidebar__search:focus-within { border-color: var(--ic-border); }
+.ic-sidebar__search-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 10.5px;
+  color: var(--ic-text-2);
+}
+.ic-sidebar__search-input::placeholder { color: var(--ic-text-7); }
+.ic-sidebar__search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 .ic-sidebar__section-head {
   display: flex;
   align-items: center;
@@ -460,7 +474,10 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
   height: 6px;
   border-radius: 999px;
 }
+/* Folder glyph for project groups in the runs picker (replaces the dot). */
+.ic-group__folder { width: 12px; height: 12px; color: var(--ic-text-6); flex-shrink: 0; }
 .ic-group__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ic-group__count { font-size: 10px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; }
 
 .ic-group__body { display: flex; flex-direction: column; margin-top: 1px; }
 
@@ -477,6 +494,10 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
 }
 .ic-task:hover { background: var(--ic-overlay-1); }
 .ic-task.is-active { background: var(--ic-overlay-4); }
+/* Runs picker: action name leads (flexible), status sizes to its own text. */
+.ic-task--run { grid-template-columns: 10px minmax(0, 1fr) auto auto; }
+.ic-task--run .ic-task__title { color: var(--ic-text-2); }
+.ic-task--run .ic-task__status { overflow: visible; }
 .ic-task__dot {
   width: 6px;
   height: 6px;
@@ -1054,8 +1075,10 @@ html.dark .ig-btn--primary {
   margin-right: 4px;
   color: var(--ic-text-5);
 }
-/* Self-hosted brand logo, inlined as SVG and tinted with the chip's text
-   colour (currentColor) so it stays monochrome and adapts to light/dark. */
+/* Self-hosted brand logo, inlined as SVG. Each file carries its own fill —
+   a brand colour for vivid marks, or fill="currentColor" for marks that are
+   monochrome by brand (GitHub, Vercel, Resend), which then pick up this
+   colour and adapt to the light/dark theme. */
 .ic-chip__logo {
   display: inline-flex;
   align-items: center;
@@ -1063,12 +1086,11 @@ html.dark .ig-btn--primary {
   width: 12px;
   height: 12px;
   margin-right: 4px;
-  color: var(--ic-text-4);
+  color: var(--ic-text-3);
 }
 .ic-chip__logo svg {
   width: 100%;
   height: 100%;
-  fill: currentColor;
 }
 /* Inline group of facet chips — replaces "A · B" dot-joined labels so each
    value sits in its own neat badge, evenly gapped and vertically centred. */
@@ -1194,31 +1216,46 @@ html.dark .ic-btn--accent:hover {
   background: var(--ic-bg);
 }
 .ic-run-detail {
-  width: min(100%, 1180px);
-  align-self: center;
-  padding-left: 20px;
-  padding-right: 20px;
+  /* Full-width within the main pane so it sits flush against the mini-sidebar
+     instead of a centred 1180px block with a wide gap on either side. */
+  width: 100%;
+  padding-left: 12px;
+  padding-right: 16px;
   overflow: hidden;
   min-height: 0;
 }
 .ic-run-detail-layout {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  /* Evidence is the main column; Execution detail is the sticky right rail. */
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 16px;
   height: 100%;
   min-height: 0;
 }
 .ic-run-detail-rail {
   min-width: 0;
-  align-self: start;
+  align-self: stretch;
   position: sticky;
   top: 0;
-  max-height: 100%;
-  overflow: hidden;
+  border-left: 1px solid var(--ic-border);
+  padding-left: 14px;
 }
+/* Rail items are flat — no card border/bg */
 .ic-run-detail-rail .ic-summary {
   margin-bottom: 12px;
-  padding: 12px 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.ic-run-detail-rail .ic-nextstep {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 .ic-run-detail-rail .ic-summary__grid {
   grid-template-columns: 1fr;
@@ -1232,11 +1269,6 @@ html.dark .ic-btn--accent:hover {
 .ic-run-detail-rail .ic-summary__k { font-size: 9.5px; margin-bottom: 2px; }
 .ic-run-detail-rail .ic-summary__v { font-size: 11px; }
 .ic-run-detail-rail .ic-summary__v.mono { font-size: 10.5px; }
-.ic-run-detail-rail .ic-nextstep {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-}
 .ic-run-detail-scroll {
   min-width: 0;
   min-height: 0;
@@ -1259,13 +1291,16 @@ html.dark .ic-btn--accent:hover {
     overflow-y: auto;
   }
   .ic-run-detail-layout {
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: auto;
   }
   .ic-run-detail-rail {
     position: static;
     max-height: none;
     overflow: visible;
+    /* Stack the Execution-detail summary above the evidence on small screens. */
+    order: -1;
   }
   .ic-run-detail-scroll {
     overflow: visible;
@@ -2016,18 +2051,6 @@ html.dark .ic-btn--accent:hover {
   padding: 3px 0;
 }
 .ic-runinspector__kvk { font-size: 11px; color: var(--ic-text-5); }
-.ic-runinspector__kvv {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 5px;
-  background: var(--ic-overlay-4);
-  color: var(--ic-text-2);
-  border: 1px solid var(--ic-border-soft);
-  text-align: right;
-  word-break: break-word;
-}
 .ic-runinspector__kvfoot {
   font-size: 10.5px;
   color: var(--ic-text-6);
@@ -3458,6 +3481,11 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   background: var(--ic-overlay-bg);
   padding: 14px 16px 8px;
   margin-bottom: 16px;
+}
+/* Flat variant — no card border/bg, just the heading + rows. */
+.ic-evidence--flat {
+  padding: 0 0 8px;
+  margin-bottom: 12px;
 }
 .ic-evidence__head {
   font-size: 11px;
