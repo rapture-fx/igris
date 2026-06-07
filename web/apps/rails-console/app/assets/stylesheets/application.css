@@ -74,11 +74,11 @@ html.dark, html[data-theme="dark"] {
   --ic-overlay-bg: rgba(255,255,255,0.015);
   --ic-rail-active: #d3d2c8;
   --ic-dot-border: #070707;
-  --ic-accent: #047857;
-  --ic-emerald: #047857;
-  --ic-emerald-2: #059669;
-  --ic-emerald-dim: rgba(4, 120, 87, 0.85);
-  --ic-rose: #cf5a68;
+  --ic-accent: #0f835c;
+  --ic-emerald: #0f835c;
+  --ic-emerald-2: #0a6b4a;
+  --ic-emerald-dim: rgba(15, 131, 92, 0.85);
+  --ic-rose: #9d4b57;
   --ic-amber: #cf9a45;
   --ic-menu-bg: #14140f;
   --ic-menu-border: rgba(255,255,255,0.06);
