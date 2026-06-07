@@ -423,7 +423,7 @@ func main() {
 			log.Println("[Phase 2] ✅ Multi-tenancy initialized successfully")
 
 			// Initialize Cognitive Advisor (v1.2.0 - if enabled)
-			enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true"
+			enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true" && api.ExperimentalCognitiveRoutesEnabled()
 			if enableCognitiveAdvisor {
 				log.Println("[CognitiveAdvisor] Initializing Cognitive Layer (v1.2.0)...")
 
@@ -475,6 +475,8 @@ func main() {
 
 				// Ensure worker is stopped on shutdown
 				defer worker.Stop()
+			} else if os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true" {
+				log.Printf("[CognitiveAdvisor] disabled: %s is not enabled", api.ExperimentalCognitiveRoutesFlag)
 			}
 
 			// Initialize SLO Enforcer (v1.2.0 - if enabled)
@@ -503,12 +505,14 @@ func main() {
 				ctx := context.Background()
 				go promScraper.Start(ctx, actionExecutor)
 
-				// Register SLO admin routes
+				// Register SLO admin routes. SLO must be explicitly enabled and
+				// route access requires IGRIS_INTERNAL_ADMIN_TOKEN.
 				sloHandler := api.NewSLOHandler(auditLogger, promScraper)
-				app.Get("/admin/slo/status", adaptor.HTTPHandlerFunc(sloHandler.HandleGetStatus))
-				app.Get("/admin/slo/audit", adaptor.HTTPHandlerFunc(sloHandler.HandleGetAuditEvents))
-				app.Post("/admin/slo/evaluate", adaptor.HTTPHandlerFunc(sloHandler.HandleEvaluate))
-				app.Get("/admin/slo/metrics", adaptor.HTTPHandlerFunc(sloHandler.HandleGetMetrics))
+				sloAdmin := app.Group("/admin/slo", api.InternalAdminAuthMiddleware())
+				sloAdmin.Get("/status", adaptor.HTTPHandlerFunc(sloHandler.HandleGetStatus))
+				sloAdmin.Get("/audit", adaptor.HTTPHandlerFunc(sloHandler.HandleGetAuditEvents))
+				sloAdmin.Post("/evaluate", adaptor.HTTPHandlerFunc(sloHandler.HandleEvaluate))
+				sloAdmin.Get("/metrics", adaptor.HTTPHandlerFunc(sloHandler.HandleGetMetrics))
 
 				log.Println("[SLOEnforcer] ✅ SLO Enforcer initialized successfully")
 				log.Printf("[SLOEnforcer] 🔍 Monitoring /metrics endpoint (20s interval)")
@@ -617,9 +621,17 @@ func main() {
 		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
 		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
 		api.RegisterGovernanceRoutes(app, dbInstance)
-		api.RegisterSpeculativeRoutes(app, dbInstance)
-		api.RegisterModelProviderRoutes(app, dbInstance, tenantAuth)
-		log.Println("[Routes] ✅ Dashboard routes registered (stats, execution, proof, speculative, model-providers)")
+		if api.ExperimentalRoutingRoutesEnabled() {
+			api.RegisterSpeculativeRoutes(app, dbInstance)
+		} else {
+			log.Printf("[Routes] Speculative routing routes disabled (%s not enabled)", api.ExperimentalRoutingRoutesFlag)
+		}
+		if api.ExperimentalModelRoutesEnabled() {
+			api.RegisterModelProviderRoutes(app, dbInstance, tenantAuth)
+		} else {
+			log.Printf("[Routes] Model provider routes disabled (%s not enabled)", api.ExperimentalModelRoutesFlag)
+		}
+		log.Println("[Routes] ✅ Core dashboard routes registered (stats, execution, proof, governance)")
 
 		// Register all web-console frontend endpoints (tenant/current, usage/summary,
 		// cognitive/status, speculative/races, shadow/*, council/*, escapevector/*)
@@ -627,17 +639,26 @@ func main() {
 		log.Println("[Routes] ✅ Frontend routes registered (web-console endpoints)")
 
 		// Register gap-fill endpoints: fleet devices, history, settings, cost, policy-ext
-		api.RegisterDeviceRoutes(app, dbInstance)
-		api.RegisterHistoryRoutes(app, dbInstance)
-		api.RegisterSettingsRoutes(app, dbInstance)
-		api.RegisterCostRoutes(app, dbInstance)
-		api.RegisterPolicyExtRoutes(app, dbInstance)
-		api.RegisterSubscriptionRoutes(app, dbInstance)
-		api.RegisterROSRoutes(app, dbInstance)
-		api.RegisterBTRoutes(app, dbInstance)
-		api.RegisterAgentRoutes(app, dbInstance)
-		api.RegisterCouncilRoutes(app, dbInstance)
-		log.Println("[Routes] ✅ Gap-fill routes registered (devices, history, settings, cost, policy-ext, subscription, ros, bt, agent-blackboard, council)")
+		if api.ExperimentalConsoleGapRoutesEnabled() {
+			api.RegisterDeviceRoutes(app, dbInstance)
+			api.RegisterHistoryRoutes(app, dbInstance)
+			api.RegisterSettingsRoutes(app, dbInstance)
+			api.RegisterCostRoutes(app, dbInstance)
+			api.RegisterPolicyExtRoutes(app, dbInstance)
+			api.RegisterSubscriptionRoutes(app, dbInstance)
+			api.RegisterAgentRoutes(app, dbInstance)
+			api.RegisterCouncilRoutes(app, dbInstance)
+			log.Println("[Routes] ✅ Console gap-fill routes registered (devices, history, settings, cost, policy-ext, subscription, agent-blackboard, council)")
+		} else {
+			log.Printf("[Routes] Console gap-fill routes disabled (%s not enabled)", api.ExperimentalConsoleGapRoutesFlag)
+		}
+		if api.ExperimentalRoboticsRoutesEnabled() {
+			api.RegisterROSRoutes(app, dbInstance)
+			api.RegisterBTRoutes(app, dbInstance)
+			log.Println("[Routes] ✅ Robotics console routes registered (ros, bt)")
+		} else {
+			log.Printf("[Routes] Robotics console routes disabled (%s not enabled)", api.ExperimentalRoboticsRoutesFlag)
+		}
 	} else {
 		log.Println("[Routes] ⚠️  Database not available — dashboard routes disabled")
 	}
@@ -664,48 +685,75 @@ func main() {
 		api.RegisterTrialRoutes(app, dbInstance, trialManager)
 		log.Println("[Trial] ✅ Trial endpoints registered (/v1/trial/start, /v1/trial/status)")
 
-		// Federated learning coordinator
-		api.RegisterFederatedRoutes(app, dbInstance)
-		log.Println("[Federated] ✅ Federated learning endpoints registered (/v1/federated/*)")
+		if api.ExperimentalFederatedRoutesEnabled() {
+			api.RegisterFederatedRoutes(app, dbInstance)
+			log.Println("[Federated] ✅ Federated learning endpoints registered (/v1/federated/*)")
+		} else {
+			log.Printf("[Federated] endpoints disabled (%s not enabled)", api.ExperimentalFederatedRoutesFlag)
+		}
 
-		// LoRA training proxy (forwards to runtime /v1/lora/*)
-		api.RegisterLoRARoutes(app, dbInstance)
-		log.Println("[LoRA] ✅ LoRA training proxy endpoints registered (/v1/lora/*)")
+		if api.ExperimentalModelRoutesEnabled() {
+			// LoRA training proxy (forwards to runtime /v1/lora/*)
+			api.RegisterLoRARoutes(app, dbInstance)
+			log.Println("[LoRA] ✅ LoRA training proxy endpoints registered (/v1/lora/*)")
+		} else {
+			log.Printf("[LoRA] endpoints disabled (%s not enabled)", api.ExperimentalModelRoutesFlag)
+		}
 
-		// Circuit breaker status endpoint
-		api.RegisterCircuitBreakerRoutes(app, dbInstance)
-		log.Println("[CircuitBreaker] ✅ Circuit breaker status endpoint registered (/v1/routing/circuit-breaker/status)")
+		if api.ExperimentalRoutingRoutesEnabled() {
+			// Circuit breaker status endpoint
+			api.RegisterCircuitBreakerRoutes(app, dbInstance)
+			log.Println("[CircuitBreaker] ✅ Circuit breaker status endpoint registered (/v1/routing/circuit-breaker/status)")
 
-		api.RegisterRoutingConfigRoutes(app, dbInstance)
-		log.Println("[Routing] ✅ Routing config endpoints registered (POST /v1/routing/strategy|speculative|council|shadow|provider_weights)")
+			api.RegisterRoutingConfigRoutes(app, dbInstance)
+			log.Println("[Routing] ✅ Routing config endpoints registered (POST /v1/routing/strategy|speculative|council|shadow|provider_weights)")
 
-		api.RegisterRoutingAnalyticsRoutes(app, dbInstance)
-		log.Println("[Routing] ✅ Routing analytics endpoints registered (GET /v1/routing/stats|recent|leaderboard)")
+			api.RegisterRoutingAnalyticsRoutes(app, dbInstance)
+			log.Println("[Routing] ✅ Routing analytics endpoints registered (GET /v1/routing/stats|recent|leaderboard)")
+		} else {
+			log.Printf("[Routing] endpoints disabled (%s not enabled)", api.ExperimentalRoutingRoutesFlag)
+		}
 
 		// Execution receipts (tamper-evident signed records)
 		api.RegisterReceiptRoutes(app, dbInstance)
 		log.Println("[Receipts] ✅ Receipt endpoints registered (/v1/receipts, /v1/receipts/:id, /v1/receipts/export)")
 
-		// Governed robotics policy lifecycle and runtime allow-list
-		api.RegisterRoboticsPolicyRoutes(app, dbInstance)
-		log.Println("[RoboticsPolicy] ✅ Robotics policy endpoints registered (/v1/robotics/policies)")
-		api.RegisterAICapabilityPolicyRoutes(app, dbInstance)
-		log.Println("[AICapabilityPolicy] ✅ AI capability policy endpoints registered (/v1/ai/capabilities/policies)")
-		api.RegisterAICredentialRoutes(app, dbInstance)
-		log.Println("[AICredentials] ✅ AI credential endpoints registered (/v1/ai/credentials)")
-		api.StartRoboticsPolicyCommandNonceCleanup(context.Background(), dbInstance, time.Hour)
-		log.Println("[RoboticsPolicy] ✅ Expired policy command nonce cleanup started")
+		if api.ExperimentalRoboticsRoutesEnabled() {
+			// Governed robotics policy lifecycle and runtime allow-list
+			api.RegisterRoboticsPolicyRoutes(app, dbInstance)
+			log.Println("[RoboticsPolicy] ✅ Robotics policy endpoints registered (/v1/robotics/policies)")
+			api.StartRoboticsPolicyCommandNonceCleanup(context.Background(), dbInstance, time.Hour)
+			log.Println("[RoboticsPolicy] ✅ Expired policy command nonce cleanup started")
+		} else {
+			log.Printf("[RoboticsPolicy] endpoints disabled (%s not enabled)", api.ExperimentalRoboticsRoutesFlag)
+		}
+		if api.ExperimentalAIPolicyRoutesEnabled() {
+			api.RegisterAICapabilityPolicyRoutes(app, dbInstance)
+			log.Println("[AICapabilityPolicy] ✅ AI capability policy endpoints registered (/v1/ai/capabilities/policies)")
+			api.RegisterAICredentialRoutes(app, dbInstance)
+			log.Println("[AICredentials] ✅ AI credential endpoints registered (/v1/ai/credentials)")
+		} else {
+			log.Printf("[AIPolicy] endpoints disabled (%s not enabled)", api.ExperimentalAIPolicyRoutesFlag)
+		}
 		api.StartRuntimeCallbackNonceCleanup(context.Background(), dbInstance, time.Hour, 24*time.Hour)
 		log.Println("[RuntimeCallback] ✅ Expired callback nonce cleanup started")
 		startTenantComplianceExportSchedulerFromEnv(context.Background(), dbInstance)
 
-		// Fleet config push and OTA updates
-		api.RegisterFleetPushRoutes(app, dbInstance)
-		log.Println("[Fleet] ✅ Fleet push endpoints registered (/api/v1/runtime/config/push, /api/v1/runtime/update)")
+		if api.ExperimentalFleetRoutesEnabled() {
+			// Fleet config push and OTA updates
+			api.RegisterFleetPushRoutes(app, dbInstance)
+			log.Println("[Fleet] ✅ Fleet push endpoints registered (/api/v1/runtime/config/push, /api/v1/runtime/update)")
+		} else {
+			log.Printf("[Fleet] push/update endpoints disabled (%s not enabled)", api.ExperimentalFleetRoutesFlag)
+		}
 
-		// Multimodal inference (vision + audio)
-		api.RegisterMultimodalRoutes(app, dbInstance)
-		log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
+		if api.ExperimentalModelRoutesEnabled() {
+			// Multimodal inference (vision + audio)
+			api.RegisterMultimodalRoutes(app, dbInstance)
+			log.Println("[Multimodal] ✅ Multimodal endpoints registered (/v1/infer/multimodal)")
+		} else {
+			log.Printf("[Multimodal] endpoints disabled (%s not enabled)", api.ExperimentalModelRoutesFlag)
+		}
 
 		// Durable task execution with fault-tolerant recovery
 		taskCoordinator := coordinator.NewTaskCoordinator(dbInstance)
@@ -768,13 +816,18 @@ func main() {
 	// Root health check
 	app.Get("/", func(c *fiber.Ctx) error {
 		endpoints := fiber.Map{
-			"inference": "/v1/infer",
 			"health":    "/v1/health",
 			"liveness":  "/healthz",
 			"readiness": "/readyz",
 			"startup":   "/startupz",
-			"models":    "/v1/models",
-			"metrics":   "/metrics",
+		}
+
+		if api.ExperimentalModelRoutesEnabled() {
+			endpoints["inference"] = "/v1/infer"
+			endpoints["models"] = "/v1/models"
+		}
+		if api.DebugMetricsRoutesEnabled() {
+			endpoints["metrics"] = "/metrics"
 		}
 
 		// Add license and runtime endpoints if database is available
@@ -799,7 +852,7 @@ func main() {
 		}
 
 		// Add cognitive advisor endpoints if enabled
-		enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true"
+		enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true" && api.ExperimentalCognitiveRoutesEnabled()
 		if enableCognitiveAdvisor {
 			endpoints["cognitive"] = "/admin/cognitive/proposals"
 		}
@@ -845,11 +898,15 @@ func main() {
 	}
 
 	log.Printf("✅ Server ready on port %s (version %s)", port, version)
-	log.Printf("   📍 Inference: http://localhost:%s/v1/infer", port)
 	log.Printf("   📍 Health:    http://localhost:%s/v1/health", port)
 	log.Printf("   📍 Liveness:  http://localhost:%s/healthz", port)
 	log.Printf("   📍 Readiness: http://localhost:%s/readyz", port)
-	log.Printf("   📍 Metrics:   http://localhost:%s/metrics", port)
+	if api.ExperimentalModelRoutesEnabled() {
+		log.Printf("   📍 Inference: http://localhost:%s/v1/infer", port)
+	}
+	if api.DebugMetricsRoutesEnabled() {
+		log.Printf("   📍 Metrics:   http://localhost:%s/metrics", port)
+	}
 
 	if dbInstance != nil {
 		log.Printf("   📍 License:   http://localhost:%s/api/v1/license/validate", port)
