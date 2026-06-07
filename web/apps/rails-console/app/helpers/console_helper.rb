@@ -144,12 +144,14 @@ module ConsoleHelper
   private
 
   # Brand marks are self-hosted SVGs in public/logos/<slug>.svg — genuine,
-  # owner-supplied glyphs only, never hand-drawn. They are inlined and tinted
-  # with the chip's currentColor, so they adapt to light/dark. A slug with no
-  # file on disk falls back to a plain text label rather than a broken image,
-  # so dropping in an official SVG is all it takes to light a provider up.
-  # A provider rebrand (e.g. Stripe's new mark) is handled by replacing the file.
-  BRAND_LOGO_SLUGS = %w[stripe hubspot resend slack polar s3 sendgrid].freeze
+  # owner-supplied glyphs only, never hand-drawn. Each file carries its own
+  # fill: a brand colour for vivid marks (Stripe indigo, Cloudflare orange,
+  # Linear, Neon green, Sentry blurple) and fill="currentColor" for the marks
+  # that are monochrome by brand (GitHub, Vercel, Resend) so they adapt to the
+  # light/dark theme. A slug with no file on disk falls back to a plain text
+  # label rather than a broken image, so dropping in an official SVG is all it
+  # takes to light a provider up; a rebrand is handled by replacing the file.
+  BRAND_LOGO_SLUGS = %w[stripe resend github linear vercel cloudflare neon sentry].freeze
 
   def route_icon(name)
     case name.to_s
