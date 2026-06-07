@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -133,6 +134,7 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 	t.Parallel()
 
 	startedAt := time.Date(2026, 5, 3, 13, 0, 0, 0, time.UTC)
+	var capturedQuery string
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
 		{
 			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
@@ -160,6 +162,9 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 				"receipt-sig-infer-1",
 				"verified",
 			}},
+			checkArgs: func(query string, _ []driver.NamedValue) {
+				capturedQuery = query
+			},
 		},
 	})
 
@@ -195,6 +200,13 @@ func TestListRunsIncludesInferenceRecordsWithExecutionContextVerification(t *tes
 	if runs[0].ReceiptHash != "receipt-hash-infer-1" {
 		t.Fatalf("ReceiptHash = %q, want receipt-hash-infer-1", runs[0].ReceiptHash)
 	}
+	normalized := strings.Join(strings.Fields(capturedQuery), " ")
+	if !strings.Contains(normalized, "ec.tenant_id = execution_lineage.tenant_id") {
+		t.Fatalf("execution_context join is not tenant-matched: %s", normalized)
+	}
+	if strings.Contains(strings.ToUpper(normalized), "TENANT_ID IS NULL") {
+		t.Fatalf("execution_context query must not include tenant-null fallback: %s", normalized)
+	}
 	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
 		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
 	}
@@ -225,18 +237,18 @@ func TestListRunsHandlesSparseLineageRow(t *testing.T) {
 			rows: [][]driver.Value{{
 				"exec-sparse-1",
 				"tenant-sparse",
-				"",         // post-COALESCE empty runtime/device id
+				"", // post-COALESCE empty runtime/device id
 				startedAt,
-				int64(0),   // post-COALESCE zero wall_time_ms
-				false,      // post-COALESCE false violation_occurred
+				int64(0), // post-COALESCE zero wall_time_ms
+				false,    // post-COALESCE false violation_occurred
 				"completed",
 				"",
 				"",
 				"row-sparse-1",
-				"",         // post-COALESCE empty receipt_hash
+				"", // post-COALESCE empty receipt_hash
 				"",
 				"",
-				"",         // post-COALESCE empty proof_status (no ec, no tp)
+				"", // post-COALESCE empty proof_status (no ec, no tp)
 			}},
 		},
 	})
@@ -281,13 +293,14 @@ func TestListRunsHandlesSparseLineageRow(t *testing.T) {
 // TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask covers the
 // production schema mode (task_proof_detail = true) where the LEFT JOIN
 // LATERAL on task_records returns no rows for direct /v1/infer executions.
-// With COALESCE(tp.task_id, '') in the SELECT clause the empty-task row
+// With COALESCE(tp.task_id, ”) in the SELECT clause the empty-task row
 // shape must scan cleanly and the response must omit task_id while keeping
 // runtime/receipt/verification fields populated.
 func TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask(t *testing.T) {
 	t.Parallel()
 
 	startedAt := time.Date(2026, 5, 9, 13, 0, 0, 0, time.UTC)
+	var capturedQuery string
 	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{
 		{
 			columns: []string{"task_proof_lookup", "task_proof_detail", "permission_audit", "lineage_violation_detail"},
@@ -332,13 +345,16 @@ func TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask(t *testing.T) {
 				nil,
 				// tp.* columns: lateral subquery yielded no row → COALESCE(tp.task_id,'') = '';
 				// the rest of the tp.* columns come back as NULL/empty per their column types.
-				nil, // execution_envelope (jsonb NULL)
-				"",  // COALESCE(tp.task_id,'')
-				nil, // permission_envelope (jsonb NULL)
-				"",  // task_failure_reason (already COALESCE'd)
-				nil, // failure_details (jsonb NULL)
+				nil,                // execution_envelope (jsonb NULL)
+				"",                 // COALESCE(tp.task_id,'')
+				nil,                // permission_envelope (jsonb NULL)
+				"",                 // task_failure_reason (already COALESCE'd)
+				nil,                // failure_details (jsonb NULL)
 				nil, nil, nil, nil, // task_records timestamps NULL
 			}},
+			checkArgs: func(query string, _ []driver.NamedValue) {
+				capturedQuery = query
+			},
 		},
 	})
 
@@ -373,6 +389,13 @@ func TestGetRunDetailSupportsTaskProofDetailWithoutMatchingTask(t *testing.T) {
 	}
 	if detail.Receipt == nil || detail.Receipt.Hash != "receipt-hash-direct-1" {
 		t.Fatalf("Receipt = %#v, want hash receipt-hash-direct-1", detail.Receipt)
+	}
+	normalized := strings.Join(strings.Fields(capturedQuery), " ")
+	if !strings.Contains(normalized, "ec.tenant_id = execution_lineage.tenant_id") {
+		t.Fatalf("execution_context detail join is not tenant-matched: %s", normalized)
+	}
+	if strings.Contains(strings.ToUpper(normalized), "TENANT_ID IS NULL") {
+		t.Fatalf("execution_context detail query must not include tenant-null fallback: %s", normalized)
 	}
 	if queued.remainingQueries() != 0 || queued.remainingExecs() != 0 {
 		t.Fatalf("remaining queries=%d execs=%d, want 0/0", queued.remainingQueries(), queued.remainingExecs())
