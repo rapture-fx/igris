@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { LineSpinner } from 'ldrs/react'
-import 'ldrs/react/LineSpinner.css'
 import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
@@ -27,15 +25,30 @@ interface Step {
   latency?: number
   status: Status
   receipt?: string
-  signed_at?: string
+  // HH:MM:SS.mmm log timestamp. Committed actions carry their signed time;
+  // faults + the in-flight step are derived from run-start + cumulative
+  // latency, exactly as console_helper#committed_log_times computes them.
+  at: string
 }
 
+// Mirrors steps_for(Running) in
+// web/apps/rails-console/app/services/igris/fixtures.rb so the hero renders the
+// same committed-actions log as the rails-console Run detail page.
 const STEPS: Step[] = [
-  { id: 's1', kind: 'action', num: '01', name: 'read_file', detail: '/uploads/policy-v3.pdf · 1.2KB digest',                        latency: 12, status: 'committed', receipt: 'r₀₁', signed_at: '14:07:42.218' },
-  { id: 's2', kind: 'action', num: '02', name: 'http_call', detail: 'POST /v3/sync · 200 OK',                                        latency: 38, status: 'committed', receipt: 'r₀₂', signed_at: '14:07:42.481' },
-  { id: 's3', kind: 'fault',             name: 'host_fault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b', latency: 31, status: 'committed' },
-  { id: 's4', kind: 'action', num: '03', name: 'http_call', detail: 'retry 2 of 3 succeeded',                                        latency: 42, status: 'committed', receipt: 'r₀₃', signed_at: '14:07:43.014' },
-  { id: 's5', kind: 'action', num: '04', name: 'db_write',  detail: 'orders_fulfilled · r_8421',                                                 status: 'running' },
+  { id: 's01', kind: 'action', num: '01', name: 'read_file',  detail: '/uploads/policy-v3.pdf · 1.2KB digest',                          latency: 12,  status: 'committed', receipt: 'r₀₁', at: '14:07:42.218' },
+  { id: 's02', kind: 'action', num: '02', name: 'http_call',  detail: 'GET /v3/accounts/8821 · 200 OK',                                 latency: 24,  status: 'committed', receipt: 'r₀₂', at: '14:07:42.301' },
+  { id: 's03', kind: 'action', num: '03', name: 'http_call',  detail: 'POST /v3/sync · 200 OK',                                         latency: 38,  status: 'committed', receipt: 'r₀₃', at: '14:07:42.481' },
+  { id: 's04', kind: 'fault',              name: 'host_fault', detail: 'worker_a failed · checkpoint preserved · resumed on worker_b',  latency: 31,  status: 'committed', at: '14:07:42.074' },
+  { id: 's05', kind: 'action', num: '04', name: 'http_call',  detail: 'retry 2 of 3 succeeded',                                        latency: 42,  status: 'committed', receipt: 'r₀₄', at: '14:07:43.014' },
+  { id: 's06', kind: 'action', num: '05', name: 'read_file',  detail: '/tmp/manifest.json · 0.8KB digest',                             latency: 9,   status: 'committed', receipt: 'r₀₅', at: '14:07:43.140' },
+  { id: 's07', kind: 'action', num: '06', name: 'inference',  detail: 'classify_intent · 128 tok · 0.31 conf',                         latency: 210, status: 'committed', receipt: 'r₀₆', at: '14:07:43.402' },
+  { id: 's08', kind: 'action', num: '07', name: 'http_call',  detail: 'POST /v3/accounts/8821/ledger · 200 OK',                        latency: 47,  status: 'committed', receipt: 'r₀₇', at: '14:07:43.509' },
+  { id: 's09', kind: 'action', num: '08', name: 'db_write',   detail: 'accounts_staged · r_7720',                                      latency: 54,  status: 'committed', receipt: 'r₀₈', at: '14:07:43.612' },
+  { id: 's10', kind: 'action', num: '09', name: 'http_call',  detail: 'POST /v3/notify · 202 Accepted',                                latency: 33,  status: 'committed', receipt: 'r₀₉', at: '14:07:43.701' },
+  { id: 's11', kind: 'fault',              name: 'rate_limit', detail: 'upstream 429 · backoff 250ms · resumed',                       latency: 250, status: 'committed', at: '14:07:42.500' },
+  { id: 's12', kind: 'action', num: '10', name: 'http_call',  detail: 'POST /v3/notify · retry 1 of 3 · 202',                          latency: 29,  status: 'committed', receipt: 'r₁₀', at: '14:07:44.012' },
+  { id: 's13', kind: 'action', num: '11', name: 'read_file',  detail: '/var/run/lock/orders · 0.1KB digest',                          latency: 6,   status: 'committed', receipt: 'r₁₁', at: '14:07:44.119' },
+  { id: 's14', kind: 'action', num: '12', name: 'db_write',   detail: 'orders_fulfilled · r_8421',                                                   status: 'running', at: '14:07:42.785' },
 ]
 
 interface RunRow {
@@ -67,7 +80,7 @@ const PROJECTS: ProjectGroup[] = [
   {
     name: 'payments-api',
     runs: [
-      { id: 'run_01HGJ9N7P4D', action: 'charge_customer', status: 'running',   statusLabel: 'Running',   when: 'just now', active: true },
+      { id: 'rdm_36',          action: 'charge_customer', status: 'running',   statusLabel: 'Running',   when: 'just now' },
       { id: 'rdm_37',          action: 'charge_customer', status: 'completed', statusLabel: 'Succeeded', when: '2d ago' },
       { id: 'rdm_12',          action: 'refund_charge',   status: 'blocked',   statusLabel: 'Denied',    when: '1h ago' },
     ],
@@ -75,6 +88,7 @@ const PROJECTS: ProjectGroup[] = [
   {
     name: 'data-platform',
     runs: [
+      { id: 'run_01HGJ9N7P4D', action: 'fulfill_order',     status: 'running',   statusLabel: 'Running',   when: 'just now', active: true },
       { id: 'rdm_05', action: 'run_migration',     status: 'failed',    statusLabel: 'Failed',    when: '28m ago' },
       { id: 'rdm_04', action: 'validate_policy',   status: 'completed', statusLabel: 'Succeeded', when: '22m ago' },
       { id: 'rdm_02', action: 'capture_exception', status: 'completed', statusLabel: 'Succeeded', when: '12m ago' },
@@ -93,7 +107,9 @@ const PROJECTS: ProjectGroup[] = [
 
 export function ExecutionPreview() {
   const { resolvedTheme } = useTheme()
-  const isLight = resolvedTheme === 'light'
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const isLight = mounted && resolvedTheme === 'light'
   const [query, setQuery] = useState('')
   return (
     <div
@@ -151,6 +167,11 @@ function ConsoleStyles() {
         --ic-rail-active: #f0efe8;
         --ic-dot-border: #070707;
         --ic-accent: #34d399;
+        --ic-emerald: #34d399;
+        --ic-emerald-dim: rgba(52,211,153,0.8);
+        --ic-amber: #fbbf24;
+        --ic-rose: #fb7185;
+        --ic-mono: ${MONO};
       }
       .igris-console.igris-console--light {
         color-scheme: light;
@@ -179,6 +200,11 @@ function ConsoleStyles() {
         --ic-rail-active: #1b1912;
         --ic-dot-border: #f2f1ee;
         --ic-accent: #047857;
+        --ic-emerald: #047857;
+        --ic-emerald-dim: #059669;
+        --ic-amber: #b45309;
+        --ic-rose: #be123c;
+        --ic-mono: ${MONO};
       }
 
       .igris-console .ic-scroll { scrollbar-width: none; -ms-overflow-style: none; }
@@ -266,6 +292,164 @@ function ConsoleStyles() {
         50%      { opacity: 0.4; }
       }
       .igris-console .ic-live-dot { animation: ic-dot 2.4s ease-in-out infinite; }
+
+      /* ── Ported from rails-console application.css so the Run detail port
+            renders identically to runs/show + _inspector. ─────────────── */
+      .igris-console .mono { font-family: var(--ic-mono); }
+
+      .igris-console .ic-chips { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; vertical-align: middle; }
+      .igris-console .ic-chip--sm { font-size: 10px; padding: 0 5px; line-height: 15px; }
+      .igris-console .ic-chip__icon { display: inline-flex; align-items: center; margin-right: 4px; color: var(--ic-text-5); }
+      .igris-console .ic-chip__logo { display: inline-flex; align-items: center; justify-content: center; width: 12px; height: 12px; margin-right: 4px; color: var(--ic-text-3); }
+      .igris-console .ic-chip__logo svg { width: 100%; height: 100%; }
+
+      /* Pills */
+      .igris-console .ig-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--ic-overlay-3); border: 1px solid var(--ic-border); color: var(--ic-text-3); white-space: nowrap; }
+      .igris-console .ig-pill--ok    { color: var(--ic-emerald); border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.10); }
+      .igris-console .ig-pill--warn  { color: var(--ic-amber);   border-color: rgba(251,191,36,0.25);  background: rgba(251,191,36,0.08); }
+      .igris-console .ig-pill--bad   { color: var(--ic-rose);    border-color: rgba(244,63,94,0.25); background: rgba(244,63,94,0.08); }
+      .igris-console .ig-pill--muted { color: var(--ic-text-4); }
+      .igris-console--light .ig-pill--ok   { background: rgba(4,120,87,0.08); }
+
+      /* Definition rows */
+      .igris-console .ic-def { display: grid; grid-template-columns: 90px 1fr; column-gap: 24px; padding: 6px 0; }
+      .igris-console .ic-def__label { font-size: 11px; color: var(--ic-text-5); }
+      .igris-console .ic-def__value { font-size: 11px; color: var(--ic-text-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+      .igris-console .ic-def__value.mono { font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-3); word-break: break-all; }
+      .igris-console .ic-def__hint { color: var(--ic-text-6); }
+
+      /* Evidence blocks */
+      .igris-console .ic-evidence { border: 1px solid var(--ic-border); border-radius: 8px; background: var(--ic-overlay-bg); padding: 14px 16px 8px; margin-bottom: 16px; }
+      .igris-console .ic-evidence--flat { padding: 0 0 8px; margin-bottom: 12px; }
+      .igris-console .ic-evidence__head { font-size: 11px; letter-spacing: 0.06em; color: var(--ic-text-6); margin-bottom: 6px; }
+      .igris-console .ic-evidence .ic-def { padding: 6px 0; }
+
+      /* Narrative */
+      .igris-console .ic-narrative { margin-top: 20px; font-size: 13px; color: var(--ic-text-3); line-height: 1.55; max-width: 60ch; }
+      .igris-console .ic-narrative .mono { font-family: var(--ic-mono); }
+      .igris-console .ic-narrative .accent { color: var(--ic-emerald); }
+
+      /* Committed-actions panel */
+      .igris-console .ic-panel { margin-top: 16px; margin-bottom: 16px; border-radius: 10px; border: 0.5px solid var(--ic-overlay-5); padding: 14px 16px; background: var(--ic-overlay-bg); box-shadow: inset 0 0 0 0.5px rgba(255,255,255,0.03); }
+      .igris-console .ic-panel__head { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--ic-text-4); }
+      .igris-console .ic-panel__head-l { display: flex; align-items: center; gap: 10px; }
+      .igris-console .ic-panel__head-r { display: flex; align-items: center; gap: 4px; }
+      .igris-console .ic-panel__count-plus { color: var(--ic-emerald-dim); font-family: var(--ic-mono); }
+      .igris-console .ic-panel__count-minus { color: rgba(251,113,133,0.6); font-family: var(--ic-mono); }
+
+      .igris-console .ic-loggroup { margin-top: 6px; }
+      .igris-console .ic-loggroup__head { cursor: default; list-style: none; padding: 4px 0; border-radius: 4px; }
+      .igris-console .ic-loggroup__head .ic-panel__head-l { gap: 8px; }
+      .igris-console .ic-loggroup__chev { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 5px solid var(--ic-text-6); transform: rotate(90deg); }
+      .igris-console .ic-log__body { margin-top: 8px; padding: 2px 0; max-height: 440px; overflow-y: auto; scrollbar-width: none; }
+      .igris-console .ic-log__body::-webkit-scrollbar { display: none; }
+      .igris-console .ic-log__dur { font-size: 11px; color: var(--ic-text-6); font-variant-numeric: tabular-nums; }
+      .igris-console .ic-log__status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; }
+      .igris-console .ic-log__status--ok, .igris-console .ic-log__status--run { color: var(--ic-emerald); }
+      .igris-console .ic-log__status--fail { color: var(--ic-rose); }
+
+      .igris-console .ic-line { display: grid; grid-template-columns: 78px minmax(0,1fr) auto auto; align-items: center; column-gap: 9px; padding: 3px 12px; }
+      .igris-console .ic-line:hover { background: var(--ic-overlay-1); }
+      .igris-console .ic-line__ts { font-family: var(--ic-mono); font-size: 10px; color: var(--ic-text-6); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .igris-console .ic-line__main { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+      .igris-console .ic-line__name { font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-2); }
+      .igris-console .ic-line__name--running { animation: ic-breathe 3.2s ease-in-out infinite; }
+      .igris-console .ic-line__detail { font-size: 10.5px; color: var(--ic-text-5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .igris-console .ic-line__latency { font-family: var(--ic-mono); font-size: 10px; color: var(--ic-text-6); font-variant-numeric: tabular-nums; min-width: 40px; text-align: right; }
+      .igris-console .ic-line__receipt { font-family: var(--ic-mono); font-size: 9.5px; }
+      .igris-console .ic-line__receipt--ok { color: var(--ic-emerald); }
+      .igris-console .ic-line__receipt--none { color: var(--ic-text-7); }
+      .igris-console .ic-line--fault .ic-line__name { color: #fcd34d; }
+      .igris-console--light .ic-line--fault .ic-line__name { color: #b45309; }
+      .igris-console .ic-line--fault .ic-line__detail { color: var(--ic-fault-text); }
+      .igris-console .ic-line--fault .ic-line__receipt { color: rgba(251,191,36,0.7); }
+      .igris-console--light .ic-line--fault .ic-line__receipt { color: #b45309; }
+      .igris-console .ic-bullet-dot { width: 6px; height: 6px; border-radius: 999px; }
+      .igris-console .ic-bullet-dot--running { background: var(--ic-emerald); }
+      .igris-console .ic-bullet-check { width: 12px; height: 12px; color: var(--ic-emerald); }
+
+      .igris-console .ic-foot-time { margin: 12px 0 0; font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-8); font-variant-numeric: tabular-nums; }
+
+      /* Run detail layout: evidence column + sticky execution-detail rail */
+      .igris-console .ic-run-detail-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; height: 100%; min-height: 0; }
+      .igris-console .ic-run-detail-scroll { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 2px; scrollbar-width: none; }
+      .igris-console .ic-run-detail-scroll::-webkit-scrollbar { display: none; }
+      .igris-console .ic-run-detail-rail { min-width: 0; align-self: stretch; position: sticky; top: 0; border-left: 1px solid var(--ic-border); padding-left: 14px; }
+      .igris-console .ic-run-detail-rail .ic-summary { margin-bottom: 12px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+      .igris-console .ic-run-detail-rail .ic-summary__grid { grid-template-columns: 1fr; gap: 9px; }
+      .igris-console .ic-run-detail-rail .ic-summary__cell--wide { grid-column: auto; }
+      .igris-console .ic-run-detail-rail .ic-summary__head { font-size: 10px; margin-bottom: 10px; }
+      .igris-console .ic-run-detail-rail .ic-summary__k { font-size: 9.5px; margin-bottom: 2px; }
+      .igris-console .ic-run-detail-rail .ic-summary__v { font-size: 11px; }
+      .igris-console .ic-run-detail-rail .ic-summary__v.mono { font-size: 10.5px; }
+      .igris-console .ic-run-detail-rail .ic-nextstep { border: 0; border-radius: 0; background: transparent; padding: 0; flex-direction: column; align-items: flex-start; gap: 12px; }
+
+      /* Execution-detail summary */
+      .igris-console .ic-summary__head { font-size: 11px; letter-spacing: 0.06em; color: var(--ic-text-6); margin-bottom: 12px; }
+      .igris-console .ic-summary__grid { display: grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap: 12px; }
+      .igris-console .ic-summary__cell { min-width: 0; }
+      .igris-console .ic-summary__cell--wide { grid-column: span 2; }
+      .igris-console .ic-summary__k { font-size: 10.5px; color: var(--ic-text-6); margin-bottom: 4px; }
+      .igris-console .ic-summary__v { font-size: 12.5px; color: var(--ic-text-2); letter-spacing: -0.005em; min-width: 0; overflow-wrap: anywhere; }
+      .igris-console .ic-summary__v.mono { font-family: var(--ic-mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; }
+      .igris-console .ic-summary__note { font-size: 11.5px; color: var(--ic-text-6); margin: 12px 0 0; }
+
+      /* What-to-do-next */
+      .igris-console .ic-nextstep { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .igris-console .ic-nextstep__kicker { font-size: 10px; letter-spacing: 0.08em; color: var(--ic-emerald); margin-bottom: 4px; }
+      .igris-console .ic-nextstep__title { font-size: 11px; font-weight: 500; color: var(--ic-text-bright); letter-spacing: -0.01em; }
+      .igris-console .ic-nextstep__sub { font-size: 11px; color: var(--ic-text-5); margin: 3px 0 0; line-height: 1.5; max-width: 60ch; }
+      .igris-console .ic-nextstep__cta { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+
+      /* Run Inspector */
+      .igris-console .ic-runinspector { width: 100%; }
+      .igris-console .ic-runinspector__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--ic-border); }
+      .igris-console .ic-runinspector__head-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+      .igris-console .ic-runinspector__title { font-size: 12.5px; font-weight: 600; color: var(--ic-text-bright); letter-spacing: -0.01em; }
+      .igris-console .ic-runinspector__id { font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .igris-console .ic-runinspector__pills { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 10px 16px 10px 0; border-bottom: 1px solid var(--ic-border-soft); }
+      .igris-console .ic-runinspector__scroll { padding: 6px 0 4px; }
+      .igris-console .ic-runinspector__section { padding: 12px 16px 12px 0; border-bottom: 1px solid var(--ic-border-soft); }
+      .igris-console .ic-runinspector__section--last { border-bottom: 0; }
+      .igris-console .ic-runinspector__sechead { font-size: 11px; letter-spacing: 0.06em; color: var(--ic-text-6); margin-bottom: 8px; }
+      .igris-console .ic-runinspector__rows .ic-def { grid-template-columns: 96px 1fr; padding: 4px 0; }
+      .igris-console .ic-runinspector__hint { font-size: 11.5px; color: var(--ic-text-6); line-height: 1.5; margin: 0 0 8px; }
+      .igris-console .ic-runinspector__note { font-size: 11px; color: var(--ic-text-6); line-height: 1.5; margin: 8px 0 0; }
+      .igris-console .ic-runinspector__kv { display: flex; flex-direction: column; gap: 4px; }
+      .igris-console .ic-runinspector__kvrow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 3px 0; }
+      .igris-console .ic-runinspector__kvk { font-size: 11px; color: var(--ic-text-5); }
+      .igris-console .ic-runinspector__kvfoot { font-size: 10.5px; color: var(--ic-text-6); line-height: 1.5; margin: 9px 0 0; padding-top: 9px; border-top: 1px solid var(--ic-border-soft); }
+      .igris-console .ic-runinspector__auditrows { display: flex; flex-direction: column; }
+      .igris-console .ic-runinspector__auditrow { display: flex; flex-direction: column; gap: 3px; padding: 9px 0; border-top: 1px solid var(--ic-border-soft); }
+      .igris-console .ic-runinspector__auditrow:first-child { border-top: 0; padding-top: 2px; }
+      .igris-console .ic-runinspector__audittop { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+      .igris-console .ic-runinspector__auditlabel { font-size: 11px; color: var(--ic-text-5); letter-spacing: 0.02em; }
+      .igris-console .ic-runinspector__auditvalue { font-size: 12px; font-weight: 500; color: var(--ic-text-2); text-align: right; word-break: break-word; }
+      .igris-console .ic-runinspector__auditnote { font-size: 10.5px; color: var(--ic-text-6); line-height: 1.5; margin: 0; }
+      .igris-console .ic-runinspector__empty-line { font-size: 12px; color: var(--ic-text-5); line-height: 1.55; margin: 2px 0 0; }
+
+      /* Execution-profile waterfall */
+      .igris-console .ic-wfall { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+      .igris-console .ic-wfall__row { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; align-items: center; gap: 8px; border-radius: 4px; padding: 1px 0; }
+      .igris-console .ic-wfall__row:hover { background: var(--ic-overlay-1); }
+      .igris-console .ic-wfall__label { font-size: 10px; color: var(--ic-text-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ic-mono); }
+      .igris-console .ic-wfall__track { position: relative; height: 11px; border-radius: 3px; background: var(--ic-overlay-2); background-image: repeating-linear-gradient(to right, var(--ic-border-soft) 0 1px, transparent 1px 25%); }
+      .igris-console .ic-wfall__bar { position: absolute; top: 1.5px; bottom: 1.5px; min-width: 2px; border-radius: 2px; background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0)); box-shadow: inset 2px 0 0 rgba(255,255,255,0.35); }
+      .igris-console .ic-wfall__bar--ok { background-color: var(--ic-emerald); }
+      .igris-console .ic-wfall__bar--warn { background-color: var(--ic-amber); }
+      .igris-console .ic-wfall__bar--bad { background-color: var(--ic-rose); }
+      .igris-console .ic-wfall__bar--muted { background-color: var(--ic-text-6); }
+      .igris-console .ic-wfall__val { font-size: 10px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; text-align: right; font-family: var(--ic-mono); }
+      .igris-console .ic-wfall__axis { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; gap: 8px; margin-top: 3px; }
+      .igris-console .ic-wfall__scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 9px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; font-family: var(--ic-mono); }
+      .igris-console .ic-wfall__scale-mid { color: var(--ic-text-8); letter-spacing: 0.04em; }
+
+      /* Hero footer */
+      .igris-console .ic-footer { border-top: 1px solid var(--ic-border); background: var(--ic-bg); }
+      .igris-console .ic-footer__bar { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 11.5px; color: var(--ic-text-4); }
+      .igris-console .ic-footer__chip { display: inline-flex; align-items: center; gap: 6px; color: var(--ic-text-2); }
+      .igris-console .ic-footer__chip .dot { display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: var(--ic-emerald); }
+      .igris-console .ic-footer__spacer { flex: 1; }
     `}</style>
   )
 }
@@ -286,7 +470,9 @@ function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
 
 function IconRail() {
   const { resolvedTheme } = useTheme()
-  const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const logoSrc = mounted && resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   return (
     <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
@@ -419,14 +605,30 @@ function RunRowView({ run }: { run: RunRow }) {
 }
 
 // ── Main pane ──────────────────────────────────────────────────────
+// Mirrors the rails-console Run detail page (runs/show.html.erb +
+// _inspector.html.erb) for a single Running action_workflow execution.
+
+const RUN = {
+  action: 'fulfill_order',
+  id: 'run_01HGJ9N7P4D',
+  project: 'data-platform',
+  status: 'Running',
+  runtimeId: 'rt_prod_01',
+  started: '14:07:42 UTC',
+  ago: '6 seconds ago',
+}
 
 function Main() {
   return (
     <div className="flex flex-col min-h-0">
       <MainTopBar />
       <div className="ic-scroll flex-1 overflow-y-auto px-5 py-4 min-h-0">
-        <div className="grid gap-4 items-start" style={{ gridTemplateColumns: 'minmax(0,1fr) 260px' }}>
-          <Evidence />
+        <div className="ic-run-detail-layout">
+          <section className="ic-run-detail-scroll" aria-label="Run evidence and audit details">
+            <Evidence />
+            <div className="ic-run-expand"><RunInspector /></div>
+            <div className="ic-foot-time">14:07:42 <span style={{ color: 'var(--ic-emerald)' }}>live</span></div>
+          </section>
           <ExecDetailRail />
         </div>
       </div>
@@ -436,52 +638,76 @@ function Main() {
 }
 
 function MainTopBar() {
+  const [copied, setCopied] = useState(false)
   return (
     <div className="flex items-center justify-between gap-3 h-11 px-5 border-b border-[color:var(--ic-border)]">
       <div className="flex items-center gap-2 min-w-0">
-        <span className="text-[12px] text-[var(--ic-text-6)]">Runs</span>
+        <span className="text-[11.5px] text-[var(--ic-text-6)]">Runs</span>
         <span className="text-[var(--ic-text-8)]">/</span>
-        <span className="text-[13px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em', fontFamily: MONO }}>
-          charge_customer
+        <span className="text-[12px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em', fontFamily: MONO }}>
+          {RUN.action}
         </span>
-        <span className="text-[11px] text-[var(--ic-text-6)] truncate" style={{ fontFamily: MONO }}>run_01HGJ9N7P4D</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-7)] flex-shrink-0">
-          <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" />
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-        <span className="ic-chip">payments-api</span>
+        <span className="text-[11.5px] text-[var(--ic-text-6)] truncate" style={{ fontFamily: MONO }}>{RUN.id}</span>
+        <button
+          type="button"
+          onClick={() => { navigator.clipboard?.writeText(RUN.id); setCopied(true); setTimeout(() => setCopied(false), 1400) }}
+          className="inline-flex items-center text-[10.5px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-bright)] border border-[color:var(--ic-border-soft)] bg-[var(--ic-overlay-3)] rounded px-1.5 h-[18px]"
+        >
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+        <span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></span>{RUN.project}</span>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <TopBtn label="Back to action" iconCaret />
-        <TopBtn label="Verify chain" iconCaret accent />
+        <TopBtn label="Back to action" />
+        <TopBtn label="Open runtime" />
       </div>
     </div>
   )
 }
 
-function TopBtn({ label, iconPlus, iconCaret, accent }: { label: string; iconPlus?: boolean; iconCaret?: boolean; accent?: boolean }) {
+function TopBtn({ label }: { label: string }) {
   return (
     <button
       type="button"
-      className={
-        'inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11.5px] transition-colors cursor-default ' +
-        (accent
-          ? 'bg-emerald-500/[0.12] text-emerald-300 border border-emerald-500/20 hover:bg-emerald-500/[0.16]'
-          : 'bg-[var(--ic-overlay-3)] text-[var(--ic-text-2)] border border-[color:var(--ic-border)] hover:bg-[var(--ic-overlay-5)]')
-      }
+      className="inline-flex items-center gap-1.5 h-6 px-2 rounded-md text-[11px] transition-colors cursor-default bg-[var(--ic-overlay-3)] text-[var(--ic-text-2)] border border-[color:var(--ic-border)] hover:bg-[var(--ic-overlay-5)]"
     >
-      {iconPlus && (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-          <path d="M12 5 L12 19 M5 12 L19 12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-        </svg>
-      )}
       <span>{label}</span>
-      {iconCaret && (
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
-          <path d="M6 10 L12 16 L18 10" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
     </button>
+  )
+}
+
+// ── Reusable value renderers (mirror console_helper chip/pill helpers) ──
+
+function Pill({ tone, label }: { tone: 'ok' | 'warn' | 'bad' | 'muted'; label: string }) {
+  return <span className={`ig-pill ig-pill--${tone}`}>{label}</span>
+}
+
+// route_chips: token 0 = route type (globe icon for Hosted API), token 1+ = brand.
+function RoutedVia() {
+  return (
+    <span className="ic-chips">
+      <span className="ic-chip ic-chip--sm">
+        <span className="ic-chip__icon" style={{ color: 'rgb(192,132,252)' }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+        </span>Hosted API
+      </span>
+      <span className="ic-chip ic-chip--sm">
+        <span className="ic-chip__logo">
+          <svg role="img" viewBox="0 0 24 24" fill="#635BFF" xmlns="http://www.w3.org/2000/svg"><title>Stripe</title><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z"/></svg>
+        </span>Stripe
+      </span>
+    </span>
+  )
+}
+
+function FacetChips({ items }: { items: string[] }) {
+  return (
+    <span className="ic-chips">
+      {items.map((t) => <span key={t} className="ic-chip ic-chip--sm">{t}</span>)}
+    </span>
   )
 }
 
@@ -509,266 +735,321 @@ function Evidence() {
         }
         return c + 1
       })
-    }, 1600)
+    }, 1100)
     return () => { clearInterval(id); if (to) clearTimeout(to) }
   }, [])
 
   const steps = STEPS.slice(0, visible)
   const committed = steps.filter((s) => s.kind === 'action' && s.status === 'committed').length
-  const total = STEPS.filter((s) => s.kind === 'action').length
+  const totalActions = STEPS.filter((s) => s.kind === 'action').length
+  const running = steps.some((s) => s.status === 'running')
 
   return (
     <div className="min-w-0">
-      {/* definition rows — Submitter / Region / Worker / Submitted / Mode */}
-      <DefRow label="Submitter" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M3 7l9 6 9-6M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>mateo@acme.io</span> <span className="text-[var(--ic-text-6)]">engineer, integrations</span></>} />
-      <DefRow label="Region"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>fra1·prod</span> <span className="text-[var(--ic-text-6)]">eu-central, primary</span></>} />
-      <DefRow label="Worker"    value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_b</span> <span className="text-[var(--ic-text-6)]">recovered from </span><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 20h8M12 16v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></span>worker_a</span></>} />
-      <DefRow label="Submitted" value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>14:07:42 UTC</span> <span className="text-[var(--ic-text-6)]">12 seconds ago, action workflow</span></>} />
-      <DefRow label="Mode"      value={<><span className="ic-chip"><span className="ic-chip-icon"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></span>action_workflow</span> <span className="text-[var(--ic-text-6)]">4 controlled tools, recovery enabled</span></>} />
+      {/* ── Demo context ─────────────────────────────────────────────── */}
+      <div className="ic-evidence--flat">
+        <div className="ic-evidence__head">Demo context</div>
+        <div className="ic-def">
+          <span className="ic-def__label">Submitter</span>
+          <div className="ic-def__value"><span className="ic-chip">mateo@acme.io</span><span className="ic-def__hint">engineer, integrations</span></div>
+        </div>
+        <div className="ic-def">
+          <span className="ic-def__label">Region</span>
+          <div className="ic-def__value"><span className="ic-chip">fra1</span><span className="ic-chip">prod</span><span className="ic-def__hint">eu-central, primary</span></div>
+        </div>
+        <div className="ic-def">
+          <span className="ic-def__label">Worker</span>
+          <div className="ic-def__value"><span className="ic-chip">worker_b</span><span className="ic-def__hint">recovered from</span><span className="ic-chip">worker_a</span></div>
+        </div>
+        <div className="ic-def">
+          <span className="ic-def__label">Submitted</span>
+          <div className="ic-def__value"><span className="ic-chip">{RUN.started}</span><span className="ic-def__hint">{RUN.ago}, action workflow</span></div>
+        </div>
+      </div>
 
-      {/* narrative */}
-      <p className="mt-5 text-[13px] text-[var(--ic-text-3)] leading-relaxed max-w-[60ch]">
-        The receipt chain is <span className="text-emerald-400">valid</span> up to <span style={{ fontFamily: MONO }}>action 03</span>.
-        Action 04 (<span style={{ fontFamily: MONO }}>db_write</span>) is currently running. No replays were
-        needed across the host fault.
+      {/* ── Receipt-chain narrative ──────────────────────────────────── */}
+      <p className="ic-narrative">
+        The receipt chain is <span className="accent">valid</span> up to{' '}
+        <span className="mono">action 11</span>. Action 12 (<span className="mono">db_write</span>) is currently running.
       </p>
 
-      {/* committed actions section */}
-      <div
-        className="mt-7 rounded-lg border-[0.5px] border-[color:var(--ic-overlay-5)] px-4 py-3"
-        style={{ background: 'rgba(255,255,255,0.015)', boxShadow: 'inset 0 0 0 0.5px rgba(255,255,255,0.03)' }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[11.5px] text-[var(--ic-text-4)]">
-            <span>Committed actions ({total})</span>
-            <span className="text-emerald-400/80" style={{ fontFamily: MONO }}>+{committed}</span>
-            <span className="text-rose-400/60" style={{ fontFamily: MONO }}>−0</span>
+      {/* ── Committed actions panel ──────────────────────────────────── */}
+      <div className="ic-panel" id="evidence">
+        <div className="ic-loggroup">
+          <div className="ic-panel__head ic-loggroup__head">
+            <div className="ic-panel__head-l">
+              <span className="ic-loggroup__chev" aria-hidden />
+              <span>Committed actions ({totalActions})</span>
+              <span className="ic-panel__count-plus">+{committed}</span>
+              <span className="ic-panel__count-minus">−0</span>
+            </div>
+            <div className="ic-panel__head-r">
+              <span className="ic-log__status ic-log__status--run">
+                <span className="ic-bullet-dot ic-bullet-dot--running ic-breathing" />running
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="text-[11px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-2)] px-2 py-1 rounded">Collapse all</button>
-            <button className="text-[11px] text-[var(--ic-text-6)] hover:text-[var(--ic-text-2)] px-2 py-1 rounded">View receipts</button>
-          </div>
-        </div>
 
-        <div className={'mt-3 ' + (fading ? 'ic-cycle-fade' : '')}>
-          <Tree title="actions" icon="bolt">
-            {steps.map((s, i) => {
-              const isLatest = i === steps.length - 1
+          <div className={'ic-log__body ' + (fading ? 'ic-cycle-fade' : '')}>
+            {steps.map((s) => {
+              const isRunning = s.status === 'running'
+              if (s.kind === 'fault') {
+                return (
+                  <div key={`${cycle}-${s.id}`} className="ic-line ic-line--fault ic-step-in">
+                    <span className="ic-line__ts mono">{s.at}</span>
+                    <div className="ic-line__main">
+                      <span className="ic-line__name">{s.name}</span>
+                      <span className="ic-line__detail">{s.detail}</span>
+                    </div>
+                    <span className="ic-line__latency">{s.latency}ms</span>
+                    <span className="ic-line__receipt">recovered</span>
+                  </div>
+                )
+              }
               return (
-                <div key={`${cycle}-${s.id}`} className="ic-step-in">
-                  {s.kind === 'fault' ? (
-                    <FaultLine step={s} />
-                  ) : (
-                    <ActionLine step={s} running={s.status === 'running'} isLatest={isLatest} />
-                  )}
+                <div key={`${cycle}-${s.id}`} className="ic-line ic-step-in">
+                  <span className="ic-line__ts mono">{s.at}</span>
+                  <div className="ic-line__main">
+                    <span className={'ic-line__name' + (isRunning ? ' ic-line__name--running' : '')}>{s.name}</span>
+                    <span className="ic-line__detail">{s.detail}</span>
+                  </div>
+                  <span className="ic-line__latency">{s.latency != null ? `${s.latency}ms` : ''}</span>
+                  {s.receipt
+                    ? <span className="ic-line__receipt ic-line__receipt--ok">{s.receipt}</span>
+                    : <span className="ic-line__receipt ic-line__receipt--none">—</span>}
                 </div>
               )
             })}
-          </Tree>
+            {!running && visible >= STEPS.length ? null : null}
+          </div>
         </div>
       </div>
-
-      <div className="mt-4 text-[11px] text-[var(--ic-text-8)] tabular-nums" style={{ fontFamily: MONO }}>
-        14:07:42 · live
-      </div>
     </div>
   )
 }
 
-function DefRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="grid gap-x-6 py-1.5" style={{ gridTemplateColumns: '90px 1fr' }}>
-      <span className="text-[12px] text-[var(--ic-text-5)]">{label}</span>
-      <div className="text-[12.5px] text-[var(--ic-text-2)] flex items-center gap-1.5 flex-wrap">{value}</div>
-    </div>
-  )
-}
+// ── Run Inspector — server-rendered redacted quick-inspection, ported
+// from runs/_inspector.html.erb for the Running action_workflow run. ──
 
-function Tree({ title, icon, children }: { title: string; icon: 'bolt' | 'box'; children: React.ReactNode }) {
+function RunInspector() {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-[12px] text-[var(--ic-text-4)]">
-        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-7)] rotate-90">
-          <path d="M9 6 L15 12 L9 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        {icon === 'bolt' ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-6)]">
-            <path d="M13 2 L4 14 L11 14 L11 22 L20 10 L13 10 Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          </svg>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-[var(--ic-text-6)]">
-            <path d="M4 7 L12 3 L20 7 L20 17 L12 21 L4 17 Z M4 7 L12 11 L20 7 M12 11 L12 21" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          </svg>
-        )}
-        <span style={{ fontFamily: MONO }}>{title}</span>
-      </div>
-      <div className="mt-1 pl-5 border-l border-[color:var(--ic-border)] ml-1">{children}</div>
-    </div>
-  )
-}
-
-function ActionLoader() {
-  const { resolvedTheme } = useTheme()
-  const color = resolvedTheme === 'light' ? 'rgb(4, 120, 87)' : 'rgb(52, 211, 153)'
-  return (
-    <span className="inline-flex items-center justify-center" aria-hidden>
-      <LineSpinner size="14" stroke="1.4" speed="0.9" color={color} />
-    </span>
-  )
-}
-
-function ActionLine({ step, running, isLatest }: { step: Step; running: boolean; isLatest: boolean }) {
-  const loading = isLatest && !running
-  return (
-    <div className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded hover:bg-[var(--ic-overlay-1)]"
-         style={{ gridTemplateColumns: '14px 24px 1fr auto auto auto' }}>
-      <span className="inline-flex items-center justify-center">
-        {running ? (
-          <span className="block w-1.5 h-1.5 rounded-full bg-emerald-400 ic-breathing" />
-        ) : loading ? (
-          <ActionLoader />
-        ) : (
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" className="text-emerald-500">
-            <path d="M5 12.5 L10 17 L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </span>
-      <span className="text-[11px] text-[var(--ic-text-8)] tabular-nums" style={{ fontFamily: MONO }}>{step.num}</span>
-      <div className="min-w-0 flex items-baseline gap-2">
-        <span className={'text-[12.5px] text-[var(--ic-text)] ' + (running ? 'ic-breathing' : '')} style={{ fontFamily: MONO }}>
-          {step.name}
-        </span>
-        <span className="text-[12px] text-[var(--ic-text-6)] truncate">{step.detail}</span>
-      </div>
-      <span className="text-[11px] text-[var(--ic-text-8)] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
-        {step.latency != null ? `${step.latency}ms` : ''}
-      </span>
-      {step.receipt ? (
-        <span className="text-[10.5px] text-emerald-400" style={{ fontFamily: MONO }}>{step.receipt}</span>
-      ) : (
-        <span className="text-[10.5px] text-[var(--ic-text-8)]" style={{ fontFamily: MONO }}>—</span>
-      )}
-      <span className="text-[10.5px] tabular-nums" style={{ fontFamily: MONO }}>
-        {running ? (
-          <span className="text-[var(--ic-text-8)]">· · ·</span>
-        ) : (
-          <>
-            <span className="text-emerald-400/80">+1</span>
-            <span className="text-[var(--ic-text-8)]"> / </span>
-            <span className="text-rose-400/70">−0</span>
-          </>
-        )}
-      </span>
-    </div>
-  )
-}
-
-function FaultLine({ step }: { step: Step }) {
-  return (
-    <div className="grid items-center gap-x-3 py-1.5 px-2 -ml-2 rounded"
-         style={{ gridTemplateColumns: '14px 24px 1fr auto auto auto' }}>
-      <span className="inline-flex items-center justify-center">
-        <span className="block w-1 h-1 rounded-full bg-amber-400" />
-      </span>
-      <span className="text-[11px] text-amber-400/60 tabular-nums" style={{ fontFamily: MONO }}>!!</span>
-      <div className="min-w-0 flex items-baseline gap-2">
-        <span className="text-[12.5px] text-amber-300" style={{ fontFamily: MONO }}>{step.name}</span>
-        <span className="text-[12px] text-[var(--ic-fault-text)] truncate">{step.detail}</span>
-      </div>
-      <span className="text-[11px] text-[var(--ic-text-8)] tabular-nums min-w-[42px] text-right" style={{ fontFamily: MONO }}>
-        {step.latency}ms
-      </span>
-      <span className="text-[10.5px] text-amber-400/70">recovered</span>
-      <span className="text-[10.5px] text-[var(--ic-text-8)]" style={{ fontFamily: MONO }}>0 replays</span>
-    </div>
-  )
-}
-
-// ── Execution detail rail (right side of the main pane) ────────────
-
-function ExecDetailRail() {
-  return (
-    <aside className="flex flex-col gap-3 min-w-0">
-      <div className="rounded-lg border-[0.5px] px-3.5 py-3" style={{ borderColor: 'var(--ic-overlay-5)', background: 'rgba(255,255,255,0.015)' }}>
-        <div className="text-[10px] uppercase tracking-wide text-[var(--ic-text-6)] mb-2.5">Execution detail</div>
-        <div className="flex flex-col gap-2.5">
-          <RailCell k="Action"><span className="text-[11px] text-[var(--ic-text-2)]" style={{ fontFamily: MONO }}>charge_customer</span></RailCell>
-          <RailCell k="Status"><Pill tone="ok" label="Running" /></RailCell>
-          <RailCell k="Routed via"><span className="inline-flex items-center gap-1.5"><StripeMark /><span className="text-[11px] text-[var(--ic-text-2)]">Stripe</span></span></RailCell>
-          <RailCell k="Policy"><span className="ic-chip">Idempotent</span> <span className="ic-chip">3 retries</span></RailCell>
-          <RailCell k="Proof"><Pill tone="muted" label="Pending" /></RailCell>
-          <RailCell k="Started"><span className="text-[11px] text-[var(--ic-text-2)]">14:07:42 UTC</span></RailCell>
-          <RailCell k="Duration"><span className="text-[11px] text-[var(--ic-text-2)]">—</span></RailCell>
+    <aside className="ic-runinspector" aria-label="Run Inspector">
+      <div className="ic-runinspector__head">
+        <div className="ic-runinspector__head-l">
+          <span className="ic-runinspector__title">Run Inspector</span>
+          <span className="ic-runinspector__id mono">{RUN.id}</span>
         </div>
-        <p className="mt-3 text-[10.5px] text-[var(--ic-text-6)] leading-relaxed">Proof is available when signed runtime evidence exists.</p>
+      </div>
+      <div className="ic-runinspector__pills">
+        <Pill tone="muted" label="Running" />
+        <Pill tone="warn" label="Pending" />
       </div>
 
-      <div className="rounded-lg border-[0.5px] px-3.5 py-3" style={{ borderColor: 'var(--ic-overlay-5)', background: 'rgba(255,255,255,0.015)' }}>
-        <div className="text-[10px] uppercase tracking-wide text-[var(--ic-text-6)] mb-1">What to do next</div>
-        <div className="text-[12px] text-[var(--ic-text-2)]">Run is still in flight.</div>
-        <p className="mt-1 text-[11px] text-[var(--ic-text-5)] leading-relaxed">Step evidence appears here as the run commits each step.</p>
+      <div className="ic-runinspector__scroll">
+        {/* Overview */}
+        <section className="ic-runinspector__section">
+          <div className="ic-runinspector__sechead">Overview</div>
+          <div className="ic-runinspector__rows">
+            <InspDef label="Action"><span className="mono">{RUN.action}</span></InspDef>
+            <InspDef label="Status"><Pill tone="muted" label="Running" /></InspDef>
+            <InspDef label="Routed via"><RoutedVia /></InspDef>
+            <InspDef label="Policy"><FacetChips items={['Idempotent', '3 retries']} /></InspDef>
+            <InspDef label="Recovery">In flight</InspDef>
+            <InspDef label="Proof"><Pill tone="warn" label="Pending" /></InspDef>
+            <InspDef label="Created">{RUN.started} <span className="ic-def__hint">{RUN.ago}</span></InspDef>
+          </div>
+        </section>
+
+        {/* Agent request */}
+        <section className="ic-runinspector__section">
+          <div className="ic-runinspector__sechead">Agent request</div>
+          <p className="ic-runinspector__empty-line">No prompt or request payload is available for this run.</p>
+        </section>
+
+        {/* Action input */}
+        <section className="ic-runinspector__section">
+          <div className="ic-runinspector__sechead">Action input</div>
+          <div className="ic-runinspector__kv">
+            <div className="ic-runinspector__kvrow">
+              <span className="ic-runinspector__kvk">Target</span>
+              <RoutedVia />
+            </div>
+          </div>
+          <p className="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
+        </section>
+
+        {/* Execution assessment */}
+        <section className="ic-runinspector__section">
+          <div className="ic-runinspector__sechead">Execution assessment</div>
+          <div className="ic-runinspector__rows">
+            <InspDef label="Action completed"><Pill tone="warn" label="Running" /></InspDef>
+            <InspDef label="Policy followed"><Pill tone="ok" label="Allowed" /></InspDef>
+            <InspDef label="Runtime path"><Pill tone="ok" label="Hosted API" /></InspDef>
+            <InspDef label="Recovery"><Pill tone="ok" label="In flight" /></InspDef>
+            <InspDef label="Proof"><Pill tone="muted" label="Not available" /></InspDef>
+          </div>
+        </section>
+
+        {/* Audit interpretation */}
+        <section className="ic-runinspector__section">
+          <div className="ic-runinspector__sechead">Audit interpretation</div>
+          <p className="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only — not a compliance certification.</p>
+          <div className="ic-runinspector__auditrows">
+            <AuditRow label="Control decision" value="Idempotent, 3 retries" note="Policy decision record — the policy preset Igris applied before allowing execution." />
+            <AuditRow label="Execution record" value="Running" note="Tamper-evident record of what Igris did when the action was called." />
+            <AuditRow label="Evidence receipt" value="No signed runtime evidence attached" note="A receipt is a signed, tamper-evident record that a runtime reported this execution event." />
+            <AuditRow label="Verification status" value="Unsigned (not attached)" note="Signature shows the event was reported by a registered runtime key when available. Digest records prove data consistency without exposing raw input or output." />
+            <AuditRow label="Recovery / replay status" value="In flight" note="Replay / recovery record — whether Igris retried or compensated the action." />
+            <AuditRow label="Data exposure" value="Minimized" note="Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed." />
+          </div>
+          <p className="ic-runinspector__note">Proof is unavailable when signed runtime evidence was not produced or attached to this run.</p>
+        </section>
+
+        {/* Evidence */}
+        <section className="ic-runinspector__section">
+          <div className="ic-runinspector__sechead">Evidence</div>
+          <div className="ic-runinspector__rows">
+            <InspDef label="Receipt hash"><span className="mono">—</span></InspDef>
+            <InspDef label="Proof"><Pill tone="warn" label="Pending" /></InspDef>
+            <InspDef label="Steps recorded">—</InspDef>
+          </div>
+          <p className="ic-runinspector__note">Open the full run for ordered step evidence.</p>
+        </section>
+
+        {/* Execution profile (waterfall) */}
+        <ExecutionProfile />
       </div>
     </aside>
   )
 }
 
-function RailCell({ k, children }: { k: string; children: React.ReactNode }) {
+function InspDef({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <div className="text-[9.5px] text-[var(--ic-text-6)] mb-0.5">{k}</div>
-      <div className="flex items-center gap-1.5 flex-wrap">{children}</div>
+    <div className="ic-def">
+      <span className="ic-def__label">{label}</span>
+      <div className="ic-def__value">{children}</div>
     </div>
   )
 }
 
-function Pill({ tone, label }: { tone: 'ok' | 'warn' | 'bad' | 'muted'; label: string }) {
-  const cls =
-    tone === 'ok'   ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/[0.12]' :
-    tone === 'bad'  ? 'text-rose-400 border-rose-500/25 bg-rose-500/[0.12]' :
-    tone === 'warn' ? 'text-amber-300 border-amber-500/25 bg-amber-500/[0.12]' :
-                      'text-[var(--ic-text-4)] border-[color:var(--ic-border)] bg-[var(--ic-overlay-3)]'
-  return <span className={'inline-flex items-center h-[18px] px-1.5 rounded text-[10.5px] border ' + cls}>{label}</span>
+function AuditRow({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="ic-runinspector__auditrow">
+      <div className="ic-runinspector__audittop">
+        <span className="ic-runinspector__auditlabel">{label}</span>
+        <span className="ic-runinspector__auditvalue">{value}</span>
+      </div>
+      <p className="ic-runinspector__auditnote">{note}</p>
+    </div>
+  )
 }
 
-// Genuine Stripe mark (Simple Icons), brand-coloured to match the rails console
-// runs-detail "Routed via" chip.
-function StripeMark() {
+// run_execution_profile(run): one bar per step that has a latency, placed by
+// cumulative start time, length = time-on-step. The in-flight db_write (no
+// latency) is excluded — matching the rails helper.
+function ExecutionProfile() {
+  let cursor = 0
+  const profile = STEPS.filter((s) => s.latency != null).map((s) => {
+    const ms = s.latency as number
+    const row = { label: s.name, ms, start: cursor, tone: s.kind === 'fault' ? 'warn' : 'ok' }
+    cursor += ms
+    return row
+  })
+  const span = Math.max(...profile.map((p) => p.start + p.ms))
+  const total = profile.reduce((n, p) => n + p.ms, 0)
+
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden style={{ flexShrink: 0 }}>
-      <path fill="#635BFF" d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z" />
-    </svg>
+    <section className="ic-runinspector__section ic-runinspector__section--last">
+      <div className="ic-runinspector__sechead">Execution profile</div>
+      <p className="ic-runinspector__hint">Time per step along the run timeline — {profile.length} steps over {total}ms total.</p>
+      <div className="ic-wfall">
+        {profile.map((p, i) => {
+          const left = span > 0 ? (p.start / span) * 100 : 0
+          const width = span > 0 ? Math.max((p.ms / span) * 100, 1.5) : 0
+          return (
+            <div className="ic-wfall__row" key={i}>
+              <span className="ic-wfall__label" title={p.label}>{p.label}</span>
+              <div className="ic-wfall__track">
+                <div className={`ic-wfall__bar ic-wfall__bar--${p.tone}`} style={{ marginLeft: `${left}%`, width: `${width}%` }} />
+              </div>
+              <span className="ic-wfall__val">{p.ms}ms</span>
+            </div>
+          )
+        })}
+        <div className="ic-wfall__axis">
+          <span className="ic-wfall__scale">
+            <span>0</span>
+            <span className="ic-wfall__scale-mid">time</span>
+            <span>{Math.round(span)}ms</span>
+          </span>
+        </div>
+      </div>
+      <p className="ic-runinspector__note">Bars are placed by when each step ran; length is time-on-step. Faults/retries appear as their own bar.</p>
+    </section>
+  )
+}
+
+// ── Execution detail — sticky context rail, right side of the pane ──
+
+function ExecDetailRail() {
+  return (
+    <aside className="ic-run-detail-rail" aria-label="Execution detail">
+      <div className="ic-summary">
+        <div className="ic-summary__head">Execution detail</div>
+        <div className="ic-summary__grid">
+          <div className="ic-summary__cell ic-summary__cell--wide">
+            <div className="ic-summary__k">Action</div>
+            <div className="ic-summary__v mono">{RUN.action}</div>
+          </div>
+          <div className="ic-summary__cell">
+            <div className="ic-summary__k">Status</div>
+            <div className="ic-summary__v"><Pill tone="muted" label="Running" /></div>
+          </div>
+          <div className="ic-summary__cell">
+            <div className="ic-summary__k">Routed via</div>
+            <div className="ic-summary__v"><RoutedVia /></div>
+          </div>
+          <div className="ic-summary__cell">
+            <div className="ic-summary__k">Policy</div>
+            <div className="ic-summary__v"><FacetChips items={['Idempotent', '3 retries']} /></div>
+          </div>
+          <div className="ic-summary__cell">
+            <div className="ic-summary__k">Proof</div>
+            <div className="ic-summary__v"><Pill tone="warn" label="Pending" /></div>
+          </div>
+          <div className="ic-summary__cell">
+            <div className="ic-summary__k">Started</div>
+            <div className="ic-summary__v">{RUN.started}</div>
+          </div>
+          <div className="ic-summary__cell">
+            <div className="ic-summary__k">Duration</div>
+            <div className="ic-summary__v">—</div>
+          </div>
+        </div>
+        <p className="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
+      </div>
+
+      <div className="ic-nextstep">
+        <div>
+          <div className="ic-nextstep__kicker">What to do next</div>
+          <div className="ic-nextstep__title">Run is still in flight.</div>
+          <p className="ic-nextstep__sub">Step evidence appears here as the run commits each step.</p>
+        </div>
+        <div className="ic-nextstep__cta">
+          <button type="button" className="inline-flex items-center h-6 px-2 rounded-md text-[11px] cursor-default bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/25">Open action</button>
+        </div>
+      </div>
+    </aside>
   )
 }
 
 function MainFooter() {
   return (
-    <div className="border-t border-[color:var(--ic-border)]">
-      {/* input row */}
-      <div className="px-5 py-3">
-        <div className="text-[12px] text-[var(--ic-text-8)]">Submit a follow-up task or ask for a re-run with different params…</div>
-      </div>
-      {/* bottom bar */}
-      <div className="flex items-center gap-3 px-5 py-2.5 border-t border-[color:var(--ic-border)]">
-        <button className="inline-flex items-center gap-1.5 text-[11.5px] text-[var(--ic-text-2)] hover:text-[var(--ic-text-bright)]">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span>action_workflow v1</span>
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
-            <path d="M6 10 L12 16 L18 10" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <span className="text-[var(--ic-text-9)]">·</span>
-        <span className="text-[11.5px] text-[var(--ic-text-4)]">Recovery on</span>
-        <span className="text-[var(--ic-text-9)]">·</span>
-        <span className="text-[11.5px] text-[var(--ic-text-4)]">Receipts ed25519</span>
-
-        <div className="ml-auto flex items-center gap-3">
-          <span className="text-[11.5px] text-[var(--ic-text-6)]">tier <span className="text-[var(--ic-text-2)]">horizon</span></span>
-          <button className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/25 hover:bg-emerald-500/[0.2]">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </div>
+    <div className="ic-footer">
+      <div className="ic-footer__bar">
+        <span className="ic-footer__chip"><span className="dot" /><span>action_workflow v1</span></span>
+        <span>Receipts ed25519</span>
+        <div className="ic-footer__spacer" />
       </div>
     </div>
   )
