@@ -116,7 +116,7 @@ export default function Header() {
     <>
       {/* Top navigation bar — fixed, full width */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
 
             {/* Logo */}
