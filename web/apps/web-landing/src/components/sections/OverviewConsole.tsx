@@ -368,6 +368,37 @@ function RunActivityMap() {
   )
 }
 
+// Run Activity Map on its own — the framed surface + styles, but without the
+// icon rail, topbar, or workspace side panel. Used in the landing copy section.
+export function RunActivityMapConsole() {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  // Render only after mount so the resolved theme is known. This surface isn't
+  // behind a scroll-reveal gate like the showcase, so without this it would
+  // paint with the default ("dark") theme before next-themes resolves.
+  if (!mounted) return <div aria-hidden style={{ height: 360 }} />
+  const isLight = resolvedTheme === 'light'
+  return (
+    <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
+      <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
+        <div
+          className={
+            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
+            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
+          }
+          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
+        >
+          <OverviewConsoleStyles />
+          <div className="px-5 py-6 md:px-7 md:py-7">
+            <RunActivityMap />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function OverviewConsole() {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
