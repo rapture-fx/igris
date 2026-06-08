@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, Sun, Moon, type LucideIcon,
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
-import RecoveryConsole from './RecoveryConsole'
+import { RunActivityMapConsole } from './OverviewConsole'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -106,11 +106,15 @@ const PROJECTS: ProjectGroup[] = [
 
 // ──────────────────────────────────────────────────────────────────
 
-export function ExecutionPreview() {
+// `frozen` renders the same run-detail surface in a static state — the
+// committed-actions log shows all steps at once (no reveal/cycle animation), so
+// the layout sits still on the full Execution profile. Used by the Recover tab.
+export function ExecutionPreview({ frozen = false }: { frozen?: boolean }) {
   const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  const isLight = mounted && resolvedTheme === 'light'
+  // Read the resolved theme directly (no `mounted` gate): this panel only
+  // mounts after the skeleton/intersection gate, so the theme is already known
+  // — gating on a remount-reset `mounted` flag caused a one-frame dark flash.
+  const isLight = resolvedTheme === 'light'
   const [query, setQuery] = useState('')
   return (
     <div
@@ -130,7 +134,7 @@ export function ExecutionPreview() {
           <div className="grid" style={{ gridTemplateColumns: '40px 200px 1fr', height: 640 }}>
             <IconRail />
             <Sidebar query={query} setQuery={setQuery} />
-            <Main />
+            <Main frozen={frozen} />
           </div>
         </div>
       </div>
@@ -471,6 +475,16 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 9px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__scale-mid { color: var(--ic-text-8); letter-spacing: 0.04em; }
 
+      /* Execution-profile reveal (Recover tab): rows fade in, bars draw out. */
+      @keyframes ic-wfall-row-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes ic-wfall-bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      .igris-console .ic-wfall--animate .ic-wfall__row { animation: ic-wfall-row-in 880ms cubic-bezier(0.16,0.84,0.44,1) both; }
+      .igris-console .ic-wfall--animate .ic-wfall__bar { transform-origin: left center; animation: ic-wfall-bar-grow 1250ms cubic-bezier(0.16,0.84,0.44,1) both; }
+      @media (prefers-reduced-motion: reduce) {
+        .igris-console .ic-wfall--animate .ic-wfall__row,
+        .igris-console .ic-wfall--animate .ic-wfall__bar { animation: none; }
+      }
+
       /* Hero footer */
       .igris-console .ic-footer { border-top: 1px solid var(--ic-border); background: var(--ic-bg); }
       .igris-console .ic-footer__bar { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 11.5px; color: var(--ic-text-4); }
@@ -510,9 +524,7 @@ function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
 // Runs (3) for the hero run-detail view.
 function IconRail({ active = 3 }: { active?: number }) {
   const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  const logoSrc = mounted && resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
+  const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
     <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
@@ -653,16 +665,26 @@ const RUN = {
   ago: '6 seconds ago',
 }
 
-function Main() {
+function Main({ frozen = false }: { frozen?: boolean }) {
   return (
     <div className="flex flex-col min-h-0">
       <MainTopBar />
       <div className="ic-scroll flex-1 overflow-y-auto px-5 py-4 min-h-0">
         <div className="ic-run-detail-layout">
           <section className="ic-run-detail-scroll" aria-label="Run evidence and audit details">
-            <Evidence />
-            <div className="ic-run-expand"><RunInspector /></div>
-            <div className="ic-foot-time">14:07:42 <span style={{ color: 'var(--ic-emerald)' }}>live</span></div>
+            {frozen ? (
+              // Recover surface: focus the evidence column on the Execution
+              // profile alone — no long scroll through the full run detail.
+              <div className="ic-runinspector">
+                <ExecutionProfile animate />
+              </div>
+            ) : (
+              <>
+                <Evidence />
+                <div className="ic-run-expand"><RunInspector /></div>
+                <div className="ic-foot-time">14:07:42 <span style={{ color: 'var(--ic-emerald)' }}>live</span></div>
+              </>
+            )}
           </section>
           <ExecDetailRail />
         </div>
@@ -993,7 +1015,7 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
 // run_execution_profile(run): one bar per step that has a latency, placed by
 // cumulative start time, length = time-on-step. The in-flight ledger_sync (no
 // latency) is excluded — matching the rails helper.
-function ExecutionProfile() {
+function ExecutionProfile({ animate = false }: { animate?: boolean }) {
   let cursor = 0
   const profile = STEPS.filter((s) => s.latency != null).map((s) => {
     const ms = s.latency as number
@@ -1008,15 +1030,16 @@ function ExecutionProfile() {
     <section className="ic-runinspector__section ic-runinspector__section--last">
       <div className="ic-runinspector__sechead">Execution profile</div>
       <p className="ic-runinspector__hint">Time per step along the run timeline — {profile.length} steps over {total}ms total.</p>
-      <div className="ic-wfall">
+      <div className={'ic-wfall' + (animate ? ' ic-wfall--animate' : '')}>
         {profile.map((p, i) => {
           const left = span > 0 ? (p.start / span) * 100 : 0
           const width = span > 0 ? Math.max((p.ms / span) * 100, 1.5) : 0
+          const delay = animate ? `${i * 200}ms` : undefined
           return (
-            <div className="ic-wfall__row" key={i}>
+            <div className="ic-wfall__row" key={i} style={{ animationDelay: delay }}>
               <span className="ic-wfall__label" title={p.label}>{p.label}</span>
               <div className="ic-wfall__track">
-                <div className={`ic-wfall__bar ic-wfall__bar--${p.tone}`} style={{ marginLeft: `${left}%`, width: `${width}%` }} />
+                <div className={`ic-wfall__bar ic-wfall__bar--${p.tone}`} style={{ marginLeft: `${left}%`, width: `${width}%`, animationDelay: delay }} />
               </div>
               <span className="ic-wfall__val">{p.ms}ms</span>
             </div>
@@ -1091,25 +1114,21 @@ function ExecDetailRail() {
 
 function MainFooter() {
   const { resolvedTheme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  const isDark = mounted && resolvedTheme === 'dark'
+  const isDark = resolvedTheme === 'dark'
   return (
     <div className="ic-footer">
       <div className="ic-footer__bar">
         <span className="ic-footer__chip"><span className="dot" /><span>action_workflow v1</span></span>
         <span>Receipts ed25519</span>
         <div className="ic-footer__spacer" />
-        {mounted && (
-          <button
-            type="button"
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="inline-flex items-center justify-center w-5 h-5 rounded text-[var(--ic-text-4)] hover:text-[var(--ic-text-bright)] hover:bg-[var(--ic-overlay-3)] transition-colors"
-          >
-            {isDark ? <Sun size={11} strokeWidth={1.8} /> : <Moon size={11} strokeWidth={1.8} />}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="inline-flex items-center justify-center w-5 h-5 rounded text-[var(--ic-text-4)] hover:text-[var(--ic-text-bright)] hover:bg-[var(--ic-overlay-3)] transition-colors"
+        >
+          {isDark ? <Sun size={11} strokeWidth={1.8} /> : <Moon size={11} strokeWidth={1.8} />}
+        </button>
       </div>
     </div>
   )
@@ -1157,9 +1176,10 @@ function InstallCommand() {
 
 // ──────────────────────────────────────────────────────────────────
 // Product showcase tabs — a centered Run / Recover / Prove switcher above
-// the product surface. Run shows the hero run-detail design (ExecutionPreview),
-// Prove shows the runs-list console (RunsConsole). Only the active panel mounts
-// so the two consoles never collide.
+// the product surface. Run shows the hero run-detail design (ExecutionPreview,
+// animated); Recover shows the same surface frozen on the full Execution
+// profile (ExecutionPreview frozen); Prove shows the runs-list console
+// (RunsConsole). Only the active panel mounts so the consoles never collide.
 // ──────────────────────────────────────────────────────────────────
 
 type ShowcaseTab = 'run' | 'recover' | 'prove'
@@ -1172,35 +1192,68 @@ const SHOWCASE_TABS: { id: ShowcaseTab; label: string }[] = [
 
 function ProductShowcaseTabs() {
   const [tab, setTab] = useState<ShowcaseTab>('run')
+  // `revealed` flips once the section first scrolls into view, so the panel
+  // (and its internal reveal animations) mount only when it's actually seen.
+  const [revealed, setRevealed] = useState(false)
+  const [indicator, setIndicator] = useState<{ left: number; width: number }>({ left: 0, width: 0 })
+  const panelRef = useRef<HTMLDivElement>(null)
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const holdUntilRef = useRef(0)
   const order: ShowcaseTab[] = ['run', 'recover', 'prove']
+  // Slide the shared underline to the active tab; re-measure on resize.
+  useEffect(() => {
+    const measure = () => {
+      const btn = btnRefs.current[order.indexOf(tab)]
+      if (btn) setIndicator({ left: btn.offsetLeft, width: btn.offsetWidth })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [tab])
   useEffect(() => {
     const id = setInterval(() => {
+      if (Date.now() < holdUntilRef.current) return
       setTab((prev) => {
         const idx = order.indexOf(prev)
         return order[(idx + 1) % order.length]
       })
-    }, 4000)
+    }, 5000)
     return () => clearInterval(id)
   }, [])
+  // Mount the panel when the section first enters the viewport.
+  useEffect(() => {
+    const el = panelRef.current
+    if (!el) return
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) { setRevealed(true); io.disconnect() }
+    }, { threshold: 0.2 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  const handleTab = (id: ShowcaseTab) => {
+    holdUntilRef.current = Date.now() + 15000
+    setTab(id)
+  }
   return (
     <div>
       <div className="flex justify-center">
         <div
           role="tablist"
           aria-label="Product surfaces"
-          className="inline-flex items-center gap-10 sm:gap-16"
+          className="relative inline-flex items-center gap-10 sm:gap-16"
         >
-          {SHOWCASE_TABS.map((t) => {
+          {SHOWCASE_TABS.map((t, i) => {
             const active = t.id === tab
             return (
               <button
                 key={t.id}
+                ref={(el) => { btnRefs.current[i] = el }}
                 type="button"
                 role="tab"
                 aria-selected={active}
-                onClick={() => setTab(t.id)}
+                onClick={() => handleTab(t.id)}
                 className={
-                  'relative flex flex-col items-center gap-3 min-w-[180px] sm:min-w-[280px] text-[13px] font-normal transition-colors ' +
+                  'relative flex flex-col items-center gap-3 min-w-[180px] sm:min-w-[280px] text-[13px] font-normal transition-colors duration-300 ' +
                   (active
                     ? 'text-gray-700 dark:text-[#c8c8b8]'
                     : 'text-gray-400 dark:text-[#7a7a72] hover:text-gray-600 dark:hover:text-[#a8a898]')
@@ -1208,22 +1261,39 @@ function ProductShowcaseTabs() {
                 style={{ fontFamily: SANS, letterSpacing: '-0.01em', fontWeight: 400 }}
               >
                 <span>{t.label}</span>
-                <span
-                  aria-hidden
-                  className={
-                    'h-px w-full rounded-full transition-colors ' +
-                    (active ? 'bg-gray-300 dark:bg-[rgba(246,246,244,0.28)]' : 'bg-transparent')
-                  }
-                />
+                {/* transparent spacer preserves the row height; the shared
+                    underline below slides over this position */}
+                <span aria-hidden className="h-px w-full" />
               </button>
             )
           })}
+          {/* single sliding underline shared across tabs — transform-based
+              (GPU-composited) for buttery motion between tabs */}
+          <span
+            aria-hidden
+            className="absolute left-0 bottom-0 h-px rounded-full bg-gray-300 dark:bg-[rgba(246,246,244,0.28)] will-change-transform"
+            style={{
+              transform: `translateX(${indicator.left}px)`,
+              width: indicator.width,
+              transition: 'transform 420ms cubic-bezier(0.22,1,0.36,1), width 420ms cubic-bezier(0.22,1,0.36,1)',
+            }}
+          />
         </div>
       </div>
-      <div className="mt-8">
-        {tab === 'run' && <ExecutionPreview />}
-        {tab === 'recover' && <RecoveryConsole />}
-        {tab === 'prove' && <RunsConsole />}
+      <div className="mt-8" ref={panelRef}>
+        {revealed ? (
+          // Keyed by tab so the panel's own reveal animations replay on switch.
+          // No wrapper fade: it would paint the first frame at opacity 0 and
+          // flash empty space (the "blink"). Instant swap, internal motion only.
+          <div key={tab}>
+            {tab === 'run' && <ExecutionPreview />}
+            {tab === 'recover' && <ExecutionPreview frozen />}
+            {tab === 'prove' && <RunsConsole />}
+          </div>
+        ) : (
+          // Reserve the framed console height so nothing jumps before reveal.
+          <div aria-hidden style={{ height: 660 }} />
+        )}
       </div>
     </div>
   )
@@ -1231,74 +1301,98 @@ function ProductShowcaseTabs() {
 
 export default function Products() {
   return (
-    <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="px-0">
+    <>
+      <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="px-0">
-          <div className="pt-32 md:pt-48 pb-20 md:pb-32">
-            <div className="mt-12 md:mt-16">
-              <ProductShowcaseTabs />
-            </div>
-            <h2
-              className="text-[#000000] dark:text-[#f6f6f4] font-normal mt-16 md:mt-24"
-              style={{
-                fontFamily: SANS,
-                fontWeight: 400,
-                fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                lineHeight: 1.1,
-                letterSpacing: '-0.02em',
-                maxWidth: '22ch',
-              }}
-            >
-              Built for AI systems operating in the real world.
-            </h2>
-            <div
-              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
-              style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-            >
-              <p>
-                Igris helps AI agents run real actions safely.
-              </p>
-              <p>
-                When an agent needs to read a file, call an API, update a
-                database, or trigger a workflow, Igris sits in the middle. It
-                runs the action, records what happened, and gives your team a
-                clear trail afterward.
-              </p>
-              <p>
-                If something breaks halfway through, Igris does not blindly
-                start over. It resumes from the last recorded step, so actions
-                are easier to recover, inspect, and trust.
-              </p>
-              <p>
-                AI agents are starting to touch real systems. That means
-                execution matters as much as intelligence. Igris gives those
-                actions boundaries, recovery, and proof, so teams can see what
-                ran, what failed, what recovered, and why.
-              </p>
-              <p className="mt-6">
-                Install Igris:
-              </p>
-              <InstallCommand />
-            </div>
-            <div className="mt-10 relative left-1/2 -translate-x-1/2 w-screen max-w-[100vw]">
-              <img
-                src="/rohzf.png"
-                alt=""
-                className="block w-full h-auto select-none"
-                draggable={false}
-              />
+          <div className="px-0">
+            <div className="pt-32 md:pt-48 pb-20 md:pb-32">
+              {/* Intro copy — sits above the product design */}
+              <h2
+                className="text-[#000000] dark:text-[#f6f6f4] font-normal"
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.02em',
+                  maxWidth: '22ch',
+                }}
+              >
+                Built for AI systems operating in the real world.
+              </h2>
               <div
-                aria-hidden
-                className="hidden dark:block pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-t from-transparent to-dark-bg"
-              />
-              <div
-                aria-hidden
-                className="hidden dark:block pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-b from-transparent to-dark-bg"
-              />
+                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
+                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+              >
+                <p>
+                  When an agent needs to read a file, call an API, update a
+                  database, or trigger a workflow, Igris sits in the middle. It
+                  runs the action, records what happened, and gives your team a
+                  clear trail afterward.
+                </p>
+                <p>
+                  If something breaks halfway through, Igris does not blindly
+                  start over. It resumes from the last recorded step, so actions
+                  are easier to recover, inspect, and trust.
+                </p>
+              </div>
+
+              {/* Product design / showcase */}
+              <div className="mt-12 md:mt-16">
+                <ProductShowcaseTabs />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Execution-matters + install */}
+      <section id="install" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+        <div className="px-0">
+          <div className="px-0">
+            <div className="pb-32 md:pb-48">
+              <p
+                className="text-gray-700 dark:text-[#c8c8b8] font-normal max-w-[34ch]"
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                  lineHeight: 1.2,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Execution matters as much as intelligence.
+              </p>
+              <div
+                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
+                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+              >
+                <p>
+                  AI agents are starting to touch real systems. That means
+                  execution matters as much as intelligence. Igris gives those
+                  actions boundaries, recovery, and proof, so teams can see what
+                  ran, what failed, what recovered, and why.
+                </p>
+              </div>
+
+              {/* Run Activity Map — map surface only (no rail/topbar/panel) */}
+              <div className="mt-12 md:mt-16">
+                <RunActivityMapConsole />
+              </div>
+
+              <p
+                className="mt-12 md:mt-16 text-gray-600 dark:text-[#a8a898]"
+                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+              >
+                Install Igris:
+              </p>
+              <div className="mt-4">
+                <InstallCommand />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   )
 }
