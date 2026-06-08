@@ -10,12 +10,12 @@ export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-start text-left justify-end min-h-[72vh] md:min-h-[82vh] pt-40 md:pt-56 pb-16 md:pb-24">
+        <div className="flex flex-col items-start text-left justify-end min-h-[48vh] md:min-h-[54vh] pt-20 md:pt-24 pb-10 md:pb-12">
           <h1
-            className="text-[#000000] dark:text-[#f6f6f4]"
+            className="text-gray-700 dark:text-[#c8c8b8]"
             style={{
               fontFamily: PIXEL,
-              fontWeight: 500,
+              fontWeight: 400,
               fontSize: 'clamp(1.4rem, 2.8vw, 2.4rem)',
               lineHeight: 1.1,
               letterSpacing: '-0.01em',
