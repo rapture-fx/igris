@@ -14,13 +14,13 @@ export default function ClosingPosition() {
           <div className="pt-24 md:pt-40 pb-24 md:pb-40 min-h-[70vh] flex items-center justify-start">
             <div>
               <h2
-                className="text-[#000000] dark:text-[#f6f6f4]"
+                className="text-gray-700 dark:text-[#c8c8b8]"
                 style={{
                   fontFamily: PIXEL,
-                  fontWeight: 500,
-                  fontSize: 'clamp(2rem, 3.6vw, 3rem)',
-                  lineHeight: 1.12,
-                  letterSpacing: '-0.005em',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.4rem, 2.8vw, 2.4rem)',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.01em',
                   maxWidth: '24ch',
                 }}
               >
@@ -28,7 +28,7 @@ export default function ClosingPosition() {
               </h2>
               <a
                 href="https://console.igrisinertial.com/auth?mode=signup"
-                className="mt-8 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                className="mt-8 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-gray-700 text-white dark:bg-[#c8c8b8] dark:text-[#1b1912]"
                 style={{ fontFamily: SANS }}
               >
                 Get started
