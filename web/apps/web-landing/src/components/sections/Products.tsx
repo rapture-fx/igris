@@ -5,6 +5,8 @@ import { useTheme } from 'next-themes'
 import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, Sun, Moon, type LucideIcon,
 } from 'lucide-react'
+import RunsConsole from './RunsConsole'
+import RecoveryConsole from './RecoveryConsole'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -503,23 +505,22 @@ function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
   )
 }
 
-function IconRail() {
+// active = highlighted lens index: Home 0, Overview 1, Actions 2, Runs 3,
+// Runtimes 4, Settings 5 (mirrors shared/_icon_rail rail_items). Defaults to
+// Runs (3) for the hero run-detail view.
+function IconRail({ active = 3 }: { active?: number }) {
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
   const logoSrc = mounted && resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
+  const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
     <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
         <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
       <div className="flex flex-col items-center flex-1 gap-0.5">
-        <RailIcon Icon={Home} />
-        <RailIcon Icon={LayoutDashboard} />
-        <RailIcon Icon={ListChecks} />
-        <RailIcon Icon={Zap} active />
-        <RailIcon Icon={Box} />
-        <RailIcon Icon={Settings} />
+        {icons.map((Icon, i) => <RailIcon key={i} Icon={Icon} active={i === active} />)}
       </div>
       {/* Profile avatar */}
       <div className="relative h-6 w-6 mt-1 mb-1 rounded-full overflow-hidden select-none" style={{ background: 'var(--ic-avatar-bg)' }}>
@@ -1153,14 +1154,92 @@ function InstallCommand() {
   )
 }
 
+
+// ──────────────────────────────────────────────────────────────────
+// Product showcase tabs — a centered Run / Recover / Prove switcher above
+// the product surface. Run shows the hero run-detail design (ExecutionPreview),
+// Prove shows the runs-list console (RunsConsole). Only the active panel mounts
+// so the two consoles never collide.
+// ──────────────────────────────────────────────────────────────────
+
+type ShowcaseTab = 'run' | 'recover' | 'prove'
+
+const SHOWCASE_TABS: { id: ShowcaseTab; label: string }[] = [
+  { id: 'run', label: 'Run' },
+  { id: 'recover', label: 'Recover' },
+  { id: 'prove', label: 'Prove' },
+]
+
+function ProductShowcaseTabs() {
+  const [tab, setTab] = useState<ShowcaseTab>('run')
+  const order: ShowcaseTab[] = ['run', 'recover', 'prove']
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTab((prev) => {
+        const idx = order.indexOf(prev)
+        return order[(idx + 1) % order.length]
+      })
+    }, 4000)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <div>
+      <div className="flex justify-center">
+        <div
+          role="tablist"
+          aria-label="Product surfaces"
+          className="inline-flex items-center gap-10 sm:gap-16"
+        >
+          {SHOWCASE_TABS.map((t) => {
+            const active = t.id === tab
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(t.id)}
+                className={
+                  'relative flex flex-col items-center gap-3 min-w-[180px] sm:min-w-[280px] text-[13px] font-normal transition-colors ' +
+                  (active
+                    ? 'text-gray-700 dark:text-[#c8c8b8]'
+                    : 'text-gray-400 dark:text-[#7a7a72] hover:text-gray-600 dark:hover:text-[#a8a898]')
+                }
+                style={{ fontFamily: SANS, letterSpacing: '-0.01em', fontWeight: 400 }}
+              >
+                <span>{t.label}</span>
+                <span
+                  aria-hidden
+                  className={
+                    'h-px w-full rounded-full transition-colors ' +
+                    (active ? 'bg-gray-300 dark:bg-[rgba(246,246,244,0.28)]' : 'bg-transparent')
+                  }
+                />
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <div className="mt-8">
+        {tab === 'run' && <ExecutionPreview />}
+        {tab === 'recover' && <RecoveryConsole />}
+        {tab === 'prove' && <RunsConsole />}
+      </div>
+    </div>
+  )
+}
+
 export default function Products() {
   return (
     <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="px-0">
         <div className="px-0">
-          <div className="pt-16 md:pt-24 pb-6 md:pb-8">
+          <div className="pt-32 md:pt-48 pb-20 md:pb-32">
+            <div className="mt-12 md:mt-16">
+              <ProductShowcaseTabs />
+            </div>
             <h2
-              className="text-[#000000] dark:text-[#f6f6f4] font-normal"
+              className="text-[#000000] dark:text-[#f6f6f4] font-normal mt-16 md:mt-24"
               style={{
                 fontFamily: SANS,
                 fontWeight: 400,
