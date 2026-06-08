@@ -1138,41 +1138,6 @@ function MainFooter() {
 // Products section
 // ──────────────────────────────────────────────────────────────────
 
-const INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
-
-function InstallCommand() {
-  const [copied, setCopied] = useState(false)
-  const copy = () => {
-    navigator.clipboard.writeText(INSTALL_CMD)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-  return (
-    <div
-      className="inline-flex items-center gap-3 rounded-md px-3 py-2.5 border bg-gray-50 dark:bg-white/[0.04] border-gray-200 dark:border-[rgba(246,246,244,0.12)] text-gray-800 dark:text-[#c8c8b8] max-w-full overflow-hidden"
-      style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.02em' }}
-    >
-      <span className="select-all truncate">{INSTALL_CMD}</span>
-      <button
-        onClick={copy}
-        aria-label={copied ? 'Copied' : 'Copy install command'}
-        className="shrink-0 text-gray-500 dark:text-[#8a8a7a] hover:text-[#000000] dark:hover:text-[#f6f6f4] transition-colors"
-      >
-        {copied ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-          </svg>
-        )}
-      </button>
-    </div>
-  )
-}
-
 
 // ──────────────────────────────────────────────────────────────────
 // Product showcase tabs — a centered Run / Recover / Prove switcher above
@@ -1308,7 +1273,7 @@ export default function Products() {
             <div className="pt-32 md:pt-48 pb-20 md:pb-32">
               {/* Intro copy — sits above the product design */}
               <h2
-                className="text-[#000000] dark:text-[#f6f6f4] font-normal"
+                className="text-gray-700 dark:text-[#c8c8b8] font-normal"
                 style={{
                   fontFamily: SANS,
                   fontWeight: 400,
@@ -1346,11 +1311,11 @@ export default function Products() {
         </div>
       </section>
 
-      {/* Execution-matters + install */}
-      <section id="install" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      {/* Execution-matters + Run Activity Map */}
+      <section id="overview" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="px-0">
           <div className="px-0">
-            <div className="pb-32 md:pb-48">
+            <div className="pb-20 md:pb-28">
               <p
                 className="text-gray-700 dark:text-[#c8c8b8] font-normal max-w-[34ch]"
                 style={{
@@ -1378,16 +1343,6 @@ export default function Products() {
               {/* Run Activity Map — map surface only (no rail/topbar/panel) */}
               <div className="mt-12 md:mt-16">
                 <RunActivityMapConsole />
-              </div>
-
-              <p
-                className="mt-12 md:mt-16 text-gray-600 dark:text-[#a8a898]"
-                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-              >
-                Install Igris:
-              </p>
-              <div className="mt-4">
-                <InstallCommand />
               </div>
             </div>
           </div>
