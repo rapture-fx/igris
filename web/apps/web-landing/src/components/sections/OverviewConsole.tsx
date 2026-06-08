@@ -393,20 +393,18 @@ export function RunActivityMapConsole() {
   // paint with the default ("dark") theme before next-themes resolves.
   if (!mounted) return <div aria-hidden style={{ height: 360 }} />
   const isLight = resolvedTheme === 'light'
+  // Same two-layer frame wrapper as the product-section consoles, but the
+  // inner igris-console element generates no box (`display: contents`) — so the
+  // only card inside the frame is the map itself (no solid dark screen layer).
   return (
     <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
       <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
         <div
-          className={
-            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
-          }
-          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
+          className={'igris-console ' + (isLight ? 'igris-console--light ' : '')}
+          style={{ display: 'contents', fontFamily: SANS, color: 'var(--ic-text)' }}
         >
           <OverviewConsoleStyles />
-          <div className="px-5 py-6 md:px-7 md:py-7">
-            <RunActivityMap />
-          </div>
+          <RunActivityMap />
         </div>
       </div>
     </div>
@@ -552,7 +550,10 @@ function OverviewConsoleStyles() {
         position: relative; margin: 14px 12px 6px; padding: 16px 18px 16px;
         background: var(--ic-overlay-1); border: 1px solid var(--ic-border); border-radius: 10px;
       }
-      .igris-console .ic-runmap--flush { margin: 0; }
+      /* Map-only surface: use the same solid console background as the product
+         section design (var(--ic-bg)) instead of the translucent overlay, so it
+         doesn't look darker/grey in light mode. */
+      .igris-console .ic-runmap--flush { margin: 0; background: var(--ic-bg); }
       .igris-console .ic-runmap__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
       .igris-console .ic-runmap__title { display: block; font-size: 13px; font-weight: 600; color: var(--ic-text); letter-spacing: .01em; }
       .igris-console .ic-runmap__sub { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ic-text-5); max-width: 64ch; line-height: 1.5; }
