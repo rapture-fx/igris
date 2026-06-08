@@ -157,9 +157,7 @@ function RailIcon({ Icon, active }: { Icon: LucideIcon; active?: boolean }) {
 
 function IconRail() {
   const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  const logoSrc = mounted && resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
+  const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
     <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
@@ -232,10 +230,10 @@ function RunsFilters({ query, setQuery }: { query: string; setQuery: (v: string)
 }
 
 // ── One run row (runs/_history.html.erb .ic-run-row) ──
-function RunRowView({ run }: { run: Run }) {
+function RunRowView({ run, index = 0 }: { run: Run; index?: number }) {
   const tcls = STATUS_CLASS[run.tone]
   return (
-    <div className="ic-run-row">
+    <div className="ic-run-row" style={{ animationDelay: `${index * 140}ms` }}>
       <span className="ic-run-row__open">
         <span className="ic-run-row__title">{run.action}</span>
         <span className="ic-run-row__id-group">
@@ -275,7 +273,7 @@ function RunsPage() {
       <div className="ic-scroll flex-1 overflow-y-auto px-5 py-3 min-h-0">
         {rows.length > 0 ? (
           <div className="ic-runs-list">
-            {rows.map((r) => <RunRowView key={r.id} run={r} />)}
+            {rows.map((r, i) => <RunRowView key={r.id} run={r} index={i} />)}
           </div>
         ) : (
           <div className="ic-runs-empty">
@@ -290,9 +288,7 @@ function RunsPage() {
 
 export default function RunsConsole() {
   const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  const isLight = mounted && resolvedTheme === 'light'
+  const isLight = resolvedTheme === 'light'
   return (
     <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
       <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
@@ -413,7 +409,10 @@ function RunsConsoleStyles() {
       .igris-console .ic-run-row {
         display: flex; align-items: center; position: relative;
         border-bottom: 1px solid var(--ic-border-soft); transition: background 120ms ease;
+        animation: ic-run-row-in 860ms cubic-bezier(0.16,0.84,0.44,1) both;
       }
+      @keyframes ic-run-row-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+      @media (prefers-reduced-motion: reduce) { .igris-console .ic-run-row { animation: none; } }
       .igris-console .ic-run-row:last-child { border-bottom: 0; }
       .igris-console .ic-run-row:hover { background: var(--ic-overlay-2); }
       .igris-console .ic-run-row:hover .ic-run-row__title { color: var(--ic-emerald); }
