@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { ExecutionPreview } from './Products'
 
 const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO  = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -66,8 +65,10 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 mt-3 pb-12 md:pb-16">
-        <ExecutionPreview />
+      {/* Spacer — preserves the hero's original height now that the console
+          design has been removed, so the section height stays fixed. */}
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 mt-3 pb-12 md:pb-16" aria-hidden>
+        <div style={{ height: 660 }} />
       </div>
     </section>
   )
