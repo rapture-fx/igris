@@ -234,19 +234,23 @@ function WorkspacePanel() {
   )
 }
 
-interface TipState {
+// Hovered dot anchor, relative to the map. Final placement is derived from
+// this in an effect (once the tooltip's real size is measurable).
+interface TipAnchor {
   run: ActRun
   band: Band
-  left: number
-  top: number
-  below: boolean
-  caret: number
+  cx: number   // dot center x, relative to the map
+  top: number  // dot top, relative to the map
+  h: number    // dot height
 }
+
+interface TipPos { left: number; top: number; below: boolean; caret: number }
 
 function RunActivityMap() {
   const mapRef = useRef<HTMLDivElement>(null)
   const tipRef = useRef<HTMLDivElement>(null)
-  const [tip, setTip] = useState<TipState | null>(null)
+  const [tip, setTip] = useState<TipAnchor | null>(null)
+  const [pos, setPos] = useState<TipPos | null>(null)
 
   const points: Point[] = ACT_RUNS.slice(0, 80).reverse().map((run, i) => {
     const band = bandFor(run)
@@ -259,25 +263,35 @@ function RunActivityMap() {
     return acc
   }, { verified: 0, completed: 0, recovered: 0, waiting: 0, blocked: 0, failed: 0 })
 
-  // Position the floating tooltip from the hovered dot's rect, clamped inside
-  // the map — mirrors the inline positioning script in _run_activity_map.
+  // Record the hovered dot's anchor (relative to the map). Placement happens in
+  // the effect below, after the tooltip content renders.
   function showTip(e: React.MouseEvent<HTMLAnchorElement> | React.FocusEvent<HTMLAnchorElement>, p: Point) {
     const map = mapRef.current
-    const tipEl = tipRef.current
-    const dot = e.currentTarget
-    if (!map || !tipEl) return
-    const r = dot.getBoundingClientRect()
+    if (!map) return
+    const r = e.currentTarget.getBoundingClientRect()
     const m = map.getBoundingClientRect()
-    const tw = tipEl.offsetWidth || 220
-    const th = tipEl.offsetHeight || 96
-    let left = r.left - m.left + r.width / 2 - tw / 2
-    left = Math.max(6, Math.min(left, m.width - tw - 6))
-    let top = r.top - m.top - th - 9
-    const below = top < 4
-    if (below) top = r.top - m.top + r.height + 9
-    const caret = Math.max(10, Math.min(r.left - m.left + r.width / 2 - left, tw - 10))
-    setTip({ run: p.run, band: p.band, left, top, below, caret })
+    setTip({ run: p.run, band: p.band, cx: r.left - m.left + r.width / 2, top: r.top - m.top, h: r.height })
   }
+  function hideTip() { setTip(null); setPos(null) }
+
+  // Position the tooltip once its content is in the DOM, so offsetWidth/Height
+  // are accurate (fixes first-hover mispositioning) and clamp it to the map.
+  useEffect(() => {
+    if (!tip) { setPos(null); return }
+    const map = mapRef.current
+    const tipEl = tipRef.current
+    if (!map || !tipEl) return
+    const m = map.getBoundingClientRect()
+    const tw = tipEl.offsetWidth
+    const th = tipEl.offsetHeight
+    let left = tip.cx - tw / 2
+    left = Math.max(6, Math.min(left, m.width - tw - 6))
+    let top = tip.top - th - 9
+    const below = top < 4
+    if (below) top = tip.top + tip.h + 9
+    const caret = Math.max(10, Math.min(tip.cx - left, tw - 10))
+    setPos({ left, top, below, caret })
+  }, [tip])
 
   return (
     <section className="ic-runmap ic-runmap--flush" aria-label="Run Activity Map" ref={mapRef}>
@@ -325,9 +339,9 @@ function RunActivityMap() {
               style={{ gridColumn: p.col, gridRow: p.row }}
               aria-label={`Action ${p.run.action}, ${BAND_LABEL(p.band)}, ${p.run.proof}, ${p.run.when}`}
               onMouseEnter={(e) => showTip(e, p)}
-              onMouseLeave={() => setTip(null)}
+              onMouseLeave={hideTip}
               onFocus={(e) => showTip(e, p)}
-              onBlur={() => setTip(null)}
+              onBlur={hideTip}
               tabIndex={0}
             />
           ))}
@@ -337,10 +351,10 @@ function RunActivityMap() {
       {/* Floating evidence tooltip — populated from the hovered dot. */}
       <div
         ref={tipRef}
-        className={'ic-runmap__tip' + (tip ? ' is-on' : '') + (tip?.below ? ' ic-runmap__tip--below' : '')}
+        className={'ic-runmap__tip' + (pos ? ' is-on' : '') + (pos?.below ? ' ic-runmap__tip--below' : '')}
         role="tooltip"
-        aria-hidden={tip ? 'false' : 'true'}
-        style={tip ? { left: tip.left, top: tip.top, ['--tip-caret' as string]: `${tip.caret}px` } : undefined}
+        aria-hidden={pos ? 'false' : 'true'}
+        style={pos ? { left: pos.left, top: pos.top, ['--tip-caret' as string]: `${pos.caret}px` } : undefined}
       >
         {tip && (
           <>
