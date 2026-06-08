@@ -8,67 +8,40 @@ const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospac
 
 export default function Hero() {
   return (
-    <section
-      className="relative w-full overflow-hidden bg-dark-bg text-[#f6f6f4]"
-      style={{
-        backgroundImage: 'url(/herobg.png)',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center bottom',
-        backgroundSize: 'cover',
-      }}
-    >
+    <section className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
-        <div>
-          <div className="flex flex-col items-start text-left justify-end pt-20 md:pt-28 pb-4 md:pb-6">
-
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-6 w-full items-start">
-              <div className="md:col-span-7">
-                <h1
-                  className="text-[#f6f6f4]"
-                  style={{
-                    fontFamily: PIXEL,
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                    lineHeight: 1.1,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  Run agent actions that recover<br />and prove what happened.
-                </h1>
-                <a
-                  href="https://console.igrisinertial.com/auth?mode=signup"
-                  className="mt-5 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#f6f6f4] text-[#1b1912]"
-                  style={{ fontFamily: SANS }}
-                >
-                  Get started
-                </a>
-              </div>
-
-              <div className="md:col-span-5">
-                <p
-                  className="text-[#a8a89e] max-w-[360px] ml-auto text-right"
-                  style={{
-                    fontFamily: SANS,
-                    fontSize: 'clamp(0.95rem, 1.4vw, 1.2rem)',
-                    lineHeight: 1.45,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  Give agents safe action endpoints. Igris routes the work, records the run, recovers failures, and keeps evidence you can inspect.
-                </p>
-              </div>
-
-
-            </div>
-
-          </div>
+        <div className="flex flex-col items-start text-left justify-end min-h-[72vh] md:min-h-[82vh] pt-40 md:pt-56 pb-16 md:pb-24">
+          <h1
+            className="text-[#000000] dark:text-[#f6f6f4]"
+            style={{
+              fontFamily: PIXEL,
+              fontWeight: 500,
+              fontSize: 'clamp(1.4rem, 2.8vw, 2.4rem)',
+              lineHeight: 1.1,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Run agent actions that recover<br />and prove what happened.
+          </h1>
+          <p
+            className="mt-4 text-gray-600 dark:text-[#a8a89e] max-w-[520px]"
+            style={{
+              fontFamily: SANS,
+              fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)',
+              lineHeight: 1.5,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Give agents safe action endpoints. Igris routes the work, records the run, recovers failures, and keeps evidence you can inspect.
+          </p>
+          <a
+            href="https://console.igrisinertial.com/auth?mode=signup"
+            className="mt-5 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+            style={{ fontFamily: SANS }}
+          >
+            Get started
+          </a>
         </div>
-      </div>
-
-      {/* Spacer — preserves the hero's original height now that the console
-          design has been removed, so the section height stays fixed. */}
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 mt-3 pb-12 md:pb-16" aria-hidden>
-        <div style={{ height: 660 }} />
       </div>
     </section>
   )
