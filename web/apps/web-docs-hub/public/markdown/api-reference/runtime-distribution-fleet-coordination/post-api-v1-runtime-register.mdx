@@ -44,7 +44,7 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 | `hostname` | `string` | Yes | Display hostname for fleet views. |
 | `platform` | `string` | No | Platform identifier such as `linux-amd64`. |
 | `runtime_version` | `string` | Yes | Runtime version string. |
-| `endpoint` | `string` | No | Optional public endpoint for the runtime. |
+| `endpoint` | `string` | Yes | The runtime's `http(s)` base URL. Must be a routable URL that Igris can reach, because cloud-dispatched work is delivered to this endpoint. Registration is rejected if it is missing or not routable. A `localhost` or private LAN address cannot receive cloud-dispatched actions — see the Deploy Local Runtime guide. |
 | `public_key_ed25519` | `string` | Yes | Runtime Ed25519 public key in hex, used to bind later signed runtime requests to the registered machine identity. |
 | `timestamp_unix_ms` | `integer` | Yes | Millisecond Unix timestamp used for replay-window validation. |
 | `signature` | `string` | Yes | Runtime signature over the registration payload. |
@@ -57,7 +57,7 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
   "hostname": "edge-node-01",
   "platform": "linux-amd64",
   "runtime_version": "runtime-v1.6.0",
-  "endpoint": "http://10.0.0.12:8080",
+  "endpoint": "https://runtime.example.com",
   "public_key_ed25519": "f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766",
   "timestamp_unix_ms": 1775283660000,
   "signature": "MEQCIB3exampleRuntimeRegisterSignature=="
@@ -77,7 +77,7 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/register \
   "hostname": "edge-node-01",
   "platform": "linux-amd64",
   "runtime_version": "runtime-v1.6.0",
-  "endpoint": "http://10.0.0.12:8080",
+  "endpoint": "https://runtime.example.com",
   "public_key_ed25519": "f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766",
   "timestamp_unix_ms": 1775283660000,
   "signature": "MEQCIB3exampleRuntimeRegisterSignature=="
@@ -98,7 +98,7 @@ const response = await fetch('https://overture.igrisinertial.com/api/v1/runtime/
   "hostname": "edge-node-01",
   "platform": "linux-amd64",
   "runtime_version": "runtime-v1.6.0",
-  "endpoint": "http://10.0.0.12:8080",
+  "endpoint": "https://runtime.example.com",
   "public_key_ed25519": "f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766",
   "timestamp_unix_ms": 1775283660000,
   "signature": "MEQCIB3exampleRuntimeRegisterSignature=="
@@ -113,7 +113,7 @@ console.log(data);
 
 ```go
 client := &http.Client{}
-body := strings.NewReader("{\n  \"machine_id\": \"dev_0f4c3f1a2d9b45cf\",\n  \"hostname\": \"edge-node-01\",\n  \"platform\": \"linux-amd64\",\n  \"runtime_version\": \"runtime-v1.6.0\",\n  \"endpoint\": \"http://10.0.0.12:8080\",\n  \"public_key_ed25519\": \"f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766\",\n  \"timestamp_unix_ms\": 1775283660000,\n  \"signature\": \"MEQCIB3exampleRuntimeRegisterSignature==\"\n}")
+body := strings.NewReader("{\n  \"machine_id\": \"dev_0f4c3f1a2d9b45cf\",\n  \"hostname\": \"edge-node-01\",\n  \"platform\": \"linux-amd64\",\n  \"runtime_version\": \"runtime-v1.6.0\",\n  \"endpoint\": \"https://runtime.example.com\",\n  \"public_key_ed25519\": \"f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766\",\n  \"timestamp_unix_ms\": 1775283660000,\n  \"signature\": \"MEQCIB3exampleRuntimeRegisterSignature==\"\n}")
 
 req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/api/v1/runtime/register", body)
 if err != nil {
@@ -144,7 +144,7 @@ let response = client
   "hostname": "edge-node-01",
   "platform": "linux-amd64",
   "runtime_version": "runtime-v1.6.0",
-  "endpoint": "http://10.0.0.12:8080",
+  "endpoint": "https://runtime.example.com",
   "public_key_ed25519": "f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766",
   "timestamp_unix_ms": 1775283660000,
   "signature": "MEQCIB3exampleRuntimeRegisterSignature=="
