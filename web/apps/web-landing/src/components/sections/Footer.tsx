@@ -54,7 +54,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-50 dark:bg-[#0e0e0c] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="px-2 md:px-4 lg:px-6 flex flex-col min-h-[480px]">
 
           {/* Link columns + logo */}
