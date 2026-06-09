@@ -24,11 +24,11 @@ export default function Hero() {
             Run agent actions that recover<br />and prove what happened.
           </h1>
           <p
-            className="mt-4 text-gray-600 dark:text-[#a8a89e] max-w-[520px]"
+            className="mt-4 text-gray-600 dark:text-[#a8a898] max-w-[560px]"
             style={{
               fontFamily: SANS,
-              fontSize: 'clamp(0.9rem, 1.2vw, 1.05rem)',
-              lineHeight: 1.5,
+              fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+              lineHeight: 1.6,
               letterSpacing: '-0.01em',
             }}
           >
