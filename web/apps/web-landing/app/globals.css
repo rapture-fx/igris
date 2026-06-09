@@ -17,6 +17,27 @@
   --grain-size: 22px;
 }
 
+/* Smooth anchor / in-page scrolling across the landing page */
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* Product showcase panel entrance — transform-only (no opacity) so it slides
+   in smoothly on tab change without ever flashing an empty frame. */
+@keyframes ic-panel-in {
+  from { transform: translateY(12px); }
+  to   { transform: translateY(0); }
+}
+.ic-panel-in {
+  animation: ic-panel-in 560ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ic-panel-in { animation: none; }
+}
+
 html.dark {
   --section-border: 0.5px solid rgba(246, 246, 244, 0.07);
   --capabilities-border: 1px solid rgba(246, 246, 244, 0.18);
