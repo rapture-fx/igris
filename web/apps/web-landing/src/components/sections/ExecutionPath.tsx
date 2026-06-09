@@ -43,10 +43,22 @@ const ROUTE_CHIPS: Chip[] = [
 
 const TARGET_CHIPS: Chip[] = [
   { label: 'Stripe', logo: '/logos/stripe.svg' },
+  { label: 'Polar', logo: '/logos/polar.png', invertOnDark: true },
   { label: 'Resend', logo: '/logos/resend.svg', invertOnDark: true },
   { label: 'GitHub', logo: '/logos/github.svg', invertOnDark: true },
+  { label: 'Linear', logo: '/logos/linear.svg' },
+  { label: 'Notion', logo: '/logos/notion.svg', invertOnDark: true },
+  { label: 'Shopify', logo: '/logos/shopify.svg' },
+  { label: 'HubSpot', logo: '/logos/hubspot.svg' },
   { label: 'Sentry', logo: '/logos/sentry.svg' },
+  { label: 'Datadog', logo: '/logos/datadog.svg' },
+  { label: 'Cloudflare', logo: '/logos/cloudflare.svg' },
+  { label: 'Vercel', logo: '/logos/vercel.svg', invertOnDark: true },
   { label: 'Postgres', logo: '/logos/postgresql.svg' },
+  { label: 'Neon', logo: '/logos/neon.svg' },
+  { label: 'PlanetScale', logo: '/logos/planetscale.svg', invertOnDark: true },
+  { label: 'MongoDB', logo: '/logos/mongodb.svg' },
+  { label: 'Snowflake', logo: '/logos/snowflake.svg' },
   { label: 'Internal API', Icon: Network },
 ]
 
@@ -139,11 +151,12 @@ const LANGS: Lang[] = [
   },
 ]
 
-// Lightweight, dependency-free syntax highlighters. `HL` handles code
-// (TS/Python/Go/Rust); `HL_CURL` handles the shell/curl snippet — its
-// command, HTTP method, flags, line continuations, strings and numbers.
-const HL = /(#.*$|\/\/.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(await|async|import|from|export|const|let|var|func|package|return|use|mut|fn|def|new|if|for|in|require)\b|([A-Za-z_][\w]*(?=\())|(\b\d[\d_]*(?:\.\d+)?\b)/g
-const HL_CURL = /(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\bcurl\b)|\b(POST|GET|PUT|PATCH|DELETE|HEAD|OPTIONS)\b|(\B-{1,2}[A-Za-z][\w-]*)|(\\\s*$)|(\b\d[\d_]*(?:\.\d+)?\b)/g
+// Dependency-free syntax highlighters. `HL` handles code (TS/Python/Go/
+// Rust) — comments, strings, constants, keywords, function calls, types,
+// properties and numbers. `HL_CURL` handles the shell/curl snippet — its
+// command, URL, HTTP method, flags, line continuations, strings, numbers.
+const HL = /(#.*$|\/\/.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(true|false|null|None|nil|undefined)\b|\b(await|async|import|from|export|const|let|var|func|fn|def|package|return|use|mut|new|if|else|for|in|while|match|struct|type|interface|class|pub|require|range|go|defer|with|as|lambda|public|static|void)\b|([A-Za-z_]\w*(?=\s*\())|(\.[A-Za-z_]\w*(?!\s*\())|\b([A-Z][A-Za-z0-9_]*)\b|(\b0x[0-9a-fA-F]+\b|\b\d[\d_]*(?:\.\d+)?\b)/g
+const HL_CURL = /(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(https?:\/\/[^\s'"\\]+)|(\bcurl\b)|\b(POST|GET|PUT|PATCH|DELETE|HEAD|OPTIONS)\b|(\B-{1,2}[A-Za-z][\w-]*)|(\\\s*$)|(\b\d[\d_]*(?:\.\d+)?\b)/g
 
 function highlightCode(line: string) {
   const out: Array<string | JSX.Element> = []
@@ -155,9 +168,12 @@ function highlightCode(line: string) {
     if (m.index > last) out.push(line.slice(last, m.index))
     if (m[1]) out.push(<span key={k++} className="c-cmt">{m[1]}</span>)
     else if (m[2]) out.push(<span key={k++} className="c-str">{m[2]}</span>)
-    else if (m[3]) out.push(<span key={k++} className="c-kw">{m[3]}</span>)
-    else if (m[4]) out.push(<span key={k++} className="c-fn">{m[4]}</span>)
-    else if (m[5]) out.push(<span key={k++} className="c-num">{m[5]}</span>)
+    else if (m[3]) out.push(<span key={k++} className="c-const">{m[3]}</span>)
+    else if (m[4]) out.push(<span key={k++} className="c-kw">{m[4]}</span>)
+    else if (m[5]) out.push(<span key={k++} className="c-fn">{m[5]}</span>)
+    else if (m[6]) out.push(<span key={k++} className="c-prop">{m[6]}</span>)
+    else if (m[7]) out.push(<span key={k++} className="c-type">{m[7]}</span>)
+    else if (m[8]) out.push(<span key={k++} className="c-num">{m[8]}</span>)
     last = m.index + m[0].length
   }
   if (last < line.length) out.push(line.slice(last))
@@ -174,11 +190,12 @@ function highlightCurl(line: string) {
     if (m.index > last) out.push(line.slice(last, m.index))
     if (m[1]) out.push(<span key={k++} className="c-cmt">{m[1]}</span>)
     else if (m[2]) out.push(<span key={k++} className="c-str">{m[2]}</span>)
-    else if (m[3]) out.push(<span key={k++} className="c-fn">{m[3]}</span>)
-    else if (m[4]) out.push(<span key={k++} className="c-kw">{m[4]}</span>)
-    else if (m[5]) out.push(<span key={k++} className="c-flag">{m[5]}</span>)
-    else if (m[6]) out.push(<span key={k++} className="c-cmt">{m[6]}</span>)
-    else if (m[7]) out.push(<span key={k++} className="c-num">{m[7]}</span>)
+    else if (m[3]) out.push(<span key={k++} className="c-url">{m[3]}</span>)
+    else if (m[4]) out.push(<span key={k++} className="c-fn">{m[4]}</span>)
+    else if (m[5]) out.push(<span key={k++} className="c-kw">{m[5]}</span>)
+    else if (m[6]) out.push(<span key={k++} className="c-flag">{m[6]}</span>)
+    else if (m[7]) out.push(<span key={k++} className="c-cmt">{m[7]}</span>)
+    else if (m[8]) out.push(<span key={k++} className="c-num">{m[8]}</span>)
     last = m.index + m[0].length
   }
   if (last < line.length) out.push(line.slice(last))
@@ -221,9 +238,9 @@ export default function ExecutionPath() {
           <CodeWindow />
 
           {/* ── Route + target chips ────────────────────────────────── */}
-          <div className="ae-chiprows">
-            <ChipRow label="Run through" items={ROUTE_CHIPS} />
-            <ChipRow label="Connect to" items={TARGET_CHIPS} />
+          <div className="ae-connect">
+            <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+            <ChipGroup label="Connect to" items={TARGET_CHIPS} grid />
           </div>
         </div>
       </div>
@@ -231,31 +248,35 @@ export default function ExecutionPath() {
   )
 }
 
-function ChipRow({ label, items }: { label: string; items: Chip[] }) {
+function ChipGroup({ label, items, grid }: { label: string; items: Chip[]; grid?: boolean }) {
   return (
-    <div className="ae-chiprow">
-      <span className="ae-chiprow-label" style={{ fontFamily: SANS }}>{label}</span>
-      <div className="ae-chips">
-        {items.map((c) => (
-          <span key={c.label} className="ae-chip" style={{ fontFamily: MONO }}>
-            {c.logo ? (
-              <span className="ae-logo">
-                <span className="ae-logo-mono" style={{ ['--logo' as string]: `url(${c.logo})` }} aria-hidden />
-                <img
-                  className={'ae-logo-color' + (c.invertOnDark ? ' ae-logo-color--invert' : '')}
-                  src={c.logo}
-                  alt=""
-                  aria-hidden
-                />
-              </span>
-            ) : c.Icon ? (
-              <c.Icon className="ae-chip-ic" size={13} strokeWidth={1.7} aria-hidden />
-            ) : null}
-            {c.label}
-          </span>
-        ))}
+    <div className="ae-group">
+      <div className="ae-group-label" style={{ fontFamily: SANS }}>{label}</div>
+      <div className={'ae-chips ' + (grid ? 'ae-chips--grid' : 'ae-chips--row')}>
+        {items.map((c) => <ChipView key={c.label} chip={c} />)}
       </div>
     </div>
+  )
+}
+
+function ChipView({ chip }: { chip: Chip }) {
+  return (
+    <span className="ae-chip" style={{ fontFamily: MONO }}>
+      {chip.logo ? (
+        <span className="ae-logo">
+          <span className="ae-logo-mono" style={{ ['--logo' as string]: `url(${chip.logo})` }} aria-hidden />
+          <img
+            className={'ae-logo-color' + (chip.invertOnDark ? ' ae-logo-color--invert' : '')}
+            src={chip.logo}
+            alt=""
+            aria-hidden
+          />
+        </span>
+      ) : chip.Icon ? (
+        <chip.Icon className="ae-chip-ic" size={13} strokeWidth={1.7} aria-hidden />
+      ) : null}
+      {chip.label}
+    </span>
   )
 }
 
@@ -431,32 +452,40 @@ function EndpointStyles() {
       .ae-code .ae-ln { display: block; }
       .c-kw { color: #9d4b57; } html.dark .c-kw { color: #c08793; }
       .c-fn { color: var(--p-emerald); }
-      .c-str { color: var(--p-dim); }
+      .c-str { color: #4d7c5f; } html.dark .c-str { color: #7faf93; }
       .c-num { color: #b45309; } html.dark .c-num { color: #d08a4a; }
+      .c-const { color: #b45309; } html.dark .c-const { color: #d08a4a; }
+      .c-type { color: #5a67d8; } html.dark .c-type { color: #8b95e6; }
+      .c-prop { color: var(--p-text); }
       .c-cmt { color: var(--p-faint); font-style: italic; }
       .c-flag { color: #0d7a8a; } html.dark .c-flag { color: #4fb3c4; }
+      .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
+      html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
-      /* ── Chip rows (route / target) — labels vertically aligned ── */
-      .ae-chiprows {
-        margin: 40px 0 0; max-width: 720px;
-        display: flex; flex-direction: column; gap: 14px;
+      /* ── Chip groups (route row + target grid) ── */
+      .ae-connect {
+        margin: 44px auto 0; max-width: 760px;
+        display: flex; flex-direction: column; gap: 24px;
       }
-      .ae-chiprow { display: flex; align-items: center; gap: 16px; }
-      .ae-chiprow-label {
-        flex: none; width: 116px; text-align: left;
-        font-size: 13px; letter-spacing: -0.005em; color: #6b7280;
+      .ae-group-label {
+        font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 12px;
       }
-      html.dark .ae-chiprow-label { color: #8a8a82; }
-      .ae-chips { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; }
+      html.dark .ae-group-label { color: #8a8a82; }
+      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .ae-chips--grid {
+        display: grid; gap: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+      }
       .ae-chip {
-        display: inline-flex; align-items: center; gap: 7px;
-        font-size: 11px; line-height: 1; padding: 7px 11px;
-        border-radius: 8px; border: 1px solid var(--landing-surface-border);
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 11.5px; line-height: 1; padding: 9px 12px;
+        border-radius: 9px; border: 1px solid var(--landing-surface-border);
         background: var(--landing-surface); color: #4b5563; white-space: nowrap;
-        transition: border-color .2s ease;
+        transition: border-color .2s ease, background-color .2s ease;
       }
       .ae-chip:hover { border-color: var(--landing-surface-border-strong); }
       html.dark .ae-chip { color: #a8a898; }
+      .ae-chips--grid .ae-chip { width: 100%; justify-content: flex-start; }
       .ae-chip-ic { flex: none; opacity: 0.9; }
 
       /* Brand logo: monochrome by default, full brand colour on hover */
@@ -480,8 +509,7 @@ function EndpointStyles() {
         .ae-code { font-size: 12px; padding: 18px 16px 18px 14px; }
         .ae-gutter { font-size: 11.5px; min-width: 36px; padding-right: 10px; padding-top: 18px; padding-bottom: 18px; }
         .ae-pane--req { min-height: 300px; }
-        .ae-chiprow { align-items: flex-start; gap: 10px; flex-direction: column; }
-        .ae-chiprow-label { width: auto; }
+        .ae-chips--grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
         .ae-bar-label { display: none; }
       }
       @media (max-width: 420px) {
