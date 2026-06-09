@@ -22,6 +22,18 @@ The current customer query surface for receipts lives in Overture:
 
 The current runtime build does **not** expose a public local `GET /v1/receipts` listing endpoint. If you are running fully local, consume the signed `execution_receipt` data returned in responses and store it in your own workflow if you need local retention.
 
+## What a Receipt Contains
+
+A receipt is a record of *what ran, where, and whether policy held* — not a copy of
+the data that flowed through the run. It carries safe execution metadata: identifiers,
+timings, resource counts, status, policy/violation flags, and integrity fields
+(hashes and a signature). It does not store raw request bodies, raw response bodies,
+or file contents. Where a short human-readable hint is included (such as a prompt
+preview), it is a truncated preview, not the full payload.
+
+Receipts and evidence reads are tenant-bound: you can only read records owned by your
+own tenant.
+
 ---
 
 ## List Receipts
