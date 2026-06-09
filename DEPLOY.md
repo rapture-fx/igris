@@ -188,7 +188,11 @@ project anymore.
 
 ## What's intentionally out of scope for MVP
 
-- **Hetzner / self-hosted infra.** Render + Neon is the MVP stack.
+- **Hetzner / self-hosted infra.** Retired. Production is Azure Container
+  Apps (Go API + Rails console) with Cloudflare for docs/landing and Neon
+  Postgres. The legacy `deploy-vps.yml` Hetzner auto-deploy was disabled on
+  2026-06-09 (now `workflow_dispatch` manual-rollback only) and the Hetzner
+  box is pending manual decommission.
 - **Multi-tenant end-user auth in the console.** Single-tenant MVP
   uses HTTP Basic + one service-principal key. Multi-tenant (Clerk /
   BetterAuth) comes later.

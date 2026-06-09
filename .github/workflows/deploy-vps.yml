@@ -1,8 +1,15 @@
-name: Deploy to Hetzner VPS
+# ⚠️ LEGACY — Hetzner VPS deploy. NOT the current production path.
+# Production is Azure Container Apps for the API and Rails console
+# (see deploy-api-azure.yml / deploy-console-azure.yml) and Cloudflare for
+# docs/landing. This workflow remains ONLY as a manual rollback to the old
+# Hetzner box and must NOT be run unless you are explicitly restoring legacy
+# Hetzner infrastructure. Auto-deploy on push to main was removed 2026-06-09
+# to stop accidental Hetzner redeploys ahead of decommission.
+name: Legacy Hetzner VPS Deploy (manual rollback only)
 
 on:
-  push:
-    branches: [main]
+  # Manual-only. Was previously `push: branches: [main]` (auto-deploy) — removed.
+  workflow_dispatch:
 
 jobs:
   deploy:
