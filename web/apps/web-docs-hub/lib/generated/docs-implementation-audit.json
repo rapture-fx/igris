@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-25T15:54:36.610Z",
+  "generated_at": "2026-06-09T17:49:59.760Z",
   "summary": {
-    "total": 836,
+    "total": 837,
     "by_status": {
-      "implemented": 836
+      "implemented": 837
     }
   },
   "guide_summary": {
-    "total": 110,
+    "total": 111,
     "by_status": {
-      "implemented": 110
+      "implemented": 111
     }
   },
   "pages": [
@@ -903,11 +903,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx",
-      "implemented": 1,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
@@ -1121,11 +1121,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx",
-      "implemented": 1,
+      "implemented": 2,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
@@ -5134,6 +5134,12 @@
       "source": "- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Forwards JSON-RPC MCP requests to the configured runtime MCP server.",
       "status": "implemented",
       "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -12836,6 +12842,12 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
         }
       ]
     },
@@ -12882,6 +12894,12 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
         }
       ]
     },
@@ -12894,6 +12912,12 @@
       "source": "# POST /v1/mcp",
       "status": "implemented",
       "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -12940,6 +12964,12 @@
       "source": "curl -X POST https://overture.igrisinertial.com/v1/mcp \\",
       "status": "implemented",
       "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -17330,6 +17360,29 @@
       ]
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx",
+      "line": 138,
+      "method": "POST",
+      "path": "/api/v1/runtime/register",
+      "expected_surface": null,
+      "source": "[POST /api/v1/runtime/register](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/api/v1/runtime/register",
+          "file": "igris-overture/api/routes_runtime.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/api/v1/runtime/register",
+          "file": "igris-overture/api/routes_telemetry.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
       "line": 44,
       "method": "POST",
@@ -17485,7 +17538,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
-      "line": 96,
+      "line": 108,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
@@ -17866,13 +17919,19 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/mcp-server.mdx",
-      "line": 32,
+      "line": 9,
       "method": "POST",
       "path": "/v1/mcp",
       "expected_surface": null,
-      "source": "- `POST /v1/mcp` for request/response JSON-RPC calls",
+      "source": "`POST /v1/mcp` is the agent-facing MCP endpoint. It is backed directly by Igris's",
       "status": "implemented",
       "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -17889,36 +17948,19 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/mcp-server.mdx",
-      "line": 33,
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "expected_surface": null,
-      "source": "- `POST /v1/mcp/stream` for streaming MCP interactions",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/mcp.mdx",
-      "line": 25,
+      "line": 112,
       "method": "POST",
       "path": "/v1/mcp",
       "expected_surface": null,
-      "source": "- [`POST /v1/mcp`](/docs/mcp-server): hosted transport for customer-facing MCP requests",
+      "source": "- [POST /v1/mcp →](/docs/api-reference/mcp-transport/post-v1-mcp)",
       "status": "implemented",
       "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -17935,22 +17977,57 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/mcp.mdx",
-      "line": 26,
+      "line": 10,
       "method": "POST",
-      "path": "/v1/mcp/stream",
+      "path": "/v1/mcp",
       "expected_surface": null,
-      "source": "- [`POST /v1/mcp/stream`](/docs/mcp-server): streaming transport when MCP exchange needs incremental output",
+      "source": "(`POST /v1/mcp`) and, scoped to its tenant, can do four things:",
       "status": "implemented",
       "evidence": [
         {
           "method": "POST",
-          "path": "/v1/mcp/stream",
+          "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
         },
         {
           "method": "POST",
-          "path": "/v1/mcp/stream",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/mcp.mdx",
+      "line": 32,
+      "method": "POST",
+      "path": "/v1/mcp",
+      "expected_surface": null,
+      "source": "- [`POST /v1/mcp`](/docs/mcp-server): JSON-RPC `tools/list` and `tools/call`",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
         }
