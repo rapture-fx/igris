@@ -33,6 +33,13 @@ Neon.
 **Rust runtime** stays local to the customer machine. It registers
 itself with Go through `/api/v1/runtime/register` after install.
 
+Runtime binaries are published to **GitHub Releases** — the source of
+truth (see `.github/workflows/igris-runtime-release.yml`). The API serves
+`/v1/runtime/install` and `/v1/runtime/download` by redirecting to those
+assets via `RUNTIME_BINARIES_URL`. The old Hetzner `/opt/igris-binaries`
+mirror (`RUNTIME_BINARIES_DIR` local-disk mode) is legacy and the release
+workflow's Hetzner upload job is disabled by default.
+
 The old Next.js console (formerly `web/apps/web-console`) has been
 **removed** from the repository. Rails is now the only console surface.
 
