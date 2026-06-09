@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-05-25T15:53:56.327Z",
+  "generated_at": "2026-06-09T17:49:31.164Z",
   "summary": {
     "total": 103,
     "by_status": {
-      "test-covered": 17,
-      "client-referenced": 13,
-      "implemented-unverified": 73
+      "test-covered": 21,
+      "client-referenced": 11,
+      "implemented-unverified": 71
     },
     "by_section": {
       "Inference & Integration": 7,
@@ -35,6 +35,8 @@
       "evidence": {
         "test_files": [
           "igris-go-sdk/igris_test.go",
+          "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/route_surface_test.go",
           "igris-overture/api/routes_execution_contract_test.go",
           "igris-overture/api/routes_multimodal_test.go",
           "stability-tests/tests/load/extended_load_test.go",
@@ -108,11 +110,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Lists models visible to the inference layer.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/route_surface_test.go"
+        ],
         "client_files": [
           "igris-javascript-sdk/src/client.ts",
           "igris-rust-sdk/src/client.rs"
@@ -251,6 +255,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_telemetry_test.go"
         ],
         "client_files": [
@@ -271,6 +276,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_telemetry_test.go"
         ],
         "client_files": [
@@ -286,11 +292,13 @@
       "surface": "Fleet management",
       "stability": "stable",
       "description": "Fetches and clears queued commands for a registered runtime.",
-      "status": "client-referenced",
-      "confidence": "medium",
-      "note": "A client or transport layer references this route, but no direct automated test was found.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/route_manifest_test.go"
+        ],
         "client_files": [
           "igris-runtime/crates/igris-license-client/src/lib.rs"
         ]
@@ -338,11 +346,13 @@
       "surface": "Fleet management",
       "stability": "stable",
       "description": "Queues configuration push commands for the fleet.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/route_manifest_test.go"
+        ],
         "client_files": []
       }
     },
@@ -354,11 +364,13 @@
       "surface": "Fleet management",
       "stability": "stable",
       "description": "Queues OTA update commands for the fleet.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/route_manifest_test.go"
+        ],
         "client_files": []
       }
     },
@@ -635,6 +647,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_robotics_policy_test.go"
         ],
         "client_files": []
@@ -1010,6 +1023,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
         "client_files": [
@@ -1031,6 +1045,7 @@
       "evidence": {
         "test_files": [
           "igris-overture/api/auth_apikey_integration_test.go",
+          "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
         "client_files": [
@@ -1052,6 +1067,8 @@
       "evidence": {
         "test_files": [
           "igris-overture/api/auth_apikey_integration_test.go",
+          "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_mcp_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
         "client_files": [
@@ -1140,6 +1157,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_mcp_test.go"
         ],
         "client_files": []
