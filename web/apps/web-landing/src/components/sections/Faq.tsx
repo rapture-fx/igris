@@ -135,7 +135,7 @@ const faqSections: FaqSection[] = [
   }
 ];
 
-export default function Faq() {
+export default function Faq({ large = false }: { large?: boolean }) {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [openSectionIndex, setOpenSectionIndex] = useState<number | null>(null);
@@ -143,6 +143,15 @@ export default function Faq() {
   useEffect(() => { setMounted(true); }, []);
 
   const isDark = mounted && theme === 'dark';
+
+  // `large` keeps the exact pricing-page design but scales the type up for
+  // the landing-page placement.
+  const maxW = large ? 'max-w-[760px]' : 'max-w-[700px]';
+  const titleCls = large ? 'text-2xl md:text-3xl lg:text-4xl' : 'text-xl md:text-2xl lg:text-3xl';
+  const sectionTitleCls = large ? 'text-base md:text-lg' : 'text-sm';
+  const questionCls = large ? 'text-sm md:text-base' : 'text-xs';
+  const answerCls = large ? 'text-sm md:text-[15px]' : 'text-xs';
+  const chevronSize = large ? 18 : 14;
 
   const toggleSection = (index: number) => {
     setOpenSectionIndex(openSectionIndex === index ? null : index);
@@ -156,9 +165,9 @@ export default function Faq() {
             <div className="flex flex-col items-center" style={{ paddingTop: '14rem', paddingBottom: '14rem' }}>
 
               {/* Title */}
-              <div className="w-full max-w-[700px] text-left mb-8">
+              <div className={`w-full ${maxW} text-left mb-8`}>
                 <h2
-                  className="text-xl md:text-2xl lg:text-3xl text-[#000000] dark:text-[#f6f6f4]"
+                  className={`${titleCls} text-[#000000] dark:text-[#f6f6f4]`}
                   style={{ fontFamily: SANS }}
                 >
                   Questions and answers
@@ -166,7 +175,7 @@ export default function Faq() {
               </div>
 
               {/* Vertical stack */}
-              <div className="w-full max-w-[700px] px-0 space-y-4">
+              <div className={`w-full ${maxW} px-0 space-y-4`}>
                 {faqSections.map((section, sectionIndex) => (
                   <div
                     key={sectionIndex}
@@ -178,7 +187,7 @@ export default function Faq() {
                       className="w-full text-left px-5 py-6 flex items-center justify-between gap-2 transition-colors"
                       style={{ fontFamily: SANS }}
                     >
-                      <span className="text-sm font-semibold text-black dark:text-[#f6f6f4]">
+                      <span className={`${sectionTitleCls} font-semibold text-black dark:text-[#f6f6f4]`}>
                         {section.title}
                       </span>
                       <ChevronDown
@@ -186,7 +195,7 @@ export default function Faq() {
                           openSectionIndex === sectionIndex ? 'rotate-180' : ''
                         }`}
                         style={{ color: 'rgba(156, 163, 175, 0.6)' }}
-                        size={14}
+                        size={chevronSize}
                       />
                     </button>
 
@@ -206,14 +215,14 @@ export default function Faq() {
                             className={entryIndex > 0 ? 'border-t border-gray-200 dark:border-[#f6f6f4]/5 pt-4' : ''}
                           >
                             <p
-                              className="text-xs font-semibold mb-1.5 text-black dark:text-[#f6f6f4]"
+                              className={`${questionCls} font-semibold mb-1.5 text-black dark:text-[#f6f6f4]`}
                               style={{ fontFamily: SANS }}
                             >
                               {faq.question}
                             </p>
                             {faq.type === 'text' && (
                               <p
-                                className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed"
+                                className={`${answerCls} text-gray-600 dark:text-[#a8a898] leading-relaxed`}
                                 style={{ fontFamily: SANS }}
                               >
                                 {faq.answer}
@@ -222,7 +231,7 @@ export default function Faq() {
                             {faq.type === 'code' && (
                               <div className="space-y-3">
                                 <p
-                                  className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed"
+                                  className={`${answerCls} text-gray-600 dark:text-[#a8a898] leading-relaxed`}
                                   style={{ fontFamily: SANS }}
                                 >
                                   {faq.answerText}
@@ -238,7 +247,7 @@ export default function Faq() {
                                   </div>
                                 </div>
                                 <p
-                                  className="text-xs text-gray-600 dark:text-[#a8a898] leading-relaxed"
+                                  className={`${answerCls} text-gray-600 dark:text-[#a8a898] leading-relaxed`}
                                   style={{ fontFamily: SANS }}
                                 >
                                   {faq.answerFooter}
