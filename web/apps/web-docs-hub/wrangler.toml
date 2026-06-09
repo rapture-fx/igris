@@ -1,0 +1,14 @@
+# Cloudflare Pages config for the Igris docs site (web-docs-hub).
+#
+# This site is a static export: `pnpm --filter @igris/web-docs-hub build`
+# (see next.config.mjs `output: 'export'`) emits ./out, which Pages serves.
+# It deploys independently from web-landing (which has its own web/wrangler.toml).
+#
+# IMPORTANT: `name` MUST match the EXISTING Cloudflare Pages project for the docs
+# site (configured in the dashboard). Confirm it in the Cloudflare dashboard before
+# running `wrangler pages deploy`. This file alone creates/modifies nothing in
+# Cloudflare — it only documents the build output so deploys are reproducible.
+# Replace the placeholder below with the real project name.
+name = "REPLACE_WITH_DOCS_PAGES_PROJECT_NAME"
+compatibility_date = "2026-05-15"
+pages_build_output_dir = "out"
