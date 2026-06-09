@@ -251,6 +251,33 @@ function RunActivityMap() {
   const tipRef = useRef<HTMLDivElement>(null)
   const [tip, setTip] = useState<TipAnchor | null>(null)
   const [pos, setPos] = useState<TipPos | null>(null)
+  // Dots cascade in once the map scrolls into view — the same "content reveals
+  // on entry" feel as the Recover tab (rows fade in, bars draw out). The dots
+  // sit paused/invisible until `animate` flips, so there's no pre-reveal flash.
+  const [animate, setAnimate] = useState(false)
+
+  useEffect(() => {
+    const el = mapRef.current
+    if (!el) return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setAnimate(true)
+      return
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setAnimate(true)
+            obs.disconnect()
+            break
+          }
+        }
+      },
+      { rootMargin: '-60px 0px -60px 0px', threshold: 0.01 },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
 
   const points: Point[] = ACT_RUNS.slice(0, 80).reverse().map((run, i) => {
     const band = bandFor(run)
@@ -294,7 +321,11 @@ function RunActivityMap() {
   }, [tip])
 
   return (
-    <section className="ic-runmap ic-runmap--flush" aria-label="Run Activity Map" ref={mapRef}>
+    <section
+      className={'ic-runmap ic-runmap--flush ic-runmap--reveal' + (animate ? ' ic-runmap--animate' : '')}
+      aria-label="Run Activity Map"
+      ref={mapRef}
+    >
       <div className="ic-runmap__head">
         <div className="ic-runmap__heading">
           <span className="ic-runmap__title">Run Activity Map</span>
@@ -336,7 +367,7 @@ function RunActivityMap() {
             <a
               key={i}
               className={`ic-runmap__dot ic-runmap__dot--${p.band}`}
-              style={{ gridColumn: p.col, gridRow: p.row }}
+              style={{ gridColumn: p.col, gridRow: p.row, animationDelay: `${i * 34}ms` }}
               aria-label={`Action ${p.run.action}, ${BAND_LABEL(p.band)}, ${p.run.proof}, ${p.run.when}`}
               onMouseEnter={(e) => showTip(e, p)}
               onMouseLeave={hideTip}
@@ -596,14 +627,37 @@ function OverviewConsoleStyles() {
       .igris-console .ic-runmap__dot--blocked   { background: var(--ic-rm-blocked); }
       .igris-console .ic-runmap__dot--failed    { background: var(--ic-rm-failed); }
 
+      /* Dot reveal — dots cascade in (left to right, older to newer) when the
+         map scrolls into view, mirroring the Recover tab's content animation.
+         Dots stay paused at the from-frame (invisible) until .ic-runmap--animate
+         is added, so there is no pre-reveal flash. The "backwards" fill (not
+         forwards) means once a dot finishes it reverts to its base styles, so
+         the :hover scale keeps working. */
+      @keyframes ic-runmap-dot-in {
+        from { opacity: 0; transform: scale(0.2) translateY(5px); }
+        60%  { opacity: .9; }
+        to   { opacity: .9; transform: scale(1) translateY(0); }
+      }
+      .igris-console .ic-runmap--reveal .ic-runmap__dot {
+        animation: ic-runmap-dot-in 1300ms cubic-bezier(0.22,1,0.36,1) backwards;
+        animation-play-state: paused;
+      }
+      .igris-console .ic-runmap--reveal.ic-runmap--animate .ic-runmap__dot {
+        animation-play-state: running;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .igris-console .ic-runmap--reveal .ic-runmap__dot { animation: none; }
+      }
+
       /* Tooltip */
       .igris-console .ic-runmap__tip {
         --tip-caret: 50%; position: absolute; z-index: 20; left: 0; top: 0; width: max-content;
         max-width: 248px; padding: 9px 11px 8px; border-radius: 9px; color: var(--ic-text-2);
         background: var(--ic-bg); border: 1px solid var(--ic-menu-border);
         box-shadow: 0 4px 12px rgba(0,0,0,0.14), 0 1px 2px rgba(0,0,0,0.1);
-        pointer-events: none; opacity: 0; transform: translateY(3px) scale(0.98);
-        transform-origin: bottom center; transition: opacity .13s ease, transform .13s ease;
+        pointer-events: none; opacity: 0; transform: translateY(6px) scale(0.96);
+        transform-origin: bottom center;
+        transition: opacity .22s ease, transform .28s cubic-bezier(0.16,1,0.3,1);
       }
       .igris-console .ic-runmap__tip.is-on { opacity: 1; transform: translateY(0) scale(1); }
       .igris-console .ic-runmap__tip--below { transform-origin: top center; }
