@@ -24,8 +24,8 @@ export default function HomePage() {
         <Header />
         <main>
           <ScrollReveal delay={0.1}><Hero /></ScrollReveal>
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
-          <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
         </main>
         <Footer />
       </div>
