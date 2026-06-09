@@ -402,7 +402,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       { name: 'hostname', type: 'string', required: true, description: 'Display hostname for fleet views.' },
       { name: 'platform', type: 'string', description: 'Platform identifier such as `linux-amd64`.' },
       { name: 'runtime_version', type: 'string', required: true, description: 'Runtime version string.' },
-      { name: 'endpoint', type: 'string', description: 'Optional public endpoint for the runtime.' },
+      { name: 'endpoint', type: 'string', required: true, description: 'The runtime\'s `http(s)` base URL. Must be a routable URL that Igris can reach, because cloud-dispatched work is delivered to this endpoint. Registration is rejected if it is missing or not routable. A `localhost` or private LAN address cannot receive cloud-dispatched actions — see the Deploy Local Runtime guide.' },
       { name: 'public_key_ed25519', type: 'string', required: true, description: 'Runtime Ed25519 public key in hex, used to bind later signed runtime requests to the registered machine identity.' },
       { name: 'timestamp_unix_ms', type: 'integer', required: true, description: 'Millisecond Unix timestamp used for replay-window validation.' },
       { name: 'signature', type: 'string', required: true, description: 'Runtime signature over the registration payload.' },
@@ -412,7 +412,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       hostname: 'edge-node-01',
       platform: 'linux-amd64',
       runtime_version: 'runtime-v1.6.0',
-      endpoint: 'http://10.0.0.12:8080',
+      endpoint: 'https://runtime.example.com',
       public_key_ed25519: 'f1c3b8c4f8f7d6a5e4c3b2a190887766554433221100ffeeddccbbaa99887766',
       timestamp_unix_ms: 1775283660000,
       signature: 'MEQCIB3exampleRuntimeRegisterSignature==',
@@ -1181,12 +1181,12 @@ const endpointOverrides: Record<string, EndpointOverride> = {
   },
   'POST /v1/mcp': {
     functionality:
-      'Hosted JSON-RPC transport for MCP calls. Overture forwards the request body to the configured runtime MCP server and returns the runtime response.',
+      'Agent-facing JSON-RPC transport for MCP calls. Backed by Igris\'s own action, task, and runtime primitives; supports `tools/list` and `tools/call` over a fixed, strict-schema tool set. Tenant-scoped by the caller\'s credential.',
     requestBodyFields: [
       { name: 'jsonrpc', type: 'string', required: true, description: 'JSON-RPC version. Use `2.0`.' },
       { name: 'id', type: 'string | number', required: true, description: 'Client request identifier.' },
-      { name: 'method', type: 'string', required: true, description: 'MCP method such as `tools/list` or a context operation.' },
-      { name: 'params', type: 'object', description: 'Method-specific parameters.' },
+      { name: 'method', type: 'string', required: true, description: 'JSON-RPC method: `tools/list` to discover tools, or `tools/call` to invoke one.' },
+      { name: 'params', type: 'object', description: 'For `tools/call`: `{ "name": <tool>, "arguments": { … } }`. Schemas are strict — unknown arguments are rejected. See the MCP Server guide for the tool list.' },
     ],
     requestExample: {
       jsonrpc: '2.0',
