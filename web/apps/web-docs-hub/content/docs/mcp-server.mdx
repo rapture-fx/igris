@@ -1,76 +1,113 @@
 ---
 title: "MCP Server"
-description: "This page documents the MCP server surface that Igris exposes through the product."
+description: "The agent-facing MCP endpoint exposes a fixed set of strict-schema tools for listing and calling registered actions and inspecting runs."
 audience: "public"
 ---
 
 # MCP Server
 
-This page documents the MCP server surface that Igris exposes through the product.
+`POST /v1/mcp` is the agent-facing MCP endpoint. It is backed directly by Igris's
+action, task, and runtime primitives — it is not a generic context store and it does
+not forward arbitrary methods to a runtime.
 
-Treat MCP as part of the product contract rather than as a generic tool-call side channel.
+Treat it as a narrow, tenant-scoped control surface: an agent can discover the
+registered actions it is allowed to call, call them, and inspect the resulting runs
+and evidence. Nothing else is exposed.
 
 ---
 
-## What The MCP Server Is For
+## Transport
 
-Use the MCP server when context needs to move between agents, tools, sessions, or runtimes in a structured way.
+The endpoint speaks JSON-RPC 2.0. Authentication is a tenant credential
+(BetterAuth); every call is scoped to the caller's tenant.
 
-That makes it useful for:
+Two methods are supported:
 
-- shared mission state
-- tool-oriented working context
-- multi-agent coordination
-- runtime-local or cross-runtime context exchange
-
-If the problem is only one request deep, keep the data in the request instead. Use MCP when the context belongs to the operating environment.
-
-## Customer Contract
-
-The customer-facing hosted entry points are:
-
-- `POST /v1/mcp` for request/response JSON-RPC calls
-- `POST /v1/mcp/stream` for streaming MCP interactions
-
-The product forwards those calls to the appropriate runtime MCP server where needed, so the customer can keep thinking in terms of one product surface.
-
-## Request Shape
-
-The MCP request body follows JSON-RPC 2.0:
+- `tools/list` — return the available tools and their input schemas
+- `tools/call` — invoke a tool by name with `arguments`
 
 ```json
 {
   "jsonrpc": "2.0",
-  "method": "context/write",
-  "params": {
-    "key": "mission_state",
-    "value": {
-      "step": 3,
-      "status": "navigating"
-    }
-  },
-  "id": 1
+  "id": "req_1",
+  "method": "tools/list",
+  "params": {}
 }
 ```
 
-## Core Method Families
+## Tools
 
-The main MCP method families exposed through Igris today are:
+The server exposes exactly these tools. There are no `context/*` or `resource/*`
+methods.
 
-- `context/*` for structured shared context
-- `tools/*` for tool discovery and invocation
+| Tool | Purpose |
+|---|---|
+| `list_actions` | List the tenant's registered actions |
+| `get_action` | Fetch one registered action by `action_id` or `action_name` |
+| `call_action` | Run a registered action |
+| `list_runs` | List recent runs for the tenant |
+| `get_run` | Fetch one run's status and proof state |
+| `get_run_evidence` | Fetch a run's evidence/receipt metadata |
+| `list_runtimes` | List the tenant's registered runtimes |
 
-Treat the specific method contract as part of your application integration, not as an undocumented side channel.
+## Schemas Are Strict
+
+Every tool schema is closed: `additionalProperties` is `false`. Unknown fields are
+rejected rather than ignored. If you send a field a tool does not declare, the call
+fails with a validation error — so send only the documented arguments.
+
+The tenant is always taken from your credential. There is no argument you can add to
+target another tenant or to bypass an action's configured target and policy; such
+fields are refused.
+
+## Calling an Action
+
+`call_action` runs a **registered** action. You identify it by `action_id` or
+`action_name` (one is required); you cannot describe an arbitrary execution graph
+inline. The action definition decides the target and policy; your arguments only
+supply `input`, optional `metadata`, an `idempotency_key`, and an optional
+`deadline_at`.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "req_2",
+  "method": "tools/call",
+  "params": {
+    "name": "call_action",
+    "arguments": {
+      "action_name": "create_ticket",
+      "input": { "title": "Disk pressure on node-7" },
+      "idempotency_key": "node7-disk-2026-06-10"
+    }
+  }
+}
+```
+
+If the action targets a local runtime, the call is refused with a clear error unless
+the tenant has a healthy, reachable runtime connected.
+
+The response includes a `run_id` and an `inspect_ref` you can pass to `get_run`.
+
+## Inspecting Runs
+
+`get_run` and `get_run_evidence` are tenant-bound: you can only read runs owned by
+your tenant. They return run status, proof state, and safe evidence metadata — not
+raw request bodies, response bodies, or file contents. See
+[Execution Receipts](/docs/execution-receipts) for what evidence records contain.
 
 ## Integration Guidance
 
-- keep request-local prompt data out of MCP unless it truly belongs in shared state
-- prefer explicit keys and schemas for shared context
-- do not mix audit evidence with working context
-- use durable tasks when progress recovery matters more than context recall
+- Register the actions you want agents to call; do not expect to pass raw execution
+  details through MCP.
+- Use an `idempotency_key` on `call_action` so a retried call does not double-run.
+- Inspect outcomes with `get_run` / `get_run_evidence`; do not assume success from
+  the `call_action` acknowledgement alone.
+- Keep audit evidence and working prompt state separate concerns.
 
 ## Related Guides
 
 - [MCP →](/docs/mcp)
-- [Context Engineering →](/docs/context-engineering)
-- [Hybrid Deployment Workflow →](/docs/hybrid-deployment-workflow)
+- [MCP Integration Patterns →](/docs/mcp-integration-patterns)
+- [POST /v1/mcp →](/docs/api-reference/mcp-transport/post-v1-mcp)
+- [Execution Receipts →](/docs/execution-receipts)
