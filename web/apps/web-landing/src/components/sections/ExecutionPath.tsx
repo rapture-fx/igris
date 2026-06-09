@@ -240,7 +240,7 @@ export default function ExecutionPath() {
           {/* ── Route + target chips ────────────────────────────────── */}
           <div className="ae-connect">
             <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-            <ChipGroup label="Connect to" items={TARGET_CHIPS} grid />
+            <ChipGroup label="Connect to" items={TARGET_CHIPS} table />
           </div>
         </div>
       </div>
@@ -248,33 +248,50 @@ export default function ExecutionPath() {
   )
 }
 
-function ChipGroup({ label, items, grid }: { label: string; items: Chip[]; grid?: boolean }) {
+function ChipGroup({ label, items, table }: { label: string; items: Chip[]; table?: boolean }) {
   return (
     <div className="ae-group">
       <div className="ae-group-label" style={{ fontFamily: SANS }}>{label}</div>
-      <div className={'ae-chips ' + (grid ? 'ae-chips--grid' : 'ae-chips--row')}>
-        {items.map((c) => <ChipView key={c.label} chip={c} />)}
-      </div>
+      {table ? (
+        <div className="ae-grid-table">
+          {items.map((c) => (
+            <div key={c.label} className="ae-cell" style={{ fontFamily: MONO }}>
+              <LogoMark chip={c} />
+              <span className="ae-cell-label">{c.label}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="ae-chips--row">
+          {items.map((c) => <ChipView key={c.label} chip={c} />)}
+        </div>
+      )}
     </div>
   )
+}
+
+function LogoMark({ chip }: { chip: Chip }) {
+  if (chip.logo) {
+    return (
+      <span className="ae-logo">
+        <span className="ae-logo-mono" style={{ ['--logo' as string]: `url(${chip.logo})` }} aria-hidden />
+        <img
+          className={'ae-logo-color' + (chip.invertOnDark ? ' ae-logo-color--invert' : '')}
+          src={chip.logo}
+          alt=""
+          aria-hidden
+        />
+      </span>
+    )
+  }
+  if (chip.Icon) return <chip.Icon className="ae-chip-ic" size={14} strokeWidth={1.7} aria-hidden />
+  return null
 }
 
 function ChipView({ chip }: { chip: Chip }) {
   return (
     <span className="ae-chip" style={{ fontFamily: MONO }}>
-      {chip.logo ? (
-        <span className="ae-logo">
-          <span className="ae-logo-mono" style={{ ['--logo' as string]: `url(${chip.logo})` }} aria-hidden />
-          <img
-            className={'ae-logo-color' + (chip.invertOnDark ? ' ae-logo-color--invert' : '')}
-            src={chip.logo}
-            alt=""
-            aria-hidden
-          />
-        </span>
-      ) : chip.Icon ? (
-        <chip.Icon className="ae-chip-ic" size={13} strokeWidth={1.7} aria-hidden />
-      ) : null}
+      <LogoMark chip={chip} />
       {chip.label}
     </span>
   )
@@ -360,7 +377,7 @@ function EndpointStyles() {
       .ae-headline {
         margin-top: 0; max-width: 18ch;
         font-weight: 400; letter-spacing: -0.02em; line-height: 1.08;
-        font-size: clamp(1.8rem, 4.2vw, 2.9rem);
+        font-size: clamp(1.2rem, 2.6vw, 2rem);
       }
       .ae-sub {
         margin-top: 18px; max-width: 56ch;
@@ -462,20 +479,17 @@ function EndpointStyles() {
       .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
       html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
-      /* ── Chip groups (route row + target grid) ── */
+      /* ── Chip groups (route row + target table), aligned to the card ── */
       .ae-connect {
-        margin: 44px auto 0; max-width: 760px;
+        margin: 44px 0 0;
         display: flex; flex-direction: column; gap: 24px;
       }
       .ae-group-label {
         font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 12px;
       }
       html.dark .ae-group-label { color: #8a8a82; }
+
       .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; }
-      .ae-chips--grid {
-        display: grid; gap: 8px;
-        grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-      }
       .ae-chip {
         display: inline-flex; align-items: center; gap: 8px;
         font-size: 11.5px; line-height: 1; padding: 9px 12px;
@@ -485,8 +499,31 @@ function EndpointStyles() {
       }
       .ae-chip:hover { border-color: var(--landing-surface-border-strong); }
       html.dark .ae-chip { color: #a8a898; }
-      .ae-chips--grid .ae-chip { width: 100%; justify-content: flex-start; }
       .ae-chip-ic { flex: none; opacity: 0.9; }
+
+      /* Visible table grid (Connect to). 18 cells; the column counts divide
+         18 exactly (6 / 3 / 2) so no empty cell shows through the gridlines.
+         Gridlines = 1px gap revealing the container's border-colour bg. */
+      .ae-grid-table {
+        display: grid; grid-template-columns: repeat(6, 1fr);
+        gap: 1px; background: var(--landing-surface-border);
+        border: 1px solid var(--landing-surface-border);
+        border-radius: 12px; overflow: hidden;
+      }
+      .ae-cell {
+        display: flex; align-items: center; gap: 9px;
+        padding: 13px 14px; min-width: 0;
+        font-size: 11.5px; color: #4b5563;
+        background: var(--landing-surface);
+        transition: background-color .2s ease;
+      }
+      html.dark .ae-cell { color: #a8a898; }
+      .ae-cell-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .ae-cell:hover { background: rgba(0,0,0,0.02); }
+      html.dark .ae-cell:hover { background: rgba(255,255,255,0.025); }
+      .ae-cell:hover .ae-logo-mono { opacity: 0; }
+      .ae-cell:hover .ae-logo-color { opacity: 1; }
+      html.dark .ae-cell:hover .ae-logo-color--invert { filter: invert(1) brightness(1.7); }
 
       /* Brand logo: monochrome by default, full brand colour on hover */
       .ae-logo { position: relative; flex: none; width: 14px; height: 14px; display: inline-block; }
@@ -509,11 +546,12 @@ function EndpointStyles() {
         .ae-code { font-size: 12px; padding: 18px 16px 18px 14px; }
         .ae-gutter { font-size: 11.5px; min-width: 36px; padding-right: 10px; padding-top: 18px; padding-bottom: 18px; }
         .ae-pane--req { min-height: 300px; }
-        .ae-chips--grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        .ae-grid-table { grid-template-columns: repeat(3, 1fr); }
         .ae-bar-label { display: none; }
       }
       @media (max-width: 420px) {
         .ae-code { font-size: 11px; }
+        .ae-grid-table { grid-template-columns: repeat(2, 1fr); }
       }
     `}</style>
   )
