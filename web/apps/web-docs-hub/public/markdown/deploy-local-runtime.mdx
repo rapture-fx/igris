@@ -107,6 +107,44 @@ This is still the same execution model:
 - **Execute** on the local runtime path
 - **Verify** with the records and receipts returned by the configured workflow
 
+## Two Ways Work Reaches the Runtime
+
+There are two distinct paths, and they have different networking requirements.
+
+**1. Direct local requests.** When your own client calls the runtime's base URL
+(`http://localhost:8080/v1`), as in the step above, the runtime only needs to be
+reachable by *that client*. A localhost or LAN address is fine.
+
+**2. Cloud-dispatched work.** When an action targets a local runtime, the hosted
+control plane delivers the work by **sending it to the runtime's registered
+endpoint** — the cloud reaches out to your runtime, not the other way around. For
+this path the registered endpoint must be an `http(s)` URL that **Igris can reach**.
+
+A `localhost` or private LAN address (for example `http://127.0.0.1:8080` or
+`http://10.0.0.12:8080`) is **not** reachable from the hosted control plane, so a
+runtime registered with such an endpoint cannot receive cloud-dispatched actions.
+For cloud dispatch, expose the runtime on a publicly reachable URL — a stable public
+host, a reverse proxy, or a tunnel — and register that URL.
+
+If you are only making direct local requests, you do not need a publicly reachable
+endpoint at all. Choose the path that matches your workload before exposing anything.
+
+## Register the Runtime for Fleet and Dispatch
+
+To appear in Fleet and to receive cloud-dispatched actions, the runtime registers
+itself with the control plane using your API key. Registration includes the endpoint
+described above, and the control plane rejects an endpoint it cannot treat as a
+routable `http(s)` URL. See
+[POST /api/v1/runtime/register](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-register)
+for the field contract.
+
+## Where the Binary Comes From
+
+The download and install endpoints serve the official runtime build. In hosted
+production the authenticated download and the public installer resolve to the
+published runtime release artifacts (GitHub Releases is the source of truth for those
+binaries). Always verify the checksum before installing, regardless of source.
+
 ## What To Say Carefully
 
 - Local execution is real and supported.
