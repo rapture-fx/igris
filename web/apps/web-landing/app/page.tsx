@@ -4,6 +4,7 @@ import Header from '../src/components/sections/Header'
 import Hero from '../src/components/sections/Hero-Simple'
 import Products from '../src/components/sections/Products'
 import ExecutionPath from '../src/components/sections/ExecutionPath'
+import Faq from '../src/components/sections/Faq'
 import ClosingPosition from '../src/components/sections/ClosingPosition'
 import Footer from '../src/components/sections/Footer'
 
@@ -27,6 +28,7 @@ export default function HomePage() {
           <ScrollReveal delay={0.1}><Hero /></ScrollReveal>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ExecutionPath /></ScrollReveal></div></div>
+          <ScrollReveal delay={0.1}><Faq large /></ScrollReveal>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
         </main>
         <Footer />
