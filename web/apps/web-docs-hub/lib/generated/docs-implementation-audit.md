@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-05-25T15:54:36.691Z
+Generated: 2026-06-09T17:49:59.770Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 836
-- Implemented on expected surface: 836
+- Route claims audited: 837
+- Implemented on expected surface: 837
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 110
-- Implemented on expected surface: 110
+- Guide route claims audited: 111
+- Implemented on expected surface: 111
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -31,7 +31,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
@@ -171,7 +171,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 10 | 10 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
