@@ -148,9 +148,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  # ⚠️ LEGACY (disabled by default) — mirrors release binaries to the Hetzner box
+  # at /opt/igris-binaries. The runtime binary SOURCE OF TRUTH is GitHub Releases,
+  # published by the build-and-release job above; the API serves downloads by
+  # redirecting to those assets via RUNTIME_BINARIES_URL. This Hetzner mirror is
+  # only used by the legacy local-disk serving mode (RUNTIME_BINARIES_DIR) in
+  # docker-compose.production.yml. It is gated OFF so runtime releases keep
+  # succeeding after Hetzner is decommissioned (a false `if` skips the job — it
+  # does not fail the run). To temporarily restore the mirror set repo variable
+  # ENABLE_HETZNER_BINARY_MIRROR=true. Delete this job once Hetzner is gone.
   deploy-to-vps:
-    name: Deploy binaries to Overture VPS
+    name: Deploy binaries to Overture VPS (legacy Hetzner mirror — disabled by default)
     needs: build-and-release
+    if: ${{ vars.ENABLE_HETZNER_BINARY_MIRROR == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download release artifacts
