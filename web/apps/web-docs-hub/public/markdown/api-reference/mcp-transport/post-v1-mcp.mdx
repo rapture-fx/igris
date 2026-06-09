@@ -1,12 +1,12 @@
 ---
 title: "POST /v1/mcp"
-description: "Hosted JSON-RPC transport for MCP calls. Overture forwards the request body to the configured runtime MCP server and returns the runtime response."
+description: "Agent-facing JSON-RPC transport for MCP calls. Backed by Igris's own action, task, and runtime primitives; supports `tools/list` and `tools/call` over a fixed, strict-schema tool set. Tenant-scoped by the caller's credential."
 audience: "public"
 ---
 
 # POST /v1/mcp
 
-Hosted JSON-RPC transport for MCP calls. Overture forwards the request body to the configured runtime MCP server and returns the runtime response.
+Agent-facing JSON-RPC transport for MCP calls. Backed by Igris's own action, task, and runtime primitives; supports `tools/list` and `tools/call` over a fixed, strict-schema tool set. Tenant-scoped by the caller's credential.
 
 <div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/mcp</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Deployment-dependent</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
 
@@ -39,8 +39,8 @@ Do not blindly retry write operations. Retry only on transient 5xx or 429 respon
 |---|---|---|---|
 | `jsonrpc` | `string` | Yes | JSON-RPC version. Use `2.0`. |
 | `id` | `string \| number` | Yes | Client request identifier. |
-| `method` | `string` | Yes | MCP method such as `tools/list` or a context operation. |
-| `params` | `object` | No | Method-specific parameters. |
+| `method` | `string` | Yes | JSON-RPC method: `tools/list` to discover tools, or `tools/call` to invoke one. |
+| `params` | `object` | No | For `tools/call`: `{ "name": <tool>, "arguments": { … } }`. Schemas are strict — unknown arguments are rejected. See the MCP Server guide for the tool list. |
 
 ## Request Example
 
