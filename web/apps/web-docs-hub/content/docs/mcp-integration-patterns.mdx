@@ -1,57 +1,60 @@
 ---
 title: "MCP Integration Patterns"
-description: "This guide shows how to use MCP as part of a production integration rather than as an isolated protocol feature."
+description: "Practical patterns for using the agent-facing MCP surface to call registered actions and inspect runs in production."
 audience: "public"
 ---
 
 # MCP Integration Patterns
 
-This guide shows how to use MCP as part of a production integration rather than as an isolated protocol feature.
+This guide shows how to use the [MCP server](/docs/mcp-server) as part of a production
+integration. MCP in Igris is an action/run control surface — these patterns are about
+calling registered actions safely and inspecting what happened, not about storing
+shared state.
 
 ---
 
+## Pattern: Call Registered Actions, Not Inline Graphs
+
+`call_action` runs an action you have already registered. The action definition owns
+the target, policy, and approval behavior; the agent only supplies `input`.
+
+Do this when you want agents to act through a reviewed, named contract rather than
+constructing raw execution details at call time. The strict schema enforces this — the
+agent supplies inputs to a registered action and cannot inject execution internals
+through MCP.
+
+## Pattern: Make Every Call Idempotent
+
+Pass an `idempotency_key` on `call_action`. Idempotency is tenant-scoped: a repeated
+key from the same tenant returns the existing run instead of starting a second one.
+
+Choose a key that is stable for the logical operation (for example, a ticket ID or a
+date-stamped job name), so an agent retry after a timeout does not double-run the
+action.
+
+## Pattern: Acknowledge, Then Inspect
+
+`call_action` returns a `run_id` and an `inspect_ref` — it acknowledges acceptance,
+not completion. Confirm the outcome with `get_run`, and pull audit metadata with
+`get_run_evidence`. Do not treat the acknowledgement as proof the work finished.
+
 ## Pattern: Separate Working Context From Audit Data
 
-Use MCP for working state that tools, agents, or runtimes need to share.
+Keep transient prompt/working state in your own application. Use `get_run_evidence`
+and [receipts](/docs/execution-receipts) when you need the durable audit record.
+Evidence records carry safe metadata, not raw request or response bodies — do not
+expect MCP to hand back full payloads.
 
-Do not use MCP as the place where audit evidence lives. Keep audit and receipt workflows separate so the system remains understandable.
+## Pattern: Confirm a Runtime Before Local Actions
 
-## Pattern: Give Shared Context A Schema
-
-Avoid dumping arbitrary JSON into a few generic keys. Define stable keys and value shapes for shared context that your application team can reason about.
-
-Good:
-
-- `mission_state`
-- `dispatch_plan`
-- `device_role`
-
-Weak:
-
-- `state`
-- `payload`
-- `latest_data`
-
-## Pattern: Pair MCP With Durable Tasks Deliberately
-
-MCP and durable tasks solve different problems:
-
-- MCP shares structured state
-- durable tasks preserve progress and resume semantics
-
-Use both when a long-running workflow needs shared context and safe recovery. Do not force one to replace the other.
-
-## Pattern: Keep The Product Boundary Clean
-
-Your application should still think in terms of one product:
-
-- hosted coordination when the application contract belongs in the cloud
-- runtime-local execution when work belongs on-device
-- MCP for shared operational state across those boundaries
+If an action targets a local runtime, `call_action` is refused unless the tenant has a
+healthy, reachable runtime connected. Use `list_runtimes` to confirm one is present and
+routable before driving local-runtime actions from an agent. See
+[Deploy Local Runtime](/docs/deploy-local-runtime) for the reachability requirement.
 
 ## Related Guides
 
 - [MCP →](/docs/mcp)
 - [MCP Server →](/docs/mcp-server)
 - [Durable Tasks →](/docs/durable-tasks)
-- [Context Engineering →](/docs/context-engineering)
+- [Execution Receipts →](/docs/execution-receipts)
