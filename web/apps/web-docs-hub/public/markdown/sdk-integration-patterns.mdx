@@ -16,8 +16,8 @@ It is not a language feature catalog. It is the set of patterns that keep integr
 
 Start with this decision:
 
-- Use an OpenAI-compatible client when you want the shortest path to a working integration
-- Use a native Igris SDK when you need product-specific features such as receipts, vault operations, fleet controls, or richer routing metadata
+- The production integration path is the **Actions HTTP API**: register an action, run it by name with an idempotency key, inspect the run. It is one small contract and works from any language.
+- Use a native Igris SDK when you want a typed client on top of that — the JavaScript/TypeScript SDK wraps actions directly (`client.runAction`), and all native SDKs add helpers for durable tasks, receipts, vault operations, and runtimes.
 
 The first-class native SDKs today are:
 
@@ -26,7 +26,7 @@ The first-class native SDKs today are:
 - Rust
 - Python
 
-If you are in Java, C#, Ruby, or another language without a first-class native SDK, the safest default is still the OpenAI-compatible API.
+If you are in Java, C#, Ruby, or another language without a first-class native SDK, the safest default is the Actions HTTP API with your standard HTTP client.
 
 ## Standard Environment Variables
 
@@ -184,13 +184,13 @@ That means:
 
 This separation keeps your application code smaller and makes the product feel more predictable under load.
 
-## Pattern: Start Portable, Then Go Deeper
+## Pattern: Start With One Action, Then Go Deeper
 
 The cleanest adoption path usually looks like this:
 
-1. Start with the OpenAI-compatible API
-2. Prove the product path
-3. Move to a native SDK only where product-specific features matter
+1. Register one action and run it over the Actions HTTP API with an idempotency key
+2. Prove the product path: inspect the run, check proof and receipt state
+3. Move to a native SDK where typed helpers matter (actions in JavaScript/TypeScript, durable tasks, receipts, vault)
 
 This keeps the integration surface simple at first and avoids premature coupling to features you do not need yet.
 
@@ -201,7 +201,8 @@ This keeps the integration surface simple at first and avoids premature coupling
 - `IGRIS_API_KEY` comes from your secret manager, not from source control
 - Hosted and local modes are explicit
 - Retry logic distinguishes `429`, auth errors, validation errors, and `5xx`
-- The team knows whether it is on the OpenAI-compatible path or the native SDK path
+- Action runs with real side effects always send an `idempotency_key`
+- The team knows whether it is on the plain Actions HTTP path or the native SDK path
 - Receipt, audit, and fleet features are integrated through explicit workflows, not scattered one-off calls
 
 ## Related Guides
