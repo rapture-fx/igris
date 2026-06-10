@@ -8,7 +8,7 @@ const generatedDir = path.join(docsAppRoot, 'lib', 'generated');
 const sdkSupport = {
   generated_by: 'scripts/generate-docs-artifacts.js',
   native_sdk_note:
-    'Recommended onboarding starts with the OpenAI-compatible API. When you need native Igris features, the first-class SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should use an OpenAI-compatible client today.',
+    'The production integration path is the Actions HTTP API: register an action, run it by name, inspect the run. The first-class native SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should call the Actions HTTP API directly with any standard HTTP client today.',
   rows: [
     {
       language: 'JavaScript / TypeScript',
@@ -44,27 +44,27 @@ const sdkSupport = {
     },
     {
       language: 'Java',
-      status: 'openai-compatible',
+      status: 'http-api',
       package: 'n/a',
-      install: 'Use an OpenAI-compatible client today',
-      import: 'Use the OpenAI-compatible base URL',
-      notes: 'Use the OpenAI-compatible API until a native Java SDK is promoted explicitly.',
+      install: 'Use any standard HTTP client',
+      import: 'POST /v1/actions/:name/run on the hosted API',
+      notes: 'Call the Actions HTTP API directly until a native Java SDK is promoted explicitly.',
     },
     {
       language: 'C#',
-      status: 'openai-compatible',
+      status: 'http-api',
       package: 'n/a',
-      install: 'Use an OpenAI-compatible client today',
-      import: 'Use the OpenAI-compatible base URL',
-      notes: 'Use the OpenAI-compatible API until a native C# SDK is promoted explicitly.',
+      install: 'Use any standard HTTP client',
+      import: 'POST /v1/actions/:name/run on the hosted API',
+      notes: 'Call the Actions HTTP API directly until a native C# SDK is promoted explicitly.',
     },
     {
       language: 'Ruby',
-      status: 'openai-compatible',
+      status: 'http-api',
       package: 'n/a',
-      install: 'Use an OpenAI-compatible client today',
-      import: 'Use the OpenAI-compatible base URL',
-      notes: 'Use the OpenAI-compatible API until a native Ruby SDK is promoted explicitly.',
+      install: 'Use any standard HTTP client',
+      import: 'POST /v1/actions/:name/run on the hosted API',
+      notes: 'Call the Actions HTTP API directly until a native Ruby SDK is promoted explicitly.',
     },
   ],
 };
