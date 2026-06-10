@@ -1,107 +1,114 @@
 ---
 title: "First Hosted Integration"
-description: "Use this workflow when you want provider-backed execution through the hosted Igris surface without introducing local runtime infrastructure first."
+description: "Register an action, run it with an idempotency key, and inspect the durable run — the standard first integration with the hosted Igris API."
 audience: "public"
 ---
 
 # First Hosted Integration
 
-Use this workflow when you want the shortest path from the Request -> Execute -> Verify model into a provider-backed hosted integration.
+Igris runs **registered actions**. Instead of letting an agent call provider and tool APIs directly, you register the action once — what it does, where it runs, and what policy governs it — and the agent calls that action through one stable endpoint. Igris handles policy, tenant-scoped idempotency, routing, recovery, and proof.
 
-Hosted execution is one deployment mode for Igris. It is a good fit when the team wants to start with a managed API surface, keep the application contract simple, and prove that governed execution is useful before adding local runtime infrastructure.
-
-The basic sequence is:
+The first integration is four steps:
 
 1. Create a tenant API key
-2. Add at least one provider key
-3. Send a request through the hosted Igris API surface
-4. Inspect execution metadata and decide whether you need deeper Igris-native features
+2. Register an action
+3. Run the action with an idempotency key
+4. Inspect the run
 
 ---
 
 ## 1. Create A Tenant API Key
 
-Create one tenant API key for the environment that will call the hosted surface. Treat it like any other production secret and keep it in your standard secret store.
+Create one tenant API key for the environment that will call the hosted API. Treat it like any other production secret and keep it in your standard secret store.
 
 - [Trial & Billing →](/docs/trial-billing)
 - [API Authentication →](/docs/api-reference/authentication)
 
-## 2. Add A Provider Key
+## 2. Register An Action
 
-Hosted execution depends on provider credentials stored in the Igris vault. For customer traffic today, use `openai` or `anthropic`.
+An action definition is the contract for what an agent may ask Igris to run. This example registers a webhook-backed action that sends an invoice through your billing system:
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/vault/keys \
-  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
+curl -X POST https://overture.igrisinertial.com/v1/actions \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "provider": "openai",
-    "key_name": "production",
-    "api_key": "YOUR_OPENAI_KEY"
+    "name": "send_invoice",
+    "display_name": "Send invoice",
+    "description": "Send an invoice to a customer through the billing webhook.",
+    "target_type": "webhook",
+    "target_url": "https://billing.example.com/hooks/igris",
+    "policy_preset": "Safe automation"
   }'
 ```
 
-## 3. Send A Hosted Request
+A few things worth knowing before you pick values:
 
-The simplest application-facing path is OpenAI-compatible:
+- `target_type` decides where the action runs: `webhook` and `hosted_api` call an HTTP target, `local_runtime` runs on a runtime you install in your own environment, and `mock_demo` is a safe demo target that never calls an external API.
+- `policy_preset` governs every run. `Human-gated` pauses each run for approval; `Read-only` and `Non-replayable` constrain what recovery may do.
+- The full field list is in the [Actions API reference →](/docs/api-reference/actions/post-v1-actions).
 
-```typescript
-import OpenAI from 'openai';
+## 3. Run The Action
 
-const client = new OpenAI({
-  baseURL: 'https://overture.igrisinertial.com/v1',
-  apiKey: process.env.IGRIS_API_KEY,
-});
+Agents and services run the action by name. Send an `idempotency_key` whenever a retry could double-run real work — retries with the same key inside your tenant return the original run instead of running the action again:
 
-const response = await client.chat.completions.create({
-  model: 'gpt-4o-mini',
-  messages: [{ role: 'user', content: 'Summarize the latest service status' }],
-});
-
-console.log(response.choices[0].message.content);
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": { "customer_id": "cus_8821", "amount": 4200 },
+    "idempotency_key": "invoice-8821-2026-06"
+  }'
 ```
 
-This is still the same product model:
+The response is a durable run acknowledgement:
 
-- **Request** through one Igris surface
-- **Execute** on the hosted provider-backed path you configured
-- **Verify** using metadata, receipts, and proof-oriented pages when the workflow needs them
+```json
+{
+  "run_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "dispatched",
+  "proof_status": "pending",
+  "action_name": "send_invoice"
+}
+```
 
-## 4. Inspect What You Need Next
+Two responses are expected behavior, not errors:
 
-Stay on the hosted OpenAI-compatible path when you want:
+- `409 approval_required` — the action is human-gated; the run is paused until a reviewer approves it.
+- `503 runtime_unavailable` — a `local_runtime` action has no connected runtime; Igris refuses up front instead of queueing work that cannot execute.
 
-- the least integration overhead
-- broad SDK portability
-- provider-backed execution without local deployment work
+This is the same path everywhere: tenant identity always comes from your credential (never from the request body), and only registered actions can run — the endpoint does not accept raw execution definitions.
 
-Move deeper into Igris surfaces when you need:
+## 4. Inspect The Run
 
-- receipt-oriented workflows
-- richer execution metadata
-- runtime participation
-- local or hybrid deployment
+Every run is durable and inspectable after the fact:
 
-## Proof Language For Hosted Execution
+```bash
+curl https://overture.igrisinertial.com/v1/actions/runs/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
 
-Be precise about what is proven:
+You get lifecycle status, proof status, and a redacted input summary. Run inputs are never echoed back raw — inspection returns digests and safe summaries, so the evidence stays reviewable without exposing payloads.
 
-- Hosted provider-backed execution is a supported deployment mode.
-- Real provider paths are configurable and wired through the product surfaces.
-- The strongest proof-backed walkthrough in these docs is still the local verified run, not a previously captured real-provider proof artifact.
+When the run completes, the proof and receipt records show what happened as safe execution metadata. Start with [Execution Receipts →](/docs/execution-receipts) when you need audit evidence.
 
-Use [Proof Status](/docs/proof-status) if you need to separate proven behavior from supported but not-yet-proven paths.
+## Where To Go Next
+
+- **Give the same action to an MCP agent.** The MCP `call_action` tool uses exactly this registered-action path — same policy, same idempotency, same evidence. See [MCP →](/docs/mcp).
+- **Run actions in your own environment.** For private files, internal APIs, or local databases, register a `local_runtime` action and install a runtime. Igris pushes work to your registered runtime endpoint, so that endpoint must be reachable by Overture. See [Deploy Local Runtime →](/docs/deploy-local-runtime).
+- **Use the SDK.** The JavaScript/TypeScript SDK wraps this flow in `client.runAction(...)`. See [SDKs →](/docs/sdk).
 
 ## Common Mistakes
 
-- Treating hosted execution like a different product instead of one deployment mode
-- Forgetting to add a provider key before sending hosted traffic
-- Starting with advanced deployment work before proving the hosted path fits the use case
-- Assuming provider-backed support means every provider workflow is already proven in your environment
+- Retrying a run without an `idempotency_key` and double-running a side effect that mattered
+- Treating `409 approval_required` as a failure instead of the expected human-gated pause
+- Registering a `webhook` or `hosted_api` action without a `target_url`, then wondering why runs return `target_not_configured`
+- Letting agents call provider APIs directly and losing the policy, recovery, and evidence trail that registered actions give you
 
 ## Related Guides
 
 - [Quick Start →](/docs/quickstart)
-- [Verification →](/docs/verification)
-- [Proof Status →](/docs/proof-status)
-- [API Reference →](/docs/api-reference)
+- [Actions API Reference →](/docs/api-reference)
+- [MCP →](/docs/mcp)
+- [Execution Receipts →](/docs/execution-receipts)
