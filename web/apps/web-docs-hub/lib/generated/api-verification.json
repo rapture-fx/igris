@@ -1,34 +1,223 @@
 {
-  "generated_at": "2026-06-09T17:49:31.164Z",
+  "generated_at": "2026-06-10T16:02:39.746Z",
   "summary": {
-    "total": 103,
+    "total": 109,
     "by_status": {
-      "test-covered": 21,
-      "client-referenced": 11,
-      "implemented-unverified": 71
+      "test-covered": 27,
+      "implemented-unverified": 71,
+      "client-referenced": 11
     },
     "by_section": {
-      "Inference & Integration": 7,
-      "Runtime Distribution & Fleet Coordination": 11,
+      "Actions": 8,
+      "Platform Health": 1,
+      "Inference & Integration": 6,
+      "Runtime Distribution & Fleet Coordination": 10,
       "Account, Trial, and Billing": 5,
       "Vault, Policy, and Governance": 9,
       "Execution, History, and Receipts": 5,
       "Routing Control & Analytics": 14,
       "Behavior Trees": 5,
       "Durable Tasks": 7,
-      "MCP Transport": 2,
+      "MCP Transport": 1,
       "Local Runtime API": 38
     }
   },
   "endpoints": [
+    {
+      "section": "Actions",
+      "method": "GET",
+      "path": "/v1/actions",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists the registered actions owned by the authenticated tenant.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/auth_apikey_tenant_scoping_test.go",
+          "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_actions_list_columns_test.go",
+          "igris-overture/api/routes_actions_test.go"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "POST",
+      "path": "/v1/actions",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Creates a registered action definition: the contract for what an agent may ask Igris to run.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-javascript-sdk/tests/actions.test.ts",
+          "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_actions_list_columns_test.go",
+          "igris-overture/api/routes_actions_test.go"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Gets one registered action definition by id.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_actions_test.go"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Updates a registered action definition.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "DELETE",
+      "path": "/v1/actions/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Archives a registered action so it can no longer be run.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "POST",
+      "path": "/v1/actions/run",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Runs a registered action by id or name. Raw, unregistered action definitions are not accepted.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-javascript-sdk/tests/actions.test.ts",
+          "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_actions_test.go"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Runs a registered action by name. This is the endpoint agents call in production.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_actions_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Inspects one action run: status, proof state, and a redacted input summary.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/route_manifest_test.go"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
+      }
+    },
+    {
+      "section": "Platform Health",
+      "method": "GET",
+      "path": "/v1/health",
+      "auth": "Public",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Health check for the hosted API.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-go-sdk/runtime_test.go",
+          "igris-overture/internal/runtime_selector_test.go",
+          "igris-rust-sdk/tests/runtime_test.rs",
+          "stability-tests/tests/load/extended_load_test.go",
+          "stability-tests/tests/load/soak_test.go"
+        ],
+        "client_files": [
+          "igris-go-sdk/runtime.go",
+          "igris-javascript-sdk/src/client.ts",
+          "igris-javascript-sdk/src/runtime.ts",
+          "igris-rust-sdk/src/client.rs",
+          "igris-rust-sdk/src/runtime.rs"
+        ]
+      }
+    },
     {
       "section": "Inference & Integration",
       "method": "POST",
       "path": "/v1/infer",
       "auth": "Deployment-dependent",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Native inference endpoint handled by Overture.",
+      "stability": "experimental",
+      "description": "Native inference endpoint. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -55,8 +244,8 @@
       "path": "/v1/chat/completions",
       "auth": "Deployment-dependent",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "OpenAI-compatible chat completions endpoint.",
+      "stability": "experimental",
+      "description": "OpenAI-compatible chat completions endpoint. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -77,39 +266,11 @@
     {
       "section": "Inference & Integration",
       "method": "GET",
-      "path": "/v1/health",
-      "auth": "Public",
-      "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Health check for inference availability.",
-      "status": "test-covered",
-      "confidence": "high",
-      "note": "At least one automated test references this route path and method.",
-      "evidence": {
-        "test_files": [
-          "igris-go-sdk/runtime_test.go",
-          "igris-overture/internal/runtime_selector_test.go",
-          "igris-rust-sdk/tests/runtime_test.rs",
-          "stability-tests/tests/load/extended_load_test.go",
-          "stability-tests/tests/load/soak_test.go"
-        ],
-        "client_files": [
-          "igris-go-sdk/runtime.go",
-          "igris-javascript-sdk/src/client.ts",
-          "igris-javascript-sdk/src/runtime.ts",
-          "igris-rust-sdk/src/client.rs",
-          "igris-rust-sdk/src/runtime.rs"
-        ]
-      }
-    },
-    {
-      "section": "Inference & Integration",
-      "method": "GET",
       "path": "/v1/models",
       "auth": "Public",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Lists models visible to the inference layer.",
+      "stability": "experimental",
+      "description": "Lists models visible to the inference layer. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -129,8 +290,8 @@
       "path": "/v1/providers/stats",
       "auth": "Public",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Provider latency, health, and routing statistics.",
+      "stability": "experimental",
+      "description": "Provider latency, health, and routing statistics. Experimental; disabled by default.",
       "status": "client-referenced",
       "confidence": "medium",
       "note": "A client or transport layer references this route, but no direct automated test was found.",
@@ -148,8 +309,8 @@
       "path": "/v1/infer/multimodal",
       "auth": "Session or API key",
       "surface": "Cloud API",
-      "stability": "preview",
-      "description": "Multimodal inference endpoint.",
+      "stability": "experimental",
+      "description": "Multimodal inference endpoint. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -166,8 +327,8 @@
       "path": "/v1/infer/multimodal/stats",
       "auth": "Session or API key",
       "surface": "Cloud API",
-      "stability": "preview",
-      "description": "Multimodal request statistics.",
+      "stability": "experimental",
+      "description": "Multimodal request statistics. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -324,28 +485,12 @@
     },
     {
       "section": "Runtime Distribution & Fleet Coordination",
-      "method": "GET",
-      "path": "/api/v1/runtime/list",
-      "auth": "tenant_id query or authenticated tenant context",
-      "surface": "Fleet management",
-      "stability": "stable",
-      "description": "Lists registered runtime instances for a tenant.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
-      "evidence": {
-        "test_files": [],
-        "client_files": []
-      }
-    },
-    {
-      "section": "Runtime Distribution & Fleet Coordination",
       "method": "POST",
       "path": "/api/v1/runtime/config/push",
       "auth": "Session cookie",
       "surface": "Fleet management",
-      "stability": "stable",
-      "description": "Queues configuration push commands for the fleet.",
+      "stability": "experimental",
+      "description": "Queues configuration push commands for the fleet. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -362,8 +507,8 @@
       "path": "/api/v1/runtime/update",
       "auth": "Session cookie",
       "surface": "Fleet management",
-      "stability": "stable",
-      "description": "Queues OTA update commands for the fleet.",
+      "stability": "experimental",
+      "description": "Queues OTA update commands for the fleet. Experimental; disabled by default.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -380,8 +525,8 @@
       "path": "/api/subscription/status",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Returns subscription tier, status, and runtime usage.",
+      "stability": "experimental",
+      "description": "Returns subscription tier, status, and runtime usage. Experimental; disabled by default.",
       "status": "implemented-unverified",
       "confidence": "low",
       "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
@@ -396,8 +541,8 @@
       "path": "/api/subscription/plans",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Lists available plans and checkout URLs.",
+      "stability": "experimental",
+      "description": "Lists available plans and checkout URLs. Experimental; disabled by default.",
       "status": "implemented-unverified",
       "confidence": "low",
       "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
@@ -624,8 +769,8 @@
       "path": "/v1/history/events",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
-      "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
+      "stability": "experimental",
+      "description": "Lists execution history events. Experimental; disabled by default. Use durable task and receipt endpoints for stable inspection.",
       "status": "implemented-unverified",
       "confidence": "low",
       "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
@@ -712,7 +857,7 @@
       "path": "/v1/routing/stats",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Returns aggregate routing request and latency statistics.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -728,7 +873,7 @@
       "path": "/v1/routing/recent",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Lists recent routed requests for operational inspection.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -744,7 +889,7 @@
       "path": "/v1/routing/leaderboard",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Ranks providers by recent routing performance.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -760,7 +905,7 @@
       "path": "/v1/routing/strategy",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Saves the tenant routing strategy configuration.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -776,7 +921,7 @@
       "path": "/v1/routing/provider_weights",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Saves tenant provider weight overrides.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -792,7 +937,7 @@
       "path": "/v1/routing/speculative/status",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Returns current speculative-routing status metrics.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -808,7 +953,7 @@
       "path": "/v1/routing/speculative/config",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Returns the active speculative-routing configuration read model.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -824,7 +969,7 @@
       "path": "/v1/routing/speculative",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Saves tenant speculative-routing configuration.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -840,7 +985,7 @@
       "path": "/v1/routing/speculative/analytics",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Returns speculative-routing analytics series.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -856,7 +1001,7 @@
       "path": "/v1/routing/speculative/simulate",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "preview",
+      "stability": "experimental",
       "description": "Triggers a speculative-routing simulation for a sample request.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -872,7 +1017,7 @@
       "path": "/v1/routing/council",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Saves tenant council-mode routing configuration.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -888,7 +1033,7 @@
       "path": "/v1/routing/council/analytics",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Returns council-mode aggregate and per-chairman analytics.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -904,7 +1049,7 @@
       "path": "/v1/routing/shadow",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Saves tenant shadow-routing configuration.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -920,7 +1065,7 @@
       "path": "/v1/routing/circuit-breaker/status",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Returns aggregate and per-provider circuit-breaker state.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -936,7 +1081,7 @@
       "path": "/v1/bt/templates",
       "auth": "Public",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Lists built-in behavior-tree templates.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -952,7 +1097,7 @@
       "path": "/v1/bt/definitions",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Lists tenant behavior-tree definitions.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -968,7 +1113,7 @@
       "path": "/v1/bt/definitions/:id",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Gets a single behavior-tree definition.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -984,7 +1129,7 @@
       "path": "/v1/bt/definitions",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Creates or upserts a behavior-tree definition.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -1000,7 +1145,7 @@
       "path": "/v1/bt/definitions/:id",
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
-      "stability": "stable",
+      "stability": "experimental",
       "description": "Deletes a behavior-tree definition.",
       "status": "implemented-unverified",
       "confidence": "low",
@@ -1148,10 +1293,10 @@
       "section": "MCP Transport",
       "method": "POST",
       "path": "/v1/mcp",
-      "auth": "Deployment-dependent",
+      "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
       "stability": "stable",
-      "description": "Forwards JSON-RPC MCP requests to the configured runtime MCP server.",
+      "description": "Agent-facing JSON-RPC MCP endpoint with strict tool schemas, scoped to the authenticated tenant.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -1160,22 +1305,6 @@
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_mcp_test.go"
         ],
-        "client_files": []
-      }
-    },
-    {
-      "section": "MCP Transport",
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "auth": "Deployment-dependent",
-      "surface": "Cloud API",
-      "stability": "preview",
-      "description": "Forwards streaming MCP requests to the configured runtime MCP server.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
-      "evidence": {
-        "test_files": [],
         "client_files": []
       }
     },

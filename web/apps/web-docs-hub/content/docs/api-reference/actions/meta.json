@@ -1,0 +1,13 @@
+{
+  "title": "Actions",
+  "pages": [
+    "get-v1-actions",
+    "post-v1-actions",
+    "get-v1-actions-id",
+    "patch-v1-actions-id",
+    "delete-v1-actions-id",
+    "post-v1-actions-run",
+    "post-v1-actions-name-run",
+    "get-v1-actions-runs-id"
+  ]
+}

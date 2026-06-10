@@ -15,17 +15,35 @@ This is the customer-facing API contract for Igris. Use the guide pages first, t
 - [Errors](/docs/api-reference/errors) — How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.
 - [Rate Limits](/docs/api-reference/rate-limits) — What throttling exists today, where it applies, and how clients should behave when they receive a 429 response.
 
+## Actions
+
+Registered actions are the primary execution gateway. Define what work an agent is allowed to ask Igris to run, then run those actions through Igris with policy, tenant-scoped idempotency, runtime routing, recovery, and proof.
+
+- [`GET /v1/actions`](/docs/api-reference/actions/get-v1-actions) — Lists the registered actions owned by the authenticated tenant.
+- [`POST /v1/actions`](/docs/api-reference/actions/post-v1-actions) — Creates a registered action definition: the contract for what an agent may ask Igris to run.
+- [`GET /v1/actions/:id`](/docs/api-reference/actions/get-v1-actions-id) — Gets one registered action definition by id.
+- [`PATCH /v1/actions/:id`](/docs/api-reference/actions/patch-v1-actions-id) — Updates a registered action definition.
+- [`DELETE /v1/actions/:id`](/docs/api-reference/actions/delete-v1-actions-id) — Archives a registered action so it can no longer be run.
+- [`POST /v1/actions/run`](/docs/api-reference/actions/post-v1-actions-run) — Runs a registered action by id or name. Raw, unregistered action definitions are not accepted.
+- [`POST /v1/actions/:name/run`](/docs/api-reference/actions/post-v1-actions-name-run) — Runs a registered action by name. This is the endpoint agents call in production.
+- [`GET /v1/actions/runs/:id`](/docs/api-reference/actions/get-v1-actions-runs-id) — Inspects one action run: status, proof state, and a redacted input summary.
+
+## Platform Health
+
+Service availability checks for the hosted API.
+
+- [`GET /v1/health`](/docs/api-reference/platform-health/get-v1-health) — Health check for the hosted API.
+
 ## Inference & Integration
 
-Supported cloud inference endpoints. `/v1/chat/completions` is OpenAI-compatible, while `/v1/infer` exposes the native Igris request contract.
+Experimental model-gateway endpoints. Disabled by default: they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.
 
-- [`POST /v1/infer`](/docs/api-reference/inference-integration/post-v1-infer) — Native inference endpoint handled by Overture.
-- [`POST /v1/chat/completions`](/docs/api-reference/inference-integration/post-v1-chat-completions) — OpenAI-compatible chat completions endpoint.
-- [`GET /v1/health`](/docs/api-reference/inference-integration/get-v1-health) — Health check for inference availability.
-- [`GET /v1/models`](/docs/api-reference/inference-integration/get-v1-models) — Lists models visible to the inference layer.
-- [`GET /v1/providers/stats`](/docs/api-reference/inference-integration/get-v1-providers-stats) — Provider latency, health, and routing statistics.
-- [`POST /v1/infer/multimodal`](/docs/api-reference/inference-integration/post-v1-infer-multimodal) — Multimodal inference endpoint.
-- [`GET /v1/infer/multimodal/stats`](/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats) — Multimodal request statistics.
+- [`POST /v1/infer`](/docs/api-reference/inference-integration/post-v1-infer) — Native inference endpoint. Experimental; disabled by default.
+- [`POST /v1/chat/completions`](/docs/api-reference/inference-integration/post-v1-chat-completions) — OpenAI-compatible chat completions endpoint. Experimental; disabled by default.
+- [`GET /v1/models`](/docs/api-reference/inference-integration/get-v1-models) — Lists models visible to the inference layer. Experimental; disabled by default.
+- [`GET /v1/providers/stats`](/docs/api-reference/inference-integration/get-v1-providers-stats) — Provider latency, health, and routing statistics. Experimental; disabled by default.
+- [`POST /v1/infer/multimodal`](/docs/api-reference/inference-integration/post-v1-infer-multimodal) — Multimodal inference endpoint. Experimental; disabled by default.
+- [`GET /v1/infer/multimodal/stats`](/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats) — Multimodal request statistics. Experimental; disabled by default.
 
 ## Runtime Distribution & Fleet Coordination
 
@@ -39,16 +57,15 @@ Supported endpoints for downloading `igris-runtime`, registering runtime instanc
 - [`POST /api/v1/runtime/heartbeat`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-heartbeat) — Refreshes runtime liveness and reports whether commands are pending.
 - [`GET /api/v1/runtime/commands`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-commands) — Fetches and clears queued commands for a registered runtime.
 - [`DELETE /api/v1/runtime/deregister`](/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister) — Marks a runtime instance as deregistered.
-- [`GET /api/v1/runtime/list`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list) — Lists registered runtime instances for a tenant.
-- [`POST /api/v1/runtime/config/push`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push) — Queues configuration push commands for the fleet.
-- [`POST /api/v1/runtime/update`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update) — Queues OTA update commands for the fleet.
+- [`POST /api/v1/runtime/config/push`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push) — Queues configuration push commands for the fleet. Experimental; disabled by default.
+- [`POST /api/v1/runtime/update`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update) — Queues OTA update commands for the fleet. Experimental; disabled by default.
 
 ## Account, Trial, and Billing
 
 Supported account and billing endpoints for subscription state and tenant API key lifecycle management.
 
-- [`GET /api/subscription/status`](/docs/api-reference/account-trial-and-billing/get-api-subscription-status) — Returns subscription tier, status, and runtime usage.
-- [`GET /api/subscription/plans`](/docs/api-reference/account-trial-and-billing/get-api-subscription-plans) — Lists available plans and checkout URLs.
+- [`GET /api/subscription/status`](/docs/api-reference/account-trial-and-billing/get-api-subscription-status) — Returns subscription tier, status, and runtime usage. Experimental; disabled by default.
+- [`GET /api/subscription/plans`](/docs/api-reference/account-trial-and-billing/get-api-subscription-plans) — Lists available plans and checkout URLs. Experimental; disabled by default.
 - [`GET /v1/account/api-key`](/docs/api-reference/account-trial-and-billing/get-v1-account-api-key) — Returns current API key metadata without revealing the secret.
 - [`POST /v1/account/api-key`](/docs/api-reference/account-trial-and-billing/post-v1-account-api-key) — Creates a new tenant API key and revokes the old one.
 - [`DELETE /v1/account/api-key`](/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key) — Revokes the current tenant API key.
@@ -71,7 +88,7 @@ Supported BYOK and tenant policy routes.
 
 Supported audit and receipt endpoints for customer-visible history and proof verification.
 
-- [`GET /v1/history/events`](/docs/api-reference/execution-history-and-receipts/get-v1-history-events) — Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.
+- [`GET /v1/history/events`](/docs/api-reference/execution-history-and-receipts/get-v1-history-events) — Lists execution history events. Experimental; disabled by default. Use durable task and receipt endpoints for stable inspection.
 - [`GET /v1/receipts`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts) — Lists execution receipts from the coordination layer.
 - [`GET /v1/receipts/:id`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id) — Gets a single execution receipt by execution ID.
 - [`GET /v1/receipts/export`](/docs/api-reference/execution-history-and-receipts/get-v1-receipts-export) — Exports receipts as JSONL or CSV.
@@ -79,7 +96,7 @@ Supported audit and receipt endpoints for customer-visible history and proof ver
 
 ## Routing Control & Analytics
 
-Customer-visible routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state.
+Experimental routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state. Disabled by default: these endpoints require an explicit experimental feature flag on the deployment and are not part of the stable API contract.
 
 - [`GET /v1/routing/stats`](/docs/api-reference/routing-control-analytics/get-v1-routing-stats) — Returns aggregate routing request and latency statistics.
 - [`GET /v1/routing/recent`](/docs/api-reference/routing-control-analytics/get-v1-routing-recent) — Lists recent routed requests for operational inspection.
@@ -98,7 +115,7 @@ Customer-visible routing controls and read models for adaptive routing, speculat
 
 ## Behavior Trees
 
-Supported behavior-tree definition endpoints exposed by the coordination layer.
+Experimental behavior-tree definition endpoints. Disabled by default: they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.
 
 - [`GET /v1/bt/templates`](/docs/api-reference/behavior-trees/get-v1-bt-templates) — Lists built-in behavior-tree templates.
 - [`GET /v1/bt/definitions`](/docs/api-reference/behavior-trees/get-v1-bt-definitions) — Lists tenant behavior-tree definitions.
@@ -120,10 +137,9 @@ Submit durable workflows and long-running tasks that preserve progress automatic
 
 ## MCP Transport
 
-Hosted MCP transport routes for structured shared context and tool-oriented workflows.
+The agent-facing MCP endpoint. JSON-RPC `tools/list` and `tools/call` over a fixed, strict-schema tool set for registered actions, runs, evidence, and runtimes.
 
-- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Forwards JSON-RPC MCP requests to the configured runtime MCP server.
-- [`POST /v1/mcp/stream`](/docs/api-reference/mcp-transport/post-v1-mcp-stream) — Forwards streaming MCP requests to the configured runtime MCP server.
+- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Agent-facing JSON-RPC MCP endpoint with strict tool schemas, scoped to the authenticated tenant.
 
 ## Local Runtime API
 

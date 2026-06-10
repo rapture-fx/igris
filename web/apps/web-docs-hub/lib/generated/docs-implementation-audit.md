@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-06-09T17:49:59.770Z
+Generated: 2026-06-10T16:03:06.201Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 837
-- Implemented on expected surface: 837
+- Route claims audited: 879
+- Implemented on expected surface: 879
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 111
-- Implemented on expected surface: 111
+- Guide route claims audited: 112
+- Implemented on expected surface: 112
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -36,7 +36,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/history.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/key-management.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
@@ -67,6 +67,14 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-api-subscription-status.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/post-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx` | 7 | 7 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx` | 8 | 8 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/behavior-trees/get-v1-bt-definitions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/behavior-trees/get-v1-bt-definitions.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -84,8 +92,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify.mdx` | 6 | 6 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 102 | 102 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 106 | 106 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-models.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-providers-stats.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -130,8 +137,8 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-swarm-join.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-swarm-propose.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/post-v1-swarm-vote.mdx` | 6 | 6 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp-stream.mdx` | 4 | 4 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx` | 4 | 4 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx` | 3 | 3 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/platform-health/get-v1-health.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/routing-control-analytics/get-v1-routing-circuit-breaker-status.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/routing-control-analytics/get-v1-routing-council-analytics.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/routing-control-analytics/get-v1-routing-leaderboard.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -149,7 +156,6 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/delete-api-v1-runtime-deregister.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-commands.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-download.mdx` | 7 | 7 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -176,7 +182,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/history.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/key-management.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |

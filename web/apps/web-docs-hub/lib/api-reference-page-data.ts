@@ -42,7 +42,246 @@ function endpointKey(endpoint: ApiEndpoint) {
   return `${endpoint.method} ${endpoint.path}`;
 }
 
+const actionRunStatusCodes: ApiStatusCode[] = [
+  {
+    code: 202,
+    title: 'Run accepted',
+    description: 'The registered action was accepted as a durable run. Poll the run id to follow status, recovery, and proof state.',
+  },
+  {
+    code: 400,
+    title: 'Invalid request',
+    description: 'The request body was invalid, or `input` was missing.',
+  },
+  {
+    code: 401,
+    title: 'Unauthorized',
+    description: 'Credentials were missing, expired, or not accepted.',
+  },
+  {
+    code: 403,
+    title: 'Policy denied',
+    description: 'Policy evaluation denied the run for this action and caller.',
+  },
+  {
+    code: 404,
+    title: 'Action not found',
+    description: 'No registered action with that id or name exists in your tenant. Actions in other tenants are never visible.',
+  },
+  {
+    code: 409,
+    title: 'Approval required or target not configured',
+    description: 'Either the action is human-gated and the run is paused awaiting approval (`approval_required`), or the action target is not runnable yet (`target_not_configured`).',
+  },
+  {
+    code: 503,
+    title: 'Runtime unavailable',
+    description: 'For `local_runtime` actions: no connected runtime is currently available to execute the action. Install or reconnect a runtime and retry.',
+  },
+];
+
+const actionRunAcceptedExample = {
+  run_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+  task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+  status: 'dispatched',
+  proof_status: 'pending',
+  action_name: 'send_invoice',
+  target_type: 'webhook',
+  selected_target: 'webhook',
+};
+
+const actionDefinitionExample = {
+  id: 'a3a4e6cb-6c7e-4a5d-9b8f-1d2e3f4a5b6c',
+  name: 'send_invoice',
+  display_name: 'Send invoice',
+  description: 'Send an invoice to a customer through the billing webhook.',
+  target_type: 'webhook',
+  target_url: 'https://billing.example.com/hooks/igris',
+  method: 'POST',
+  policy_preset: 'Safe automation',
+  replay_class: 'retryable',
+  approval_required: false,
+  irreversible: false,
+  secret_refs: [],
+  fallback_policy: { enabled: false, requires_replay_safe: false },
+  created_at: '2026-06-01T08:00:00Z',
+  updated_at: '2026-06-01T08:00:00Z',
+};
+
+const actionDefinitionRequestFields: ApiField[] = [
+  { name: 'name', type: 'string', required: true, description: 'Machine name for the action: lowercase letters, digits, and underscores (for example `send_invoice`). Unique within your tenant.' },
+  { name: 'display_name', type: 'string', description: 'Human-readable name shown in the console. Defaults to `name`.' },
+  { name: 'description', type: 'string', description: 'What this action does, for operators and agents.' },
+  { name: 'target_type', type: 'string', description: 'Where the action runs: `hosted_api`, `webhook`, `local_runtime`, `hybrid_fallback`, or `mock_demo`. Defaults to `mock_demo`.' },
+  { name: 'target_url', type: 'string', description: 'Target URL for `hosted_api` and `webhook` actions. Required before those actions can run.' },
+  { name: 'method', type: 'string', description: 'HTTP method used against the target: GET, POST, PUT, PATCH, or DELETE. Defaults to POST.' },
+  { name: 'policy_preset', type: 'string', description: 'Policy preset governing the action: `Safe automation`, `Human-gated`, `Non-replayable`, or `Read-only`. Defaults to `Safe automation`.' },
+  { name: 'replay_class', type: 'string', description: 'Whether a run can be safely replayed during recovery, for example `retryable`.' },
+  { name: 'approval_required', type: 'boolean', description: 'When true, every run pauses for human approval before executing.' },
+  { name: 'irreversible', type: 'boolean', description: 'Marks the side effect as irreversible. Recovery will not automatically replay irreversible work.' },
+  { name: 'secret_refs', type: 'string[]', description: 'Names of secrets the action target needs. References only — secret values are never sent or returned through this API.' },
+  { name: 'target_metadata', type: 'object', description: 'Optional target settings. For `local_runtime` actions, `runtime_id` pins runs to one specific runtime.' },
+];
+
+const actionDefinitionPatchFields: ApiField[] = actionDefinitionRequestFields.map((field) => ({
+  ...field,
+  required: false,
+  description: field.name === 'name' ? 'New machine name for the action. Omit to keep the current name.' : field.description,
+}));
+
 const endpointOverrides: Record<string, EndpointOverride> = {
+  'GET /v1/actions': {
+    functionality:
+      'Lists the registered actions owned by the authenticated tenant. Registered actions are the contract for what an agent may ask Igris to run — agents call these by name instead of sending arbitrary execution payloads.',
+    whenToUse:
+      'Use this endpoint to discover which actions exist before running one, or to drive an action picker in your own tooling. Agents using MCP get the same list through the `list_actions` tool.',
+    responseExample: { actions: [actionDefinitionExample] },
+  },
+  'POST /v1/actions': {
+    functionality:
+      'Creates a registered action definition. The definition declares the execution target, the HTTP method, and the policy that governs every run: preset, replay class, approval requirement, and irreversibility. Once registered, agents run the action by name — they never define execution payloads themselves.',
+    whenToUse:
+      'Use this endpoint when setting up a new capability for your agents. Register the action once, then hand agents the action name and an API key. Action names are unique within your tenant.',
+    retryGuidance:
+      'Creation is not idempotent by key, but a retried create with the same name fails safely with `409 action_name_conflict` rather than creating a duplicate.',
+    commonMistakes: [
+      'Forgetting `target_url` for `hosted_api` or `webhook` actions — the action registers, but runs fail with `target_not_configured` until a target is set.',
+      'Putting secret values in `secret_refs`. The field holds secret *names* only; values are configured on the execution target.',
+      'Using an action name with uppercase letters or dashes. Names must match `^[a-z][a-z0-9_]{1,63}$`.',
+    ],
+    requestBodyFields: actionDefinitionRequestFields,
+    requestExample: {
+      name: 'send_invoice',
+      display_name: 'Send invoice',
+      description: 'Send an invoice to a customer through the billing webhook.',
+      target_type: 'webhook',
+      target_url: 'https://billing.example.com/hooks/igris',
+      method: 'POST',
+      policy_preset: 'Safe automation',
+    },
+    responseExample: actionDefinitionExample,
+    statusCodes: [
+      { code: 201, title: 'Created', description: 'The action definition was registered.' },
+      { code: 400, title: 'Invalid definition', description: 'The name, target type, method, or policy preset was not valid.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+      { code: 409, title: 'Name conflict', description: 'An action with this name already exists in your tenant.' },
+    ],
+  },
+  'GET /v1/actions/:id': {
+    functionality:
+      'Gets one registered action definition by id. Only actions owned by the authenticated tenant are visible; any other id returns not found.',
+    responseExample: actionDefinitionExample,
+  },
+  'PATCH /v1/actions/:id': {
+    functionality:
+      'Updates a registered action definition. Fields you omit keep their current values. The same validation as creation applies, including the policy preset and target type vocabulary.',
+    requestBodyFields: actionDefinitionPatchFields,
+    requestExample: { target_url: 'https://billing.example.com/hooks/igris-v2' },
+    responseExample: actionDefinitionExample,
+  },
+  'DELETE /v1/actions/:id': {
+    functionality:
+      'Archives a registered action. Archived actions no longer appear in listings and can no longer be run. Existing runs and their evidence remain inspectable.',
+    statusCodes: [
+      { code: 204, title: 'Archived', description: 'The action was archived.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+      { code: 404, title: 'Action not found', description: 'No active action with that id exists in your tenant.' },
+    ],
+  },
+  'POST /v1/actions/run': {
+    functionality:
+      'Runs a registered action, identified by `action_id` or `action_name`. The run becomes a durable task: Igris evaluates policy, selects the execution target, dispatches the work, and records recovery and proof state you can inspect afterward. This endpoint only runs actions that are already registered in your tenant — it does not accept raw execution definitions, and tenant identity always comes from your credential, never from the request body.',
+    whenToUse:
+      'Use this endpoint when the caller holds an action id, or when you want one generic entry point that resolves by id or name. If your agent always calls actions by name, `POST /v1/actions/:name/run` is the more direct form of the same gateway.',
+    retryGuidance:
+      'Send an `idempotency_key` whenever a retry could double-run real work. Retries with the same key inside your tenant return the original run instead of starting a new one. Without a key, treat a timeout as unknown-outcome: inspect recent runs before resubmitting.',
+    commonMistakes: [
+      'Retrying a run without an `idempotency_key` and double-running a side effect that mattered.',
+      'Treating a `409 approval_required` response as an error. For human-gated actions it is the expected pause: the run resumes after a reviewer approves it.',
+      'Running a `local_runtime` action before a runtime is connected. The gateway refuses with `503 runtime_unavailable` instead of queueing work that cannot execute.',
+    ],
+    requestBodyFields: [
+      { name: 'action_id', type: 'string', description: 'Id of the registered action to run. Provide this or `action_name`.' },
+      { name: 'action_name', type: 'string', description: 'Name of the registered action to run. Provide this or `action_id`.' },
+      { name: 'action', type: 'string', description: 'Accepted alias for `action_name`. Prefer `action_name` in new integrations.' },
+      { name: 'input', type: 'object', required: true, description: 'Input for this run, passed to the action target. Stored redacted: run inspection returns a digest summary, not the raw input.' },
+      { name: 'metadata', type: 'object', description: 'Optional caller metadata such as `agent_id` and `user_id`, recorded on the run for inspection.' },
+      { name: 'idempotency_key', type: 'string', description: 'Stable key that makes retries safe. Scoped to your tenant: the same key returns the original run instead of running the action again.' },
+      { name: 'deadline_at', type: 'string', description: 'Optional RFC 3339 deadline after which the run should not start.' },
+    ],
+    requestExample: {
+      action_name: 'send_invoice',
+      input: { customer_id: 'cus_8821', amount: 4200 },
+      idempotency_key: 'invoice-8821-2026-06',
+    },
+    responseExample: actionRunAcceptedExample,
+    notes: [
+      'For `local_runtime` actions, Igris pushes the work to your registered runtime endpoint — the runtime endpoint must be reachable by Overture. If no healthy runtime is connected, the gateway returns `503 runtime_unavailable` before any work is queued.',
+      'The response includes the run id. Use `GET /v1/actions/runs/:id` (or the MCP `get_run` tool) to follow status, recovery, and proof state.',
+    ],
+    statusCodes: actionRunStatusCodes,
+  },
+  'POST /v1/actions/:name/run': {
+    functionality:
+      'Runs a registered action by name inside the authenticated tenant. This is the endpoint agents call in production: one stable URL per action, with policy, tenant-scoped idempotency, runtime routing, recovery, and proof handled by Igris. Only registered actions can run, and tenant identity always comes from your credential, never from the request body.',
+    whenToUse:
+      'Use this endpoint as the standard way for an agent or service to execute one of your registered actions. Give the agent the action name and a tenant API key; everything else — what the action may do and where it runs — is governed by the registered definition.',
+    retryGuidance:
+      'Send an `idempotency_key` whenever a retry could double-run real work. Retries with the same key inside your tenant return the original run instead of starting a new one. Without a key, treat a timeout as unknown-outcome: inspect recent runs before resubmitting.',
+    commonMistakes: [
+      'Retrying a run without an `idempotency_key` and double-running a side effect that mattered.',
+      'Treating a `409 approval_required` response as an error. For human-gated actions it is the expected pause: the run resumes after a reviewer approves it.',
+      'Running a `local_runtime` action before a runtime is connected. The gateway refuses with `503 runtime_unavailable` instead of queueing work that cannot execute.',
+    ],
+    pathParams: [
+      { name: 'name', type: 'string', required: true, description: 'Name of the registered action: lowercase letters, digits, and underscores.' },
+    ],
+    requestBodyFields: [
+      { name: 'input', type: 'object', required: true, description: 'Input for this run, passed to the action target. Stored redacted: run inspection returns a digest summary, not the raw input.' },
+      { name: 'metadata', type: 'object', description: 'Optional caller metadata such as `agent_id` and `user_id`, recorded on the run for inspection.' },
+      { name: 'idempotency_key', type: 'string', description: 'Stable key that makes retries safe. Scoped to your tenant: the same key returns the original run instead of running the action again.' },
+      { name: 'deadline_at', type: 'string', description: 'Optional RFC 3339 deadline after which the run should not start.' },
+    ],
+    requestExample: {
+      input: { customer_id: 'cus_8821', amount: 4200 },
+      idempotency_key: 'invoice-8821-2026-06',
+    },
+    responseExample: actionRunAcceptedExample,
+    notes: [
+      'For `local_runtime` actions, Igris pushes the work to your registered runtime endpoint — the runtime endpoint must be reachable by Overture. If no healthy runtime is connected, the gateway returns `503 runtime_unavailable` before any work is queued.',
+      'The response includes the run id. Use `GET /v1/actions/runs/:id` (or the MCP `get_run` tool) to follow status, recovery, and proof state.',
+    ],
+    statusCodes: actionRunStatusCodes,
+  },
+  'GET /v1/actions/runs/:id': {
+    functionality:
+      'Inspects one action run in the authenticated tenant: lifecycle status, proof status, and a redacted input summary. Run inputs are never echoed back raw — inspection returns digests and safe summaries so evidence stays reviewable without exposing payloads.',
+    whenToUse:
+      'Use this endpoint after submitting a run to follow it to completion, to confirm whether a retried request deduplicated onto an existing run, or to check proof status before treating the side effect as done.',
+    pathParams: [
+      { name: 'id', type: 'string', required: true, description: 'Run id returned when the action run was accepted.' },
+    ],
+    responseExample: {
+      run_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      status: 'completed',
+      proof_status: 'verified',
+      execution_id: 'exec_01HV93C2PKR0N8SVQ',
+      result: { status: 'completed' },
+      input_summary: {
+        input_redacted: true,
+        safe_summary: 'execution input redacted; raw task definition is not returned',
+        input_digest_sha256: '6f16f4bc0c3f…',
+        input_bytes: 184,
+      },
+    },
+    statusCodes: [
+      { code: 200, title: 'Run found', description: 'The run belongs to your tenant and its current state is returned.' },
+      { code: 400, title: 'Invalid run id', description: 'The run id was not a valid identifier.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+      { code: 404, title: 'Run not found', description: 'No run with that id exists in your tenant.' },
+    ],
+  },
   'POST /v1/chat/completions': {
     functionality:
       'Primary hosted inference route for customers who want the shortest path to production. It preserves the OpenAI chat-completions contract while still running through Igris routing, policy, and receipt generation.',
@@ -1202,24 +1441,6 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       },
     },
   },
-  'POST /v1/mcp/stream': {
-    functionality:
-      'Hosted streaming transport for MCP interactions that need incremental output. Overture forwards the request to the runtime MCP stream endpoint.',
-    requestBodyFields: [
-      { name: 'jsonrpc', type: 'string', required: true, description: 'JSON-RPC version. Use `2.0`.' },
-      { name: 'id', type: 'string | number', required: true, description: 'Client request identifier.' },
-      { name: 'method', type: 'string', required: true, description: 'MCP method to stream.' },
-      { name: 'params', type: 'object', description: 'Method-specific parameters.' },
-    ],
-    requestExample: {
-      jsonrpc: '2.0',
-      id: 'req_stream_1',
-      method: 'tools/call',
-      params: { name: 'example', arguments: {} },
-    },
-    responseExample: 'event: message\ndata: {"jsonrpc":"2.0","id":"req_stream_1","result":{"chunk":"..."}}\n',
-    responseExampleLanguage: 'text',
-  },
   'GET /v1/runtime/profile': {
     responseExample: {
       version: 'runtime-v1.6.0',
@@ -1620,6 +1841,7 @@ function materializePath(path: string) {
   return path
     .replace(/\{task_id\}/g, '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c')
     .replace(/:provider/g, 'openai')
+    .replace(/:name/g, 'send_invoice')
     .replace(/:id/g, 'example-id');
 }
 
@@ -1641,6 +1863,10 @@ function fallbackFunctionality(section: ApiSection, endpoint: ApiEndpoint) {
 function fallbackWhenToUse(section: ApiSection, endpoint: ApiEndpoint) {
   if (endpoint.deployment === 'local' && endpoint.path.startsWith('/v1/admin/')) {
     return `Use this endpoint only from a trusted local-runtime administration context. It is part of the ${section.title} surface and should stay behind runtime authentication, local network controls, or an equivalent private operations boundary.`;
+  }
+
+  if (endpoint.stability === 'experimental') {
+    return `This endpoint is experimental and disabled by default. It requires an explicit experimental feature flag on the deployment, is not part of the stable API contract, and may change or be removed. Do not build production integrations against it without confirming it is enabled and supported for your deployment.`;
   }
 
   if (endpoint.support === 'preview') {
@@ -1763,6 +1989,10 @@ function buildRelatedGuides(endpoint: ApiEndpoint) {
     pushGuide('Routing Engine', '/docs/escapevector');
     pushGuide('Speculative Execution', '/docs/speculative-execution');
     pushGuide('Circuit Breaker', '/docs/circuit-breaker');
+  } else if (path.startsWith('/v1/actions')) {
+    pushGuide('MCP', '/docs/mcp');
+    pushGuide('Durable Tasks', '/docs/durable-tasks');
+    pushGuide('Execution Receipts', '/docs/execution-receipts');
   } else if (path.startsWith('/v1/mcp')) {
     pushGuide('MCP', '/docs/mcp');
     pushGuide('MCP Server', '/docs/mcp-server');

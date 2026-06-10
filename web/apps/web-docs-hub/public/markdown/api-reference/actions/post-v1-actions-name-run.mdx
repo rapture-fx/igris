@@ -1,0 +1,179 @@
+---
+title: "POST /v1/actions/:name/run"
+description: "Runs a registered action by name inside the authenticated tenant. This is the endpoint agents call in production: one stable URL per action, with policy, tenant-scoped idempotency, runtime routing, recovery, and proof handled by Igris. Only registered actions can run, and tenant identity always comes from your credential, never from the request body."
+audience: "public"
+---
+
+# POST /v1/actions/:name/run
+
+Runs a registered action by name inside the authenticated tenant. This is the endpoint agents call in production: one stable URL per action, with policy, tenant-scoped idempotency, runtime routing, recovery, and proof handled by Igris. Only registered actions can run, and tenant identity always comes from your credential, never from the request body.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/actions/:name/run</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint as the standard way for an agent or service to execute one of your registered actions. Give the agent the action name and a tenant API key; everything else — what the action may do and where it runs — is governed by the registered definition.
+
+## Integration Guidance
+
+Send an `idempotency_key` whenever a retry could double-run real work. Retries with the same key inside your tenant return the original run instead of starting a new one. Without a key, treat a timeout as unknown-outcome: inspect recent runs before resubmitting.
+
+### Common Mistakes
+
+- Retrying a run without an `idempotency_key` and double-running a side effect that mattered.
+- Treating a `409 approval_required` response as an error. For human-gated actions it is the expected pause: the run resumes after a reviewer approves it.
+- Running a `local_runtime` action before a runtime is connected. The gateway refuses with `503 runtime_unavailable` instead of queueing work that cannot execute.
+
+### Related Endpoints
+
+- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)
+- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)
+- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [MCP](/docs/mcp)
+
+## Path Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | `string` | Yes | Name of the registered action: lowercase letters, digits, and underscores. |
+
+## Request Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `input` | `object` | Yes | Input for this run, passed to the action target. Stored redacted: run inspection returns a digest summary, not the raw input. |
+| `metadata` | `object` | No | Optional caller metadata such as `agent_id` and `user_id`, recorded on the run for inspection. |
+| `idempotency_key` | `string` | No | Stable key that makes retries safe. Scoped to your tenant: the same key returns the original run instead of running the action again. |
+| `deadline_at` | `string` | No | Optional RFC 3339 deadline after which the run should not start. |
+
+## Request Example
+
+```json
+{
+  "input": {
+    "customer_id": "cus_8821",
+    "amount": 4200
+  },
+  "idempotency_key": "invoice-8821-2026-06"
+}
+```
+
+## Notes
+
+- For `local_runtime` actions, Igris pushes the work to your registered runtime endpoint — the runtime endpoint must be reachable by Overture. If no healthy runtime is connected, the gateway returns `503 runtime_unavailable` before any work is queued.
+- The response includes the run id. Use `GET /v1/actions/runs/:id` (or the MCP `get_run` tool) to follow status, recovery, and proof state.
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "input": {
+    "customer_id": "cus_8821",
+    "amount": 4200
+  },
+  "idempotency_key": "invoice-8821-2026-06"
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/actions/send_invoice/run', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+  "input": {
+    "customer_id": "cus_8821",
+    "amount": 4200
+  },
+  "idempotency_key": "invoice-8821-2026-06"
+}),
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := strings.NewReader("{\n  \"input\": {\n    \"customer_id\": \"cus_8821\",\n    \"amount\": 4200\n  },\n  \"idempotency_key\": \"invoice-8821-2026-06\"\n}")
+
+req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/v1/actions/send_invoice/run", body)
+if err != nil {
+	log.Fatal(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "https://overture.igrisinertial.com/v1/actions/send_invoice/run")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .json(&serde_json::json!({
+  "input": {
+    "customer_id": "cus_8821",
+    "amount": 4200
+  },
+  "idempotency_key": "invoice-8821-2026-06"
+}))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "run_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "dispatched",
+  "proof_status": "pending",
+  "action_name": "send_invoice",
+  "target_type": "webhook",
+  "selected_target": "webhook"
+}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 202 | Run accepted | The registered action was accepted as a durable run. Poll the run id to follow status, recovery, and proof state. |
+| 400 | Invalid request | The request body was invalid, or `input` was missing. |
+| 401 | Unauthorized | Credentials were missing, expired, or not accepted. |
+| 403 | Policy denied | Policy evaluation denied the run for this action and caller. |
+| 404 | Action not found | No registered action with that id or name exists in your tenant. Actions in other tenants are never visible. |
+| 409 | Approval required or target not configured | Either the action is human-gated and the run is paused awaiting approval (`approval_required`), or the action target is not runnable yet (`target_not_configured`). |
+| 503 | Runtime unavailable | For `local_runtime` actions: no connected runtime is currently available to execute the action. Install or reconnect a runtime and retry. |
+

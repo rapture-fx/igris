@@ -1,18 +1,18 @@
 ---
 title: "GET /v1/infer/multimodal/stats"
-description: "Multimodal request statistics. This endpoint belongs to the Inference & Integration group and is documented here as a customer-facing contract with its auth model, request shape, and sample traffic."
+description: "Multimodal request statistics. Experimental; disabled by default. This endpoint belongs to the Inference & Integration group and is documented here as a customer-facing contract with its auth model, request shape, and sample traffic."
 audience: "public"
 ---
 
 # GET /v1/infer/multimodal/stats
 
-Multimodal request statistics. This endpoint belongs to the Inference & Integration group and is documented here as a customer-facing contract with its auth model, request shape, and sample traffic.
+Multimodal request statistics. Experimental; disabled by default. This endpoint belongs to the Inference & Integration group and is documented here as a customer-facing contract with its auth model, request shape, and sample traffic.
 
-<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/infer/multimodal/stats</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session or API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-get">GET</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/infer/multimodal/stats</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session or API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-experimental">experimental</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
 
 ## When To Use
 
-Use this endpoint when you are working with Inference & Integration and are comfortable integrating against a preview surface. Confirm the current shape and rollout expectations before depending on it in a hard production path.
+This endpoint is experimental and disabled by default. It requires an explicit experimental feature flag on the deployment, is not part of the stable API contract, and may change or be removed. Do not build production integrations against it without confirming it is enabled and supported for your deployment.
 
 ## Integration Guidance
 
@@ -22,7 +22,7 @@ Safe retries are usually reasonable for transient 5xx or 429 responses. Do not r
 
 - [POST /v1/infer](/docs/api-reference/inference-integration/post-v1-infer)
 - [POST /v1/chat/completions](/docs/api-reference/inference-integration/post-v1-chat-completions)
-- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)
+- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)
 
 ### Related Guides
 

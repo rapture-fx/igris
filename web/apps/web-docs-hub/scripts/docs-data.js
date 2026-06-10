@@ -73,7 +73,7 @@ const mcpReference = {
   overview: {
     title: 'MCP',
     summary:
-      'The MCP surface in Igris for structured shared context, tool-oriented state exchange, and cross-runtime coordination.',
+      'The agent-facing MCP surface in Igris. One endpoint, a fixed strict-schema tool set, always scoped to the tenant behind the credential: discover registered actions, call them, and inspect the resulting runs, evidence, and runtimes.',
   },
   guides: [
     {
@@ -103,68 +103,80 @@ const mcpReference = {
   ],
   methodGroups: [
     {
-      title: 'Transport Surfaces',
-      summary: 'Customer-facing routes that carry MCP traffic through the product.',
+      title: 'Transport Surface',
+      summary: 'The single production route that carries MCP traffic.',
       methods: [
         {
           name: 'POST /v1/mcp',
           kind: 'transport',
-          page: '/docs/mcp#transport-surfaces',
-          summary: 'Request/response JSON-RPC transport for MCP calls.',
-        },
-        {
-          name: 'POST /v1/mcp/stream',
-          kind: 'transport',
-          page: '/docs/mcp#transport-surfaces',
-          summary: 'Streaming transport for MCP interactions that return incremental events.',
+          page: '/docs/mcp#transport-surface',
+          summary: 'Request/response JSON-RPC transport for MCP calls, scoped to the authenticated tenant.',
         },
       ],
     },
     {
-      title: 'Context Methods',
-      summary: 'Methods for structured shared context rather than one-off prompt state.',
-      methods: [
-        {
-          name: 'context/write',
-          kind: 'method',
-          page: '/docs/mcp-server#core-method-families',
-          summary: 'Write a structured value into shared MCP context.',
-        },
-        {
-          name: 'context/read',
-          kind: 'method',
-          page: '/docs/mcp-server#core-method-families',
-          summary: 'Read a context value by key.',
-        },
-        {
-          name: 'context/list',
-          kind: 'method',
-          page: '/docs/mcp-server#core-method-families',
-          summary: 'List available shared-context keys.',
-        },
-        {
-          name: 'context/delete',
-          kind: 'method',
-          page: '/docs/mcp-server#core-method-families',
-          summary: 'Delete a context value by key.',
-        },
-      ],
-    },
-    {
-      title: 'Tool Methods',
-      summary: 'Methods for discovery and invocation of MCP-exposed tools.',
+      title: 'JSON-RPC Methods',
+      summary: 'Methods for discovery and invocation of the fixed MCP tool set. Tool schemas are strict and unknown fields are rejected.',
       methods: [
         {
           name: 'tools/list',
           kind: 'method',
-          page: '/docs/mcp-server#core-method-families',
-          summary: 'List tools exposed through the MCP server.',
+          page: '/docs/mcp-server',
+          summary: 'List the available tools and their strict input schemas.',
         },
         {
           name: 'tools/call',
           kind: 'method',
-          page: '/docs/mcp-server#core-method-families',
-          summary: 'Call a tool through the MCP server contract.',
+          page: '/docs/mcp-server',
+          summary: 'Call one tool by name with arguments matching its schema.',
+        },
+      ],
+    },
+    {
+      title: 'Tools',
+      summary: 'The fixed tool set exposed through tools/call. There are no context/* or resource/* methods.',
+      methods: [
+        {
+          name: 'list_actions',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: "List the tenant's registered actions.",
+        },
+        {
+          name: 'get_action',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: 'Get one registered action by id or name.',
+        },
+        {
+          name: 'call_action',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: 'Run a registered action. Supports an idempotency key for safe retries.',
+        },
+        {
+          name: 'list_runs',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: 'List recent runs for the tenant.',
+        },
+        {
+          name: 'get_run',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: 'Inspect one run: status, policy state, runtime assignment, and proof state.',
+        },
+        {
+          name: 'get_run_evidence',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: 'Read the safe evidence summary for a run: step digests, proof status, and receipt presence.',
+        },
+        {
+          name: 'list_runtimes',
+          kind: 'tool',
+          page: '/docs/mcp-server',
+          summary: "List the tenant's registered runtimes and whether they are currently routable.",
         },
       ],
     },
@@ -173,65 +185,142 @@ const mcpReference = {
 
 const rawApiSections = [
   {
-    title: 'Inference & Integration',
+    title: 'Actions',
     summary:
-      'Supported cloud inference endpoints. `/v1/chat/completions` is OpenAI-compatible, while `/v1/infer` exposes the native Igris request contract.',
+      'Registered actions are the primary execution gateway. Define what work an agent is allowed to ask Igris to run, then run those actions through Igris with policy, tenant-scoped idempotency, runtime routing, recovery, and proof.',
     endpoints: [
       {
-        method: 'POST',
-        path: '/v1/infer',
-        auth: 'Deployment-dependent',
+        method: 'GET',
+        path: '/v1/actions',
+        auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
         stability: 'stable',
-        description: 'Native inference endpoint handled by Overture.',
+        description: 'Lists the registered actions owned by the authenticated tenant.',
       },
       {
         method: 'POST',
-        path: '/v1/chat/completions',
-        auth: 'Deployment-dependent',
+        path: '/v1/actions',
+        auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
         stability: 'stable',
-        description: 'OpenAI-compatible chat completions endpoint.',
+        description: 'Creates a registered action definition: the contract for what an agent may ask Igris to run.',
       },
+      {
+        method: 'GET',
+        path: '/v1/actions/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Gets one registered action definition by id.',
+      },
+      {
+        method: 'PATCH',
+        path: '/v1/actions/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Updates a registered action definition.',
+      },
+      {
+        method: 'DELETE',
+        path: '/v1/actions/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Archives a registered action so it can no longer be run.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/actions/run',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Runs a registered action by id or name. Raw, unregistered action definitions are not accepted.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/actions/:name/run',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Runs a registered action by name. This is the endpoint agents call in production.',
+      },
+      {
+        method: 'GET',
+        path: '/v1/actions/runs/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Inspects one action run: status, proof state, and a redacted input summary.',
+      },
+    ],
+  },
+  {
+    title: 'Platform Health',
+    summary: 'Service availability checks for the hosted API.',
+    endpoints: [
       {
         method: 'GET',
         path: '/v1/health',
         auth: 'Public',
         surface: 'Cloud API',
         stability: 'stable',
-        description: 'Health check for inference availability.',
+        description: 'Health check for the hosted API.',
+      },
+    ],
+  },
+  {
+    title: 'Inference & Integration',
+    summary:
+      'Experimental model-gateway endpoints. Disabled by default: they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.',
+    endpoints: [
+      {
+        method: 'POST',
+        path: '/v1/infer',
+        auth: 'Deployment-dependent',
+        surface: 'Cloud API',
+        stability: 'experimental',
+        description: 'Native inference endpoint. Experimental; disabled by default.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/chat/completions',
+        auth: 'Deployment-dependent',
+        surface: 'Cloud API',
+        stability: 'experimental',
+        description: 'OpenAI-compatible chat completions endpoint. Experimental; disabled by default.',
       },
       {
         method: 'GET',
         path: '/v1/models',
         auth: 'Public',
         surface: 'Cloud API',
-        stability: 'stable',
-        description: 'Lists models visible to the inference layer.',
+        stability: 'experimental',
+        description: 'Lists models visible to the inference layer. Experimental; disabled by default.',
       },
       {
         method: 'GET',
         path: '/v1/providers/stats',
         auth: 'Public',
         surface: 'Cloud API',
-        stability: 'stable',
-        description: 'Provider latency, health, and routing statistics.',
+        stability: 'experimental',
+        description: 'Provider latency, health, and routing statistics. Experimental; disabled by default.',
       },
       {
         method: 'POST',
         path: '/v1/infer/multimodal',
         auth: 'Session or API key',
         surface: 'Cloud API',
-        stability: 'preview',
-        description: 'Multimodal inference endpoint.',
+        stability: 'experimental',
+        description: 'Multimodal inference endpoint. Experimental; disabled by default.',
       },
       {
         method: 'GET',
         path: '/v1/infer/multimodal/stats',
         auth: 'Session or API key',
         surface: 'Cloud API',
-        stability: 'preview',
-        description: 'Multimodal request statistics.',
+        stability: 'experimental',
+        description: 'Multimodal request statistics. Experimental; disabled by default.',
       },
     ],
   },
@@ -305,28 +394,20 @@ const rawApiSections = [
         description: 'Marks a runtime instance as deregistered.',
       },
       {
-        method: 'GET',
-        path: '/api/v1/runtime/list',
-        auth: 'tenant_id query or authenticated tenant context',
-        surface: 'Fleet management',
-        stability: 'stable',
-        description: 'Lists registered runtime instances for a tenant.',
-      },
-      {
         method: 'POST',
         path: '/api/v1/runtime/config/push',
         auth: 'Session cookie',
         surface: 'Fleet management',
-        stability: 'stable',
-        description: 'Queues configuration push commands for the fleet.',
+        stability: 'experimental',
+        description: 'Queues configuration push commands for the fleet. Experimental; disabled by default.',
       },
       {
         method: 'POST',
         path: '/api/v1/runtime/update',
         auth: 'Session cookie',
         surface: 'Fleet management',
-        stability: 'stable',
-        description: 'Queues OTA update commands for the fleet.',
+        stability: 'experimental',
+        description: 'Queues OTA update commands for the fleet. Experimental; disabled by default.',
       },
     ],
   },
@@ -340,16 +421,16 @@ const rawApiSections = [
         path: '/api/subscription/status',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
-        description: 'Returns subscription tier, status, and runtime usage.',
+        stability: 'experimental',
+        description: 'Returns subscription tier, status, and runtime usage. Experimental; disabled by default.',
       },
       {
         method: 'GET',
         path: '/api/subscription/plans',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
-        description: 'Lists available plans and checkout URLs.',
+        stability: 'experimental',
+        description: 'Lists available plans and checkout URLs. Experimental; disabled by default.',
       },
       {
         method: 'GET',
@@ -466,8 +547,8 @@ const rawApiSections = [
         path: '/v1/history/events',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
-        description: 'Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.',
+        stability: 'experimental',
+        description: 'Lists execution history events. Experimental; disabled by default. Use durable task and receipt endpoints for stable inspection.',
       },
       {
         method: 'GET',
@@ -506,14 +587,14 @@ const rawApiSections = [
   {
     title: 'Routing Control & Analytics',
     summary:
-      'Customer-visible routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state.',
+      'Experimental routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state. Disabled by default: these endpoints require an explicit experimental feature flag on the deployment and are not part of the stable API contract.',
     endpoints: [
       {
         method: 'GET',
         path: '/v1/routing/stats',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Returns aggregate routing request and latency statistics.',
       },
       {
@@ -521,7 +602,7 @@ const rawApiSections = [
         path: '/v1/routing/recent',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Lists recent routed requests for operational inspection.',
       },
       {
@@ -529,7 +610,7 @@ const rawApiSections = [
         path: '/v1/routing/leaderboard',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Ranks providers by recent routing performance.',
       },
       {
@@ -537,7 +618,7 @@ const rawApiSections = [
         path: '/v1/routing/strategy',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Saves the tenant routing strategy configuration.',
       },
       {
@@ -545,7 +626,7 @@ const rawApiSections = [
         path: '/v1/routing/provider_weights',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Saves tenant provider weight overrides.',
       },
       {
@@ -553,7 +634,7 @@ const rawApiSections = [
         path: '/v1/routing/speculative/status',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Returns current speculative-routing status metrics.',
       },
       {
@@ -561,7 +642,7 @@ const rawApiSections = [
         path: '/v1/routing/speculative/config',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Returns the active speculative-routing configuration read model.',
       },
       {
@@ -569,7 +650,7 @@ const rawApiSections = [
         path: '/v1/routing/speculative',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Saves tenant speculative-routing configuration.',
       },
       {
@@ -577,7 +658,7 @@ const rawApiSections = [
         path: '/v1/routing/speculative/analytics',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Returns speculative-routing analytics series.',
       },
       {
@@ -585,7 +666,7 @@ const rawApiSections = [
         path: '/v1/routing/speculative/simulate',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'preview',
+        stability: 'experimental',
         description: 'Triggers a speculative-routing simulation for a sample request.',
       },
       {
@@ -593,7 +674,7 @@ const rawApiSections = [
         path: '/v1/routing/council',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Saves tenant council-mode routing configuration.',
       },
       {
@@ -601,7 +682,7 @@ const rawApiSections = [
         path: '/v1/routing/council/analytics',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Returns council-mode aggregate and per-chairman analytics.',
       },
       {
@@ -609,7 +690,7 @@ const rawApiSections = [
         path: '/v1/routing/shadow',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Saves tenant shadow-routing configuration.',
       },
       {
@@ -617,7 +698,7 @@ const rawApiSections = [
         path: '/v1/routing/circuit-breaker/status',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Returns aggregate and per-provider circuit-breaker state.',
       },
     ],
@@ -625,14 +706,14 @@ const rawApiSections = [
   {
     title: 'Behavior Trees',
     summary:
-      'Supported behavior-tree definition endpoints exposed by the coordination layer.',
+      'Experimental behavior-tree definition endpoints. Disabled by default: they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.',
     endpoints: [
       {
         method: 'GET',
         path: '/v1/bt/templates',
         auth: 'Public',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Lists built-in behavior-tree templates.',
       },
       {
@@ -640,7 +721,7 @@ const rawApiSections = [
         path: '/v1/bt/definitions',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Lists tenant behavior-tree definitions.',
       },
       {
@@ -648,7 +729,7 @@ const rawApiSections = [
         path: '/v1/bt/definitions/:id',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Gets a single behavior-tree definition.',
       },
       {
@@ -656,7 +737,7 @@ const rawApiSections = [
         path: '/v1/bt/definitions',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Creates or upserts a behavior-tree definition.',
       },
       {
@@ -664,7 +745,7 @@ const rawApiSections = [
         path: '/v1/bt/definitions/:id',
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
-        stability: 'stable',
+        stability: 'experimental',
         description: 'Deletes a behavior-tree definition.',
       },
     ],
@@ -735,23 +816,15 @@ const rawApiSections = [
   {
     title: 'MCP Transport',
     summary:
-      'Hosted MCP transport routes for structured shared context and tool-oriented workflows.',
+      'The agent-facing MCP endpoint. JSON-RPC `tools/list` and `tools/call` over a fixed, strict-schema tool set for registered actions, runs, evidence, and runtimes.',
     endpoints: [
       {
         method: 'POST',
         path: '/v1/mcp',
-        auth: 'Deployment-dependent',
+        auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
         stability: 'stable',
-        description: 'Forwards JSON-RPC MCP requests to the configured runtime MCP server.',
-      },
-      {
-        method: 'POST',
-        path: '/v1/mcp/stream',
-        auth: 'Deployment-dependent',
-        surface: 'Cloud API',
-        stability: 'preview',
-        description: 'Forwards streaming MCP requests to the configured runtime MCP server.',
+        description: 'Agent-facing JSON-RPC MCP endpoint with strict tool schemas, scoped to the authenticated tenant.',
       },
     ],
   },
@@ -1069,20 +1142,19 @@ const rawApiSections = [
 ];
 
 const coreEndpointKeys = new Set([
-  'POST /v1/infer',
-  'POST /v1/chat/completions',
-  'GET /v1/models',
+  'GET /v1/actions',
+  'POST /v1/actions',
+  'POST /v1/actions/run',
+  'POST /v1/actions/:name/run',
+  'GET /v1/actions/runs/:id',
+  'POST /v1/mcp',
   'GET /v1/runtime/install',
   'GET /v1/runtime/checksum',
   'GET /v1/account/api-key',
   'POST /v1/account/api-key',
-  'GET /v1/vault/keys',
-  'POST /v1/vault/keys',
   'GET /v1/receipts',
   'GET /v1/receipts/:id',
   'GET /v1/health',
-  'POST /v1/btree/validate',
-  'POST /v1/btree/run',
 ]);
 
 function endpointKey(endpoint) {
@@ -1102,7 +1174,7 @@ function inferDeployment(endpoint) {
 }
 
 function inferSupport(endpoint) {
-  if (endpoint.stability === 'preview') {
+  if (endpoint.stability === 'preview' || endpoint.stability === 'experimental') {
     return 'preview';
   }
 
@@ -1132,6 +1204,8 @@ const apiSections = rawApiSections.map((section) => ({
 }));
 
 const bannedPatterns = [
+  { pattern: /\/v1\/mcp\/stream/, message: 'POST /v1/mcp/stream is not part of the production MCP surface; document POST /v1/mcp only.' },
+  { pattern: /\bcontext\/(write|read|list|delete)\b/, message: 'MCP does not expose context/* methods; the tool set is fixed (list_actions, get_action, call_action, list_runs, get_run, get_run_evidence, list_runtimes).' },
   { pattern: /@igris\/sdk/, message: 'Use @igris-inertial/sdk for the JavaScript SDK.' },
   { pattern: /github\.com\/igris\/go-sdk/, message: 'Use github.com/igris-inertial/go-sdk for the Go SDK.' },
   { pattern: /Authorization:\s+Bearer\s+YOUR_SESSION_TOKEN/, message: 'Console session auth is cookie-based; do not document Bearer session tokens.' },

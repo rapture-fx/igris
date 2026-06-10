@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-06-09T17:49:59.760Z",
+  "generated_at": "2026-06-10T16:03:06.179Z",
   "summary": {
-    "total": 837,
+    "total": 879,
     "by_status": {
-      "implemented": 837
+      "implemented": 879
     }
   },
   "guide_summary": {
-    "total": 111,
+    "total": 112,
     "by_status": {
-      "implemented": 111
+      "implemented": 112
     }
   },
   "pages": [
@@ -63,6 +63,70 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/post-v1-account-api-key.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "implemented": 6,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "implemented": 7,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 7
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "implemented": 8,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 8
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
       "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
@@ -207,19 +271,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "implemented": 102,
+      "implemented": 106,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 102
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "implemented": 6,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 6
+      "total_route_claims": 106
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx",
@@ -574,20 +630,20 @@
       "total_route_claims": 6
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp-stream.mdx",
-      "implemented": 4,
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx",
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 4
+      "total_route_claims": 3
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx",
-      "implemented": 4,
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/platform-health/get-v1-health.mdx",
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 4
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/routing-control-analytics/get-v1-routing-circuit-breaker-status.mdx",
@@ -724,14 +780,6 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 7
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "implemented": 6,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum.mdx",
@@ -943,11 +991,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "implemented": 6,
+      "implemented": 7,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 6
+      "total_route_claims": 7
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
@@ -1161,11 +1209,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "implemented": 6,
+      "implemented": 7,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 6
+      "total_route_claims": 7
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/history.mdx",
@@ -1945,6 +1993,873 @@
           "method": "POST",
           "path": "/v1/account/api-key",
           "file": "igris-overture/api/routes_apikey.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "line": 2,
+      "method": "DELETE",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "title: \"DELETE /v1/actions/:id\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "DELETE",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "line": 7,
+      "method": "DELETE",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "# DELETE /v1/actions/:id",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "DELETE",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "line": 30,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "line": 31,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
+      "line": 50,
+      "method": "DELETE",
+      "path": "/v1/actions/example-id",
+      "expected_surface": "cloud-api",
+      "source": "curl -X DELETE https://overture.igrisinertial.com/v1/actions/example-id \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "DELETE",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "line": 2,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "title: \"GET /v1/actions/:id\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "line": 7,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "# GET /v1/actions/:id",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "line": 28,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "line": 29,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "line": 30,
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [PATCH /v1/actions/:id](/docs/api-reference/actions/patch-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx",
+      "line": 49,
+      "method": "GET",
+      "path": "/v1/actions/example-id",
+      "expected_surface": "cloud-api",
+      "source": "curl -X GET https://overture.igrisinertial.com/v1/actions/example-id \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "line": 2,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "title: \"GET /v1/actions/runs/:id\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "line": 7,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "# GET /v1/actions/runs/:id",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "line": 28,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "line": 29,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "line": 30,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx",
+      "line": 49,
+      "method": "GET",
+      "path": "/v1/actions/runs/example-id",
+      "expected_surface": "cloud-api",
+      "source": "curl -X GET https://overture.igrisinertial.com/v1/actions/runs/example-id \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "line": 2,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "title: \"GET /v1/actions\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "line": 7,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "# GET /v1/actions",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "line": 27,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "line": 28,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "line": 29,
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [PATCH /v1/actions/:id](/docs/api-reference/actions/patch-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions.mdx",
+      "line": 42,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": "cloud-api",
+      "source": "curl -X GET https://overture.igrisinertial.com/v1/actions \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "line": 2,
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "title: \"PATCH /v1/actions/:id\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "line": 7,
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "# PATCH /v1/actions/:id",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "line": 30,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "line": 31,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/patch-v1-actions-id.mdx",
+      "line": 75,
+      "method": "PATCH",
+      "path": "/v1/actions/example-id",
+      "expected_surface": "cloud-api",
+      "source": "curl -X PATCH https://overture.igrisinertial.com/v1/actions/example-id \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 2,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "title: \"POST /v1/actions/:name/run\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 7,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "# POST /v1/actions/:name/run",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 30,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 31,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 69,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "- The response includes the run id. Use `GET /v1/actions/runs/:id` (or the MCP `get_run` tool) to follow status, recovery, and proof state.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx",
+      "line": 76,
+      "method": "POST",
+      "path": "/v1/actions/send_invoice/run",
+      "expected_surface": "cloud-api",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 2,
+      "method": "POST",
+      "path": "/v1/actions/run",
+      "expected_surface": null,
+      "source": "title: \"POST /v1/actions/run\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 7,
+      "method": "POST",
+      "path": "/v1/actions/run",
+      "expected_surface": null,
+      "source": "# POST /v1/actions/run",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 15,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "Use this endpoint when the caller holds an action id, or when you want one generic entry point that resolves by id or name. If your agent always calls actions by name, `POST /v1/actions/:name/run` is the more direct form of the same gateway.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 30,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 31,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 67,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "- The response includes the run id. Use `GET /v1/actions/runs/:id` (or the MCP `get_run` tool) to follow status, recovery, and proof state.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx",
+      "line": 74,
+      "method": "POST",
+      "path": "/v1/actions/run",
+      "expected_surface": "cloud-api",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/actions/run \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
+      "line": 2,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "title: \"POST /v1/actions\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
+      "line": 7,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "# POST /v1/actions",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
+      "line": 30,
+      "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
+      "line": 31,
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [PATCH /v1/actions/:id](/docs/api-reference/actions/patch-v1-actions-id)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx",
+      "line": 75,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": "cloud-api",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/actions \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
         }
       ]
@@ -3878,99 +4793,17 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 20,
-      "method": null,
-      "path": "/v1/chat/completions",
-      "expected_surface": null,
-      "source": "Supported cloud inference endpoints. `/v1/chat/completions` is OpenAI-compatible, while `/v1/infer` exposes the native Igris request contract.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 20,
-      "method": null,
-      "path": "/v1/infer",
-      "expected_surface": null,
-      "source": "Supported cloud inference endpoints. `/v1/chat/completions` is OpenAI-compatible, while `/v1/infer` exposes the native Igris request contract.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
       "line": 22,
-      "method": "POST",
-      "path": "/v1/infer",
+      "method": "GET",
+      "path": "/v1/actions",
       "expected_surface": null,
-      "source": "- [`POST /v1/infer`](/docs/api-reference/inference-integration/post-v1-infer) — Native inference endpoint handled by Overture.",
+      "source": "- [`GET /v1/actions`](/docs/api-reference/actions/get-v1-actions) — Lists the registered actions owned by the authenticated tenant.",
       "status": "implemented",
       "evidence": [
         {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
+          "method": "GET",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
         }
       ]
@@ -3979,40 +4812,16 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
       "line": 23,
       "method": "POST",
-      "path": "/v1/chat/completions",
+      "path": "/v1/actions",
       "expected_surface": null,
-      "source": "- [`POST /v1/chat/completions`](/docs/api-reference/inference-integration/post-v1-chat-completions) — OpenAI-compatible chat completions endpoint.",
+      "source": "- [`POST /v1/actions`](/docs/api-reference/actions/post-v1-actions) — Creates a registered action definition: the contract for what an agent may ask Igris to run.",
       "status": "implemented",
       "evidence": [
         {
           "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
         }
       ]
     },
@@ -4020,9 +4829,111 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
       "line": 24,
       "method": "GET",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [`GET /v1/actions/:id`](/docs/api-reference/actions/get-v1-actions-id) — Gets one registered action definition by id.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 25,
+      "method": "PATCH",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [`PATCH /v1/actions/:id`](/docs/api-reference/actions/patch-v1-actions-id) — Updates a registered action definition.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 26,
+      "method": "DELETE",
+      "path": "/v1/actions/:id",
+      "expected_surface": null,
+      "source": "- [`DELETE /v1/actions/:id`](/docs/api-reference/actions/delete-v1-actions-id) — Archives a registered action so it can no longer be run.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "DELETE",
+          "path": "/v1/actions/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 27,
+      "method": "POST",
+      "path": "/v1/actions/run",
+      "expected_surface": null,
+      "source": "- [`POST /v1/actions/run`](/docs/api-reference/actions/post-v1-actions-run) — Runs a registered action by id or name. Raw, unregistered action definitions are not accepted.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 28,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- [`POST /v1/actions/:name/run`](/docs/api-reference/actions/post-v1-actions-name-run) — Runs a registered action by name. This is the endpoint agents call in production.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "- [`GET /v1/actions/runs/:id`](/docs/api-reference/actions/get-v1-actions-runs-id) — Inspects one action run: status, proof state, and a redacted input summary.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 35,
+      "method": "GET",
       "path": "/v1/health",
       "expected_surface": null,
-      "source": "- [`GET /v1/health`](/docs/api-reference/inference-integration/get-v1-health) — Health check for inference availability.",
+      "source": "- [`GET /v1/health`](/docs/api-reference/platform-health/get-v1-health) — Health check for the hosted API.",
       "status": "implemented",
       "evidence": [
         {
@@ -4047,11 +4958,81 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 25,
+      "line": 41,
+      "method": "POST",
+      "path": "/v1/infer",
+      "expected_surface": null,
+      "source": "- [`POST /v1/infer`](/docs/api-reference/inference-integration/post-v1-infer) — Native inference endpoint. Experimental; disabled by default.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 42,
+      "method": "POST",
+      "path": "/v1/chat/completions",
+      "expected_surface": null,
+      "source": "- [`POST /v1/chat/completions`](/docs/api-reference/inference-integration/post-v1-chat-completions) — OpenAI-compatible chat completions endpoint. Experimental; disabled by default.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_routing.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 43,
       "method": "GET",
       "path": "/v1/models",
       "expected_surface": null,
-      "source": "- [`GET /v1/models`](/docs/api-reference/inference-integration/get-v1-models) — Lists models visible to the inference layer.",
+      "source": "- [`GET /v1/models`](/docs/api-reference/inference-integration/get-v1-models) — Lists models visible to the inference layer. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4064,11 +5045,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 26,
+      "line": 44,
       "method": "GET",
       "path": "/v1/providers/stats",
       "expected_surface": null,
-      "source": "- [`GET /v1/providers/stats`](/docs/api-reference/inference-integration/get-v1-providers-stats) — Provider latency, health, and routing statistics.",
+      "source": "- [`GET /v1/providers/stats`](/docs/api-reference/inference-integration/get-v1-providers-stats) — Provider latency, health, and routing statistics. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4081,11 +5062,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 27,
+      "line": 45,
       "method": "POST",
       "path": "/v1/infer/multimodal",
       "expected_surface": null,
-      "source": "- [`POST /v1/infer/multimodal`](/docs/api-reference/inference-integration/post-v1-infer-multimodal) — Multimodal inference endpoint.",
+      "source": "- [`POST /v1/infer/multimodal`](/docs/api-reference/inference-integration/post-v1-infer-multimodal) — Multimodal inference endpoint. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4098,11 +5079,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 28,
+      "line": 46,
       "method": "GET",
       "path": "/v1/infer/multimodal/stats",
       "expected_surface": null,
-      "source": "- [`GET /v1/infer/multimodal/stats`](/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats) — Multimodal request statistics.",
+      "source": "- [`GET /v1/infer/multimodal/stats`](/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats) — Multimodal request statistics. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4115,7 +5096,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 34,
+      "line": 52,
       "method": "GET",
       "path": "/v1/runtime/install",
       "expected_surface": null,
@@ -4132,7 +5113,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 35,
+      "line": 53,
       "method": "GET",
       "path": "/v1/runtime/checksum",
       "expected_surface": null,
@@ -4149,7 +5130,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 36,
+      "line": 54,
       "method": "GET",
       "path": "/v1/runtime/download",
       "expected_surface": null,
@@ -4166,7 +5147,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 37,
+      "line": 55,
       "method": "GET",
       "path": "/api/v1/runtime/download",
       "expected_surface": null,
@@ -4183,7 +5164,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 38,
+      "line": 56,
       "method": "POST",
       "path": "/api/v1/runtime/register",
       "expected_surface": null,
@@ -4206,7 +5187,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 39,
+      "line": 57,
       "method": "POST",
       "path": "/api/v1/runtime/heartbeat",
       "expected_surface": null,
@@ -4229,7 +5210,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 40,
+      "line": 58,
       "method": "GET",
       "path": "/api/v1/runtime/commands",
       "expected_surface": null,
@@ -4246,7 +5227,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 41,
+      "line": 59,
       "method": "DELETE",
       "path": "/api/v1/runtime/deregister",
       "expected_surface": null,
@@ -4263,28 +5244,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 42,
-      "method": "GET",
-      "path": "/api/v1/runtime/list",
-      "expected_surface": null,
-      "source": "- [`GET /api/v1/runtime/list`](/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list) — Lists registered runtime instances for a tenant.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/api/v1/runtime/list",
-          "file": "igris-overture/api/routes_telemetry.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 43,
+      "line": 60,
       "method": "POST",
       "path": "/api/v1/runtime/config/push",
       "expected_surface": null,
-      "source": "- [`POST /api/v1/runtime/config/push`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push) — Queues configuration push commands for the fleet.",
+      "source": "- [`POST /api/v1/runtime/config/push`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-config-push) — Queues configuration push commands for the fleet. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4297,11 +5261,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 44,
+      "line": 61,
       "method": "POST",
       "path": "/api/v1/runtime/update",
       "expected_surface": null,
-      "source": "- [`POST /api/v1/runtime/update`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update) — Queues OTA update commands for the fleet.",
+      "source": "- [`POST /api/v1/runtime/update`](/docs/api-reference/runtime-distribution-fleet-coordination/post-api-v1-runtime-update) — Queues OTA update commands for the fleet. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4314,11 +5278,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 50,
+      "line": 67,
       "method": "GET",
       "path": "/api/subscription/status",
       "expected_surface": null,
-      "source": "- [`GET /api/subscription/status`](/docs/api-reference/account-trial-and-billing/get-api-subscription-status) — Returns subscription tier, status, and runtime usage.",
+      "source": "- [`GET /api/subscription/status`](/docs/api-reference/account-trial-and-billing/get-api-subscription-status) — Returns subscription tier, status, and runtime usage. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4337,11 +5301,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 51,
+      "line": 68,
       "method": "GET",
       "path": "/api/subscription/plans",
       "expected_surface": null,
-      "source": "- [`GET /api/subscription/plans`](/docs/api-reference/account-trial-and-billing/get-api-subscription-plans) — Lists available plans and checkout URLs.",
+      "source": "- [`GET /api/subscription/plans`](/docs/api-reference/account-trial-and-billing/get-api-subscription-plans) — Lists available plans and checkout URLs. Experimental; disabled by default.",
       "status": "implemented",
       "evidence": [
         {
@@ -4360,7 +5324,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 52,
+      "line": 69,
       "method": "GET",
       "path": "/v1/account/api-key",
       "expected_surface": null,
@@ -4377,7 +5341,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 53,
+      "line": 70,
       "method": "POST",
       "path": "/v1/account/api-key",
       "expected_surface": null,
@@ -4394,7 +5358,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 54,
+      "line": 71,
       "method": "DELETE",
       "path": "/v1/account/api-key",
       "expected_surface": null,
@@ -4411,7 +5375,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 60,
+      "line": 77,
       "method": "GET",
       "path": "/v1/vault/keys",
       "expected_surface": null,
@@ -4428,7 +5392,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 61,
+      "line": 78,
       "method": "POST",
       "path": "/v1/vault/keys",
       "expected_surface": null,
@@ -4445,7 +5409,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 62,
+      "line": 79,
       "method": "GET",
       "path": "/v1/vault/keys/:provider",
       "expected_surface": null,
@@ -4462,7 +5426,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 63,
+      "line": 80,
       "method": "DELETE",
       "path": "/v1/vault/keys/:provider",
       "expected_surface": null,
@@ -4479,7 +5443,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 64,
+      "line": 81,
       "method": "POST",
       "path": "/v1/vault/keys/:provider/rotate",
       "expected_surface": null,
@@ -4496,7 +5460,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 65,
+      "line": 82,
       "method": "POST",
       "path": "/v1/vault/keys/:provider/validate",
       "expected_surface": null,
@@ -4513,7 +5477,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 66,
+      "line": 83,
       "method": "GET",
       "path": "/v1/policy",
       "expected_surface": null,
@@ -4530,7 +5494,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 67,
+      "line": 84,
       "method": "PUT",
       "path": "/v1/policy",
       "expected_surface": null,
@@ -4547,7 +5511,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 68,
+      "line": 85,
       "method": "GET",
       "path": "/v1/policy/history",
       "expected_surface": null,
@@ -4564,11 +5528,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 74,
+      "line": 91,
       "method": "GET",
       "path": "/v1/history/events",
       "expected_surface": null,
-      "source": "- [`GET /v1/history/events`](/docs/api-reference/execution-history-and-receipts/get-v1-history-events) — Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
+      "source": "- [`GET /v1/history/events`](/docs/api-reference/execution-history-and-receipts/get-v1-history-events) — Lists execution history events. Experimental; disabled by default. Use durable task and receipt endpoints for stable inspection.",
       "status": "implemented",
       "evidence": [
         {
@@ -4581,7 +5545,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 75,
+      "line": 92,
       "method": "GET",
       "path": "/v1/receipts",
       "expected_surface": null,
@@ -4598,7 +5562,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 76,
+      "line": 93,
       "method": "GET",
       "path": "/v1/receipts/:id",
       "expected_surface": null,
@@ -4627,7 +5591,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 77,
+      "line": 94,
       "method": "GET",
       "path": "/v1/receipts/export",
       "expected_surface": null,
@@ -4650,7 +5614,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 78,
+      "line": 95,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": null,
@@ -4667,7 +5631,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 84,
+      "line": 101,
       "method": "GET",
       "path": "/v1/routing/stats",
       "expected_surface": null,
@@ -4690,7 +5654,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 85,
+      "line": 102,
       "method": "GET",
       "path": "/v1/routing/recent",
       "expected_surface": null,
@@ -4713,7 +5677,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 86,
+      "line": 103,
       "method": "GET",
       "path": "/v1/routing/leaderboard",
       "expected_surface": null,
@@ -4736,7 +5700,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 87,
+      "line": 104,
       "method": "POST",
       "path": "/v1/routing/strategy",
       "expected_surface": null,
@@ -4753,7 +5717,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 88,
+      "line": 105,
       "method": "POST",
       "path": "/v1/routing/provider_weights",
       "expected_surface": null,
@@ -4770,7 +5734,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 89,
+      "line": 106,
       "method": "GET",
       "path": "/v1/routing/speculative/status",
       "expected_surface": null,
@@ -4787,7 +5751,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 90,
+      "line": 107,
       "method": "GET",
       "path": "/v1/routing/speculative/config",
       "expected_surface": null,
@@ -4804,7 +5768,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 91,
+      "line": 108,
       "method": "POST",
       "path": "/v1/routing/speculative",
       "expected_surface": null,
@@ -4821,7 +5785,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 92,
+      "line": 109,
       "method": "GET",
       "path": "/v1/routing/speculative/analytics",
       "expected_surface": null,
@@ -4838,7 +5802,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 93,
+      "line": 110,
       "method": "POST",
       "path": "/v1/routing/speculative/simulate",
       "expected_surface": null,
@@ -4855,7 +5819,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 94,
+      "line": 111,
       "method": "POST",
       "path": "/v1/routing/council",
       "expected_surface": null,
@@ -4872,7 +5836,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 95,
+      "line": 112,
       "method": "GET",
       "path": "/v1/routing/council/analytics",
       "expected_surface": null,
@@ -4889,7 +5853,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 96,
+      "line": 113,
       "method": "POST",
       "path": "/v1/routing/shadow",
       "expected_surface": null,
@@ -4906,7 +5870,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 97,
+      "line": 114,
       "method": "GET",
       "path": "/v1/routing/circuit-breaker/status",
       "expected_surface": null,
@@ -4923,7 +5887,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 103,
+      "line": 120,
       "method": "GET",
       "path": "/v1/bt/templates",
       "expected_surface": null,
@@ -4940,7 +5904,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 104,
+      "line": 121,
       "method": "GET",
       "path": "/v1/bt/definitions",
       "expected_surface": null,
@@ -4957,7 +5921,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 105,
+      "line": 122,
       "method": "GET",
       "path": "/v1/bt/definitions/:id",
       "expected_surface": null,
@@ -4974,7 +5938,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 106,
+      "line": 123,
       "method": "POST",
       "path": "/v1/bt/definitions",
       "expected_surface": null,
@@ -4991,7 +5955,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 107,
+      "line": 124,
       "method": "DELETE",
       "path": "/v1/bt/definitions/:id",
       "expected_surface": null,
@@ -5008,7 +5972,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 113,
+      "line": 130,
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
@@ -5025,7 +5989,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 114,
+      "line": 131,
       "method": "GET",
       "path": "/v1/tasks/:id",
       "expected_surface": null,
@@ -5042,7 +6006,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 115,
+      "line": 132,
       "method": "GET",
       "path": "/v1/tasks",
       "expected_surface": null,
@@ -5059,7 +6023,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 116,
+      "line": 133,
       "method": "GET",
       "path": "/v1/tasks/:id/steps",
       "expected_surface": null,
@@ -5076,7 +6040,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 117,
+      "line": 134,
       "method": "POST",
       "path": "/v1/tasks/:id/cancel",
       "expected_surface": null,
@@ -5093,7 +6057,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 118,
+      "line": 135,
       "method": "GET",
       "path": "/v1/tasks/proof/readiness",
       "expected_surface": null,
@@ -5110,7 +6074,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 119,
+      "line": 136,
       "method": "POST",
       "path": "/v1/tasks/:id/proof/verify",
       "expected_surface": null,
@@ -5127,11 +6091,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 125,
+      "line": 142,
       "method": "POST",
       "path": "/v1/mcp",
       "expected_surface": null,
-      "source": "- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Forwards JSON-RPC MCP requests to the configured runtime MCP server.",
+      "source": "- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Agent-facing JSON-RPC MCP endpoint with strict tool schemas, scoped to the authenticated tenant.",
       "status": "implemented",
       "evidence": [
         {
@@ -5156,30 +6120,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 126,
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "expected_surface": null,
-      "source": "- [`POST /v1/mcp/stream`](/docs/api-reference/mcp-transport/post-v1-mcp-stream) — Forwards streaming MCP requests to the configured runtime MCP server.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 132,
+      "line": 148,
       "method": "GET",
       "path": "/v1/health",
       "expected_surface": null,
@@ -5208,7 +6149,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 133,
+      "line": 149,
       "method": "GET",
       "path": "/v1/runtime/profile",
       "expected_surface": null,
@@ -5231,7 +6172,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 134,
+      "line": 150,
       "method": "POST",
       "path": "/v1/chat/completions",
       "expected_surface": null,
@@ -5272,7 +6213,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 135,
+      "line": 151,
       "method": "POST",
       "path": "/v1/plan",
       "expected_surface": null,
@@ -5289,7 +6230,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 136,
+      "line": 152,
       "method": "POST",
       "path": "/v1/reflect",
       "expected_surface": null,
@@ -5306,7 +6247,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 137,
+      "line": 153,
       "method": "POST",
       "path": "/v1/btree/validate",
       "expected_surface": null,
@@ -5323,7 +6264,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 138,
+      "line": 154,
       "method": "POST",
       "path": "/v1/btree/run",
       "expected_surface": null,
@@ -5340,7 +6281,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 139,
+      "line": 155,
       "method": "POST",
       "path": "/v1/btree/deploy",
       "expected_surface": null,
@@ -5357,7 +6298,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 140,
+      "line": 156,
       "method": "GET",
       "path": "/v1/btree/events",
       "expected_surface": null,
@@ -5374,7 +6315,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 141,
+      "line": 157,
       "method": "GET",
       "path": "/v1/lora/status",
       "expected_surface": null,
@@ -5397,7 +6338,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 142,
+      "line": 158,
       "method": "GET",
       "path": "/v1/memory/status",
       "expected_surface": null,
@@ -5420,7 +6361,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 143,
+      "line": 159,
       "method": "POST",
       "path": "/v1/memory/store",
       "expected_surface": null,
@@ -5437,7 +6378,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 144,
+      "line": 160,
       "method": "POST",
       "path": "/v1/memory/search",
       "expected_surface": null,
@@ -5454,7 +6395,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 145,
+      "line": 161,
       "method": "GET",
       "path": "/v1/memory/:key",
       "expected_surface": null,
@@ -5477,7 +6418,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 146,
+      "line": 162,
       "method": "GET",
       "path": "/v1/hitl/status",
       "expected_surface": null,
@@ -5494,7 +6435,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 147,
+      "line": 163,
       "method": "GET",
       "path": "/v1/hitl/requests",
       "expected_surface": null,
@@ -5511,7 +6452,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 148,
+      "line": 164,
       "method": "POST",
       "path": "/v1/hitl/request",
       "expected_surface": null,
@@ -5528,7 +6469,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 149,
+      "line": 165,
       "method": "POST",
       "path": "/v1/hitl/approve",
       "expected_surface": null,
@@ -5545,7 +6486,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 150,
+      "line": 166,
       "method": "POST",
       "path": "/v1/hitl/reject",
       "expected_surface": null,
@@ -5562,7 +6503,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 151,
+      "line": 167,
       "method": "GET",
       "path": "/v1/swarm/status",
       "expected_surface": null,
@@ -5579,7 +6520,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 152,
+      "line": 168,
       "method": "GET",
       "path": "/v1/swarm/agents",
       "expected_surface": null,
@@ -5596,7 +6537,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 153,
+      "line": 169,
       "method": "POST",
       "path": "/v1/swarm/join",
       "expected_surface": null,
@@ -5613,7 +6554,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 154,
+      "line": 170,
       "method": "POST",
       "path": "/v1/swarm/propose",
       "expected_surface": null,
@@ -5630,7 +6571,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 155,
+      "line": 171,
       "method": "POST",
       "path": "/v1/swarm/vote",
       "expected_surface": null,
@@ -5647,7 +6588,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 156,
+      "line": 172,
       "method": "GET",
       "path": "/v1/federated/status",
       "expected_surface": null,
@@ -5670,7 +6611,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 157,
+      "line": 173,
       "method": "POST",
       "path": "/v1/federated/update",
       "expected_surface": null,
@@ -5687,7 +6628,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 158,
+      "line": 174,
       "method": "GET",
       "path": "/v1/federated/model/latest",
       "expected_surface": null,
@@ -5704,7 +6645,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 159,
+      "line": 175,
       "method": "GET",
       "path": "/v1/federated/participants",
       "expected_surface": null,
@@ -5727,7 +6668,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 160,
+      "line": 176,
       "method": "POST",
       "path": "/v1/runtime/execute",
       "expected_surface": null,
@@ -5744,7 +6685,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 161,
+      "line": 177,
       "method": "GET",
       "path": "/v1/runtime/violations",
       "expected_surface": null,
@@ -5761,7 +6702,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 162,
+      "line": 178,
       "method": "POST",
       "path": "/v1/runtime/task/submit",
       "expected_surface": null,
@@ -5784,7 +6725,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 163,
+      "line": 179,
       "method": "POST",
       "path": "/v1/runtime/task/stream",
       "expected_surface": null,
@@ -5807,7 +6748,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 164,
+      "line": 180,
       "method": "POST",
       "path": "/v1/runtime/task/:task_id/cancel",
       "expected_surface": null,
@@ -5830,7 +6771,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 165,
+      "line": 181,
       "method": "GET",
       "path": "/v1/runtime/task/:task_id/wal",
       "expected_surface": null,
@@ -5847,7 +6788,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 166,
+      "line": 182,
       "method": "GET",
       "path": "/v1/runtime/agent/:id/state",
       "expected_surface": null,
@@ -5859,174 +6800,6 @@
           "path": "/v1/runtime/agent/:id/state",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "line": 2,
-      "method": "GET",
-      "path": "/v1/health",
-      "expected_surface": null,
-      "source": "title: \"GET /v1/health\"",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "line": 7,
-      "method": "GET",
-      "path": "/v1/health",
-      "expected_surface": null,
-      "source": "# GET /v1/health",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "line": 23,
-      "method": "POST",
-      "path": "/v1/infer",
-      "expected_surface": null,
-      "source": "- [POST /v1/infer](/docs/api-reference/inference-integration/post-v1-infer)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "line": 24,
-      "method": "POST",
-      "path": "/v1/chat/completions",
-      "expected_surface": null,
-      "source": "- [POST /v1/chat/completions](/docs/api-reference/inference-integration/post-v1-chat-completions)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "line": 25,
-      "method": "GET",
-      "path": "/v1/models",
-      "expected_surface": null,
-      "source": "- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/models",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-health.mdx",
-      "line": 38,
-      "method": "GET",
-      "path": "/v1/health",
-      "expected_surface": "cloud-api",
-      "source": "curl -X GET https://overture.igrisinertial.com/v1/health",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
         }
       ]
     },
@@ -6138,28 +6911,16 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx",
       "line": 25,
       "method": "GET",
-      "path": "/v1/health",
+      "path": "/v1/models",
       "expected_surface": null,
-      "source": "- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)",
+      "source": "- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)",
       "status": "implemented",
       "evidence": [
         {
           "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
+          "path": "/v1/models",
           "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
         }
       ]
     },
@@ -6288,28 +7049,16 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-models.mdx",
       "line": 30,
       "method": "GET",
-      "path": "/v1/health",
+      "path": "/v1/providers/stats",
       "expected_surface": null,
-      "source": "- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)",
+      "source": "- [GET /v1/providers/stats](/docs/api-reference/inference-integration/get-v1-providers-stats)",
       "status": "implemented",
       "evidence": [
         {
           "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
+          "path": "/v1/providers/stats",
           "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
         }
       ]
     },
@@ -6438,28 +7187,16 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-providers-stats.mdx",
       "line": 25,
       "method": "GET",
-      "path": "/v1/health",
+      "path": "/v1/models",
       "expected_surface": null,
-      "source": "- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)",
+      "source": "- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)",
       "status": "implemented",
       "evidence": [
         {
           "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
+          "path": "/v1/models",
           "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
         }
       ]
     },
@@ -6624,35 +7361,6 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-chat-completions.mdx",
       "line": 30,
       "method": "GET",
-      "path": "/v1/health",
-      "expected_surface": null,
-      "source": "- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-chat-completions.mdx",
-      "line": 31,
-      "method": "GET",
       "path": "/v1/models",
       "expected_surface": null,
       "source": "- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)",
@@ -6661,6 +7369,23 @@
         {
           "method": "GET",
           "path": "/v1/models",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-chat-completions.mdx",
+      "line": 31,
+      "method": "GET",
+      "path": "/v1/providers/stats",
+      "expected_surface": null,
+      "source": "- [GET /v1/providers/stats](/docs/api-reference/inference-integration/get-v1-providers-stats)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/providers/stats",
           "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
         }
@@ -6809,28 +7534,16 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer-multimodal.mdx",
       "line": 29,
       "method": "GET",
-      "path": "/v1/health",
+      "path": "/v1/models",
       "expected_surface": null,
-      "source": "- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)",
+      "source": "- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)",
       "status": "implemented",
       "evidence": [
         {
           "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
+          "path": "/v1/models",
           "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
         }
       ]
     },
@@ -7024,35 +7737,6 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer.mdx",
       "line": 31,
       "method": "GET",
-      "path": "/v1/health",
-      "expected_surface": null,
-      "source": "- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_health.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer.mdx",
-      "line": 32,
-      "method": "GET",
       "path": "/v1/models",
       "expected_surface": null,
       "source": "- [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)",
@@ -7061,6 +7745,23 @@
         {
           "method": "GET",
           "path": "/v1/models",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer.mdx",
+      "line": 32,
+      "method": "GET",
+      "path": "/v1/providers/stats",
+      "expected_surface": null,
+      "source": "- [GET /v1/providers/stats](/docs/api-reference/inference-integration/get-v1-providers-stats)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/providers/stats",
           "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
         }
@@ -12777,104 +13478,6 @@
       ]
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp-stream.mdx",
-      "line": 2,
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "expected_surface": null,
-      "source": "title: \"POST /v1/mcp/stream\"",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp-stream.mdx",
-      "line": 7,
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "expected_surface": null,
-      "source": "# POST /v1/mcp/stream",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp-stream.mdx",
-      "line": 28,
-      "method": "POST",
-      "path": "/v1/mcp",
-      "expected_surface": null,
-      "source": "- [POST /v1/mcp](/docs/api-reference/mcp-transport/post-v1-mcp)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp-stream.mdx",
-      "line": 64,
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/mcp/stream \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx",
       "line": 2,
       "method": "POST",
@@ -12934,30 +13537,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx",
-      "line": 28,
-      "method": "POST",
-      "path": "/v1/mcp/stream",
-      "expected_surface": null,
-      "source": "- [POST /v1/mcp/stream](/docs/api-reference/mcp-transport/post-v1-mcp-stream)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/mcp-transport/post-v1-mcp.mdx",
-      "line": 61,
+      "line": 57,
       "method": "POST",
       "path": "/v1/mcp",
       "expected_surface": "cloud-api",
@@ -12980,6 +13560,87 @@
           "method": "POST",
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/platform-health/get-v1-health.mdx",
+      "line": 2,
+      "method": "GET",
+      "path": "/v1/health",
+      "expected_surface": null,
+      "source": "title: \"GET /v1/health\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-overture/api/routes_health.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/platform-health/get-v1-health.mdx",
+      "line": 7,
+      "method": "GET",
+      "path": "/v1/health",
+      "expected_surface": null,
+      "source": "# GET /v1/health",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-overture/api/routes_health.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/platform-health/get-v1-health.mdx",
+      "line": 32,
+      "method": "GET",
+      "path": "/v1/health",
+      "expected_surface": "cloud-api",
+      "source": "curl -X GET https://overture.igrisinertial.com/v1/health",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-overture/api/routes_health.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
         }
       ]
@@ -15019,108 +15680,6 @@
           "method": "GET",
           "path": "/api/v1/runtime/download",
           "file": "igris-overture/api/routes_runtime.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "line": 2,
-      "method": "GET",
-      "path": "/api/v1/runtime/list",
-      "expected_surface": null,
-      "source": "title: \"GET /api/v1/runtime/list\"",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/api/v1/runtime/list",
-          "file": "igris-overture/api/routes_telemetry.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "line": 7,
-      "method": "GET",
-      "path": "/api/v1/runtime/list",
-      "expected_surface": null,
-      "source": "# GET /api/v1/runtime/list",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/api/v1/runtime/list",
-          "file": "igris-overture/api/routes_telemetry.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "line": 29,
-      "method": "GET",
-      "path": "/v1/runtime/install",
-      "expected_surface": null,
-      "source": "- [GET /v1/runtime/install](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-install)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/runtime/install",
-          "file": "igris-overture/api/runtime_download.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "line": 30,
-      "method": "GET",
-      "path": "/v1/runtime/checksum",
-      "expected_surface": null,
-      "source": "- [GET /v1/runtime/checksum](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-checksum)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/runtime/checksum",
-          "file": "igris-overture/api/runtime_download.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "line": 31,
-      "method": "GET",
-      "path": "/v1/runtime/download",
-      "expected_surface": null,
-      "source": "- [GET /v1/runtime/download](/docs/api-reference/runtime-distribution-fleet-coordination/get-v1-runtime-download)",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/runtime/download",
-          "file": "igris-overture/api/runtime_download.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/api-reference/runtime-distribution-fleet-coordination/get-api-v1-runtime-list.mdx",
-      "line": 54,
-      "method": "GET",
-      "path": "/api/v1/runtime/list",
-      "expected_surface": "cloud-api",
-      "source": "curl -X GET https://overture.igrisinertial.com/api/v1/runtime/list?tenant_id=tenant_01HV95QXYD8FAPJ",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/api/v1/runtime/list",
-          "file": "igris-overture/api/routes_telemetry.go",
           "surface": "cloud-api"
         }
       ]
@@ -17681,7 +18240,24 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 76,
+      "line": 59,
+      "method": "GET",
+      "path": "/v1/execution/governance/runtimes",
+      "expected_surface": "cloud-api",
+      "source": "curl https://overture.igrisinertial.com/v1/execution/governance/runtimes \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/execution/governance/runtimes",
+          "file": "igris-overture/api/routes_governance.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
+      "line": 78,
       "method": "POST",
       "path": "/api/v1/runtime/config/push",
       "expected_surface": "cloud-api",
@@ -17698,7 +18274,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/fleet-management.mdx",
-      "line": 101,
+      "line": 103,
       "method": "POST",
       "path": "/api/v1/runtime/update",
       "expected_surface": "cloud-api",

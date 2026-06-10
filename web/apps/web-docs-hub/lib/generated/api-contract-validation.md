@@ -1,14 +1,22 @@
 # API Contract Validation
 
-Generated: 2026-06-09T17:49:32.170Z
+Generated: 2026-06-10T16:02:42.602Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
 | Endpoint | Request fields | Source schema | Schema policy | Response contract | Response fields | Status |
 | --- | ---: | --- | --- | --- | ---: | --- |
+| `GET /v1/actions` | 0 | not discovered | not-required | not required | 0 | verified |
+| `POST /v1/actions` | 12 | `actionDefinitionRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
+| `GET /v1/actions/:id` | 0 | not discovered | not-required | not required | 0 | verified |
+| `PATCH /v1/actions/:id` | 12 | `actionDefinitionRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
+| `DELETE /v1/actions/:id` | 0 | not discovered | not-required | not required | 0 | verified |
+| `POST /v1/actions/run` | 7 | `actionRunRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
+| `POST /v1/actions/:name/run` | 4 | `actionRunByNameRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
+| `GET /v1/actions/runs/:id` | 0 | not discovered | not-required | not required | 0 | verified |
+| `GET /v1/health` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/infer` | 5 | `InferRequest (go, igris-overture/models/infer_request.go)` | source-backed | `igris-overture/models/infer_response.go` | 5 | verified |
 | `POST /v1/chat/completions` | 4 | `InferRequest (go, igris-overture/models/infer_request.go)` | source-backed | `igris-overture/models/infer_response.go` | 5 | verified |
-| `GET /v1/health` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/models` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/providers/stats` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/infer/multimodal` | 0 | not discovered | example-only: The route accepts a multipart/media-flavored inference envelope; docs keep the customer example while source schema extraction is JSON-struct only. | not required | 0 | verified |
@@ -21,7 +29,6 @@ This report validates API reference request/response examples and compares docum
 | `POST /api/v1/runtime/heartbeat` | 4 | `runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)` | source-backed | not required | 0 | verified |
 | `GET /api/v1/runtime/commands` | 0 | not discovered | not-required | not required | 0 | verified |
 | `DELETE /api/v1/runtime/deregister` | 3 | `runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)` | not-required | not required | 0 | verified |
-| `GET /api/v1/runtime/list` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /api/v1/runtime/config/push` | 2 | not discovered | example-only: Configuration push is an operational control-plane route whose request body is example-backed until a public source schema is promoted. | not required | 0 | example-validated |
 | `POST /api/v1/runtime/update` | 4 | not discovered | example-only: Runtime update orchestration is validated procedurally and remains example-backed in the public docs. | not required | 0 | example-validated |
 | `GET /api/subscription/status` | 0 | not discovered | not-required | not required | 0 | verified |
@@ -70,7 +77,6 @@ This report validates API reference request/response examples and compares docum
 | `GET /v1/tasks/proof/readiness` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/tasks/:id/proof/verify` | 0 | not discovered | example-only: Task proof verification is path-param driven and reconciles persisted proof state; no JSON body is required. | not required | 0 | verified |
 | `POST /v1/mcp` | 4 | not discovered | example-only: MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct. | not required | 0 | example-validated |
-| `POST /v1/mcp/stream` | 4 | not discovered | example-only: MCP streaming carries JSON-RPC envelopes over a streaming transport; method schemas are documented separately from the transport route. | not required | 0 | example-validated |
 | `GET /v1/health` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/runtime/profile` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/chat/completions` | 4 | `InferRequest (go, igris-overture/models/infer_request.go)` | source-backed | `igris-overture/models/infer_response.go` | 5 | verified |

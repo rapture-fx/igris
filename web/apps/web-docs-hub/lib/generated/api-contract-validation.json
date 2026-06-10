@@ -1,6 +1,87 @@
 {
-  "generated_at": "2026-06-09T17:49:32.168Z",
+  "generated_at": "2026-06-10T16:02:42.587Z",
   "endpoints": [
+    {
+      "endpoint": "GET /v1/actions",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/actions",
+      "source_schema": "actionDefinitionRequest (go, igris-overture/api/routes_actions.go)",
+      "request_fields": 12,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/actions/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "PATCH /v1/actions/:id",
+      "source_schema": "actionDefinitionRequest (go, igris-overture/api/routes_actions.go)",
+      "request_fields": 12,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "DELETE /v1/actions/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/actions/run",
+      "source_schema": "actionRunRequest (go, igris-overture/api/routes_actions.go)",
+      "request_fields": 7,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/actions/:name/run",
+      "source_schema": "actionRunByNameRequest (go, igris-overture/api/routes_actions.go)",
+      "request_fields": 4,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/actions/runs/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/health",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
     {
       "endpoint": "POST /v1/infer",
       "source_schema": "InferRequest (go, igris-overture/models/infer_request.go)",
@@ -17,15 +98,6 @@
       "response_contract": "igris-overture/models/infer_response.go",
       "response_fields": 5,
       "schema_policy": "source-backed",
-      "status": "verified"
-    },
-    {
-      "endpoint": "GET /v1/health",
-      "source_schema": null,
-      "request_fields": 0,
-      "response_contract": null,
-      "response_fields": 0,
-      "schema_policy": "not-required",
       "status": "verified"
     },
     {
@@ -131,15 +203,6 @@
       "endpoint": "DELETE /api/v1/runtime/deregister",
       "source_schema": "runtimeInstanceHeartbeatRequest (go, igris-overture/api/routes_runtime.go)",
       "request_fields": 3,
-      "response_contract": null,
-      "response_fields": 0,
-      "schema_policy": "not-required",
-      "status": "verified"
-    },
-    {
-      "endpoint": "GET /api/v1/runtime/list",
-      "source_schema": null,
-      "request_fields": 0,
       "response_contract": null,
       "response_fields": 0,
       "schema_policy": "not-required",
@@ -575,15 +638,6 @@
       "response_contract": null,
       "response_fields": 0,
       "schema_policy": "example-only: MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct.",
-      "status": "example-validated"
-    },
-    {
-      "endpoint": "POST /v1/mcp/stream",
-      "source_schema": null,
-      "request_fields": 4,
-      "response_contract": null,
-      "response_fields": 0,
-      "schema_policy": "example-only: MCP streaming carries JSON-RPC envelopes over a streaming transport; method schemas are documented separately from the transport route.",
       "status": "example-validated"
     },
     {
