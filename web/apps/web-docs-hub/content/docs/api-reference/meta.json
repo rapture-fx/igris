@@ -6,6 +6,8 @@
     "authentication",
     "errors",
     "rate-limits",
+    "actions",
+    "platform-health",
     "inference-integration",
     "runtime-distribution-fleet-coordination",
     "account-trial-and-billing",
