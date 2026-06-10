@@ -22,8 +22,8 @@ Request means you submit work through an Igris API surface.
 
 That can be:
 
-- an OpenAI-compatible chat request
-- a task or tool-oriented execution request
+- a registered action run (`POST /v1/actions/:name/run`)
+- a durable task submission or an MCP tool call
 - a runtime or operator workflow that still produces execution records
 
 The point is consistency. Your application should not need a different mental model every time the execution path changes.
