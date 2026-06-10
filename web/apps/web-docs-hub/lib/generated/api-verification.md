@@ -1,6 +1,6 @@
 # API Verification Report
 
-Generated: 2026-06-10T16:02:39.754Z
+Generated: 2026-06-10T16:22:53.412Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
