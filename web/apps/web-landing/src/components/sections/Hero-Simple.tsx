@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import HeroLabBackground from '../ui/HeroLabBackground'
 
 const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO  = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -9,8 +10,10 @@ const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospac
 export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <HeroLabBackground />
       <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-start text-left justify-end             min-h-[60vh] md:min-h-[70vh] pt-28 md:pt-36 pb-16 md:pb-20">
+        <div className="flex flex-col items-start text-left justify-center             min-h-[60vh] md:min-h-[70vh] pt-24 md:pt-28 pb-10 md:pb-14">
+          
           <h1
             className="text-gray-700 dark:text-[#c8c8b8]"
             style={{
