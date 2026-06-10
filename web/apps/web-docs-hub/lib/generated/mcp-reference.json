@@ -1,7 +1,7 @@
 {
   "overview": {
     "title": "MCP",
-    "summary": "The MCP surface in Igris for structured shared context, tool-oriented state exchange, and cross-runtime coordination."
+    "summary": "The agent-facing MCP surface in Igris. One endpoint, a fixed strict-schema tool set, always scoped to the tenant behind the credential: discover registered actions, call them, and inspect the resulting runs, evidence, and runtimes."
   },
   "guides": [
     {
@@ -31,71 +31,83 @@
   ],
   "methodGroups": [
     {
-      "title": "Transport Surfaces",
-      "summary": "Customer-facing routes that carry MCP traffic through the product.",
+      "title": "Transport Surface",
+      "summary": "The single production route that carries MCP traffic.",
       "methods": [
         {
           "name": "POST /v1/mcp",
           "kind": "transport",
-          "page": "/docs/mcp#transport-surfaces",
-          "summary": "Request/response JSON-RPC transport for MCP calls."
-        },
-        {
-          "name": "POST /v1/mcp/stream",
-          "kind": "transport",
-          "page": "/docs/mcp#transport-surfaces",
-          "summary": "Streaming transport for MCP interactions that return incremental events."
+          "page": "/docs/mcp#transport-surface",
+          "summary": "Request/response JSON-RPC transport for MCP calls, scoped to the authenticated tenant."
         }
       ]
     },
     {
-      "title": "Context Methods",
-      "summary": "Methods for structured shared context rather than one-off prompt state.",
-      "methods": [
-        {
-          "name": "context/write",
-          "kind": "method",
-          "page": "/docs/mcp-server#core-method-families",
-          "summary": "Write a structured value into shared MCP context."
-        },
-        {
-          "name": "context/read",
-          "kind": "method",
-          "page": "/docs/mcp-server#core-method-families",
-          "summary": "Read a context value by key."
-        },
-        {
-          "name": "context/list",
-          "kind": "method",
-          "page": "/docs/mcp-server#core-method-families",
-          "summary": "List available shared-context keys."
-        },
-        {
-          "name": "context/delete",
-          "kind": "method",
-          "page": "/docs/mcp-server#core-method-families",
-          "summary": "Delete a context value by key."
-        }
-      ]
-    },
-    {
-      "title": "Tool Methods",
-      "summary": "Methods for discovery and invocation of MCP-exposed tools.",
+      "title": "JSON-RPC Methods",
+      "summary": "Methods for discovery and invocation of the fixed MCP tool set. Tool schemas are strict and unknown fields are rejected.",
       "methods": [
         {
           "name": "tools/list",
           "kind": "method",
-          "page": "/docs/mcp-server#core-method-families",
-          "summary": "List tools exposed through the MCP server."
+          "page": "/docs/mcp-server",
+          "summary": "List the available tools and their strict input schemas."
         },
         {
           "name": "tools/call",
           "kind": "method",
-          "page": "/docs/mcp-server#core-method-families",
-          "summary": "Call a tool through the MCP server contract."
+          "page": "/docs/mcp-server",
+          "summary": "Call one tool by name with arguments matching its schema."
+        }
+      ]
+    },
+    {
+      "title": "Tools",
+      "summary": "The fixed tool set exposed through tools/call. There are no context/* or resource/* methods.",
+      "methods": [
+        {
+          "name": "list_actions",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "List the tenant's registered actions."
+        },
+        {
+          "name": "get_action",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "Get one registered action by id or name."
+        },
+        {
+          "name": "call_action",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "Run a registered action. Supports an idempotency key for safe retries."
+        },
+        {
+          "name": "list_runs",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "List recent runs for the tenant."
+        },
+        {
+          "name": "get_run",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "Inspect one run: status, policy state, runtime assignment, and proof state."
+        },
+        {
+          "name": "get_run_evidence",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "Read the safe evidence summary for a run: step digests, proof status, and receipt presence."
+        },
+        {
+          "name": "list_runtimes",
+          "kind": "tool",
+          "page": "/docs/mcp-server",
+          "summary": "List the tenant's registered runtimes and whether they are currently routable."
         }
       ]
     }
   ],
-  "generated_at": "2026-06-09T17:49:28.173Z"
+  "generated_at": "2026-06-10T16:02:34.154Z"
 }

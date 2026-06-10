@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-09T17:49:28.173Z",
+  "generated_at": "2026-06-10T16:02:34.154Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
@@ -7,17 +7,128 @@
   "route_inventory_count": 487,
   "sections": [
     {
+      "title": "Actions",
+      "summary": "Registered actions are the primary execution gateway. Define what work an agent is allowed to ask Igris to run, then run those actions through Igris with policy, tenant-scoped idempotency, runtime routing, recovery, and proof.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/v1/actions",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Lists the registered actions owned by the authenticated tenant.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Creates a registered action definition: the contract for what an agent may ask Igris to run.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/actions/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Gets one registered action definition by id.",
+          "support": "supported",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "PATCH",
+          "path": "/v1/actions/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Updates a registered action definition.",
+          "support": "supported",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "DELETE",
+          "path": "/v1/actions/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Archives a registered action so it can no longer be run.",
+          "support": "supported",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/actions/run",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Runs a registered action by id or name. Raw, unregistered action definitions are not accepted.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Runs a registered action by name. This is the endpoint agents call in production.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Inspects one action run: status, proof state, and a redacted input summary.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        }
+      ]
+    },
+    {
+      "title": "Platform Health",
+      "summary": "Service availability checks for the hosted API.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/v1/health",
+          "auth": "Public",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Health check for the hosted API.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        }
+      ]
+    },
+    {
       "title": "Inference & Integration",
-      "summary": "Supported cloud inference endpoints. `/v1/chat/completions` is OpenAI-compatible, while `/v1/infer` exposes the native Igris request contract.",
+      "summary": "Experimental model-gateway endpoints. Disabled by default: they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.",
       "endpoints": [
         {
           "method": "POST",
           "path": "/v1/infer",
           "auth": "Deployment-dependent",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Native inference endpoint handled by Overture.",
-          "support": "core",
+          "stability": "experimental",
+          "description": "Native inference endpoint. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -26,20 +137,9 @@
           "path": "/v1/chat/completions",
           "auth": "Deployment-dependent",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "OpenAI-compatible chat completions endpoint.",
-          "support": "core",
-          "deployment": "cloud",
-          "audience": "public"
-        },
-        {
-          "method": "GET",
-          "path": "/v1/health",
-          "auth": "Public",
-          "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Health check for inference availability.",
-          "support": "core",
+          "stability": "experimental",
+          "description": "OpenAI-compatible chat completions endpoint. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -48,9 +148,9 @@
           "path": "/v1/models",
           "auth": "Public",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Lists models visible to the inference layer.",
-          "support": "core",
+          "stability": "experimental",
+          "description": "Lists models visible to the inference layer. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -59,9 +159,9 @@
           "path": "/v1/providers/stats",
           "auth": "Public",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Provider latency, health, and routing statistics.",
-          "support": "supported",
+          "stability": "experimental",
+          "description": "Provider latency, health, and routing statistics. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -70,8 +170,8 @@
           "path": "/v1/infer/multimodal",
           "auth": "Session or API key",
           "surface": "Cloud API",
-          "stability": "preview",
-          "description": "Multimodal inference endpoint.",
+          "stability": "experimental",
+          "description": "Multimodal inference endpoint. Experimental; disabled by default.",
           "support": "preview",
           "deployment": "cloud",
           "audience": "public"
@@ -81,8 +181,8 @@
           "path": "/v1/infer/multimodal/stats",
           "auth": "Session or API key",
           "surface": "Cloud API",
-          "stability": "preview",
-          "description": "Multimodal request statistics.",
+          "stability": "experimental",
+          "description": "Multimodal request statistics. Experimental; disabled by default.",
           "support": "preview",
           "deployment": "cloud",
           "audience": "public"
@@ -182,24 +282,13 @@
           "audience": "public"
         },
         {
-          "method": "GET",
-          "path": "/api/v1/runtime/list",
-          "auth": "tenant_id query or authenticated tenant context",
-          "surface": "Fleet management",
-          "stability": "stable",
-          "description": "Lists registered runtime instances for a tenant.",
-          "support": "supported",
-          "deployment": "hybrid",
-          "audience": "public"
-        },
-        {
           "method": "POST",
           "path": "/api/v1/runtime/config/push",
           "auth": "Session cookie",
           "surface": "Fleet management",
-          "stability": "stable",
-          "description": "Queues configuration push commands for the fleet.",
-          "support": "supported",
+          "stability": "experimental",
+          "description": "Queues configuration push commands for the fleet. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "hybrid",
           "audience": "public"
         },
@@ -208,9 +297,9 @@
           "path": "/api/v1/runtime/update",
           "auth": "Session cookie",
           "surface": "Fleet management",
-          "stability": "stable",
-          "description": "Queues OTA update commands for the fleet.",
-          "support": "supported",
+          "stability": "experimental",
+          "description": "Queues OTA update commands for the fleet. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "hybrid",
           "audience": "public"
         }
@@ -225,9 +314,9 @@
           "path": "/api/subscription/status",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Returns subscription tier, status, and runtime usage.",
-          "support": "supported",
+          "stability": "experimental",
+          "description": "Returns subscription tier, status, and runtime usage. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -236,9 +325,9 @@
           "path": "/api/subscription/plans",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Lists available plans and checkout URLs.",
-          "support": "supported",
+          "stability": "experimental",
+          "description": "Lists available plans and checkout URLs. Experimental; disabled by default.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -288,7 +377,7 @@
           "surface": "Cloud API",
           "stability": "stable",
           "description": "Lists configured provider keys with masked values.",
-          "support": "core",
+          "support": "supported",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -299,7 +388,7 @@
           "surface": "Cloud API",
           "stability": "stable",
           "description": "Stores a provider key using `{ provider, key_name, api_key }`.",
-          "support": "core",
+          "support": "supported",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -391,9 +480,9 @@
           "path": "/v1/history/events",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
-          "description": "Lists execution history events. Supports `range`, `limit`, `agent_id`, and `device_id`.",
-          "support": "supported",
+          "stability": "experimental",
+          "description": "Lists execution history events. Experimental; disabled by default. Use durable task and receipt endpoints for stable inspection.",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -445,16 +534,16 @@
     },
     {
       "title": "Routing Control & Analytics",
-      "summary": "Customer-visible routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state.",
+      "summary": "Experimental routing controls and read models for adaptive routing, speculative execution, council mode, provider weighting, and circuit-breaker state. Disabled by default: these endpoints require an explicit experimental feature flag on the deployment and are not part of the stable API contract.",
       "endpoints": [
         {
           "method": "GET",
           "path": "/v1/routing/stats",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Returns aggregate routing request and latency statistics.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -463,9 +552,9 @@
           "path": "/v1/routing/recent",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Lists recent routed requests for operational inspection.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -474,9 +563,9 @@
           "path": "/v1/routing/leaderboard",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Ranks providers by recent routing performance.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -485,9 +574,9 @@
           "path": "/v1/routing/strategy",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Saves the tenant routing strategy configuration.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -496,9 +585,9 @@
           "path": "/v1/routing/provider_weights",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Saves tenant provider weight overrides.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -507,9 +596,9 @@
           "path": "/v1/routing/speculative/status",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Returns current speculative-routing status metrics.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -518,9 +607,9 @@
           "path": "/v1/routing/speculative/config",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Returns the active speculative-routing configuration read model.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -529,9 +618,9 @@
           "path": "/v1/routing/speculative",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Saves tenant speculative-routing configuration.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -540,9 +629,9 @@
           "path": "/v1/routing/speculative/analytics",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Returns speculative-routing analytics series.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -551,7 +640,7 @@
           "path": "/v1/routing/speculative/simulate",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "preview",
+          "stability": "experimental",
           "description": "Triggers a speculative-routing simulation for a sample request.",
           "support": "preview",
           "deployment": "cloud",
@@ -562,9 +651,9 @@
           "path": "/v1/routing/council",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Saves tenant council-mode routing configuration.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -573,9 +662,9 @@
           "path": "/v1/routing/council/analytics",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Returns council-mode aggregate and per-chairman analytics.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -584,9 +673,9 @@
           "path": "/v1/routing/shadow",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Saves tenant shadow-routing configuration.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -595,9 +684,9 @@
           "path": "/v1/routing/circuit-breaker/status",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Returns aggregate and per-provider circuit-breaker state.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         }
@@ -605,16 +694,16 @@
     },
     {
       "title": "Behavior Trees",
-      "summary": "Supported behavior-tree definition endpoints exposed by the coordination layer.",
+      "summary": "Experimental behavior-tree definition endpoints. Disabled by default: they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.",
       "endpoints": [
         {
           "method": "GET",
           "path": "/v1/bt/templates",
           "auth": "Public",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Lists built-in behavior-tree templates.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -623,9 +712,9 @@
           "path": "/v1/bt/definitions",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Lists tenant behavior-tree definitions.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -634,9 +723,9 @@
           "path": "/v1/bt/definitions/:id",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Gets a single behavior-tree definition.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -645,9 +734,9 @@
           "path": "/v1/bt/definitions",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Creates or upserts a behavior-tree definition.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         },
@@ -656,9 +745,9 @@
           "path": "/v1/bt/definitions/:id",
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
-          "stability": "stable",
+          "stability": "experimental",
           "description": "Deletes a behavior-tree definition.",
-          "support": "supported",
+          "support": "preview",
           "deployment": "cloud",
           "audience": "public"
         }
@@ -749,27 +838,16 @@
     },
     {
       "title": "MCP Transport",
-      "summary": "Hosted MCP transport routes for structured shared context and tool-oriented workflows.",
+      "summary": "The agent-facing MCP endpoint. JSON-RPC `tools/list` and `tools/call` over a fixed, strict-schema tool set for registered actions, runs, evidence, and runtimes.",
       "endpoints": [
         {
           "method": "POST",
           "path": "/v1/mcp",
-          "auth": "Deployment-dependent",
+          "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Forwards JSON-RPC MCP requests to the configured runtime MCP server.",
-          "support": "supported",
-          "deployment": "cloud",
-          "audience": "public"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp/stream",
-          "auth": "Deployment-dependent",
-          "surface": "Cloud API",
-          "stability": "preview",
-          "description": "Forwards streaming MCP requests to the configured runtime MCP server.",
-          "support": "preview",
+          "description": "Agent-facing JSON-RPC MCP endpoint with strict tool schemas, scoped to the authenticated tenant.",
+          "support": "core",
           "deployment": "cloud",
           "audience": "public"
         }
@@ -808,7 +886,7 @@
           "surface": "Local runtime",
           "stability": "stable",
           "description": "OpenAI-compatible local inference endpoint.",
-          "support": "core",
+          "support": "supported",
           "deployment": "local",
           "audience": "public"
         },
@@ -874,7 +952,7 @@
           "surface": "Local runtime",
           "stability": "stable",
           "description": "Validates a runtime behavior tree definition.",
-          "support": "core",
+          "support": "supported",
           "deployment": "local",
           "audience": "public"
         },
@@ -885,7 +963,7 @@
           "surface": "Local runtime",
           "stability": "stable",
           "description": "Executes a runtime behavior tree.",
-          "support": "core",
+          "support": "supported",
           "deployment": "local",
           "audience": "public"
         },

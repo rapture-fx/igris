@@ -8,6 +8,26 @@ const { apiSections, docsAppRoot, generatedDir, repoRoot } = require('./docs-dat
 const SOURCE_SKIP_DIRS = new Set(['.git', 'node_modules', '.next', 'target', 'dist', 'out']);
 
 const SOURCE_ROUTE_SCHEMA_OVERRIDES = {
+  'POST /v1/actions': {
+    language: 'go',
+    schema: 'actionDefinitionRequest',
+    reason: 'routes_actions.go handleActionCreate parses the body as actionDefinitionRequest before normalizeActionDefinitionRequest validation.',
+  },
+  'PATCH /v1/actions/:id': {
+    language: 'go',
+    schema: 'actionDefinitionRequest',
+    reason: 'routes_actions.go handleActionPatch parses the body as actionDefinitionRequest; omitted fields keep their current values.',
+  },
+  'POST /v1/actions/run': {
+    language: 'go',
+    schema: 'actionRunRequest',
+    reason: 'routes_actions.go handleActionRun parses the body as actionRunRequest and resolves the registered action by id or name.',
+  },
+  'POST /v1/actions/:name/run': {
+    language: 'go',
+    schema: 'actionRunByNameRequest',
+    reason: 'routes_actions.go handleActionRunByName parses the body as actionRunByNameRequest for the registered action named in the path.',
+  },
   'POST /v1/infer': {
     language: 'go',
     schema: 'InferRequest',
@@ -51,7 +71,6 @@ const EXAMPLE_ONLY_SCHEMA_REASONS = {
   'POST /v1/tasks/:id/cancel': 'Task cancellation is path-param driven and bodyless in the public contract.',
   'POST /v1/tasks/:id/proof/verify': 'Task proof verification is path-param driven and reconciles persisted proof state; no JSON body is required.',
   'POST /v1/mcp': 'MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct.',
-  'POST /v1/mcp/stream': 'MCP streaming carries JSON-RPC envelopes over a streaming transport; method schemas are documented separately from the transport route.',
   'POST /v1/plan': 'Local planning is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/reflect': 'Local reflection is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/admin/models/load': 'Model loading is an admin operation validated against runtime model-manager state rather than a public route struct.',

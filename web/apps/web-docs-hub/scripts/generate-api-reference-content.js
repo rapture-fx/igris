@@ -17,7 +17,7 @@ const apiGuides = [
       {
         title: 'Two Product Surfaces',
         paragraphs: [
-          'Igris is documented here as one product with two access points. Use the hosted API at `https://overture.igrisinertial.com` when your integration needs account, fleet, billing, receipt, or policy capabilities. Use the local runtime API at `http://localhost:8080` by default when the request belongs on the machine where Igris is running.',
+          'Igris is documented here as one product with two access points. Use the hosted API at `https://overture.igrisinertial.com` for registered actions, runs, MCP, account, fleet, receipt, and policy capabilities. Use the local runtime API at `http://localhost:8080` by default when the request belongs on the machine where Igris is running.',
           'This split is about where the request executes, not about two different products. The API reference groups endpoints by capability so you can navigate by task first and only think about the base URL when you are ready to make the call.',
         ],
       },
@@ -38,7 +38,7 @@ const apiGuides = [
       {
         title: 'Support Labels and Deployment Modes',
         paragraphs: [
-          'Each endpoint page carries both a support label and a deployment mode. **Core** routes are the primary customer contract. **Supported** routes are part of the shipped product surface but may not be the first endpoint a new customer should start with. **Preview** routes are available, but they should be adopted deliberately.',
+          'Each endpoint page carries both a support label and a deployment mode. **Core** routes are the primary customer contract. **Supported** routes are part of the shipped product surface but may not be the first endpoint a new customer should start with. **Preview** routes are available, but they should be adopted deliberately. Routes whose stability badge reads **experimental** are disabled by default — they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.',
           'Deployment mode tells you where the route belongs operationally. **Cloud** routes are served by the hosted API, **Local** routes are served by `igris-runtime`, and **Hybrid** routes are used when the hosted product and one or more runtimes are working together.',
         ],
       },
@@ -96,7 +96,7 @@ http://localhost:8080`,
     ],
     codeTitle: 'Bearer Example',
     code: `curl -H "Authorization: Bearer $IGRIS_API_KEY" \\
-  https://overture.igrisinertial.com/v1/models`,
+  https://overture.igrisinertial.com/v1/actions`,
     responseTitle: 'Example JSON',
     response: `{
   "error": "unauthorized",

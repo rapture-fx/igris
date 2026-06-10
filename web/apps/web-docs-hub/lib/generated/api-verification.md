@@ -1,13 +1,13 @@
 # API Verification Report
 
-Generated: 2026-06-09T17:49:31.167Z
+Generated: 2026-06-10T16:02:39.754Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
-- Total documented endpoints: 103
-- Test-covered: 21
+- Total documented endpoints: 109
+- Test-covered: 27
 - Client-referenced: 11
 - Implemented but unverified: 71
 
@@ -15,9 +15,17 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 
 | Status | Method | Path | Section | Evidence |
 | --- | --- | --- | --- | --- |
+| test-covered | GET | `/v1/actions` | Actions | tests: 4, clients: 1 |
+| test-covered | POST | `/v1/actions` | Actions | tests: 4, clients: 1 |
+| test-covered | GET | `/v1/actions/:id` | Actions | tests: 2, clients: 1 |
+| implemented-unverified | PATCH | `/v1/actions/:id` | Actions | none |
+| implemented-unverified | DELETE | `/v1/actions/:id` | Actions | none |
+| test-covered | POST | `/v1/actions/run` | Actions | tests: 3, clients: 1 |
+| test-covered | POST | `/v1/actions/:name/run` | Actions | tests: 1 |
+| test-covered | GET | `/v1/actions/runs/:id` | Actions | tests: 1, clients: 1 |
+| test-covered | GET | `/v1/health` | Platform Health | tests: 5, clients: 5 |
 | test-covered | POST | `/v1/infer` | Inference & Integration | tests: 8, clients: 2 |
 | test-covered | POST | `/v1/chat/completions` | Inference & Integration | tests: 3, clients: 4 |
-| test-covered | GET | `/v1/health` | Inference & Integration | tests: 5, clients: 5 |
 | test-covered | GET | `/v1/models` | Inference & Integration | tests: 1, clients: 2 |
 | client-referenced | GET | `/v1/providers/stats` | Inference & Integration | clients: 2 |
 | test-covered | POST | `/v1/infer/multimodal` | Inference & Integration | tests: 1 |
@@ -30,7 +38,6 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | test-covered | POST | `/api/v1/runtime/heartbeat` | Runtime Distribution & Fleet Coordination | tests: 2, clients: 1 |
 | test-covered | GET | `/api/v1/runtime/commands` | Runtime Distribution & Fleet Coordination | tests: 1, clients: 1 |
 | client-referenced | DELETE | `/api/v1/runtime/deregister` | Runtime Distribution & Fleet Coordination | clients: 1 |
-| implemented-unverified | GET | `/api/v1/runtime/list` | Runtime Distribution & Fleet Coordination | none |
 | test-covered | POST | `/api/v1/runtime/config/push` | Runtime Distribution & Fleet Coordination | tests: 1 |
 | test-covered | POST | `/api/v1/runtime/update` | Runtime Distribution & Fleet Coordination | tests: 1 |
 | implemented-unverified | GET | `/api/subscription/status` | Account, Trial, and Billing | none |
@@ -79,7 +86,6 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | GET | `/v1/tasks/proof/readiness` | Durable Tasks | none |
 | implemented-unverified | POST | `/v1/tasks/:id/proof/verify` | Durable Tasks | none |
 | test-covered | POST | `/v1/mcp` | MCP Transport | tests: 2 |
-| implemented-unverified | POST | `/v1/mcp/stream` | MCP Transport | none |
 | implemented-unverified | GET | `/v1/health` | Local Runtime API | none |
 | implemented-unverified | GET | `/v1/runtime/profile` | Local Runtime API | none |
 | implemented-unverified | POST | `/v1/chat/completions` | Local Runtime API | none |

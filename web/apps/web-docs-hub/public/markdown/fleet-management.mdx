@@ -53,12 +53,14 @@ These are runtime-to-hosted coordination surfaces. They are useful for operator 
 
 ## 3. Inspect Registered Environments
 
-Use the runtime listing route when you want inventory and visibility:
+Use the runtime governance summary when you want inventory and visibility:
 
 ```bash
-curl "https://overture.igrisinertial.com/api/v1/runtime/list?tenant_id=YOUR_TENANT_ID" \
+curl https://overture.igrisinertial.com/v1/execution/governance/runtimes \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
+
+Agents can read the same inventory through the MCP `list_runtimes` tool, which also reports whether each runtime is currently routable.
 
 Use this surface to answer:
 
@@ -89,8 +91,8 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/config/push \
 
 Be precise about status:
 
-- config-push surfaces are present
-- command queuing is real
+- config push is experimental and disabled by default — it requires an explicit experimental feature flag on the deployment
+- command queuing is real once the surface is enabled
 - full end-to-end config rollout should still be treated according to [Proof Status](/docs/proof-status) unless you have a reproducible proof for your environment
 
 ## 5. Treat OTA-Style Updates Carefully
@@ -110,8 +112,8 @@ curl -X POST https://overture.igrisinertial.com/api/v1/runtime/update \
 
 Use careful language here as well:
 
-- the operator route exists
-- staged update intent is part of the surface
+- the update route is experimental and disabled by default behind the same explicit feature flag
+- staged update intent is part of the surface once enabled
 - broader OTA behavior and multi-runtime failover claims should follow [Proof Status](/docs/proof-status)
 
 ## What Fleet Management Means In Practice

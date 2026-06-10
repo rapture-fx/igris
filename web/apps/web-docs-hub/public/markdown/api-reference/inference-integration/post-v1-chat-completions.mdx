@@ -8,7 +8,7 @@ audience: "public"
 
 Primary hosted inference route for customers who want the shortest path to production. It preserves the OpenAI chat-completions contract while still running through Igris routing, policy, and receipt generation.
 
-<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/chat/completions</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Deployment-dependent</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/chat/completions</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Deployment-dependent</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-experimental">experimental</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
 
 ## When To Use
 
@@ -27,8 +27,8 @@ Retry transient 5xx or 429 responses with backoff. Do not automatically retry 4x
 ### Related Endpoints
 
 - [POST /v1/infer](/docs/api-reference/inference-integration/post-v1-infer)
-- [GET /v1/health](/docs/api-reference/inference-integration/get-v1-health)
 - [GET /v1/models](/docs/api-reference/inference-integration/get-v1-models)
+- [GET /v1/providers/stats](/docs/api-reference/inference-integration/get-v1-providers-stats)
 
 ### Related Guides
 

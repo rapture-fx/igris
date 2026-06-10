@@ -221,6 +221,11 @@ function main() {
   }
 
   const requiredCustomerEndpointKeys = [
+    'GET /v1/actions',
+    'POST /v1/actions',
+    'POST /v1/actions/run',
+    'POST /v1/actions/:name/run',
+    'GET /v1/actions/runs/:id',
     'POST /api/v1/runtime/register',
     'POST /api/v1/runtime/heartbeat',
     'GET /api/v1/runtime/commands',
@@ -237,7 +242,6 @@ function main() {
     'GET /v1/tasks/proof/readiness',
     'POST /v1/tasks/:id/proof/verify',
     'POST /v1/mcp',
-    'POST /v1/mcp/stream',
     'GET /v1/runtime/profile',
     'GET /v1/memory/status',
     'POST /v1/runtime/task/submit',
