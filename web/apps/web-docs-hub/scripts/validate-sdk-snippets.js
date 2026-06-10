@@ -89,7 +89,7 @@ function extractClassMethods(source, className) {
   const openIndex = source.indexOf('{', classIndex);
   const closeIndex = findMatchingBrace(source, openIndex);
   const body = source.slice(openIndex + 1, closeIndex);
-  return new Set([...body.matchAll(/(?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g)].map((match) => match[1]));
+  return new Set([...body.matchAll(/(?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:<[^>]*>)?\s*\(/g)].map((match) => match[1]));
 }
 
 function findMatchingBrace(source, openIndex) {
