@@ -41,8 +41,8 @@ The hosted control plane and the runtime are implementation components inside th
   <Tab>
 ```mermaid
 graph TD
-    App["Your Application\n(OpenAI-compatible SDK)"]
-    App -->|"POST /v1/chat/completions"| Coordination
+    App["Your Application or Agent\n(SDK or HTTP client)"]
+    App -->|"POST /v1/actions/:name/run"| Coordination
 
     subgraph Coordination["Coordination Layer (Cloud Gateway)"]
         Router["Adaptive Router"]
@@ -104,8 +104,9 @@ The coordination layer is the hosted control plane. It accepts requests, applies
 ### API Surface
 
 The coordination layer exposes:
-- **Inference API** — Request entry points such as `/v1/infer` and `/v1/chat/completions`
+- **Actions API** — The primary request entry point: registered actions run through `/v1/actions/:name/run`, with `/v1/tasks` for durable task workflows and `/v1/mcp` for agents speaking MCP
 - **Management API** — Runtime lifecycle, policy, receipts, vault keys, and operator workflows
+- **Inference API (experimental)** — `/v1/infer` and `/v1/chat/completions`, disabled by default behind an explicit feature flag
 - **Webhooks** — Subscription events, alert notifications, human-in-the-loop escalations
 
 ---
