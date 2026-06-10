@@ -20,8 +20,8 @@ const STATUS_META: Record<string, { label: string; badgeClass: string }> = {
     badgeClass:
       'bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/25',
   },
-  'openai-compatible': {
-    label: 'OpenAI-compatible',
+  'http-api': {
+    label: 'HTTP API',
     badgeClass:
       'bg-sky-500/10 text-sky-700 dark:text-sky-400 ring-1 ring-inset ring-sky-500/25',
   },
@@ -84,7 +84,7 @@ export function SdkSupportMatrix() {
 
   const firstClass = rows.filter((r) => r.status === 'first-class');
   const preview = rows.filter((r) => r.status === 'preview');
-  const compatible = rows.filter((r) => r.status === 'openai-compatible');
+  const compatible = rows.filter((r) => r.status === 'http-api');
 
   return (
     <div className="space-y-6 not-prose sdk-matrix">
@@ -108,9 +108,9 @@ export function SdkSupportMatrix() {
         </div>
       </div>
 
-      {/* OpenAI-compatible */}
+      {/* HTTP API */}
       <div>
-        <SectionLabel>OpenAI-compatible only</SectionLabel>
+        <SectionLabel>HTTP API</SectionLabel>
         <div className="rounded-xl border border-fd-border bg-fd-muted/40 p-4 space-y-3">
           <div className="flex flex-wrap gap-2">
             {compatible.map((row) => (
@@ -123,11 +123,11 @@ export function SdkSupportMatrix() {
             ))}
           </div>
           <p className="text-[0.84rem] leading-relaxed text-fd-muted-foreground m-0">
-            Point any OpenAI-compatible client at{' '}
+            Run registered actions with any standard HTTP client:{' '}
             <code className="font-mono text-[0.72rem] bg-fd-muted rounded px-1 py-0.5">
-              https://overture.igrisinertial.com/v1
-            </code>{' '}
-            as the base URL. Native SDKs for these languages are not yet available.
+              POST https://overture.igrisinertial.com/v1/actions/:name/run
+            </code>
+            . Native SDKs for these languages are not yet available.
           </p>
         </div>
       </div>
