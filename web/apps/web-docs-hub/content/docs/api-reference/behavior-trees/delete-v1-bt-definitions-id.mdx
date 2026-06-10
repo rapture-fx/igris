@@ -8,15 +8,15 @@ audience: "public"
 
 Deletes a behavior-tree definition. This endpoint belongs to the Behavior Trees group and is documented here as a customer-facing contract with its auth model, request shape, and sample traffic.
 
-<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-delete">DELETE</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/bt/definitions/:id</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-supported">supported</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-delete">DELETE</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/bt/definitions/:id</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-experimental">experimental</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-preview">preview</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
 
 ## When To Use
 
-Use this endpoint when the operation belongs to the Behavior Trees surface on the hosted API. It is intended to be the customer-facing contract for this capability.
+This endpoint is experimental and disabled by default. It requires an explicit experimental feature flag on the deployment, is not part of the stable API contract, and may change or be removed. Do not build production integrations against it without confirming it is enabled and supported for your deployment.
 
 ## Integration Guidance
 
-Do not blindly retry write operations. Retry only on transient 5xx or 429 responses, and make sure the client is idempotent or otherwise safe to replay.
+Retry only on clearly transient 5xx or 429 responses, and prefer idempotent client behavior. For preview routes, avoid aggressive automatic replay until you have validated the behavior in your environment.
 
 ### Common Mistakes
 
