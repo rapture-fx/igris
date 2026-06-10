@@ -125,9 +125,9 @@ If a team cannot answer those five questions clearly, it usually means the conte
 
 ## Common Patterns
 
-### Hosted inference with light context
+### Action runs with light context
 
-Keep the context in the request and use the OpenAI-compatible API or native inference routes. This is the best path when the work is synchronous and the context is short-lived.
+Keep the context in the request `input` and run a registered action. This is the best path when the work is synchronous and the context is short-lived — the run record keeps a redacted summary you can inspect later.
 
 ### Agent workflows with reusable state
 
