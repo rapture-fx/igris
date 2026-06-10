@@ -11,7 +11,7 @@ advanced proof path verifies today.
 
 This quickstart is intentionally not a generic hosted-inference tutorial. Direct model calls are fine for simple chat. Igris is for the point where AI output starts doing work and you need governed execution, visible failure paths, and records you can inspect after the run.
 
-If you need the shortest hosted setup path after this proof-first walkthrough, Igris also supports an OpenAI-compatible onboarding path through the hosted API.
+When you are ready to integrate for real, the standard path is actions-first: register an action on the hosted API, run it with an idempotency key, and inspect the durable run. [First Hosted Integration →](/docs/first-cloud-integration) walks through it.
 
 ---
 
@@ -129,8 +129,8 @@ Use this only when you are intentionally proving a sanctioned provider path. Do 
 
 ## 5. Choose The Next Path
 
-1. [First Verified Run](/docs/first-verified-run) for a deeper walkthrough of the proof demo and its artifacts.
-2. [Request -> Execute -> Verify](/docs/request-execute-verify) for the core mental model.
-3. [Verification](/docs/verification) for receipt hashes, signatures, and current proof-route semantics.
-4. [Architecture](/docs/architecture) for how the unified product maps to hosted and runtime execution.
-5. [API Reference](/docs/api-reference) when you are ready to integrate against specific routes.
+1. [First Hosted Integration](/docs/first-cloud-integration) to register an action, run it with an idempotency key, and inspect the run.
+2. [First Verified Run](/docs/first-verified-run) for a deeper walkthrough of the proof demo and its artifacts.
+3. [Request -> Execute -> Verify](/docs/request-execute-verify) for the core mental model.
+4. [Verification](/docs/verification) for receipt hashes, signatures, and current proof-route semantics.
+5. [API Reference](/docs/api-reference) when you are ready to integrate against specific routes — the Actions section comes first.
