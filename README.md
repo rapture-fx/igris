@@ -208,3 +208,7 @@ pnpm --filter @igris/web-docs-hub build
 ## License
 
 See the repository license and product-specific terms where applicable.
+
+eval "$(rbenv init -)"
+ruby --version   # should now show 3.2.2
+bin/rails server
