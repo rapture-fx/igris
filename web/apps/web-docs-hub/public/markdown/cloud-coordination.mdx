@@ -33,13 +33,13 @@ This is part of one execution system. It should not be read as a separate produc
 
 ## Hosted Request Entry
 
-For many teams, the first hosted path is the OpenAI-compatible surface:
+The standard hosted entry point is the actions gateway — agents run registered actions by name:
 
 ```text
-https://overture.igrisinertial.com/v1
+POST https://overture.igrisinertial.com/v1/actions/:name/run
 ```
 
-That keeps the application contract simple while letting Igris own the execution path behind it.
+That keeps the application contract simple while letting Igris own policy, routing, idempotency, and evidence behind it. See [First Hosted Integration →](/docs/first-cloud-integration).
 
 ## Provider Configuration
 
