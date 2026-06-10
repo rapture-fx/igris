@@ -255,7 +255,7 @@ function main() {
 
   const sdkSupportPath = path.join(generatedDir, 'sdk-support.json');
   const sdkSupport = JSON.parse(fs.readFileSync(sdkSupportPath, 'utf8'));
-  const allowedSdkStatuses = new Set(['first-class', 'preview', 'openai-compatible']);
+  const allowedSdkStatuses = new Set(['first-class', 'preview', 'http-api']);
   for (const row of sdkSupport.rows ?? []) {
     if (!allowedSdkStatuses.has(row.status)) {
       failures.push(`SDK support row for ${row.language}: invalid status ${row.status}`);
@@ -302,8 +302,8 @@ function main() {
   }
 
   const quickstart = fs.readFileSync(path.join(docsDir, 'quickstart.mdx'), 'utf8');
-  if (!quickstart.includes('OpenAI-compatible')) {
-    failures.push('quickstart.mdx must explain the OpenAI-compatible onboarding path.');
+  if (!quickstart.includes('/docs/first-cloud-integration')) {
+    failures.push('quickstart.mdx must point readers at the actions-first First Hosted Integration guide.');
   }
 
   const sdkPage = fs.readFileSync(path.join(docsDir, 'sdk.mdx'), 'utf8');
@@ -311,14 +311,17 @@ function main() {
   const firstClassLanguages = (sdkSupport.rows ?? [])
     .filter((row) => row.status === 'first-class')
     .map((row) => normalizeLanguage(row.language));
-  const openAICompatibleLanguages = (sdkSupport.rows ?? [])
-    .filter((row) => row.status === 'openai-compatible')
+  const httpApiLanguages = (sdkSupport.rows ?? [])
+    .filter((row) => row.status === 'http-api')
     .map((row) => row.language);
 
   const mentionsAllFirstClass = firstClassLanguages.every((language) => sdkPage.includes(language));
-  const mentionsOpenAICompatible = openAICompatibleLanguages.every((language) => sdkPage.includes(language));
-  if (!mentionsAllFirstClass || !mentionsOpenAICompatible || !sdkPage.includes('OpenAI-compatible')) {
+  const mentionsHttpApiLanguages = httpApiLanguages.every((language) => sdkPage.includes(language));
+  if (!mentionsAllFirstClass || !mentionsHttpApiLanguages) {
     failures.push('sdk.mdx must state the current first-class SDK support clearly.');
+  }
+  if (!sdkPage.includes('/v1/actions/') || !sdkPage.includes('runAction')) {
+    failures.push('sdk.mdx must document the actions-first integration path (Actions HTTP API and runAction).');
   }
   if (!sdkPage.includes('## Support Policy')) {
     failures.push('sdk.mdx must include a Support Policy section.');
