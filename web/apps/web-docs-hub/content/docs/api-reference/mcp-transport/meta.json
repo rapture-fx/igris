@@ -1,7 +1,6 @@
 {
   "title": "MCP Transport",
   "pages": [
-    "post-v1-mcp",
-    "post-v1-mcp-stream"
+    "post-v1-mcp"
   ]
 }
