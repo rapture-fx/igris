@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-06-10T16:03:06.179Z",
+  "generated_at": "2026-06-10T16:23:18.087Z",
   "summary": {
-    "total": 879,
+    "total": 890,
     "by_status": {
-      "implemented": 879
+      "implemented": 890
     }
   },
   "guide_summary": {
-    "total": 112,
+    "total": 123,
     "by_status": {
-      "implemented": 112
+      "implemented": 123
     }
   },
   "pages": [
@@ -919,11 +919,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "implemented": 3,
+      "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 3
+      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx",
@@ -943,11 +943,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "implemented": 10,
+      "implemented": 11,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 10
+      "total_route_claims": 11
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx",
@@ -975,11 +975,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
-      "implemented": 1,
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-verified-run.mdx",
@@ -1060,6 +1060,22 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 2
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/request-execute-verify.mdx",
+      "implemented": 1,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 1
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "implemented": 4,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 4
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/security.mdx",
@@ -1137,11 +1153,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "implemented": 3,
+      "implemented": 6,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 3
+      "total_route_claims": 6
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/articles/edge-deployment-guide.mdx",
@@ -1161,11 +1177,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
-      "implemented": 10,
+      "implemented": 11,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 10
+      "total_route_claims": 11
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx",
@@ -1193,11 +1209,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
-      "implemented": 1,
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 1
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-verified-run.mdx",
@@ -1278,6 +1294,22 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 2
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/request-execute-verify.mdx",
+      "implemented": 1,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 1
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "implemented": 4,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 4
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/security.mdx",
@@ -17407,50 +17439,89 @@
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
       "line": 45,
       "method": "POST",
-      "path": "/v1/chat/completions",
+      "path": "/v1/actions/:name/run",
       "expected_surface": null,
-      "source": "App -->|\"POST /v1/chat/completions\"| Coordination",
+      "source": "App -->|\"POST /v1/actions/:name/run\"| Coordination",
       "status": "implemented",
       "evidence": [
         {
           "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-overture/api/routes_routing.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/chat/completions",
-          "file": "igris-runtime/crates/igris-server/src/main.rs",
-          "surface": "local-runtime"
         }
       ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
       "line": 107,
+      "method": null,
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- **Actions API** — The primary request entry point: registered actions run through `/v1/actions/:name/run`, with `/v1/tasks` for durable task workflows and `/v1/mcp` for agents speaking MCP",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
+      "line": 107,
+      "method": null,
+      "path": "/v1/tasks",
+      "expected_surface": null,
+      "source": "- **Actions API** — The primary request entry point: registered actions run through `/v1/actions/:name/run`, with `/v1/tasks` for durable task workflows and `/v1/mcp` for agents speaking MCP",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/tasks",
+          "file": "igris-overture/api/routes_tasks.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
+      "line": 107,
+      "method": null,
+      "path": "/v1/mcp",
+      "expected_surface": null,
+      "source": "- **Actions API** — The primary request entry point: registered actions run through `/v1/actions/:name/run`, with `/v1/tasks` for durable task workflows and `/v1/mcp` for agents speaking MCP",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/mcp",
+          "file": "igris-overture/api/routes_mcp.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
+      "line": 109,
       "method": null,
       "path": "/v1/infer",
       "expected_surface": null,
-      "source": "- **Inference API** — Request entry points such as `/v1/infer` and `/v1/chat/completions`",
+      "source": "- **Inference API (experimental)** — `/v1/infer` and `/v1/chat/completions`, disabled by default behind an explicit feature flag",
       "status": "implemented",
       "evidence": [
         {
@@ -17475,11 +17546,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/architecture.mdx",
-      "line": 107,
+      "line": 109,
       "method": null,
       "path": "/v1/chat/completions",
       "expected_surface": null,
-      "source": "- **Inference API** — Request entry points such as `/v1/infer` and `/v1/chat/completions`",
+      "source": "- **Inference API (experimental)** — `/v1/infer` and `/v1/chat/completions`, disabled by default behind an explicit feature flag",
       "status": "implemented",
       "evidence": [
         {
@@ -17698,6 +17769,23 @@
           "path": "/v1/btree/run",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/cloud-coordination.mdx",
+      "line": 39,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": "cloud-api",
+      "source": "POST https://overture.igrisinertial.com/v1/actions/:name/run",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
         }
       ]
     },
@@ -18114,17 +18202,51 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
-      "line": 34,
+      "line": 32,
       "method": "POST",
-      "path": "/v1/vault/keys",
+      "path": "/v1/actions",
       "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/vault/keys \\",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/actions \\",
       "status": "implemented",
       "evidence": [
         {
           "method": "POST",
-          "path": "/v1/vault/keys",
-          "file": "igris-overture/api/routes_tenancy.go",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
+      "line": 56,
+      "method": "POST",
+      "path": "/v1/actions/send_invoice/run",
+      "expected_surface": "cloud-api",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
+      "line": 88,
+      "method": "GET",
+      "path": "/v1/actions/runs/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+      "expected_surface": "cloud-api",
+      "source": "curl https://overture.igrisinertial.com/v1/actions/runs/018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
         }
       ]
@@ -18857,6 +18979,127 @@
           "path": "/v1/receipts/:id",
           "file": "igris-overture/api/routes_receipts.go",
           "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/request-execute-verify.mdx",
+      "line": 25,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- a registered action run (`POST /v1/actions/:name/run`)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 9,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "The production Igris integration path is **registered actions**: register an action once, then run it by name and inspect the durable run. That path is plain HTTP — `POST /v1/actions/:name/run` works from any language with any HTTP client — so an SDK is a convenience, not a requirement.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 77,
+      "method": "POST",
+      "path": "/v1/actions/send_invoice/run",
+      "expected_surface": "cloud-api",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 283,
+      "method": null,
+      "path": "/v1/infer",
+      "expected_surface": null,
+      "source": "The hosted inference surface (`/v1/infer`, `/v1/chat/completions`) is **experimental and disabled by default** — it requires an explicit experimental feature flag on the deployment and is not the product entry point. Registered actions are. If your deployment has the inference surface enabled, the native SDKs expose typed inference calls (`client.infer` in JavaScript/Go/Rust, `chat_completion` in Python), and any OpenAI-style client can point at `https://overture.igrisinertial.com/v1`. Treat that path the way the [API reference labels it](/docs/api-reference): experimental, not part of the stable contract.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/infer",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/sdk.mdx",
+      "line": 283,
+      "method": null,
+      "path": "/v1/chat/completions",
+      "expected_surface": null,
+      "source": "The hosted inference surface (`/v1/infer`, `/v1/chat/completions`) is **experimental and disabled by default** — it requires an explicit experimental feature flag on the deployment and is not the product entry point. Registered actions are. If your deployment has the inference surface enabled, the native SDKs expose typed inference calls (`client.infer` in JavaScript/Go/Rust, `chat_completion` in Python), and any OpenAI-style client can point at `https://overture.igrisinertial.com/v1`. Treat that path the way the [API reference labels it](/docs/api-reference): experimental, not part of the stable contract.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-overture/api/routes_routing.go",
+          "surface": "cloud-api"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
         }
       ]
     },
