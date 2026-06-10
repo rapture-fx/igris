@@ -1975,7 +1975,7 @@ function buildRelatedGuides(endpoint: ApiEndpoint) {
       pushGuide('Context Engineering', '/docs/context-engineering');
     }
   } else if (path.startsWith('/v1/chat/completions') || path.startsWith('/v1/infer') || path === '/v1/models' || path === '/v1/providers/stats') {
-    pushGuide('First Cloud Integration', '/docs/first-cloud-integration');
+    pushGuide('SDKs', '/docs/sdk');
     pushGuide('SDK Integration Patterns', '/docs/sdk-integration-patterns');
   } else if (path.startsWith('/v1/receipts') || path.startsWith('/v1/history') || path.startsWith('/proof/receipts')) {
     pushGuide('Receipts and Audit Workflow', '/docs/receipts-audit-workflow');
