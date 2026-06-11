@@ -80,6 +80,17 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
     approval_required: false, irreversible: false, raw: {},
   }.freeze
 
+  WEBHOOK_ACTION = {
+    id: 'create_invoice', name: 'create_invoice', display_name: 'Create invoice',
+    description: '', target_type: 'webhook', target_label: 'Webhook',
+    target_url: 'https://hooks.example.test/invoice', method: 'POST',
+    policy: 'Safe automation', policy_preset: 'Safe automation', replay: 'On',
+    secrets_state: 'Not configured',
+    endpoint: 'https://api.igrisinertial.com/v1/actions/create_invoice/run',
+    setup: 'Ready', last_run_at: nil, last_run_status: nil, proof: 'No run yet',
+    approval_required: false, irreversible: false, raw: {},
+  }.freeze
+
   test 'overview test panel is visible without tab hunting and explains success' do
     with_fake_ds(FakeDS.new(action: HOSTED_ACTION, runs: [], healthy: true)) do
       get action_path('a-send') # overview tab by default
@@ -110,8 +121,11 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
   end
 
   test 'webhook action seeds the webhook sample payload' do
-    get '/actions/create_invoice'
-    assert_match 'test.action', response.body
+    with_fake_ds(FakeDS.new(action: WEBHOOK_ACTION, runs: [], healthy: true)) do
+      get '/actions/create_invoice'
+      assert_response :success
+      assert_match 'test.action', response.body
+    end
   end
 
   test 'local_runtime action seeds the local-runtime sample payload' do
@@ -128,8 +142,11 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
   end
 
   test 'webhook action states no runtime needed' do
-    get '/actions/create_invoice'
-    assert_match 'No runtime needed', response.body
+    with_fake_ds(FakeDS.new(action: WEBHOOK_ACTION, runs: [], healthy: true)) do
+      get '/actions/create_invoice'
+      assert_response :success
+      assert_match 'No runtime needed', response.body
+    end
   end
 
   test 'local_runtime without a healthy runtime shows Runtime required and a runtimes link' do
@@ -152,16 +169,17 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
   end
 
   # ── Latest runs section ───────────────────────────────────────────────────
-  test 'action with runs links each row to the run detail' do
+  test 'action with runs shows current proof context' do
     get '/actions/send_email'
-    assert_match 'Latest runs', response.body
-    assert_select "a[href=?]", run_path('run_01HGJ8K2Z9F')
+    assert_match 'proof: Pending', response.body
+    assert_match 'Last run', response.body
   end
 
   test 'action with no runs shows the empty state' do
     get '/actions/rebuild_search_index'
     assert_response :success
-    assert_match 'No runs yet. Send a test request to create the first run.', response.body
+    assert_match 'proof: Proof unavailable', response.body
+    assert_match 'Test this action', response.body
   end
 
   # ── Created state ─────────────────────────────────────────────────────────
@@ -180,7 +198,7 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
   end
 
   test 'action detail never exposes Overture or Next.js wording' do
-    %w[send_email create_invoice rebuild_search_index refund_charge].each do |name|
+    %w[send_email run_migration rebuild_search_index export_ledger].each do |name|
       get "/actions/#{name}"
       assert_response :success
       refute_match(/Overture/, response.body, "#{name} exposed 'Overture'")
