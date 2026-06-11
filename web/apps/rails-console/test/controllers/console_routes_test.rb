@@ -31,7 +31,8 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     get '/welcome'
     assert_response :success
     assert_match 'Give your AI agent a safe action endpoint.', response.body
-    assert_match 'Your first action', response.body
+    assert_match 'Call Igris from your agent', response.body
+    assert_match 'Action endpoint', response.body
     assert_match 'Create your first action', response.body
     assert_match 'Go to Overview', response.body
     assert_match 'ic-rail', response.body # rendered with the icon rail, not standalone
