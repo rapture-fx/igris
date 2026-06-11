@@ -66,6 +66,30 @@ class DataSourceTest < ActiveSupport::TestCase
     assert_equal 'Ready', a[:setup]
   end
 
+  test 'action with secret_refs reports configured without exposing secret values' do
+    marker = 'IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET'
+    client = FakeClient.new(actions: [{
+      'id' => 'a-secret', 'name' => 'secret_action',
+      'target_type' => 'hosted_api',
+      'target_url' => 'https://api.example.test/do',
+      'method' => 'POST',
+      'secret_refs' => ['resend_api_key'],
+      'target_metadata' => {
+        'headers' => { 'Authorization' => "Bearer #{marker}" },
+        'request_body' => marker,
+      },
+    }])
+
+    action = Igris::DataSource.new(client: client).actions.first
+    encoded = action.to_json
+
+    assert_equal 'Configured', action[:secrets_state]
+    refute_includes encoded, marker
+    refute_includes encoded, 'Bearer'
+    assert_includes encoded, 'input_redacted'
+    assert_includes encoded, Igris::DataSource::REDACTION_POLICY_VERSION
+  end
+
   test 'action normalization redacts unsafe target url before rendering' do
     marker = 'IGRIS_SHOULD_NEVER_PERSIST_INPUT_SECRET'
     client = FakeClient.new(actions: [{
@@ -212,8 +236,9 @@ class DataSourceTest < ActiveSupport::TestCase
     refute_includes encoded, 'Bearer'
     refute_includes encoded, 'session='
     refute_includes encoded, '/Users/customer/private'
-    assert_includes encoded, 'input_redacted'
-    assert_includes encoded, 'input_digest_sha256'
+    assert_equal 'failure details redacted', detail[:failure_reason]
+    assert_nil detail[:request_summary]
+    assert_equal 'abc123def456ab…', detail[:request_digest]
   end
 
   test 'execution steps map safely and drop reasons, targets, and signatures' do
