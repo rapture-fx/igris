@@ -21,7 +21,7 @@
 //    fetch); monochrome by default, full brand colour on hover.
 // ──────────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Globe, Webhook, Server, Plug, Network, type LucideIcon } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -75,7 +75,7 @@ const LANGS: Lang[] = [
     label: 'cURL',
     file: 'POST /v1/actions/send_invoice/run',
     lines: [
-      'curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \\',
+      'curl -X POST https://api.igrisinertial.com/v1/actions/send_invoice/run \\',
       '  -H "Authorization: Bearer $IGRIS_API_KEY" \\',
       '  -H "Content-Type: application/json" \\',
       '  -d \'{',
@@ -105,7 +105,7 @@ const LANGS: Lang[] = [
       'import os, requests',
       '',
       'requests.post(',
-      '    "https://overture.igrisinertial.com/v1/actions/send_invoice/run",',
+      '    "https://api.igrisinertial.com/v1/actions/send_invoice/run",',
       '    headers={"Authorization": f"Bearer {os.environ[\'IGRIS_API_KEY\']}"},',
       '    json={',
       '        "input": {"customer_id": "cus_8821", "amount": 4200},',
@@ -125,7 +125,7 @@ const LANGS: Lang[] = [
       '})',
       '',
       'req, _ := http.NewRequest("POST",',
-      '    "https://overture.igrisinertial.com/v1/actions/send_invoice/run",',
+      '    "https://api.igrisinertial.com/v1/actions/send_invoice/run",',
       '    bytes.NewReader(body))',
       'req.Header.Set("Authorization", "Bearer "+os.Getenv("IGRIS_API_KEY"))',
       '',
@@ -139,7 +139,7 @@ const LANGS: Lang[] = [
     lines: [
       'let client = reqwest::Client::new();',
       '',
-      'client.post("https://overture.igrisinertial.com/v1/actions/send_invoice/run")',
+      'client.post("https://api.igrisinertial.com/v1/actions/send_invoice/run")',
       '    .bearer_auth(std::env::var("IGRIS_API_KEY")?)',
       '    .json(&serde_json::json!({',
       '        "input": { "customer_id": "cus_8821", "amount": 4200 },',
@@ -318,22 +318,7 @@ function CodeWindow() {
                 <span className="ae-dot" /><span className="ae-dot" /><span className="ae-dot" />
               </div>
               <span className="ae-bar-label" style={{ fontFamily: MONO }}>{active.file}</span>
-              <div className="ae-lang">
-                <select
-                  className="ae-lang-select"
-                  value={lang}
-                  onChange={(e) => setLang(e.target.value)}
-                  aria-label="Code example language"
-                  style={{ fontFamily: MONO }}
-                >
-                  {LANGS.map((l) => (
-                    <option key={l.id} value={l.id}>{l.label}</option>
-                  ))}
-                </select>
-                <svg className="ae-lang-chev" width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden>
-                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
+              <LangDropdown lang={lang} onChange={setLang} />
             </div>
 
             {/* Code pane — tall editor surface */}
@@ -350,6 +335,67 @@ function CodeWindow() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Custom language dropdown — styled to the window palette instead of the
+// native browser select. Closes on outside click and Escape.
+function LangDropdown({ lang, onChange }: { lang: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const active = LANGS.find((l) => l.id === lang) ?? LANGS[0]
+
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div className="ae-lang" ref={ref}>
+      <button
+        type="button"
+        className="ae-lang-btn"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Code example language"
+        onClick={() => setOpen((o) => !o)}
+        style={{ fontFamily: MONO }}
+      >
+        {active.label}
+        <svg
+          className={'ae-lang-chev' + (open ? ' is-open' : '')}
+          width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden
+        >
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <ul className="ae-lang-menu" role="listbox" aria-label="Code example language" style={{ fontFamily: MONO }}>
+          {LANGS.map((l) => (
+            <li key={l.id} role="option" aria-selected={l.id === lang}>
+              <button
+                type="button"
+                className={'ae-lang-opt' + (l.id === lang ? ' is-active' : '')}
+                onClick={() => { onChange(l.id); setOpen(false) }}
+              >
+                {l.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -428,24 +474,42 @@ function EndpointStyles() {
       .ae-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--p-dot); }
       .ae-bar-label {
         flex: 1; min-width: 0; font-size: 11.5px; color: var(--p-dim);
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
       }
 
-      /* Language dropdown (top-right) */
+      /* Language dropdown (top-right, custom — not the browser select) */
       .ae-lang { position: relative; flex: none; display: inline-flex; align-items: center; }
-      .ae-lang-select {
-        appearance: none; -webkit-appearance: none;
+      .ae-lang-btn {
+        display: inline-flex; align-items: center; gap: 7px;
         font-size: 11.5px; line-height: 1;
-        padding: 6px 26px 6px 11px;
+        padding: 6px 9px 6px 11px;
         border-radius: 7px; border: 1px solid var(--p-border-soft);
         background: var(--p-overlay); color: var(--p-text);
         cursor: pointer; outline: none;
         transition: border-color .2s ease;
       }
-      .ae-lang-select:hover { border-color: var(--p-border); }
-      .ae-lang-select:focus-visible { border-color: var(--p-emerald); }
-      html.dark .ae-lang-select { color-scheme: dark; }
-      .ae-lang-chev { position: absolute; right: 9px; pointer-events: none; color: var(--p-faint); }
+      .ae-lang-btn:hover { border-color: var(--p-border); }
+      .ae-lang-btn:focus-visible { border-color: var(--p-emerald); }
+      .ae-lang-chev { flex: none; color: var(--p-faint); transition: transform .15s ease; }
+      .ae-lang-chev.is-open { transform: rotate(180deg); }
+      .ae-lang-menu {
+        position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+        margin: 0; padding: 4px; list-style: none; min-width: 124px;
+        border-radius: 9px; border: 1px solid var(--p-border);
+        background: var(--p-panel);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+      }
+      html.dark .ae-lang-menu { box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.4); }
+      .ae-lang-opt {
+        display: block; width: 100%; text-align: left;
+        font-size: 11.5px; line-height: 1; font-family: inherit;
+        padding: 7px 10px; border: 0; border-radius: 6px;
+        background: transparent; color: var(--p-dim);
+        cursor: pointer; outline: none;
+        transition: background-color .15s ease, color .15s ease;
+      }
+      .ae-lang-opt:hover, .ae-lang-opt:focus-visible { background: var(--p-overlay); color: var(--p-text); }
+      .ae-lang-opt.is-active { color: var(--p-emerald); background: var(--p-emerald-bg); }
 
       /* Pane: fixed line-number gutter + scrollable code */
       .ae-pane { display: grid; grid-template-columns: auto minmax(0, 1fr); }
