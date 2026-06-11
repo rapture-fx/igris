@@ -22,7 +22,7 @@
 // ──────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from 'react'
-import { Globe, Webhook, Server, Plug, Network, type LucideIcon } from 'lucide-react'
+import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -39,27 +39,6 @@ const ROUTE_CHIPS: Chip[] = [
   { label: 'Webhook', Icon: Webhook },
   { label: 'Connected Worker', Icon: Server },
   { label: 'MCP', Icon: Plug },
-]
-
-const TARGET_CHIPS: Chip[] = [
-  { label: 'Stripe', logo: '/logos/stripe.svg' },
-  { label: 'Polar', logo: '/logos/polar.png', invertOnDark: true },
-  { label: 'Resend', logo: '/logos/resend.svg', invertOnDark: true },
-  { label: 'GitHub', logo: '/logos/github.svg', invertOnDark: true },
-  { label: 'Linear', logo: '/logos/linear.svg' },
-  { label: 'Notion', logo: '/logos/notion.svg', invertOnDark: true },
-  { label: 'Shopify', logo: '/logos/shopify.svg' },
-  { label: 'HubSpot', logo: '/logos/hubspot.svg' },
-  { label: 'Sentry', logo: '/logos/sentry.svg' },
-  { label: 'Datadog', logo: '/logos/datadog.svg' },
-  { label: 'Cloudflare', logo: '/logos/cloudflare.svg' },
-  { label: 'Vercel', logo: '/logos/vercel.svg', invertOnDark: true },
-  { label: 'Postgres', logo: '/logos/postgresql.svg' },
-  { label: 'Neon', logo: '/logos/neon.svg' },
-  { label: 'PlanetScale', logo: '/logos/planetscale.svg', invertOnDark: true },
-  { label: 'MongoDB', logo: '/logos/mongodb.svg' },
-  { label: 'Snowflake', logo: '/logos/snowflake.svg' },
-  { label: 'Internal API', Icon: Network },
 ]
 
 interface Lang {
@@ -214,7 +193,7 @@ export default function ExecutionPath() {
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
       <EndpointStyles />
-      <div className="pt-16 md:pt-32 pb-24 md:pb-40">
+      <div className="py-24 md:py-40">
         <div className="ae-inner mx-auto" style={{ maxWidth: 860 }}>
           {/* ── Centered header ─────────────────────────────────────── */}
           <div className="text-center">
@@ -237,10 +216,9 @@ export default function ExecutionPath() {
           {/* ── Code window (anchor) ────────────────────────────────── */}
           <CodeWindow />
 
-          {/* ── Route + target chips ────────────────────────────────── */}
+          {/* ── Route chips ─────────────────────────────────────────── */}
           <div className="ae-connect">
             <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-            <ChipGroup label="Connect to" items={TARGET_CHIPS} table />
           </div>
         </div>
       </div>
@@ -248,24 +226,13 @@ export default function ExecutionPath() {
   )
 }
 
-function ChipGroup({ label, items, table }: { label: string; items: Chip[]; table?: boolean }) {
+function ChipGroup({ label, items }: { label: string; items: Chip[] }) {
   return (
     <div className="ae-group">
       <div className="ae-group-label" style={{ fontFamily: SANS }}>{label}</div>
-      {table ? (
-        <div className="ae-grid-table">
-          {items.map((c) => (
-            <div key={c.label} className="ae-cell" style={{ fontFamily: MONO }}>
-              <LogoMark chip={c} />
-              <span className="ae-cell-label">{c.label}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="ae-chips--row">
-          {items.map((c) => <ChipView key={c.label} chip={c} />)}
-        </div>
-      )}
+      <div className="ae-chips--row">
+        {items.map((c) => <ChipView key={c.label} chip={c} />)}
+      </div>
     </div>
   )
 }
@@ -548,12 +515,13 @@ function EndpointStyles() {
         margin: 44px 0 0;
         display: flex; flex-direction: column; gap: 24px;
       }
+      .ae-group { text-align: center; }
       .ae-group-label {
         font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 12px;
       }
       html.dark .ae-group-label { color: #8a8a82; }
 
-      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
       .ae-chip {
         display: inline-flex; align-items: center; gap: 8px;
         font-size: 11.5px; line-height: 1; padding: 9px 12px;
@@ -564,30 +532,6 @@ function EndpointStyles() {
       .ae-chip:hover { border-color: var(--landing-surface-border-strong); }
       html.dark .ae-chip { color: #a8a898; }
       .ae-chip-ic { flex: none; opacity: 0.9; }
-
-      /* Visible table grid (Connect to). 18 cells; the column counts divide
-         18 exactly (6 / 3 / 2) so no empty cell shows through the gridlines.
-         Gridlines = 1px gap revealing the container's border-colour bg. */
-      .ae-grid-table {
-        display: grid; grid-template-columns: repeat(6, 1fr);
-        gap: 1px; background: var(--landing-surface-border);
-        border: 1px solid var(--landing-surface-border);
-        border-radius: 12px; overflow: hidden;
-      }
-      .ae-cell {
-        display: flex; align-items: center; gap: 9px;
-        padding: 13px 14px; min-width: 0;
-        font-size: 11.5px; color: #4b5563;
-        background: var(--landing-surface);
-        transition: background-color .2s ease;
-      }
-      html.dark .ae-cell { color: #a8a898; }
-      .ae-cell-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .ae-cell:hover { background: rgba(0,0,0,0.02); }
-      html.dark .ae-cell:hover { background: rgba(255,255,255,0.025); }
-      .ae-cell:hover .ae-logo-mono { opacity: 0; }
-      .ae-cell:hover .ae-logo-color { opacity: 1; }
-      html.dark .ae-cell:hover .ae-logo-color--invert { filter: invert(1) brightness(1.7); }
 
       /* Brand logo: monochrome by default, full brand colour on hover */
       .ae-logo { position: relative; flex: none; width: 14px; height: 14px; display: inline-block; }
@@ -610,12 +554,10 @@ function EndpointStyles() {
         .ae-code { font-size: 12px; padding: 18px 16px 18px 14px; }
         .ae-gutter { font-size: 11.5px; min-width: 36px; padding-right: 10px; padding-top: 18px; padding-bottom: 18px; }
         .ae-pane--req { min-height: 300px; }
-        .ae-grid-table { grid-template-columns: repeat(3, 1fr); }
         .ae-bar-label { display: none; }
       }
       @media (max-width: 420px) {
         .ae-code { font-size: 11px; }
-        .ae-grid-table { grid-template-columns: repeat(2, 1fr); }
       }
     `}</style>
   )
