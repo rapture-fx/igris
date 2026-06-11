@@ -9,6 +9,20 @@
 # running `wrangler pages deploy`. This file alone creates/modifies nothing in
 # Cloudflare — it only documents the build output so deploys are reproducible.
 # Replace the placeholder below with the real project name.
+#
+# CLOUDFLARE PAGES GIT-BUILD BEHAVIOR (this caused a real outage — see DEPLOY.md,
+# "Docs site on Cloudflare Pages"):
+#   * Pages looks for a wrangler.toml at the project's configured *Root directory*.
+#     If one is found and it has `pages_build_output_dir`, it OVERRIDES the
+#     dashboard's "Build output directory".
+#   * Therefore the docs Pages project's Root directory must NOT be `web` —
+#     that directory holds the LANDING site's wrangler.toml
+#     (`pages_build_output_dir = "apps/web-landing/out"`), and Pages will try to
+#     deploy the landing output even though the build command built the docs.
+#   * Pages also requires `name` below to match the Pages project. While it is
+#     still a placeholder, do NOT point the docs project's Root directory at
+#     `web/apps/web-docs-hub` — the name check would fail the build. Use repo
+#     root (no wrangler.toml there) until the real name is filled in.
 name = "REPLACE_WITH_DOCS_PAGES_PROJECT_NAME"
 compatibility_date = "2026-05-15"
 pages_build_output_dir = "out"
