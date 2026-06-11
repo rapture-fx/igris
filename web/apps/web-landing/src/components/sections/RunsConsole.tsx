@@ -440,6 +440,12 @@ function RunsConsoleStyles() {
       .igris-console .ic-run-row__sub .ic-chips { flex-wrap: nowrap; min-width: 0; overflow: hidden; }
       .igris-console .ic-run-row__time { font-size: 10px; color: var(--ic-text-8); font-variant-numeric: tabular-nums; font-family: var(--ic-mono); text-align: right; white-space: nowrap; line-height: 1.4; }
 
+      /* Mobile: collapse to action · id/status · time */
+      @media (max-width: 640px) {
+        .igris-console .ic-run-row__open { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; }
+        .igris-console .ic-run-row__sub { display: none; }
+      }
+
       /* Empty state */
       .igris-console .ic-runs-empty { padding: 40px 16px; text-align: center; }
       .igris-console .ic-runs-empty__title { font-size: 12.5px; color: var(--ic-text-2); }
