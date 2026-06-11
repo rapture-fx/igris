@@ -24,7 +24,7 @@ export default function Hero() {
               letterSpacing: '-0.01em',
             }}
           >
-            Run agent actions that recover<br />and prove what happened.
+            Give agents a safe way to act.
           </h1>
           <p
             className="mt-4 text-gray-600 dark:text-[#a8a898] max-w-[560px]"
@@ -35,7 +35,7 @@ export default function Hero() {
               letterSpacing: '-0.01em',
             }}
           >
-            Give agents safe action endpoints. Igris routes the work, records the run, recovers failures, and keeps evidence you can inspect.
+            Igris gives AI agents one controlled path to the tools they need, with policy, recovery, and proof built in.
           </p>
           <a
             href="https://console.igrisinertial.com/auth?mode=signup"
