@@ -108,6 +108,13 @@ If you prefer manual deployment:
    ```bash
    wrangler pages deploy out --project-name=igris-web-landing
    ```
+   (`wrangler.toml` in this directory carries the project name and output
+   dir, so a bare `wrangler pages deploy` from here also works. Do NOT move
+   that file up to `web/` — `web` is the shared Pages Root directory of the
+   landing AND docs projects, and a wrangler.toml there overrides the
+   dashboard build output directory for both; this broke docs deploys in
+   Jun 2026. CI blocks it via `pages-config-guard` in
+   `.github/workflows/docs-quality.yml`.)
 
 ## Build Process Details
 

@@ -172,7 +172,7 @@ challenge — production must have both.
 | `render.yaml`                             | Both Render services (structure only, no secrets)         |
 | `igris-overture/DEPLOY.md`                | Go-side deploy details, auth, migrations                  |
 | `web/apps/rails-console/DEPLOY.md`        | Rails-side deploy details, modes, security                |
-| `web/wrangler.toml`                       | LANDING Cloudflare Pages config — never used for docs     |
+| `web/apps/web-landing/wrangler.toml`      | LANDING Cloudflare Pages config — never used for docs     |
 | `web/apps/web-docs-hub/wrangler.toml`     | Docs Cloudflare Pages config (project name still placeholder) |
 | `SMOKE.md`                                | End-to-end smoke test checklist                           |
 
@@ -184,19 +184,43 @@ Cloudflare Pages project, separate from the landing project.
 **Failure mode this section exists to prevent:** Cloudflare Pages looks for
 a `wrangler.toml` at the project's configured **Root directory**. If one is
 found and it contains `pages_build_output_dir`, that value **overrides the
-dashboard's "Build output directory"**. The docs project previously had its
-Root directory set to `web`, which holds the *landing* site's
-`web/wrangler.toml` (`pages_build_output_dir = "apps/web-landing/out"`).
-Result: the docs build succeeded, then Pages tried to deploy
-`web/apps/web-landing/out` — which that build never produced — and the
-deploy failed. The fix is dashboard-side: move the docs project's Root
-directory off `web`.
+dashboard's "Build output directory"**. Both the landing and the docs Pages
+projects use Root directory `web`, and from 2026-05-16 to 2026-06-11 the
+*landing* site's wrangler.toml lived at `web/wrangler.toml`
+(`pages_build_output_dir = "apps/web-landing/out"`). Result: docs builds
+succeeded, then Pages tried to deploy `web/apps/web-landing/out` — which
+the docs build never produces — and the deploy failed.
+
+**Repo-side fix (2026-06-11):** the landing wrangler config moved to
+`web/apps/web-landing/wrangler.toml`, so no Pages project discovers a
+wrangler.toml at its Root directory and the **dashboard** build settings
+are honored for both projects again — exactly the configuration that
+worked before 2026-05-16:
+
+* landing (`igris-web-landing`): Root `web`, build
+  `cd apps/web-landing && pnpm build`, output `apps/web-landing/out`
+  (dashboard settings in place since Dec 2025 — see
+  `web/apps/web-landing/CLOUDFLARE_PAGES_DEPLOYMENT.md`);
+* docs: Root `web`, build
+  `cd apps && chmod +x build-combined-docs.sh && ./build-combined-docs.sh`,
+  output `apps/combined-docs-output`.
+
+The `pages-config-guard` job in `.github/workflows/docs-quality.yml` fails
+CI if a wrangler config reappears at `web/`.
 
 ### Dashboard settings for the docs Pages project
 
-Use this configuration **now** (works with the placeholder project name in
-`web/apps/web-docs-hub/wrangler.toml`, because no `wrangler.toml` exists at
-the repo root, so dashboard settings are honored):
+The docs project's **existing** dashboard configuration works as-is now
+that `web/` holds no wrangler.toml — no dashboard change is required:
+
+| Setting                 | Value (current)                                              |
+| ----------------------- | ------------------------------------------------------------ |
+| Root directory          | `web`                                                        |
+| Build command           | `cd apps && chmod +x build-combined-docs.sh && ./build-combined-docs.sh` |
+| Build output directory  | `apps/combined-docs-output`                                  |
+
+If you ever recreate the project from scratch, an equivalent setup that
+avoids the shared `web` root entirely:
 
 | Setting                 | Value                                                       |
 | ----------------------- | ----------------------------------------------------------- |
@@ -230,10 +254,14 @@ entrypoint (it builds web-docs-hub and copies the export to
 | Build command           | `cd web/apps && bash build-combined-docs.sh`               |
 | Build output directory  | `web/apps/combined-docs-output`                            |
 
-**Never set the docs project's Root directory to `web`** — that re-triggers
-the landing-`wrangler.toml` override described above. The landing Pages
-project (`igris-web-landing`, Root directory `web`) is unaffected by all of
-this and must not be changed.
+**Never put a wrangler.toml (or wrangler.json/jsonc) at `web/`** — both
+Pages projects use `web` as their Root directory, so a wrangler config
+there hijacks the build output directory of *both*. Per-app config lives
+in `web/apps/web-landing/wrangler.toml` and
+`web/apps/web-docs-hub/wrangler.toml`; CI enforces this
+(`pages-config-guard` in `.github/workflows/docs-quality.yml`). The landing
+Pages project (`igris-web-landing`, Root directory `web`) keeps deploying
+from its dashboard settings and must not be changed.
 
 ### Local verification
 
