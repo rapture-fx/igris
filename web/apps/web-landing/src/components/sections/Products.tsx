@@ -753,7 +753,10 @@ function RoutedVia() {
       </span>
       <span className="ic-chip ic-chip--sm">
         <span className="ic-chip__logo">
-          <img src="/stripe.png" alt="" width={10} height={10} draggable={false} />
+          {/* same Stripe brand mark as the Runs console RouteChips */}
+          <svg viewBox="0 0 24 24" fill="#635BFF" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z" />
+          </svg>
         </span>
         Stripe
       </span>
@@ -1333,10 +1336,10 @@ export default function Products() {
                 style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
               >
                 <p>
-                  AI agents are starting to touch real systems. That means
-                  execution matters as much as intelligence. Igris gives those
-                  actions boundaries, recovery, and proof, so teams can see what
-                  ran, what failed, what recovered, and why.
+                  AI agents are starting to do more than answer. They call APIs,
+                  trigger workflows, access files, and run tasks. Igris gives those
+                  actions boundaries, recovery, and proof, so teams can trust what
+                  happened after the run.
                 </p>
               </div>
 
