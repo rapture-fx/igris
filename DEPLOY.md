@@ -172,7 +172,82 @@ challenge — production must have both.
 | `render.yaml`                             | Both Render services (structure only, no secrets)         |
 | `igris-overture/DEPLOY.md`                | Go-side deploy details, auth, migrations                  |
 | `web/apps/rails-console/DEPLOY.md`        | Rails-side deploy details, modes, security                |
+| `web/wrangler.toml`                       | LANDING Cloudflare Pages config — never used for docs     |
+| `web/apps/web-docs-hub/wrangler.toml`     | Docs Cloudflare Pages config (project name still placeholder) |
 | `SMOKE.md`                                | End-to-end smoke test checklist                           |
+
+## Docs site on Cloudflare Pages (web-docs-hub)
+
+The docs site (`web/apps/web-docs-hub`, static export) deploys to its own
+Cloudflare Pages project, separate from the landing project.
+
+**Failure mode this section exists to prevent:** Cloudflare Pages looks for
+a `wrangler.toml` at the project's configured **Root directory**. If one is
+found and it contains `pages_build_output_dir`, that value **overrides the
+dashboard's "Build output directory"**. The docs project previously had its
+Root directory set to `web`, which holds the *landing* site's
+`web/wrangler.toml` (`pages_build_output_dir = "apps/web-landing/out"`).
+Result: the docs build succeeded, then Pages tried to deploy
+`web/apps/web-landing/out` — which that build never produced — and the
+deploy failed. The fix is dashboard-side: move the docs project's Root
+directory off `web`.
+
+### Dashboard settings for the docs Pages project
+
+Use this configuration **now** (works with the placeholder project name in
+`web/apps/web-docs-hub/wrangler.toml`, because no `wrangler.toml` exists at
+the repo root, so dashboard settings are honored):
+
+| Setting                 | Value                                                       |
+| ----------------------- | ----------------------------------------------------------- |
+| Root directory          | *(repo root — leave empty)*                                 |
+| Build command           | `cd web && pnpm install && pnpm --filter @igris/web-docs-hub build` |
+| Build output directory  | `web/apps/web-docs-hub/out`                                 |
+
+Once the real docs Pages project name is filled into
+`web/apps/web-docs-hub/wrangler.toml` (replacing
+`REPLACE_WITH_DOCS_PAGES_PROJECT_NAME`), you may instead co-locate config
+with the app — Pages will then discover that file and its
+`pages_build_output_dir = "out"`:
+
+| Setting                 | Value                          |
+| ----------------------- | ------------------------------ |
+| Root directory          | `web/apps/web-docs-hub`        |
+| Build command           | `pnpm install && pnpm build`   |
+| Build output directory  | `out` (from `wrangler.toml`)   |
+
+Do **not** do this while the name is a placeholder — Pages requires the
+`name` in a discovered `wrangler.toml` to match the Pages project, and a
+mismatch fails the build.
+
+If you prefer to keep `web/apps/build-combined-docs.sh` as the build
+entrypoint (it builds web-docs-hub and copies the export to
+`web/apps/combined-docs-output`), the equivalent repo-root settings are:
+
+| Setting                 | Value                                                      |
+| ----------------------- | ---------------------------------------------------------- |
+| Root directory          | *(repo root — leave empty)*                                |
+| Build command           | `cd web/apps && bash build-combined-docs.sh`               |
+| Build output directory  | `web/apps/combined-docs-output`                            |
+
+**Never set the docs project's Root directory to `web`** — that re-triggers
+the landing-`wrangler.toml` override described above. The landing Pages
+project (`igris-web-landing`, Root directory `web`) is unaffected by all of
+this and must not be changed.
+
+### Local verification
+
+Prove the expected output directory exists before trusting a dashboard
+change:
+
+```bash
+cd web && pnpm install && pnpm --filter @igris/web-docs-hub build
+test -f apps/web-docs-hub/out/index.html && echo "docs output OK"
+
+# or, for the combined-script path:
+cd web/apps && bash build-combined-docs.sh
+test -f combined-docs-output/index.html && echo "combined docs output OK"
+```
 
 ## Next.js console — removed
 
