@@ -331,6 +331,7 @@ module Igris
 
     def normalize_action(raw)
       display_raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      secrets_configured = action_secret_refs_configured?(display_raw || raw)
       raw = scrub_sensitive_payload(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       target_type = raw[:target_type].to_s
@@ -347,7 +348,7 @@ module Igris
         policy:         policy_label_for(raw[:policy_preset], raw[:approval_required], raw[:irreversible]),
         policy_preset:  raw[:policy_preset].to_s,
         replay:         (raw[:replay_class].to_s == 'retryable' ? 'On' : 'Off'),
-        secrets_state:  raw[:secret_refs].is_a?(Array) && raw[:secret_refs].any? ? 'Configured' : 'Not configured',
+        secrets_state:  secrets_configured ? 'Configured' : 'Not configured',
         endpoint:       endpoint_url(raw[:name]),
         setup:          setup_status_for(target_type, target_url),
         last_run_at:    nil,
@@ -357,6 +358,15 @@ module Igris
         irreversible:   !!raw[:irreversible],
         raw:            raw,
       }
+    end
+
+    def action_secret_refs_configured?(raw)
+      refs =
+        if raw.respond_to?(:[])
+          raw[:secret_refs] || raw['secret_refs']
+        end
+
+      Array(refs).any? { |ref| ref.to_s.strip.present? }
     end
 
     def normalize_run_summary(raw)
