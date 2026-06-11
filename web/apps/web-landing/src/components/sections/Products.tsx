@@ -131,7 +131,7 @@ export function ExecutionPreview({ frozen = false }: { frozen?: boolean }) {
           style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
         >
           <ConsoleStyles />
-          <div className="grid" style={{ gridTemplateColumns: '40px 200px 1fr', height: 640 }}>
+          <div className="grid ic-shell">
             <IconRail />
             <Sidebar query={query} setQuery={setQuery} />
             <Main frozen={frozen} />
@@ -491,6 +491,22 @@ function ConsoleStyles() {
       .igris-console .ic-footer__chip { display: inline-flex; align-items: center; gap: 6px; color: var(--ic-text-2); }
       .igris-console .ic-footer__chip .dot { display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: var(--ic-emerald); }
       .igris-console .ic-footer__spacer { flex: 1; }
+
+      /* Console shell: rail + sidebar + main on desktop; the sidebar drops
+         out on tablets and the right evidence rail folds under on phones. */
+      .igris-console .ic-shell { grid-template-columns: 40px 200px 1fr; height: 640px; }
+      @media (max-width: 860px) {
+        .igris-console .ic-shell { grid-template-columns: 40px 1fr; }
+        .igris-console .ic-shell > aside { display: none; }
+      }
+      @media (max-width: 640px) {
+        .igris-console .ic-shell { height: 560px; }
+        .igris-console .ic-run-detail-layout { grid-template-columns: 1fr; }
+        .igris-console .ic-run-detail-rail { display: none; }
+        .igris-console .ic-summary__grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+        .igris-console .ic-line { grid-template-columns: 64px minmax(0,1fr) auto auto; padding: 3px 8px; }
+        .igris-console .ic-def { grid-template-columns: 80px 1fr; column-gap: 14px; }
+      }
     `}</style>
   )
 }
@@ -1208,7 +1224,7 @@ function ProductShowcaseTabs() {
         <div
           role="tablist"
           aria-label="Product surfaces"
-          className="relative inline-flex items-center gap-10 sm:gap-16"
+          className="relative flex w-full sm:w-auto items-center justify-between sm:justify-center gap-4 sm:gap-16"
         >
           {SHOWCASE_TABS.map((t, i) => {
             const active = t.id === tab
@@ -1221,7 +1237,7 @@ function ProductShowcaseTabs() {
                 aria-selected={active}
                 onClick={() => handleTab(t.id)}
                 className={
-                  'relative flex flex-col items-center gap-3 min-w-[180px] sm:min-w-[280px] text-[13px] font-normal transition-colors duration-300 ' +
+                  'relative flex flex-col items-center gap-3 min-w-0 flex-1 sm:flex-none sm:min-w-[280px] text-[13px] font-normal transition-colors duration-300 ' +
                   (active
                     ? 'text-gray-700 dark:text-[#c8c8b8]'
                     : 'text-gray-400 dark:text-[#7a7a72] hover:text-gray-600 dark:hover:text-[#a8a898]')
