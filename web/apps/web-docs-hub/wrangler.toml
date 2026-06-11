@@ -2,7 +2,8 @@
 #
 # This site is a static export: `pnpm --filter @igris/web-docs-hub build`
 # (see next.config.mjs `output: 'export'`) emits ./out, which Pages serves.
-# It deploys independently from web-landing (which has its own web/wrangler.toml).
+# It deploys independently from web-landing (which has its own
+# web/apps/web-landing/wrangler.toml).
 #
 # IMPORTANT: `name` MUST match the EXISTING Cloudflare Pages project for the docs
 # site (configured in the dashboard). Confirm it in the Cloudflare dashboard before
@@ -15,14 +16,18 @@
 #   * Pages looks for a wrangler.toml at the project's configured *Root directory*.
 #     If one is found and it has `pages_build_output_dir`, it OVERRIDES the
 #     dashboard's "Build output directory".
-#   * Therefore the docs Pages project's Root directory must NOT be `web` —
-#     that directory holds the LANDING site's wrangler.toml
-#     (`pages_build_output_dir = "apps/web-landing/out"`), and Pages will try to
-#     deploy the landing output even though the build command built the docs.
+#   * The docs Pages project's Root directory is `web` — shared with the
+#     LANDING project. A wrangler.toml at web/ therefore hijacks BOTH projects'
+#     output directories. The landing wrangler.toml that used to live there
+#     (`pages_build_output_dir = "apps/web-landing/out"`) broke docs deploys in
+#     Jun 2026; it now lives at web/apps/web-landing/wrangler.toml, and a guard
+#     job in .github/workflows/docs-quality.yml keeps web/ wrangler-free so the
+#     dashboard's "Build output directory" is honored for both projects.
 #   * Pages also requires `name` below to match the Pages project. While it is
 #     still a placeholder, do NOT point the docs project's Root directory at
-#     `web/apps/web-docs-hub` — the name check would fail the build. Use repo
-#     root (no wrangler.toml there) until the real name is filled in.
+#     `web/apps/web-docs-hub` — the name check would fail the build. Keep the
+#     Root directory at `web` (no wrangler.toml there) until the real name is
+#     filled in.
 name = "REPLACE_WITH_DOCS_PAGES_PROJECT_NAME"
 compatibility_date = "2026-05-15"
 pages_build_output_dir = "out"

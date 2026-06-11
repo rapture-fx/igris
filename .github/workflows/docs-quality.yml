@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/docs-quality.yml"
+      - "web/wrangler.toml"
+      - "web/apps/web-landing/wrangler.toml"
       - "web/apps/web-docs-hub/**"
       - "web/package.json"
       - "web/pnpm-lock.yaml"
@@ -20,6 +22,8 @@ on:
       - master
     paths:
       - ".github/workflows/docs-quality.yml"
+      - "web/wrangler.toml"
+      - "web/apps/web-landing/wrangler.toml"
       - "web/apps/web-docs-hub/**"
       - "web/package.json"
       - "web/pnpm-lock.yaml"
@@ -32,6 +36,29 @@ on:
       - "rust-core/**"
 
 jobs:
+  pages-config-guard:
+    # `web` is the Root directory of BOTH the landing and the docs Cloudflare
+    # Pages projects. A wrangler.toml there is discovered by Pages git builds
+    # and its `pages_build_output_dir` overrides the dashboard output dir for
+    # whichever project is building — this broke docs deploys in Jun 2026
+    # (docs built fine, then Pages tried to publish apps/web-landing/out).
+    # Per-app wrangler configs live in web/apps/<app>/wrangler.toml instead.
+    name: No wrangler.toml at shared Pages root (web/)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail if web/wrangler.toml exists
+        run: |
+          if [ -e web/wrangler.toml ] || [ -e web/wrangler.json ] || [ -e web/wrangler.jsonc ]; then
+            echo "::error::web/ is the shared Cloudflare Pages Root directory for the landing AND docs projects."
+            echo "::error::A wrangler config here overrides the dashboard build output dir for BOTH projects and breaks docs deploys."
+            echo "::error::Put per-app config in web/apps/web-landing/wrangler.toml or web/apps/web-docs-hub/wrangler.toml instead. See DEPLOY.md, 'Docs site on Cloudflare Pages'."
+            exit 1
+          fi
+          echo "OK: no wrangler config at web/ — Pages dashboard settings are honored for landing and docs."
+
   docs-quality:
     name: pnpm --filter @igris/web-docs-hub build
     runs-on: ubuntu-latest

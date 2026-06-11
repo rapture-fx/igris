@@ -1,0 +1,23 @@
+# Cloudflare Pages config for the LANDING site (igris-web-landing).
+#
+# ⚠️ This file must NEVER live at web/wrangler.toml. `web` is the configured
+# Root directory of BOTH the landing and the docs Cloudflare Pages projects.
+# Pages git builds discover a wrangler.toml at the project's Root directory,
+# and its `pages_build_output_dir` overrides the dashboard's "Build output
+# directory" for WHICHEVER project is building. When this file lived at
+# web/wrangler.toml (May 16 – Jun 11 2026), every docs deploy built the docs
+# and then tried to publish `apps/web-landing/out` — which the docs build
+# never produces — and failed. See DEPLOY.md, "Docs site on Cloudflare Pages".
+# A guard job in .github/workflows/docs-quality.yml fails CI if a
+# wrangler.toml reappears at web/.
+#
+# Landing git builds do NOT need this file: the igris-web-landing project's
+# dashboard settings (Root directory `web`, build `cd apps/web-landing &&
+# pnpm build`, output `apps/web-landing/out`) have been in place since
+# Dec 2025 and keep working when no wrangler.toml is discovered.
+#
+# This file exists as config-as-code for manual deploys from this directory:
+#   pnpm build && wrangler pages deploy
+name = "igris-web-landing"
+compatibility_date = "2026-05-15"
+pages_build_output_dir = "out"
