@@ -68,11 +68,11 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
   end
 
   # ── Onboarding lives on /welcome; Home is the workspace ─────────────────
-  test 'welcome shows hero copy and the 4-step first-action checklist' do
+  test 'welcome shows hero copy and the first-action call path' do
     get '/welcome'
     assert_response :success
     assert_match 'Give your AI agent a safe action endpoint.', response.body
-    %w[Create\ action Copy\ endpoint Send\ test\ request Inspect\ run].each do |label|
+    ['Call Igris from your agent', 'Action endpoint', 'Example request', 'Where actions run'].each do |label|
       assert_match label, response.body
     end
   end
@@ -206,15 +206,16 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
   test 'action detail next-step card prompts a test request when no runs' do
     get '/actions/rebuild_search_index'
     assert_response :success
-    assert_match 'Next step', response.body
-    assert_match 'Send a test request', response.body
+    assert_match 'Test this action', response.body
+    assert_match 'Send test request', response.body
   end
 
   # ── Run result summary ───────────────────────────────────────────────────
   test 'run detail shows a What happened summary' do
     get '/runs/run_01HGJ8K2Z9F'
     assert_response :success
-    assert_match 'What happened', response.body
+    assert_match 'Run Inspector', response.body
+    assert_match 'Execution detail', response.body
     assert_match 'Routed via', response.body
     assert_match 'Proof', response.body
   end
