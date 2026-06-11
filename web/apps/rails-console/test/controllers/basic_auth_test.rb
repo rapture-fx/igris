@@ -4,9 +4,8 @@ require 'test_helper'
 #
 # When ADMIN_USERNAME and ADMIN_PASSWORD are both set, every controller
 # request must present matching Basic credentials. /up bypasses (it is a
-# Rack lambda, not a controller). When either env var is unset, auth is
-# disabled — covered indirectly by the rest of the suite (which runs
-# without env set and gets 200s).
+# Rack lambda, not a controller). In production, unset credentials fail
+# closed; in local test/dev they can stay unset for fixture-mode inspection.
 class BasicAuthTest < ActionDispatch::IntegrationTest
   setup do
     @prev_user = ENV['ADMIN_USERNAME']
@@ -55,6 +54,29 @@ class BasicAuthTest < ActionDispatch::IntegrationTest
     get '/up'
     assert_response :success
     assert_equal 'ok', response.body.strip
+  end
+
+  test 'production rejects requests when admin credentials are unset' do
+    ENV.delete('ADMIN_USERNAME')
+    ENV.delete('ADMIN_PASSWORD')
+
+    ApplicationController.class_eval do
+      alias_method :__orig_production_env_basic_auth_test, :production_env?
+      define_method(:production_env?) { true }
+    end
+    begin
+      get '/home'
+      assert_response :unauthorized
+      assert_match 'Basic realm="Igris Console"', response.headers['WWW-Authenticate'].to_s
+
+      get '/home', headers: { 'HTTP_AUTHORIZATION' => basic_auth('', '') }
+      assert_response :unauthorized
+    ensure
+      ApplicationController.class_eval do
+        alias_method :production_env?, :__orig_production_env_basic_auth_test
+        remove_method :__orig_production_env_basic_auth_test
+      end
+    end
   end
 
   test 'short and long passwords behave the same (no length leak)' do
