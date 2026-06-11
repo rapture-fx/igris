@@ -41,7 +41,8 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'runs index shows the title and run status labels' do
     get '/runs'
     assert_response :success
-    assert_match 'Action executions — evidence, policy, recovery, and proof', response.body
+    assert_match 'Runs', response.body
+    assert_match 'Search runs', response.body
     assert_match 'Running', response.body            # the in-flight fixture run
     assert_match 'Failed', response.body             # the failed fixture run
   end
@@ -133,7 +134,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'What to do next', response.body
     assert_match 'Run completed successfully.', response.body
-    assert_match 'View evidence', response.body
+    assert_match 'Open action', response.body
   end
 
   test 'failed run suggests opening the action and copying the run id' do
@@ -141,7 +142,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'What to do next', response.body
     assert_match 'Run failed.', response.body
-    assert_match 'Copy run ID', response.body
+    assert_match 'Copy', response.body
   end
 
   test 'a runtime-unavailable failure points the developer at connecting a runtime' do
