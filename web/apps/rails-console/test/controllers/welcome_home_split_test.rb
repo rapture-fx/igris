@@ -1,9 +1,9 @@
 require 'test_helper'
 
-# Locks the onboarding/workspace split: /welcome teaches Igris (hero, diagram,
-# first-action checklist, target/runtime explanation), while /home is the
-# everyday workspace (needs-attention, status summaries, recent runs) with no
-# education hero and no fake activity chart.
+# Locks the onboarding/workspace split: /welcome teaches Igris (endpoint call,
+# target/runtime explanation), while /home is the everyday workspace
+# (needs-attention, status summaries, recent runs) with no education hero and
+# no fake activity chart.
 class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   # Real-mode DataSource double so we can drive the zero-actions branch.
   class FakeDS
@@ -41,12 +41,14 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   # ── Welcome is the onboarding page ───────────────────────────────────────
-  test 'welcome contains the product explanation and architecture diagram' do
+  test 'welcome contains the product explanation and first action call path' do
     get '/welcome'
     assert_response :success
     assert_match 'Give your AI agent a safe action endpoint.', response.body
     assert_match 'Your agent calls Igris instead of calling the tool directly.', response.body
-    assert_match 'ic-diagram', response.body                       # the diagram is present
+    assert_match 'Call Igris from your agent', response.body
+    assert_match 'Action endpoint', response.body
+    assert_match 'Example request', response.body
     assert_match 'Where actions run', response.body                # target explanation
     assert_match 'No runtime needed', response.body
     assert_match 'Runtime required', response.body
@@ -112,11 +114,12 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   # ── Workspace profile layout ─────────────────────────────────────────────
-  test 'home renders the workspace banner using /home.png' do
+  test 'home renders the workspace shell without the retired banner' do
     get '/home'
     assert_response :success
-    assert_match '/home.png', response.body
-    assert_match 'ic-workspace-banner', response.body
+    assert_match 'ic-workspace-layout', response.body
+    refute_match '/home.png', response.body
+    refute_match 'ic-workspace-banner', response.body
   end
 
   test 'home workspace panel shows the status rows' do
@@ -156,39 +159,35 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   # ── Execution Machine (below the Run Activity Map on the map tab) ─────────
-  test 'map tab renders the Run Activity Map then the Execution Machine below it' do
+  test 'map tab renders the Run Activity Map with outcome bands' do
     get '/home?tab=map' # fixtures ship runs
     assert_response :success
     assert_match 'ic-runmap', response.body
-    assert_match 'ic-machine', response.body
-    # The machine sits below the map, never replaces or weakens it.
-    assert_operator response.body.index('ic-runmap'), :<, response.body.index('ic-machine')
-    # The full execution path is present as discrete nodes.
-    ['Agent / App', 'Igris API / MCP', 'Action Router',
-     'Policy Gate', 'Target / Runtime', 'Run Record / Evidence'].each do |node|
-      assert_match node, response.body
+    ['Verified', 'Completed', 'Recovered', 'Waiting', 'Blocked', 'Failed'].each do |band|
+      assert_match band, response.body
     end
   end
 
-  test 'execution machine shows caller unavailable (identity never invented)' do
+  test 'map tab does not invent caller identity' do
     get '/home?tab=map'
     assert_response :success
-    assert_match 'Caller unavailable', response.body # run summaries carry no caller identity
+    refute_match 'Caller unavailable', response.body
+    refute_match 'Submitter', response.body
   end
 
-  test 'execution machine shows awaiting state and create-action cta with no runs' do
+  test 'run activity map shows empty state and create-action cta with no runs' do
     action = { id: 'a1', name: 'send_email', target_type: 'hosted_api',
                target_label: 'Hosted API', setup: 'Ready', endpoint_readiness: 'ready' }
     with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [])) do
       get '/home?tab=map'
       assert_response :success
-      assert_match 'Execution Machine', response.body
-      assert_match 'Awaiting first run', response.body # run-dependent nodes are honest, not faked
+      assert_match 'Run Activity Map', response.body
+      assert_match 'No run activity yet', response.body # run-dependent state is honest, not faked
       assert_match new_action_path, response.body
     end
   end
 
-  test 'execution machine shows proof unavailable when proof fields are absent' do
+  test 'run activity map shows proof unavailable when proof fields are absent' do
     action = { id: 'a1', name: 'send_email', target_type: 'hosted_api', setup: 'Ready' }
     run = { id: 'run_x', action: 'send_email', status: 'Succeeded',
             proof: 'Proof unavailable', routed_via: 'Hosted API',
@@ -197,7 +196,6 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
       get '/home?tab=map'
       assert_response :success
       assert_match 'Proof unavailable', response.body
-      assert_match 'ic-machine__node--muted', response.body # not styled as a success
       refute_match 'Signed', response.body                  # must not overclaim proof
     end
   end
@@ -221,7 +219,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_match new_action_path, response.body
       assert_match welcome_path, response.body
-      assert_match 'ic-workspace-banner', response.body # banner stays
+      refute_match 'ic-workspace-banner', response.body
     end
   end
 
