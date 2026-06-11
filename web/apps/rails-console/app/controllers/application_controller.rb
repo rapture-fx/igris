@@ -4,12 +4,12 @@ class ApplicationController < ActionController::Base
 
   # Console front door — HTTP Basic auth, env-driven.
   #
-  # When both ADMIN_USERNAME and ADMIN_PASSWORD are set (production), every
+  # When both ADMIN_USERNAME and ADMIN_PASSWORD are set, every
   # request must present matching Basic credentials before the controller
   # runs. Comparison uses ActiveSupport::SecurityUtils.secure_compare so
-  # timing leakage doesn't reveal the username/password. When either env
-  # var is unset (development / test), auth is disabled — the demo
-  # indicator already tells operators the console is unconfigured.
+  # timing leakage doesn't reveal the username/password. In production,
+  # missing credentials fail closed. In development/test, auth can be left
+  # unset for local fixture-mode inspection.
   #
   # Health probes (`/up`) bypass auth so Render's liveness check works.
   #
@@ -20,10 +20,15 @@ class ApplicationController < ActionController::Base
   private
 
   def require_admin_login!
-    return if Rails.env.test? && !ENV['ADMIN_USERNAME']
+    return if Rails.env.test? && !production_env? && !ENV['ADMIN_USERNAME']
     username = ENV['ADMIN_USERNAME'].to_s
     password = ENV['ADMIN_PASSWORD'].to_s
-    return if username.empty? || password.empty? # auth disabled in dev/unconfigured
+    if username.empty? || password.empty?
+      return unless production_env?
+
+      return authenticate_or_request_with_http_basic('Igris Console') { |_u, _p| false }
+    end
+
     authenticate_or_request_with_http_basic('Igris Console') do |u, p|
       # Hash both sides so `secure_compare` always sees equal-length input
       # (it raises ArgumentError otherwise — which would itself leak length).
@@ -35,6 +40,10 @@ class ApplicationController < ActionController::Base
       )
       u_ok & p_ok
     end
+  end
+
+  def production_env?
+    Rails.env.production?
   end
 
   public
