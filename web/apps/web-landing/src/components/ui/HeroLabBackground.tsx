@@ -7,9 +7,10 @@ import { useEffect, useRef } from 'react'
  *
  * A receding instrument floor: a perspective grid of tiny dot-matrix
  * glyph clusters (sparse and dim at the top, dense and bright up close)
- * crossed by two curved "data streams" — a green ribbon and a
- * blue/violet ribbon side by side on the right — that run continuously at the bottom and
- * fragment into detached row-blocks as they recede. The streams carry a
+ * crossed by curved "data streams" — a green ribbon and a blue/violet
+ * ribbon side by side on the right, sweeping right toward the bottom
+ * with the floor's fan — that run seamlessly for the full height,
+ * thinning and dimming as they recede. The streams carry a
  * slow downward shimmer, like data flowing through the floor; a few
  * glyph cells blink as instrument readouts. Static glyphs are cached on
  * an offscreen layer; only stream dots and blips are repainted (~30fps),
@@ -112,21 +113,23 @@ function buildScene(w: number, h: number, dpr: number, dark: boolean): Scene {
 
   const rows = buildRows(h)
 
-  // identical sweep to the data streams so the whole floor bends as one
-  const bgArc = (t: number) => Math.pow(t, 3) * 0.13 * w
+  // identical sweep to the data streams so the whole floor bends as one,
+  // fanning outward from the centre: right half sweeps right, left half left
+  const bgArc = (t: number) => Math.pow(t, 2.4) * 0.22 * w
 
   // ---- glyph floor (cached) ----------------------------------------------
   const cellW = 44
-  // rows shear right as they descend, so start columns left of the edge
-  // to keep the bottom-left corner covered
+  // rows shear outward as they descend, so start columns beyond both edges
+  // to keep the bottom corners covered
   const shearCols = Math.ceil(bgArc(1) / cellW)
   for (const row of rows) {
     const pitch = 2.8 * row.scale
     const dot = 1.5 + 0.6 * row.t
     const cols = Math.ceil(w / cellW) + 1
     const colWeight = [1.0, 0.4, 0.9, 0.35]
-    for (let col = -shearCols; col < cols; col++) {
-      const gx = col * cellW + 14 + bgArc(row.t) + (rand() - 0.5) * 3
+    for (let col = -shearCols; col < cols + shearCols; col++) {
+      const cx0 = col * cellW + 14
+      const gx = cx0 + ((cx0 - w / 2) / (w / 2)) * bgArc(row.t) + (rand() - 0.5) * 3
       const density = 0.24 + 0.55 * Math.pow(row.t, 1.2) + (rand() - 0.5) * 0.12
       const roll = rand()
       const tint = roll < 0.06 ? c.glyphCool : roll < 0.11 ? c.glyphWarm : c.glyph
@@ -144,60 +147,36 @@ function buildScene(w: number, h: number, dpr: number, dark: boolean): Scene {
   // ---- data streams ---------------------------------------------------------
   // One dotted ribbon per color — fine vertical columns ~2px wide on a
   // ~5.5px pitch, near-solid vertically — running the full height of the
-  // hero, anchored close together on the right. Both ribbons share the
-  // exact same sweep as the glyph floor (t^3): near-vertical at the top,
-  // bending right with increasing slope toward the bottom. Boldness comes
-  // from density, not luminance: peak stream color is only ~rgb(50,100,55).
-  const arc = (t: number) => Math.pow(t, 3)
+  // hero: a green/blue pair anchored close together on the right. Every
+  // ribbon column is swept by the exact same fan as the glyph floor at
+  // its own x — ((x - w/2) / (w/2)) * bgArc(t) — so the streams ride the
+  // path background precisely: near-vertical at the top, bending right
+  // with increasing slope toward the bottom. Boldness comes from density,
+  // not luminance: peak stream color is only ~rgb(50,100,55).
+  const fan = (x: number, t: number) => ((x - w / 2) / (w / 2)) * bgArc(t)
+  const colP = 5.5
 
   const gx0 = 0.64 * w
   const bx0 = 0.72 * w
   const ribbons = [
     // green ribbon, right
-    { x: gx0, d: 0.13 * w, cols: 13, t0: 0.0, c1: c.green, c2: c.greenSoft, a: 0.9 },
+    { x: gx0, cols: 13, t0: 0.0, c1: c.green, c2: c.greenSoft, a: 0.9 },
     // blue / violet ribbon, right beside it
-    { x: bx0, d: 0.13 * w, cols: 13, t0: 0.0, c1: c.blue, c2: c.violet, a: 0.85 },
+    { x: bx0, cols: 13, t0: 0.0, c1: c.blue, c2: c.violet, a: 0.85 },
   ]
 
-  // coherent gate per strip: lit/gap runs row by row, always lit up close
-  const buildGate = (t0: number) => {
-    const gates: number[] = []
-    let i = 0
-    while (i < rows.length) {
-      const t = rows[i].t
-      if (t < t0) {
-        gates[i++] = 0
-        continue
-      }
-      const local = (t - t0) / (1 - t0)
-      if (local > 0.55) {
-        gates[i++] = 1
-        continue
-      }
-      const lit = rand() < 0.6 + 0.4 * local
-      const run = 1 + Math.floor(rand() * 2)
-      for (let k = 0; k < run && i < rows.length; k++) gates[i++] = lit ? 1 : 0
-    }
-    return gates
-  }
-
-  // Continuous dotted ribbons below the half-way point; chopped into
-  // row-aligned blocks (gates) as they recede toward the top.
+  // Continuous dotted ribbons for the full height — no gaps, just a
+  // gentle thin-and-dim as they recede toward the top.
   const dots: StreamDot[] = []
-  const colP = 5.5
   ribbons.forEach((s, si) => {
-    const gates = buildGate(s.t0)
-    rows.forEach((row, ri) => {
+    rows.forEach((row) => {
       if (row.t < s.t0) return
       const local = (row.t - s.t0) / (1 - s.t0)
-      const solid = local > 0.5
-      if (!solid && !gates[ri]) return
       const nCols = Math.max(4, Math.round(s.cols * (0.7 + 0.3 * row.t)))
       const yEnd = Math.min(row.y + row.rh, h)
       for (let yy = Math.round(row.y / 2) * 2; yy < yEnd; yy += 2) {
         const t = yy / h
         if ((yy / 2) % 6 === 5) continue // 1px notch every ~11px, keeps it dotted
-        const x0 = s.x + s.d * arc(t)
         const fade = 0.55 + 0.45 * Math.pow(local, 1.2)
         for (let ci = 0; ci < nCols; ci++) {
           const lateral = ci === 0 || ci === nCols - 1 ? 0.55 : 1
@@ -207,8 +186,9 @@ function buildScene(w: number, h: number, dpr: number, dark: boolean): Scene {
             s.a * fade * lateral * (0.7 + 0.3 * rand()) * c.streamAlpha,
             0.95,
           )
+          const xc = s.x + ci * colP
           dots.push({
-            x: x0 + ci * colP,
+            x: xc + fan(xc, t),
             y: yy,
             t,
             pre: `rgba(${tint[0]},${tint[1]},${tint[2]},`,
