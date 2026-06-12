@@ -1,4 +1,10 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor
+
+product-promise:
+	./scripts/product_promise_acceptance.sh
+
+igris-doctor:
+	./scripts/igris_doctor.sh
 
 run-recover-prove-local:
 	./scripts/run-recover-prove-local.sh
