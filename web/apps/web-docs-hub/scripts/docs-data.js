@@ -77,6 +77,12 @@ const mcpReference = {
   },
   guides: [
     {
+      slug: 'first-agent-onboarding',
+      title: 'First Agent Onboarding',
+      href: '/docs/first-agent-onboarding',
+      summary: 'Connect Claude Code, Codex, Cursor, or a custom agent to registered actions, run one action, and inspect the run safely.',
+    },
+    {
       slug: 'mcp',
       title: 'Overview',
       href: '/docs/mcp',
@@ -753,7 +759,7 @@ const rawApiSections = [
   {
     title: 'Durable Tasks',
     summary:
-      'Submit durable workflows and long-running tasks that preserve progress automatically across runtime interruptions.',
+      'Advanced durable-workflow endpoints for callers that need direct task definitions, long-running state, checkpoint metadata, and follow-up inspection. First-agent onboarding should use registered actions first.',
     endpoints: [
       {
         method: 'POST',
@@ -761,7 +767,7 @@ const rawApiSections = [
         auth: 'Session cookie or igris_ API key',
         surface: 'Cloud API',
         stability: 'stable',
-        description: 'Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.',
+        description: 'Advanced API for submitting a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. Use registered actions for first-agent onboarding.',
       },
       {
         method: 'GET',
