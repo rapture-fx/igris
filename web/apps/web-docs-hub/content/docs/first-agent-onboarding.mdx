@@ -1,0 +1,203 @@
+---
+title: "First Agent Onboarding"
+description: "Connect an agent to Igris, run one registered action, and inspect proof without relying on hidden setup knowledge."
+audience: "public"
+---
+
+# First Agent Onboarding
+
+Use this path when a real agent or MCP client needs to run its first Igris action.
+The supported first step is actions-first: create an API key, register one action,
+run it with an idempotency key, then inspect the run and evidence.
+
+Do not start by sending raw execution graphs. `POST /v1/tasks/submit` is an
+advanced durable-task API for custom workflows; first agents should call
+registered actions through REST or MCP.
+
+## Required Values
+
+Set these locally. Do not print secret values in logs or support tickets.
+
+```bash
+export IGRIS_API_BASE_URL="https://overture.igrisinertial.com"
+export IGRIS_API_KEY="igris_..."
+export IGRIS_ACTION_NAME="first_ping"
+export IGRIS_IDEMPOTENCY_KEY="first-ping-$(date +%Y%m%d%H%M%S)"
+```
+
+Run the readiness doctor before wiring the agent:
+
+```bash
+./scripts/igris_doctor.sh
+```
+
+The doctor checks required env names, API reachability, API-key acceptance on
+safe endpoints, MCP `tools/list` when credentials are available, optional MCP
+config JSON, runtime install metadata, and optional local-runtime reachability.
+It never echoes the API key.
+
+## 1. Register One Action
+
+Use a disposable hosted API or webhook first. Move to `local_runtime` only after
+the hosted path works.
+
+```bash
+curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "first_ping",
+    "display_name": "First Ping",
+    "description": "Disposable first-agent action",
+    "target_type": "webhook",
+    "target_url": "https://example.invalid/replace-me",
+    "method": "POST",
+    "policy_preset": "Read-only",
+    "replay_class": "read_only",
+    "approval_required": false,
+    "irreversible": false,
+    "secret_refs": []
+  }'
+```
+
+Expected failure modes:
+
+| Failure | Meaning |
+|---|---|
+| `401` or `unauthenticated` | Missing or invalid API key. |
+| `action_name_conflict` | The action already exists for this tenant. Use it or choose a new name. |
+| `invalid_action_definition` | The action contract is incomplete or unsafe. Fix the named field. |
+
+## 2. Run Through REST
+
+```bash
+curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions/$IGRIS_ACTION_NAME/run" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $IGRIS_IDEMPOTENCY_KEY" \
+  -d '{
+    "input": {
+      "message": "first agent run"
+    },
+    "idempotency_key": "'"$IGRIS_IDEMPOTENCY_KEY"'"
+  }'
+```
+
+Expected success shape: a `run_id` or `task_id`, `status`, and `proof_status`.
+The response must not echo Authorization headers, cookies, secret values, or raw
+runtime key material.
+
+Retry the same command with the same idempotency key. It should return the same
+logical run instead of creating a duplicate side effect.
+
+Expected failure modes:
+
+| Failure | Meaning |
+|---|---|
+| `action_not_found` | The action name is not registered for this tenant. |
+| `approval_required` | The action is human-gated and has paused before execution. |
+| `runtime_unavailable` | A `local_runtime` action has no healthy routable runtime connected. |
+| `target_not_configured` | The registered action is missing its target URL or runtime input. |
+
+## 3. Connect Claude Code With MCP
+
+Claude Code uses an MCP server entry. Use the HTTP MCP endpoint only through the
+Igris MCP bridge or CLI command your environment provides; do not point Claude at
+the runtime proxy surface.
+
+Example config shape:
+
+```json
+{
+  "mcpServers": {
+    "igris": {
+      "command": "igris",
+      "args": ["mcp", "serve", "--api-url", "https://overture.igrisinertial.com"],
+      "env": {
+        "IGRIS_API_KEY": "igris_..."
+      }
+    }
+  }
+}
+```
+
+After connecting, ask Claude Code to list tools. It should see:
+
+- `list_actions`
+- `call_action`
+- `get_run`
+- `get_run_evidence`
+
+Then call:
+
+```json
+{
+  "action_name": "first_ping",
+  "input": { "message": "first agent run from Claude Code" },
+  "idempotency_key": "first-ping-claude-001"
+}
+```
+
+## 4. Use Codex, Cursor, Or Terminal Agents
+
+Terminal-based agents can use the REST command above directly. If the agent can
+invoke shell commands, give it only:
+
+- the action name
+- the input schema you expect
+- the idempotency key rule
+- the inspect command
+
+Inspect with:
+
+```bash
+curl -sS "$IGRIS_API_BASE_URL/v1/actions/runs/$RUN_ID" \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+For MCP-capable terminal agents, use the same `call_action` contract as Claude
+Code. The agent should not send `tenant_id`, `task_definition`, `runtime_id`,
+`runtime_endpoint`, raw bodies, ciphertext, nonces, or key material; those fields
+are rejected.
+
+## 5. Custom Agents
+
+Custom agents should call the Actions HTTP API:
+
+```bash
+curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions/$IGRIS_ACTION_NAME/run" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": { "message": "first custom-agent run" },
+    "idempotency_key": "first-ping-custom-001",
+    "metadata": {
+      "agent_id": "custom-agent-local",
+      "user_id": "operator"
+    }
+  }'
+```
+
+Use `GET /v1/actions/runs/:id`, MCP `get_run`, or MCP `get_run_evidence` to
+confirm the result. Treat `call_action` acceptance as "run accepted", not
+"side effect completed".
+
+## Stop Conditions
+
+Stop and fix setup before continuing if any of these happen:
+
+- unauthenticated requests do not return `401`
+- invalid API keys reveal tenant existence
+- `call_action` accepts unknown or raw execution fields
+- a retry with the same idempotency key creates a second side effect
+- a local-runtime action runs while no runtime is healthy and routable
+- proof is shown as signed when evidence is absent
+- any secret, token, cookie, private URL, raw body, or key material appears in output
+
+## Related Guides
+
+- [MCP Server](/docs/mcp-server)
+- [MCP Integration Patterns](/docs/mcp-integration-patterns)
+- [First Hosted Integration](/docs/first-cloud-integration)
+- [Actions API Reference](/docs/api-reference/actions/post-v1-actions-name-run)
+- [Durable Tasks](/docs/durable-tasks)
