@@ -1289,7 +1289,7 @@ export default function Products() {
       <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="px-0">
           <div className="px-0">
-            <div className="pt-32 md:pt-48 pb-20 md:pb-32">
+            <div className="pt-10 md:pt-14 pb-20 md:pb-32">
               {/* Intro copy — sits above the product design */}
               <h2
                 className="text-gray-700 dark:text-[#c8c8b8] font-normal"
@@ -1302,22 +1302,16 @@ export default function Products() {
                   maxWidth: '22ch',
                 }}
               >
-                Built for AI systems operating in the real world.
+                Run, recover, and prove.
               </h2>
               <div
-                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
+                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
                 style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
               >
                 <p>
-                  When an agent needs to read a file, call an API, update a
-                  database, or trigger a workflow, Igris sits in the middle. It
-                  runs the action, records what happened, and gives your team a
-                  clear trail afterward.
-                </p>
-                <p>
-                  If something breaks halfway through, Igris does not blindly
-                  start over. It resumes from the last recorded step, so actions
-                  are easier to recover, inspect, and trust.
+                  The console below walks through one agent task — how Igris
+                  executes each step, checkpoints progress when something fails,
+                  and leaves a signed receipt you can inspect afterward.
                 </p>
               </div>
 
@@ -1352,10 +1346,9 @@ export default function Products() {
                 style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
               >
                 <p>
-                  AI agents are starting to do more than answer. They call APIs,
-                  trigger workflows, access files, and run tasks. Igris gives those
-                  actions boundaries, recovery, and proof, so teams can trust what
-                  happened after the run.
+                  Each dot is a run. Outcome bands show where execution succeeded,
+                  stalled, or needed recovery — so operators can scan recent
+                  activity without opening every task.
                 </p>
               </div>
 
