@@ -1,6 +1,6 @@
 # API Verification Report
 
-Generated: 2026-06-10T16:22:53.412Z
+Generated: 2026-06-12T12:44:27.473Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
@@ -16,11 +16,11 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | Status | Method | Path | Section | Evidence |
 | --- | --- | --- | --- | --- |
 | test-covered | GET | `/v1/actions` | Actions | tests: 4, clients: 1 |
-| test-covered | POST | `/v1/actions` | Actions | tests: 4, clients: 1 |
+| test-covered | POST | `/v1/actions` | Actions | tests: 5, clients: 1 |
 | test-covered | GET | `/v1/actions/:id` | Actions | tests: 2, clients: 1 |
 | implemented-unverified | PATCH | `/v1/actions/:id` | Actions | none |
 | implemented-unverified | DELETE | `/v1/actions/:id` | Actions | none |
-| test-covered | POST | `/v1/actions/run` | Actions | tests: 3, clients: 1 |
+| test-covered | POST | `/v1/actions/run` | Actions | tests: 4, clients: 1 |
 | test-covered | POST | `/v1/actions/:name/run` | Actions | tests: 1 |
 | test-covered | GET | `/v1/actions/runs/:id` | Actions | tests: 1, clients: 1 |
 | test-covered | GET | `/v1/health` | Platform Health | tests: 5, clients: 5 |
@@ -85,7 +85,7 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | test-covered | POST | `/v1/tasks/:id/cancel` | Durable Tasks | tests: 1 |
 | implemented-unverified | GET | `/v1/tasks/proof/readiness` | Durable Tasks | none |
 | implemented-unverified | POST | `/v1/tasks/:id/proof/verify` | Durable Tasks | none |
-| test-covered | POST | `/v1/mcp` | MCP Transport | tests: 2 |
+| test-covered | POST | `/v1/mcp` | MCP Transport | tests: 3 |
 | implemented-unverified | GET | `/v1/health` | Local Runtime API | none |
 | implemented-unverified | GET | `/v1/runtime/profile` | Local Runtime API | none |
 | implemented-unverified | POST | `/v1/chat/completions` | Local Runtime API | none |
