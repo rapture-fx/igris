@@ -170,7 +170,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="py-24 md:py-40">
+        <div className="pt-24 md:pt-40 pb-10 md:pb-14">
           <h2
             className="text-gray-700 dark:text-[#c8c8b8] font-normal"
             style={{
