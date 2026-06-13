@@ -16,4 +16,7 @@ export const DOCS_LINKS = {
   tools: docsUrl('/docs/tools'),
   agents: docsUrl('/docs/agents'),
   robotics: docsUrl('/docs/robotics'),
+  runtime: docsUrl('/docs/deploy-local-runtime'),
+  useCases: docsUrl('/docs/hybrid-deployment-workflow'),
+  platform: docsUrl('/docs/execution-model'),
 } as const;
