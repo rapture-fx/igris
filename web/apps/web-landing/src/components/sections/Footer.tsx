@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { DOCS_LINKS } from '../../lib/docs-urls'
+import { DOCS_LINKS, DOCS_ORIGIN } from '../../lib/docs-urls'
 import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections'
 import LandingSectionLink from '../LandingSectionLink'
 
@@ -90,8 +90,14 @@ function FooterNavLink({ link }: { link: FooterLink }) {
   }
 
   if (link.external) {
+    const isDocs = link.href.startsWith(DOCS_ORIGIN)
     return (
-      <a href={link.href} target="_blank" rel="noopener noreferrer" className={className} style={style}>
+      <a
+        href={link.href}
+        {...(isDocs ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+        className={className}
+        style={style}
+      >
         {link.label}
       </a>
     )
