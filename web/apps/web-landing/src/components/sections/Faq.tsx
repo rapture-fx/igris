@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-const borderStyle = 'var(--capabilities-border)'
 
 interface FaqEntry {
   question: string
@@ -155,7 +154,6 @@ const faqSections: FaqSection[] = [
 export default function Faq({ large = false }: { large?: boolean }) {
   const [openSectionIndex, setOpenSectionIndex] = useState<number | null>(null)
 
-  const maxW = large ? 'max-w-[900px]' : 'max-w-[700px]'
   const titleSize = large ? 'clamp(1.2rem, 2.6vw, 2rem)' : 'clamp(1.1rem, 2.2vw, 1.75rem)'
   const sectionTitleSize = large ? 'clamp(1rem, 1.2vw, 1.1rem)' : '0.95rem'
   const questionSize = large ? '0.95rem' : '0.875rem'
@@ -172,7 +170,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className={`mx-auto ${maxW} py-24 md:py-40`}>
+        <div className="py-24 md:py-40">
           <h2
             className="text-gray-700 dark:text-[#c8c8b8] font-normal"
             style={{
@@ -186,114 +184,117 @@ export default function Faq({ large = false }: { large?: boolean }) {
             Questions and answers
           </h2>
 
-          <div className="mt-10 md:mt-12" style={{ borderTop: borderStyle, borderLeft: borderStyle }}>
-            {faqSections.map((section, sectionIndex) => {
-              const isOpen = openSectionIndex === sectionIndex
+          <div className="mt-10 md:mt-12">
+            <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
+              <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
+                <div className="relative overflow-hidden rounded-[10px] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
+                  {faqSections.map((section, sectionIndex) => {
+                    const isOpen = openSectionIndex === sectionIndex
+                    const isLast = sectionIndex === faqSections.length - 1
 
-              return (
-                <div
-                  key={section.title}
-                  style={{ borderRight: borderStyle, borderBottom: borderStyle }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(sectionIndex)}
-                    className="w-full text-left px-7 md:px-9 py-5 md:py-6 flex items-center justify-between gap-4 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
-                    style={{ fontFamily: SANS }}
-                    aria-expanded={isOpen}
-                  >
-                    <span
-                      className="text-gray-700 dark:text-[#c8c8b8]"
-                      style={{
-                        fontSize: sectionTitleSize,
-                        fontWeight: 500,
-                        lineHeight: 1.3,
-                        letterSpacing: '-0.01em',
-                      }}
-                    >
-                      {section.title}
-                    </span>
-                    <ChevronDown
-                      className={`flex-shrink-0 text-gray-500 dark:text-[#8a8a7a] transition-transform duration-200 ${
-                        isOpen ? 'rotate-180' : ''
-                      }`}
-                      size={chevronSize}
-                      strokeWidth={1.5}
-                    />
-                  </button>
-
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      isOpen ? 'max-h-[3000px]' : 'max-h-0'
-                    }`}
-                  >
-                    <div
-                      className="px-7 md:px-9 pt-2 pb-6 md:pb-8 space-y-5"
-                      style={{ borderTop: borderStyle }}
-                    >
-                      {section.entries.map((faq, entryIndex) => (
-                        <div
-                          key={faq.question}
-                          className={entryIndex > 0 ? 'pt-5' : ''}
-                          style={entryIndex > 0 ? { borderTop: borderStyle } : undefined}
+                    return (
+                      <div
+                        key={section.title}
+                        className={!isLast ? 'border-b border-black/[0.06] dark:border-white/[0.06]' : ''}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleSection(sectionIndex)}
+                          className="w-full text-left px-6 md:px-8 py-5 md:py-6 flex items-center justify-between gap-4 transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.02]"
+                          style={{ fontFamily: SANS }}
+                          aria-expanded={isOpen}
                         >
-                          <p
-                            className="text-gray-700 dark:text-[#c8c8b8] mb-2"
+                          <span
+                            className="text-gray-700 dark:text-[#c8c8b8]"
                             style={{
-                              fontFamily: SANS,
-                              fontSize: questionSize,
+                              fontSize: sectionTitleSize,
                               fontWeight: 500,
-                              lineHeight: 1.4,
+                              lineHeight: 1.3,
                               letterSpacing: '-0.01em',
                             }}
                           >
-                            {faq.question}
-                          </p>
-                          {faq.type === 'text' && (
-                            <p
-                              className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
-                              style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
-                            >
-                              {faq.answer}
-                            </p>
-                          )}
-                          {faq.type === 'code' && (
-                            <div className="space-y-3">
-                              <p
-                                className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
-                                style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                            {section.title}
+                          </span>
+                          <ChevronDown
+                            className={`flex-shrink-0 text-gray-500 dark:text-[#8a8a7a] transition-transform duration-200 ${
+                              isOpen ? 'rotate-180' : ''
+                            }`}
+                            size={chevronSize}
+                            strokeWidth={1.5}
+                          />
+                        </button>
+
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ${
+                            isOpen ? 'max-h-[3000px]' : 'max-h-0'
+                          }`}
+                        >
+                          <div className="px-6 md:px-8 pt-2 pb-6 md:pb-8 space-y-5 border-t border-black/[0.06] dark:border-white/[0.06]">
+                            {section.entries.map((faq, entryIndex) => (
+                              <div
+                                key={faq.question}
+                                className={entryIndex > 0 ? 'pt-5 border-t border-black/[0.06] dark:border-white/[0.06]' : ''}
                               >
-                                {faq.answerText}
-                              </p>
-                              <div className="rounded-[10px] p-3 font-mono text-xs overflow-x-auto bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
-                                <div className="mb-2">
-                                  <span className="text-gray-500 dark:text-[#8a8a7a]"># Old</span>
-                                  <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
-                                    {faq.codeExample?.old}
+                                <p
+                                  className="text-gray-700 dark:text-[#c8c8b8] mb-2"
+                                  style={{
+                                    fontFamily: SANS,
+                                    fontSize: questionSize,
+                                    fontWeight: 500,
+                                    lineHeight: 1.4,
+                                    letterSpacing: '-0.01em',
+                                  }}
+                                >
+                                  {faq.question}
+                                </p>
+                                {faq.type === 'text' && (
+                                  <p
+                                    className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
+                                    style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                  >
+                                    {faq.answer}
+                                  </p>
+                                )}
+                                {faq.type === 'code' && (
+                                  <div className="space-y-3">
+                                    <p
+                                      className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
+                                      style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                    >
+                                      {faq.answerText}
+                                    </p>
+                                    <div className="rounded-[10px] p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
+                                      <div className="mb-2">
+                                        <span className="text-gray-500 dark:text-[#8a8a7a]"># Old</span>
+                                        <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
+                                          {faq.codeExample?.old}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500 dark:text-[#8a8a7a]"># New</span>
+                                        <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
+                                          {faq.codeExample?.new}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <p
+                                      className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
+                                      style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                    >
+                                      {faq.answerFooter}
+                                    </p>
                                   </div>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 dark:text-[#8a8a7a]"># New</span>
-                                  <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
-                                    {faq.codeExample?.new}
-                                  </div>
-                                </div>
+                                )}
                               </div>
-                              <p
-                                className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
-                                style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
-                              >
-                                {faq.answerFooter}
-                              </p>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
