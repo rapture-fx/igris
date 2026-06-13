@@ -1291,24 +1291,24 @@ export default function Products() {
           <div className="px-0">
             <div className="pt-10 md:pt-14 pb-20 md:pb-32">
               {/* Intro copy — sits above the product design */}
-              <h2
-                className="text-gray-700 dark:text-[#c8c8b8] font-normal"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.02em',
-                  maxWidth: '22ch',
-                }}
-              >
-                Run, recover, and prove.
-              </h2>
-              <div
-                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
-                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-              >
-                <p>
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
+                <h2
+                  className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0"
+                  style={{
+                    fontFamily: SANS,
+                    fontWeight: 400,
+                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.02em',
+                    maxWidth: '22ch',
+                  }}
+                >
+                  Run, recover, and prove.
+                </h2>
+                <p
+                  className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
+                  style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+                >
                   The console below walks through one agent task — how Igris
                   executes each step, checkpoints progress when something fails,
                   and leaves a signed receipt you can inspect afterward.
@@ -1329,31 +1329,33 @@ export default function Products() {
         <div className="px-0">
           <div className="px-0">
             <div className="pb-20 md:pb-28">
-              <p
-                className="text-gray-700 dark:text-[#c8c8b8] font-normal max-w-[34ch]"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Execution matters as much as intelligence.
-              </p>
-              <div
-                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
-                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-              >
-                <p>
-                  AI agents are starting to do more than answer. They call APIs, trigger
-                  workflows, access files, and run tasks. Igris gives those actions
-                  boundaries, recovery, and proof, so teams can trust what happened after
-                  the run.
-                </p>
-                <p className="text-[0.95rem] text-gray-500 dark:text-[#8a8a7a]">
-                  Each dot is one run. See what completed, recovered, failed, or was verified.
-                </p>
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
+                <h2
+                  className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[34ch]"
+                  style={{
+                    fontFamily: SANS,
+                    fontWeight: 400,
+                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                    lineHeight: 1.2,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Execution matters as much as intelligence.
+                </h2>
+                <div
+                  className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right space-y-5"
+                  style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+                >
+                  <p>
+                    AI agents are starting to do more than answer. They call APIs, trigger
+                    workflows, access files, and run tasks. Igris gives those actions
+                    boundaries, recovery, and proof, so teams can trust what happened after
+                    the run.
+                  </p>
+                  <p className="text-[0.95rem] text-gray-500 dark:text-[#8a8a7a]">
+                    Each dot is one run. See what completed, recovered, failed, or was verified.
+                  </p>
+                </div>
               </div>
 
               {/* Run Activity Map — map surface only (no rail/topbar/panel) */}
