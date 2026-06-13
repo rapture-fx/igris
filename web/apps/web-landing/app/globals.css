@@ -25,6 +25,15 @@ html {
   html { scroll-behavior: auto; }
 }
 
+/* Fixed header offset for in-page section anchors */
+#product,
+#overview,
+#action-endpoint,
+#when-to-use,
+#faq {
+  scroll-margin-top: 5.5rem;
+}
+
 /* Product showcase panel entrance — transform-only (no opacity) so it slides
    in smoothly on tab change without ever flashing an empty frame. */
 @keyframes ic-panel-in {
