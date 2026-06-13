@@ -1,130 +1,157 @@
 'use client'
 
 import React from 'react'
+import { ArrowRight } from 'lucide-react'
 
-const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-const MONO  = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
-const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
+const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 const borderStyle = 'var(--capabilities-border)'
 
-type Criterion = {
-  num: string
-  title: string
-  body: string
-  bullets: string[]
-  wide?: boolean
-}
+const cards = [
+  {
+    title: 'Real side effects',
+    body: 'Use Igris when agents need to perform actions with business impact — creating invoices, calling APIs, triggering workflows, writing to databases, or changing state.',
+  },
+  {
+    title: 'Auditability and proof',
+    body: 'Use Igris when your team needs a clear record of what the agent actually did, not just logs, screenshots, or a final answer.',
+  },
+  {
+    title: 'Hybrid execution',
+    body: 'Use Igris when some actions run through cloud endpoints and others need private, local, edge, or internal execution with the same governance model.',
+  },
+  {
+    title: 'Opinionated execution',
+    body: 'Use Igris when you want stronger boundaries, recovery, and proof than a general workflow engine usually provides.',
+  },
+] as const
 
-const criteria: Criterion[] = [
-  {
-    num: '03.1',
-    title: 'Touches real systems',
-    body: 'Use Igris when agents read files, call APIs, update records, trigger workflows, or touch deployment paths. Side effects need to be counted, attributed, and bounded — not just generated.',
-    bullets: ['files', 'APIs', 'databases', 'workflows', 'deployments'],
-  },
-  {
-    num: '03.2',
-    title: 'Cannot replay blindly',
-    body: 'Use Igris when restarting a failed run from zero could repeat a committed action or leave the task half-finished. Recovery continues from recorded progress, not from the beginning.',
-    bullets: ['recorded progress', 'clean-host recovery', 'no replay of committed actions'],
-  },
-  {
-    num: '03.3',
-    title: 'Needs proof after the run',
-    body: 'Use Igris when operators or auditors need signed receipts, chain validation, and safe evidence summaries that survive recovery boundaries and remain verifiable without trusting any single dashboard.',
-    bullets: ['signed receipts', 'chain validation', 'operator-readable evidence', 'no raw payloads'],
-    wide: true,
-  },
-]
+const chainSteps = ['Reasoning framework', 'Igris action', 'Receipt / proof'] as const
 
 export default function WhenToUseIgris() {
   return (
-    <section className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section
+      id="when-to-use"
+      aria-labelledby="when-to-use-heading"
+      className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+    >
       <div className="px-0">
         <div className="px-0">
-
-          <div className="pt-10 md:pt-14 pb-6 md:pb-8">
-
-            <h2
-              className="text-[#000000] dark:text-[#f6f6f4]"
-              style={{
-                fontFamily: PIXEL,
-                fontWeight: 500,
-                fontSize: 'clamp(1.4rem, 2.6vw, 2rem)',
-                lineHeight: 1.15,
-                letterSpacing: '-0.005em',
-                maxWidth: '28ch',
-              }}
+          <div style={{ borderTop: borderStyle, borderLeft: borderStyle }}>
+            <div
+              className="px-7 md:px-9 pt-10 md:pt-14 pb-6 md:pb-8"
+              style={{ borderRight: borderStyle, borderBottom: borderStyle }}
             >
-              Use Igris when the action matters.
-            </h2>
-            <p
-              className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[62ch]"
-              style={{
-                fontFamily: SANS,
-                fontSize: 'clamp(0.95rem, 1.05vw, 1rem)',
-                lineHeight: 1.6,
-              }}
-            >
-              Not every prompt needs durable execution. Use Igris when an agent
-              touches real systems, failed retries can duplicate work, or your
-              team needs proof after the run. Any one of the three criteria
-              below is sufficient.
-            </p>
-          </div>
+              <p
+                className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a] uppercase"
+                style={{ fontFamily: MONO }}
+              >
+                When to use Igris
+              </p>
+              <h2
+                id="when-to-use-heading"
+                className="mt-4 text-gray-700 dark:text-[#c8c8b8] font-normal"
+                style={{
+                  fontFamily: SANS,
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                  lineHeight: 1.2,
+                  letterSpacing: '-0.02em',
+                  maxWidth: '28ch',
+                }}
+              >
+                Use Igris when the action matters.
+              </h2>
+              <p
+                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
+                style={{
+                  fontFamily: SANS,
+                  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+                  lineHeight: 1.6,
+                }}
+              >
+                Igris is most useful when agent actions have consequences and your team
+                needs control, recovery, and proof around execution.
+              </p>
+            </div>
 
-          <div
-            className="grid grid-cols-1 md:grid-cols-2"
-            style={{ borderTop: borderStyle, borderLeft: borderStyle }}
-          >
-            {criteria.map((c) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2">
+            {cards.map((card) => (
               <article
-                key={c.num}
-                className={`flex flex-col px-7 md:px-9 py-8 md:py-10 ${c.wide ? 'md:col-span-2' : ''}`}
+                key={card.title}
+                className="flex flex-col px-7 md:px-9 py-8 md:py-10"
                 style={{ borderRight: borderStyle, borderBottom: borderStyle }}
               >
-                <div
-                  className="text-gray-400 dark:text-[#5a5a52]"
-                  style={{ fontFamily: PIXEL, fontSize: '11px', letterSpacing: '0.18em', fontVariantNumeric: 'tabular-nums' }}
-                >
-                  {c.num}
-                </div>
-
                 <h3
-                  className="mt-3 text-[#000000] dark:text-[#f6f6f4]"
+                  className="text-[#000000] dark:text-[#f6f6f4]"
                   style={{
-                    fontFamily: PIXEL,
-                    fontSize: 'clamp(1.05rem, 1.4vw, 1.25rem)',
+                    fontFamily: SANS,
+                    fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
                     fontWeight: 500,
-                    lineHeight: 1.2,
-                    letterSpacing: '-0.005em',
+                    lineHeight: 1.3,
+                    letterSpacing: '-0.01em',
                   }}
                 >
-                  {c.title}
+                  {card.title}
                 </h3>
-
                 <p
-                  className="mt-3 text-gray-700 dark:text-[#c8c8b8] max-w-[62ch]"
+                  className="mt-3 text-gray-600 dark:text-[#a8a898] max-w-[52ch]"
                   style={{ fontFamily: SANS, fontSize: '0.95rem', lineHeight: 1.6 }}
                 >
-                  {c.body}
+                  {card.body}
                 </p>
-
-                <ul
-                  className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-gray-600 dark:text-[#a8a898]"
-                  style={{ fontFamily: MONO, fontSize: '12px', letterSpacing: '0.02em' }}
-                >
-                  {c.bullets.map((b) => (
-                    <li key={b}>- {b}</li>
-                  ))}
-                </ul>
               </article>
             ))}
           </div>
-
-          <div className="pb-6 md:pb-10" />
-
           </div>
+
+          <aside
+            className="mt-8 md:mt-10 px-7 md:px-9 py-6 md:py-7 rounded-lg border border-gray-200 dark:border-[rgba(246,246,244,0.12)] bg-gray-50/80 dark:bg-[#161515]/60"
+            aria-label="Works alongside your agent stack"
+          >
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
+              <div className="max-w-[62ch]">
+                <p
+                  className="text-[#000000] dark:text-[#f6f6f4]"
+                  style={{
+                    fontFamily: SANS,
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Works alongside your agent stack
+                </p>
+                <p
+                  className="mt-2 text-gray-600 dark:text-[#a8a898]"
+                  style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.6 }}
+                >
+                  Use your agent framework for reasoning and planning. Use Igris for the
+                  final actions that need policy, recovery, and receipts.
+                </p>
+              </div>
+
+              <div
+                className="flex flex-wrap items-center gap-2 text-gray-500 dark:text-[#8a8a7a] shrink-0"
+                style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.04em' }}
+                aria-hidden
+              >
+                {chainSteps.map((step, i) => (
+                  <React.Fragment key={step}>
+                    <span className="px-2.5 py-1 rounded border border-gray-200 dark:border-[rgba(246,246,244,0.1)] text-gray-600 dark:text-[#a8a898]">
+                      {step}
+                    </span>
+                    {i < chainSteps.length - 1 && (
+                      <ArrowRight className="w-3 h-3 opacity-40" strokeWidth={1.5} />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <div className="pb-20 md:pb-28" />
+        </div>
       </div>
     </section>
   )
