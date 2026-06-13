@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T16:22:51.066Z",
+  "generated_at": "2026-06-12T12:44:23.404Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
     "/docs/agents": "public",
@@ -145,6 +145,7 @@
     "/docs/execution-flow": "public",
     "/docs/execution-model": "public",
     "/docs/execution-receipts": "public",
+    "/docs/first-agent-onboarding": "public",
     "/docs/first-cloud-integration": "public",
     "/docs/first-verified-run": "public",
     "/docs/fleet-management": "public",
