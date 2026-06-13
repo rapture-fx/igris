@@ -296,19 +296,10 @@ function WorkerInstallCallout() {
   return (
     <aside className="ae-worker-callout" aria-label="Optional worker install for private access">
       <div className="ae-worker-copy">
-        <h3
-          className="ae-worker-heading text-gray-700 dark:text-[#c8c8b8]"
-          style={{ ...WORKER_COPY_STYLE, fontWeight: 500, letterSpacing: '-0.01em' }}
-        >
-          Start in Cloud. Add a worker when needed.
-        </h3>
-        <p
-          className="ae-worker-body text-gray-600 dark:text-[#a8a898]"
-          style={{ ...WORKER_COPY_STYLE, marginTop: 10 }}
-        >
-          Hosted APIs and webhooks can run through Igris Cloud. Install a worker only
-          when an action needs access to private files, internal APIs, databases, or
-          local runtimes.
+        <p className="ae-worker-body text-gray-600 dark:text-[#a8a898]" style={WORKER_COPY_STYLE}>
+          Start in Cloud. Add a worker when needed. Hosted APIs and webhooks can run through
+          Igris Cloud. Install a worker only when an action needs access to private files,
+          internal APIs, databases, or local runtimes.
         </p>
         <p className="ae-worker-note" style={{ fontFamily: MONO }}>
           No worker is required for hosted API or webhook actions.

@@ -2,10 +2,19 @@
 
 import React from 'react'
 import { ArrowRight } from 'lucide-react'
+import type { CSSProperties } from 'react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 const borderStyle = 'var(--capabilities-border)'
+
+const copyStyle: CSSProperties = {
+  fontFamily: SANS,
+  fontWeight: 400,
+  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+  lineHeight: 1.6,
+  letterSpacing: '-0.01em',
+}
 
 const cards = [
   {
@@ -44,25 +53,14 @@ export default function WhenToUseIgris() {
             >
               <h2
                 id="when-to-use-heading"
-                className="text-gray-700 dark:text-[#c8c8b8] font-normal"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.02em',
-                  maxWidth: '28ch',
-                }}
+                className="text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
+                style={copyStyle}
               >
                 Use Igris when the action matters.
               </h2>
               <p
                 className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
-                style={{
-                  fontFamily: SANS,
-                  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
-                  lineHeight: 1.6,
-                }}
+                style={copyStyle}
               >
                 Igris is most useful when agent actions have consequences and your team
                 needs control, recovery, and proof around execution.
@@ -76,22 +74,8 @@ export default function WhenToUseIgris() {
                 className="flex flex-col px-7 md:px-9 py-8 md:py-10"
                 style={{ borderRight: borderStyle, borderBottom: borderStyle }}
               >
-                <h3
-                  className="text-[#000000] dark:text-[#f6f6f4]"
-                  style={{
-                    fontFamily: SANS,
-                    fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
-                    fontWeight: 500,
-                    lineHeight: 1.3,
-                    letterSpacing: '-0.01em',
-                  }}
-                >
-                  {card.title}
-                </h3>
-                <p
-                  className="mt-3 text-gray-600 dark:text-[#a8a898] max-w-[52ch]"
-                  style={{ fontFamily: SANS, fontSize: '0.95rem', lineHeight: 1.6 }}
-                >
+                <p className="text-gray-600 dark:text-[#a8a898] max-w-[52ch]" style={copyStyle}>
+                  <span className="text-gray-600 dark:text-[#a8a898]">{card.title}. </span>
                   {card.body}
                 </p>
               </article>
@@ -105,23 +89,9 @@ export default function WhenToUseIgris() {
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
               <div className="max-w-[62ch]">
-                <p
-                  className="text-[#000000] dark:text-[#f6f6f4]"
-                  style={{
-                    fontFamily: SANS,
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Fits into your agent stack
-                </p>
-                <p
-                  className="mt-2 text-gray-600 dark:text-[#a8a898]"
-                  style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.6 }}
-                >
-                  Use your agent framework for reasoning and planning. Use Igris for the
-                  final actions that need policy, recovery, and receipts.
+                <p className="text-gray-600 dark:text-[#a8a898]" style={copyStyle}>
+                  Fits into your agent stack. Use your agent framework for reasoning and planning.
+                  Use Igris for the final actions that need policy, recovery, and receipts.
                 </p>
               </div>
 
