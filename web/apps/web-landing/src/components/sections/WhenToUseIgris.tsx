@@ -10,7 +10,7 @@ const borderStyle = 'var(--capabilities-border)'
 const cards = [
   {
     title: 'Real side effects',
-    body: 'Use Igris when agents need to perform actions with business impact — creating invoices, calling APIs, triggering workflows, writing to databases, or changing state.',
+    body: 'Use Igris when agents need to perform actions with business impact: creating invoices, calling APIs, triggering workflows, writing to databases, or changing state.',
   },
   {
     title: 'Auditability and proof',

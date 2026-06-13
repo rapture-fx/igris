@@ -121,10 +121,10 @@ function RecoveryTimeline() {
   return (
     <div className="ic-rtl">
       <div className="ic-rtl__intro">
-        <div className="ic-rtl__title">When a step fails, Igris resumes — it doesn’t start over.</div>
+        <div className="ic-rtl__title">When a step fails, Igris resumes. It doesn’t start over.</div>
         <p className="ic-rtl__sub">
           Each committed step is checkpointed. On a host crash or rate limit, the run resumes from the
-          last checkpoint on another worker, retries the failed step, and finishes — repeating no work.
+          last checkpoint on another worker, retries the failed step, and finishes without repeating work.
         </p>
       </div>
 
@@ -182,7 +182,7 @@ function RecoveryTimeline() {
       </div>
 
       <p className="ic-rtl__foot">
-        Recovery is driven by signed step receipts — the run knows exactly which steps committed, so it
+        Recovery is driven by signed step receipts. The run knows exactly which steps committed, so it
         never re-runs a side effect that already happened.
       </p>
     </div>
