@@ -42,15 +42,9 @@ export default function WhenToUseIgris() {
               className="px-7 md:px-9 pt-10 md:pt-14 pb-6 md:pb-8"
               style={{ borderRight: borderStyle, borderBottom: borderStyle }}
             >
-              <p
-                className="text-[10px] md:text-[11px] tracking-[0.22em] text-gray-500 dark:text-[#8a8a7a] uppercase"
-                style={{ fontFamily: MONO }}
-              >
-                When to use Igris
-              </p>
               <h2
                 id="when-to-use-heading"
-                className="mt-4 text-gray-700 dark:text-[#c8c8b8] font-normal"
+                className="text-gray-700 dark:text-[#c8c8b8] font-normal"
                 style={{
                   fontFamily: SANS,
                   fontWeight: 400,

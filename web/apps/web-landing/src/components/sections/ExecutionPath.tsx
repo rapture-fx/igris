@@ -21,7 +21,7 @@
 //    fetch); monochrome by default, full brand colour on hover.
 // ──────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -51,11 +51,13 @@ const WORKS_WITH_CHIPS: Chip[] = [
   { label: 'Runtimes' },
 ]
 
-const WORKER_CMD_LINES = [
-  'curl -fsSL https://igrisinertial.com/install | bash',
-  'igris-runtime auth igris_...',
-  'igris-runtime serve',
-] as const
+const WORKER_INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
+
+const WORKER_COPY_STYLE: CSSProperties = {
+  fontFamily: SANS,
+  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+  lineHeight: 1.6,
+}
 
 interface Lang {
   id: string
@@ -283,13 +285,27 @@ function ChipView({ chip }: { chip: Chip }) {
 }
 
 function WorkerInstallCallout() {
+  const [copied, setCopied] = useState(false)
+
+  const copyInstallCmd = () => {
+    navigator.clipboard?.writeText(WORKER_INSTALL_CMD)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1400)
+  }
+
   return (
     <aside className="ae-worker-callout" aria-label="Optional worker install for private access">
       <div className="ae-worker-copy">
-        <h3 className="ae-worker-heading" style={{ fontFamily: SANS }}>
+        <h3
+          className="ae-worker-heading text-gray-700 dark:text-[#c8c8b8]"
+          style={{ ...WORKER_COPY_STYLE, fontWeight: 500, letterSpacing: '-0.01em' }}
+        >
           Start in Cloud. Add a worker when needed.
         </h3>
-        <p className="ae-worker-body" style={{ fontFamily: SANS }}>
+        <p
+          className="ae-worker-body text-gray-600 dark:text-[#a8a898]"
+          style={{ ...WORKER_COPY_STYLE, marginTop: 10 }}
+        >
           Hosted APIs and webhooks can run through Igris Cloud. Install a worker only
           when an action needs access to private files, internal APIs, databases, or
           local runtimes.
@@ -311,21 +327,22 @@ function WorkerInstallCallout() {
             Optional
           </span>
         </div>
-        <pre
-          className="ae-worker-code"
-          style={{ fontFamily: MONO }}
-          tabIndex={0}
-          aria-label="Worker install and start commands"
-        >
-          <code>
-            {WORKER_CMD_LINES.map((line) => (
-              <span key={line} className="ae-worker-line">
-                <span className="ae-worker-prompt" aria-hidden>$ </span>
-                {highlightCurl(line)}
-              </span>
-            ))}
+        <div className="ae-worker-code">
+          <code className="ae-worker-line" style={{ fontFamily: MONO }}>
+            <span className="ae-worker-prompt" aria-hidden>$ </span>
+            {highlightCurl(WORKER_INSTALL_CMD)}
           </code>
-        </pre>
+          <button
+            type="button"
+            onClick={copyInstallCmd}
+            className="ae-worker-copy-btn"
+            style={{ fontFamily: MONO }}
+            title={copied ? 'Copied' : 'Copy'}
+            aria-label={copied ? 'Copied install command' : 'Copy install command'}
+          >
+            {copied ? '// copied' : '// copy'}
+          </button>
+        </div>
       </div>
     </aside>
   )
@@ -637,22 +654,8 @@ function EndpointStyles() {
         background: rgba(22, 21, 21, 0.55);
         border-color: rgba(246, 246, 244, 0.1);
       }
-      .ae-worker-heading {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 500;
-        line-height: 1.35;
-        letter-spacing: -0.01em;
-        color: #374151;
-      }
-      html.dark .ae-worker-heading { color: #c8c8b8; }
-      .ae-worker-body {
-        margin: 10px 0 0;
-        font-size: 0.88rem;
-        line-height: 1.6;
-        color: #6b7280;
-      }
-      html.dark .ae-worker-body { color: #a8a898; }
+      .ae-worker-heading { margin: 0; }
+      .ae-worker-body { margin: 0; }
       .ae-worker-note {
         margin: 12px 0 0;
         font-size: 10.5px;
@@ -724,37 +727,51 @@ function EndpointStyles() {
         background: rgba(255, 255, 255, 0.03);
       }
       .ae-worker-code {
-        margin: 0;
-        padding: 20px 22px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 16px;
         font-size: 12.5px;
-        line-height: 1;
+        line-height: 1.6;
         color: #1b1912;
         overflow-x: auto;
-        white-space: pre;
         -webkit-overflow-scrolling: touch;
-        min-height: 148px;
       }
       html.dark .ae-worker-code { color: #b0ada5; }
-      .ae-worker-code:focus-visible { outline: 2px solid #047857; outline-offset: -2px; }
-      html.dark .ae-worker-code:focus-visible { outline-color: #2faa7e; }
-      .ae-worker-code code {
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-      }
       .ae-worker-line {
         display: block;
-        line-height: 1.75;
-        white-space: pre-wrap;
-        word-break: break-word;
+        min-width: 0;
+        flex: 1;
+        white-space: nowrap;
+        overflow-x: auto;
       }
       .ae-worker-prompt {
         display: inline-block;
-        margin-right: 10px;
+        margin-right: 8px;
         color: #9ca3af;
         user-select: none;
       }
       html.dark .ae-worker-prompt { color: #5a5a52; }
+      .ae-worker-copy-btn {
+        flex: none;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        color: #6b7280;
+        cursor: pointer;
+        transition: color .15s ease;
+      }
+      .ae-worker-copy-btn:hover,
+      .ae-worker-copy-btn:focus-visible {
+        color: #1b1912;
+        outline: none;
+      }
+      html.dark .ae-worker-copy-btn { color: #8a8a82; }
+      html.dark .ae-worker-copy-btn:hover,
+      html.dark .ae-worker-copy-btn:focus-visible { color: #f6f6f4; }
 
       @media (max-width: 720px) {
         .ae-worker-callout {
@@ -763,10 +780,13 @@ function EndpointStyles() {
           padding: 20px 18px;
         }
         .ae-worker-code {
-          padding: 18px 16px 20px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 14px 14px 16px;
           font-size: 12px;
         }
-        .ae-worker-code code { gap: 12px; }
+        .ae-worker-line { white-space: pre-wrap; word-break: break-word; }
       }
 
       @media (max-width: 640px) {
