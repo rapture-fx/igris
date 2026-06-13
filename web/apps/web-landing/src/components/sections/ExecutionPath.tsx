@@ -307,17 +307,6 @@ function WorkerInstallCallout() {
       </div>
 
       <div className="ae-worker-terminal">
-        <div className="ae-worker-terminal-bar">
-          <div className="ae-worker-dots" aria-hidden>
-            <span className="ae-worker-dot" /><span className="ae-worker-dot" /><span className="ae-worker-dot" />
-          </div>
-          <span className="ae-worker-terminal-label" style={{ fontFamily: MONO }}>
-            Private access
-          </span>
-          <span className="ae-worker-terminal-badge" style={{ fontFamily: MONO }}>
-            Optional
-          </span>
-        </div>
         <div className="ae-worker-code">
           <code className="ae-worker-line" style={{ fontFamily: MONO }}>
             <span className="ae-worker-prompt" aria-hidden>$ </span>
@@ -667,55 +656,6 @@ function EndpointStyles() {
       html.dark .ae-worker-terminal {
         border-color: rgba(255, 255, 255, 0.07);
         background: #0e0e0c;
-      }
-      .ae-worker-terminal-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px 16px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        background: #f2f1ee;
-      }
-      html.dark .ae-worker-terminal-bar {
-        background: #070707;
-        border-bottom-color: rgba(255, 255, 255, 0.06);
-      }
-      .ae-worker-dots {
-        display: flex;
-        gap: 6px;
-        flex: none;
-      }
-      .ae-worker-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.14);
-      }
-      html.dark .ae-worker-dot { background: rgba(255, 255, 255, 0.14); }
-      .ae-worker-terminal-label {
-        flex: 1;
-        min-width: 0;
-        font-size: 11px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #6b7280;
-      }
-      html.dark .ae-worker-terminal-label { color: #8a8a82; }
-      .ae-worker-terminal-badge {
-        flex: none;
-        font-size: 10px;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: #6b7280;
-        padding: 3px 8px;
-        border-radius: 999px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        background: rgba(0, 0, 0, 0.03);
-      }
-      html.dark .ae-worker-terminal-badge {
-        color: #8a8a82;
-        border-color: rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.03);
       }
       .ae-worker-code {
         display: flex;
