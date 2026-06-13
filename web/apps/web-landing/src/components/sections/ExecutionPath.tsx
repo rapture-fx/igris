@@ -41,6 +41,12 @@ const ROUTE_CHIPS: Chip[] = [
   { label: 'MCP', Icon: Plug },
 ]
 
+const WORKER_CMD_LINES = [
+  'curl -fsSL https://igrisinertial.com/install | bash',
+  'igris-runtime auth igris_...',
+  'igris-runtime serve',
+] as const
+
 interface Lang {
   id: string
   label: string
@@ -216,9 +222,10 @@ export default function ExecutionPath() {
           {/* ── Code window (anchor) ────────────────────────────────── */}
           <CodeWindow />
 
-          {/* ── Route chips ─────────────────────────────────────────── */}
+          {/* ── Route chips + optional worker install ───────────────── */}
           <div className="ae-connect">
             <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+            <WorkerInstallCallout />
           </div>
         </div>
       </div>
@@ -261,6 +268,47 @@ function ChipView({ chip }: { chip: Chip }) {
       <LogoMark chip={chip} />
       {chip.label}
     </span>
+  )
+}
+
+function WorkerInstallCallout() {
+  return (
+    <aside className="ae-worker-callout" aria-label="Optional worker install for private access">
+      <div className="ae-worker-copy">
+        <h3 className="ae-worker-heading" style={{ fontFamily: SANS }}>
+          Start in Cloud. Add a worker when needed.
+        </h3>
+        <p className="ae-worker-body" style={{ fontFamily: SANS }}>
+          Hosted APIs and webhooks can run through Igris Cloud. Install a worker only
+          when an action needs access to private files, internal APIs, databases, or
+          local runtimes.
+        </p>
+        <p className="ae-worker-note" style={{ fontFamily: MONO }}>
+          No worker is required for hosted API or webhook actions.
+        </p>
+      </div>
+
+      <div className="ae-worker-terminal">
+        <div className="ae-worker-terminal-label" style={{ fontFamily: MONO }}>
+          Private access
+        </div>
+        <pre
+          className="ae-worker-code"
+          style={{ fontFamily: MONO }}
+          tabIndex={0}
+          aria-label="Worker install and start commands"
+        >
+          <code>
+            {WORKER_CMD_LINES.map((line) => (
+              <span key={line} className="ae-worker-line">
+                <span className="ae-worker-prompt" aria-hidden>$ </span>
+                {highlightCurl(line)}
+              </span>
+            ))}
+          </code>
+        </pre>
+      </div>
+    </aside>
   )
 }
 
@@ -549,6 +597,99 @@ function EndpointStyles() {
       .ae-chip:hover .ae-logo-mono { opacity: 0; }
       .ae-chip:hover .ae-logo-color { opacity: 1; }
       html.dark .ae-chip:hover .ae-logo-color--invert { filter: invert(1) brightness(1.7); }
+
+      /* ── Optional worker install callout ── */
+      .ae-worker-callout {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 20px 28px;
+        padding: 18px 20px;
+        border-radius: 12px;
+        border: 1px solid var(--landing-surface-border);
+        background: var(--landing-surface);
+        text-align: left;
+      }
+      html.dark .ae-worker-callout {
+        background: rgba(22, 21, 21, 0.55);
+        border-color: rgba(246, 246, 244, 0.1);
+      }
+      .ae-worker-heading {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.35;
+        letter-spacing: -0.01em;
+        color: #374151;
+      }
+      html.dark .ae-worker-heading { color: #c8c8b8; }
+      .ae-worker-body {
+        margin: 8px 0 0;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        color: #6b7280;
+      }
+      html.dark .ae-worker-body { color: #a8a898; }
+      .ae-worker-note {
+        margin: 10px 0 0;
+        font-size: 10.5px;
+        letter-spacing: 0.03em;
+        color: #9ca3af;
+      }
+      html.dark .ae-worker-note { color: #6a6a62; }
+      .ae-worker-terminal {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        border-radius: 9px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #f2f1ee;
+        overflow: hidden;
+      }
+      html.dark .ae-worker-terminal {
+        border-color: rgba(255, 255, 255, 0.07);
+        background: #0a0a09;
+      }
+      .ae-worker-terminal-label {
+        padding: 8px 12px;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6b7280;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      html.dark .ae-worker-terminal-label {
+        color: #8a8a82;
+        border-bottom-color: rgba(255, 255, 255, 0.06);
+      }
+      .ae-worker-code {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 11.5px;
+        line-height: 1.7;
+        color: #1b1912;
+        overflow-x: auto;
+        white-space: pre;
+        -webkit-overflow-scrolling: touch;
+      }
+      html.dark .ae-worker-code { color: #b0ada5; }
+      .ae-worker-code:focus-visible { outline: 2px solid #047857; outline-offset: -2px; }
+      html.dark .ae-worker-code:focus-visible { outline-color: #2faa7e; }
+      .ae-worker-line { display: block; }
+      .ae-worker-prompt {
+        display: inline-block;
+        margin-right: 8px;
+        color: #9ca3af;
+        user-select: none;
+      }
+      html.dark .ae-worker-prompt { color: #5a5a52; }
+
+      @media (max-width: 720px) {
+        .ae-worker-callout {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+      }
 
       @media (max-width: 640px) {
         .ae-code { font-size: 12px; padding: 18px 16px 18px 14px; }
