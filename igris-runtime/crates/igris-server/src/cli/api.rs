@@ -121,6 +121,84 @@ impl Client {
             .with_context(|| "could not parse task response".to_string())
     }
 
+    pub async fn list_actions(&self) -> Result<serde_json::Value> {
+        let url = format!("{}/v1/actions", self.base);
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!("list actions failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse actions response".to_string())
+    }
+
+    pub async fn call_action(
+        &self,
+        action_id: Option<&str>,
+        action_name: Option<&str>,
+        body: &serde_json::Value,
+    ) -> Result<serde_json::Value> {
+        let name = action_name.map(str::trim).filter(|s| !s.is_empty());
+        let id = action_id.map(str::trim).filter(|s| !s.is_empty());
+        let url = if let Some(name) = name {
+            if !is_safe_action_name(name) {
+                return Err(anyhow!(
+                    "action_name must match the registered action name pattern"
+                ));
+            }
+            format!("{}/v1/actions/{}/run", self.base, name)
+        } else if id.is_some() {
+            format!("{}/v1/actions/run", self.base)
+        } else {
+            return Err(anyhow!("action_name or action_id is required"));
+        };
+
+        let mut payload = body.clone();
+        if let Some(id) = id {
+            if let Some(obj) = payload.as_object_mut() {
+                obj.entry("action_id").or_insert_with(|| id.into());
+            }
+        }
+
+        let resp = self
+            .inner
+            .post(&url)
+            .json(&payload)
+            .send()
+            .await
+            .with_context(|| format!("POST {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() && status.as_u16() != 409 {
+            return Err(anyhow!("call action failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse action run response".to_string())
+    }
+
+    pub async fn get_action_run(&self, run_id: &str) -> Result<serde_json::Value> {
+        let url = format!("{}/v1/actions/runs/{}", self.base, run_id);
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!("get run failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse action run response".to_string())
+    }
+
     pub async fn verify_task(&self, task_id: &str) -> Result<serde_json::Value> {
         let url = format!("{}/v1/tasks/{}/proof/verify", self.base, task_id);
         let resp = self
@@ -188,6 +266,19 @@ fn redact(text: &str) -> String {
     out.trim_end().to_string()
 }
 
+fn is_safe_action_name(name: &str) -> bool {
+    let bytes = name.as_bytes();
+    if !(2..=64).contains(&bytes.len()) {
+        return false;
+    }
+    if !bytes[0].is_ascii_lowercase() {
+        return false;
+    }
+    bytes
+        .iter()
+        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_')
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,6 +305,17 @@ mod tests {
         assert_eq!(normalize_base("https://x.example/"), "https://x.example");
         assert_eq!(normalize_base("  https://x.example  "), "https://x.example");
         assert_eq!(normalize_base("https://x.example///"), "https://x.example");
+    }
+
+    #[test]
+    fn action_name_path_guard_matches_registered_action_pattern() {
+        assert!(is_safe_action_name("first_ping"));
+        assert!(is_safe_action_name("a1"));
+        assert!(!is_safe_action_name("A1"));
+        assert!(!is_safe_action_name("a"));
+        assert!(!is_safe_action_name("first-ping"));
+        assert!(!is_safe_action_name("first/ping"));
+        assert!(!is_safe_action_name("first_ping?x=1"));
     }
 
     #[test]
