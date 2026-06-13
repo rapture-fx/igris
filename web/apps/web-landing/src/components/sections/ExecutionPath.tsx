@@ -383,7 +383,7 @@ function CodeWindow() {
   const active = LANGS.find((l) => l.id === lang) ?? LANGS[0]
 
   return (
-    <div className="ae-window-wrap mt-10 md:mt-12">
+    <div className="ae-window-wrap mt-12 md:mt-16">
       {/* Layered bezel — same treatment as the Products ExecutionPreview */}
       <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
         <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
@@ -633,7 +633,7 @@ function EndpointStyles() {
         margin-top: 20px;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 24px;
         padding: 24px 28px;
         border-radius: 12px;
         border: 1px solid var(--landing-surface-border);
