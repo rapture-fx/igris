@@ -212,7 +212,7 @@ export default function ExecutionPath() {
     >
       <EndpointStyles />
       <div className="pt-10 md:pt-14 pb-20 md:pb-32">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-12 md:mb-16">
           <h2
             className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[28ch]"
             style={{
@@ -364,7 +364,7 @@ function CodeWindow() {
   const active = LANGS.find((l) => l.id === lang) ?? LANGS[0]
 
   return (
-    <div className="ae-window-wrap mt-24 md:mt-32">
+    <div className="ae-window-wrap">
       {/* Layered bezel — same treatment as the Products ExecutionPreview */}
       <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
         <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
@@ -477,7 +477,6 @@ function EndpointStyles() {
   return (
     <style>{`
       /* ── Code window (inner panel inside the layered bezel) ── */
-      .ae-window-wrap { margin-top: 0; }
       .ae-window {
         --p-panel: #f7f7f5;
         --p-bar: #f2f1ee;
