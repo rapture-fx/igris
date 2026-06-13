@@ -233,8 +233,8 @@ export default function ExecutionPath() {
               lineHeight: 1.6,
             }}
           >
-            Define each action once. Every client calls the same endpoint while
-            Igris governs routing, policy, and proof on the server side.
+            One action, many clients. Compare how the same call looks in the
+            language or tool your team already uses.
           </p>
         </div>
 
