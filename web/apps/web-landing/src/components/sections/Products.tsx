@@ -7,6 +7,11 @@ import {
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
 import { RunActivityMapConsole } from './OverviewConsole'
+import {
+  LANDING_PRODUCT_REVEAL_EVENT,
+  LANDING_PRODUCT_TAB_EVENT,
+  type ProductTab,
+} from '../../lib/landing-sections'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -1213,6 +1218,21 @@ function ProductShowcaseTabs() {
     }, { threshold: 0.2 })
     io.observe(el)
     return () => io.disconnect()
+  }, [])
+  useEffect(() => {
+    const onReveal = () => setRevealed(true)
+    const onTab = (event: Event) => {
+      const next = (event as CustomEvent<ProductTab>).detail
+      holdUntilRef.current = Date.now() + 15000
+      setTab(next)
+      setRevealed(true)
+    }
+    window.addEventListener(LANDING_PRODUCT_REVEAL_EVENT, onReveal)
+    window.addEventListener(LANDING_PRODUCT_TAB_EVENT, onTab)
+    return () => {
+      window.removeEventListener(LANDING_PRODUCT_REVEAL_EVENT, onReveal)
+      window.removeEventListener(LANDING_PRODUCT_TAB_EVENT, onTab)
+    }
   }, [])
   const handleTab = (id: ShowcaseTab) => {
     holdUntilRef.current = Date.now() + 15000

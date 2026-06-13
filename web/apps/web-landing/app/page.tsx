@@ -13,6 +13,7 @@ import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
 import { useProductPopup } from '../src/contexts/ProductPopupContext'
 import ScrollReveal from '../src/components/ui/ScrollReveal'
+import LandingScrollManager from '../src/components/LandingScrollManager'
 
 const frameClass = "border-l border-r border-gray-200 dark:border-[rgba(246,246,244,0.07)]"
 const sectionFrameClass = "my-3 border border-gray-200 dark:border-[rgba(246,246,244,0.12)] rounded-lg overflow-hidden"
@@ -24,6 +25,7 @@ export default function HomePage() {
   return (
     <>
       <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200 pt-14">
+        <LandingScrollManager />
         <Header />
         <main>
           <ScrollReveal delay={0.1}><Hero /></ScrollReveal>

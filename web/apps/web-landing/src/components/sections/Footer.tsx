@@ -4,12 +4,14 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { DOCS_LINKS } from '../../lib/docs-urls'
+import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections'
+import LandingSectionLink from '../LandingSectionLink'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
 const borderStyle = 'var(--section-border)'
 
-type FooterLink = { label: string; href: string; external?: boolean }
+type FooterLink = { label: string; href: string; external?: boolean; section?: boolean }
 
 type FooterColumn = { heading: string; links: FooterLink[] }
 
@@ -17,11 +19,11 @@ const columns: FooterColumn[] = [
   {
     heading: 'Product',
     links: [
-      { label: 'Run', href: '/#product' },
-      { label: 'Recover', href: '/#product' },
-      { label: 'Verify', href: '/#product' },
-      { label: 'Inspect', href: '/#product' },
-      { label: 'Action endpoint', href: '/#action-endpoint' },
+      { label: 'Run', href: landingHash(LANDING_SECTIONS.productRun), section: true },
+      { label: 'Recover', href: landingHash(LANDING_SECTIONS.productRecover), section: true },
+      { label: 'Verify', href: landingHash(LANDING_SECTIONS.productProve), section: true },
+      { label: 'Inspect', href: landingHash(LANDING_SECTIONS.overview), section: true },
+      { label: 'Action endpoint', href: landingHash(LANDING_SECTIONS.actionEndpoint), section: true },
       { label: 'Pricing', href: '/pricing' },
     ],
   },
@@ -78,6 +80,14 @@ function FooterNavLink({ link }: { link: FooterLink }) {
   const className =
     'text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors'
   const style = { fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.5 }
+
+  if (link.section) {
+    return (
+      <LandingSectionLink href={link.href} className={className} style={style}>
+        {link.label}
+      </LandingSectionLink>
+    )
+  }
 
   if (link.external) {
     return (

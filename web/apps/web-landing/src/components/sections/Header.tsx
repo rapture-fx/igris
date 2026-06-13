@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { DOCS_LINKS } from '../../lib/docs-urls';
+import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections';
+import LandingSectionLink from '../LandingSectionLink';
 import { useTheme } from 'next-themes';
 
 
@@ -25,10 +27,10 @@ interface DropdownItem {
 }
 
 const productItems: DropdownItem[] = [
-  { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: '/#product' },
-  { label: 'Recover', description: 'Resume from recorded progress. Committed actions never replay.', href: '/#product' },
-  { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: '/#product' },
-  { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: '/#product' },
+  { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
+  { label: 'Recover', description: 'Resume from recorded progress. Committed actions never replay.', href: landingHash(LANDING_SECTIONS.productRecover) },
+  { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: landingHash(LANDING_SECTIONS.productProve) },
+  { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: landingHash(LANDING_SECTIONS.overview) },
 ];
 
 const docsItems: DropdownItem[] = [
@@ -87,6 +89,16 @@ export default function Header() {
           >
             {item.label}
           </a>
+        ) : item.href.startsWith('/#') ? (
+          <LandingSectionLink
+            key={item.label}
+            href={item.href}
+            onClick={closeAll}
+            className="block rounded-md px-3 py-1.5 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+            style={NAV_ITEM_STYLE}
+          >
+            {item.label}
+          </LandingSectionLink>
         ) : (
           <Link
             key={item.label}
@@ -235,16 +247,15 @@ export default function Header() {
             {productOpen && (
               <div className="mb-2 pl-3 border-l border-gray-200 dark:border-white/[0.12]">
                 {productItems.map((item) => (
-                  <Link
+                  <LandingSectionLink
                     key={item.label}
                     href={item.href}
-                    prefetch={false}
                     onClick={closeAll}
                     className="block w-full py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
                     style={{ fontFamily: NAV_FONT }}
                   >
                     {item.label}
-                  </Link>
+                  </LandingSectionLink>
                 ))}
               </div>
             )}
