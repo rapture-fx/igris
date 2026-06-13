@@ -19,11 +19,11 @@ export default function Pricing() {
     <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1080px] py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-stretch">
             {PRICING_TIERS.map((tier) => (
               <article
                 key={tier.key}
-                className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow-sm overflow-hidden bg-white dark:bg-[#1a1a1a]"
+                className="flex h-full flex-col rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow-sm overflow-hidden bg-white dark:bg-[#1a1a1a]"
               >
                 <div className="px-5 pt-5 pb-4 flex items-center justify-between gap-3" style={{ fontFamily: SANS }}>
                   <span
@@ -46,7 +46,7 @@ export default function Pricing() {
                   )}
                 </div>
 
-                <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-5 pb-5">
+                <div className="flex flex-1 flex-col bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-5 pb-5">
                   <div className="mb-3">
                     <span
                       className="text-black dark:text-[#f6f6f4]"
@@ -71,7 +71,7 @@ export default function Pricing() {
                     {tier.description}
                   </p>
 
-                  <ul className="space-y-1.5 mb-5">
+                  <ul className="mb-5 flex-1 space-y-1.5">
                     {tier.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-2">
                         <span className="text-gray-400 dark:text-[#555] text-sm mt-0.5 select-none shrink-0">–</span>
@@ -89,7 +89,7 @@ export default function Pricing() {
                     href={tier.checkoutUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-4 py-2.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80"
+                    className="mt-auto inline-flex items-center justify-center px-4 py-2.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 self-start"
                     style={{
                       fontFamily: SANS,
                       backgroundColor: isDark ? '#f6f6f4' : '#1b1912',
