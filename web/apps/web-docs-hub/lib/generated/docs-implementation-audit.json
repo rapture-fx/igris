@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-06-10T16:23:18.087Z",
+  "generated_at": "2026-06-12T12:44:51.025Z",
   "summary": {
-    "total": 890,
+    "total": 893,
     "by_status": {
-      "implemented": 890
+      "implemented": 893
     }
   },
   "guide_summary": {
-    "total": 123,
+    "total": 126,
     "by_status": {
-      "implemented": 123
+      "implemented": 126
     }
   },
   "pages": [
@@ -959,11 +959,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "implemented": 2,
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
@@ -972,6 +972,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 7
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "implemented": 2,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
@@ -1193,11 +1201,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "implemented": 2,
+      "implemented": 3,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
@@ -1206,6 +1214,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 7
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "implemented": 2,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
@@ -6008,7 +6024,7 @@
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
-      "source": "- [`POST /v1/tasks/submit`](/docs/api-reference/durable-tasks/post-v1-tasks-submit) — Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
+      "source": "- [`POST /v1/tasks/submit`](/docs/api-reference/durable-tasks/post-v1-tasks-submit) — Advanced API for submitting a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. Use registered actions for first-agent onboarding.",
       "status": "implemented",
       "evidence": [
         {
@@ -6130,18 +6146,6 @@
       "source": "- [`POST /v1/mcp`](/docs/api-reference/mcp-transport/post-v1-mcp) — Agent-facing JSON-RPC MCP endpoint with strict tool schemas, scoped to the authenticated tenant.",
       "status": "implemented",
       "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -13523,18 +13527,6 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
         }
       ]
     },
@@ -13552,18 +13544,6 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
         }
       ]
     },
@@ -13576,18 +13556,6 @@
       "source": "curl -X POST https://overture.igrisinertial.com/v1/mcp \\",
       "status": "implemented",
       "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -17500,18 +17468,6 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
         }
       ]
     },
@@ -18031,7 +17987,24 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 44,
+      "line": 12,
+      "method": "POST",
+      "path": "/v1/tasks/submit",
+      "expected_surface": null,
+      "source": "`POST /v1/tasks/submit` is an advanced durable-workflow surface for callers that",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/tasks/submit",
+          "file": "igris-overture/api/routes_tasks.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
+      "line": 49,
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
@@ -18048,7 +18021,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/durable-tasks.mdx",
-      "line": 81,
+      "line": 89,
       "method": "GET",
       "path": "/v1/tasks/TASK_ID",
       "expected_surface": null,
@@ -18196,6 +18169,40 @@
           "method": "POST",
           "path": "/proof/receipts/verify",
           "file": "igris-overture/api/routes_proof.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 13,
+      "method": "POST",
+      "path": "/v1/tasks/submit",
+      "expected_surface": null,
+      "source": "Do not start by sending raw execution graphs. `POST /v1/tasks/submit` is an",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/tasks/submit",
+          "file": "igris-overture/api/routes_tasks.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 181,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "Use `GET /v1/actions/runs/:id`, MCP `get_run`, or MCP `get_run_evidence` to",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
         }
       ]
@@ -18629,18 +18636,6 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
         }
       ]
     },
@@ -18653,18 +18648,6 @@
       "source": "- [POST /v1/mcp →](/docs/api-reference/mcp-transport/post-v1-mcp)",
       "status": "implemented",
       "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -18687,42 +18670,18 @@
           "path": "/v1/mcp",
           "file": "igris-overture/api/routes_mcp.go",
           "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
         }
       ]
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/mcp.mdx",
-      "line": 32,
+      "line": 33,
       "method": "POST",
       "path": "/v1/mcp",
       "expected_surface": null,
       "source": "- [`POST /v1/mcp`](/docs/mcp-server): JSON-RPC `tools/list` and `tools/call`",
       "status": "implemented",
       "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/mcp",
-          "file": "igris-overture/api/routes_mcp.go",
-          "surface": "cloud-api"
-        },
         {
           "method": "POST",
           "path": "/v1/mcp",
@@ -18869,7 +18828,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 72,
+      "line": 76,
       "method": null,
       "path": "/v1/infer",
       "expected_surface": null,
@@ -18898,7 +18857,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 90,
+      "line": 94,
       "method": null,
       "path": "/v1/infer",
       "expected_surface": null,
