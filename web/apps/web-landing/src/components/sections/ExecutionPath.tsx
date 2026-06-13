@@ -231,14 +231,14 @@ export default function ExecutionPath() {
             </p>
           </div>
 
-          {/* ── Code window (anchor) ────────────────────────────────── */}
+          {/* ── Code window + optional worker install (stacked) ─────── */}
           <CodeWindow />
+          <WorkerInstallCallout />
 
-          {/* ── Route chips + optional worker install ───────────────── */}
+          {/* ── Route chips ─────────────────────────────────────────── */}
           <div className="ae-connect">
             <ChipGroup label="Run through" items={ROUTE_CHIPS} />
             <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
-            <WorkerInstallCallout />
           </div>
         </div>
       </div>
@@ -614,21 +614,20 @@ function EndpointStyles() {
       .ae-chip:hover .ae-logo-color { opacity: 1; }
       html.dark .ae-chip:hover .ae-logo-color--invert { filter: invert(1) brightness(1.7); }
 
-      /* ── Optional worker install callout ── */
+      /* ── Optional worker install callout (below code window) ── */
       .ae-worker-callout {
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: minmax(0, 0.78fr) minmax(360px, 1.22fr);
-        gap: 28px 36px;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
         padding: 24px 28px;
         border-radius: 12px;
         border: 1px solid var(--landing-surface-border);
         background: var(--landing-surface);
         text-align: left;
-        align-items: start;
       }
       .ae-worker-copy {
-        max-width: 48ch;
+        max-width: none;
       }
       html.dark .ae-worker-callout {
         background: rgba(22, 21, 21, 0.55);
@@ -706,8 +705,7 @@ function EndpointStyles() {
 
       @media (max-width: 720px) {
         .ae-worker-callout {
-          grid-template-columns: 1fr;
-          gap: 20px;
+          gap: 16px;
           padding: 20px 18px;
         }
         .ae-worker-code {
