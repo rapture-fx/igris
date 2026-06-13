@@ -26,6 +26,7 @@ import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
+const borderStyle = 'var(--capabilities-border)'
 
 interface Chip {
   label: string
@@ -242,9 +243,11 @@ export default function ExecutionPath() {
         <CodeWindow />
         <WorkerInstallCallout />
 
-        <div className="ae-connect">
-          <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-          <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
+        <div className="mt-10 md:mt-12" style={{ borderTop: borderStyle, borderLeft: borderStyle }}>
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+            <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
+          </div>
         </div>
       </div>
     </section>
@@ -253,10 +256,26 @@ export default function ExecutionPath() {
 
 function ChipGroup({ label, items }: { label: string; items: Chip[] }) {
   return (
-    <div className="ae-group">
-      <div className="ae-group-label" style={{ fontFamily: SANS }}>{label}</div>
-      <div className="ae-chips--row">
-        {items.map((c) => <ChipView key={c.label} chip={c} />)}
+    <div
+      className="flex flex-col px-7 md:px-9 py-6 md:py-8"
+      style={{ borderRight: borderStyle, borderBottom: borderStyle }}
+    >
+      <p
+        className="text-gray-700 dark:text-[#c8c8b8] mb-4"
+        style={{
+          fontFamily: SANS,
+          fontSize: '0.95rem',
+          fontWeight: 500,
+          lineHeight: 1.4,
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {label}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((c) => (
+          <ChipView key={c.label} chip={c} />
+        ))}
       </div>
     </div>
   )
@@ -282,7 +301,10 @@ function LogoMark({ chip }: { chip: Chip }) {
 
 function ChipView({ chip }: { chip: Chip }) {
   return (
-    <span className="ae-chip" style={{ fontFamily: MONO }}>
+    <span
+      className="ae-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-gray-200 dark:border-[rgba(246,246,244,0.1)] text-gray-600 dark:text-[#a8a898] transition-colors hover:border-gray-300 dark:hover:border-[rgba(246,246,244,0.18)]"
+      style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.03em' }}
+    >
       <LogoMark chip={chip} />
       {chip.label}
     </span>
@@ -568,28 +590,8 @@ function EndpointStyles() {
       .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
       html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
-      /* ── Chip groups (route row + target table) ── */
-      .ae-connect {
-        margin: 40px 0 0;
-        display: flex; flex-direction: column; gap: 20px;
-      }
-      .ae-group { text-align: left; }
-      .ae-group-label {
-        font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 10px;
-      }
-      html.dark .ae-group-label { color: #8a8a82; }
-
-      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
-      .ae-chip {
-        display: inline-flex; align-items: center; gap: 8px;
-        font-size: 11.5px; line-height: 1; padding: 9px 12px;
-        border-radius: 9px; border: 1px solid var(--landing-surface-border);
-        background: var(--landing-surface); color: #4b5563; white-space: nowrap;
-        transition: border-color .2s ease, background-color .2s ease;
-      }
-      .ae-chip:hover { border-color: var(--landing-surface-border-strong); }
-      html.dark .ae-chip { color: #a8a898; }
-      .ae-chip-ic { flex: none; opacity: 0.9; }
+      .ae-chip { white-space: nowrap; line-height: 1; }
+      .ae-chip-ic { flex: none; opacity: 0.75; }
 
       /* Brand logo: monochrome by default, full brand colour on hover */
       .ae-logo { position: relative; flex: none; width: 14px; height: 14px; display: inline-block; }
