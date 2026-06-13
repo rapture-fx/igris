@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-10T16:22:50.365Z",
+  "generated_at": "2026-06-12T12:44:22.115Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
   ],
-  "route_inventory_count": 487,
+  "route_inventory_count": 482,
   "sections": [
     {
       "title": "Actions",
@@ -755,7 +755,7 @@
     },
     {
       "title": "Durable Tasks",
-      "summary": "Submit durable workflows and long-running tasks that preserve progress automatically across runtime interruptions.",
+      "summary": "Advanced durable-workflow endpoints for callers that need direct task definitions, long-running state, checkpoint metadata, and follow-up inspection. First-agent onboarding should use registered actions first.",
       "endpoints": [
         {
           "method": "POST",
@@ -763,7 +763,7 @@
           "auth": "Session cookie or igris_ API key",
           "surface": "Cloud API",
           "stability": "stable",
-          "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
+          "description": "Advanced API for submitting a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. Use registered actions for first-agent onboarding.",
           "support": "supported",
           "deployment": "cloud",
           "audience": "public"
