@@ -26,7 +26,6 @@ import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
-const borderStyle = 'var(--capabilities-border)'
 
 interface Chip {
   label: string
@@ -242,36 +241,57 @@ export default function ExecutionPath() {
         <CodeWindow />
         <WorkerInstallCallout />
 
-        <div className="mt-10 md:mt-12" style={{ borderTop: borderStyle, borderLeft: borderStyle }}>
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-            <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
-          </div>
-        </div>
+        <ConnectPanel />
       </div>
     </section>
   )
 }
 
-function ChipGroup({ label, items }: { label: string; items: Chip[] }) {
+function ConnectPanel() {
+  return (
+    <div className="mt-10 md:mt-12">
+      <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
+        <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
+          <div className="overflow-hidden rounded-[10px] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
+            <ChipGroup label="Run through" items={ROUTE_CHIPS} divided />
+            <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ChipGroup({
+  label,
+  items,
+  divided = false,
+}: {
+  label: string
+  items: Chip[]
+  divided?: boolean
+}) {
   return (
     <div
-      className="flex flex-col px-7 md:px-9 py-6 md:py-8"
-      style={{ borderRight: borderStyle, borderBottom: borderStyle }}
+      className={
+        'flex flex-col gap-4 px-5 md:px-7 py-5 md:py-6 sm:flex-row sm:items-center sm:gap-6 md:gap-10' +
+        (divided ? ' border-b border-black/[0.06] dark:border-white/[0.06]' : '')
+      }
     >
       <p
-        className="text-gray-700 dark:text-[#c8c8b8] mb-4"
+        className="text-gray-700 dark:text-[#c8c8b8] shrink-0 sm:w-[108px] md:w-[124px]"
         style={{
-          fontFamily: SANS,
-          fontSize: '0.95rem',
+          fontFamily: MONO,
+          fontSize: '11px',
           fontWeight: 500,
-          lineHeight: 1.4,
-          letterSpacing: '-0.01em',
+          lineHeight: 1.3,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
         }}
       >
         {label}
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-1 flex-wrap gap-2 min-w-0">
         {items.map((c) => (
           <ChipView key={c.label} chip={c} />
         ))}
@@ -301,8 +321,8 @@ function LogoMark({ chip }: { chip: Chip }) {
 function ChipView({ chip }: { chip: Chip }) {
   return (
     <span
-      className="ae-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-gray-200 dark:border-[rgba(246,246,244,0.1)] text-gray-600 dark:text-[#a8a898] transition-colors hover:border-gray-300 dark:hover:border-[rgba(246,246,244,0.18)]"
-      style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.03em' }}
+      className="ae-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-black/[0.08] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] text-gray-600 dark:text-[#a8a898] transition-colors hover:border-black/[0.14] dark:hover:border-white/[0.14] hover:bg-white dark:hover:bg-white/[0.05]"
+      style={{ fontFamily: SANS, fontSize: '12px', letterSpacing: '-0.01em' }}
     >
       <LogoMark chip={chip} />
       {chip.label}
@@ -588,8 +608,8 @@ function EndpointStyles() {
       .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
       html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
-      .ae-chip { white-space: nowrap; line-height: 1; }
-      .ae-chip-ic { flex: none; opacity: 0.75; }
+      .ae-chip { white-space: nowrap; line-height: 1.2; }
+      .ae-chip-ic { flex: none; width: 14px; height: 14px; opacity: 0.8; }
 
       /* Brand logo: monochrome by default, full brand colour on hover */
       .ae-logo { position: relative; flex: none; width: 14px; height: 14px; display: inline-block; }
