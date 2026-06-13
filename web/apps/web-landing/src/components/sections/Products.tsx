@@ -962,7 +962,7 @@ function RunInspector() {
               <RoutedVia />
             </div>
           </div>
-          <p className="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
+          <p className="ic-runinspector__kvfoot">Raw action input isn't shown here. Igris records safe identifiers and digests instead of payload contents.</p>
         </section>
 
         {/* Execution assessment */}
@@ -980,13 +980,13 @@ function RunInspector() {
         {/* Audit interpretation */}
         <section className="ic-runinspector__section">
           <div className="ic-runinspector__sechead">Audit interpretation</div>
-          <p className="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only — not a compliance certification.</p>
+          <p className="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only, not a compliance certification.</p>
           <div className="ic-runinspector__auditrows">
-            <AuditRow label="Control decision" value="Idempotent, 3 retries" note="Policy decision record — the policy preset Igris applied before allowing execution." />
+            <AuditRow label="Control decision" value="Idempotent, 3 retries" note="Policy decision record: the policy preset Igris applied before allowing execution." />
             <AuditRow label="Execution record" value="Running" note="Tamper-evident record of what Igris did when the action was called." />
             <AuditRow label="Evidence receipt" value="No signed runtime evidence attached" note="A receipt is a signed, tamper-evident record that a runtime reported this execution event." />
             <AuditRow label="Verification status" value="Unsigned (not attached)" note="Signature shows the event was reported by a registered runtime key when available. Digest records prove data consistency without exposing raw input or output." />
-            <AuditRow label="Recovery / replay status" value="In flight" note="Replay / recovery record — whether Igris retried or compensated the action." />
+            <AuditRow label="Recovery / replay status" value="In flight" note="Replay / recovery record: whether Igris retried or compensated the action." />
             <AuditRow label="Data exposure" value="Minimized" note="Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed." />
           </div>
           <p className="ic-runinspector__note">Proof is unavailable when signed runtime evidence was not produced or attached to this run.</p>
@@ -1048,7 +1048,7 @@ function ExecutionProfile({ animate = false }: { animate?: boolean }) {
   return (
     <section className="ic-runinspector__section ic-runinspector__section--last">
       <div className="ic-runinspector__sechead">Execution profile</div>
-      <p className="ic-runinspector__hint">Time per step along the run timeline — {profile.length} steps over {total}ms total.</p>
+      <p className="ic-runinspector__hint">Time per step along the run timeline: {profile.length} steps over {total}ms total.</p>
       <div className={'ic-wfall' + (animate ? ' ic-wfall--animate' : '')}>
         {profile.map((p, i) => {
           const left = span > 0 ? (p.start / span) * 100 : 0
@@ -1309,7 +1309,7 @@ export default function Products() {
                   className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
                   style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
                 >
-                  The console below walks through one agent task — how Igris
+                  The console below walks through one agent task: how Igris
                   executes each step, checkpoints progress when something fails,
                   and leaves a signed receipt you can inspect afterward.
                 </p>
@@ -1346,8 +1346,8 @@ export default function Products() {
                   className="text-gray-600 dark:text-[#a8a898] max-w-[38ch] md:text-right"
                   style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
                 >
-                  When agents act—calling APIs, running workflows, changing state—Igris adds
-                  boundaries, recovery, and proof teams can trust after the run.
+                  Plot how runs finish across your environment over time, so your team
+                  can see what is landing and what needs attention.
                 </p>
               </div>
 

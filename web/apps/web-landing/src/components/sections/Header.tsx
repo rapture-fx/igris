@@ -25,7 +25,7 @@ interface DropdownItem {
 
 const productItems: DropdownItem[] = [
   { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: '/#product' },
-  { label: 'Recover', description: 'Resume from recorded progress — committed actions never replay.', href: '/#product' },
+  { label: 'Recover', description: 'Resume from recorded progress. Committed actions never replay.', href: '/#product' },
   { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: '/#product' },
   { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: '/#product' },
 ];
