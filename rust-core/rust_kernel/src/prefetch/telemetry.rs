@@ -302,6 +302,7 @@ pub struct TelemetryStats {
 mod tests {
     use super::*;
     use std::thread::sleep;
+    use std::time::Duration;
 
     #[test]
     fn test_basic_tracking() {
