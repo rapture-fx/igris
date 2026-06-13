@@ -8,6 +8,11 @@ audience: "public"
 
 Durable tasks are for long-running AI work that should not be treated like a single short request.
 
+For first-agent onboarding, start with [registered actions](/docs/first-agent-onboarding).
+`POST /v1/tasks/submit` is an advanced durable-workflow surface for callers that
+already know they need direct task definitions. It is not the default way to let an
+agent call business actions.
+
 Use them when the workload needs:
 
 - multiple steps
@@ -47,6 +52,9 @@ Content-Type: application/json
 ```
 
 The product supports different submission shapes, but they all become one durable execution workflow underneath.
+
+Use an idempotency key. If a network timeout makes the outcome unclear, inspect the
+existing task before submitting the same logical operation again.
 
 ### Example
 
