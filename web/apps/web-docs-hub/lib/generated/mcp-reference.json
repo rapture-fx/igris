@@ -5,6 +5,12 @@
   },
   "guides": [
     {
+      "slug": "first-agent-onboarding",
+      "title": "First Agent Onboarding",
+      "href": "/docs/first-agent-onboarding",
+      "summary": "Connect Claude Code, Codex, Cursor, or a custom agent to registered actions, run one action, and inspect the run safely."
+    },
+    {
       "slug": "mcp",
       "title": "Overview",
       "href": "/docs/mcp",
@@ -109,5 +115,5 @@
       ]
     }
   ],
-  "generated_at": "2026-06-10T16:22:50.365Z"
+  "generated_at": "2026-06-12T12:44:22.115Z"
 }
