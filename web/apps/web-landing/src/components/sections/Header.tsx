@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
+import { DOCS_LINKS } from '../../lib/docs-urls';
 import { useTheme } from 'next-themes';
 
 
@@ -31,11 +32,11 @@ const productItems: DropdownItem[] = [
 ];
 
 const docsItems: DropdownItem[] = [
-  { label: 'Getting Started', description: 'Run your first verified execution path.', href: 'https://docs.igrisinertial.com/docs/', external: true },
-  { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: 'https://docs.igrisinertial.com/docs/api-reference/', external: true },
-  { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: 'https://docs.igrisinertial.com/docs/sdk/', external: true },
-  { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: 'https://docs.igrisinertial.com/docs/verification/', external: true },
-  { label: 'Architecture', description: 'How Igris governs execution across environments.', href: 'https://docs.igrisinertial.com/docs/architecture/', external: true },
+  { label: 'Getting Started', description: 'Run your first verified execution path.', href: DOCS_LINKS.quickstart, external: true },
+  { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: DOCS_LINKS.apiReference, external: true },
+  { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: DOCS_LINKS.sdk, external: true },
+  { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: DOCS_LINKS.verification, external: true },
+  { label: 'Architecture', description: 'How Igris governs execution across environments.', href: DOCS_LINKS.architecture, external: true },
 ];
 
 export default function Header() {
