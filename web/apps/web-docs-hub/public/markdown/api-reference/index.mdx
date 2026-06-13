@@ -125,9 +125,9 @@ Experimental behavior-tree definition endpoints. Disabled by default: they requi
 
 ## Durable Tasks
 
-Submit durable workflows and long-running tasks that preserve progress automatically across runtime interruptions.
+Advanced durable-workflow endpoints for callers that need direct task definitions, long-running state, checkpoint metadata, and follow-up inspection. First-agent onboarding should use registered actions first.
 
-- [`POST /v1/tasks/submit`](/docs/api-reference/durable-tasks/post-v1-tasks-submit) — Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.
+- [`POST /v1/tasks/submit`](/docs/api-reference/durable-tasks/post-v1-tasks-submit) — Advanced API for submitting a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. Use registered actions for first-agent onboarding.
 - [`GET /v1/tasks/:id`](/docs/api-reference/durable-tasks/get-v1-tasks-id) — Poll the current status and latest checkpoint metadata for a durable task.
 - [`GET /v1/tasks`](/docs/api-reference/durable-tasks/get-v1-tasks) — List recent durable tasks for the authenticated tenant.
 - [`GET /v1/tasks/:id/steps`](/docs/api-reference/durable-tasks/get-v1-tasks-id-steps) — Lists execution-graph steps and graph slots for a durable task when available.
