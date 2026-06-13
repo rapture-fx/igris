@@ -92,6 +92,50 @@ pub fn tool_list() -> Value {
     json!({
         "tools": [
             {
+                "name": "list_actions",
+                "description": "List registered actions for the authenticated tenant. Returns safe action metadata only, not target URLs, secrets, or raw payloads.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "call_action",
+                "description": "Run a registered action through Igris with policy, tenant-scoped idempotency, runtime routing, and proof tracking. No raw execution fields are accepted.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "action_name": { "type": "string", "description": "Registered action name." },
+                        "action_id": { "type": "string", "description": "Registered action id." },
+                        "input": { "type": "object", "description": "Action input." },
+                        "metadata": { "type": "object", "description": "Optional safe metadata." },
+                        "idempotency_key": { "type": "string", "description": "Stable key for safe retries." }
+                    }
+                }
+            },
+            {
+                "name": "get_run",
+                "description": "Inspect a registered-action run by run_id or task_id. Returns status and proof metadata, not raw bodies or secrets.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "run_id": { "type": "string" },
+                        "task_id": { "type": "string" }
+                    }
+                }
+            },
+            {
+                "name": "get_run_evidence",
+                "description": "Read safe evidence metadata for a registered-action run. No raw request bodies, response bodies, headers, or secrets are returned.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "run_id": { "type": "string" },
+                        "task_id": { "type": "string" }
+                    }
+                }
+            },
+            {
                 "name": "igris_submit_task",
                 "description": "Submit a recoverable Igris task. Accepts an Action Task V1 body. Raw file contents, HTTP bodies/headers, and DB payloads are never returned.",
                 "inputSchema": {
@@ -164,6 +208,10 @@ pub fn tool_list() -> Value {
 /// `{ content: [...], isError: bool }` payload.
 async fn call_tool(client: &Client, name: &str, args: &Value) -> Result<Value> {
     match name {
+        "list_actions" => tool_list_actions(client).await,
+        "call_action" => tool_call_action(client, args).await,
+        "get_run" => tool_get_run(client, args).await,
+        "get_run_evidence" => tool_get_run_evidence(client, args).await,
         "igris_submit_task" => tool_submit(client, args).await,
         "igris_get_task_status" => tool_status(client, args).await,
         "igris_get_action_evidence" => tool_evidence(client, args).await,
@@ -178,6 +226,53 @@ fn arg_str(args: &Value, key: &str) -> Result<String> {
         .and_then(|v| v.as_str())
         .map(String::from)
         .ok_or_else(|| anyhow!("missing required argument `{}`", key))
+}
+
+async fn tool_list_actions(client: &Client) -> Result<Value> {
+    let raw = client.list_actions().await?;
+    Ok(text_content(json!({
+        "actions": project_safe_registered_actions(&raw),
+    })))
+}
+
+async fn tool_call_action(client: &Client, args: &Value) -> Result<Value> {
+    reject_raw_action_fields(args)?;
+    let action_name = args.get("action_name").and_then(|v| v.as_str());
+    let action_id = args.get("action_id").and_then(|v| v.as_str());
+    if action_name.unwrap_or("").trim().is_empty() && action_id.unwrap_or("").trim().is_empty() {
+        return Err(anyhow!("action_name or action_id is required"));
+    }
+    let body = json!({
+        "input": args.get("input").cloned().unwrap_or_else(|| json!({})),
+        "metadata": args.get("metadata").cloned().unwrap_or_else(|| json!({})),
+        "idempotency_key": args.get("idempotency_key").and_then(|v| v.as_str()).unwrap_or(""),
+    });
+    let raw = client.call_action(action_id, action_name, &body).await?;
+    Ok(text_content(project_safe_action_run(&raw)))
+}
+
+async fn tool_get_run(client: &Client, args: &Value) -> Result<Value> {
+    let run_id = args
+        .get("run_id")
+        .or_else(|| args.get("task_id"))
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow!("run_id or task_id is required"))?;
+    let raw = client.get_action_run(run_id).await?;
+    Ok(text_content(project_safe_action_run(&raw)))
+}
+
+async fn tool_get_run_evidence(client: &Client, args: &Value) -> Result<Value> {
+    let run_id = args
+        .get("run_id")
+        .or_else(|| args.get("task_id"))
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow!("run_id or task_id is required"))?;
+    let raw = client.get_task(run_id).await?;
+    Ok(text_content(json!({
+        "run_id": run_id,
+        "action_evidence": project_safe_action_evidence(&raw),
+        "proof": project_safe_proof(&raw),
+    })))
 }
 
 async fn tool_submit(client: &Client, args: &Value) -> Result<Value> {
@@ -308,6 +403,57 @@ pub fn build_export_payload(task: &Value) -> Value {
     })
 }
 
+fn project_safe_registered_actions(raw: &Value) -> Value {
+    let Some(actions) = raw.get("actions").and_then(|v| v.as_array()) else {
+        return Value::Array(vec![]);
+    };
+    let mut out = Vec::with_capacity(actions.len());
+    for action in actions {
+        let mut row = serde_json::Map::new();
+        for key in &[
+            "id",
+            "name",
+            "display_name",
+            "description",
+            "target_type",
+            "policy_preset",
+            "replay_class",
+            "approval_required",
+            "irreversible",
+        ] {
+            if let Some(v) = action.get(*key) {
+                row.insert((*key).to_string(), v.clone());
+            }
+        }
+        out.push(Value::Object(row));
+    }
+    Value::Array(out)
+}
+
+fn project_safe_action_run(raw: &Value) -> Value {
+    let mut out = serde_json::Map::new();
+    for key in &[
+        "task_id",
+        "run_id",
+        "status",
+        "proof_status",
+        "execution_id",
+        "action_id",
+        "action_name",
+        "target_type",
+        "selected_target",
+        "runtime_id",
+        "error",
+        "message",
+        "created_at",
+    ] {
+        if let Some(v) = raw.get(*key) {
+            out.insert((*key).to_string(), v.clone());
+        }
+    }
+    Value::Object(out)
+}
+
 fn project_safe_action_evidence(task: &Value) -> Value {
     let mut evidence_items = vec![];
     if let Some(arr) = task.get("action_evidence").and_then(|v| v.as_array()) {
@@ -370,6 +516,33 @@ fn project_safe_proof(task: &Value) -> Value {
             Value::Object(out)
         })
         .unwrap_or_else(|| json!({}))
+}
+
+fn reject_raw_action_fields(args: &Value) -> Result<()> {
+    let forbidden = [
+        "tenant_id",
+        "task_definition",
+        "task_type",
+        "runtime_target",
+        "execution_graph",
+        "ciphertext",
+        "nonce",
+        "key_material",
+        "private_key",
+        "raw_body",
+        "request_body",
+        "response_body",
+        "runtime_endpoint",
+        "runtime_id",
+    ];
+    if let Some(obj) = args.as_object() {
+        for field in forbidden {
+            if obj.contains_key(field) {
+                return Err(anyhow!("unsupported call_action field `{}`", field));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn render_markdown(safe: &Value) -> String {
@@ -570,7 +743,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn tool_list_contains_all_five_tools() {
+    fn tool_list_contains_registered_action_and_task_tools() {
         let list = tool_list();
         let tools = list.get("tools").and_then(|v| v.as_array()).unwrap();
         let names: Vec<&str> = tools
@@ -580,6 +753,10 @@ mod tests {
         assert_eq!(
             names,
             vec![
+                "list_actions",
+                "call_action",
+                "get_run",
+                "get_run_evidence",
                 "igris_submit_task",
                 "igris_get_task_status",
                 "igris_get_action_evidence",
@@ -628,6 +805,10 @@ mod tests {
         let list = tool_list();
         let tools = list.get("tools").and_then(|v| v.as_array()).unwrap();
         for name in &[
+            "list_actions",
+            "call_action",
+            "get_run",
+            "get_run_evidence",
             "igris_submit_task",
             "igris_get_action_evidence",
             "igris_export_evidence",
@@ -663,6 +844,64 @@ mod tests {
         assert!(safe.get("execution_receipt").is_none());
         assert!(safe.get("task_definition").is_none());
         assert_eq!(safe.get("task_id").and_then(|v| v.as_str()), Some("t1"));
+    }
+
+    #[test]
+    fn registered_action_projection_drops_targets_and_secrets() {
+        let raw = json!({
+            "actions": [{
+                "id": "act_1",
+                "name": "first_ping",
+                "target_type": "webhook",
+                "target_url": "https://secret.example.test/hook",
+                "secret_refs": ["token/ref"],
+                "target_metadata": { "runtime_id": "rt-secret" },
+                "policy_preset": "Read-only",
+                "replay_class": "read_only",
+                "approval_required": false
+            }]
+        });
+        let safe = project_safe_registered_actions(&raw);
+        let row = &safe.as_array().unwrap()[0];
+        assert_eq!(row.get("name").and_then(|v| v.as_str()), Some("first_ping"));
+        assert!(row.get("target_url").is_none());
+        assert!(row.get("secret_refs").is_none());
+        assert!(row.get("target_metadata").is_none());
+    }
+
+    #[test]
+    fn action_run_projection_drops_raw_material() {
+        let raw = json!({
+            "run_id": "run_1",
+            "status": "completed",
+            "proof_status": "verified",
+            "raw_body": "must-not-leak",
+            "execution_receipt": { "must": "not leak" },
+            "runtime_private_key": "must-not-leak"
+        });
+        let safe = project_safe_action_run(&raw);
+        assert_eq!(safe.get("run_id").and_then(|v| v.as_str()), Some("run_1"));
+        assert!(safe.get("raw_body").is_none());
+        assert!(safe.get("execution_receipt").is_none());
+        assert!(safe.get("runtime_private_key").is_none());
+    }
+
+    #[test]
+    fn call_action_rejects_raw_execution_fields() {
+        for field in &[
+            "tenant_id",
+            "task_definition",
+            "runtime_endpoint",
+            "runtime_id",
+            "raw_body",
+            "ciphertext",
+        ] {
+            let mut args = serde_json::Map::new();
+            args.insert("action_name".to_string(), json!("first_ping"));
+            args.insert((*field).to_string(), json!("bad"));
+            let err = reject_raw_action_fields(&Value::Object(args)).unwrap_err();
+            assert!(format!("{}", err).contains(field));
+        }
     }
 
     #[test]
