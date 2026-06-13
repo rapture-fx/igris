@@ -234,9 +234,8 @@ export default function ExecutionPath() {
               lineHeight: 1.6,
             }}
           >
-            Create an action in Igris, then call it from your agent, app, workflow,
-            or MCP client. Igris applies policy, routes the work, recovers from failures,
-            and keeps proof behind the endpoint.
+            Define each action once. Every client calls the same endpoint while
+            Igris governs routing, policy, and proof on the server side.
           </p>
         </div>
 
@@ -324,9 +323,8 @@ function WorkerInstallCallout() {
     <aside className="ae-worker-callout" aria-label="Optional worker install for private access">
       <div className="ae-worker-copy">
         <p className="ae-worker-body text-gray-600 dark:text-[#a8a898]" style={WORKER_COPY_STYLE}>
-          Start in Cloud. Add a worker when needed. Hosted APIs and webhooks can run through
-          Igris Cloud. Install a worker only when an action needs access to private files,
-          internal APIs, databases, or local runtimes.
+          Start with hosted actions in cloud. Add a worker only when an action
+          needs private files, internal systems, databases, or local runtimes.
         </p>
         <p className="ae-worker-note" style={{ fontFamily: MONO }}>
           No worker is required for hosted API or webhook actions.
