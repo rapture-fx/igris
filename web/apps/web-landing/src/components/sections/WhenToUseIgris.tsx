@@ -79,7 +79,7 @@ export default function WhenToUseIgris() {
                 style={{ borderRight: borderStyle, borderBottom: borderStyle }}
               >
                 <h3
-                  className="text-[#000000] dark:text-[#f6f6f4]"
+                  className="text-gray-700 dark:text-[#c8c8b8]"
                   style={{
                     fontFamily: SANS,
                     fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
@@ -108,7 +108,7 @@ export default function WhenToUseIgris() {
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
               <div className="max-w-[62ch]">
                 <p
-                  className="text-[#000000] dark:text-[#f6f6f4]"
+                  className="text-gray-700 dark:text-[#c8c8b8]"
                   style={{
                     fontFamily: SANS,
                     fontSize: '0.95rem',
