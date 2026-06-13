@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
+import { DOCS_LINKS } from '../../lib/docs-urls'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
@@ -27,19 +28,20 @@ const columns: FooterColumn[] = [
   {
     heading: 'Developers',
     links: [
-      { label: 'Documentation', href: 'https://docs.igrisinertial.com/docs/', external: true },
-      { label: 'API reference', href: 'https://docs.igrisinertial.com/docs/api-reference/', external: true },
-      { label: 'SDKs', href: 'https://docs.igrisinertial.com/docs/sdk/', external: true },
-      { label: 'Receipt verification', href: 'https://docs.igrisinertial.com/docs/verification/', external: true },
-      { label: 'Explorer', href: '/explorer' },
-      { label: 'Tools', href: '/tools' },
+      { label: 'Documentation', href: DOCS_LINKS.home, external: true },
+      { label: 'Quick start', href: DOCS_LINKS.quickstart, external: true },
+      { label: 'API reference', href: DOCS_LINKS.apiReference, external: true },
+      { label: 'SDKs', href: DOCS_LINKS.sdk, external: true },
+      { label: 'Verification', href: DOCS_LINKS.verification, external: true },
+      { label: 'Architecture', href: DOCS_LINKS.architecture, external: true },
+      { label: 'Tools', href: DOCS_LINKS.tools, external: true },
     ],
   },
   {
     heading: 'Solutions',
     links: [
-      { label: 'AI agents', href: '/ai-agents' },
-      { label: 'Robotics', href: '/robotics' },
+      { label: 'AI agents', href: DOCS_LINKS.agents, external: true },
+      { label: 'Robotics', href: DOCS_LINKS.robotics, external: true },
       { label: 'Runtime', href: '/runtime' },
       { label: 'Use cases', href: '/use-cases' },
       { label: 'Platform', href: '/core' },
