@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/three": "^0.182.0",
+    "better-auth": "^1.6.18",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",
     "geist": "^1.7.0",

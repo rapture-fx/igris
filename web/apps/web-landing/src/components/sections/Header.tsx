@@ -46,17 +46,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const [consoleUrl, setConsoleUrl] = useState('https://console.igrisinertial.com');
-
   const navRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      setConsoleUrl('http://localhost:3005');
-    } else {
-      setConsoleUrl('https://console.igrisinertial.com');
-    }
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
@@ -172,23 +162,25 @@ export default function Header() {
               <span className="mx-1 h-4 w-px bg-gray-300 dark:bg-white/[0.12]" />
 
               {/* Sign in */}
-              <a
-                href={`${consoleUrl}/auth?mode=signin`}
+              <Link
+                href="/auth?mode=signin"
+                prefetch={false}
                 onClick={closeAll}
                 className="rounded-md px-3 py-1.5 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Sign in
-              </a>
+              </Link>
 
-              <a
-                href={`${consoleUrl}/auth?mode=signup`}
+              <Link
+                href="/auth?mode=signup"
+                prefetch={false}
                 onClick={closeAll}
                 className="rounded-xl px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
                 style={NAV_ITEM_STYLE}
               >
                 Create your first action
-              </a>
+              </Link>
             </nav>
 
             {/* Mobile toggle */}
@@ -209,14 +201,15 @@ export default function Header() {
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 pt-14 bg-white dark:bg-[#010203] overflow-y-auto">
           <nav className="flex flex-col px-5 py-6">
-            <a
-              href={`${consoleUrl}/auth?mode=signin`}
+            <Link
+              href="/auth?mode=signin"
+              prefetch={false}
               onClick={closeAll}
               className="block w-full py-2 text-gray-700 dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Sign in
-            </a>
+            </Link>
 
             <Link
               href="/pricing"
@@ -283,14 +276,15 @@ export default function Header() {
               </div>
             )}
 
-            <a
-              href={`${consoleUrl}/auth?mode=signup`}
+            <Link
+              href="/auth?mode=signup"
+              prefetch={false}
               onClick={closeAll}
-               className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+              className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Create your first action
-            </a>
+            </Link>
           </nav>
         </div>
       )}
