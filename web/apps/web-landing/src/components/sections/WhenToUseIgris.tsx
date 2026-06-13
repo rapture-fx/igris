@@ -106,7 +106,7 @@ export default function WhenToUseIgris() {
           </div>
 
           <aside
-            className="mt-8 md:mt-10 px-7 md:px-9 py-6 md:py-7 rounded-lg border border-gray-200 dark:border-[rgba(246,246,244,0.12)] bg-gray-50/80 dark:bg-[#161515]/60"
+            className="mt-6 md:mt-8 px-7 md:px-9 py-6 md:py-7 rounded-lg border border-gray-200 dark:border-[rgba(246,246,244,0.12)] bg-gray-50/80 dark:bg-[#161515]/60"
             aria-label="Works alongside your agent stack"
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
@@ -150,7 +150,7 @@ export default function WhenToUseIgris() {
             </div>
           </aside>
 
-          <div className="pb-20 md:pb-28" />
+          <div className="pb-6 md:pb-8" />
         </div>
       </div>
     </section>
