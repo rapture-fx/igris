@@ -38,7 +38,7 @@ export default function Hero() {
             Igris lets agents call APIs, trigger workflows, access files, and run tasks through one controlled path, with recovery and proof built in.
           </p>
           <a
-            href="https://console.igrisinertial.com/auth?mode=signup"
+            href="/auth?mode=signup"
             className="mt-5 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
             style={{ fontFamily: SANS }}
           >
