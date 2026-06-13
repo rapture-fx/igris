@@ -42,9 +42,9 @@ const columns: FooterColumn[] = [
     links: [
       { label: 'AI agents', href: DOCS_LINKS.agents, external: true },
       { label: 'Robotics', href: DOCS_LINKS.robotics, external: true },
-      { label: 'Runtime', href: '/runtime' },
-      { label: 'Use cases', href: '/use-cases' },
-      { label: 'Platform', href: '/core' },
+      { label: 'Runtime', href: DOCS_LINKS.runtime, external: true },
+      { label: 'Use cases', href: DOCS_LINKS.useCases, external: true },
+      { label: 'Platform', href: DOCS_LINKS.platform, external: true },
     ],
   },
   {
