@@ -1346,9 +1346,13 @@ export default function Products() {
                 style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
               >
                 <p>
-                  Each dot is a run. Outcome bands show where execution succeeded,
-                  stalled, or needed recovery — so operators can scan recent
-                  activity without opening every task.
+                  AI agents are starting to do more than answer. They call APIs, trigger
+                  workflows, access files, and run tasks. Igris gives those actions
+                  boundaries, recovery, and proof, so teams can trust what happened after
+                  the run.
+                </p>
+                <p className="text-[0.95rem] text-gray-500 dark:text-[#8a8a7a]">
+                  Each dot is one run. See what completed, recovered, failed, or was verified.
                 </p>
               </div>
 

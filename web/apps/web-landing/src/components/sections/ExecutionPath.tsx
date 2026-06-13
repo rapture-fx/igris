@@ -41,6 +41,16 @@ const ROUTE_CHIPS: Chip[] = [
   { label: 'MCP', Icon: Plug },
 ]
 
+const WORKS_WITH_CHIPS: Chip[] = [
+  { label: 'APIs' },
+  { label: 'Webhooks' },
+  { label: 'Databases' },
+  { label: 'Files' },
+  { label: 'Internal tools' },
+  { label: 'SaaS apps' },
+  { label: 'Runtimes' },
+]
+
 const WORKER_CMD_LINES = [
   'curl -fsSL https://igrisinertial.com/install | bash',
   'igris-runtime auth igris_...',
@@ -214,8 +224,8 @@ export default function ExecutionPath() {
               style={{ fontFamily: SANS }}
             >
               Create an action in Igris, then call it from your agent, app, workflow,
-              or MCP client. Igris handles policy, routing, recovery, and proof behind
-              the endpoint.
+              or MCP client. Igris applies policy, routes the work, recovers from failures,
+              and keeps proof behind the endpoint.
             </p>
           </div>
 
@@ -225,6 +235,7 @@ export default function ExecutionPath() {
           {/* ── Route chips + optional worker install ───────────────── */}
           <div className="ae-connect">
             <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+            <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
             <WorkerInstallCallout />
           </div>
         </div>
@@ -289,8 +300,16 @@ function WorkerInstallCallout() {
       </div>
 
       <div className="ae-worker-terminal">
-        <div className="ae-worker-terminal-label" style={{ fontFamily: MONO }}>
-          Private access
+        <div className="ae-worker-terminal-bar">
+          <div className="ae-worker-dots" aria-hidden>
+            <span className="ae-worker-dot" /><span className="ae-worker-dot" /><span className="ae-worker-dot" />
+          </div>
+          <span className="ae-worker-terminal-label" style={{ fontFamily: MONO }}>
+            Private access
+          </span>
+          <span className="ae-worker-terminal-badge" style={{ fontFamily: MONO }}>
+            Optional
+          </span>
         </div>
         <pre
           className="ae-worker-code"
@@ -602,13 +621,17 @@ function EndpointStyles() {
       .ae-worker-callout {
         margin-top: 8px;
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 20px 28px;
-        padding: 18px 20px;
+        grid-template-columns: minmax(0, 0.78fr) minmax(360px, 1.22fr);
+        gap: 28px 36px;
+        padding: 24px 28px;
         border-radius: 12px;
         border: 1px solid var(--landing-surface-border);
         background: var(--landing-surface);
         text-align: left;
+        align-items: start;
+      }
+      .ae-worker-copy {
+        max-width: 48ch;
       }
       html.dark .ae-worker-callout {
         background: rgba(22, 21, 21, 0.55);
@@ -624,14 +647,14 @@ function EndpointStyles() {
       }
       html.dark .ae-worker-heading { color: #c8c8b8; }
       .ae-worker-body {
-        margin: 8px 0 0;
+        margin: 10px 0 0;
         font-size: 0.88rem;
-        line-height: 1.55;
+        line-height: 1.6;
         color: #6b7280;
       }
       html.dark .ae-worker-body { color: #a8a898; }
       .ae-worker-note {
-        margin: 10px 0 0;
+        margin: 12px 0 0;
         font-size: 10.5px;
         letter-spacing: 0.03em;
         color: #9ca3af;
@@ -641,44 +664,93 @@ function EndpointStyles() {
         display: flex;
         flex-direction: column;
         min-width: 0;
-        border-radius: 9px;
+        width: 100%;
+        border-radius: 10px;
         border: 1px solid rgba(0, 0, 0, 0.08);
-        background: #f2f1ee;
+        background: #f7f7f5;
         overflow: hidden;
       }
       html.dark .ae-worker-terminal {
         border-color: rgba(255, 255, 255, 0.07);
-        background: #0a0a09;
+        background: #0e0e0c;
       }
+      .ae-worker-terminal-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        background: #f2f1ee;
+      }
+      html.dark .ae-worker-terminal-bar {
+        background: #070707;
+        border-bottom-color: rgba(255, 255, 255, 0.06);
+      }
+      .ae-worker-dots {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      .ae-worker-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.14);
+      }
+      html.dark .ae-worker-dot { background: rgba(255, 255, 255, 0.14); }
       .ae-worker-terminal-label {
-        padding: 8px 12px;
-        font-size: 10px;
-        letter-spacing: 0.14em;
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: #6b7280;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       }
-      html.dark .ae-worker-terminal-label {
+      html.dark .ae-worker-terminal-label { color: #8a8a82; }
+      .ae-worker-terminal-badge {
+        flex: none;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #6b7280;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: rgba(0, 0, 0, 0.03);
+      }
+      html.dark .ae-worker-terminal-badge {
         color: #8a8a82;
-        border-bottom-color: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
       }
       .ae-worker-code {
         margin: 0;
-        padding: 12px 14px;
-        font-size: 11.5px;
-        line-height: 1.7;
+        padding: 20px 22px 22px;
+        font-size: 12.5px;
+        line-height: 1;
         color: #1b1912;
         overflow-x: auto;
         white-space: pre;
         -webkit-overflow-scrolling: touch;
+        min-height: 148px;
       }
       html.dark .ae-worker-code { color: #b0ada5; }
       .ae-worker-code:focus-visible { outline: 2px solid #047857; outline-offset: -2px; }
       html.dark .ae-worker-code:focus-visible { outline-color: #2faa7e; }
-      .ae-worker-line { display: block; }
+      .ae-worker-code code {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .ae-worker-line {
+        display: block;
+        line-height: 1.75;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
       .ae-worker-prompt {
         display: inline-block;
-        margin-right: 8px;
+        margin-right: 10px;
         color: #9ca3af;
         user-select: none;
       }
@@ -687,8 +759,14 @@ function EndpointStyles() {
       @media (max-width: 720px) {
         .ae-worker-callout {
           grid-template-columns: 1fr;
-          gap: 16px;
+          gap: 20px;
+          padding: 20px 18px;
         }
+        .ae-worker-code {
+          padding: 18px 16px 20px;
+          font-size: 12px;
+        }
+        .ae-worker-code code { gap: 12px; }
       }
 
       @media (max-width: 640px) {

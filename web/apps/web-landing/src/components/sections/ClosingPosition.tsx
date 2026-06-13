@@ -25,14 +25,14 @@ export default function ClosingPosition() {
                     maxWidth: '24ch',
                   }}
                 >
-                  AI can do more when execution can be trusted.
+                  Give AI agents an action path you can trust.
                 </h2>
                 <a
                   href="https://console.igrisinertial.com/auth?mode=signup"
                   className="mt-8 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-gray-700 text-white dark:bg-[#c8c8b8] dark:text-[#1b1912]"
                   style={{ fontFamily: SANS }}
                 >
-                  Get started
+                  Create your first action
                 </a>
               </div>
             </div>
