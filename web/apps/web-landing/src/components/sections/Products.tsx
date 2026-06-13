@@ -1342,26 +1342,25 @@ export default function Products() {
                 >
                   Execution matters as much as intelligence.
                 </h2>
-                <div
-                  className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right space-y-5"
+                <p
+                  className="text-gray-600 dark:text-[#a8a898] max-w-[38ch] md:text-right"
                   style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
                 >
-                  <p>
-                    AI agents are starting to do more than answer. They call APIs, trigger
-                    workflows, access files, and run tasks. Igris gives those actions
-                    boundaries, recovery, and proof, so teams can trust what happened after
-                    the run.
-                  </p>
-                  <p className="text-[0.95rem] text-gray-500 dark:text-[#8a8a7a]">
-                    Each dot is one run. See what completed, recovered, failed, or was verified.
-                  </p>
-                </div>
+                  When agents act—calling APIs, running workflows, changing state—Igris adds
+                  boundaries, recovery, and proof teams can trust after the run.
+                </p>
               </div>
 
               {/* Run Activity Map — map surface only (no rail/topbar/panel) */}
               <div className="mt-12 md:mt-16">
                 <RunActivityMapConsole />
               </div>
+              <p
+                className="mt-5 text-[0.95rem] text-gray-500 dark:text-[#8a8a7a] max-w-[52ch]"
+                style={{ fontFamily: SANS, lineHeight: 1.5 }}
+              >
+                Each dot is one run. See what completed, recovered, failed, or was verified.
+              </p>
             </div>
           </div>
         </div>
