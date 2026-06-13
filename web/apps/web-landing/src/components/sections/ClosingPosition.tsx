@@ -1,7 +1,5 @@
 'use client'
 
-import HeroLabBackground from '../ui/HeroLabBackground'
-
 const PIXEL = 'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -12,8 +10,7 @@ export default function ClosingPosition() {
         <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
           <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
             <div className="relative overflow-hidden rounded-[10px] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
-              <HeroLabBackground />
-              <div className="relative z-10 flex flex-col items-center text-center px-6 md:px-16 py-20 md:py-32">
+              <div className="flex flex-col items-center text-center px-6 md:px-16 py-20 md:py-32">
                 <h2
                   className="text-gray-700 dark:text-[#c8c8b8]"
                   style={{

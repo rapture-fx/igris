@@ -42,31 +42,33 @@ export default function WhenToUseIgris() {
               className="px-7 md:px-9 pt-10 md:pt-14 pb-6 md:pb-8"
               style={{ borderRight: borderStyle, borderBottom: borderStyle }}
             >
-              <h2
-                id="when-to-use-heading"
-                className="text-gray-700 dark:text-[#c8c8b8] font-normal"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.02em',
-                  maxWidth: '28ch',
-                }}
-              >
-                Use Igris when the action matters.
-              </h2>
-              <p
-                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
-                style={{
-                  fontFamily: SANS,
-                  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
-                  lineHeight: 1.6,
-                }}
-              >
-                Igris is most useful when agent actions have consequences and your team
-                needs control, recovery, and proof around execution.
-              </p>
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
+                <h2
+                  id="when-to-use-heading"
+                  className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0"
+                  style={{
+                    fontFamily: SANS,
+                    fontWeight: 400,
+                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                    lineHeight: 1.2,
+                    letterSpacing: '-0.02em',
+                    maxWidth: '28ch',
+                  }}
+                >
+                  Use Igris when the action matters.
+                </h2>
+                <p
+                  className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
+                  style={{
+                    fontFamily: SANS,
+                    fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Igris is most useful when agent actions have consequences and your team
+                  needs control, recovery, and proof around execution.
+                </p>
+              </div>
             </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2">
