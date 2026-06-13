@@ -249,44 +249,24 @@ export default function ExecutionPath() {
 
 function ConnectPanel() {
   return (
-    <div className="mt-10 md:mt-12">
-      <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-        <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-          <div className="overflow-hidden rounded-[10px] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
-            <ChipGroup label="Run through" items={ROUTE_CHIPS} divided />
-            <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
-          </div>
-        </div>
-      </div>
+    <div className="mt-10 md:mt-12 flex flex-col gap-6 md:gap-7">
+      <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+      <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
     </div>
   )
 }
 
-function ChipGroup({
-  label,
-  items,
-  divided = false,
-}: {
-  label: string
-  items: Chip[]
-  divided?: boolean
-}) {
+function ChipGroup({ label, items }: { label: string; items: Chip[] }) {
   return (
-    <div
-      className={
-        'flex flex-col gap-4 px-5 md:px-7 py-5 md:py-6 sm:flex-row sm:items-center sm:gap-6 md:gap-10' +
-        (divided ? ' border-b border-black/[0.06] dark:border-white/[0.06]' : '')
-      }
-    >
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 md:gap-10">
       <p
         className="text-gray-700 dark:text-[#c8c8b8] shrink-0 sm:w-[108px] md:w-[124px]"
         style={{
-          fontFamily: MONO,
-          fontSize: '11px',
+          fontFamily: SANS,
+          fontSize: '0.95rem',
           fontWeight: 500,
-          lineHeight: 1.3,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
+          lineHeight: 1.4,
+          letterSpacing: '-0.01em',
         }}
       >
         {label}
