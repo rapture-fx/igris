@@ -14,7 +14,7 @@ export default function PricingPage() {
       <Header />
       <main>
         <ScrollReveal>
-          <section className="pt-40 pb-6">
+          <section className="pt-40 pb-10 md:pb-12">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
               <h1
                 className="text-gray-700 dark:text-[#c8c8b8] max-w-lg mx-auto"
