@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-06-10T16:23:18.104Z
+Generated: 2026-06-12T12:44:51.035Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 890
-- Implemented on expected surface: 890
+- Route claims audited: 893
+- Implemented on expected surface: 893
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 123
-- Implemented on expected surface: 123
+- Guide route claims audited: 126
+- Implemented on expected surface: 126
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -32,8 +32,9 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 7 | 7 | 0 | 0 | 0 |
@@ -180,8 +181,9 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/behavior-trees.mdx` | 10 | 10 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/cloud-coordination.mdx` | 11 | 11 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 2 | 2 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 7 | 7 | 0 | 0 | 0 |
