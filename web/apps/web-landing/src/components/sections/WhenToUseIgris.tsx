@@ -120,7 +120,7 @@ export default function WhenToUseIgris() {
                     lineHeight: 1.4,
                   }}
                 >
-                  Works alongside your agent stack
+                  Fits into your agent stack
                 </p>
                 <p
                   className="mt-2 text-gray-600 dark:text-[#a8a898]"
