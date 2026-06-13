@@ -211,35 +211,40 @@ export default function ExecutionPath() {
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
       <EndpointStyles />
-      <div className="py-24 md:py-40">
-        <div className="ae-inner mx-auto" style={{ maxWidth: 860 }}>
-          {/* ── Centered header ─────────────────────────────────────── */}
-          <div className="text-center">
-            <h2
-              className="ae-headline mx-auto text-gray-700 dark:text-[#c8c8b8]"
-              style={{ fontFamily: SANS }}
-            >
-              One endpoint for every agent action.
-            </h2>
-            <p
-              className="ae-sub mx-auto text-gray-600 dark:text-[#a8a898]"
-              style={{ fontFamily: SANS }}
-            >
-              Create an action in Igris, then call it from your agent, app, workflow,
-              or MCP client. Igris applies policy, routes the work, recovers from failures,
-              and keeps proof behind the endpoint.
-            </p>
-          </div>
+      <div className="pt-10 md:pt-14 pb-20 md:pb-32">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
+          <h2
+            className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[28ch]"
+            style={{
+              fontFamily: SANS,
+              fontWeight: 400,
+              fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+              lineHeight: 1.2,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            One endpoint for every agent action.
+          </h2>
+          <p
+            className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
+            style={{
+              fontFamily: SANS,
+              fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+              lineHeight: 1.6,
+            }}
+          >
+            Create an action in Igris, then call it from your agent, app, workflow,
+            or MCP client. Igris applies policy, routes the work, recovers from failures,
+            and keeps proof behind the endpoint.
+          </p>
+        </div>
 
-          {/* ── Code window + optional worker install (stacked) ─────── */}
-          <CodeWindow />
-          <WorkerInstallCallout />
+        <CodeWindow />
+        <WorkerInstallCallout />
 
-          {/* ── Route chips ─────────────────────────────────────────── */}
-          <div className="ae-connect">
-            <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-            <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
-          </div>
+        <div className="ae-connect">
+          <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+          <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
         </div>
       </div>
     </section>
@@ -338,7 +343,7 @@ function CodeWindow() {
   const active = LANGS.find((l) => l.id === lang) ?? LANGS[0]
 
   return (
-    <div className="ae-window-wrap">
+    <div className="ae-window-wrap mt-10 md:mt-12">
       {/* Layered bezel — same treatment as the Products ExecutionPreview */}
       <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
         <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
@@ -450,19 +455,8 @@ function Gutter({ count }: { count: number }) {
 function EndpointStyles() {
   return (
     <style>{`
-      /* ── Header ── */
-      .ae-headline {
-        margin-top: 0; max-width: 18ch;
-        font-weight: 400; letter-spacing: -0.02em; line-height: 1.08;
-        font-size: clamp(1.2rem, 2.6vw, 2rem);
-      }
-      .ae-sub {
-        margin-top: 18px; max-width: 56ch;
-        font-size: clamp(1rem, 1.2vw, 1.14rem); line-height: 1.6;
-      }
-
       /* ── Code window (inner panel inside the layered bezel) ── */
-      .ae-window-wrap { margin-top: 44px; }
+      .ae-window-wrap { margin-top: 0; }
       .ae-window {
         --p-panel: #f7f7f5;
         --p-bar: #f2f1ee;
@@ -574,18 +568,18 @@ function EndpointStyles() {
       .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
       html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
-      /* ── Chip groups (route row + target table), aligned to the card ── */
+      /* ── Chip groups (route row + target table) ── */
       .ae-connect {
-        margin: 44px 0 0;
-        display: flex; flex-direction: column; gap: 24px;
+        margin: 40px 0 0;
+        display: flex; flex-direction: column; gap: 20px;
       }
-      .ae-group { text-align: center; }
+      .ae-group { text-align: left; }
       .ae-group-label {
-        font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 12px;
+        font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 10px;
       }
       html.dark .ae-group-label { color: #8a8a82; }
 
-      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
       .ae-chip {
         display: inline-flex; align-items: center; gap: 8px;
         font-size: 11.5px; line-height: 1; padding: 9px 12px;
