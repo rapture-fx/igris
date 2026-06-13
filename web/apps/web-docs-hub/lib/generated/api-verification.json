@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T16:22:53.409Z",
+  "generated_at": "2026-06-12T12:44:27.379Z",
   "summary": {
     "total": 109,
     "by_status": {
@@ -60,6 +60,7 @@
       "evidence": {
         "test_files": [
           "igris-javascript-sdk/tests/actions.test.ts",
+          "igris-overture/api/product_promise_acceptance_test.go",
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_actions_list_columns_test.go",
           "igris-overture/api/routes_actions_test.go"
@@ -136,6 +137,7 @@
       "evidence": {
         "test_files": [
           "igris-javascript-sdk/tests/actions.test.ts",
+          "igris-overture/api/product_promise_acceptance_test.go",
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_actions_test.go"
         ],
@@ -1162,7 +1164,7 @@
       "auth": "Session cookie or igris_ API key",
       "surface": "Cloud API",
       "stability": "stable",
-      "description": "Submit a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`.",
+      "description": "Advanced API for submitting a durable task using `agent_workflow`, `robotics_workflow`, `single_inference`, or `behavior_tree`. Use registered actions for first-agent onboarding.",
       "status": "test-covered",
       "confidence": "high",
       "note": "At least one automated test references this route path and method.",
@@ -1302,6 +1304,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-overture/api/product_promise_acceptance_test.go",
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_mcp_test.go"
         ],
