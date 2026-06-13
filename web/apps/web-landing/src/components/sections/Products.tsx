@@ -1309,9 +1309,8 @@ export default function Products() {
                   className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
                   style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
                 >
-                  The console below walks through one agent task: how Igris
-                  executes each step, checkpoints progress when something fails,
-                  and leaves a signed receipt you can inspect afterward.
+                  One run, three views. Execute the action, recover from failure
+                  without replaying committed work, and inspect signed proof.
                 </p>
               </div>
 
@@ -1346,8 +1345,8 @@ export default function Products() {
                   className="text-gray-600 dark:text-[#a8a898] max-w-[38ch] md:text-right"
                   style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
                 >
-                  Plot how runs finish across your environment over time, so your team
-                  can see what is landing and what needs attention.
+                  Outcomes from many runs in one view. Spot what is completing,
+                  recovering, or stalling across your environment.
                 </p>
               </div>
 
