@@ -26,10 +26,10 @@ export default function ClosingPosition() {
                 </h2>
                 <a
                   href="https://console.igrisinertial.com/auth?mode=signup"
-                  className="mt-8 inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                  className="mt-8 inline-flex items-center justify-center rounded-md bg-[#1b1912] px-5 py-2.5 text-[13px] font-medium text-[#f6f6f4] transition-opacity hover:opacity-80 dark:bg-[#f6f6f4] dark:text-[#1b1912]"
                   style={{ fontFamily: SANS }}
                 >
-                  Create your first action
+                  Get API key
                 </a>
               </div>
             </div>

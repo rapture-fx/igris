@@ -70,19 +70,18 @@ function buildScene(
   const fan = (x: number, t: number) =>
     contained ? 0 : ((x - w / 2) / (w / 2)) * bgArc(t)
 
-  const padX = contained ? 6 : 0
-  const innerW = w - padX * 2
   let colP = 5.5
   let cols = 13
   let x0 = ribbon === 'green' ? 0.64 * w : 0.72 * w
+  const dotSize = contained ? Math.max(2, Math.min(3, w / 110)) : 2
 
   if (contained) {
-    cols = Math.max(18, Math.floor(innerW / 5) + 1)
-    colP = innerW / (cols - 1)
-    x0 = padX
+    const pitch = Math.max(3.25, dotSize * 1.15)
+    cols = Math.max(16, Math.floor((w - dotSize) / pitch) + 1)
+    colP = cols > 1 ? (w - dotSize) / (cols - 1) : 0
+    x0 = 0
   }
-  const dotSize = contained ? Math.max(2, Math.min(2.75, w / 130)) : 2
-  const skipChance = contained ? 0.97 : 0.94
+  const skipChance = contained ? 1 : 0.94
 
   const spec =
     ribbon === 'green'
@@ -94,15 +93,15 @@ function buildScene(
   const yEnd = h
   for (let yy = yStart; yy < yEnd; yy += 2) {
     const t = yy / h
-    if ((yy / 2) % 6 === 5) continue
+    if (!contained && (yy / 2) % 6 === 5) continue
     const fade = contained
-      ? 0.88
+      ? 0.9
       : 0.55 + 0.45 * Math.pow(Math.max(0, (t - spec.t0) / (1 - spec.t0)), 1.2)
     const nCols = contained
       ? cols
       : Math.max(4, Math.round(spec.cols * (0.7 + 0.3 * t)))
     for (let ci = 0; ci < nCols; ci++) {
-      const lateral = ci === 0 || ci === nCols - 1 ? 0.6 : 1
+      const lateral = contained || (ci !== 0 && ci !== nCols - 1) ? 1 : 0.6
       if (rand() > skipChance) continue
       const tint = rand() < 0.25 ? spec.c2 : spec.c1
       const base = Math.min(
