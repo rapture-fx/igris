@@ -249,16 +249,28 @@ export default function ExecutionPath() {
 
 function ConnectPanel() {
   return (
-    <div className="mt-10 md:mt-12 flex flex-col gap-6 md:gap-7">
-      <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-      <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
+    <div className="mt-10 md:mt-12 flex flex-col md:flex-row md:items-start gap-8 md:gap-10">
+      <ChipGroup label="Run through" items={ROUTE_CHIPS} className="md:flex-1 md:min-w-0" />
+      <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} className="md:flex-1 md:min-w-0" />
     </div>
   )
 }
 
-function ChipGroup({ label, items }: { label: string; items: Chip[] }) {
+function ChipGroup({
+  label,
+  items,
+  className = '',
+}: {
+  label: string
+  items: Chip[]
+  className?: string
+}) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 md:gap-10">
+    <div
+      className={
+        'flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 md:gap-8 min-w-0 ' + className
+      }
+    >
       <p
         className="text-gray-700 dark:text-[#c8c8b8] shrink-0 sm:w-[108px] md:w-[124px]"
         style={{
@@ -621,7 +633,7 @@ function EndpointStyles() {
         text-align: left;
       }
       .ae-worker-copy {
-        max-width: none;
+        max-width: min(100%, 72ch);
       }
       html.dark .ae-worker-callout {
         background: rgba(22, 21, 21, 0.55);

@@ -137,19 +137,21 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
   end
 
   test 'settings never echoes the configured base URL, host, or admin username' do
-    %w[OVERTURE_API_BASE_URL APP_HOST ADMIN_USERNAME].each { |k| ENV["__prev_#{k}"] = ENV[k] }
+    %w[OVERTURE_API_BASE_URL APP_HOST ADMIN_USERNAME ADMIN_PASSWORD].each { |k| ENV["__prev_#{k}"] = ENV[k] }
     ENV['OVERTURE_API_BASE_URL'] = 'https://overture.internal.corp:8443'
     ENV['APP_HOST'] = 'console.internal.corp'
     ENV['ADMIN_USERNAME'] = 'rootadmin_secret'
+    ENV['ADMIN_PASSWORD'] = 'rootadmin_secret_password'
+    creds = ActionController::HttpAuthentication::Basic.encode_credentials('rootadmin_secret', 'rootadmin_secret_password')
     %w[/settings?section=api /settings?section=access /settings?section=env].each do |path|
-      get path
+      get path, headers: { 'HTTP_AUTHORIZATION' => creds }
       assert_response :success
       refute_match 'overture.internal.corp', response.body
       refute_match 'console.internal.corp', response.body
       refute_match 'rootadmin_secret', response.body
     end
   ensure
-    %w[OVERTURE_API_BASE_URL APP_HOST ADMIN_USERNAME].each { |k| ENV[k] = ENV.delete("__prev_#{k}") }
+    %w[OVERTURE_API_BASE_URL APP_HOST ADMIN_USERNAME ADMIN_PASSWORD].each { |k| ENV[k] = ENV.delete("__prev_#{k}") }
   end
 
   test 'settings advanced keeps only the implemented reset action' do

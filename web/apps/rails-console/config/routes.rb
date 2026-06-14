@@ -14,6 +14,15 @@ Rails.application.routes.draw do
   post '/welcome/enter', to: 'welcome#enter'
   post '/welcome/reset', to: 'welcome#reset'
 
+  # Landing auth compatibility — stable URLs used by web-landing AuthForm and OAuth
+  # callbacks. /welcome and /home are the canonical console destinations.
+  get '/onboarding', to: 'auth_redirects#onboarding'
+  get '/dashboard', to: 'auth_redirects#dashboard'
+  get '/reset-password', to: 'password_resets#show', as: :reset_password
+
+  # BetterAuth API — proxied to BETTER_AUTH_UPSTREAM_URL (e.g. landing /api/auth).
+  match '/api/auth/*path', to: 'auth_proxy#forward', via: :all, format: false
+
   # Single project identity for this tenant — name only (no multi-project
   # management). The naming form lives on /home (first run) and in Settings.
   patch '/project', to: 'project#update', as: :project

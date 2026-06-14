@@ -1,16 +1,26 @@
 export type PricingTierKey = 'seed' | 'horizon' | 'infinite';
+export type BillingInterval = 'monthly' | 'yearly';
+
+export interface TierBillingOption {
+  price: string;
+  period: string;
+  comparePrice?: string;
+  detail?: string;
+  checkoutUrl: string;
+  cta: string;
+}
 
 export interface PricingTier {
   key: PricingTierKey;
   name: string;
-  price: string;
-  period: string;
   description: string;
   features: string[];
-  cta: string;
-  checkoutUrl: string;
   recommended: boolean;
+  monthly: TierBillingOption;
+  yearly: TierBillingOption | null;
 }
+
+export const YEARLY_TOGGLE_LABEL = '2 months free';
 
 export const PRICING_SUBTITLE =
   'Start with hosted action runs. Add workers when actions need private access.';
@@ -19,8 +29,6 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     key: 'seed',
     name: 'Seed',
-    price: '$19',
-    period: '/ month',
     description: 'For solo builders testing controlled agent actions.',
     features: [
       '1 project',
@@ -32,15 +40,25 @@ export const PRICING_TIERS: PricingTier[] = [
       'API + MCP access',
       '7-day retention',
     ],
-    cta: 'Start with Seed',
-    checkoutUrl: 'https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl',
     recommended: false,
+    monthly: {
+      price: '$19',
+      period: '/ month',
+      checkoutUrl: 'https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl',
+      cta: 'Start with Seed',
+    },
+    yearly: {
+      price: '$15',
+      period: '/ mo',
+      comparePrice: '$19',
+      detail: 'Billed annually · Save $48/year',
+      checkoutUrl: 'https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl',
+      cta: 'Start Seed yearly',
+    },
   },
   {
     key: 'horizon',
     name: 'Horizon',
-    price: '$149',
-    period: '/ month',
     description: 'For teams running agent actions in production.',
     features: [
       '5 projects',
@@ -55,15 +73,25 @@ export const PRICING_TIERS: PricingTier[] = [
       '60-day retention',
       'Priority support',
     ],
-    cta: 'Start Horizon',
-    checkoutUrl: 'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
     recommended: true,
+    monthly: {
+      price: '$149',
+      period: '/ month',
+      checkoutUrl: 'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
+      cta: 'Start Horizon',
+    },
+    yearly: {
+      price: '$119',
+      period: '/ mo',
+      comparePrice: '$149',
+      detail: 'Billed annually · Save $360/year',
+      checkoutUrl: 'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
+      cta: 'Start Horizon yearly',
+    },
   },
   {
     key: 'infinite',
     name: 'Infinite',
-    price: 'Custom',
-    period: '',
     description: 'For private deployments, custom retention, and advanced governance.',
     features: [
       'Custom action volume',
@@ -75,11 +103,21 @@ export const PRICING_TIERS: PricingTier[] = [
       'Dedicated onboarding',
       'Security review support',
     ],
-    cta: 'Contact sales',
-    checkoutUrl: 'mailto:sales@igrisinertial.com',
     recommended: false,
+    monthly: {
+      price: 'Custom',
+      period: '',
+      checkoutUrl: 'mailto:sales@igrisinertial.com',
+      cta: 'Contact sales',
+    },
+    yearly: null,
   },
 ];
+
+export function getTierBilling(tier: PricingTier, interval: BillingInterval): TierBillingOption {
+  if (interval === 'yearly' && tier.yearly) return tier.yearly;
+  return tier.monthly;
+}
 
 export const PLAN_INTEREST_OPTIONS = [
   { value: '', label: 'Select a plan' },
