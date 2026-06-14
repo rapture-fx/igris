@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-14T13:09:16.509Z",
+  "generated_at": "2026-06-14T14:11:11.010Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
   ],
-  "route_inventory_count": 486,
+  "route_inventory_count": 495,
   "sections": [
     {
       "title": "Action Packs",
@@ -28,6 +28,67 @@
           "surface": "Cloud API",
           "stability": "stable",
           "description": "Installs a built-in Action Pack by registering its actions in your tenant. Installed actions are normal registered actions — not raw task submissions.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        }
+      ]
+    },
+    {
+      "title": "Agents",
+      "summary": "Tenant-scoped Agent Registry for identity and run attribution. Register an agent before first runs, then pass agent_id or agent_name on action runs and MCP call_action. Metadata is sanitized — no secrets, prompts, or tenant_id from clients.",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/v1/agents",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Lists registered agents for the authenticated tenant. Use include_archived=true to include archived agents.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "POST",
+          "path": "/v1/agents",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Registers a tenant-scoped agent identity for run attribution.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/agents/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Gets one registered agent by id.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "PATCH",
+          "path": "/v1/agents/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Updates registry fields (name, display_name, description, agent_type, template_name, version, metadata) or execution settings (shadow_mode, reflection_mode, council_mode, cognitive_advisor_enabled) — not both in one request.",
+          "support": "core",
+          "deployment": "cloud",
+          "audience": "public"
+        },
+        {
+          "method": "DELETE",
+          "path": "/v1/agents/:id",
+          "auth": "Session cookie or igris_ API key",
+          "surface": "Cloud API",
+          "stability": "stable",
+          "description": "Archives a registered agent.",
           "support": "core",
           "deployment": "cloud",
           "audience": "public"

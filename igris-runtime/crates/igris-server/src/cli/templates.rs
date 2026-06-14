@@ -13,6 +13,19 @@ pub const BUILTIN_TEMPLATE_NAMES: &[&str] = &["claude-code", "codex", "cursor", 
 const STARTER_PACK: &str = "starter";
 const STARTER_ACTIONS: &[&str] = &["demo.echo", "demo.fail_once", "demo.needs_approval"];
 
+fn recommended_agent_name(template_name: &str) -> String {
+    template_name.replace('-', "_") + "_agent"
+}
+
+fn recommended_agent_type(template_name: &str) -> &'static str {
+    match template_name {
+        "claude-code" => "claude_code",
+        "codex" => "codex",
+        "cursor" => "cursor",
+        _ => "custom",
+    }
+}
+
 const FORBIDDEN_SUBSTRINGS: &[&str] = &[
     "tenant_id",
     "task_definition",
@@ -174,10 +187,12 @@ fn claude_code_template() -> AgentTemplate {
         setup_commands: vec![
             "export IGRIS_API_URL=\"https://overture.igrisinertial.com\"".to_string(),
             "export IGRIS_API_KEY=\"<your-igris-api-key>\"".to_string(),
+            "igris agents register --name claude_code_agent --agent-type claude_code --template-name claude-code".to_string(),
             "igris packs install starter".to_string(),
             "Merge mcp-config.json into your Claude Code MCP settings (or set IGRIS_MCP_CONFIG to this file).".to_string(),
         ],
         verification_commands: vec![
+            "igris agents list".to_string(),
             "igris packs list".to_string(),
             "igris actions run demo.echo --input '{\"message\":\"hello\"}' --idempotency-key starter-echo-claude-001".to_string(),
             "Ask Claude Code to call MCP tools/list and confirm list_actions, call_action, get_run, get_run_evidence".to_string(),
@@ -203,9 +218,11 @@ fn codex_template() -> AgentTemplate {
         }],
         setup_commands: vec![
             "export IGRIS_API_URL and IGRIS_API_KEY locally".to_string(),
+            "igris agents register --name codex_agent --agent-type codex --template-name codex".to_string(),
             "igris packs install starter".to_string(),
         ],
         verification_commands: vec![
+            "igris agents list".to_string(),
             "igris packs list".to_string(),
             "igris actions run demo.echo --input '{\"message\":\"hello\"}' --idempotency-key starter-echo-codex-001".to_string(),
             "igris runs inspect <run_id>".to_string(),
@@ -248,10 +265,12 @@ fn cursor_template() -> AgentTemplate {
         ],
         setup_commands: vec![
             "export IGRIS_API_URL and IGRIS_API_KEY".to_string(),
+            "igris agents register --name cursor_agent --agent-type cursor --template-name cursor".to_string(),
             "Copy .cursor/mcp.json into your project root if Cursor MCP is enabled".to_string(),
             "igris packs install starter".to_string(),
         ],
         verification_commands: vec![
+            "igris agents list".to_string(),
             "igris packs list".to_string(),
             "igris actions run demo.echo --input '{\"message\":\"hello\"}' --idempotency-key starter-echo-cursor-001".to_string(),
             "In Cursor MCP tools, call list_actions then call_action for demo.echo".to_string(),
@@ -276,9 +295,11 @@ fn custom_agent_template() -> AgentTemplate {
         }],
         setup_commands: vec![
             "export IGRIS_API_URL and IGRIS_API_KEY".to_string(),
+            "igris agents register --name custom_agent --agent-type custom --template-name custom-agent".to_string(),
             "igris packs install starter".to_string(),
         ],
         verification_commands: vec![
+            "igris agents list".to_string(),
             "curl -sS \"$IGRIS_API_URL/v1/actions\" -H \"Authorization: Bearer $IGRIS_API_KEY\"".to_string(),
             "igris actions run demo.echo --input '{\"message\":\"hello\"}' --idempotency-key starter-echo-custom-001".to_string(),
             "igris runs inspect <run_id>".to_string(),
@@ -608,6 +629,28 @@ pub async fn run_verify(name: &str, api_url: Option<String>) -> Result<()> {
         println!(
             "Missing starter actions: {}. Run `igris packs install starter`.",
             missing.join(", ")
+        );
+    }
+
+    let expected_agent = recommended_agent_name(name);
+    let agents_body = client.list_agents(false).await?;
+    let agent_names: HashSet<String> = agents_body
+        .get("agents")
+        .and_then(|v| v.as_array())
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(|a| a.get("name").and_then(|n| n.as_str()))
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default();
+    if agent_names.contains(&expected_agent) {
+        println!("Registered agent found: {expected_agent}");
+    } else {
+        println!(
+            "Registered agent {expected_agent} not found. Run `igris agents register --name {expected_agent} --agent-type {} --template-name {name}`.",
+            recommended_agent_type(name)
         );
     }
 

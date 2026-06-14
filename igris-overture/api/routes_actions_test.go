@@ -89,7 +89,7 @@ func TestBuildActionRunResponseDoesNotExposeRawProofOrSecrets(t *testing.T) {
 			Verified:    &verified,
 		},
 		CreatedAt: time.Now().UTC(),
-	})
+	}, nil)
 
 	require.Equal(t, taskID.String(), resp["task_id"])
 	require.Equal(t, "exec_123", resp["execution_id"])

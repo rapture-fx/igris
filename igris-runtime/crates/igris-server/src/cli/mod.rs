@@ -10,6 +10,7 @@
 
 pub mod action_task;
 pub mod actions_run;
+pub mod agents;
 pub mod api;
 pub mod auth;
 pub mod demo;
@@ -160,6 +161,46 @@ pub enum ActionsSub {
         api_url: Option<String>,
         #[arg(long)]
         console_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum AgentsSub {
+    /// List registered agents for the authenticated tenant.
+    List {
+        #[arg(long)]
+        api_url: Option<String>,
+        #[arg(long)]
+        include_archived: bool,
+    },
+    /// Register a tenant-scoped agent identity.
+    Register {
+        #[arg(long)]
+        name: String,
+        #[arg(long)]
+        agent_type: String,
+        #[arg(long)]
+        display_name: Option<String>,
+        #[arg(long)]
+        template_name: Option<String>,
+        #[arg(long)]
+        version: Option<String>,
+        #[arg(long)]
+        description: Option<String>,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Show one registered agent by id.
+    Show {
+        agent_id: String,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Archive a registered agent.
+    Archive {
+        agent_id: String,
+        #[arg(long)]
+        api_url: Option<String>,
     },
 }
 

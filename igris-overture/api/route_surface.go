@@ -123,6 +123,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "registered tenant-owned actions only",
 	},
 	{
+		Method: "GET,POST,PATCH,DELETE", Path: "/v1/agents,/v1/agents/:id", RegistrationFile: "igris-overture/api/routes_agent_registry.go",
+		HandlerOrGroup: "agent registry", RegistrationFunction: "RegisterAgentRegistryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped agent identity and attribution only; PATCH dispatches registry vs execution settings",
+	},
+	{
 		Method: "GET,POST", Path: "/v1/tasks", RegistrationFile: "igris-overture/api/routes_tasks.go",
 		HandlerOrGroup: "durable tasks and runtime callbacks", RegistrationFunction: "RegisterTaskRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential/runtime-forwarded tenant",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "runtime callback handlers remain covered by existing callback signature checks",

@@ -69,7 +69,38 @@ installer, then verify the key:
 igris auth login --api-url "$IGRIS_API_URL"
 ```
 
-## 2. Install The Starter Action Pack
+## 2. Register Your Agent Identity
+
+Register the agent in your tenant before the first run so Igris can attribute
+runs safely. Use a stable name per environment (for example `claude_code_agent`).
+
+```bash
+igris agents register \
+  --name claude_code_agent \
+  --agent-type claude_code \
+  --template-name claude-code \
+  --api-url "$IGRIS_API_URL"
+```
+
+REST equivalent:
+
+```bash
+curl -sS -X POST "$IGRIS_API_URL/v1/agents" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "claude_code_agent",
+    "agent_type": "claude_code",
+    "template_name": "claude-code",
+    "description": "Claude Code agent for starter onboarding"
+  }'
+```
+
+Pass `agent_id` or `agent_name` on action runs and MCP `call_action` so the
+response and run detail include a safe `agent` object. Unknown agents are
+rejected; do not send `tenant_id` in the body.
+
+## 3. Install The Starter Action Pack
 
 The starter pack registers three safe `mock_demo` actions. No external provider
 credentials are required.
@@ -105,7 +136,7 @@ Pack manifests live at `actionpacks/starter/manifest.json` in the repo. They
 contain no secrets. Install registers actions only — it does not execute raw
 tasks or call external providers.
 
-## 3. Run The First Action
+## 4. Run The First Action
 
 ```bash
 igris actions run demo.echo \
@@ -140,7 +171,7 @@ Inspect the run:
 igris runs inspect "$RUN_ID" --api-url "$IGRIS_API_URL"
 ```
 
-## 4. Connect Claude Code With MCP
+## 5. Connect Claude Code With MCP
 
 Claude Code uses an MCP server entry. Use the Igris CLI MCP bridge on stdio; do
 not point Claude at the runtime proxy surface.
@@ -178,7 +209,7 @@ Then call:
 }
 ```
 
-## 5. Use Codex, Cursor, Or Terminal Agents
+## 6. Use Codex, Cursor, Or Terminal Agents
 
 Terminal-based agents can use the CLI or REST commands above directly. If the
 agent can invoke shell commands, give it only:
@@ -193,7 +224,7 @@ Code. The agent should not send `tenant_id`, `task_definition`, `runtime_id`,
 `runtime_endpoint`, raw bodies, ciphertext, nonces, or key material; those fields
 are rejected.
 
-## 6. Custom Agents
+## 7. Custom Agents
 
 Custom agents should call the Actions HTTP API:
 

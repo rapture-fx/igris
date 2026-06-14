@@ -404,15 +404,27 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
-		Path: "/v1/agents/*",
+		Path: "/v1/agents",
 		Meta: RouteManifestMetadata{
-			RouteGroup:             "execution",
-			RegistrationSource:     "RegisterExecutionRoutes",
+			RouteGroup:             "agent_registry",
+			RegistrationSource:     "RegisterAgentRegistryRoutes",
 			Classification:         "core_public_product_api",
 			DefaultExposure:        "authenticated",
 			AuthExpectation:        "BetterAuth tenant credential",
-			TenantScopeExpectation: "tenant-bound agent state inspection",
-			Notes:                  "Execution agent state support",
+			TenantScopeExpectation: "tenant-owned registered agent identities",
+			Notes:                  "Agent registry list and create",
+		},
+	},
+	{
+		Path: "/v1/agents/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "agent_registry",
+			RegistrationSource:     "RegisterAgentRegistryRoutes/RegisterExecutionRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound registry CRUD and execution agent state",
+			Notes:                  "Registered agent management, settings patch dispatch, and BT state",
 		},
 	},
 	{

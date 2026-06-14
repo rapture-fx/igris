@@ -1081,6 +1081,8 @@ func TestScanTaskRecordHydratesArtifactsAndProof(t *testing.T) {
 		createdAt,
 		sql.NullString{String: "local_runtime", Valid: true}, // executed_target
 		sql.NullString{},                                     // fallback_reason
+		uuid.NullUUID{},                                      // registered_agent_id
+		sql.NullString{},                                     // registered_agent_name
 	}})
 	if err != nil {
 		t.Fatalf("scanTaskRecord() error = %v", err)
@@ -1185,6 +1187,8 @@ func TestScanTaskRecordOmitsEmptyProofAndInvalidCheckpoint(t *testing.T) {
 		createdAt,
 		sql.NullString{}, // executed_target
 		sql.NullString{}, // fallback_reason
+		uuid.NullUUID{},  // registered_agent_id
+		sql.NullString{}, // registered_agent_name
 	}})
 	if err != nil {
 		t.Fatalf("scanTaskRecord() error = %v", err)

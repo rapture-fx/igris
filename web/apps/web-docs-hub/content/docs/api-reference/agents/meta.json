@@ -1,0 +1,10 @@
+{
+  "title": "Agents",
+  "pages": [
+    "get-v1-agents",
+    "post-v1-agents",
+    "get-v1-agents-id",
+    "patch-v1-agents-id",
+    "delete-v1-agents-id"
+  ]
+}

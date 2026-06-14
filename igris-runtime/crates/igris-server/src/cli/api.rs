@@ -228,6 +228,96 @@ impl Client {
             .with_context(|| "could not parse action run response".to_string())
     }
 
+    pub async fn list_agents(&self, include_archived: bool) -> Result<serde_json::Value> {
+        let mut url = format!("{}/v1/agents", self.base);
+        if include_archived {
+            url.push_str("?include_archived=true");
+        }
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!("list agents failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse agents response".to_string())
+    }
+
+    pub async fn register_agent(&self, body: &serde_json::Value) -> Result<serde_json::Value> {
+        let url = format!("{}/v1/agents", self.base);
+        let resp = self
+            .inner
+            .post(&url)
+            .json(body)
+            .send()
+            .await
+            .with_context(|| format!("POST {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "register agent failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse register agent response".to_string())
+    }
+
+    pub async fn get_agent(&self, agent_id: &str) -> Result<serde_json::Value> {
+        let trimmed = agent_id.trim();
+        if trimmed.is_empty() {
+            return Err(anyhow!("agent id is required"));
+        }
+        let url = format!("{}/v1/agents/{}", self.base, trimmed);
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!("get agent failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse agent response".to_string())
+    }
+
+    pub async fn archive_agent(&self, agent_id: &str) -> Result<()> {
+        let trimmed = agent_id.trim();
+        if trimmed.is_empty() {
+            return Err(anyhow!("agent id is required"));
+        }
+        let url = format!("{}/v1/agents/{}", self.base, trimmed);
+        let resp = self
+            .inner
+            .delete(&url)
+            .send()
+            .await
+            .with_context(|| format!("DELETE {}", url))?;
+        let status = resp.status();
+        if status == reqwest::StatusCode::NO_CONTENT {
+            return Ok(());
+        }
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "archive agent failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        Ok(())
+    }
+
     pub async fn get_action_run(&self, run_id: &str) -> Result<serde_json::Value> {
         let url = format!("{}/v1/actions/runs/{}", self.base, run_id);
         let resp = self

@@ -100,6 +100,8 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		CredentialRequests:   governance.CredentialRequests,
 		IdempotencyKey:       idempotencyKey,
 		DeadlineAt:           req.DeadlineAt,
+		RegisteredAgentID:    req.RegisteredAgentID,
+		RegisteredAgentName:  req.RegisteredAgentName,
 		CreatedAt:            time.Now(),
 	}
 
@@ -215,6 +217,8 @@ func (tc *TaskCoordinator) SubmitDemoSimulatedFailure(ctx context.Context, req *
 		CredentialRequests:   governance.CredentialRequests,
 		IdempotencyKey:       idempotencyKey,
 		DeadlineAt:           req.DeadlineAt,
+		RegisteredAgentID:    req.RegisteredAgentID,
+		RegisteredAgentName:  req.RegisteredAgentName,
 		CreatedAt:            time.Now(),
 	}
 	inserted, err := tc.store.CreateTaskWithExecutionInputRefs(ctx, task, protectedDefinition.Refs)
@@ -1594,6 +1598,9 @@ type TaskSubmitRequest struct {
 	// action. The runtime must still be tenant-scoped and healthy; if no such
 	// runtime exists Submit returns a no-healthy-runtime error.
 	PreferredRuntimeID string `json:"-"`
+
+	RegisteredAgentID   *uuid.UUID `json:"-"`
+	RegisteredAgentName string     `json:"-"`
 }
 
 func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.RawMessage, error) {
