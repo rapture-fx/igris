@@ -15,6 +15,13 @@ This is the customer-facing API contract for Igris. Use the guide pages first, t
 - [Errors](/docs/api-reference/errors) — How to read error responses across the API reference and what to expect from validation, authentication, throttling, and server failures.
 - [Rate Limits](/docs/api-reference/rate-limits) — What throttling exists today, where it applies, and how clients should behave when they receive a 429 response.
 
+## Action Packs
+
+Built-in Action Packs install safe registered actions for first-agent onboarding. A pack is a small manifest of action definitions — it does not execute raw tasks, call external providers, or store secrets. After install, run actions through the normal Actions API or MCP `call_action` like any other registered action.
+
+- [`GET /v1/action-packs`](/docs/api-reference/action-packs/get-v1-action-packs) — Lists built-in Action Packs available for install into the authenticated tenant.
+- [`POST /v1/action-packs/:name/install`](/docs/api-reference/action-packs/post-v1-action-packs-name-install) — Installs a built-in Action Pack by registering its actions in your tenant. Installed actions are normal registered actions — not raw task submissions.
+
 ## Actions
 
 Registered actions are the primary execution gateway. Define what work an agent is allowed to ask Igris to run, then run those actions through Igris with policy, tenant-scoped idempotency, runtime routing, recovery, and proof.

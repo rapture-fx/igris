@@ -127,11 +127,13 @@ type actionRunByNameRequest struct {
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
 }
 
-var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{1,63}$`)
+var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_.]{1,63}$`)
 
 // RegisterActionRoutes wires the product-facing action gateway. These routes
 // adapt customer action calls onto the same durable task path used by /v1/tasks.
 func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordinator) {
+	RegisterActionPackRoutes(app, db)
+
 	v1 := app.Group("/v1/actions")
 	v1.Use(middleware.BetterAuth(db))
 
@@ -297,7 +299,16 @@ func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID str
 		})
 	}
 
-	task, err := tc.Submit(c.Context(), taskReq)
+	var task *coordinator.TaskRecord
+	if mockDemoFailOnceFirstAttempt(def, req) {
+		task, err = tc.SubmitDemoSimulatedFailure(
+			c.Context(),
+			taskReq,
+			"demo.fail_once simulated failure on first attempt; retry with input.retry=true or a new idempotency key",
+		)
+	} else {
+		task, err = tc.Submit(c.Context(), taskReq)
+	}
 	if err != nil {
 		if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
 			return c.Status(http.StatusForbidden).JSON(fiber.Map{
@@ -603,9 +614,14 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 	switch targetType {
 	case actionTargetMockDemo:
 		runReq.executedTarget = actionTargetMockDemo
+		demoVariant := stringFromMap(def.TargetMetadata, "demo_variant")
+		demoBehavior := "mock_demo target; no external API was called"
+		if demoVariant == "fail_once" && !mockDemoRetryRequested(req.Input) {
+			demoBehavior = "demo.fail_once simulated failure on first attempt; retry with input.retry=true or a new idempotency key"
+		}
 		record := map[string]interface{}{
 			"demo":                 true,
-			"demo_behavior":        "mock_demo target; no external API was called",
+			"demo_behavior":        demoBehavior,
 			"action":               def.Name,
 			"action_definition_id": def.ID,
 			"requested_input":      req.Input,
@@ -615,6 +631,9 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 			"irreversible":         def.Irreversible,
 			"created_by_gateway":   true,
 			"target_configuration": "mock_demo",
+		}
+		if demoVariant != "" {
+			record["demo_variant"] = demoVariant
 		}
 		runReq.RuntimeTarget = "database_write"
 		runReq.Input = map[string]interface{}{
@@ -1192,6 +1211,23 @@ func validReplayClass(replayClass string) bool {
 	default:
 		return false
 	}
+}
+
+func mockDemoRetryRequested(input map[string]interface{}) bool {
+	if retry, ok := input["retry"].(bool); ok && retry {
+		return true
+	}
+	return false
+}
+
+func mockDemoFailOnceFirstAttempt(def *actionDefinition, req actionRunRequest) bool {
+	if def == nil || canonicalActionTargetType(def.TargetType) != actionTargetMockDemo {
+		return false
+	}
+	if stringFromMap(def.TargetMetadata, "demo_variant") != "fail_once" {
+		return false
+	}
+	return !mockDemoRetryRequested(req.Input)
 }
 
 func copyActionMap(values map[string]interface{}) map[string]interface{} {

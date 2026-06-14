@@ -29,6 +29,13 @@ const apiGuides = [
         ],
       },
       {
+        title: 'First-Agent Onboarding Path',
+        paragraphs: [
+          'If you are wiring a new agent, start with the **Action Packs** section: list built-in packs, install the `starter` pack, then run `demo.echo` through **Actions** (`POST /v1/actions/:name/run`) or MCP `call_action`. Action Packs register safe actions — they do not execute raw tasks or ship live external connectors.',
+          'See [First Agent Onboarding](/docs/first-agent-onboarding) for the full CLI and MCP walkthrough.',
+        ],
+      },
+      {
         title: 'SDK Guidance',
         paragraphs: [
           'JavaScript/TypeScript, Go, Rust, and Python are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.',

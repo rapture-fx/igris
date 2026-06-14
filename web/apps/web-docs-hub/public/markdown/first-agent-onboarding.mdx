@@ -1,28 +1,28 @@
 ---
 title: "First Agent Onboarding"
-description: "Connect an agent to Igris, run one registered action, and inspect proof without relying on hidden setup knowledge."
+description: "Connect an agent to Igris, install the starter Action Pack, run one registered action, and inspect proof without relying on hidden setup knowledge."
 audience: "public"
 ---
 
 # First Agent Onboarding
 
 Use this path when a real agent or MCP client needs to run its first Igris action.
-The supported first step is actions-first: create an API key, register one action,
-run it with an idempotency key, then inspect the run and evidence.
+The supported first step is actions-first: install the CLI, configure MCP, install the
+starter Action Pack, run one registered action with an idempotency key, then inspect
+the run and evidence.
 
 Do not start by sending raw execution graphs. `POST /v1/tasks/submit` is an
 advanced durable-task API for custom workflows; first agents should call
-registered actions through REST or MCP.
+registered actions through REST, CLI, or MCP.
 
 ## Required Values
 
 Set these locally. Do not print secret values in logs or support tickets.
 
 ```bash
-export IGRIS_API_BASE_URL="https://overture.igrisinertial.com"
+export IGRIS_API_URL="https://overture.igrisinertial.com"
 export IGRIS_API_KEY="igris_..."
-export IGRIS_ACTION_NAME="first_ping"
-export IGRIS_IDEMPOTENCY_KEY="first-ping-$(date +%Y%m%d%H%M%S)"
+export IGRIS_IDEMPOTENCY_KEY="starter-echo-$(date +%Y%m%d%H%M%S)"
 ```
 
 Run the readiness doctor before wiring the agent:
@@ -36,49 +36,69 @@ safe endpoints, MCP `tools/list` when credentials are available, optional MCP
 config JSON, runtime install metadata, and optional local-runtime reachability.
 It never echoes the API key.
 
-## 1. Register One Action
+## 1. Install The CLI
 
-Use a disposable hosted API or webhook first. Move to `local_runtime` only after
-the hosted path works.
+Install the Igris CLI (`igris` / `igris-runtime`) from your environment's
+installer, then verify the key:
 
 ```bash
-curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions" \
-  -H "Authorization: Bearer $IGRIS_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "first_ping",
-    "display_name": "First Ping",
-    "description": "Disposable first-agent action",
-    "target_type": "webhook",
-    "target_url": "https://example.invalid/replace-me",
-    "method": "POST",
-    "policy_preset": "Read-only",
-    "replay_class": "read_only",
-    "approval_required": false,
-    "irreversible": false,
-    "secret_refs": []
-  }'
+igris auth login --api-url "$IGRIS_API_URL"
 ```
 
-Expected failure modes:
+## 2. Install The Starter Action Pack
 
-| Failure | Meaning |
-|---|---|
-| `401` or `unauthenticated` | Missing or invalid API key. |
-| `action_name_conflict` | The action already exists for this tenant. Use it or choose a new name. |
-| `invalid_action_definition` | The action contract is incomplete or unsafe. Fix the named field. |
-
-## 2. Run Through REST
+The starter pack registers three safe `mock_demo` actions. No external provider
+credentials are required.
 
 ```bash
-curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions/$IGRIS_ACTION_NAME/run" \
+igris packs list --api-url "$IGRIS_API_URL"
+igris packs install starter --api-url "$IGRIS_API_URL"
+```
+
+REST equivalents:
+
+```bash
+curl -sS "$IGRIS_API_URL/v1/action-packs" \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+
+curl -sS -X POST "$IGRIS_API_URL/v1/action-packs/starter/install" \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+See the API reference for request shapes and status codes:
+[GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs) and
+[POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install).
+
+Installed actions:
+
+| Action | Purpose |
+|---|---|
+| `demo.echo` | Happy-path echo through `mock_demo` |
+| `demo.fail_once` | Simulated first-attempt failure for recovery visibility |
+| `demo.needs_approval` | Pauses at `approval_required` |
+
+Pack manifests live at `actionpacks/starter/manifest.json` in the repo. They
+contain no secrets. Install registers actions only — it does not execute raw
+tasks or call external providers.
+
+## 3. Run The First Action
+
+```bash
+igris actions run demo.echo \
+  --api-url "$IGRIS_API_URL" \
+  --input '{"message":"first agent run"}' \
+  --idempotency-key "$IGRIS_IDEMPOTENCY_KEY"
+```
+
+Equivalent REST call:
+
+```bash
+curl -sS -X POST "$IGRIS_API_URL/v1/actions/demo.echo/run" \
   -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: $IGRIS_IDEMPOTENCY_KEY" \
   -d '{
-    "input": {
-      "message": "first agent run"
-    },
+    "input": { "message": "first agent run" },
     "idempotency_key": "'"$IGRIS_IDEMPOTENCY_KEY"'"
   }'
 ```
@@ -90,20 +110,16 @@ runtime key material.
 Retry the same command with the same idempotency key. It should return the same
 logical run instead of creating a duplicate side effect.
 
-Expected failure modes:
+Inspect the run:
 
-| Failure | Meaning |
-|---|---|
-| `action_not_found` | The action name is not registered for this tenant. |
-| `approval_required` | The action is human-gated and has paused before execution. |
-| `runtime_unavailable` | A `local_runtime` action has no healthy routable runtime connected. |
-| `target_not_configured` | The registered action is missing its target URL or runtime input. |
+```bash
+igris runs inspect "$RUN_ID" --api-url "$IGRIS_API_URL"
+```
 
-## 3. Connect Claude Code With MCP
+## 4. Connect Claude Code With MCP
 
-Claude Code uses an MCP server entry. Use the HTTP MCP endpoint only through the
-Igris MCP bridge or CLI command your environment provides; do not point Claude at
-the runtime proxy surface.
+Claude Code uses an MCP server entry. Use the Igris CLI MCP bridge on stdio; do
+not point Claude at the runtime proxy surface.
 
 Example config shape:
 
@@ -132,45 +148,38 @@ Then call:
 
 ```json
 {
-  "action_name": "first_ping",
+  "action_name": "demo.echo",
   "input": { "message": "first agent run from Claude Code" },
-  "idempotency_key": "first-ping-claude-001"
+  "idempotency_key": "starter-echo-claude-001"
 }
 ```
 
-## 4. Use Codex, Cursor, Or Terminal Agents
+## 5. Use Codex, Cursor, Or Terminal Agents
 
-Terminal-based agents can use the REST command above directly. If the agent can
-invoke shell commands, give it only:
+Terminal-based agents can use the CLI or REST commands above directly. If the
+agent can invoke shell commands, give it only:
 
-- the action name
-- the input schema you expect
+- the action name (`demo.echo` after starter pack install)
+- the input schema (`{"message": "..."}`)
 - the idempotency key rule
-- the inspect command
-
-Inspect with:
-
-```bash
-curl -sS "$IGRIS_API_BASE_URL/v1/actions/runs/$RUN_ID" \
-  -H "Authorization: Bearer $IGRIS_API_KEY"
-```
+- `igris runs inspect <run_id>`
 
 For MCP-capable terminal agents, use the same `call_action` contract as Claude
 Code. The agent should not send `tenant_id`, `task_definition`, `runtime_id`,
 `runtime_endpoint`, raw bodies, ciphertext, nonces, or key material; those fields
 are rejected.
 
-## 5. Custom Agents
+## 6. Custom Agents
 
 Custom agents should call the Actions HTTP API:
 
 ```bash
-curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions/$IGRIS_ACTION_NAME/run" \
+curl -sS -X POST "$IGRIS_API_URL/v1/actions/demo.echo/run" \
   -H "Authorization: Bearer $IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "input": { "message": "first custom-agent run" },
-    "idempotency_key": "first-ping-custom-001",
+    "idempotency_key": "starter-echo-custom-001",
     "metadata": {
       "agent_id": "custom-agent-local",
       "user_id": "operator"
@@ -178,9 +187,9 @@ curl -sS -X POST "$IGRIS_API_BASE_URL/v1/actions/$IGRIS_ACTION_NAME/run" \
   }'
 ```
 
-Use `GET /v1/actions/runs/:id`, MCP `get_run`, or MCP `get_run_evidence` to
-confirm the result. Treat `call_action` acceptance as "run accepted", not
-"side effect completed".
+Use `GET /v1/actions/runs/:id`, MCP `get_run`, MCP `get_run_evidence`, or
+`igris runs inspect` to confirm the result. Treat `call_action` acceptance as
+"run accepted", not "side effect completed".
 
 ## Stop Conditions
 
@@ -196,8 +205,11 @@ Stop and fix setup before continuing if any of these happen:
 
 ## Related Guides
 
+- [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)
+- [POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install)
+- [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)
+- [GET /v1/actions/runs/:id](/docs/api-reference/actions/get-v1-actions-runs-id)
 - [MCP Server](/docs/mcp-server)
 - [MCP Integration Patterns](/docs/mcp-integration-patterns)
 - [First Hosted Integration](/docs/first-cloud-integration)
-- [Actions API Reference](/docs/api-reference/actions/post-v1-actions-name-run)
 - [Durable Tasks](/docs/durable-tasks)

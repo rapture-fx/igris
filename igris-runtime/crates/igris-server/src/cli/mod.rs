@@ -9,10 +9,12 @@
 // proof verification failure, missing API key.
 
 pub mod action_task;
+pub mod actions_run;
 pub mod api;
 pub mod auth;
 pub mod demo;
 pub mod mcp;
+pub mod packs;
 pub mod receipts;
 pub mod tasks;
 
@@ -142,6 +144,49 @@ pub enum ActionsSub {
         /// Path to igris.actions.json.
         #[arg(default_value = "igris.actions.json")]
         file: String,
+    },
+    /// Run a registered action through the action gateway.
+    Run {
+        /// Registered action name (for example demo.echo).
+        name: String,
+        /// Inline JSON object or path to a JSON file used as action input.
+        #[arg(long)]
+        input: Option<String>,
+        /// Idempotency key for the run.
+        #[arg(long)]
+        idempotency_key: Option<String>,
+        #[arg(long)]
+        api_url: Option<String>,
+        #[arg(long)]
+        console_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum PacksSub {
+    /// List built-in Action Packs.
+    List {
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Install a built-in Action Pack into the authenticated tenant.
+    Install {
+        /// Pack name (for example starter).
+        name: String,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum RunsSub {
+    /// Inspect a registered-action run by run_id/task_id.
+    Inspect {
+        run_id: String,
+        #[arg(long)]
+        api_url: Option<String>,
+        #[arg(long)]
+        console_url: Option<String>,
     },
 }
 

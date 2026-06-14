@@ -224,6 +224,30 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/action-packs/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "action_packs",
+			RegistrationSource:     "RegisterActionPackRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-owned registered action installs",
+			Notes:                  "Built-in Action Pack install (registered actions only)",
+		},
+	},
+	{
+		Path: "/v1/action-packs",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "action_packs",
+			RegistrationSource:     "RegisterActionPackRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant credential required",
+			Notes:                  "Built-in Action Pack catalog",
+		},
+	},
+	{
 		Path: "/v1/actions/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "actions",

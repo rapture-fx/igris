@@ -6,6 +6,7 @@
     "authentication",
     "errors",
     "rate-limits",
+    "action-packs",
     "actions",
     "platform-health",
     "inference-integration",
