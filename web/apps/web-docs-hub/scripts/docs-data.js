@@ -83,6 +83,12 @@ const mcpReference = {
       summary: 'Connect Claude Code, Codex, Cursor, or a custom agent to registered actions, run one action, and inspect the run safely.',
     },
     {
+      slug: 'agent-templates',
+      title: 'Agent Templates',
+      href: '/docs/agent-templates',
+      summary: 'Generate safe MCP and CLI setup files for Claude Code, Codex, Cursor, and custom agents.',
+    },
+    {
       slug: 'mcp',
       title: 'Overview',
       href: '/docs/mcp',

@@ -7,9 +7,32 @@ audience: "public"
 # First Agent Onboarding
 
 Use this path when a real agent or MCP client needs to run its first Igris action.
-The supported first step is actions-first: install the CLI, configure MCP, install the
-starter Action Pack, run one registered action with an idempotency key, then inspect
-the run and evidence.
+The fastest supported path is **templates-first**: install the CLI, generate an agent
+template, install the starter Action Pack, run one registered action with an
+idempotency key, then inspect the run and evidence.
+
+## 0. Install An Agent Template
+
+Pick the template that matches your agent environment:
+
+```bash
+igris templates list
+igris templates install claude-code    # Claude Code MCP
+igris templates install codex          # terminal / Codex-style agents
+igris templates install cursor         # Cursor MCP or CLI fallback
+igris templates install custom-agent   # REST or MCP for any agent
+```
+
+Files land in `.igris/templates/<name>/` by default. Use `--print` to preview
+without writing files. Verify when credentials are ready:
+
+```bash
+igris templates verify claude-code
+```
+
+See [Agent Templates](/docs/agent-templates) for all options. Templates generate
+local config only — they use the same CLI, REST, and MCP execution path as the
+steps below.
 
 Do not start by sending raw execution graphs. `POST /v1/tasks/submit` is an
 advanced durable-task API for custom workflows; first agents should call
@@ -205,6 +228,7 @@ Stop and fix setup before continuing if any of these happen:
 
 ## Related Guides
 
+- [Agent Templates](/docs/agent-templates)
 - [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)
 - [POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install)
 - [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)

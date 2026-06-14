@@ -1,7 +1,8 @@
 {
-  "generated_at": "2026-06-14T12:55:15.736Z",
+  "generated_at": "2026-06-14T13:09:17.193Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
+    "/docs/agent-templates": "public",
     "/docs/agents": "public",
     "/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key": "public",
     "/docs/api-reference/account-trial-and-billing/get-api-subscription-plans": "public",

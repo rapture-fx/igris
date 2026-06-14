@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-06-14T12:55:22.570Z
+Generated: 2026-06-14T13:09:21.996Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 915
-- Implemented on expected surface: 915
+- Route claims audited: 918
+- Implemented on expected surface: 918
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 132
-- Implemented on expected surface: 132
+- Guide route claims audited: 135
+- Implemented on expected surface: 135
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -25,6 +25,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/agent-templates.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/agents.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/approval-workflows.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/architecture.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -64,6 +65,7 @@ No unsupported guide-page route claims were found.
 | Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/agent-templates.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/agents.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-api-subscription-plans.mdx` | 6 | 6 | 0 | 0 | 0 |
