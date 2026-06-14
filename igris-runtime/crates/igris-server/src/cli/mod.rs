@@ -17,6 +17,7 @@ pub mod mcp;
 pub mod packs;
 pub mod receipts;
 pub mod tasks;
+pub mod templates;
 
 use clap::Subcommand;
 
@@ -159,6 +160,43 @@ pub enum ActionsSub {
         api_url: Option<String>,
         #[arg(long)]
         console_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum TemplatesSub {
+    /// List built-in agent templates.
+    List,
+    /// Show one template (files, setup, verification).
+    Show {
+        /// Template name (claude-code, codex, cursor, custom-agent).
+        name: String,
+    },
+    /// Write or print template configuration files.
+    Install {
+        /// Template name.
+        name: String,
+        /// Output directory (default: .igris/templates/<name>).
+        #[arg(long)]
+        output: Option<String>,
+        /// Print generated files to stdout instead of writing.
+        #[arg(long)]
+        print: bool,
+        /// Show what would be written without creating files.
+        #[arg(long)]
+        dry_run: bool,
+        /// Also run `igris packs install starter` when API credentials are set.
+        #[arg(long)]
+        install_pack: bool,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Verify starter pack/actions availability for a template.
+    Verify {
+        /// Template name.
+        name: String,
+        #[arg(long)]
+        api_url: Option<String>,
     },
 }
 

@@ -3667,6 +3667,9 @@ async fn main() -> anyhow::Result<()> {
         /// Built-in Action Pack commands.
         #[command(subcommand)]
         Packs(cli::PacksSub),
+        /// Agent template setup helpers (MCP/CLI config generation).
+        #[command(subcommand)]
+        Templates(cli::TemplatesSub),
         /// Inspect registered-action runs.
         #[command(subcommand)]
         Runs(cli::RunsSub),
@@ -4008,6 +4011,40 @@ async fn main() -> anyhow::Result<()> {
             cli::PacksSub::Install { name, api_url } => {
                 let api = cli::resolve_api_url(&api_url);
                 cli::packs::run_install(&api, &name).await?;
+                return Ok(());
+            }
+        },
+        Command::Templates(sub) => match sub {
+            cli::TemplatesSub::List => {
+                cli::templates::run_list()?;
+                return Ok(());
+            }
+            cli::TemplatesSub::Show { name } => {
+                cli::templates::run_show(&name)?;
+                return Ok(());
+            }
+            cli::TemplatesSub::Install {
+                name,
+                output,
+                print,
+                dry_run,
+                install_pack,
+                api_url,
+            } => {
+                let output_path = output.as_deref().map(std::path::Path::new);
+                cli::templates::run_install(cli::templates::InstallOptions {
+                    name: &name,
+                    output: output_path,
+                    print,
+                    dry_run,
+                    install_pack,
+                    api_url,
+                })
+                .await?;
+                return Ok(());
+            }
+            cli::TemplatesSub::Verify { name, api_url } => {
+                cli::templates::run_verify(&name, api_url).await?;
                 return Ok(());
             }
         },

@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-06-14T12:55:22.544Z",
+  "generated_at": "2026-06-14T13:09:21.984Z",
   "summary": {
-    "total": 915,
+    "total": 918,
     "by_status": {
-      "implemented": 915
+      "implemented": 918
     }
   },
   "guide_summary": {
-    "total": 132,
+    "total": 135,
     "by_status": {
-      "implemented": 132
+      "implemented": 135
     }
   },
   "pages": [
@@ -20,6 +20,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 2
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "implemented": 3,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
@@ -1168,6 +1176,14 @@
       "total_route_claims": 2
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "implemented": 3,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 3
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
       "implemented": 2,
       "missing": 0,
@@ -1438,6 +1454,57 @@
           "path": "/v1/runtime/task/:task_id/cancel",
           "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
           "surface": "local-runtime"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "line": 44,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "| `custom-agent` | REST `POST /v1/actions/:name/run` and MCP notes |",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "line": 67,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "- [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "line": 68,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
         }
       ]
     },
@@ -18471,7 +18538,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 14,
+      "line": 37,
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
@@ -18488,7 +18555,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 69,
+      "line": 92,
       "method": "GET",
       "path": "/v1/action-packs",
       "expected_surface": null,
@@ -18505,7 +18572,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 70,
+      "line": 93,
       "method": "POST",
       "path": "/v1/action-packs/:name/install",
       "expected_surface": null,
@@ -18522,7 +18589,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 190,
+      "line": 213,
       "method": "GET",
       "path": "/v1/actions/runs/:id",
       "expected_surface": null,
@@ -18539,7 +18606,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 208,
+      "line": 232,
       "method": "GET",
       "path": "/v1/action-packs",
       "expected_surface": null,
@@ -18556,7 +18623,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 209,
+      "line": 233,
       "method": "POST",
       "path": "/v1/action-packs/:name/install",
       "expected_surface": null,
@@ -18573,7 +18640,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 210,
+      "line": 234,
       "method": "POST",
       "path": "/v1/actions/:name/run",
       "expected_surface": null,
@@ -18590,7 +18657,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 211,
+      "line": 235,
       "method": "GET",
       "path": "/v1/actions/runs/:id",
       "expected_surface": null,

@@ -1,0 +1,69 @@
+---
+title: "Agent Templates"
+description: "Generate safe MCP and CLI setup for Claude Code, Codex, Cursor, and custom agents using the starter Action Pack."
+audience: "public"
+---
+
+# Agent Templates
+
+Agent Templates are local configuration helpers. They do not execute actions
+themselves — they generate files and commands that point at the existing Igris
+CLI, REST Actions API, and MCP `call_action` surface.
+
+Use templates after installing the Igris CLI and exporting credential **names**
+locally (`IGRIS_API_URL`, `IGRIS_API_KEY`). Generated files list env var names
+only; never commit API key values.
+
+## Quick Path
+
+```bash
+export IGRIS_API_URL="https://overture.igrisinertial.com"
+export IGRIS_API_KEY="igris_..."
+
+igris templates list
+igris templates install claude-code
+igris templates verify claude-code
+```
+
+`install` writes to `.igris/templates/<name>/` by default. Use `--print` to emit
+files to stdout without writing, or `--dry-run` to preview paths.
+
+Optional: install the starter pack during template install when credentials are set:
+
+```bash
+igris templates install codex --install-pack
+```
+
+## Built-in Templates
+
+| Name | Purpose |
+|---|---|
+| `claude-code` | Claude Code MCP config (`igris mcp serve`) |
+| `codex` | Terminal/CLI instructions for Codex-style agents |
+| `cursor` | `.cursor/mcp.json` plus CLI fallback |
+| `custom-agent` | REST `POST /v1/actions/:name/run` and MCP notes |
+
+All templates recommend the **starter** Action Pack (`demo.echo`,
+`demo.fail_once`, `demo.needs_approval`).
+
+## Commands
+
+```bash
+igris templates show claude-code
+igris templates install cursor --output ./my-agent-setup
+igris templates install custom-agent --print
+igris templates verify cursor --api-url "$IGRIS_API_URL"
+```
+
+## Verification Without Credentials
+
+If `IGRIS_API_KEY` is unset, `igris templates verify` prints next steps instead
+of failing with a stack trace. Set credentials and re-run, or follow the printed
+setup commands manually.
+
+## Related Guides
+
+- [First Agent Onboarding](/docs/first-agent-onboarding)
+- [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)
+- [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)
+- [MCP Server](/docs/mcp-server)
