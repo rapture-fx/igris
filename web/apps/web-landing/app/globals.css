@@ -86,21 +86,16 @@ html.dark {
     box-sizing: border-box;
   }
 
-  /* Light-mode overscroll matches the navbar (#010203); body stays white so
-     page content reads light. The root element's background fills the
-     rubber-band / overscroll canvas. */
+  /* Light-mode overscroll matches the page canvas. */
   html {
-    background: #010203 !important;
-    background-color: #010203 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     overflow-x: hidden;
   }
 
-  /* Overscroll canvas = navbar color. Some browsers paint the rubber-band
-     from body (not html), so body is #010203 too. The visible page color is
-     supplied by each page's min-h-screen wrapper (.igris-grain etc.). */
   body {
-    background: #010203 !important;
-    background-color: #010203 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
@@ -108,15 +103,8 @@ html.dark {
     font-weight: 400 !important;
   }
 
-  /* Dark mode — body (overscroll canvas) is the navbar color #010203 too, so
-     the rubber-band matches the navbar in both browser canvas models. */
+  html.dark,
   html.dark body {
-    background-color: #010203 !important;
-    background: #010203 !important;
-  }
-
-  /* Overscroll canvas = navbar color in dark mode too */
-  html.dark {
     background-color: #010203 !important;
     background: #010203 !important;
   }
@@ -129,13 +117,8 @@ html.dark {
     background: #010203 !important;
   }
 
-  /* Prevent black overscroll on iOS/Safari — navbar color */
   @supports (-webkit-overflow-scrolling: touch) {
-    html.dark {
-      background: #010203 !important;
-      background-color: #010203 !important;
-    }
-
+    html.dark,
     html.dark body {
       background: #010203 !important;
       background-color: #010203 !important;
@@ -153,27 +136,14 @@ html.dark {
     background-color: #110f0f !important;
   }
 
-  /* Force background on all viewport areas including overscroll — navbar
-     color in both themes */
   @media screen {
     html {
-      background: #010203 !important;
+      background: #ffffff !important;
     }
 
     html.dark {
       background: #010203 !important;
     }
-  }
-
-  /* Root/canvas background = navbar color in both themes (overscroll match) */
-  :root {
-    background: #010203 !important;
-    background-color: #010203 !important;
-  }
-
-  :root:has(html.dark) {
-    background: #010203 !important;
-    background-color: #010203 !important;
   }
 
   *, *::before, *::after {
