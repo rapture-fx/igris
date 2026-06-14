@@ -1,50 +1,8 @@
 class ApplicationController < ActionController::Base
+  include ConsoleAuthentication
+
   helper_method :time_ago, :data_source, :demo_mode?
   protect_from_forgery with: :exception
-
-  # Console front door — HTTP Basic auth, env-driven.
-  #
-  # When both ADMIN_USERNAME and ADMIN_PASSWORD are set, every
-  # request must present matching Basic credentials before the controller
-  # runs. Comparison uses ActiveSupport::SecurityUtils.secure_compare so
-  # timing leakage doesn't reveal the username/password. In production,
-  # missing credentials fail closed. In development/test, auth can be left
-  # unset for local fixture-mode inspection.
-  #
-  # Health probes (`/up`) bypass auth so Render's liveness check works.
-  #
-  # This is the MVP front-door; replace with Clerk / BetterAuth-direct
-  # once multi-user identity is needed.
-  before_action :require_admin_login!
-
-  private
-
-  def require_admin_login!
-    return if Rails.env.test? && !production_env? && !ENV['ADMIN_USERNAME']
-    username = ENV['ADMIN_USERNAME'].to_s
-    password = ENV['ADMIN_PASSWORD'].to_s
-    if username.empty? || password.empty?
-      return unless production_env?
-
-      return authenticate_or_request_with_http_basic('Igris Console') { |_u, _p| false }
-    end
-
-    authenticate_or_request_with_http_basic('Igris Console') do |u, p|
-      # Hash both sides so `secure_compare` always sees equal-length input
-      # (it raises ArgumentError otherwise — which would itself leak length).
-      u_ok = ActiveSupport::SecurityUtils.secure_compare(
-        ::Digest::SHA256.hexdigest(u.to_s), ::Digest::SHA256.hexdigest(username)
-      )
-      p_ok = ActiveSupport::SecurityUtils.secure_compare(
-        ::Digest::SHA256.hexdigest(p.to_s), ::Digest::SHA256.hexdigest(password)
-      )
-      u_ok & p_ok
-    end
-  end
-
-  def production_env?
-    Rails.env.production?
-  end
 
   public
 
@@ -57,11 +15,6 @@ class ApplicationController < ActionController::Base
     when 3600..86_399   then "#{delta / 3600}h ago"
     else                     "#{delta / 86_400}d ago"
     end
-  end
-
-  # Per-request DataSource — picks real Overture or fixtures based on env.
-  def data_source
-    @data_source ||= Igris::DataSource.new
   end
 
   def demo_mode?

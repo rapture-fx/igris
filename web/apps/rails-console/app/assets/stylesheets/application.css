@@ -4325,3 +4325,41 @@ html.dark, html[data-theme="dark"] {
   .ic-machine__node--flow-active::after { border-left-color: var(--ic-border); }
   .ic-machine__node--flow-broken::after { border-left-style: dashed; }
 }
+
+/* ── Minimal auth handoff (password reset, no icon rail) ─────────────── */
+.ic-minimal-auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--ic-bg);
+}
+.ic-minimal-auth__card {
+  width: 100%;
+  max-width: 420px;
+  padding: 28px 28px 24px;
+  border-radius: 12px;
+  border: 1px solid var(--ic-border);
+  background: var(--ic-surface);
+}
+.ic-minimal-auth__title {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--ic-text-bright);
+  letter-spacing: -0.01em;
+}
+.ic-minimal-auth__body {
+  margin: 0 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ic-text-3);
+}
+.ic-minimal-auth__cta { display: inline-flex; }
+.ic-minimal-auth__note {
+  margin: 16px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ic-text-6);
+}

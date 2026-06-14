@@ -59,6 +59,7 @@ class BasicAuthTest < ActionDispatch::IntegrationTest
   test 'production rejects requests when admin credentials are unset' do
     ENV.delete('ADMIN_USERNAME')
     ENV.delete('ADMIN_PASSWORD')
+    ENV.delete('OVERTURE_API_BASE_URL')
 
     ApplicationController.class_eval do
       alias_method :__orig_production_env_basic_auth_test, :production_env?
@@ -66,11 +67,11 @@ class BasicAuthTest < ActionDispatch::IntegrationTest
     end
     begin
       get '/home'
-      assert_response :unauthorized
-      assert_match 'Basic realm="Igris Console"', response.headers['WWW-Authenticate'].to_s
+      assert_response :redirect
+      assert_match %r{/auth\z}, response.redirect_url
 
       get '/home', headers: { 'HTTP_AUTHORIZATION' => basic_auth('', '') }
-      assert_response :unauthorized
+      assert_response :redirect
     ensure
       ApplicationController.class_eval do
         alias_method :production_env?, :__orig_production_env_basic_auth_test

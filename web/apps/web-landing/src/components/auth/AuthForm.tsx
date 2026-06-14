@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Loader2, Mail, ChevronDown, Eye, EyeOff } from 'lucide-react';
 import { signIn, signUp, authClient } from '../../lib/auth-client';
+import { consoleAuthUrl } from '../../lib/console-auth-paths';
 import { getConsoleUrl } from '../../lib/console-url';
 
 const SANS =
@@ -79,7 +80,7 @@ export default function AuthForm() {
     setForgotLoading(true);
     setError('');
     try {
-      const redirectTo = `${consoleUrl}/reset-password`;
+      const redirectTo = consoleAuthUrl(consoleUrl, 'resetPassword');
       const result = await authClient.requestPasswordReset({ email, redirectTo });
       if (result?.error) {
         setError(result.error.message || 'Failed to send reset email. Please try again.');
@@ -105,14 +106,14 @@ export default function AuthForm() {
           setError(result.error.message || 'Sign up failed');
           return;
         }
-        window.location.href = `${consoleUrl}/onboarding`;
+        window.location.href = consoleAuthUrl(consoleUrl, 'onboarding');
       } else {
         const result = await signIn.email({ email, password });
         if (result.error) {
           setError(result.error.message || 'Invalid email or password');
           return;
         }
-        window.location.href = `${consoleUrl}/dashboard`;
+        window.location.href = consoleAuthUrl(consoleUrl, 'dashboard');
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
@@ -126,7 +127,7 @@ export default function AuthForm() {
     setError('');
     setLoadingProvider(provider);
     try {
-      await signIn.social({ provider, callbackURL: `${consoleUrl}/dashboard` });
+      await signIn.social({ provider, callbackURL: consoleAuthUrl(consoleUrl, 'dashboard') });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : `${provider} sign in failed`;
       setError(message);
@@ -171,11 +172,8 @@ export default function AuthForm() {
           </div>
         )}
 
-        {/* Layered bezel card */}
-        <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-          <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-            <div className="rounded-[12px] overflow-hidden bg-white dark:bg-[#161515] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
-              {mode !== 'forgot' && (
+        <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#161515] overflow-hidden">
+          {mode !== 'forgot' && (
                 <div className="flex border-b border-gray-200 dark:border-white/[0.08]">
                   {(['signin', 'signup'] as const).map((tab) => {
                     const active = mode === tab;
@@ -412,20 +410,18 @@ export default function AuthForm() {
                 </div>
               )}
 
-              <div className="px-5 pb-5 pt-1">
-                <p className="text-center text-[10px] text-gray-400 dark:text-[#6a6a5c]" style={{ fontFamily: SANS }}>
-                  By continuing, you agree to our{' '}
-                  <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-[#a8a898]">
-                    Terms
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-[#a8a898]">
-                    Privacy Policy
-                  </Link>
-                  .
-                </p>
-              </div>
-            </div>
+          <div className="px-5 pb-5 pt-1">
+            <p className="text-center text-[10px] text-gray-400 dark:text-[#6a6a5c]" style={{ fontFamily: SANS }}>
+              By continuing, you agree to our{' '}
+              <Link href="/terms" className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-[#a8a898]">
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link href="/privacy" className="underline underline-offset-2 hover:text-gray-600 dark:hover:text-[#a8a898]">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </div>
         </div>
       </div>
