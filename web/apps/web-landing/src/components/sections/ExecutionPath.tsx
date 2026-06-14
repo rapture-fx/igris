@@ -55,8 +55,8 @@ const WORKER_INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
 
 const WORKER_COPY_STYLE: CSSProperties = {
   fontFamily: SANS,
-  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
-  lineHeight: 1.6,
+  fontSize: 'clamp(0.95rem, 1.05vw, 1.05rem)',
+  lineHeight: 1.65,
 }
 
 interface Lang {
@@ -238,8 +238,10 @@ export default function ExecutionPath() {
           </p>
         </div>
 
-        <CodeWindow />
-        <WorkerInstallCallout />
+        <div className="ae-endpoint-row">
+          <CodeWindow />
+          <WorkerInstallCallout />
+        </div>
 
         <ConnectPanel />
       </div>
@@ -249,9 +251,9 @@ export default function ExecutionPath() {
 
 function ConnectPanel() {
   return (
-    <div className="mt-10 md:mt-12 flex flex-col md:flex-row md:items-start gap-8 md:gap-10">
-      <ChipGroup label="Run through" items={ROUTE_CHIPS} className="md:flex-1 md:min-w-0" />
-      <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} className="md:flex-1 md:min-w-0" />
+    <div className="ae-connect mt-10 md:mt-12">
+      <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+      <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
     </div>
   )
 }
@@ -259,20 +261,14 @@ function ConnectPanel() {
 function ChipGroup({
   label,
   items,
-  className = '',
 }: {
   label: string
   items: Chip[]
-  className?: string
 }) {
   return (
-    <div
-      className={
-        'flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6 md:gap-8 min-w-0 ' + className
-      }
-    >
+    <div className="ae-connect-row">
       <p
-        className="text-gray-700 dark:text-[#c8c8b8] shrink-0 sm:w-[108px] md:w-[124px]"
+        className="ae-connect-label text-gray-700 dark:text-[#c8c8b8]"
         style={{
           fontFamily: SANS,
           fontSize: '0.95rem',
@@ -283,7 +279,7 @@ function ChipGroup({
       >
         {label}
       </p>
-      <div className="flex flex-1 flex-wrap gap-2 min-w-0">
+      <div className="ae-connect-chips">
         {items.map((c) => (
           <ChipView key={c.label} chip={c} />
         ))}
@@ -488,6 +484,16 @@ function Gutter({ count }: { count: number }) {
 function EndpointStyles() {
   return (
     <style>{`
+      .ae-endpoint-row {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: 14px;
+        align-items: stretch;
+      }
+      .ae-window-wrap {
+        min-width: 0;
+      }
+
       /* ── Code window (inner panel inside the layered bezel) ── */
       .ae-window {
         --p-panel: #f7f7f5;
@@ -570,7 +576,7 @@ function EndpointStyles() {
 
       /* Pane: fixed line-number gutter + scrollable code */
       .ae-pane { display: grid; grid-template-columns: auto minmax(0, 1fr); }
-      .ae-pane--req { min-height: 360px; }
+      .ae-pane--req { min-height: 320px; }
       .ae-gutter {
         display: flex; flex-direction: column;
         padding: 22px 14px 22px 0;
@@ -600,6 +606,28 @@ function EndpointStyles() {
       .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
       html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
+      .ae-connect {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .ae-connect-row {
+        display: grid;
+        grid-template-columns: 124px minmax(0, 1fr);
+        gap: 16px 20px;
+        align-items: start;
+      }
+      .ae-connect-label {
+        margin: 0;
+        padding-top: 7px;
+      }
+      .ae-connect-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-width: 0;
+      }
+
       .ae-chip { white-space: nowrap; line-height: 1.2; }
       .ae-chip-ic { flex: none; width: 14px; height: 14px; opacity: 0.8; }
 
@@ -620,20 +648,23 @@ function EndpointStyles() {
       .ae-chip:hover .ae-logo-color { opacity: 1; }
       html.dark .ae-chip:hover .ae-logo-color--invert { filter: invert(1) brightness(1.7); }
 
-      /* ── Optional worker install callout (below code window) ── */
+      /* ── Start in Cloud card (beside code window) ── */
       .ae-worker-callout {
-        margin-top: 20px;
+        margin-top: 0;
         display: flex;
         flex-direction: column;
-        gap: 24px;
-        padding: 24px 28px;
+        justify-content: space-between;
+        gap: 20px;
+        height: 100%;
+        min-width: 0;
+        padding: 22px 24px;
         border-radius: 12px;
         border: 1px solid var(--landing-surface-border);
         background: var(--landing-surface);
         text-align: left;
       }
       .ae-worker-copy {
-        max-width: min(100%, 72ch);
+        max-width: none;
       }
       html.dark .ae-worker-callout {
         background: rgba(22, 21, 21, 0.55);
@@ -708,6 +739,22 @@ function EndpointStyles() {
       html.dark .ae-worker-copy-btn { color: #8a8a82; }
       html.dark .ae-worker-copy-btn:hover,
       html.dark .ae-worker-copy-btn:focus-visible { color: #f6f6f4; }
+
+      @media (max-width: 960px) {
+        .ae-endpoint-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .ae-connect-row {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .ae-connect-label {
+          padding-top: 0;
+        }
+      }
 
       @media (max-width: 720px) {
         .ae-worker-callout {
