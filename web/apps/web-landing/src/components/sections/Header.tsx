@@ -7,6 +7,7 @@ import { DOCS_LINKS } from '../../lib/docs-urls';
 import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections';
 import LandingSectionLink from '../LandingSectionLink';
 import { useTheme } from 'next-themes';
+import ThemeToggleButton from '../ThemeToggleButton';
 
 
 const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
@@ -172,6 +173,8 @@ export default function Header() {
                 Pricing
               </Link>
 
+              <ThemeToggleButton className="rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 dark:text-[#f6f6f4] dark:hover:bg-white/[0.08]" />
+
               <span className="mx-1 h-4 w-px bg-gray-300 dark:bg-white/[0.12]" />
 
               {/* Sign in */}
@@ -196,15 +199,17 @@ export default function Header() {
               </Link>
             </nav>
 
-            {/* Mobile toggle */}
-            <button
-              type="button"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden text-gray-500 dark:text-[#c8c8b8]"
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            <div className="flex items-center gap-2 md:hidden">
+              <ThemeToggleButton className="rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 dark:text-[#f6f6f4] dark:hover:bg-white/[0.08]" />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="text-gray-500 dark:text-[#c8c8b8]"
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
 
           </div>
         </div>

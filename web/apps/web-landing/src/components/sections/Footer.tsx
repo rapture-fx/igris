@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes'
 import { DOCS_LINKS, DOCS_ORIGIN } from '../../lib/docs-urls'
 import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections'
 import LandingSectionLink from '../LandingSectionLink'
+import ThemeToggleButton from '../ThemeToggleButton'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
@@ -166,11 +167,13 @@ export default function Footer() {
             © 2026 Igris Inertial
           </p>
 
-          <nav
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
-            style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
-            aria-label="Legal"
-          >
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <ThemeToggleButton className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-200/80 hover:text-gray-900 dark:text-[#8a8a7a] dark:hover:bg-white/[0.08] dark:hover:text-[#f6f6f4]" />
+            <nav
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
+              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
+              aria-label="Legal"
+            >
             <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors">
               Privacy
             </Link>
@@ -198,7 +201,8 @@ export default function Footer() {
             <Link href="/dpa" className="hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors">
               DPA
             </Link>
-          </nav>
+            </nav>
+          </div>
         </div>
       </div>
     </footer>

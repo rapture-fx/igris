@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import {
-  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, Sun, Moon, type LucideIcon,
+  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
 import { RunActivityMapConsole } from './OverviewConsole'
@@ -1137,22 +1137,11 @@ function ExecDetailRail() {
 }
 
 function MainFooter() {
-  const { resolvedTheme, setTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
   return (
     <div className="ic-footer">
       <div className="ic-footer__bar">
         <span className="ic-footer__chip"><span className="dot" /><span>action_workflow v1</span></span>
         <span>Receipts ed25519</span>
-        <div className="ic-footer__spacer" />
-        <button
-          type="button"
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="inline-flex items-center justify-center w-5 h-5 rounded text-[var(--ic-text-4)] hover:text-[var(--ic-text-bright)] hover:bg-[var(--ic-overlay-3)] transition-colors"
-        >
-          {isDark ? <Sun size={11} strokeWidth={1.8} /> : <Moon size={11} strokeWidth={1.8} />}
-        </button>
       </div>
     </div>
   )
@@ -1310,34 +1299,7 @@ export default function Products() {
         <div className="px-0">
           <div className="px-0">
             <div className="pt-10 md:pt-14 pb-20 md:pb-32">
-              {/* Intro copy — sits above the product design */}
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
-                <h2
-                  className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0"
-                  style={{
-                    fontFamily: SANS,
-                    fontWeight: 400,
-                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                    lineHeight: 1.1,
-                    letterSpacing: '-0.02em',
-                    maxWidth: '22ch',
-                  }}
-                >
-                  Run, recover, and prove.
-                </h2>
-                <p
-                  className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
-                  style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-                >
-                  One run, three views. Execute the action, recover from failure
-                  without replaying committed work, and inspect signed proof.
-                </p>
-              </div>
-
-              {/* Product design / showcase */}
-              <div className="mt-12 md:mt-16">
-                <ProductShowcaseTabs />
-              </div>
+              <ProductShowcaseTabs />
             </div>
           </div>
         </div>

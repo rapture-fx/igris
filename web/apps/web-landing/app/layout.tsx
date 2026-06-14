@@ -45,25 +45,28 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable} style={{ backgroundColor: '#010203' }}>
+    <html lang="en" suppressHydrationWarning className={inter.variable} style={{ backgroundColor: '#ffffff' }}>
       <head>
-        {/* Overscroll/canvas = navbar color (#010203) in both themes */}
-        <meta name="theme-color" content="#010203" />
+        <meta name="theme-color" content="#ffffff" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
                   var theme = localStorage.getItem('igris-theme') || 'light';
+                  var bg = theme === 'dark' ? '#010203' : '#ffffff';
                   document.documentElement.classList.add(theme);
-                  document.documentElement.style.backgroundColor = '#010203';
+                  document.documentElement.style.backgroundColor = bg;
+                  document.body.style.backgroundColor = bg;
+                  var meta = document.querySelector('meta[name="theme-color"]');
+                  if (meta) meta.setAttribute('content', bg);
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body suppressHydrationWarning style={{ backgroundColor: '#010203' }}>
+      <body suppressHydrationWarning style={{ backgroundColor: '#ffffff' }}>
         <Providers>
           {children}
         </Providers>
