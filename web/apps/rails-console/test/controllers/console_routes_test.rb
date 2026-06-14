@@ -7,10 +7,9 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test 'overview renders as a workspace, not an onboarding page' do
     get '/overview?tab=feed'
     assert_response :success
-    assert_match 'Workspace', response.body
+    assert_overview_workspace_page
     get '/overview?tab=attention'
-    assert_match 'Needs attention', response.body
-    refute_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_overview_workspace_page(needs_attention: true)
     refute_match 'Route your first AI action through Igris', response.body
   end
 
@@ -28,12 +27,10 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   test '/home renders the onboarding page inside the console chrome' do
     get '/home'
     assert_response :success
-    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_home_onboarding_page
     assert_match 'Call Igris from your agent', response.body
     assert_match 'Action endpoint', response.body
     assert_match 'Create your first action', response.body
-    assert_match 'Go to Overview', response.body
-    assert_match 'ic-rail', response.body
   end
 
   test 'legacy /welcome redirects to /home' do

@@ -47,7 +47,7 @@ class BasicAuthTest < ActionDispatch::IntegrationTest
   test 'request with correct credentials renders the page' do
     get '/home', headers: { 'HTTP_AUTHORIZATION' => basic_auth('wira', 'correct-horse-battery-staple') }
     assert_response :success
-    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_home_onboarding_page
   end
 
   test '/up bypasses Basic auth even when configured' do

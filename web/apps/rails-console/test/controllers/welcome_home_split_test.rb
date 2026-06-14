@@ -4,6 +4,9 @@ require 'test_helper'
 # target/runtime explanation), while /overview is the everyday workspace
 # (needs-attention, status summaries, recent runs) with no education hero and
 # no fake activity chart.
+#
+# Shared assertion helpers: test/support/console_page_assertions.rb
+# (assert_home_onboarding_page, assert_overview_workspace_page).
 class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   # Real-mode DataSource double so we can drive the zero-actions branch.
   class FakeDS
@@ -44,7 +47,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   test 'home contains the product explanation and first action call path' do
     get '/home'
     assert_response :success
-    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_home_onboarding_page
     assert_match 'Your agent calls Igris instead of calling the tool directly.', response.body
     assert_match 'Call Igris from your agent', response.body
     assert_match 'Action endpoint', response.body
@@ -86,14 +89,13 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   test 'overview does not render the education hero when actions exist' do
     get '/overview' # fixture mode ships actions
     assert_response :success
-    refute_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_overview_workspace_page
   end
 
   test 'overview shows compact workspace sections when actions exist' do
     get '/overview?tab=attention'
     assert_response :success
-    assert_match 'Needs attention', response.body
-    assert_match 'Workspace', response.body
+    assert_overview_workspace_page(needs_attention: true)
     assert_match 'Actions ready', response.body
     assert_match 'Runtime status', response.body
   end

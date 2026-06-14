@@ -71,7 +71,7 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
   test 'home shows hero copy and the first-action call path' do
     get '/home'
     assert_response :success
-    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_home_onboarding_page
     ['Call Igris from your agent', 'Action endpoint', 'Example request', 'Where actions run'].each do |label|
       assert_match label, response.body
     end
@@ -79,7 +79,7 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
 
   test 'overview with existing actions shows the workspace, not onboarding' do
     get '/overview'
-    assert_match 'Workspace', response.body
+    assert_overview_workspace_page
     assert_match 'Connect runtime', response.body
     refute_match 'Route your first AI action through Igris', response.body
   end
