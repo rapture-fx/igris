@@ -13,7 +13,7 @@ class ProjectController < ApplicationController
   NAME_PATTERN = /\A[A-Za-z0-9 \-_'.,&]+\z/
 
   # Where the form lives, so we can bounce back to the right surface on error.
-  SOURCES = %w[welcome settings].freeze
+  SOURCES = %w[home welcome settings].freeze
 
   def update
     name   = params[:name].to_s.strip
@@ -27,12 +27,12 @@ class ProjectController < ApplicationController
     if data_source.fixtures?
       flash[:notice] = 'Demo mode — the project name is not saved. ' \
                        'Set OVERTURE_API_BASE_URL to name your project for real.'
-      return redirect_to(source == 'welcome' ? welcome_path : settings_path(section: 'project'))
+      return redirect_to(onboarding_source?(source) ? home_path : settings_path(section: 'project'))
     end
 
     data_source.update_project(name)
 
-    if source == 'welcome'
+    if onboarding_source?(source)
       # Naming the project completes first-run onboarding; continue to the
       # action wizard, the intended next step in the product loop.
       cookies.permanent[:igris_welcomed] = '1'
@@ -64,6 +64,10 @@ class ProjectController < ApplicationController
   def project_error(message, name, source)
     flash[:project_error] = message
     flash[:project_name_value] = name if name.length <= 80
-    redirect_to(source == 'welcome' ? welcome_path : settings_path(section: 'project'))
+    redirect_to(onboarding_source?(source) ? home_path : settings_path(section: 'project'))
+  end
+
+  def onboarding_source?(source)
+    %w[home welcome].include?(source.to_s)
   end
 end

@@ -1,11 +1,9 @@
 module ConsoleHelper
   # Lens detection mirrors web-console/components/console/IconRail.tsx#isActive.
-  # Home is the onboarding/get-started lens (/welcome); Overview is the
-  # everyday workspace (/home). The two share the icon rail with every other
-  # lens.
+  # Home is onboarding (/home); Overview is the everyday workspace (/overview).
   LENS_MATCHERS = {
-    home:     %w[/welcome],
-    overview: %w[/home],
+    home:     %w[/home],
+    overview: %w[/overview],
     actions:  %w[/actions],
     runs:     %w[/runs],
     runtimes: %w[/runtimes],

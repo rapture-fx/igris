@@ -4,43 +4,46 @@ require 'test_helper'
 # OVERTURE_API_BASE_URL is not set in the test env. Real-mode behavior
 # is exercised in overture_client_test.rb and actions_controller_test.rb.
 class ConsoleRoutesTest < ActionDispatch::IntegrationTest
-  test 'home renders as a workspace, not an onboarding page' do
-    get '/home?tab=feed'
+  test 'overview renders as a workspace, not an onboarding page' do
+    get '/overview?tab=feed'
     assert_response :success
     assert_match 'Workspace', response.body
-    # Needs-attention now lives on its own tab, not the feed.
-    get '/home?tab=attention'
+    get '/overview?tab=attention'
     assert_match 'Needs attention', response.body
-    # Education copy now lives on /welcome, not /home.
     refute_match 'Give your AI agent a safe action endpoint.', response.body
     refute_match 'Route your first AI action through Igris', response.body
   end
 
-  test 'root sends first-time visitors to /welcome' do
-    get '/'
-    assert_redirected_to '/welcome'
-  end
-
-  test 'root sends returning visitors straight to /home' do
-    cookies[:igris_welcomed] = '1'
+  test 'root sends first-time visitors to /home' do
     get '/'
     assert_redirected_to '/home'
   end
 
-  test '/welcome renders the onboarding page inside the console chrome' do
-    get '/welcome'
+  test 'root sends returning visitors straight to /overview' do
+    cookies[:igris_welcomed] = '1'
+    get '/'
+    assert_redirected_to '/overview'
+  end
+
+  test '/home renders the onboarding page inside the console chrome' do
+    get '/home'
     assert_response :success
     assert_match 'Give your AI agent a safe action endpoint.', response.body
     assert_match 'Call Igris from your agent', response.body
     assert_match 'Action endpoint', response.body
     assert_match 'Create your first action', response.body
     assert_match 'Go to Overview', response.body
-    assert_match 'ic-rail', response.body # rendered with the icon rail, not standalone
+    assert_match 'ic-rail', response.body
   end
 
-  test 'entering the console sets the cookie and redirects to /home' do
-    post '/welcome/enter'
+  test 'legacy /welcome redirects to /home' do
+    get '/welcome'
     assert_redirected_to '/home'
+  end
+
+  test 'entering the console sets the cookie and redirects to /overview' do
+    post '/home/enter'
+    assert_redirected_to '/overview'
     assert_equal '1', cookies[:igris_welcomed]
   end
 
@@ -52,8 +55,6 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
   end
 
   test 'actions wizard renders each step' do
-    # A valid name is required to advance past identity; pass one so each
-    # later step renders instead of bouncing back to identity.
     %w[identity target policy endpoint].each do |step|
       get "/actions/new?step=#{step}&name=send_email"
       assert_response :success

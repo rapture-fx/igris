@@ -162,12 +162,12 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", reset_onboarding_path
   end
 
-  test 'reset onboarding forgets the welcomed cookie and returns to /welcome' do
+  test 'reset onboarding forgets the welcomed cookie and returns to /home' do
     # Become onboarded first, then reset.
     post enter_console_path
     assert cookies[:igris_welcomed].present?
     post reset_onboarding_path
-    assert_redirected_to welcome_path
+    assert_redirected_to home_path
     assert cookies[:igris_welcomed].blank?, 'reset should clear the welcomed cookie'
   end
 
