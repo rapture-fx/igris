@@ -1,13 +1,14 @@
 {
-  "generated_at": "2026-06-13T17:55:36.437Z",
+  "generated_at": "2026-06-14T12:55:17.557Z",
   "summary": {
-    "total": 109,
+    "total": 111,
     "by_status": {
-      "test-covered": 26,
+      "test-covered": 28,
       "implemented-unverified": 79,
       "client-referenced": 4
     },
     "by_section": {
+      "Action Packs": 2,
       "Actions": 8,
       "Platform Health": 1,
       "Inference & Integration": 6,
@@ -23,6 +24,42 @@
     }
   },
   "endpoints": [
+    {
+      "section": "Action Packs",
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists built-in Action Packs available for install into the authenticated tenant.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_action_packs_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Action Packs",
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Installs a built-in Action Pack by registering its actions in your tenant. Installed actions are normal registered actions — not raw task submissions.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_action_packs_test.go"
+        ],
+        "client_files": []
+      }
+    },
     {
       "section": "Actions",
       "method": "GET",

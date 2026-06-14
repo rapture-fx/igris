@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-13T17:55:35.156Z",
+  "generated_at": "2026-06-14T12:55:15.736Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
     "/docs/agents": "public",
@@ -8,6 +8,8 @@
     "/docs/api-reference/account-trial-and-billing/get-api-subscription-status": "public",
     "/docs/api-reference/account-trial-and-billing/get-v1-account-api-key": "public",
     "/docs/api-reference/account-trial-and-billing/post-v1-account-api-key": "public",
+    "/docs/api-reference/action-packs/get-v1-action-packs": "public",
+    "/docs/api-reference/action-packs/post-v1-action-packs-name-install": "public",
     "/docs/api-reference/actions/delete-v1-actions-id": "public",
     "/docs/api-reference/actions/get-v1-actions-id": "public",
     "/docs/api-reference/actions/get-v1-actions-runs-id": "public",

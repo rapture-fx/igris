@@ -3664,6 +3664,12 @@ async fn main() -> anyhow::Result<()> {
         /// Action manifest commands.
         #[command(subcommand)]
         Actions(cli::ActionsSub),
+        /// Built-in Action Pack commands.
+        #[command(subcommand)]
+        Packs(cli::PacksSub),
+        /// Inspect registered-action runs.
+        #[command(subcommand)]
+        Runs(cli::RunsSub),
         /// Secret management commands.
         #[command(subcommand)]
         Secrets(cli::SecretsSub),
@@ -3978,6 +3984,42 @@ async fn main() -> anyhow::Result<()> {
                         println!("{}  risk={}  target={}", name, risk, target);
                     }
                 }
+                return Ok(());
+            }
+            cli::ActionsSub::Run {
+                name,
+                input,
+                idempotency_key,
+                api_url,
+                console_url,
+            } => {
+                let api = cli::resolve_api_url(&api_url);
+                let console = cli::resolve_console_url(&console_url);
+                cli::actions_run::run_action(&api, &console, &name, input.as_deref(), idempotency_key.as_deref()).await?;
+                return Ok(());
+            }
+        },
+        Command::Packs(sub) => match sub {
+            cli::PacksSub::List { api_url } => {
+                let api = cli::resolve_api_url(&api_url);
+                cli::packs::run_list(&api).await?;
+                return Ok(());
+            }
+            cli::PacksSub::Install { name, api_url } => {
+                let api = cli::resolve_api_url(&api_url);
+                cli::packs::run_install(&api, &name).await?;
+                return Ok(());
+            }
+        },
+        Command::Runs(sub) => match sub {
+            cli::RunsSub::Inspect {
+                run_id,
+                api_url,
+                console_url,
+            } => {
+                let api = cli::resolve_api_url(&api_url);
+                let console = cli::resolve_console_url(&console_url);
+                cli::actions_run::inspect_run(&api, &console, &run_id).await?;
                 return Ok(());
             }
         },

@@ -121,6 +121,52 @@ impl Client {
             .with_context(|| "could not parse task response".to_string())
     }
 
+    pub async fn list_action_packs(&self) -> Result<serde_json::Value> {
+        let url = format!("{}/v1/action-packs", self.base);
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "list action packs failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse action packs response".to_string())
+    }
+
+    pub async fn install_action_pack(&self, pack_name: &str) -> Result<serde_json::Value> {
+        if !is_safe_pack_name(pack_name) {
+            return Err(anyhow!("pack name must be lowercase letters, digits, or hyphens"));
+        }
+        let url = format!("{}/v1/action-packs/{}/install", self.base, pack_name);
+        let resp = self
+            .inner
+            .post(&url)
+            .json(&serde_json::json!({}))
+            .send()
+            .await
+            .with_context(|| format!("POST {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "install action pack failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse action pack install response".to_string())
+    }
+
     pub async fn list_actions(&self) -> Result<serde_json::Value> {
         let url = format!("{}/v1/actions", self.base);
         let resp = self
@@ -274,9 +320,19 @@ fn is_safe_action_name(name: &str) -> bool {
     if !bytes[0].is_ascii_lowercase() {
         return false;
     }
-    bytes
-        .iter()
-        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_')
+    bytes.iter().all(|b| {
+        b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_' || *b == b'.'
+    })
+}
+
+fn is_safe_pack_name(name: &str) -> bool {
+    let bytes = name.as_bytes();
+    if bytes.is_empty() || bytes.len() > 64 {
+        return false;
+    }
+    bytes.iter().all(|b| {
+        b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'-'
+    })
 }
 
 #[cfg(test)]
@@ -310,12 +366,20 @@ mod tests {
     #[test]
     fn action_name_path_guard_matches_registered_action_pattern() {
         assert!(is_safe_action_name("first_ping"));
+        assert!(is_safe_action_name("demo.echo"));
         assert!(is_safe_action_name("a1"));
         assert!(!is_safe_action_name("A1"));
         assert!(!is_safe_action_name("a"));
         assert!(!is_safe_action_name("first-ping"));
         assert!(!is_safe_action_name("first/ping"));
         assert!(!is_safe_action_name("first_ping?x=1"));
+    }
+
+    #[test]
+    fn pack_name_guard_rejects_unsafe_values() {
+        assert!(is_safe_pack_name("starter"));
+        assert!(!is_safe_pack_name("../starter"));
+        assert!(!is_safe_pack_name("STARTER"));
     }
 
     #[test]

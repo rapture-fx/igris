@@ -1,11 +1,13 @@
 # API Contract Validation
 
-Generated: 2026-06-13T17:55:37.534Z
+Generated: 2026-06-14T12:55:19.209Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
 | Endpoint | Request fields | Source schema | Schema policy | Response contract | Response fields | Status |
 | --- | ---: | --- | --- | --- | ---: | --- |
+| `GET /v1/action-packs` | 0 | not discovered | not-required | not required | 0 | verified |
+| `POST /v1/action-packs/:name/install` | 0 | not discovered | example-only: Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential. | not required | 0 | verified |
 | `GET /v1/actions` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/actions` | 12 | `actionDefinitionRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
 | `GET /v1/actions/:id` | 0 | not discovered | not-required | not required | 0 | verified |

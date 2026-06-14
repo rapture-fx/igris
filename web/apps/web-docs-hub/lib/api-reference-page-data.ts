@@ -234,7 +234,7 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       'Running a `local_runtime` action before a runtime is connected. The gateway refuses with `503 runtime_unavailable` instead of queueing work that cannot execute.',
     ],
     pathParams: [
-      { name: 'name', type: 'string', required: true, description: 'Name of the registered action: lowercase letters, digits, and underscores.' },
+      { name: 'name', type: 'string', required: true, description: 'Name of the registered action: lowercase letters, digits, underscores, and dots (for example `demo.echo`).' },
     ],
     requestBodyFields: [
       { name: 'input', type: 'object', required: true, description: 'Input for this run, passed to the action target. Stored redacted: run inspection returns a digest summary, not the raw input.' },
@@ -280,6 +280,64 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       { code: 400, title: 'Invalid run id', description: 'The run id was not a valid identifier.' },
       { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
       { code: 404, title: 'Run not found', description: 'No run with that id exists in your tenant.' },
+    ],
+  },
+  'GET /v1/action-packs': {
+    functionality:
+      'Lists built-in Action Packs that Igris ships for onboarding. Each pack is a small manifest of registered actions — not a connector marketplace and not a raw task runner. Pack manifests contain no secrets; install only registers action definitions in your tenant.',
+    whenToUse:
+      'Use this endpoint (or `igris packs list`) before installing a pack, or when building an onboarding flow that should show what safe starter actions are available.',
+    responseExample: {
+      packs: [
+        {
+          name: 'starter',
+          display_name: 'Starter Pack',
+          description:
+            'Safe mock_demo actions for first-agent onboarding: echo, simulated failure, and approval gate.',
+          action_count: 3,
+        },
+      ],
+    },
+    notes: [
+      'Today the only built-in pack is `starter`. It registers `demo.echo`, `demo.fail_once`, and `demo.needs_approval` — all `mock_demo` actions with no external provider credentials.',
+      'Action Packs are not a connector marketplace. External provider packs such as Stripe, GitHub, or Slack are not built-in yet.',
+      'After install, run actions through `POST /v1/actions/:name/run` or MCP `call_action` like any other registered action.',
+    ],
+    statusCodes: [
+      { code: 200, title: 'Pack catalog', description: 'Built-in Action Packs available for install are returned.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+    ],
+  },
+  'POST /v1/action-packs/:name/install': {
+    functionality:
+      'Installs a built-in Action Pack into the authenticated tenant by registering each action through the same path as `POST /v1/actions`. Install never submits raw tasks, never calls external APIs, and never stores secret values from the pack manifest.',
+    whenToUse:
+      'Use this endpoint (or `igris packs install starter`) as the fastest way to give a new agent safe actions to run. Start with the `starter` pack for first-agent onboarding, then run `demo.echo` through the Actions gateway.',
+    retryGuidance:
+      'Install is safe to retry. Actions that already exist for your tenant are reported in `skipped` instead of failing the whole request.',
+    commonMistakes: [
+      'Expecting install to run an action immediately. Install only registers definitions — run through `POST /v1/actions/:name/run` or MCP `call_action` afterward.',
+      'Treating Action Packs like a connector marketplace. Built-in packs today are onboarding helpers, not live Stripe/GitHub/Slack integrations.',
+      'Putting secrets in a custom pack manifest. Pack validation rejects secret patterns and forbidden execution fields.',
+    ],
+    pathParams: [
+      { name: 'name', type: 'string', required: true, description: 'Built-in pack name. Today: `starter`.' },
+    ],
+    requestExample: null,
+    responseExample: {
+      pack_name: 'starter',
+      created: ['demo.echo', 'demo.fail_once', 'demo.needs_approval'],
+      skipped: [],
+    },
+    notes: [
+      'The starter pack installs three `mock_demo` actions: `demo.echo` (happy path), `demo.fail_once` (simulated first-attempt failure for recovery visibility), and `demo.needs_approval` (human-gated pause).',
+      'Installed actions are normal registered actions. Inspect runs with `GET /v1/actions/runs/:id`, MCP `get_run`, or `igris runs inspect`.',
+    ],
+    statusCodes: [
+      { code: 201, title: 'Installed', description: 'One or more actions were registered. Existing names appear under `skipped`.' },
+      { code: 400, title: 'Invalid pack', description: 'The pack manifest failed validation (`invalid_action_pack`).' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+      { code: 404, title: 'Pack not found', description: 'No built-in pack with that name exists (`pack_not_found`).' },
     ],
   },
   'POST /v1/chat/completions': {
@@ -1989,10 +2047,14 @@ function buildRelatedGuides(endpoint: ApiEndpoint) {
     pushGuide('Routing Engine', '/docs/escapevector');
     pushGuide('Speculative Execution', '/docs/speculative-execution');
     pushGuide('Circuit Breaker', '/docs/circuit-breaker');
+  } else if (path.startsWith('/v1/action-packs')) {
+    pushGuide('First Agent Onboarding', '/docs/first-agent-onboarding');
+    pushGuide('MCP Server', '/docs/mcp-server');
+    pushGuide('MCP Integration Patterns', '/docs/mcp-integration-patterns');
   } else if (path.startsWith('/v1/actions')) {
+    pushGuide('First Agent Onboarding', '/docs/first-agent-onboarding');
     pushGuide('MCP', '/docs/mcp');
     pushGuide('Durable Tasks', '/docs/durable-tasks');
-    pushGuide('Execution Receipts', '/docs/execution-receipts');
   } else if (path.startsWith('/v1/mcp')) {
     pushGuide('MCP', '/docs/mcp');
     pushGuide('MCP Server', '/docs/mcp-server');

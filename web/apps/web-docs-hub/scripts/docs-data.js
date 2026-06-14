@@ -191,6 +191,30 @@ const mcpReference = {
 
 const rawApiSections = [
   {
+    title: 'Action Packs',
+    summary:
+      'Built-in Action Packs install safe registered actions for first-agent onboarding. A pack is a small manifest of action definitions — it does not execute raw tasks, call external providers, or store secrets. After install, run actions through the normal Actions API or MCP `call_action` like any other registered action.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/v1/action-packs',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Lists built-in Action Packs available for install into the authenticated tenant.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/action-packs/:name/install',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description:
+          'Installs a built-in Action Pack by registering its actions in your tenant. Installed actions are normal registered actions — not raw task submissions.',
+      },
+    ],
+  },
+  {
     title: 'Actions',
     summary:
       'Registered actions are the primary execution gateway. Define what work an agent is allowed to ask Igris to run, then run those actions through Igris with policy, tenant-scoped idempotency, runtime routing, recovery, and proof.',
@@ -1148,6 +1172,8 @@ const rawApiSections = [
 ];
 
 const coreEndpointKeys = new Set([
+  'GET /v1/action-packs',
+  'POST /v1/action-packs/:name/install',
   'GET /v1/actions',
   'POST /v1/actions',
   'POST /v1/actions/run',

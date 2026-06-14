@@ -1,6 +1,24 @@
 {
-  "generated_at": "2026-06-13T17:55:37.530Z",
+  "generated_at": "2026-06-14T12:55:19.206Z",
   "endpoints": [
+    {
+      "endpoint": "GET /v1/action-packs",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/action-packs/:name/install",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential.",
+      "status": "verified"
+    },
     {
       "endpoint": "GET /v1/actions",
       "source_schema": null,

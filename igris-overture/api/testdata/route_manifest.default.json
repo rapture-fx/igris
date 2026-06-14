@@ -245,6 +245,30 @@
     },
     {
       "method": "GET",
+      "path": "/v1/action-packs",
+      "route_group": "action_packs",
+      "handler_or_registration_source_if_available": "RegisterActionPackRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned registered action installs",
+      "feature_flag": "",
+      "notes": "Built-in Action Pack install (registered actions only)"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "route_group": "action_packs",
+      "handler_or_registration_source_if_available": "RegisterActionPackRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned registered action installs",
+      "feature_flag": "",
+      "notes": "Built-in Action Pack install (registered actions only)"
+    },
+    {
+      "method": "GET",
       "path": "/v1/actions",
       "route_group": "actions",
       "handler_or_registration_source_if_available": "RegisterActionRoutes",

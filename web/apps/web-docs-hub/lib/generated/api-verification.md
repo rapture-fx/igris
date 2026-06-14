@@ -1,13 +1,13 @@
 # API Verification Report
 
-Generated: 2026-06-13T17:55:36.442Z
+Generated: 2026-06-14T12:55:17.577Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
-- Total documented endpoints: 109
-- Test-covered: 26
+- Total documented endpoints: 111
+- Test-covered: 28
 - Client-referenced: 4
 - Implemented but unverified: 79
 
@@ -15,6 +15,8 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 
 | Status | Method | Path | Section | Evidence |
 | --- | --- | --- | --- | --- |
+| test-covered | GET | `/v1/action-packs` | Action Packs | tests: 1 |
+| test-covered | POST | `/v1/action-packs/:name/install` | Action Packs | tests: 1 |
 | test-covered | GET | `/v1/actions` | Actions | tests: 4 |
 | test-covered | POST | `/v1/actions` | Actions | tests: 4 |
 | test-covered | GET | `/v1/actions/:id` | Actions | tests: 2 |

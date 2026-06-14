@@ -71,6 +71,7 @@ const EXAMPLE_ONLY_SCHEMA_REASONS = {
   'POST /v1/tasks/:id/cancel': 'Task cancellation is path-param driven and bodyless in the public contract.',
   'POST /v1/tasks/:id/proof/verify': 'Task proof verification is path-param driven and reconciles persisted proof state; no JSON body is required.',
   'POST /v1/mcp': 'MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct.',
+  'POST /v1/action-packs/:name/install': 'Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential.',
   'POST /v1/plan': 'Local planning is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/reflect': 'Local reflection is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/admin/models/load': 'Model loading is an admin operation validated against runtime model-manager state rather than a public route struct.',

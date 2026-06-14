@@ -1,0 +1,82 @@
+{
+  "schema_version": "2026-06-14",
+  "name": "starter",
+  "display_name": "Starter Pack",
+  "description": "Safe mock_demo actions for first-agent onboarding: echo, simulated failure, and approval gate.",
+  "actions": [
+    {
+      "name": "demo.echo",
+      "display_name": "Demo Echo",
+      "description": "Echo input through mock_demo — proves the happy path without external APIs.",
+      "target_type": "mock_demo",
+      "policy_preset": "Read-only",
+      "replay_class": "read_only",
+      "target_metadata": {
+        "demo_variant": "echo",
+        "pack": "starter"
+      },
+      "input_schema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "idempotency_guidance": "Use a stable key per logical echo; retries with the same key return the same run.",
+      "example_input": {
+        "message": "hello from starter pack"
+      }
+    },
+    {
+      "name": "demo.fail_once",
+      "display_name": "Demo Fail Once",
+      "description": "Simulates a failed first attempt for recovery visibility; retry with input.retry=true or a new idempotency key.",
+      "target_type": "mock_demo",
+      "policy_preset": "Safe automation",
+      "replay_class": "retryable",
+      "target_metadata": {
+        "demo_variant": "fail_once",
+        "pack": "starter"
+      },
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "retry": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      },
+      "idempotency_guidance": "First attempt fails by design. Retry with a new idempotency key and input.retry=true to complete.",
+      "example_input": {
+        "message": "show me failure visibility"
+      }
+    },
+    {
+      "name": "demo.needs_approval",
+      "display_name": "Demo Needs Approval",
+      "description": "Pauses at approval_required — proves human-gated policy before execution.",
+      "target_type": "mock_demo",
+      "policy_preset": "Human-gated",
+      "replay_class": "non_retryable",
+      "approval_required": true,
+      "irreversible": false,
+      "target_metadata": {
+        "demo_variant": "needs_approval",
+        "pack": "starter"
+      },
+      "input_schema": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "idempotency_guidance": "Use one key per approval request; do not reuse keys across distinct approval decisions.",
+      "example_input": {
+        "message": "request operator approval"
+      }
+    }
+  ]
+}
