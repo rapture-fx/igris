@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-06-12T12:44:51.035Z
+Generated: 2026-06-13T17:55:39.741Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
