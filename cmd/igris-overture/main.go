@@ -618,6 +618,7 @@ func main() {
 	// Register stats, execution, proof, speculative, and model-provider routes (requires database)
 	if dbInstance != nil {
 		api.RegisterStatsRoutes(app, dbInstance, redisClient, tenantAuth)
+		api.RegisterAgentRegistryRoutes(app, dbInstance, api.NewExecutionHandler(dbInstance))
 		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
 		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
 		api.RegisterGovernanceRoutes(app, dbInstance)

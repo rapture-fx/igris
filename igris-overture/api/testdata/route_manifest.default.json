@@ -364,40 +364,88 @@
       "notes": "Registered action gateway"
     },
     {
-      "method": "PATCH",
-      "path": "/v1/agents/:id",
-      "route_group": "execution",
-      "handler_or_registration_source_if_available": "RegisterExecutionRoutes",
+      "method": "GET",
+      "path": "/v1/agents",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes",
       "classification": "core_public_product_api",
       "default_exposure": "authenticated",
       "auth_expectation": "BetterAuth tenant credential",
-      "tenant_scope_expectation": "tenant-bound agent state inspection",
+      "tenant_scope_expectation": "tenant-owned registered agent identities",
       "feature_flag": "",
-      "notes": "Execution agent state support"
+      "notes": "Agent registry list and create"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/agents",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned registered agent identities",
+      "feature_flag": "",
+      "notes": "Agent registry list and create"
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/agents/:id",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes/RegisterExecutionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound registry CRUD and execution agent state",
+      "feature_flag": "",
+      "notes": "Registered agent management, settings patch dispatch, and BT state"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/agents/:id",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes/RegisterExecutionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound registry CRUD and execution agent state",
+      "feature_flag": "",
+      "notes": "Registered agent management, settings patch dispatch, and BT state"
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/agents/:id",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes/RegisterExecutionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound registry CRUD and execution agent state",
+      "feature_flag": "",
+      "notes": "Registered agent management, settings patch dispatch, and BT state"
     },
     {
       "method": "GET",
       "path": "/v1/agents/:id/bt-state",
-      "route_group": "execution",
-      "handler_or_registration_source_if_available": "RegisterExecutionRoutes",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes/RegisterExecutionRoutes",
       "classification": "core_public_product_api",
       "default_exposure": "authenticated",
       "auth_expectation": "BetterAuth tenant credential",
-      "tenant_scope_expectation": "tenant-bound agent state inspection",
+      "tenant_scope_expectation": "tenant-bound registry CRUD and execution agent state",
       "feature_flag": "",
-      "notes": "Execution agent state support"
+      "notes": "Registered agent management, settings patch dispatch, and BT state"
     },
     {
       "method": "GET",
       "path": "/v1/agents/:id/bt-state/stream",
-      "route_group": "execution",
-      "handler_or_registration_source_if_available": "RegisterExecutionRoutes",
+      "route_group": "agent_registry",
+      "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes/RegisterExecutionRoutes",
       "classification": "core_public_product_api",
       "default_exposure": "authenticated",
       "auth_expectation": "BetterAuth tenant credential",
-      "tenant_scope_expectation": "tenant-bound agent state inspection",
+      "tenant_scope_expectation": "tenant-bound registry CRUD and execution agent state",
       "feature_flag": "",
-      "notes": "Execution agent state support"
+      "notes": "Registered agent management, settings patch dispatch, and BT state"
     },
     {
       "method": "GET",

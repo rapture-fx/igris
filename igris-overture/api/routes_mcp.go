@@ -191,6 +191,8 @@ func (h *agentMcpHandler) callAction(c *fiber.Ctx, tenantID string, args json.Ra
 		Metadata       map[string]interface{} `json:"metadata"`
 		IdempotencyKey string                 `json:"idempotency_key"`
 		DeadlineAt     *time.Time             `json:"deadline_at"`
+		AgentID        string                 `json:"agent_id"`
+		AgentName      string                 `json:"agent_name"`
 	}
 	if err := json.Unmarshal(args, &req); err != nil {
 		return nil, http.StatusBadRequest, errValidation("invalid call_action arguments")
@@ -204,6 +206,8 @@ func (h *agentMcpHandler) callAction(c *fiber.Ctx, tenantID string, args json.Ra
 		Metadata:       req.Metadata,
 		IdempotencyKey: req.IdempotencyKey,
 		DeadlineAt:     req.DeadlineAt,
+		AgentID:        req.AgentID,
+		AgentName:      req.AgentName,
 	})
 	if err != nil {
 		return nil, status, err
@@ -365,10 +369,15 @@ func (h *agentMcpHandler) submitActionThroughGateway(c *fiber.Ctx, tenantID stri
 	if runReq.executedTarget == actionTargetLocalRuntime && !tenantHasHealthyRuntime(c.Context(), h.db, tenantID, runReq.preferredRuntimeID) {
 		return nil, http.StatusServiceUnavailable, errRuntimeUnavailable("no connected runtime is available to execute this local_runtime action")
 	}
+	resolved, err := resolveActionRunAgent(c.Context(), h.db, tenantID, req.AgentID, req.AgentName)
+	if err != nil {
+		return nil, statusForAgentResolveErr(err), errorForAgentResolveErr(err)
+	}
 	taskReq, err := buildActionTaskSubmitRequest(runReq, tenantID)
 	if err != nil {
 		return nil, http.StatusBadRequest, errValidation(err.Error())
 	}
+	applyResolvedAgentToTaskRequest(taskReq, resolved)
 	task, err := h.tc.Submit(c.Context(), taskReq)
 	if err != nil {
 		if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
@@ -382,7 +391,7 @@ func (h *agentMcpHandler) submitActionThroughGateway(c *fiber.Ctx, tenantID stri
 	if runReq.executedTarget != "" {
 		_ = h.tc.Store().StampExecutedTarget(task.TaskID, tenantID, runReq.executedTarget)
 	}
-	resp := buildActionRunResponse(task)
+	resp := buildActionRunResponse(task, resolved)
 	resp["created_at"] = task.CreatedAt
 	resp["action_id"] = def.ID
 	resp["action_name"] = def.Name
@@ -764,9 +773,12 @@ func mcpArgumentSchemas() map[string]mcpArgumentSchema {
 				"metadata":        {Type: "object"},
 				"idempotency_key": {Type: "string"},
 				"deadline_at":     {Type: "string", Format: "date-time"},
+				"agent_id":        {Type: "string"},
+				"agent_name":      {Type: "string"},
 			},
-			OneOfRequired: [][]string{{"action_id"}, {"action_name"}, {"id"}, {"name"}},
-			Forbidden:     forbiddenMCPCallActionFields(),
+			OneOfRequired:        [][]string{{"action_id"}, {"action_name"}, {"id"}, {"name"}},
+			Forbidden:            forbiddenMCPCallActionFields(),
+			AdditionalProperties: false,
 		},
 		"list_runs": {
 			Name: "list_runs",

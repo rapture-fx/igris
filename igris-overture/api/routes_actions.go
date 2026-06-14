@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Igris-inertial/system/igris-overture/agentregistry"
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
@@ -59,6 +60,8 @@ type actionRunRequest struct {
 	RuntimeTarget  string                 `json:"runtime_target,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+	AgentID        string                 `json:"agent_id,omitempty"`
+	AgentName      string                 `json:"agent_name,omitempty"`
 
 	// Internal-only fields populated by the gateway from the registered Action
 	// definition. Unexported so encoding/json cannot read or write them —
@@ -125,6 +128,8 @@ type actionRunByNameRequest struct {
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+	AgentID        string                 `json:"agent_id,omitempty"`
+	AgentName      string                 `json:"agent_name,omitempty"`
 }
 
 var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_.]{1,63}$`)
@@ -178,6 +183,8 @@ func handleActionRun(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler 
 			Metadata:       req.Metadata,
 			IdempotencyKey: req.IdempotencyKey,
 			DeadlineAt:     req.DeadlineAt,
+			AgentID:        req.AgentID,
+			AgentName:      req.AgentName,
 		})
 		if err != nil {
 			return c.Status(http.StatusConflict).JSON(fiber.Map{
@@ -193,7 +200,7 @@ func handleActionRun(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler 
 				})
 			}
 		}
-		return submitActionRun(c, tc, tenantID, runReq, &def)
+		return submitActionRun(c, db, tc, tenantID, runReq, &def)
 	}
 }
 
@@ -238,7 +245,7 @@ func handleActionRunByName(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Ha
 				})
 			}
 		}
-		return submitActionRun(c, tc, tenantID, runReq, &def)
+		return submitActionRun(c, db, tc, tenantID, runReq, &def)
 	}
 }
 
@@ -290,7 +297,15 @@ func tenantHasHealthyRuntime(ctx context.Context, db *sql.DB, tenantID, preferre
 	return false
 }
 
-func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest, def *actionDefinition) error {
+func submitActionRun(c *fiber.Ctx, db *sql.DB, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest, def *actionDefinition) error {
+	resolved, err := resolveActionRunAgent(c.Context(), db, tenantID, req.AgentID, req.AgentName)
+	if err != nil {
+		status := statusForAgentResolveErr(err)
+		return c.Status(status).JSON(fiber.Map{
+			"error":   "agent_not_found",
+			"message": "registered agent not found",
+		})
+	}
 	taskReq, err := buildActionTaskSubmitRequest(req, tenantID)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -298,6 +313,7 @@ func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID str
 			"message": err.Error(),
 		})
 	}
+	applyResolvedAgentToTaskRequest(taskReq, resolved)
 
 	var task *coordinator.TaskRecord
 	if mockDemoFailOnceFirstAttempt(def, req) {
@@ -344,7 +360,7 @@ func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID str
 	if task.Status == coordinator.TaskStatusApprovalRequired {
 		status = http.StatusConflict
 	}
-	resp := buildActionRunResponse(task)
+	resp := buildActionRunResponse(task, resolved)
 	if def != nil {
 		resp["action_name"] = def.Name
 		resp["target_type"] = def.TargetType
@@ -380,7 +396,7 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 				task.Proof = proof
 			}
 		}
-		return c.JSON(buildActionRunResponse(task))
+		return c.JSON(buildActionRunResponse(task, nil))
 	}
 }
 
@@ -605,6 +621,8 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 		Metadata:       metadata,
 		IdempotencyKey: req.IdempotencyKey,
 		DeadlineAt:     req.DeadlineAt,
+		AgentID:        req.AgentID,
+		AgentName:      req.AgentName,
 	}
 
 	// Resolve legacy `api` rows to `hosted_api` for the dispatch switch.
@@ -750,7 +768,7 @@ func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage,
 	return buildExecutionGraphDefinition(req.Action, []map[string]interface{}{node})
 }
 
-func buildActionRunResponse(task *coordinator.TaskRecord) fiber.Map {
+func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistry.ResolvedAgent) fiber.Map {
 	proofStatus := "pending"
 	executionID := ""
 	if task.Proof == nil {
@@ -785,6 +803,9 @@ func buildActionRunResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 	if consoleURL := actionConsoleURL(task.TaskID.String()); consoleURL != "" {
 		resp["console_url"] = consoleURL
+	}
+	if agent := agentSummaryForTask(task, resolved); agent != nil {
+		resp["agent"] = agent
 	}
 	return resp
 }

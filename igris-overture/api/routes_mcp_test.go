@@ -1935,5 +1935,6 @@ func taskRecordColumnsForMCPTest() []string {
 		"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
 		"idempotency_key", "failure_reason", "failure_details",
 		"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at", "executed_target", "fallback_reason",
+		"registered_agent_id", "registered_agent_name",
 	}
 }

@@ -406,6 +406,7 @@ module Igris
         runtime_unavailable: runtime_unavailable,
         request_summary: safe_request_summary(raw),
         request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:input_summary, :input_digest_sha256) || raw.dig(:request, :digest)),
+        agent: normalize_registered_agent(raw[:agent]),
       )
     end
 
@@ -421,6 +422,25 @@ module Igris
       return nil if summary.blank? || summary == '[redacted]'
 
       summary
+    end
+
+    # Safe registered-agent attribution from the API `agent` object only.
+    # Never fabricates ids, names, or metadata that were not returned by Overture.
+    def normalize_registered_agent(raw)
+      return nil unless raw.is_a?(Hash)
+
+      agent = scrub_sensitive_payload(raw).with_indifferent_access
+      agent_id = agent[:agent_id].to_s.strip
+      name = agent[:name].to_s.strip
+      return nil if agent_id.blank? && name.blank?
+
+      {
+        agent_id: agent_id.presence,
+        name: name.presence,
+        display_name: agent[:display_name].to_s.strip.presence || name.presence,
+        agent_type: agent[:agent_type].to_s.strip.presence,
+        template_name: agent[:template_name].to_s.strip.presence,
+      }.compact
     end
 
     def sanitize_display_url(value)

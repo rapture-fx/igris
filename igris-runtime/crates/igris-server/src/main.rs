@@ -3670,6 +3670,9 @@ async fn main() -> anyhow::Result<()> {
         /// Agent template setup helpers (MCP/CLI config generation).
         #[command(subcommand)]
         Templates(cli::TemplatesSub),
+        /// Registered agent identity commands.
+        #[command(subcommand)]
+        Agents(cli::AgentsSub),
         /// Inspect registered-action runs.
         #[command(subcommand)]
         Runs(cli::RunsSub),
@@ -4045,6 +4048,43 @@ async fn main() -> anyhow::Result<()> {
             }
             cli::TemplatesSub::Verify { name, api_url } => {
                 cli::templates::run_verify(&name, api_url).await?;
+                return Ok(());
+            }
+        },
+        Command::Agents(sub) => match sub {
+            cli::AgentsSub::List {
+                api_url,
+                include_archived,
+            } => {
+                cli::agents::run_list(api_url, include_archived).await?;
+                return Ok(());
+            }
+            cli::AgentsSub::Register {
+                name,
+                agent_type,
+                display_name,
+                template_name,
+                version,
+                description,
+                api_url,
+            } => {
+                let body = cli::agents::build_register_body(
+                    &name,
+                    &agent_type,
+                    display_name.as_deref(),
+                    template_name.as_deref(),
+                    version.as_deref(),
+                    description.as_deref(),
+                )?;
+                cli::agents::run_register(api_url, &body).await?;
+                return Ok(());
+            }
+            cli::AgentsSub::Show { agent_id, api_url } => {
+                cli::agents::run_show(api_url, &agent_id).await?;
+                return Ok(());
+            }
+            cli::AgentsSub::Archive { agent_id, api_url } => {
+                cli::agents::run_archive(api_url, &agent_id).await?;
                 return Ok(());
             }
         },

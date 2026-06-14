@@ -22,8 +22,13 @@ export IGRIS_API_KEY="igris_..."
 
 igris templates list
 igris templates install claude-code
+igris agents register --name claude_code_agent --agent-type claude_code --template-name claude-code
 igris templates verify claude-code
 ```
+
+Each template recommends a matching registered agent name (for example
+`claude_code_agent`). `igris templates verify` checks that the agent exists when
+API credentials are set.
 
 `install` writes to `.igris/templates/<name>/` by default. Use `--print` to emit
 files to stdout without writing, or `--dry-run` to preview paths.

@@ -221,6 +221,54 @@ const rawApiSections = [
     ],
   },
   {
+    title: 'Agents',
+    summary:
+      'Tenant-scoped Agent Registry for identity and run attribution. Register an agent before first runs, then pass agent_id or agent_name on action runs and MCP call_action. Metadata is sanitized — no secrets, prompts, or tenant_id from clients.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/v1/agents',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Lists registered agents for the authenticated tenant. Use include_archived=true to include archived agents.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/agents',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Registers a tenant-scoped agent identity for run attribution.',
+      },
+      {
+        method: 'GET',
+        path: '/v1/agents/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Gets one registered agent by id.',
+      },
+      {
+        method: 'PATCH',
+        path: '/v1/agents/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description:
+          'Updates registry fields (name, display_name, description, agent_type, template_name, version, metadata) or execution settings (shadow_mode, reflection_mode, council_mode, cognitive_advisor_enabled) — not both in one request.',
+      },
+      {
+        method: 'DELETE',
+        path: '/v1/agents/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Archives a registered agent.',
+      },
+    ],
+  },
+  {
     title: 'Actions',
     summary:
       'Registered actions are the primary execution gateway. Define what work an agent is allowed to ask Igris to run, then run those actions through Igris with policy, tenant-scoped idempotency, runtime routing, recovery, and proof.',
@@ -1180,6 +1228,11 @@ const rawApiSections = [
 const coreEndpointKeys = new Set([
   'GET /v1/action-packs',
   'POST /v1/action-packs/:name/install',
+  'GET /v1/agents',
+  'POST /v1/agents',
+  'GET /v1/agents/:id',
+  'PATCH /v1/agents/:id',
+  'DELETE /v1/agents/:id',
   'GET /v1/actions',
   'POST /v1/actions',
   'POST /v1/actions/run',

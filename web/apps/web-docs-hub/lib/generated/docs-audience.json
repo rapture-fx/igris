@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14T13:09:17.193Z",
+  "generated_at": "2026-06-14T14:11:12.091Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
     "/docs/agent-templates": "public",
@@ -19,6 +19,11 @@
     "/docs/api-reference/actions/post-v1-actions-name-run": "public",
     "/docs/api-reference/actions/post-v1-actions-run": "public",
     "/docs/api-reference/actions/post-v1-actions": "public",
+    "/docs/api-reference/agents/delete-v1-agents-id": "public",
+    "/docs/api-reference/agents/get-v1-agents-id": "public",
+    "/docs/api-reference/agents/get-v1-agents": "public",
+    "/docs/api-reference/agents/patch-v1-agents-id": "public",
+    "/docs/api-reference/agents/post-v1-agents": "public",
     "/docs/api-reference/authentication": "public",
     "/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id": "public",
     "/docs/api-reference/behavior-trees/get-v1-bt-definitions-id": "public",
