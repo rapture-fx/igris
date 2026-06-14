@@ -1,0 +1,171 @@
+<%# Overview — everyday workspace. Run Activity Map, activity feeds, and a
+    workspace summary panel. Onboarding lives on /home. %>
+<% has_actions  = @actions.any?
+   has_runs     = (@recent_runs || []).any?
+   local_actions = @actions.select { |a| a[:target_type].to_s == 'local_runtime' }
+   any_healthy_rt = @runtimes.any? { |r| r[:status] == 'Healthy' }
+   configured   = @actions.count { |a| (a[:endpoint_readiness] || a[:setup]).to_s.match?(/ready/i) }
+   needs_target = @actions.count { |a| a[:setup].to_s.casecmp('Needs target').zero? }
+   last_run     = (@recent_runs || []).first
+   healthy_rt   = @runtimes.count { |r| r[:status] == 'Healthy' }
+
+   attention = []
+   if local_actions.any? && !any_healthy_rt
+     attention << { text: 'Local runtime action needs a connected runtime.', href: runtimes_path, cta: 'Connect a runtime', tone: 'warn' }
+   end
+   if needs_target.positive?
+     verb = needs_target == 1 ? 'needs' : 'need'
+     attention << { text: "#{pluralize(needs_target, 'action')} #{verb} a target URL.", href: actions_path, cta: 'Open Actions', tone: 'warn' }
+   end
+   if last_run && last_run[:status].to_s.casecmp('Failed').zero?
+     attention << { text: 'Last run failed.', href: run_path(last_run[:id]), cta: 'Inspect run', tone: 'failed' }
+   end
+
+   api_label, api_tone =
+     if @degraded_error then ['Degraded', 'is-bad']
+     elsif demo_mode?   then ['Demo data', 'is-warn']
+     else                    ['Connected', 'is-ok']
+     end %>
+
+<div class="ic-topbar">
+  <div class="ic-topbar__group">
+    <span class="ic-topbar__title">Overview</span>
+    <%= project_chip %>
+  </div>
+</div>
+
+<%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<div class="ic-body ic-scroll ic-body--fixed">
+  <div class="ic-workspace">
+    <div class="ic-workspace-layout">
+
+      <div class="ic-workspace-feed">
+        <% unless has_actions %>
+          <div class="ic-empty" style="padding: 48px 16px;">
+            <div class="ic-empty__title">Create your first action</div>
+            <p class="ic-empty__sub">
+              Actions are endpoints your agent calls instead of calling tools directly.
+            </p>
+            <%= link_to 'Create your first action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+            <p style="margin-top: 14px; font-size: 11.5px; color: var(--ic-text-6);">
+              New here? <%= link_to 'See how Igris works', home_path %>
+            </p>
+          </div>
+
+        <% else %>
+          <% tabs = { 'map' => 'Run Activity Map', 'feed' => 'Feed', 'actions' => 'Actions', 'attention' => 'Attention' } %>
+          <nav class="ig-tabs" aria-label="Workspace views">
+            <% tabs.each do |key, label| %>
+              <%= link_to label, overview_path(tab: key), class: "ig-tabs__item #{'is-active' if @tab == key}" %>
+            <% end %>
+          </nav>
+
+          <div class="ic-ws-tabbody">
+          <% case @tab
+             when 'map' %>
+            <%= render 'shared/run_activity_map', runs: @activity_runs, demo: demo_mode?, flush: true %>
+
+          <% when 'actions' %>
+            <div class="ic-feed ic-feed--scroll">
+              <% @actions.first(50).each do |a|
+                   ready = a[:setup].to_s.casecmp('Ready').zero?
+                   setup_tone = ready ? 'is-ok' : 'is-warn'
+                   target, host = feed_tokens(a[:target_label]) %>
+                <%= link_to action_path(a[:id]), class: 'ic-feed-item' do %>
+                  <span class="ic-feed-item__title"><strong><%= a[:name] %></strong><% if target.present? %><span class="ic-feed-item__route"><%= target %></span><% end %></span>
+                  <span class="ic-feed-item__badges">
+                    <span class="ic-feed-cell"><% if host.present? %><span class="ic-feed-badge is-mono"><%= host %></span><% end %></span>
+                    <span class="ic-feed-cell"><span class="ic-feed-badge <%= setup_tone %>"><%= a[:setup].presence || 'Ready' %></span></span>
+                  </span>
+                  <span class="ic-feed-item__meta"></span>
+                <% end %>
+              <% end %>
+            </div>
+
+          <% when 'attention' %>
+            <% if attention.any? %>
+              <div class="ic-feed ic-feed--scroll" aria-label="Needs attention">
+                <% attention.each do |a|
+                     badge_tone = a[:tone] == 'failed' ? 'is-bad' : 'is-warn' %>
+                  <%= link_to a[:href], class: 'ic-feed-item ic-feed-item--attn' do %>
+                    <span class="ic-feed-item__title"><%= a[:text] %></span>
+                    <span class="ic-feed-badge <%= badge_tone %>"><%= a[:cta] %></span>
+                  <% end %>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="ic-empty" style="padding: 32px 16px;" aria-label="Needs attention">
+                <div class="ic-empty__title">Nothing needs attention</div>
+                <p class="ic-empty__sub">Runtime, target, and run issues will surface here when they need a fix.</p>
+              </div>
+            <% end %>
+
+          <% else # feed %>
+            <% if has_runs %>
+              <div class="ic-feed ic-feed--scroll">
+                <% (@recent_runs || []).first(50).each do |r|
+                     st = r[:status].to_s
+                     if st.casecmp('Failed').zero?     then badge_tone = 'is-bad'
+                     elsif st.casecmp('Running').zero? then badge_tone = 'is-warn'
+                     else                                   badge_tone = 'is-ok' end
+                     route, detail = feed_tokens(r[:routed_via]) %>
+                  <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
+                    <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong><% if route.present? %><span class="ic-feed-item__route"><%= route %></span><% end %></span>
+                    <span class="ic-feed-item__badges">
+                      <span class="ic-feed-cell"><% if detail.present? %><span class="ic-feed-badge is-mono"><%= detail %></span><% end %></span>
+                      <span class="ic-feed-cell"><span class="ic-feed-badge <%= badge_tone %>"><%= r[:status].presence || 'Succeeded' %></span></span>
+                    </span>
+                    <span class="ic-feed-item__meta"><%= time_ago(r[:started_at]) %></span>
+                  <% end %>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="ic-empty" style="padding: 32px 16px;">
+                <div class="ic-empty__title">No activity yet</div>
+                <p class="ic-empty__sub">Runs and signals will show up here as your agent calls actions.</p>
+                <%= link_to 'Create action', new_action_path, class: 'ic-btn' %>
+              </div>
+            <% end %>
+          <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <aside class="ic-workspace-panel" aria-label="Workspace summary">
+        <div class="ic-workspace-panel__id">
+          <span class="ic-ws-avatar"><%= image_tag '/emeralds.jpg', alt: '' %></span>
+          <div>
+            <div class="ic-workspace-panel__name"><%= project_display_name %></div>
+            <% feed_tokens(api_label).each_with_index do |tok, i| %><span class="ic-status__pill <%= api_tone if i.zero? %>"><%= tok %></span> <% end %>
+          </div>
+        </div>
+
+        <div class="ic-wsrows">
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Actions ready</span>
+            <span class="ic-wsrow__v"><%= configured %> / <%= @actions.size %></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Last run</span>
+            <span class="ic-wsrow__v"><% if last_run %><%= time_ago(last_run[:started_at]) %> <span style="color: var(--ic-text-7);">(<%= last_run[:action] %>)</span><% else %>—<% end %></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Runtime status</span>
+            <span class="ic-wsrow__v"><%= @runtimes.empty? ? 'No runtime' : "#{healthy_rt} healthy / #{@runtimes.size}" %></span>
+          </div>
+          <div class="ic-wsrow">
+            <span class="ic-wsrow__k">Igris API</span>
+            <span class="ic-wsrow__v"><%= api_label %></span>
+          </div>
+        </div>
+
+        <div class="ic-workspace-panel__actions">
+          <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+          <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn' %>
+          <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
