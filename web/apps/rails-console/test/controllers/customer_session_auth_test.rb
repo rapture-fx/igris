@@ -27,7 +27,11 @@ class CustomerSessionAuthTest < ActionDispatch::IntegrationTest
   test 'valid customer session reaches /home without Basic Auth' do
     get '/home', headers: { 'HTTP_COOKIE' => VALID_COOKIE }
     assert_response :success
-    assert_match 'Workspace', response.body
+    # /home is onboarding inside console chrome; everyday workspace is /overview.
+    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_match 'ic-rail', response.body
+    assert_match 'Go to Overview', response.body
+    refute_match 'Workspace views', response.body
   end
 
   test 'invalid customer session is denied' do
