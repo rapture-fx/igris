@@ -56,8 +56,9 @@ Run the readiness doctor before wiring the agent:
 
 The doctor checks required env names, API reachability, API-key acceptance on
 safe endpoints, MCP `tools/list` when credentials are available, optional MCP
-config JSON, runtime install metadata, and optional local-runtime reachability.
-It never echoes the API key.
+config JSON, runtime install metadata, optional local-runtime reachability, and
+suggests `igris templates install <name>` when MCP config is missing an Igris
+bridge. It never echoes the API key.
 
 ## 1. Install The CLI
 

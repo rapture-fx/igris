@@ -76,6 +76,50 @@ else:
 PY
 }
 
+# Prints has_igris=0|1 and server_names on stdout for bash parsing.
+analyze_mcp_config() {
+  local file="$1"
+  python3 - "$file" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    data = json.loads(path.read_text())
+except Exception as exc:
+    print(f"error=invalid JSON: {exc}")
+    sys.exit(1)
+
+servers = data.get("mcpServers")
+if not isinstance(servers, dict):
+    print("error=mcpServers object not found")
+    sys.exit(2)
+
+has_igris = False
+for cfg in servers.values():
+    if not isinstance(cfg, dict):
+        continue
+    command = str(cfg.get("command", "")).strip()
+    args = cfg.get("args") or []
+    if not isinstance(args, list):
+        continue
+    lowered = [str(arg).strip().lower() for arg in args]
+    if command in {"igris", "igris-runtime"} and "mcp" in lowered and "serve" in lowered:
+        has_igris = True
+        break
+
+names = ",".join(sorted(servers.keys())) or "(none)"
+print(f"has_igris={'1' if has_igris else '0'}")
+print(f"server_names={names}")
+PY
+}
+
+template_output_dir() {
+  local name="$1"
+  printf '%s' "${ROOT}/.igris/templates/${name}"
+}
+
 validate_runtime_endpoint() {
   local value="$1"
   python3 - "$value" <<'PY'
@@ -177,6 +221,69 @@ else
   warn "IGRIS_MCP_CONFIG is unset; skipping local MCP client config validation"
 fi
 
+igris_cli=""
+if have igris; then
+  igris_cli="igris"
+  pass "igris CLI is available"
+elif have igris-runtime; then
+  igris_cli="igris-runtime"
+  pass "igris-runtime CLI is available"
+else
+  warn "igris CLI not found in PATH; install it before generating agent templates"
+fi
+
+template_suggest=""
+mcp_candidate=""
+mcp_kind=""
+
+if [[ -f "${ROOT}/.cursor/mcp.json" ]]; then
+  mcp_candidate="${ROOT}/.cursor/mcp.json"
+  mcp_kind="cursor"
+elif [[ -n "$mcp_config" && -f "$mcp_config" ]]; then
+  mcp_candidate="$mcp_config"
+  mcp_kind="claude-code"
+fi
+
+if [[ -n "$mcp_candidate" ]]; then
+  if have python3; then
+    if analyze_output="$(analyze_mcp_config "$mcp_candidate" 2>&1)"; then
+      has_igris="$(printf '%s\n' "$analyze_output" | awk -F= '/^has_igris=/{print $2}')"
+      server_names="$(printf '%s\n' "$analyze_output" | awk -F= '/^server_names=/{print $2}')"
+      if [[ "$has_igris" == "1" ]]; then
+        pass "Igris MCP bridge configured in ${mcp_kind} MCP file (${server_names})"
+      else
+        warn "MCP file ${mcp_candidate} has no igris mcp serve entry (${server_names})"
+        template_suggest="$mcp_kind"
+      fi
+    else
+      warn "Could not analyze MCP file ${mcp_candidate}: ${analyze_output}"
+    fi
+  fi
+else
+  warn "No local MCP config detected (.cursor/mcp.json or IGRIS_MCP_CONFIG)"
+  if [[ -z "$template_suggest" ]]; then
+    template_suggest="list"
+  fi
+fi
+
+for template_name in claude-code codex cursor custom-agent; do
+  if [[ -d "$(template_output_dir "$template_name")" ]]; then
+    pass "Agent template output exists at .igris/templates/${template_name}"
+    if [[ "$template_suggest" == "$template_name" ]]; then
+      template_suggest=""
+    fi
+  fi
+done
+
+if have curl && [[ -n "$api_base" && -n "$api_key" ]]; then
+  actions_body="$(curl -sS --max-time 10 -H "Authorization: Bearer ${api_key}" "${api_base}/v1/actions" 2>/dev/null || true)"
+  if printf '%s' "$actions_body" | grep -q 'demo\.echo'; then
+    pass "starter pack action demo.echo is registered"
+  else
+    warn "demo.echo is not registered; run: ${igris_cli:-igris} packs install starter"
+  fi
+fi
+
 if [[ -n "$runtime_install_url" ]]; then
   if have curl; then
     status="$(http_status HEAD "$runtime_install_url")"
@@ -219,6 +326,30 @@ if [[ -n "$runtime_endpoint" ]]; then
   fi
 else
   warn "IGRIS_RUNTIME_ENDPOINT is unset; local_runtime actions will require a connected runtime before running"
+fi
+
+log ""
+if [[ -n "$igris_cli" ]]; then
+  log "Agent template next steps:"
+  case "$template_suggest" in
+    claude-code|codex|cursor|custom-agent)
+      log "  ${igris_cli} templates install ${template_suggest}"
+      log "  ${igris_cli} templates verify ${template_suggest}"
+      if [[ -n "$api_key" ]]; then
+        log "  ${igris_cli} packs install starter   # when starter actions are missing"
+      fi
+      ;;
+    list)
+      log "  ${igris_cli} templates list"
+      log "  ${igris_cli} templates install claude-code   # Claude Code MCP"
+      log "  ${igris_cli} templates install cursor        # Cursor MCP"
+      log "  ${igris_cli} templates install codex         # terminal / Codex-style agents"
+      ;;
+    "")
+      log "  ${igris_cli} templates verify claude-code   # or the template you installed"
+      ;;
+  esac
+  log "  Docs: web/apps/web-docs-hub/content/docs/agent-templates.mdx"
 fi
 
 log ""
