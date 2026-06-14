@@ -28,9 +28,9 @@ export default function HomePage() {
         <LandingScrollManager />
         <Header />
         <main>
-          <ScrollReveal delay={0.1}><Hero /></ScrollReveal>
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div></div>
+          <Hero />
           <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div></div>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ExecutionPath /></ScrollReveal></div></div>
           <ScrollReveal delay={0.1}><Faq large /></ScrollReveal>
           <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>

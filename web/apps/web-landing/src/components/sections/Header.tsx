@@ -189,10 +189,10 @@ export default function Header() {
                 href="/auth?mode=signup"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-xl px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+                className="rounded-md px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
                 style={NAV_ITEM_STYLE}
               >
-                Create your first action
+                Get API key
               </Link>
             </nav>
 
@@ -292,10 +292,10 @@ export default function Header() {
               href="/auth?mode=signup"
               prefetch={false}
               onClick={closeAll}
-              className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+              className="mt-4 inline-flex items-center justify-center w-full rounded-md px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
-              Create your first action
+              Get API key
             </Link>
           </nav>
         </div>
