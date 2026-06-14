@@ -8,8 +8,7 @@
 // window — wrapped in the same layered bezel the Products console uses —
 // showing how the same Igris action endpoint is called from different
 // languages (chosen via a dropdown in the title bar). Below it: what the
-// call can route *through* (Igris concepts, lucide icons) and connect *to*
-// (real product logos, colour-on-hover).
+// call can route *through* (Igris concepts, lucide icons).
 //
 // Honesty notes:
 //  • TypeScript uses the real igris-javascript-sdk method
@@ -39,16 +38,6 @@ const ROUTE_CHIPS: Chip[] = [
   { label: 'Webhook', Icon: Webhook },
   { label: 'Connected Worker', Icon: Server },
   { label: 'MCP', Icon: Plug },
-]
-
-const WORKS_WITH_CHIPS: Chip[] = [
-  { label: 'APIs' },
-  { label: 'Webhooks' },
-  { label: 'Databases' },
-  { label: 'Files' },
-  { label: 'Internal tools' },
-  { label: 'SaaS apps' },
-  { label: 'Runtimes' },
 ]
 
 const WORKER_INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
@@ -253,7 +242,6 @@ function ConnectPanel() {
   return (
     <div className="ae-connect mt-10 md:mt-12">
       <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-      <ChipGroup label="Works with" items={WORKS_WITH_CHIPS} />
     </div>
   )
 }
