@@ -1014,6 +1014,9 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 	if task.FallbackReason != nil && *task.FallbackReason != "" {
 		resp["fallback_reason"] = *task.FallbackReason
 	}
+	if agent := agentSummaryForTask(task, nil); agent != nil {
+		resp["agent"] = agent
+	}
 
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason

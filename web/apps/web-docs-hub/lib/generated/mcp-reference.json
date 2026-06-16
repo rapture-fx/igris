@@ -11,6 +11,12 @@
       "summary": "Connect Claude Code, Codex, Cursor, or a custom agent to registered actions, run one action, and inspect the run safely."
     },
     {
+      "slug": "agent-templates",
+      "title": "Agent Templates",
+      "href": "/docs/agent-templates",
+      "summary": "Generate safe MCP and CLI setup files for Claude Code, Codex, Cursor, and custom agents."
+    },
+    {
       "slug": "mcp",
       "title": "Overview",
       "href": "/docs/mcp",
@@ -115,5 +121,5 @@
       ]
     }
   ],
-  "generated_at": "2026-06-12T12:44:22.115Z"
+  "generated_at": "2026-06-14T14:11:11.010Z"
 }

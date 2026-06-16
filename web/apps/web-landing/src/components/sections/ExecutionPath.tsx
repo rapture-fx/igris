@@ -8,8 +8,7 @@
 // window — wrapped in the same layered bezel the Products console uses —
 // showing how the same Igris action endpoint is called from different
 // languages (chosen via a dropdown in the title bar). Below it: what the
-// call can route *through* (Igris concepts, lucide icons) and connect *to*
-// (real product logos, colour-on-hover).
+// call can route *through* (Igris concepts, lucide icons).
 //
 // Honesty notes:
 //  • TypeScript uses the real igris-javascript-sdk method
@@ -21,7 +20,7 @@
 //    fetch); monochrome by default, full brand colour on hover.
 // ──────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -41,11 +40,13 @@ const ROUTE_CHIPS: Chip[] = [
   { label: 'MCP', Icon: Plug },
 ]
 
-const WORKER_CMD_LINES = [
-  'curl -fsSL https://igrisinertial.com/install | bash',
-  'igris-runtime auth igris_...',
-  'igris-runtime serve',
-] as const
+const WORKER_INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
+
+const WORKER_COPY_STYLE: CSSProperties = {
+  fontFamily: SANS,
+  fontSize: 'clamp(0.95rem, 1.05vw, 1.05rem)',
+  lineHeight: 1.65,
+}
 
 interface Lang {
   id: string
@@ -199,46 +200,77 @@ export default function ExecutionPath() {
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
       <EndpointStyles />
-      <div className="py-24 md:py-40">
-        <div className="ae-inner mx-auto" style={{ maxWidth: 860 }}>
-          {/* ── Centered header ─────────────────────────────────────── */}
-          <div className="text-center">
-            <h2
-              className="ae-headline mx-auto text-gray-700 dark:text-[#c8c8b8]"
-              style={{ fontFamily: SANS }}
-            >
-              One endpoint for every agent action.
-            </h2>
-            <p
-              className="ae-sub mx-auto text-gray-600 dark:text-[#a8a898]"
-              style={{ fontFamily: SANS }}
-            >
-              Create an action in Igris, then call it from your agent, app, workflow,
-              or MCP client. Igris handles policy, routing, recovery, and proof behind
-              the endpoint.
-            </p>
-          </div>
-
-          {/* ── Code window (anchor) ────────────────────────────────── */}
-          <CodeWindow />
-
-          {/* ── Route chips + optional worker install ───────────────── */}
-          <div className="ae-connect">
-            <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-            <WorkerInstallCallout />
-          </div>
+      <div className="pt-10 md:pt-14 pb-20 md:pb-32">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-12 md:mb-16">
+          <h2
+            className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[28ch]"
+            style={{
+              fontFamily: SANS,
+              fontWeight: 400,
+              fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+              lineHeight: 1.2,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            One endpoint for every agent action.
+          </h2>
+          <p
+            className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
+            style={{
+              fontFamily: SANS,
+              fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+              lineHeight: 1.6,
+            }}
+          >
+            One action, many clients. Compare how the same call looks in the
+            language or tool your team already uses.
+          </p>
         </div>
+
+        <div className="ae-endpoint-row">
+          <CodeWindow />
+          <WorkerInstallCallout />
+        </div>
+
+        <ConnectPanel />
       </div>
     </section>
   )
 }
 
-function ChipGroup({ label, items }: { label: string; items: Chip[] }) {
+function ConnectPanel() {
   return (
-    <div className="ae-group">
-      <div className="ae-group-label" style={{ fontFamily: SANS }}>{label}</div>
-      <div className="ae-chips--row">
-        {items.map((c) => <ChipView key={c.label} chip={c} />)}
+    <div className="ae-connect mt-10 md:mt-12">
+      <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+    </div>
+  )
+}
+
+function ChipGroup({
+  label,
+  items,
+}: {
+  label: string
+  items: Chip[]
+}) {
+  return (
+    <div className="ae-connect-row">
+      <p
+        className="ae-connect-label text-gray-700 dark:text-[#c8c8b8]"
+        style={{
+          fontFamily: SANS,
+          fontSize: '0.95rem',
+          fontWeight: 500,
+          lineHeight: 1.4,
+          letterSpacing: '-0.01em',
+        }}
+      >
+        {label}
+      </p>
+      <div className="ae-connect-chips">
+        {items.map((c) => (
+          <ChipView key={c.label} chip={c} />
+        ))}
       </div>
     </div>
   )
@@ -264,7 +296,10 @@ function LogoMark({ chip }: { chip: Chip }) {
 
 function ChipView({ chip }: { chip: Chip }) {
   return (
-    <span className="ae-chip" style={{ fontFamily: MONO }}>
+    <span
+      className="ae-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-black/[0.08] dark:border-white/[0.08] bg-white/70 dark:bg-white/[0.03] text-gray-600 dark:text-[#a8a898] transition-colors hover:border-black/[0.14] dark:hover:border-white/[0.14] hover:bg-white dark:hover:bg-white/[0.05]"
+      style={{ fontFamily: SANS, fontSize: '12px', letterSpacing: '-0.01em' }}
+    >
       <LogoMark chip={chip} />
       {chip.label}
     </span>
@@ -272,16 +307,21 @@ function ChipView({ chip }: { chip: Chip }) {
 }
 
 function WorkerInstallCallout() {
+  const [copied, setCopied] = useState(false)
+
+  const copyInstallCmd = () => {
+    navigator.clipboard?.writeText(WORKER_INSTALL_CMD)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1400)
+  }
+
   return (
     <aside className="ae-worker-callout" aria-label="Optional worker install for private access">
       <div className="ae-worker-copy">
-        <h3 className="ae-worker-heading" style={{ fontFamily: SANS }}>
-          Start in Cloud. Add a worker when needed.
-        </h3>
-        <p className="ae-worker-body" style={{ fontFamily: SANS }}>
-          Hosted APIs and webhooks can run through Igris Cloud. Install a worker only
-          when an action needs access to private files, internal APIs, databases, or
-          local runtimes.
+        <p className="ae-worker-body text-gray-600 dark:text-[#a8a898]" style={WORKER_COPY_STYLE}>
+          Start in Cloud. Add a worker when needed. Hosted APIs and webhooks can run through
+          Igris Cloud. Install a worker only when an action needs access to private files,
+          internal APIs, databases, or local runtimes.
         </p>
         <p className="ae-worker-note" style={{ fontFamily: MONO }}>
           No worker is required for hosted API or webhook actions.
@@ -289,24 +329,22 @@ function WorkerInstallCallout() {
       </div>
 
       <div className="ae-worker-terminal">
-        <div className="ae-worker-terminal-label" style={{ fontFamily: MONO }}>
-          Private access
-        </div>
-        <pre
-          className="ae-worker-code"
-          style={{ fontFamily: MONO }}
-          tabIndex={0}
-          aria-label="Worker install and start commands"
-        >
-          <code>
-            {WORKER_CMD_LINES.map((line) => (
-              <span key={line} className="ae-worker-line">
-                <span className="ae-worker-prompt" aria-hidden>$ </span>
-                {highlightCurl(line)}
-              </span>
-            ))}
+        <div className="ae-worker-code">
+          <code className="ae-worker-line" style={{ fontFamily: MONO }}>
+            <span className="ae-worker-prompt" aria-hidden>$ </span>
+            {highlightCurl(WORKER_INSTALL_CMD)}
           </code>
-        </pre>
+          <button
+            type="button"
+            onClick={copyInstallCmd}
+            className="ae-worker-copy-btn"
+            style={{ fontFamily: MONO }}
+            title={copied ? 'Copied' : 'Copy'}
+            aria-label={copied ? 'Copied install command' : 'Copy install command'}
+          >
+            {copied ? '// copied' : '// copy'}
+          </button>
+        </div>
       </div>
     </aside>
   )
@@ -434,19 +472,17 @@ function Gutter({ count }: { count: number }) {
 function EndpointStyles() {
   return (
     <style>{`
-      /* ── Header ── */
-      .ae-headline {
-        margin-top: 0; max-width: 18ch;
-        font-weight: 400; letter-spacing: -0.02em; line-height: 1.08;
-        font-size: clamp(1.2rem, 2.6vw, 2rem);
+      .ae-endpoint-row {
+        display: grid;
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        gap: 14px;
+        align-items: stretch;
       }
-      .ae-sub {
-        margin-top: 18px; max-width: 56ch;
-        font-size: clamp(1rem, 1.2vw, 1.14rem); line-height: 1.6;
+      .ae-window-wrap {
+        min-width: 0;
       }
 
       /* ── Code window (inner panel inside the layered bezel) ── */
-      .ae-window-wrap { margin-top: 44px; }
       .ae-window {
         --p-panel: #f7f7f5;
         --p-bar: #f2f1ee;
@@ -528,7 +564,7 @@ function EndpointStyles() {
 
       /* Pane: fixed line-number gutter + scrollable code */
       .ae-pane { display: grid; grid-template-columns: auto minmax(0, 1fr); }
-      .ae-pane--req { min-height: 360px; }
+      .ae-pane--req { min-height: 320px; }
       .ae-gutter {
         display: flex; flex-direction: column;
         padding: 22px 14px 22px 0;
@@ -558,28 +594,30 @@ function EndpointStyles() {
       .c-url { color: #0d7a8a; text-decoration: underline; text-decoration-color: rgba(13,122,138,0.3); text-underline-offset: 2px; }
       html.dark .c-url { color: #4fb3c4; text-decoration-color: rgba(79,179,196,0.3); }
 
-      /* ── Chip groups (route row + target table), aligned to the card ── */
       .ae-connect {
-        margin: 44px 0 0;
-        display: flex; flex-direction: column; gap: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
       }
-      .ae-group { text-align: center; }
-      .ae-group-label {
-        font-size: 12px; letter-spacing: 0.01em; color: #6b7280; margin-bottom: 12px;
+      .ae-connect-row {
+        display: grid;
+        grid-template-columns: 124px minmax(0, 1fr);
+        gap: 16px 20px;
+        align-items: start;
       }
-      html.dark .ae-group-label { color: #8a8a82; }
+      .ae-connect-label {
+        margin: 0;
+        padding-top: 7px;
+      }
+      .ae-connect-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-width: 0;
+      }
 
-      .ae-chips--row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-      .ae-chip {
-        display: inline-flex; align-items: center; gap: 8px;
-        font-size: 11.5px; line-height: 1; padding: 9px 12px;
-        border-radius: 9px; border: 1px solid var(--landing-surface-border);
-        background: var(--landing-surface); color: #4b5563; white-space: nowrap;
-        transition: border-color .2s ease, background-color .2s ease;
-      }
-      .ae-chip:hover { border-color: var(--landing-surface-border-strong); }
-      html.dark .ae-chip { color: #a8a898; }
-      .ae-chip-ic { flex: none; opacity: 0.9; }
+      .ae-chip { white-space: nowrap; line-height: 1.2; }
+      .ae-chip-ic { flex: none; width: 14px; height: 14px; opacity: 0.8; }
 
       /* Brand logo: monochrome by default, full brand colour on hover */
       .ae-logo { position: relative; flex: none; width: 14px; height: 14px; display: inline-block; }
@@ -598,40 +636,32 @@ function EndpointStyles() {
       .ae-chip:hover .ae-logo-color { opacity: 1; }
       html.dark .ae-chip:hover .ae-logo-color--invert { filter: invert(1) brightness(1.7); }
 
-      /* ── Optional worker install callout ── */
+      /* ── Start in Cloud card (beside code window) ── */
       .ae-worker-callout {
-        margin-top: 8px;
-        display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-        gap: 20px 28px;
-        padding: 18px 20px;
+        margin-top: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 20px;
+        height: 100%;
+        min-width: 0;
+        padding: 22px 24px;
         border-radius: 12px;
         border: 1px solid var(--landing-surface-border);
         background: var(--landing-surface);
         text-align: left;
       }
+      .ae-worker-copy {
+        max-width: none;
+      }
       html.dark .ae-worker-callout {
         background: rgba(22, 21, 21, 0.55);
         border-color: rgba(246, 246, 244, 0.1);
       }
-      .ae-worker-heading {
-        margin: 0;
-        font-size: 0.95rem;
-        font-weight: 500;
-        line-height: 1.35;
-        letter-spacing: -0.01em;
-        color: #374151;
-      }
-      html.dark .ae-worker-heading { color: #c8c8b8; }
-      .ae-worker-body {
-        margin: 8px 0 0;
-        font-size: 0.88rem;
-        line-height: 1.55;
-        color: #6b7280;
-      }
-      html.dark .ae-worker-body { color: #a8a898; }
+      .ae-worker-heading { margin: 0; }
+      .ae-worker-body { margin: 0; }
       .ae-worker-note {
-        margin: 10px 0 0;
+        margin: 12px 0 0;
         font-size: 10.5px;
         letter-spacing: 0.03em;
         color: #9ca3af;
@@ -641,41 +671,36 @@ function EndpointStyles() {
         display: flex;
         flex-direction: column;
         min-width: 0;
-        border-radius: 9px;
+        width: 100%;
+        border-radius: 10px;
         border: 1px solid rgba(0, 0, 0, 0.08);
-        background: #f2f1ee;
+        background: #f7f7f5;
         overflow: hidden;
       }
       html.dark .ae-worker-terminal {
         border-color: rgba(255, 255, 255, 0.07);
-        background: #0a0a09;
-      }
-      .ae-worker-terminal-label {
-        padding: 8px 12px;
-        font-size: 10px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: #6b7280;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-      }
-      html.dark .ae-worker-terminal-label {
-        color: #8a8a82;
-        border-bottom-color: rgba(255, 255, 255, 0.06);
+        background: #0e0e0c;
       }
       .ae-worker-code {
-        margin: 0;
-        padding: 12px 14px;
-        font-size: 11.5px;
-        line-height: 1.7;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px 16px;
+        font-size: 12.5px;
+        line-height: 1.6;
         color: #1b1912;
         overflow-x: auto;
-        white-space: pre;
         -webkit-overflow-scrolling: touch;
       }
       html.dark .ae-worker-code { color: #b0ada5; }
-      .ae-worker-code:focus-visible { outline: 2px solid #047857; outline-offset: -2px; }
-      html.dark .ae-worker-code:focus-visible { outline-color: #2faa7e; }
-      .ae-worker-line { display: block; }
+      .ae-worker-line {
+        display: block;
+        min-width: 0;
+        flex: 1;
+        white-space: nowrap;
+        overflow-x: auto;
+      }
       .ae-worker-prompt {
         display: inline-block;
         margin-right: 8px;
@@ -683,12 +708,55 @@ function EndpointStyles() {
         user-select: none;
       }
       html.dark .ae-worker-prompt { color: #5a5a52; }
+      .ae-worker-copy-btn {
+        flex: none;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font-size: 12px;
+        letter-spacing: 0.02em;
+        color: #6b7280;
+        cursor: pointer;
+        transition: color .15s ease;
+      }
+      .ae-worker-copy-btn:hover,
+      .ae-worker-copy-btn:focus-visible {
+        color: #1b1912;
+        outline: none;
+      }
+      html.dark .ae-worker-copy-btn { color: #8a8a82; }
+      html.dark .ae-worker-copy-btn:hover,
+      html.dark .ae-worker-copy-btn:focus-visible { color: #f6f6f4; }
+
+      @media (max-width: 960px) {
+        .ae-endpoint-row {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .ae-connect-row {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .ae-connect-label {
+          padding-top: 0;
+        }
+      }
 
       @media (max-width: 720px) {
         .ae-worker-callout {
-          grid-template-columns: 1fr;
           gap: 16px;
+          padding: 20px 18px;
         }
+        .ae-worker-code {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 14px 14px 16px;
+          font-size: 12px;
+        }
+        .ae-worker-line { white-space: pre-wrap; word-break: break-word; }
       }
 
       @media (max-width: 640px) {

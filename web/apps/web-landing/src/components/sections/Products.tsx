@@ -3,10 +3,15 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import {
-  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, Sun, Moon, type LucideIcon,
+  Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
 import { RunActivityMapConsole } from './OverviewConsole'
+import {
+  LANDING_PRODUCT_REVEAL_EVENT,
+  LANDING_PRODUCT_TAB_EVENT,
+  type ProductTab,
+} from '../../lib/landing-sections'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -962,7 +967,7 @@ function RunInspector() {
               <RoutedVia />
             </div>
           </div>
-          <p className="ic-runinspector__kvfoot">Raw action input isn't shown here — Igris records safe identifiers and digests instead of payload contents.</p>
+          <p className="ic-runinspector__kvfoot">Raw action input isn't shown here. Igris records safe identifiers and digests instead of payload contents.</p>
         </section>
 
         {/* Execution assessment */}
@@ -980,13 +985,13 @@ function RunInspector() {
         {/* Audit interpretation */}
         <section className="ic-runinspector__section">
           <div className="ic-runinspector__sechead">Audit interpretation</div>
-          <p className="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only — not a compliance certification.</p>
+          <p className="ic-runinspector__hint">Plain-language reading of this run's evidence. Interpretation only, not a compliance certification.</p>
           <div className="ic-runinspector__auditrows">
-            <AuditRow label="Control decision" value="Idempotent, 3 retries" note="Policy decision record — the policy preset Igris applied before allowing execution." />
+            <AuditRow label="Control decision" value="Idempotent, 3 retries" note="Policy decision record: the policy preset Igris applied before allowing execution." />
             <AuditRow label="Execution record" value="Running" note="Tamper-evident record of what Igris did when the action was called." />
             <AuditRow label="Evidence receipt" value="No signed runtime evidence attached" note="A receipt is a signed, tamper-evident record that a runtime reported this execution event." />
             <AuditRow label="Verification status" value="Unsigned (not attached)" note="Signature shows the event was reported by a registered runtime key when available. Digest records prove data consistency without exposing raw input or output." />
-            <AuditRow label="Recovery / replay status" value="In flight" note="Replay / recovery record — whether Igris retried or compensated the action." />
+            <AuditRow label="Recovery / replay status" value="In flight" note="Replay / recovery record: whether Igris retried or compensated the action." />
             <AuditRow label="Data exposure" value="Minimized" note="Raw inputs/outputs are not shown here; only safe identifiers and digests are displayed." />
           </div>
           <p className="ic-runinspector__note">Proof is unavailable when signed runtime evidence was not produced or attached to this run.</p>
@@ -1048,7 +1053,7 @@ function ExecutionProfile({ animate = false }: { animate?: boolean }) {
   return (
     <section className="ic-runinspector__section ic-runinspector__section--last">
       <div className="ic-runinspector__sechead">Execution profile</div>
-      <p className="ic-runinspector__hint">Time per step along the run timeline — {profile.length} steps over {total}ms total.</p>
+      <p className="ic-runinspector__hint">Time per step along the run timeline: {profile.length} steps over {total}ms total.</p>
       <div className={'ic-wfall' + (animate ? ' ic-wfall--animate' : '')}>
         {profile.map((p, i) => {
           const left = span > 0 ? (p.start / span) * 100 : 0
@@ -1132,22 +1137,11 @@ function ExecDetailRail() {
 }
 
 function MainFooter() {
-  const { resolvedTheme, setTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
   return (
     <div className="ic-footer">
       <div className="ic-footer__bar">
         <span className="ic-footer__chip"><span className="dot" /><span>action_workflow v1</span></span>
         <span>Receipts ed25519</span>
-        <div className="ic-footer__spacer" />
-        <button
-          type="button"
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="inline-flex items-center justify-center w-5 h-5 rounded text-[var(--ic-text-4)] hover:text-[var(--ic-text-bright)] hover:bg-[var(--ic-overlay-3)] transition-colors"
-        >
-          {isDark ? <Sun size={11} strokeWidth={1.8} /> : <Moon size={11} strokeWidth={1.8} />}
-        </button>
       </div>
     </div>
   )
@@ -1213,6 +1207,21 @@ function ProductShowcaseTabs() {
     }, { threshold: 0.2 })
     io.observe(el)
     return () => io.disconnect()
+  }, [])
+  useEffect(() => {
+    const onReveal = () => setRevealed(true)
+    const onTab = (event: Event) => {
+      const next = (event as CustomEvent<ProductTab>).detail
+      holdUntilRef.current = Date.now() + 15000
+      setTab(next)
+      setRevealed(true)
+    }
+    window.addEventListener(LANDING_PRODUCT_REVEAL_EVENT, onReveal)
+    window.addEventListener(LANDING_PRODUCT_TAB_EVENT, onTab)
+    return () => {
+      window.removeEventListener(LANDING_PRODUCT_REVEAL_EVENT, onReveal)
+      window.removeEventListener(LANDING_PRODUCT_TAB_EVENT, onTab)
+    }
   }, [])
   const handleTab = (id: ShowcaseTab) => {
     holdUntilRef.current = Date.now() + 15000
@@ -1290,35 +1299,7 @@ export default function Products() {
         <div className="px-0">
           <div className="px-0">
             <div className="pt-10 md:pt-14 pb-20 md:pb-32">
-              {/* Intro copy — sits above the product design */}
-              <h2
-                className="text-gray-700 dark:text-[#c8c8b8] font-normal"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.02em',
-                  maxWidth: '22ch',
-                }}
-              >
-                Run, recover, and prove.
-              </h2>
-              <div
-                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch]"
-                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-              >
-                <p>
-                  The console below walks through one agent task — how Igris
-                  executes each step, checkpoints progress when something fails,
-                  and leaves a signed receipt you can inspect afterward.
-                </p>
-              </div>
-
-              {/* Product design / showcase */}
-              <div className="mt-12 md:mt-16">
-                <ProductShowcaseTabs />
-              </div>
+              <ProductShowcaseTabs />
             </div>
           </div>
         </div>
@@ -1329,26 +1310,25 @@ export default function Products() {
         <div className="px-0">
           <div className="px-0">
             <div className="pb-20 md:pb-28">
-              <p
-                className="text-gray-700 dark:text-[#c8c8b8] font-normal max-w-[34ch]"
-                style={{
-                  fontFamily: SANS,
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                  lineHeight: 1.2,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                Execution matters as much as intelligence.
-              </p>
-              <div
-                className="mt-5 text-gray-600 dark:text-[#a8a898] max-w-[78ch] space-y-5"
-                style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-              >
-                <p>
-                  Each dot is a run. Outcome bands show where execution succeeded,
-                  stalled, or needed recovery — so operators can scan recent
-                  activity without opening every task.
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
+                <h2
+                  className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[34ch]"
+                  style={{
+                    fontFamily: SANS,
+                    fontWeight: 400,
+                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                    lineHeight: 1.2,
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Execution matters as much as intelligence.
+                </h2>
+                <p
+                  className="text-gray-600 dark:text-[#a8a898] max-w-[38ch] md:text-right"
+                  style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
+                >
+                  Outcomes from many runs in one view. Spot what is completing,
+                  recovering, or stalling across your environment.
                 </p>
               </div>
 
@@ -1356,6 +1336,12 @@ export default function Products() {
               <div className="mt-12 md:mt-16">
                 <RunActivityMapConsole />
               </div>
+              <p
+                className="mt-5 text-[0.95rem] text-gray-500 dark:text-[#8a8a7a] max-w-[52ch]"
+                style={{ fontFamily: SANS, lineHeight: 1.5 }}
+              >
+                Each dot is one run. See what completed, recovered, failed, or was verified.
+              </p>
             </div>
           </div>
         </div>

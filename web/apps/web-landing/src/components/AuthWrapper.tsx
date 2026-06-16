@@ -9,14 +9,14 @@ interface AuthWrapperProps {
 
 function LoadingFallback() {
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen igris-grain bg-white dark:bg-[#110f0f] flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#468BE6] mx-auto mb-4"></div>
-        <h2 className="text-lg font-semibold text-white mb-2">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 dark:border-white/[0.12] border-t-gray-600 dark:border-t-[#c8c8b8] mx-auto mb-4" />
+        <p
+          className="text-[13px] text-gray-500 dark:text-[#a8a898]"
+          style={{ fontFamily: 'var(--font-geist-sans), sans-serif' }}
+        >
           Loading...
-        </h2>
-        <p className="text-gray-300">
-          Please wait while we prepare your authentication page.
         </p>
       </div>
     </div>

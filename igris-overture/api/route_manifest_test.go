@@ -176,6 +176,7 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterRuntimeAPIKeyRoutes(app, db)
 	RegisterAccountAPIKeysRoutes(app, db)
 	RegisterStatsRoutes(app, db, nil, nil)
+	RegisterAgentRegistryRoutes(app, db, NewExecutionHandler(db))
 	RegisterExecutionRoutes(app, db, nil)
 	RegisterProofRoutes(app, db, nil)
 	RegisterGovernanceRoutes(app, db)

@@ -136,7 +136,6 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	app.Post("/v1/execution/runs/:id/approve", auth, h.ApproveRun)
 	app.Post("/v1/execution/runs/:id/reject", auth, h.RejectRun)
 	app.Get("/v1/execution/agents", auth, h.ListAgents)
-	app.Patch("/v1/agents/:id", auth, h.PatchAgent)
 	app.Get("/v1/agents/:id/bt-state", auth, h.GetAgentBTState)
 	app.Get("/v1/agents/:id/bt-state/stream", auth, h.StreamBTState)
 	app.Post("/v1/policies/assign", auth, h.AssignPolicy)

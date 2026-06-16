@@ -92,6 +92,14 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'inspector shows safe registered agent attribution when present' do
+    get run_path('run_01HGJ8K2Z9F')
+    assert_response :success
+    assert_match 'Claude Code Agent', response.body
+    assert_match 'claude_code', response.body
+    refute_match 'a1f2c3d4-e5f6-7890-abcd-ef1234567890', response.body
+  end
+
   # ── Agent request: honest unavailable state ─────────────────────────────
   test 'inspector shows the agent request unavailable state when none exists' do
     get run_path('run_01HGJ8K2Z9F')

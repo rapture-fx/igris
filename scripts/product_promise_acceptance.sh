@@ -127,6 +127,8 @@ run_go_stage "failure-and-recovery-visibility" \
 # 8. Rails console alignment: the operator console renders actions, runs,
 #    runtimes, and proof/receipt/evidence metadata from the same API truth,
 #    without echoing secrets or raw payload bodies.
+#    /home is onboarding; /overview is workspace — use
+#    test/support/console_page_assertions.rb when asserting page content.
 if [ "${IGRIS_PROMISE_SKIP_RAILS:-0}" = "1" ]; then
   skip_stage "rails-console-alignment" "IGRIS_PROMISE_SKIP_RAILS=1"
 elif ! command -v rbenv >/dev/null 2>&1; then

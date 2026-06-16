@@ -78,7 +78,10 @@ bin/rails test
 
 | Route                          | What it shows                                 |
 | ------------------------------ | --------------------------------------------- |
-| `/` → `/home`                  | Onboarding front door + setup guide + recent runs |
+| `/` → `/welcome` or `/home`    | First visit → welcome; returning → home |
+| `/onboarding` → `/welcome`     | Landing signup compatibility URL |
+| `/dashboard` → `/home`         | Landing signin / OAuth compatibility URL |
+| `/reset-password`              | Password-reset handoff (→ landing `/auth` when token present) |
 | `/actions`                     | List of registered actions (catalogue)        |
 | `/actions/new?step=…`          | Wizard: Identity → Target → Policy → Endpoint |
 | `/actions/:id?tab=…`           | Action detail (Overview / Endpoint / Target / Policy / Secrets / Runs) |

@@ -121,6 +121,52 @@ impl Client {
             .with_context(|| "could not parse task response".to_string())
     }
 
+    pub async fn list_action_packs(&self) -> Result<serde_json::Value> {
+        let url = format!("{}/v1/action-packs", self.base);
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "list action packs failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse action packs response".to_string())
+    }
+
+    pub async fn install_action_pack(&self, pack_name: &str) -> Result<serde_json::Value> {
+        if !is_safe_pack_name(pack_name) {
+            return Err(anyhow!("pack name must be lowercase letters, digits, or hyphens"));
+        }
+        let url = format!("{}/v1/action-packs/{}/install", self.base, pack_name);
+        let resp = self
+            .inner
+            .post(&url)
+            .json(&serde_json::json!({}))
+            .send()
+            .await
+            .with_context(|| format!("POST {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "install action pack failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse action pack install response".to_string())
+    }
+
     pub async fn list_actions(&self) -> Result<serde_json::Value> {
         let url = format!("{}/v1/actions", self.base);
         let resp = self
@@ -180,6 +226,96 @@ impl Client {
         }
         serde_json::from_str::<serde_json::Value>(&text)
             .with_context(|| "could not parse action run response".to_string())
+    }
+
+    pub async fn list_agents(&self, include_archived: bool) -> Result<serde_json::Value> {
+        let mut url = format!("{}/v1/agents", self.base);
+        if include_archived {
+            url.push_str("?include_archived=true");
+        }
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!("list agents failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse agents response".to_string())
+    }
+
+    pub async fn register_agent(&self, body: &serde_json::Value) -> Result<serde_json::Value> {
+        let url = format!("{}/v1/agents", self.base);
+        let resp = self
+            .inner
+            .post(&url)
+            .json(body)
+            .send()
+            .await
+            .with_context(|| format!("POST {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "register agent failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse register agent response".to_string())
+    }
+
+    pub async fn get_agent(&self, agent_id: &str) -> Result<serde_json::Value> {
+        let trimmed = agent_id.trim();
+        if trimmed.is_empty() {
+            return Err(anyhow!("agent id is required"));
+        }
+        let url = format!("{}/v1/agents/{}", self.base, trimmed);
+        let resp = self
+            .inner
+            .get(&url)
+            .send()
+            .await
+            .with_context(|| format!("GET {}", url))?;
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!("get agent failed: {} {}", status, redact(&text)));
+        }
+        serde_json::from_str::<serde_json::Value>(&text)
+            .with_context(|| "could not parse agent response".to_string())
+    }
+
+    pub async fn archive_agent(&self, agent_id: &str) -> Result<()> {
+        let trimmed = agent_id.trim();
+        if trimmed.is_empty() {
+            return Err(anyhow!("agent id is required"));
+        }
+        let url = format!("{}/v1/agents/{}", self.base, trimmed);
+        let resp = self
+            .inner
+            .delete(&url)
+            .send()
+            .await
+            .with_context(|| format!("DELETE {}", url))?;
+        let status = resp.status();
+        if status == reqwest::StatusCode::NO_CONTENT {
+            return Ok(());
+        }
+        let text = resp.text().await.unwrap_or_default();
+        if !status.is_success() {
+            return Err(anyhow!(
+                "archive agent failed: {} {}",
+                status,
+                redact(&text)
+            ));
+        }
+        Ok(())
     }
 
     pub async fn get_action_run(&self, run_id: &str) -> Result<serde_json::Value> {
@@ -274,9 +410,19 @@ fn is_safe_action_name(name: &str) -> bool {
     if !bytes[0].is_ascii_lowercase() {
         return false;
     }
-    bytes
-        .iter()
-        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_')
+    bytes.iter().all(|b| {
+        b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_' || *b == b'.'
+    })
+}
+
+fn is_safe_pack_name(name: &str) -> bool {
+    let bytes = name.as_bytes();
+    if bytes.is_empty() || bytes.len() > 64 {
+        return false;
+    }
+    bytes.iter().all(|b| {
+        b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'-'
+    })
 }
 
 #[cfg(test)]
@@ -310,12 +456,20 @@ mod tests {
     #[test]
     fn action_name_path_guard_matches_registered_action_pattern() {
         assert!(is_safe_action_name("first_ping"));
+        assert!(is_safe_action_name("demo.echo"));
         assert!(is_safe_action_name("a1"));
         assert!(!is_safe_action_name("A1"));
         assert!(!is_safe_action_name("a"));
         assert!(!is_safe_action_name("first-ping"));
         assert!(!is_safe_action_name("first/ping"));
         assert!(!is_safe_action_name("first_ping?x=1"));
+    }
+
+    #[test]
+    fn pack_name_guard_rejects_unsafe_values() {
+        assert!(is_safe_pack_name("starter"));
+        assert!(!is_safe_pack_name("../starter"));
+        assert!(!is_safe_pack_name("STARTER"));
     }
 
     #[test]

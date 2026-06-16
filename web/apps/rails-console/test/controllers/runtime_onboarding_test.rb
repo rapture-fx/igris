@@ -368,18 +368,18 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     ENV['OVERTURE_API_KEY'] = prev
   end
 
-  # ── Home contextual hint ─────────────────────────────────────────────────
-  test 'home hints to connect a runtime when a local action has none' do
+  # ── Overview contextual hint ─────────────────────────────────────────────
+  test 'overview hints to connect a runtime when a local action has none' do
     with_fake_ds(FakeDS.new(runtimes: [], actions: [local_action])) do
-      get '/home?tab=attention' # the needs-attention hint lives on its own tab
+      get '/overview?tab=attention'
       assert_response :success
       assert_match 'Local runtime action needs a connected runtime', response.body
     end
   end
 
-  test 'home does not nag about runtime when no local actions exist' do
+  test 'overview does not nag about runtime when no local actions exist' do
     with_fake_ds(FakeDS.new(runtimes: [], actions: [])) do
-      get '/home'
+      get '/overview'
       assert_response :success
       refute_match 'needs a connected runtime', response.body
     end

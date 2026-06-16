@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-06-12T12:44:51.025Z",
+  "generated_at": "2026-06-14T13:09:21.984Z",
   "summary": {
-    "total": 893,
+    "total": 918,
     "by_status": {
-      "implemented": 893
+      "implemented": 918
     }
   },
   "guide_summary": {
-    "total": 126,
+    "total": 135,
     "by_status": {
-      "implemented": 126
+      "implemented": 135
     }
   },
   "pages": [
@@ -20,6 +20,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 2
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "implemented": 3,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 3
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
@@ -68,6 +76,22 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 6
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx",
+      "implemented": 5,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 5
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "implemented": 8,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 8
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx",
@@ -271,11 +295,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "implemented": 106,
+      "implemented": 108,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 106
+      "total_route_claims": 108
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx",
@@ -324,6 +348,14 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 8
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/introduction.mdx",
+      "implemented": 1,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 1
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx",
@@ -975,11 +1007,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "implemented": 2,
+      "implemented": 8,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 8
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
@@ -1144,6 +1176,14 @@
       "total_route_claims": 2
     },
     {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "implemented": 3,
+      "missing": 0,
+      "wrong_surface": 0,
+      "wrong_method": 0,
+      "total_route_claims": 3
+    },
+    {
       "file": "web/apps/web-docs-hub/content/docs/agents.mdx",
       "implemented": 2,
       "missing": 0,
@@ -1217,11 +1257,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "implemented": 2,
+      "implemented": 8,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 2
+      "total_route_claims": 8
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx",
@@ -1414,6 +1454,57 @@
           "path": "/v1/runtime/task/:task_id/cancel",
           "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
           "surface": "local-runtime"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "line": 44,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "| `custom-agent` | REST `POST /v1/actions/:name/run` and MCP notes |",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "line": 67,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "- [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/agent-templates.mdx",
+      "line": 68,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
         }
       ]
     },
@@ -2041,6 +2132,227 @@
           "method": "POST",
           "path": "/v1/account/api-key",
           "file": "igris-overture/api/routes_apikey.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx",
+      "line": 2,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "title: \"GET /v1/action-packs\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx",
+      "line": 7,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "# GET /v1/action-packs",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx",
+      "line": 27,
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "expected_surface": null,
+      "source": "- [POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx",
+      "line": 39,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- After install, run actions through `POST /v1/actions/:name/run` or MCP `call_action` like any other registered action.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx",
+      "line": 46,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": "cloud-api",
+      "source": "curl -X GET https://overture.igrisinertial.com/v1/action-packs \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 2,
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "expected_surface": null,
+      "source": "title: \"POST /v1/action-packs/:name/install\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 3,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "description: \"Installs a built-in Action Pack into the authenticated tenant by registering each action through the same path as `POST /v1/actions`. Install never submits raw tasks, never calls external APIs, and never stores secret values from the pack manifest.\"",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 7,
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "expected_surface": null,
+      "source": "# POST /v1/action-packs/:name/install",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 9,
+      "method": "POST",
+      "path": "/v1/actions",
+      "expected_surface": null,
+      "source": "Installs a built-in Action Pack into the authenticated tenant by registering each action through the same path as `POST /v1/actions`. Install never submits raw tasks, never calls external APIs, and never stores secret values from the pack manifest.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 23,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- Expecting install to run an action immediately. Install only registers definitions — run through `POST /v1/actions/:name/run` or MCP `call_action` afterward.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 29,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "- [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 46,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "- Installed actions are normal registered actions. Inspect runs with `GET /v1/actions/runs/:id`, MCP `get_run`, or `igris runs inspect`.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx",
+      "line": 53,
+      "method": "POST",
+      "path": "/v1/action-packs/send_invoice/install",
+      "expected_surface": "cloud-api",
+      "source": "curl -X POST https://overture.igrisinertial.com/v1/action-packs/send_invoice/install \\",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
           "surface": "cloud-api"
         }
       ]
@@ -4843,6 +5155,40 @@
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
       "line": 22,
       "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "- [`GET /v1/action-packs`](/docs/api-reference/action-packs/get-v1-action-packs) — Lists built-in Action Packs available for install into the authenticated tenant.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 23,
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "expected_surface": null,
+      "source": "- [`POST /v1/action-packs/:name/install`](/docs/api-reference/action-packs/post-v1-action-packs-name-install) — Installs a built-in Action Pack by registering its actions in your tenant. Installed actions are normal registered actions — not raw task submissions.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
+      "line": 29,
+      "method": "GET",
       "path": "/v1/actions",
       "expected_surface": null,
       "source": "- [`GET /v1/actions`](/docs/api-reference/actions/get-v1-actions) — Lists the registered actions owned by the authenticated tenant.",
@@ -4858,7 +5204,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 23,
+      "line": 30,
       "method": "POST",
       "path": "/v1/actions",
       "expected_surface": null,
@@ -4875,7 +5221,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 24,
+      "line": 31,
       "method": "GET",
       "path": "/v1/actions/:id",
       "expected_surface": null,
@@ -4892,7 +5238,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 25,
+      "line": 32,
       "method": "PATCH",
       "path": "/v1/actions/:id",
       "expected_surface": null,
@@ -4909,7 +5255,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 26,
+      "line": 33,
       "method": "DELETE",
       "path": "/v1/actions/:id",
       "expected_surface": null,
@@ -4926,7 +5272,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 27,
+      "line": 34,
       "method": "POST",
       "path": "/v1/actions/run",
       "expected_surface": null,
@@ -4943,7 +5289,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 28,
+      "line": 35,
       "method": "POST",
       "path": "/v1/actions/:name/run",
       "expected_surface": null,
@@ -4960,7 +5306,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 29,
+      "line": 36,
       "method": "GET",
       "path": "/v1/actions/runs/:id",
       "expected_surface": null,
@@ -4977,7 +5323,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 35,
+      "line": 42,
       "method": "GET",
       "path": "/v1/health",
       "expected_surface": null,
@@ -5006,7 +5352,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 41,
+      "line": 48,
       "method": "POST",
       "path": "/v1/infer",
       "expected_surface": null,
@@ -5035,7 +5381,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 42,
+      "line": 49,
       "method": "POST",
       "path": "/v1/chat/completions",
       "expected_surface": null,
@@ -5076,7 +5422,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 43,
+      "line": 50,
       "method": "GET",
       "path": "/v1/models",
       "expected_surface": null,
@@ -5093,7 +5439,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 44,
+      "line": 51,
       "method": "GET",
       "path": "/v1/providers/stats",
       "expected_surface": null,
@@ -5110,7 +5456,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 45,
+      "line": 52,
       "method": "POST",
       "path": "/v1/infer/multimodal",
       "expected_surface": null,
@@ -5127,7 +5473,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 46,
+      "line": 53,
       "method": "GET",
       "path": "/v1/infer/multimodal/stats",
       "expected_surface": null,
@@ -5144,7 +5490,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 52,
+      "line": 59,
       "method": "GET",
       "path": "/v1/runtime/install",
       "expected_surface": null,
@@ -5161,7 +5507,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 53,
+      "line": 60,
       "method": "GET",
       "path": "/v1/runtime/checksum",
       "expected_surface": null,
@@ -5178,7 +5524,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 54,
+      "line": 61,
       "method": "GET",
       "path": "/v1/runtime/download",
       "expected_surface": null,
@@ -5195,7 +5541,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 55,
+      "line": 62,
       "method": "GET",
       "path": "/api/v1/runtime/download",
       "expected_surface": null,
@@ -5212,7 +5558,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 56,
+      "line": 63,
       "method": "POST",
       "path": "/api/v1/runtime/register",
       "expected_surface": null,
@@ -5235,7 +5581,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 57,
+      "line": 64,
       "method": "POST",
       "path": "/api/v1/runtime/heartbeat",
       "expected_surface": null,
@@ -5258,7 +5604,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 58,
+      "line": 65,
       "method": "GET",
       "path": "/api/v1/runtime/commands",
       "expected_surface": null,
@@ -5275,7 +5621,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 59,
+      "line": 66,
       "method": "DELETE",
       "path": "/api/v1/runtime/deregister",
       "expected_surface": null,
@@ -5292,7 +5638,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 60,
+      "line": 67,
       "method": "POST",
       "path": "/api/v1/runtime/config/push",
       "expected_surface": null,
@@ -5309,7 +5655,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 61,
+      "line": 68,
       "method": "POST",
       "path": "/api/v1/runtime/update",
       "expected_surface": null,
@@ -5326,7 +5672,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 67,
+      "line": 74,
       "method": "GET",
       "path": "/api/subscription/status",
       "expected_surface": null,
@@ -5349,7 +5695,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 68,
+      "line": 75,
       "method": "GET",
       "path": "/api/subscription/plans",
       "expected_surface": null,
@@ -5372,7 +5718,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 69,
+      "line": 76,
       "method": "GET",
       "path": "/v1/account/api-key",
       "expected_surface": null,
@@ -5389,7 +5735,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 70,
+      "line": 77,
       "method": "POST",
       "path": "/v1/account/api-key",
       "expected_surface": null,
@@ -5406,7 +5752,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 71,
+      "line": 78,
       "method": "DELETE",
       "path": "/v1/account/api-key",
       "expected_surface": null,
@@ -5423,7 +5769,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 77,
+      "line": 84,
       "method": "GET",
       "path": "/v1/vault/keys",
       "expected_surface": null,
@@ -5440,7 +5786,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 78,
+      "line": 85,
       "method": "POST",
       "path": "/v1/vault/keys",
       "expected_surface": null,
@@ -5457,7 +5803,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 79,
+      "line": 86,
       "method": "GET",
       "path": "/v1/vault/keys/:provider",
       "expected_surface": null,
@@ -5474,7 +5820,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 80,
+      "line": 87,
       "method": "DELETE",
       "path": "/v1/vault/keys/:provider",
       "expected_surface": null,
@@ -5491,7 +5837,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 81,
+      "line": 88,
       "method": "POST",
       "path": "/v1/vault/keys/:provider/rotate",
       "expected_surface": null,
@@ -5508,7 +5854,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 82,
+      "line": 89,
       "method": "POST",
       "path": "/v1/vault/keys/:provider/validate",
       "expected_surface": null,
@@ -5525,7 +5871,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 83,
+      "line": 90,
       "method": "GET",
       "path": "/v1/policy",
       "expected_surface": null,
@@ -5542,7 +5888,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 84,
+      "line": 91,
       "method": "PUT",
       "path": "/v1/policy",
       "expected_surface": null,
@@ -5559,7 +5905,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 85,
+      "line": 92,
       "method": "GET",
       "path": "/v1/policy/history",
       "expected_surface": null,
@@ -5576,7 +5922,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 91,
+      "line": 98,
       "method": "GET",
       "path": "/v1/history/events",
       "expected_surface": null,
@@ -5593,7 +5939,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 92,
+      "line": 99,
       "method": "GET",
       "path": "/v1/receipts",
       "expected_surface": null,
@@ -5610,7 +5956,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 93,
+      "line": 100,
       "method": "GET",
       "path": "/v1/receipts/:id",
       "expected_surface": null,
@@ -5639,7 +5985,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 94,
+      "line": 101,
       "method": "GET",
       "path": "/v1/receipts/export",
       "expected_surface": null,
@@ -5662,7 +6008,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 95,
+      "line": 102,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": null,
@@ -5679,7 +6025,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 101,
+      "line": 108,
       "method": "GET",
       "path": "/v1/routing/stats",
       "expected_surface": null,
@@ -5702,7 +6048,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 102,
+      "line": 109,
       "method": "GET",
       "path": "/v1/routing/recent",
       "expected_surface": null,
@@ -5725,7 +6071,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 103,
+      "line": 110,
       "method": "GET",
       "path": "/v1/routing/leaderboard",
       "expected_surface": null,
@@ -5748,7 +6094,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 104,
+      "line": 111,
       "method": "POST",
       "path": "/v1/routing/strategy",
       "expected_surface": null,
@@ -5765,7 +6111,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 105,
+      "line": 112,
       "method": "POST",
       "path": "/v1/routing/provider_weights",
       "expected_surface": null,
@@ -5782,7 +6128,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 106,
+      "line": 113,
       "method": "GET",
       "path": "/v1/routing/speculative/status",
       "expected_surface": null,
@@ -5799,7 +6145,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 107,
+      "line": 114,
       "method": "GET",
       "path": "/v1/routing/speculative/config",
       "expected_surface": null,
@@ -5816,7 +6162,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 108,
+      "line": 115,
       "method": "POST",
       "path": "/v1/routing/speculative",
       "expected_surface": null,
@@ -5833,7 +6179,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 109,
+      "line": 116,
       "method": "GET",
       "path": "/v1/routing/speculative/analytics",
       "expected_surface": null,
@@ -5850,7 +6196,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 110,
+      "line": 117,
       "method": "POST",
       "path": "/v1/routing/speculative/simulate",
       "expected_surface": null,
@@ -5867,7 +6213,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 111,
+      "line": 118,
       "method": "POST",
       "path": "/v1/routing/council",
       "expected_surface": null,
@@ -5884,7 +6230,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 112,
+      "line": 119,
       "method": "GET",
       "path": "/v1/routing/council/analytics",
       "expected_surface": null,
@@ -5901,7 +6247,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 113,
+      "line": 120,
       "method": "POST",
       "path": "/v1/routing/shadow",
       "expected_surface": null,
@@ -5918,7 +6264,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 114,
+      "line": 121,
       "method": "GET",
       "path": "/v1/routing/circuit-breaker/status",
       "expected_surface": null,
@@ -5935,7 +6281,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 120,
+      "line": 127,
       "method": "GET",
       "path": "/v1/bt/templates",
       "expected_surface": null,
@@ -5952,7 +6298,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 121,
+      "line": 128,
       "method": "GET",
       "path": "/v1/bt/definitions",
       "expected_surface": null,
@@ -5969,7 +6315,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 122,
+      "line": 129,
       "method": "GET",
       "path": "/v1/bt/definitions/:id",
       "expected_surface": null,
@@ -5986,7 +6332,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 123,
+      "line": 130,
       "method": "POST",
       "path": "/v1/bt/definitions",
       "expected_surface": null,
@@ -6003,7 +6349,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 124,
+      "line": 131,
       "method": "DELETE",
       "path": "/v1/bt/definitions/:id",
       "expected_surface": null,
@@ -6020,7 +6366,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 130,
+      "line": 137,
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
@@ -6037,7 +6383,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 131,
+      "line": 138,
       "method": "GET",
       "path": "/v1/tasks/:id",
       "expected_surface": null,
@@ -6054,7 +6400,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 132,
+      "line": 139,
       "method": "GET",
       "path": "/v1/tasks",
       "expected_surface": null,
@@ -6071,7 +6417,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 133,
+      "line": 140,
       "method": "GET",
       "path": "/v1/tasks/:id/steps",
       "expected_surface": null,
@@ -6088,7 +6434,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 134,
+      "line": 141,
       "method": "POST",
       "path": "/v1/tasks/:id/cancel",
       "expected_surface": null,
@@ -6105,7 +6451,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 135,
+      "line": 142,
       "method": "GET",
       "path": "/v1/tasks/proof/readiness",
       "expected_surface": null,
@@ -6122,7 +6468,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 136,
+      "line": 143,
       "method": "POST",
       "path": "/v1/tasks/:id/proof/verify",
       "expected_surface": null,
@@ -6139,7 +6485,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 142,
+      "line": 149,
       "method": "POST",
       "path": "/v1/mcp",
       "expected_surface": null,
@@ -6156,7 +6502,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 148,
+      "line": 155,
       "method": "GET",
       "path": "/v1/health",
       "expected_surface": null,
@@ -6185,7 +6531,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 149,
+      "line": 156,
       "method": "GET",
       "path": "/v1/runtime/profile",
       "expected_surface": null,
@@ -6208,7 +6554,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 150,
+      "line": 157,
       "method": "POST",
       "path": "/v1/chat/completions",
       "expected_surface": null,
@@ -6249,7 +6595,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 151,
+      "line": 158,
       "method": "POST",
       "path": "/v1/plan",
       "expected_surface": null,
@@ -6266,7 +6612,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 152,
+      "line": 159,
       "method": "POST",
       "path": "/v1/reflect",
       "expected_surface": null,
@@ -6283,7 +6629,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 153,
+      "line": 160,
       "method": "POST",
       "path": "/v1/btree/validate",
       "expected_surface": null,
@@ -6300,7 +6646,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 154,
+      "line": 161,
       "method": "POST",
       "path": "/v1/btree/run",
       "expected_surface": null,
@@ -6317,7 +6663,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 155,
+      "line": 162,
       "method": "POST",
       "path": "/v1/btree/deploy",
       "expected_surface": null,
@@ -6334,7 +6680,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 156,
+      "line": 163,
       "method": "GET",
       "path": "/v1/btree/events",
       "expected_surface": null,
@@ -6351,7 +6697,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 157,
+      "line": 164,
       "method": "GET",
       "path": "/v1/lora/status",
       "expected_surface": null,
@@ -6374,7 +6720,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 158,
+      "line": 165,
       "method": "GET",
       "path": "/v1/memory/status",
       "expected_surface": null,
@@ -6397,7 +6743,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 159,
+      "line": 166,
       "method": "POST",
       "path": "/v1/memory/store",
       "expected_surface": null,
@@ -6414,7 +6760,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 160,
+      "line": 167,
       "method": "POST",
       "path": "/v1/memory/search",
       "expected_surface": null,
@@ -6431,7 +6777,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 161,
+      "line": 168,
       "method": "GET",
       "path": "/v1/memory/:key",
       "expected_surface": null,
@@ -6454,7 +6800,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 162,
+      "line": 169,
       "method": "GET",
       "path": "/v1/hitl/status",
       "expected_surface": null,
@@ -6471,7 +6817,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 163,
+      "line": 170,
       "method": "GET",
       "path": "/v1/hitl/requests",
       "expected_surface": null,
@@ -6488,7 +6834,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 164,
+      "line": 171,
       "method": "POST",
       "path": "/v1/hitl/request",
       "expected_surface": null,
@@ -6505,7 +6851,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 165,
+      "line": 172,
       "method": "POST",
       "path": "/v1/hitl/approve",
       "expected_surface": null,
@@ -6522,7 +6868,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 166,
+      "line": 173,
       "method": "POST",
       "path": "/v1/hitl/reject",
       "expected_surface": null,
@@ -6539,7 +6885,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 167,
+      "line": 174,
       "method": "GET",
       "path": "/v1/swarm/status",
       "expected_surface": null,
@@ -6556,7 +6902,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 168,
+      "line": 175,
       "method": "GET",
       "path": "/v1/swarm/agents",
       "expected_surface": null,
@@ -6573,7 +6919,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 169,
+      "line": 176,
       "method": "POST",
       "path": "/v1/swarm/join",
       "expected_surface": null,
@@ -6590,7 +6936,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 170,
+      "line": 177,
       "method": "POST",
       "path": "/v1/swarm/propose",
       "expected_surface": null,
@@ -6607,7 +6953,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 171,
+      "line": 178,
       "method": "POST",
       "path": "/v1/swarm/vote",
       "expected_surface": null,
@@ -6624,7 +6970,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 172,
+      "line": 179,
       "method": "GET",
       "path": "/v1/federated/status",
       "expected_surface": null,
@@ -6647,7 +6993,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 173,
+      "line": 180,
       "method": "POST",
       "path": "/v1/federated/update",
       "expected_surface": null,
@@ -6664,7 +7010,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 174,
+      "line": 181,
       "method": "GET",
       "path": "/v1/federated/model/latest",
       "expected_surface": null,
@@ -6681,7 +7027,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 175,
+      "line": 182,
       "method": "GET",
       "path": "/v1/federated/participants",
       "expected_surface": null,
@@ -6704,7 +7050,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 176,
+      "line": 183,
       "method": "POST",
       "path": "/v1/runtime/execute",
       "expected_surface": null,
@@ -6721,7 +7067,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 177,
+      "line": 184,
       "method": "GET",
       "path": "/v1/runtime/violations",
       "expected_surface": null,
@@ -6738,7 +7084,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 178,
+      "line": 185,
       "method": "POST",
       "path": "/v1/runtime/task/submit",
       "expected_surface": null,
@@ -6761,7 +7107,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 179,
+      "line": 186,
       "method": "POST",
       "path": "/v1/runtime/task/stream",
       "expected_surface": null,
@@ -6784,7 +7130,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 180,
+      "line": 187,
       "method": "POST",
       "path": "/v1/runtime/task/:task_id/cancel",
       "expected_surface": null,
@@ -6807,7 +7153,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 181,
+      "line": 188,
       "method": "GET",
       "path": "/v1/runtime/task/:task_id/wal",
       "expected_surface": null,
@@ -6824,7 +7170,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/api-reference/index.mdx",
-      "line": 182,
+      "line": 189,
       "method": "GET",
       "path": "/v1/runtime/agent/:id/state",
       "expected_surface": null,
@@ -7828,6 +8174,23 @@
           "method": "POST",
           "path": "/v1/infer",
           "file": "igris-overture/api/routes_infer.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/api-reference/introduction.mdx",
+      "line": 25,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "If you are wiring a new agent, start with the **Action Packs** section: list built-in packs, install the `starter` pack, then run `demo.echo` through **Actions** (`POST /v1/actions/:name/run`) or MCP `call_action`. Action Packs register safe actions — they do not execute raw tasks or ship live external connectors.",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
           "surface": "cloud-api"
         }
       ]
@@ -18175,7 +18538,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 13,
+      "line": 37,
       "method": "POST",
       "path": "/v1/tasks/submit",
       "expected_surface": null,
@@ -18192,11 +18555,113 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
-      "line": 181,
+      "line": 92,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "[GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs) and",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 93,
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "expected_surface": null,
+      "source": "[POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install).",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 213,
       "method": "GET",
       "path": "/v1/actions/runs/:id",
       "expected_surface": null,
-      "source": "Use `GET /v1/actions/runs/:id`, MCP `get_run`, or MCP `get_run_evidence` to",
+      "source": "Use `GET /v1/actions/runs/:id`, MCP `get_run`, MCP `get_run_evidence`, or",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/actions/runs/:id",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 232,
+      "method": "GET",
+      "path": "/v1/action-packs",
+      "expected_surface": null,
+      "source": "- [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "GET",
+          "path": "/v1/action-packs",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 233,
+      "method": "POST",
+      "path": "/v1/action-packs/:name/install",
+      "expected_surface": null,
+      "source": "- [POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/action-packs/:name/install",
+          "file": "igris-overture/api/routes_action_packs.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 234,
+      "method": "POST",
+      "path": "/v1/actions/:name/run",
+      "expected_surface": null,
+      "source": "- [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)",
+      "status": "implemented",
+      "evidence": [
+        {
+          "method": "POST",
+          "path": "/v1/actions/:name/run",
+          "file": "igris-overture/api/routes_actions.go",
+          "surface": "cloud-api"
+        }
+      ]
+    },
+    {
+      "file": "web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx",
+      "line": 235,
+      "method": "GET",
+      "path": "/v1/actions/runs/:id",
+      "expected_surface": null,
+      "source": "- [GET /v1/actions/runs/:id](/docs/api-reference/actions/get-v1-actions-runs-id)",
       "status": "implemented",
       "evidence": [
         {
