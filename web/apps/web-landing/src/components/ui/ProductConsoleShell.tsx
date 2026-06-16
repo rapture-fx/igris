@@ -17,7 +17,7 @@ export const PRODUCT_SHOWCASE_URLS = {
 function ProductBrowserChrome({ url }: { url: string }) {
   return (
     <div
-      className="flex items-center gap-2 border-b border-[var(--landing-surface-border)] bg-white px-3 py-2.5 dark:bg-dark-bg sm:gap-3 sm:px-4"
+      className="flex items-center gap-2 border-b border-[var(--landing-surface-border)] bg-[var(--landing-surface)] px-3 py-2.5 sm:gap-3 sm:px-4"
       style={{ fontFamily: SANS }}
     >
       <button
@@ -63,7 +63,7 @@ export default function ProductConsoleShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:bg-dark-bg dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]">
+    <div className="relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]">
       <ProductBrowserChrome url={url} />
       {children}
     </div>
