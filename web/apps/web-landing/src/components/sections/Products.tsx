@@ -476,13 +476,13 @@ function ConsoleStyles() {
       }
       .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 15px; }
       .igris-console .ic-wfall__tick {
-        flex: 1 1 0; min-width: 0; max-width: 2px; height: 36%;
-        border-radius: 0.5px; background: var(--ic-text-8); opacity: 0.3;
+        flex: 1 1 0; min-width: 0; max-width: 2px; height: 100%;
+        border-radius: 0.5px; background: var(--ic-text-8); opacity: 0.22;
       }
-      .igris-console .ic-wfall__tick--ok { height: 100%; opacity: 1; background: var(--ic-emerald); }
-      .igris-console .ic-wfall__tick--warn { height: 100%; opacity: 1; background: var(--ic-amber); }
-      .igris-console .ic-wfall__tick--bad { height: 100%; opacity: 1; background: var(--ic-rose); }
-      .igris-console .ic-wfall__tick--muted { height: 100%; opacity: 1; background: var(--ic-text-6); }
+      .igris-console .ic-wfall__tick--ok { opacity: 1; background: var(--ic-emerald); }
+      .igris-console .ic-wfall__tick--warn { opacity: 1; background: var(--ic-amber); }
+      .igris-console .ic-wfall__tick--bad { opacity: 1; background: var(--ic-rose); }
+      .igris-console .ic-wfall__tick--muted { opacity: 1; background: var(--ic-text-6); }
       .igris-console .ic-wfall__val { font-size: 10px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; text-align: right; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__axis { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; gap: 8px; margin-top: 3px; }
       .igris-console .ic-wfall__scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 9px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; font-family: var(--ic-mono); }
