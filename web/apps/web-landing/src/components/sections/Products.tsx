@@ -1052,7 +1052,7 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
   )
 }
 
-const EXECUTION_PROFILE_TICKS = 160
+const EXECUTION_PROFILE_TICKS = 256
 
 type ProfileTone = 'ok' | 'warn' | 'bad' | 'muted'
 
