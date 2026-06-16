@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Home, Search } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { BookOpen, Home, Search } from 'lucide-react'
 import { DOCS_LINKS } from '../../lib/docs-urls'
 
 const SANS =
@@ -16,24 +15,15 @@ export const PRODUCT_SHOWCASE_URLS = {
 } as const
 
 function ProductBrowserChrome({ url }: { url: string }) {
-  const { resolvedTheme } = useTheme()
-  const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
-
   return (
     <div
       className="flex items-center gap-2 sm:gap-3 border-b border-black/[0.06] bg-[#fafaf8] px-3 py-2.5 dark:border-white/[0.06] dark:bg-[#141210] sm:px-4"
       style={{ fontFamily: SANS }}
     >
-      <div className="hidden shrink-0 items-center gap-1.5 sm:flex" aria-hidden>
-        <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/90" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/90" />
-        <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/90" />
-      </div>
-
       <button
         type="button"
         aria-label="Home"
-        className="inline-flex h-7 w-7 shrink-0 cursor-default items-center justify-center rounded-md border border-black/[0.08] bg-white/70 text-gray-500 transition-colors hover:text-gray-700 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-[#8a8a7a] dark:hover:text-[#d3d2c8]"
+        className="inline-flex shrink-0 cursor-default items-center justify-center p-0 text-gray-500 transition-colors hover:text-gray-700 dark:text-[#8a8a7a] dark:hover:text-[#d3d2c8]"
       >
         <Home className="h-3.5 w-3.5" strokeWidth={1.75} />
       </button>
@@ -56,10 +46,10 @@ function ProductBrowserChrome({ url }: { url: string }) {
         href={DOCS_LINKS.home}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-black/[0.08] bg-white/70 px-2 py-1 text-[10px] font-medium text-gray-600 transition-opacity hover:opacity-80 dark:border-white/[0.1] dark:bg-white/[0.04] dark:text-[#c8c8b8]"
+        className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-medium text-gray-600 transition-opacity hover:opacity-80 dark:text-[#c8c8b8]"
         aria-label="Open documentation"
       >
-        <img src={logoSrc} alt="" width={14} height={14} className="block rounded-[3px] select-none" draggable={false} />
+        <BookOpen className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
         <span className="hidden sm:inline">Docs</span>
       </a>
     </div>
