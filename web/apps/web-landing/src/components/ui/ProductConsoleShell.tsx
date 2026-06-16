@@ -63,13 +63,9 @@ export default function ProductConsoleShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative overflow-hidden rounded-[18px] bg-black/[0.03] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:bg-white/[0.02] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
+    <div className="relative overflow-hidden rounded-lg border border-black/[0.08] bg-black/[0.02] dark:border-white/[0.08] dark:bg-white/[0.02]">
       <ProductBrowserChrome url={url} />
-      <div className="p-[6px] pt-[4px]">
-        <div className="relative rounded-[14px] bg-black/[0.04] p-[4px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:bg-white/[0.025] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-          {children}
-        </div>
-      </div>
+      {children}
     </div>
   )
 }

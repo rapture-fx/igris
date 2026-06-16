@@ -133,7 +133,7 @@ export function ExecutionPreview({
       <div
         className={
           'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-          'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
+          'relative overflow-hidden'
         }
         style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
       >
@@ -1288,7 +1288,7 @@ function ProductShowcaseTabs() {
           </div>
         ) : (
           // Reserve the framed console height so nothing jumps before reveal.
-          <div aria-hidden style={{ height: 704 }} />
+          <div aria-hidden style={{ height: 684 }} />
         )}
       </div>
     </div>
