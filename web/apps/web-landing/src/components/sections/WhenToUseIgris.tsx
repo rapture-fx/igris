@@ -198,67 +198,45 @@ const VISUALS = [SideEffectsVisual, ProofVisual, HybridVisual, BoundariesVisual]
 const CARD_BASE =
   'landing-surface-card flex w-full max-w-md flex-col rounded-xl border p-6 text-left transition-all duration-300 md:p-8 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-[2px] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]'
 
-const SCROLL_STEP_VH = 72
-const STICKY_TOP_PX = 80
-
 export default function WhenToUseIgris() {
   const [activeIndex, setActiveIndex] = useState(0)
-  const scrollTrackRef = useRef<HTMLDivElement>(null)
-  const clickOverrideRef = useRef(false)
+  const cardRefs = useRef<(HTMLElement | null)[]>([])
+  const clickLockRef = useRef(false)
+  const clickLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const track = scrollTrackRef.current
-    if (!track) return
+    const observers: IntersectionObserver[] = []
 
-    const syncActiveFromScroll = () => {
-      if (clickOverrideRef.current) return
-
-      const desktop = window.matchMedia('(min-width: 1024px)').matches
-      if (!desktop) return
-
-      const rect = track.getBoundingClientRect()
-      const viewport = window.innerHeight
-      const scrollable = track.offsetHeight - (viewport - STICKY_TOP_PX)
-      if (scrollable <= 0) return
-
-      const scrolled = Math.min(Math.max(-rect.top, 0), scrollable)
-      const ratio = scrolled / scrollable
-      const nextIndex = Math.min(
-        cards.length - 1,
-        Math.max(0, Math.floor(ratio * cards.length)),
+    cardRefs.current.forEach((el, index) => {
+      if (!el) return
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && !clickLockRef.current) {
+            setActiveIndex(index)
+          }
+        },
+        { rootMargin: '-40% 0px -40% 0px', threshold: 0.01 },
       )
-      setActiveIndex((current) => (current === nextIndex ? current : nextIndex))
-    }
+      observer.observe(el)
+      observers.push(observer)
+    })
 
-    syncActiveFromScroll()
-    window.addEventListener('scroll', syncActiveFromScroll, { passive: true })
-    window.addEventListener('resize', syncActiveFromScroll)
+    return () => observers.forEach((observer) => observer.disconnect())
+  }, [])
 
+  useEffect(() => {
     return () => {
-      window.removeEventListener('scroll', syncActiveFromScroll)
-      window.removeEventListener('resize', syncActiveFromScroll)
+      if (clickLockTimerRef.current) clearTimeout(clickLockTimerRef.current)
     }
   }, [])
 
   const activateCard = (index: number) => {
     setActiveIndex(index)
-
-    const track = scrollTrackRef.current
-    const desktop = window.matchMedia('(min-width: 1024px)').matches
-    if (!track || !desktop) return
-
-    const rect = track.getBoundingClientRect()
-    const trackTop = window.scrollY + rect.top
-    const viewport = window.innerHeight
-    const scrollable = Math.max(track.offsetHeight - (viewport - STICKY_TOP_PX), 1)
-    const segment = scrollable / cards.length
-    const target = trackTop + segment * index + segment * 0.35
-
-    clickOverrideRef.current = true
-    window.scrollTo({ top: target, behavior: 'smooth' })
-    window.setTimeout(() => {
-      clickOverrideRef.current = false
-    }, 700)
+    clickLockRef.current = true
+    if (clickLockTimerRef.current) clearTimeout(clickLockTimerRef.current)
+    clickLockTimerRef.current = setTimeout(() => {
+      clickLockRef.current = false
+    }, 900)
   }
 
   const ActiveVisual = VISUALS[activeIndex]
@@ -282,7 +260,7 @@ export default function WhenToUseIgris() {
         }
       `}</style>
 
-      <div className="pt-10 md:pt-14 pb-12 md:pb-16">
+      <div className="pt-10 md:pt-14 pb-20 md:pb-32">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-8">
           <h2
             id="when-to-use-heading"
@@ -311,48 +289,42 @@ export default function WhenToUseIgris() {
           </p>
         </div>
 
-        <div
-          ref={scrollTrackRef}
-          className="relative mt-12 md:mt-16 lg:[height:calc(var(--wtu-steps)*var(--wtu-step-vh)*1vh)]"
-          style={{
-            ['--wtu-steps' as string]: String(cards.length),
-            ['--wtu-step-vh' as string]: String(SCROLL_STEP_VH),
-          }}
-        >
-          <div className="lg:sticky lg:top-20 lg:flex lg:min-h-[calc(100vh-5rem)] lg:items-center">
-            <div className="relative w-full overflow-hidden rounded-xl">
-              <div
-                className="absolute inset-0 bg-center bg-no-repeat bg-cover"
-                style={{ backgroundImage: 'url(/pkrllgol.png)' }}
-                aria-hidden
-              />
-              <div className="absolute inset-0 bg-white/55 dark:bg-[#110f0f]/50" aria-hidden />
+        <div className="relative mt-12 overflow-hidden rounded-xl md:mt-16">
+          <div
+            className="absolute inset-0 bg-center bg-no-repeat bg-cover"
+            style={{ backgroundImage: 'url(/pkrllgol.png)' }}
+            aria-hidden
+          />
+          <div className="absolute inset-0 bg-white/55 dark:bg-[#110f0f]/50" aria-hidden />
 
-              <div className="relative z-10 grid grid-cols-1 gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-center lg:gap-10 lg:p-10">
-                <div className="flex flex-col items-start gap-3 md:gap-4">
-                  {cards.map((card, index) => {
-                    const isActive = activeIndex === index
-                    return (
-                      <article
-                        key={card.id}
-                        role="button"
-                        tabIndex={0}
-                        aria-pressed={isActive}
-                        onClick={() => activateCard(index)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault()
-                            activateCard(index)
-                          }
-                        }}
-                        className={
-                          CARD_BASE +
-                          ' cursor-pointer hover:border-[var(--landing-surface-border-strong)] ' +
-                          (isActive
-                            ? 'border-emerald-700/35 bg-white/80 ring-1 ring-emerald-700/20 dark:border-emerald-400/35 dark:bg-[#161515]/85 dark:ring-emerald-400/20'
-                            : 'border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/88 opacity-80')
-                        }
-                      >
+          <div className="relative z-10 grid grid-cols-1 gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-start lg:gap-10 lg:p-10">
+            <div className="flex flex-col items-start gap-3 md:gap-4">
+              {cards.map((card, index) => {
+                const isActive = activeIndex === index
+                return (
+                  <article
+                    key={card.id}
+                    ref={(el) => {
+                      cardRefs.current[index] = el
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isActive}
+                    onClick={() => activateCard(index)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        activateCard(index)
+                      }
+                    }}
+                    className={
+                      CARD_BASE +
+                      ' cursor-pointer hover:border-[var(--landing-surface-border-strong)] ' +
+                      (isActive
+                        ? 'border-emerald-700/35 bg-white/80 ring-1 ring-emerald-700/20 dark:border-emerald-400/35 dark:bg-[#161515]/85 dark:ring-emerald-400/20'
+                        : 'border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/88 opacity-80')
+                    }
+                  >
                     <p
                       className="text-gray-400 dark:text-[#7a7a72]"
                       style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.06em' }}
@@ -382,35 +354,33 @@ export default function WhenToUseIgris() {
                       {card.body}
                     </p>
                   </article>
-                    )
-                  })}
-                </div>
+                )
+              })}
+            </div>
 
-                <div className="lg:self-center">
-                  <div
-                    className="landing-surface-card rounded-xl border border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/92 p-5 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-md dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)] md:p-6"
-                    aria-live="polite"
-                    aria-atomic="true"
-                  >
-                    <p
-                      className="mb-4 text-gray-500 dark:text-[#8a8a7a]"
-                      style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.14em' }}
-                    >
-                      {cards[activeIndex].fig}
-                    </p>
-                    <div className="relative min-h-[220px] md:min-h-[260px]">
-                      <div key={activeIndex} className="wtu-visual is-active absolute inset-0">
-                        <ActiveVisual />
-                      </div>
-                    </div>
-                    <p
-                      className="mt-4 text-gray-600 dark:text-[#a8a898]"
-                      style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.5 }}
-                    >
-                      {cards[activeIndex].title}
-                    </p>
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <div
+                className="landing-surface-card rounded-xl border border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/92 p-5 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-md dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)] md:p-6"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <p
+                  className="mb-4 text-gray-500 dark:text-[#8a8a7a]"
+                  style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.14em' }}
+                >
+                  {cards[activeIndex].fig}
+                </p>
+                <div className="relative min-h-[220px] md:min-h-[260px]">
+                  <div key={activeIndex} className="wtu-visual is-active absolute inset-0">
+                    <ActiveVisual />
                   </div>
                 </div>
+                <p
+                  className="mt-4 text-gray-600 dark:text-[#a8a898]"
+                  style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.5 }}
+                >
+                  {cards[activeIndex].title}
+                </p>
               </div>
             </div>
           </div>
