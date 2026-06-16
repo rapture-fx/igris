@@ -22,6 +22,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
+import { LandingSurfaceFrame } from '../ui/ProductConsoleShell'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -361,33 +362,28 @@ function CodeWindow() {
 
   return (
     <div className="ae-window-wrap">
-      {/* Layered bezel — same treatment as the Products ExecutionPreview */}
-      <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-        <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-          <div className="ae-window shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
-            {/* Title bar: window dots · active filename · language dropdown */}
-            <div className="ae-bar">
-              <div className="ae-dots" aria-hidden>
-                <span className="ae-dot" /><span className="ae-dot" /><span className="ae-dot" />
-              </div>
-              <span className="ae-bar-label" style={{ fontFamily: MONO }}>{active.file}</span>
-              <LangDropdown lang={lang} onChange={setLang} />
+      <LandingSurfaceFrame>
+        <div className="ae-window">
+          <div className="ae-bar">
+            <div className="ae-dots" aria-hidden>
+              <span className="ae-dot" /><span className="ae-dot" /><span className="ae-dot" />
             </div>
+            <span className="ae-bar-label" style={{ fontFamily: MONO }}>{active.file}</span>
+            <LangDropdown lang={lang} onChange={setLang} />
+          </div>
 
-            {/* Code pane — tall editor surface */}
-            <div className="ae-pane ae-pane--req">
-              <Gutter count={active.lines.length} />
-              <pre className="ae-code" style={{ fontFamily: MONO }} tabIndex={0} aria-label={`${active.label} example`}>
-                <code>
-                  {active.lines.map((ln, i) => (
-                    <span key={i} className="ae-ln">{highlight(ln, active.id)}</span>
-                  ))}
-                </code>
-              </pre>
-            </div>
+          <div className="ae-pane ae-pane--req">
+            <Gutter count={active.lines.length} />
+            <pre className="ae-code" style={{ fontFamily: MONO }} tabIndex={0} aria-label={`${active.label} example`}>
+              <code>
+                {active.lines.map((ln, i) => (
+                  <span key={i} className="ae-ln">{highlight(ln, active.id)}</span>
+                ))}
+              </code>
+            </pre>
           </div>
         </div>
-      </div>
+      </LandingSurfaceFrame>
     </div>
   )
 }
@@ -484,8 +480,8 @@ function EndpointStyles() {
 
       /* ── Code window (inner panel inside the layered bezel) ── */
       .ae-window {
-        --p-panel: #f7f7f5;
-        --p-bar: #f2f1ee;
+        --p-panel: #f9f9fa;
+        --p-bar: #f9f9fa;
         --p-border: rgba(0,0,0,0.09);
         --p-border-soft: rgba(0,0,0,0.06);
         --p-text: #1b1912;
@@ -497,12 +493,12 @@ function EndpointStyles() {
         --p-overlay: rgba(0,0,0,0.025);
         --p-dot: rgba(0,0,0,0.16);
         position: relative; overflow: hidden;
-        border-radius: 10px;
+        border-radius: 0;
         background: var(--p-panel);
       }
       html.dark .ae-window {
-        --p-panel: #0e0e0c;
-        --p-bar: #070707;
+        --p-panel: #161515;
+        --p-bar: #161515;
         --p-border: rgba(255,255,255,0.07);
         --p-border-soft: rgba(255,255,255,0.045);
         --p-text: #b0ada5;
@@ -655,8 +651,8 @@ function EndpointStyles() {
         max-width: none;
       }
       html.dark .ae-worker-callout {
-        background: rgba(22, 21, 21, 0.55);
-        border-color: rgba(246, 246, 244, 0.1);
+        background: var(--landing-surface);
+        border-color: var(--landing-surface-border);
       }
       .ae-worker-heading { margin: 0; }
       .ae-worker-body { margin: 0; }
@@ -673,13 +669,9 @@ function EndpointStyles() {
         min-width: 0;
         width: 100%;
         border-radius: 10px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        background: #f7f7f5;
+        border: 1px solid var(--landing-surface-border);
+        background: var(--landing-surface);
         overflow: hidden;
-      }
-      html.dark .ae-worker-terminal {
-        border-color: rgba(255, 255, 255, 0.07);
-        background: #0e0e0c;
       }
       .ae-worker-code {
         display: flex;

@@ -18,6 +18,7 @@ import { useTheme } from 'next-themes'
 import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
+import { LandingSurfaceFrame } from '../ui/ProductConsoleShell'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -159,7 +160,7 @@ function IconRail() {
   const logoSrc = mounted && resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
-    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
+    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
         <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
@@ -428,17 +429,15 @@ export function RunActivityMapConsole() {
   // inner igris-console element generates no box (`display: contents`) — so the
   // only card inside the frame is the map itself (no solid dark screen layer).
   return (
-    <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-      <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-        <div
-          className={'igris-console ' + (isLight ? 'igris-console--light ' : '')}
-          style={{ display: 'contents', fontFamily: SANS, color: 'var(--ic-text)' }}
-        >
-          <OverviewConsoleStyles />
-          <RunActivityMap />
-        </div>
+    <LandingSurfaceFrame>
+      <div
+        className={'igris-console ' + (isLight ? 'igris-console--light ' : '')}
+        style={{ display: 'contents', fontFamily: SANS, color: 'var(--ic-text)' }}
+      >
+        <OverviewConsoleStyles />
+        <RunActivityMap />
       </div>
-    </div>
+    </LandingSurfaceFrame>
   )
 }
 
@@ -448,33 +447,31 @@ export default function OverviewConsole() {
   useEffect(() => setMounted(true), [])
   const isLight = mounted && resolvedTheme === 'light'
   return (
-    <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-      <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-        <div
-          className={
-            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
-          }
-          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
-        >
-          <OverviewConsoleStyles />
-          <div className="grid" style={{ gridTemplateColumns: '40px 1fr', height: 640 }}>
-            <IconRail />
-            <div className="flex flex-col min-h-0">
-              <OverviewTopBar />
-              <div className="ic-scroll flex-1 overflow-y-auto px-5 py-4 min-h-0">
-                <div className="ic-workspace-layout">
-                  <div className="ic-workspace-feed">
-                    <RunActivityMap />
-                  </div>
-                  <WorkspacePanel />
+    <LandingSurfaceFrame>
+      <div
+        className={
+          'igris-console ' + (isLight ? 'igris-console--light ' : '') +
+          'relative overflow-hidden'
+        }
+        style={{ fontFamily: SANS, background: 'var(--landing-surface)', color: 'var(--ic-text)' }}
+      >
+        <OverviewConsoleStyles />
+        <div className="grid" style={{ gridTemplateColumns: '40px 1fr', height: 640 }}>
+          <IconRail />
+          <div className="flex flex-col min-h-0">
+            <OverviewTopBar />
+            <div className="ic-scroll flex-1 overflow-y-auto px-5 py-4 min-h-0">
+              <div className="ic-workspace-layout">
+                <div className="ic-workspace-feed">
+                  <RunActivityMap />
                 </div>
+                <WorkspacePanel />
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </LandingSurfaceFrame>
   )
 }
 
@@ -483,7 +480,7 @@ function OverviewConsoleStyles() {
     <style>{`
       .igris-console {
         color-scheme: dark;
-        --ic-bg: #0e0e0c; --ic-bg-rail: #070707;
+        --ic-bg: #161515; --ic-bg-rail: #161515;
         --ic-text: #b0ada5; --ic-text-bright: #d3d2c8; --ic-text-2: #a8a89e;
         --ic-text-3: #9a978f; --ic-text-4: #8a8a82; --ic-text-5: #7a7a72;
         --ic-text-6: #6a6a62; --ic-text-7: #5a5a52; --ic-text-8: #4a4a42; --ic-text-9: #3a3a32;
@@ -493,7 +490,7 @@ function OverviewConsoleStyles() {
         --ic-overlay-1: rgba(255,255,255,0.02); --ic-overlay-2: rgba(255,255,255,0.025);
         --ic-overlay-3: rgba(255,255,255,0.03); --ic-overlay-4: rgba(255,255,255,0.045);
         --ic-overlay-5: rgba(255,255,255,0.06); --ic-overlay-bg: rgba(255,255,255,0.015);
-        --ic-rail-active: #d3d2c8; --ic-dot-border: #070707;
+        --ic-rail-active: #d3d2c8; --ic-dot-border: #161515;
         --ic-accent: #0f835c; --ic-emerald: #0f835c; --ic-amber: #cf9a45; --ic-rose: #9d4b57;
         --ic-mono: ${MONO};
         --ic-rm-verified: #4f9bd9; --ic-rm-completed: #5cb85c; --ic-rm-recovered: #9fce6a;
@@ -501,7 +498,7 @@ function OverviewConsoleStyles() {
       }
       .igris-console.igris-console--light {
         color-scheme: light;
-        --ic-bg: #f7f7f5; --ic-bg-rail: #f2f1ee;
+        --ic-bg: #f9f9fa; --ic-bg-rail: #f9f9fa;
         --ic-text: #1b1912; --ic-text-bright: #000000; --ic-text-2: #2a2820;
         --ic-text-3: #3a3830; --ic-text-4: #3a3830; --ic-text-5: #4a4740;
         --ic-text-6: #5a574e; --ic-text-7: #6e6b62; --ic-text-8: #84817a; --ic-text-9: #b0ada5;
@@ -511,7 +508,7 @@ function OverviewConsoleStyles() {
         --ic-overlay-1: rgba(0,0,0,0.025); --ic-overlay-2: rgba(0,0,0,0.03);
         --ic-overlay-3: rgba(0,0,0,0.035); --ic-overlay-4: rgba(0,0,0,0.05);
         --ic-overlay-5: rgba(0,0,0,0.07); --ic-overlay-bg: rgba(0,0,0,0.02);
-        --ic-rail-active: #1b1912; --ic-dot-border: #f2f1ee;
+        --ic-rail-active: #1b1912; --ic-dot-border: #f9f9fa;
         --ic-accent: #047857; --ic-emerald: #047857; --ic-amber: #b45309; --ic-rose: #be123c;
         --ic-mono: ${MONO};
         --ic-rm-verified: #3f8fd0; --ic-rm-completed: #5cb85c; --ic-rm-recovered: #b6df7e;
@@ -584,7 +581,7 @@ function OverviewConsoleStyles() {
       /* Map-only surface: use the same solid console background as the product
          section design (var(--ic-bg)) instead of the translucent overlay, so it
          doesn't look darker/grey in light mode. */
-      .igris-console .ic-runmap--flush { margin: 0; background: var(--ic-bg); }
+      .igris-console .ic-runmap--flush { margin: 0; background: var(--landing-surface); }
       .igris-console .ic-runmap__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
       .igris-console .ic-runmap__title { display: block; font-size: 13px; font-weight: 600; color: var(--ic-text); letter-spacing: .01em; }
       .igris-console .ic-runmap__sub { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ic-text-5); max-width: 64ch; line-height: 1.5; }
