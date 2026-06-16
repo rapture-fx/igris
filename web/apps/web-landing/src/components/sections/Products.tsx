@@ -6,6 +6,7 @@ import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
+import ProductConsoleShell, { PRODUCT_SHOWCASE_URLS } from '../ui/ProductConsoleShell'
 import { RunActivityMapConsole } from './OverviewConsole'
 import {
   LANDING_PRODUCT_REVEAL_EVENT,
@@ -114,7 +115,13 @@ const PROJECTS: ProjectGroup[] = [
 // `frozen` renders the same run-detail surface in a static state — the
 // committed-actions log shows all steps at once (no reveal/cycle animation), so
 // the layout sits still on the full Execution profile. Used by the Recover tab.
-export function ExecutionPreview({ frozen = false }: { frozen?: boolean }) {
+export function ExecutionPreview({
+  frozen = false,
+  url = PRODUCT_SHOWCASE_URLS.run,
+}: {
+  frozen?: boolean
+  url?: string
+}) {
   const { resolvedTheme } = useTheme()
   // Read the resolved theme directly (no `mounted` gate): this panel only
   // mounts after the skeleton/intersection gate, so the theme is already known
@@ -122,28 +129,22 @@ export function ExecutionPreview({ frozen = false }: { frozen?: boolean }) {
   const isLight = resolvedTheme === 'light'
   const [query, setQuery] = useState('')
   return (
-    <div
-      className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]"
-    >
+    <ProductConsoleShell url={url}>
       <div
-        className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]"
+        className={
+          'igris-console ' + (isLight ? 'igris-console--light ' : '') +
+          'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
+        }
+        style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
       >
-        <div
-          className={
-            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
-          }
-          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
-        >
-          <ConsoleStyles />
-          <div className="grid ic-shell">
-            <IconRail />
-            <Sidebar query={query} setQuery={setQuery} />
-            <Main frozen={frozen} />
-          </div>
+        <ConsoleStyles />
+        <div className="grid ic-shell">
+          <IconRail />
+          <Sidebar query={query} setQuery={setQuery} />
+          <Main frozen={frozen} />
         </div>
       </div>
-    </div>
+    </ProductConsoleShell>
   )
 }
 
@@ -1279,13 +1280,15 @@ function ProductShowcaseTabs() {
           // No wrapper fade: it would paint the first frame at opacity 0 and
           // flash empty space (the "blink"). Instant swap, internal motion only.
           <div key={tab}>
-            {tab === 'run' && <ExecutionPreview />}
-            {tab === 'recover' && <ExecutionPreview frozen />}
-            {tab === 'prove' && <RunsConsole />}
+            {tab === 'run' && <ExecutionPreview url={PRODUCT_SHOWCASE_URLS.run} />}
+            {tab === 'recover' && (
+              <ExecutionPreview frozen url={PRODUCT_SHOWCASE_URLS.recover} />
+            )}
+            {tab === 'prove' && <RunsConsole url={PRODUCT_SHOWCASE_URLS.prove} />}
           </div>
         ) : (
           // Reserve the framed console height so nothing jumps before reveal.
-          <div aria-hidden style={{ height: 660 }} />
+          <div aria-hidden style={{ height: 704 }} />
         )}
       </div>
     </div>
