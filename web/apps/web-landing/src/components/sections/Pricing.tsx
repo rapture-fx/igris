@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import {
   BillingInterval,
   PRICING_TIERS,
@@ -44,6 +44,8 @@ const PIXEL_COMPARE_STYLE: React.CSSProperties = {
   letterSpacing: '-0.01em',
 };
 
+const PRICE_DIGIT_LINE = 1.1;
+
 function parsePriceAmount(price: string): number | null {
   if (!price.startsWith('$')) return null;
   const amount = Number(price.replace(/[$,]/g, ''));
@@ -52,6 +54,125 @@ function parsePriceAmount(price: string): number | null {
 
 function formatPriceAmount(amount: number): string {
   return amount >= 1000 ? `$${amount.toLocaleString('en-US')}` : `$${amount}`;
+}
+
+function alignDigits(from: number, to: number) {
+  const fromDigits = from.toString().split('');
+  const toDigits = to.toString().split('');
+  const width = Math.max(fromDigits.length, toDigits.length);
+  const pad = (digits: string[]) => {
+    const padding = width - digits.length;
+    return [...Array(padding).fill(null), ...digits];
+  };
+
+  return { from: pad(fromDigits), to: pad(toDigits), width };
+}
+
+function digitOffset(digit: number | null) {
+  return digit === null ? 0 : `calc(${-digit} * ${PRICE_DIGIT_LINE}em)`;
+}
+
+function RollingDigit({
+  fromDigit,
+  toDigit,
+  animate,
+}: {
+  fromDigit: number | null;
+  toDigit: number | null;
+  animate: boolean;
+}) {
+  const reducedMotion = useReducedMotion();
+  const shouldAnimate = animate && !reducedMotion;
+
+  if (toDigit === null && fromDigit === null) {
+    return null;
+  }
+
+  if (toDigit === null) {
+    return (
+      <motion.span
+        className="inline-block overflow-hidden align-baseline"
+        initial={false}
+        animate={{ width: 0, opacity: 0 }}
+        transition={{
+          duration: shouldAnimate ? PRICE_FADE_DURATION : 0,
+          ease: MOTION_EASE,
+        }}
+        aria-hidden
+      />
+    );
+  }
+
+  return (
+    <span
+      className="price-number-container"
+      style={{
+        height: `${PRICE_DIGIT_LINE}em`,
+        width: '0.62em',
+      }}
+      aria-hidden
+    >
+      <motion.span
+        className="price-number"
+        initial={{ y: digitOffset(shouldAnimate ? fromDigit : toDigit) }}
+        animate={{ y: digitOffset(toDigit) }}
+        transition={
+          shouldAnimate
+            ? { duration: PRICE_COUNT_DURATION, ease: MOTION_EASE }
+            : { duration: 0 }
+        }
+      >
+        {Array.from({ length: 10 }, (_, value) => (
+          <span
+            key={value}
+            className="block w-full text-center tabular-nums"
+            style={{
+              height: `${PRICE_DIGIT_LINE}em`,
+              lineHeight: `${PRICE_DIGIT_LINE}em`,
+            }}
+          >
+            {value}
+          </span>
+        ))}
+      </motion.span>
+    </span>
+  );
+}
+
+function RollingPriceValue({
+  amount,
+  fromAmount,
+  animate,
+}: {
+  amount: number;
+  fromAmount: number;
+  animate: boolean;
+}) {
+  const reducedMotion = useReducedMotion();
+  const formatted = formatPriceAmount(amount);
+  const { from, to, width } = alignDigits(fromAmount, amount);
+
+  return (
+    <motion.span
+      layout="position"
+      className="inline-flex items-baseline text-gray-700 dark:text-[#c8c8b8] tabular-nums"
+      style={PIXEL_PRICE_STYLE}
+      initial={reducedMotion ? false : { opacity: 0.9, y: 2 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+      aria-label={formatted}
+    >
+      <span aria-hidden>$</span>
+      {to.map((digitChar, index) => (
+        <RollingDigit
+          key={`slot-${width - index}`}
+          fromDigit={from[index] === null ? null : Number(from[index])}
+          toDigit={digitChar === null ? null : Number(digitChar)}
+          animate={animate}
+        />
+      ))}
+    </motion.span>
+  );
 }
 
 function AnimatedPriceValue({
@@ -63,29 +184,27 @@ function AnimatedPriceValue({
   tierKey: PricingTierKey;
   interval: BillingInterval;
 }) {
-  const reducedMotion = useReducedMotion();
   const amount = parsePriceAmount(price);
-  const [shown, setShown] = useState(price);
+  const [rollState, setRollState] = useState<{
+    amount: number;
+    fromAmount: number;
+    animate: boolean;
+  } | null>(null);
   const prevAmountRef = useRef<number | null>(amount);
   const initializedRef = useRef(false);
 
   useEffect(() => {
     if (amount === null) {
-      setShown(price);
+      setRollState(null);
       prevAmountRef.current = null;
+      initializedRef.current = false;
       return;
     }
 
     if (!initializedRef.current) {
       initializedRef.current = true;
       prevAmountRef.current = amount;
-      setShown(formatPriceAmount(amount));
-      return;
-    }
-
-    if (reducedMotion) {
-      prevAmountRef.current = amount;
-      setShown(formatPriceAmount(amount));
+      setRollState({ amount, fromAmount: amount, animate: false });
       return;
     }
 
@@ -93,30 +212,34 @@ function AnimatedPriceValue({
     prevAmountRef.current = amount;
 
     if (from === amount) {
-      setShown(formatPriceAmount(amount));
+      setRollState({ amount, fromAmount: amount, animate: false });
       return;
     }
 
-    const controls = animate(from, amount, {
-      duration: PRICE_COUNT_DURATION,
-      ease: MOTION_EASE,
-      onUpdate: (value) => setShown(formatPriceAmount(Math.round(value))),
-    });
+    setRollState({ amount, fromAmount: from, animate: true });
+  }, [amount, interval, price, tierKey]);
 
-    return () => controls.stop();
-  }, [amount, interval, price, reducedMotion, tierKey]);
+  if (amount === null || rollState === null) {
+    return (
+      <motion.span
+        layout="position"
+        className="text-gray-700 dark:text-[#c8c8b8] tabular-nums"
+        style={PIXEL_PRICE_STYLE}
+        initial={false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+      >
+        {price}
+      </motion.span>
+    );
+  }
 
   return (
-    <motion.span
-      layout="position"
-      className="text-gray-700 dark:text-[#c8c8b8] tabular-nums"
-      style={PIXEL_PRICE_STYLE}
-      initial={reducedMotion ? false : { opacity: 0.9, y: 2 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
-    >
-      {shown}
-    </motion.span>
+    <RollingPriceValue
+      amount={rollState.amount}
+      fromAmount={rollState.fromAmount}
+      animate={rollState.animate}
+    />
   );
 }
 
