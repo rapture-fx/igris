@@ -37,8 +37,8 @@ const cards = [
 
 function figWrap(children: React.ReactNode) {
   return (
-    <div className="w-full text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: MONO }}>
-      <svg viewBox="0 0 360 240" className="h-full w-full" preserveAspectRatio="xMidYMid meet">
+    <div className="flex h-full w-full items-center justify-center text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: MONO }}>
+      <svg viewBox="0 0 360 240" className="h-full w-full max-h-[420px] min-h-[280px]" preserveAspectRatio="xMidYMid meet">
         {children}
       </svg>
     </div>
@@ -297,7 +297,7 @@ export default function WhenToUseIgris() {
           />
           <div className="absolute inset-0 bg-white/55 dark:bg-[#110f0f]/50" aria-hidden />
 
-          <div className="relative z-10 grid grid-cols-1 gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-start lg:gap-10 lg:p-10">
+          <div className="relative z-10 grid grid-cols-1 gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,540px)] lg:items-center lg:gap-12 lg:p-10 lg:py-12">
             <div className="flex flex-col items-start gap-3 md:gap-4">
               {cards.map((card, index) => {
                 const isActive = activeIndex === index
@@ -358,26 +358,26 @@ export default function WhenToUseIgris() {
               })}
             </div>
 
-            <div className="lg:sticky lg:top-24 lg:self-start">
+            <div className="flex w-full items-center justify-center lg:sticky lg:top-24 lg:self-center">
               <div
-                className="landing-surface-card rounded-xl border border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/92 p-5 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-md dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)] md:p-6"
+                className="landing-surface-card flex w-full flex-col rounded-xl border border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/92 p-6 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-md dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)] md:p-8"
                 aria-live="polite"
                 aria-atomic="true"
               >
                 <p
-                  className="mb-4 text-gray-500 dark:text-[#8a8a7a]"
-                  style={{ fontFamily: MONO, fontSize: '10px', letterSpacing: '0.14em' }}
+                  className="mb-5 text-center text-gray-500 dark:text-[#8a8a7a] lg:mb-6"
+                  style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.14em' }}
                 >
                   {cards[activeIndex].fig}
                 </p>
-                <div className="relative min-h-[220px] md:min-h-[260px]">
-                  <div key={activeIndex} className="wtu-visual is-active absolute inset-0">
+                <div className="relative flex min-h-[300px] items-center justify-center md:min-h-[360px] lg:min-h-[420px]">
+                  <div key={activeIndex} className="wtu-visual is-active absolute inset-0 flex items-center justify-center">
                     <ActiveVisual />
                   </div>
                 </div>
                 <p
-                  className="mt-4 text-gray-600 dark:text-[#a8a898]"
-                  style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.5 }}
+                  className="mt-5 text-center text-gray-600 dark:text-[#a8a898] lg:mt-6"
+                  style={{ fontFamily: SANS, fontSize: 'clamp(1rem, 1.1vw, 1.1rem)', lineHeight: 1.5 }}
                 >
                   {cards[activeIndex].title}
                 </p>
