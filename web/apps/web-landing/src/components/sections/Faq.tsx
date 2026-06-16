@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { LandingSurfaceFrame } from '../ui/ProductConsoleShell'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -185,9 +186,8 @@ export default function Faq({ large = false }: { large?: boolean }) {
           </h2>
 
           <div className="mt-10 md:mt-12">
-            <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-              <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-                <div className="relative overflow-hidden rounded-[10px] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
+            <LandingSurfaceFrame>
+              <div className="landing-surface-panel overflow-hidden">
                   {faqSections.map((section, sectionIndex) => {
                     const isOpen = openSectionIndex === sectionIndex
                     const isLast = sectionIndex === faqSections.length - 1
@@ -195,7 +195,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
                     return (
                       <div
                         key={section.title}
-                        className={!isLast ? 'border-b border-black/[0.06] dark:border-white/[0.06]' : ''}
+                        className={!isLast ? 'border-b border-[var(--landing-surface-border)]' : ''}
                       >
                         <button
                           type="button"
@@ -229,11 +229,11 @@ export default function Faq({ large = false }: { large?: boolean }) {
                             isOpen ? 'max-h-[3000px]' : 'max-h-0'
                           }`}
                         >
-                          <div className="px-6 md:px-8 pt-2 pb-6 md:pb-8 space-y-5 border-t border-black/[0.06] dark:border-white/[0.06]">
+                          <div className="px-6 md:px-8 pt-2 pb-6 md:pb-8 space-y-5 border-t border-[var(--landing-surface-border)]">
                             {section.entries.map((faq, entryIndex) => (
                               <div
                                 key={faq.question}
-                                className={entryIndex > 0 ? 'pt-5 border-t border-black/[0.06] dark:border-white/[0.06]' : ''}
+                                className={entryIndex > 0 ? 'pt-5 border-t border-[var(--landing-surface-border)]' : ''}
                               >
                                 <p
                                   className="text-gray-700 dark:text-[#c8c8b8] mb-2"
@@ -263,7 +263,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
                                     >
                                       {faq.answerText}
                                     </p>
-                                    <div className="rounded-[10px] p-3 font-mono text-xs overflow-x-auto bg-black/[0.03] dark:bg-white/[0.03] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]">
+                                    <div className="rounded-md border border-[var(--landing-surface-border)] bg-black/[0.02] p-3 font-mono text-xs overflow-x-auto dark:bg-white/[0.02]">
                                       <div className="mb-2">
                                         <span className="text-gray-500 dark:text-[#8a8a7a]"># Old</span>
                                         <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
@@ -292,9 +292,8 @@ export default function Faq({ large = false }: { large?: boolean }) {
                       </div>
                     )
                   })}
-                </div>
               </div>
-            </div>
+            </LandingSurfaceFrame>
           </div>
         </div>
       </div>

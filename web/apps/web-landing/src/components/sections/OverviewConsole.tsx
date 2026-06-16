@@ -425,14 +425,12 @@ export function RunActivityMapConsole() {
   // paint with the default ("dark") theme before next-themes resolves.
   if (!mounted) return <div aria-hidden style={{ height: 360 }} />
   const isLight = resolvedTheme === 'light'
-  // Same two-layer frame wrapper as the product-section consoles, but the
-  // inner igris-console element generates no box (`display: contents`) — so the
-  // only card inside the frame is the map itself (no solid dark screen layer).
+  // Single landing-surface frame; map fills the interior with no inner bezel.
   return (
     <LandingSurfaceFrame>
       <div
-        className={'igris-console ' + (isLight ? 'igris-console--light ' : '')}
-        style={{ display: 'contents', fontFamily: SANS, color: 'var(--ic-text)' }}
+        className={'igris-console ' + (isLight ? 'igris-console--light ' : '') + 'relative overflow-hidden'}
+        style={{ fontFamily: SANS, background: 'var(--landing-surface)', color: 'var(--ic-text)' }}
       >
         <OverviewConsoleStyles />
         <RunActivityMap />
@@ -581,7 +579,12 @@ function OverviewConsoleStyles() {
       /* Map-only surface: use the same solid console background as the product
          section design (var(--ic-bg)) instead of the translucent overlay, so it
          doesn't look darker/grey in light mode. */
-      .igris-console .ic-runmap--flush { margin: 0; background: var(--landing-surface); }
+      .igris-console .ic-runmap--flush {
+        margin: 0;
+        background: var(--landing-surface);
+        border: 0;
+        border-radius: 0;
+      }
       .igris-console .ic-runmap__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
       .igris-console .ic-runmap__title { display: block; font-size: 13px; font-weight: 600; color: var(--ic-text); letter-spacing: .01em; }
       .igris-console .ic-runmap__sub { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ic-text-5); max-width: 64ch; line-height: 1.5; }
