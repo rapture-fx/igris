@@ -14,8 +14,11 @@ export const PRODUCT_SHOWCASE_URLS = {
   prove: 'app.igrisinertial.com/runs',
 } as const
 
-const PRODUCT_SURFACE_LIGHT = '#f9f9fa'
-const PRODUCT_SURFACE_DARK = '#161515'
+export const PRODUCT_SURFACE_LIGHT = '#f9f9fa'
+export const PRODUCT_SURFACE_DARK = '#161515'
+
+const LANDING_SURFACE_FRAME_CLASS =
+  'product-console-frame relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]'
 
 function ProductConsoleSurfaceStyles() {
   return (
@@ -35,10 +38,40 @@ function ProductConsoleSurfaceStyles() {
       .product-console-frame .igris-console nav,
       .product-console-frame .igris-console aside,
       .product-console-frame .igris-console .ic-footer,
-      .product-console-frame .igris-console .flex.flex-col.min-h-0 {
+      .product-console-frame .igris-console .flex.flex-col.min-h-0,
+      .product-console-frame .igris-console .ic-topbar {
         background: var(--product-surface) !important;
       }
+      .product-console-frame .ic-runmap,
+      .product-console-frame .ic-runmap--flush {
+        background: var(--product-surface) !important;
+      }
+      .product-console-frame .ae-window {
+        background: var(--product-surface);
+        --p-panel: var(--product-surface);
+        --p-bar: var(--product-surface);
+        border-radius: 0;
+      }
+      .product-console-frame .ae-worker-terminal {
+        background: var(--product-surface);
+        border-color: var(--landing-surface-border);
+      }
     `}</style>
+  )
+}
+
+export function LandingSurfaceFrame({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={`${LANDING_SURFACE_FRAME_CLASS} ${className}`.trim()}>
+      <ProductConsoleSurfaceStyles />
+      {children}
+    </div>
   )
 }
 
@@ -91,10 +124,9 @@ export default function ProductConsoleShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="product-console-frame relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]">
-      <ProductConsoleSurfaceStyles />
+    <LandingSurfaceFrame>
       <ProductBrowserChrome url={url} />
       {children}
-    </div>
+    </LandingSurfaceFrame>
   )
 }
