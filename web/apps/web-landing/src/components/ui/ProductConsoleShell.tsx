@@ -45,6 +45,12 @@ function ProductConsoleSurfaceStyles() {
       .product-console-frame .ic-runmap,
       .product-console-frame .ic-runmap--flush {
         background: var(--product-surface) !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+      }
+      .product-console-frame .landing-surface-panel {
+        background: var(--product-surface);
       }
       .product-console-frame .ae-window {
         background: var(--product-surface);
