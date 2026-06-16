@@ -62,6 +62,20 @@ function ProductConsoleSurfaceStyles() {
         background: var(--product-surface);
         border-color: var(--landing-surface-border);
       }
+      .product-console-frame .product-browser-dots {
+        display: flex;
+        gap: 6px;
+        flex: none;
+      }
+      .product-console-frame .product-browser-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.16);
+      }
+      html.dark .product-console-frame .product-browser-dot {
+        background: rgba(255, 255, 255, 0.14);
+      }
     `}</style>
   )
 }
@@ -87,16 +101,11 @@ function ProductBrowserChrome({ url }: { url: string }) {
       className="flex items-center gap-2 border-b border-[var(--landing-surface-border)] bg-[var(--landing-surface)] px-3 py-2.5 sm:gap-3 sm:px-4"
       style={{ fontFamily: SANS }}
     >
-      <button
-        type="button"
-        aria-label="Home"
-        className="inline-flex shrink-0 cursor-default items-center justify-center px-0.5 text-gray-500 transition-colors hover:text-gray-700 dark:text-[#8a8a7a] dark:hover:text-[#d3d2c8]"
-        style={{ fontFamily: MONO }}
-      >
-        <span className="text-[15px] font-medium leading-none tracking-tight" aria-hidden>
-          ::
-        </span>
-      </button>
+      <div className="product-browser-dots" aria-hidden>
+        <span className="product-browser-dot" />
+        <span className="product-browser-dot" />
+        <span className="product-browser-dot" />
+      </div>
 
       <div className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] px-2.5">
         <Search
