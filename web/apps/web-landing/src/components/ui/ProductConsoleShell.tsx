@@ -14,6 +14,34 @@ export const PRODUCT_SHOWCASE_URLS = {
   prove: 'app.igrisinertial.com/runs',
 } as const
 
+const PRODUCT_SURFACE_LIGHT = '#f9f9fa'
+const PRODUCT_SURFACE_DARK = '#161515'
+
+function ProductConsoleSurfaceStyles() {
+  return (
+    <style>{`
+      .product-console-frame {
+        --product-surface: ${PRODUCT_SURFACE_LIGHT};
+      }
+      html.dark .product-console-frame {
+        --product-surface: ${PRODUCT_SURFACE_DARK};
+      }
+      .product-console-frame .igris-console {
+        background: var(--product-surface) !important;
+        --ic-bg: var(--product-surface);
+        --ic-bg-rail: var(--product-surface);
+        --ic-dot-border: var(--product-surface);
+      }
+      .product-console-frame .igris-console nav,
+      .product-console-frame .igris-console aside,
+      .product-console-frame .igris-console .ic-footer,
+      .product-console-frame .igris-console .flex.flex-col.min-h-0 {
+        background: var(--product-surface) !important;
+      }
+    `}</style>
+  )
+}
+
 function ProductBrowserChrome({ url }: { url: string }) {
   return (
     <div
@@ -63,7 +91,8 @@ export default function ProductConsoleShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]">
+    <div className="product-console-frame relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]">
+      <ProductConsoleSurfaceStyles />
       <ProductBrowserChrome url={url} />
       {children}
     </div>

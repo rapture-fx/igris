@@ -135,7 +135,7 @@ export function ExecutionPreview({
           'igris-console ' + (isLight ? 'igris-console--light ' : '') +
           'relative overflow-hidden'
         }
-        style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
+        style={{ fontFamily: SANS, background: 'var(--landing-surface)', color: 'var(--ic-text)' }}
       >
         <ConsoleStyles />
         <div className="grid ic-shell">
@@ -153,8 +153,8 @@ function ConsoleStyles() {
     <style>{`
       .igris-console {
         color-scheme: dark;
-        --ic-bg: var(--landing-surface);
-        --ic-bg-rail: var(--landing-surface);
+        --ic-bg: #161515;
+        --ic-bg-rail: #161515;
         --ic-text: #b0ada5;
         --ic-text-bright: #d3d2c8;
         --ic-text-2: #a8a89e;
@@ -176,7 +176,7 @@ function ConsoleStyles() {
         --ic-overlay-5: rgba(255,255,255,0.06);
         --ic-overlay-bg: rgba(255,255,255,0.015);
         --ic-rail-active: #d3d2c8;
-        --ic-dot-border: var(--landing-surface);
+        --ic-dot-border: #161515;
         --ic-accent: #0f835c;
         --ic-emerald: #0f835c;
         --ic-emerald-dim: rgba(15,131,92,0.85);
@@ -186,8 +186,8 @@ function ConsoleStyles() {
       }
       .igris-console.igris-console--light {
         color-scheme: light;
-        --ic-bg: var(--landing-surface);
-        --ic-bg-rail: var(--landing-surface);
+        --ic-bg: #f9f9fa;
+        --ic-bg-rail: #f9f9fa;
         --ic-text: #1b1912;
         --ic-text-bright: #000000;
         --ic-text-2: #2a2820;
@@ -209,7 +209,7 @@ function ConsoleStyles() {
         --ic-overlay-5: rgba(0,0,0,0.07);
         --ic-overlay-bg: rgba(0,0,0,0.02);
         --ic-rail-active: #1b1912;
-        --ic-dot-border: var(--landing-surface);
+        --ic-dot-border: #f9f9fa;
         --ic-accent: #047857;
         --ic-emerald: #047857;
         --ic-emerald-dim: #059669;
@@ -549,7 +549,7 @@ function IconRail({ active = 3 }: { active?: number }) {
   const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
-    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
+    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
         <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
@@ -578,10 +578,10 @@ function Sidebar({ query, setQuery }: { query: string; setQuery: (v: string) => 
   const total = PROJECTS.reduce((n, g) => n + g.runs.length, 0)
 
   return (
-    <aside className="flex flex-col border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
+    <aside className="flex flex-col border-r" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border)' }}>
       {/* search — filters the runs picker live */}
       <div className="px-3 pt-3 pb-2">
-        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] focus-within:border-[color:var(--ic-border)]" style={{ background: 'var(--ic-bg)', borderColor: 'var(--ic-border-soft)' }}>
+        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] focus-within:border-[color:var(--ic-border)]" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border-soft)' }}>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--ic-text-7)' }}>
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

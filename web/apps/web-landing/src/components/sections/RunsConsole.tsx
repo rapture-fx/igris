@@ -161,7 +161,7 @@ function IconRail() {
   const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
-    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
+    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
         <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
@@ -297,7 +297,7 @@ export default function RunsConsole({ url = PRODUCT_SHOWCASE_URLS.prove }: { url
           'igris-console ' + (isLight ? 'igris-console--light ' : '') +
           'relative overflow-hidden'
         }
-        style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
+        style={{ fontFamily: SANS, background: 'var(--landing-surface)', color: 'var(--ic-text)' }}
       >
         <RunsConsoleStyles />
         <div className="grid" style={{ gridTemplateColumns: '40px 1fr', height: 640 }}>
@@ -314,7 +314,7 @@ function RunsConsoleStyles() {
     <style>{`
       .igris-console {
         color-scheme: dark;
-        --ic-bg: var(--landing-surface); --ic-bg-rail: var(--landing-surface);
+        --ic-bg: #161515; --ic-bg-rail: #161515;
         --ic-text: #b0ada5; --ic-text-bright: #d3d2c8; --ic-text-2: #a8a89e;
         --ic-text-3: #9a978f; --ic-text-4: #8a8a82; --ic-text-5: #7a7a72;
         --ic-text-6: #6a6a62; --ic-text-7: #5a5a52; --ic-text-8: #4a4a42; --ic-text-9: #3a3a32;
@@ -323,13 +323,13 @@ function RunsConsoleStyles() {
         --ic-overlay-1: rgba(255,255,255,0.02); --ic-overlay-2: rgba(255,255,255,0.025);
         --ic-overlay-3: rgba(255,255,255,0.03); --ic-overlay-4: rgba(255,255,255,0.045);
         --ic-overlay-5: rgba(255,255,255,0.06); --ic-overlay-bg: rgba(255,255,255,0.015);
-        --ic-rail-active: #d3d2c8; --ic-dot-border: var(--landing-surface);
+        --ic-rail-active: #d3d2c8; --ic-dot-border: #161515;
         --ic-accent: #0f835c; --ic-emerald: #0f835c; --ic-amber: #cf9a45; --ic-rose: #9d4b57;
         --ic-mono: ${MONO};
       }
       .igris-console.igris-console--light {
         color-scheme: light;
-        --ic-bg: var(--landing-surface); --ic-bg-rail: var(--landing-surface);
+        --ic-bg: #f9f9fa; --ic-bg-rail: #f9f9fa;
         --ic-text: #1b1912; --ic-text-bright: #000000; --ic-text-2: #2a2820;
         --ic-text-3: #3a3830; --ic-text-4: #3a3830; --ic-text-5: #4a4740;
         --ic-text-6: #5a574e; --ic-text-7: #6e6b62; --ic-text-8: #84817a; --ic-text-9: #b0ada5;
@@ -338,7 +338,7 @@ function RunsConsoleStyles() {
         --ic-overlay-1: rgba(0,0,0,0.025); --ic-overlay-2: rgba(0,0,0,0.03);
         --ic-overlay-3: rgba(0,0,0,0.035); --ic-overlay-4: rgba(0,0,0,0.05);
         --ic-overlay-5: rgba(0,0,0,0.07); --ic-overlay-bg: rgba(0,0,0,0.02);
-        --ic-rail-active: #1b1912; --ic-dot-border: var(--landing-surface);
+        --ic-rail-active: #1b1912; --ic-dot-border: #f9f9fa;
         --ic-accent: #047857; --ic-emerald: #047857; --ic-amber: #b45309; --ic-rose: #be123c;
         --ic-mono: ${MONO};
       }
