@@ -153,8 +153,8 @@ function ConsoleStyles() {
     <style>{`
       .igris-console {
         color-scheme: dark;
-        --ic-bg: #0e0e0c;
-        --ic-bg-rail: #070707;
+        --ic-bg: var(--landing-surface);
+        --ic-bg-rail: var(--landing-surface);
         --ic-text: #b0ada5;
         --ic-text-bright: #d3d2c8;
         --ic-text-2: #a8a89e;
@@ -176,7 +176,7 @@ function ConsoleStyles() {
         --ic-overlay-5: rgba(255,255,255,0.06);
         --ic-overlay-bg: rgba(255,255,255,0.015);
         --ic-rail-active: #d3d2c8;
-        --ic-dot-border: #070707;
+        --ic-dot-border: var(--landing-surface);
         --ic-accent: #0f835c;
         --ic-emerald: #0f835c;
         --ic-emerald-dim: rgba(15,131,92,0.85);
@@ -186,8 +186,8 @@ function ConsoleStyles() {
       }
       .igris-console.igris-console--light {
         color-scheme: light;
-        --ic-bg: #f7f7f5;
-        --ic-bg-rail: #f2f1ee;
+        --ic-bg: var(--landing-surface);
+        --ic-bg-rail: var(--landing-surface);
         --ic-text: #1b1912;
         --ic-text-bright: #000000;
         --ic-text-2: #2a2820;
@@ -209,7 +209,7 @@ function ConsoleStyles() {
         --ic-overlay-5: rgba(0,0,0,0.07);
         --ic-overlay-bg: rgba(0,0,0,0.02);
         --ic-rail-active: #1b1912;
-        --ic-dot-border: #f2f1ee;
+        --ic-dot-border: var(--landing-surface);
         --ic-accent: #047857;
         --ic-emerald: #047857;
         --ic-emerald-dim: #059669;
