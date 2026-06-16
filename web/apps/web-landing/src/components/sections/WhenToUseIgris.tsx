@@ -25,7 +25,7 @@ const cards = [
 ] as const
 
 const CARD_CLASS =
-  'landing-surface-card flex flex-col rounded-xl border p-6 md:p-8 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] transition-colors duration-200 dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]'
+  'landing-surface-card flex w-fit max-w-md flex-col rounded-xl border p-6 md:p-8 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-[2px] transition-colors duration-200 dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]'
 
 export default function WhenToUseIgris() {
   return (
@@ -63,7 +63,17 @@ export default function WhenToUseIgris() {
           </p>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 md:mt-16 md:gap-4">
+        <div className="relative mt-12 overflow-hidden rounded-xl md:mt-16">
+          <div
+            className="absolute inset-0 bg-center bg-no-repeat bg-cover"
+            style={{ backgroundImage: 'url(/pkrllgol.png)' }}
+            aria-hidden
+          />
+          <div
+            className="absolute inset-0 bg-white/55 dark:bg-[#110f0f]/50"
+            aria-hidden
+          />
+          <div className="relative z-10 flex flex-col items-start gap-3 p-6 md:gap-4 md:p-10">
           {cards.map((card, index) => (
             <article key={card.title} className={CARD_CLASS}>
               <p
@@ -100,6 +110,7 @@ export default function WhenToUseIgris() {
               </p>
             </article>
           ))}
+          </div>
         </div>
       </div>
     </section>
