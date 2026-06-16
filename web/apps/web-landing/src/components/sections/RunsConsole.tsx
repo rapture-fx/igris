@@ -295,7 +295,7 @@ export default function RunsConsole({ url = PRODUCT_SHOWCASE_URLS.prove }: { url
       <div
         className={
           'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-          'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
+          'relative overflow-hidden'
         }
         style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
       >
