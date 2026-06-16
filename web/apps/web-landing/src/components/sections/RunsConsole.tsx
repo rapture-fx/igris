@@ -18,6 +18,7 @@ import { useTheme } from 'next-themes'
 import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
+import ProductConsoleShell, { PRODUCT_SHOWCASE_URLS } from '../ui/ProductConsoleShell'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -286,27 +287,25 @@ function RunsPage() {
   )
 }
 
-export default function RunsConsole() {
+export default function RunsConsole({ url = PRODUCT_SHOWCASE_URLS.prove }: { url?: string }) {
   const { resolvedTheme } = useTheme()
   const isLight = resolvedTheme === 'light'
   return (
-    <div className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]">
-      <div className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]">
-        <div
-          className={
-            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
-          }
-          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
-        >
-          <RunsConsoleStyles />
-          <div className="grid" style={{ gridTemplateColumns: '40px 1fr', height: 640 }}>
-            <IconRail />
-            <RunsPage />
-          </div>
+    <ProductConsoleShell url={url}>
+      <div
+        className={
+          'igris-console ' + (isLight ? 'igris-console--light ' : '') +
+          'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
+        }
+        style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
+      >
+        <RunsConsoleStyles />
+        <div className="grid" style={{ gridTemplateColumns: '40px 1fr', height: 640 }}>
+          <IconRail />
+          <RunsPage />
         </div>
       </div>
-    </div>
+    </ProductConsoleShell>
   )
 }
 
