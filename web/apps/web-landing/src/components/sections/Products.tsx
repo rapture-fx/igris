@@ -471,13 +471,13 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__row:hover { background: var(--ic-overlay-1); }
       .igris-console .ic-wfall__label { font-size: 10px; color: var(--ic-text-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__track {
-        display: flex; align-items: flex-end; gap: 1px; height: 13px;
-        padding: 0; background: transparent;
+        display: flex; align-items: stretch; gap: 2px; height: 18px;
+        padding: 0; background: transparent; width: 100%;
       }
-      .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 15px; }
+      .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 20px; }
       .igris-console .ic-wfall__tick {
-        flex: 1 1 0; min-width: 0; max-width: 2px; height: 100%;
-        border-radius: 0.5px; background: var(--ic-text-8); opacity: 0.22;
+        flex: 1 1 0; min-width: 4px; height: 100%;
+        border-radius: 1px; background: var(--ic-text-8); opacity: 0.22;
       }
       .igris-console .ic-wfall__tick--ok { opacity: 1; background: var(--ic-emerald); }
       .igris-console .ic-wfall__tick--warn { opacity: 1; background: var(--ic-amber); }
@@ -1053,7 +1053,7 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
   )
 }
 
-const EXECUTION_PROFILE_TICKS = 56
+const EXECUTION_PROFILE_TICKS = 32
 
 type ProfileTone = 'ok' | 'warn' | 'bad' | 'muted'
 
@@ -1067,8 +1067,9 @@ interface ProfileRow {
 function executionProfileTickRange(start: number, ms: number, span: number, tickCount: number) {
   if (span <= 0 || tickCount <= 0) return { startIdx: 0, endIdx: 0 }
   const startIdx = Math.min(tickCount - 1, Math.floor((start / span) * tickCount))
-  const endIdx = Math.max(startIdx + 1, Math.min(tickCount, Math.ceil(((start + ms) / span) * tickCount)))
-  return { startIdx, endIdx }
+  const widthTicks = Math.max(2, Math.round((ms / span) * tickCount))
+  const endIdx = Math.min(tickCount, startIdx + widthTicks)
+  return { startIdx, endIdx: Math.max(startIdx + 1, endIdx) }
 }
 
 function executionProfileToneAt(profile: ProfileRow[], span: number, tickIdx: number, tickCount: number): ProfileTone | null {
