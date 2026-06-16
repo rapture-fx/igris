@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { BookOpen, Home, Search } from 'lucide-react'
+import { BookOpen, Search } from 'lucide-react'
 import { DOCS_LINKS } from '../../lib/docs-urls'
 
 const SANS =
@@ -90,9 +90,12 @@ function ProductBrowserChrome({ url }: { url: string }) {
       <button
         type="button"
         aria-label="Home"
-        className="inline-flex shrink-0 cursor-default items-center justify-center p-0 text-gray-500 transition-colors hover:text-gray-700 dark:text-[#8a8a7a] dark:hover:text-[#d3d2c8]"
+        className="inline-flex shrink-0 cursor-default items-center justify-center px-0.5 text-gray-500 transition-colors hover:text-gray-700 dark:text-[#8a8a7a] dark:hover:text-[#d3d2c8]"
+        style={{ fontFamily: MONO }}
       >
-        <Home className="h-5 w-5" strokeWidth={1.65} />
+        <span className="text-[15px] font-medium leading-none tracking-tight" aria-hidden>
+          ::
+        </span>
       </button>
 
       <div className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] px-2.5">
