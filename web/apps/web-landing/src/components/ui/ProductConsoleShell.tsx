@@ -17,7 +17,7 @@ export const PRODUCT_SHOWCASE_URLS = {
 function ProductBrowserChrome({ url }: { url: string }) {
   return (
     <div
-      className="flex items-center gap-2 sm:gap-3 border-b border-black/[0.06] bg-[#fafaf8] px-3 py-2.5 dark:border-white/[0.06] dark:bg-[#141210] sm:px-4"
+      className="flex items-center gap-2 border-b border-[var(--landing-surface-border)] bg-white px-3 py-2.5 dark:bg-dark-bg sm:gap-3 sm:px-4"
       style={{ fontFamily: SANS }}
     >
       <button
@@ -28,7 +28,7 @@ function ProductBrowserChrome({ url }: { url: string }) {
         <Home className="h-5 w-5" strokeWidth={1.65} />
       </button>
 
-      <div className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-lg border border-black/[0.08] bg-white/80 px-2.5 dark:border-white/[0.1] dark:bg-[#0e0e0c]/80">
+      <div className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] px-2.5">
         <Search
           className="h-3 w-3 shrink-0 text-gray-400 dark:text-[#6a6a62]"
           strokeWidth={2}
@@ -63,7 +63,7 @@ export default function ProductConsoleShell({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative overflow-hidden rounded-lg border border-black/[0.08] bg-black/[0.02] dark:border-white/[0.08] dark:bg-white/[0.02]">
+    <div className="relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:bg-dark-bg dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]">
       <ProductBrowserChrome url={url} />
       {children}
     </div>
