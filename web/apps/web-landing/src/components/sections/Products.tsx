@@ -470,26 +470,19 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__row { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; align-items: center; gap: 8px; border-radius: 4px; padding: 1px 0; }
       .igris-console .ic-wfall__row:hover { background: var(--ic-overlay-1); }
       .igris-console .ic-wfall__label { font-size: 10px; color: var(--ic-text-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ic-mono); }
-      .igris-console .ic-wfall__segments {
-        display: flex; gap: 2px; height: 8px; margin-bottom: 10px; border-radius: 3px; overflow: hidden;
-      }
-      .igris-console .ic-wfall__segment { min-width: 3px; border-radius: 1px; flex: 1 1 0; }
-      .igris-console .ic-wfall__segment--ok { background: var(--ic-emerald); }
-      .igris-console .ic-wfall__segment--warn { background: var(--ic-amber); }
-      .igris-console .ic-wfall__segment--bad { background: var(--ic-rose); }
-      .igris-console .ic-wfall__segment--muted { background: var(--ic-text-6); }
       .igris-console .ic-wfall__track {
-        display: flex; align-items: stretch; gap: 2px; height: 11px; border-radius: 3px;
-        padding: 1px; background: var(--ic-overlay-2);
+        display: flex; align-items: flex-end; gap: 1px; height: 13px;
+        padding: 0; background: transparent;
       }
+      .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 15px; }
       .igris-console .ic-wfall__tick {
-        flex: 1 1 0; min-width: 0; border-radius: 1px; background: var(--ic-overlay-3);
-        box-shadow: inset 0 0 0 0.5px var(--ic-border-soft);
+        flex: 1 1 0; min-width: 0; max-width: 2px; height: 36%;
+        border-radius: 0.5px; background: var(--ic-text-8); opacity: 0.3;
       }
-      .igris-console .ic-wfall__tick--ok { background: var(--ic-emerald); box-shadow: none; }
-      .igris-console .ic-wfall__tick--warn { background: var(--ic-amber); box-shadow: none; }
-      .igris-console .ic-wfall__tick--bad { background: var(--ic-rose); box-shadow: none; }
-      .igris-console .ic-wfall__tick--muted { background: var(--ic-text-6); box-shadow: none; }
+      .igris-console .ic-wfall__tick--ok { height: 100%; opacity: 1; background: var(--ic-emerald); }
+      .igris-console .ic-wfall__tick--warn { height: 100%; opacity: 1; background: var(--ic-amber); }
+      .igris-console .ic-wfall__tick--bad { height: 100%; opacity: 1; background: var(--ic-rose); }
+      .igris-console .ic-wfall__tick--muted { height: 100%; opacity: 1; background: var(--ic-text-6); }
       .igris-console .ic-wfall__val { font-size: 10px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; text-align: right; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__axis { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; gap: 8px; margin-top: 3px; }
       .igris-console .ic-wfall__scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 9px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; font-family: var(--ic-mono); }
@@ -497,20 +490,17 @@ function ConsoleStyles() {
 
       /* Execution-profile reveal (Recover tab): rows fade in, ticks fill out. */
       @keyframes ic-wfall-row-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes ic-wfall-segment-in { from { opacity: 0.2; transform: scaleY(0.35); } to { opacity: 1; transform: scaleY(1); } }
-      @keyframes ic-wfall-tick-in { from { opacity: 0.2; transform: scaleY(0.4); } to { opacity: 1; transform: scaleY(1); } }
+      @keyframes ic-wfall-tick-in { from { opacity: 0.15; transform: scaleY(0.25); } to { opacity: 1; transform: scaleY(1); } }
       .igris-console .ic-wfall--animate .ic-wfall__row { animation: ic-wfall-row-in 880ms cubic-bezier(0.16,0.84,0.44,1) both; }
-      .igris-console .ic-wfall--animate .ic-wfall__segment { transform-origin: bottom center; animation: ic-wfall-segment-in 720ms cubic-bezier(0.16,0.84,0.44,1) both; }
       .igris-console .ic-wfall--animate .ic-wfall__tick--ok,
       .igris-console .ic-wfall--animate .ic-wfall__tick--warn,
       .igris-console .ic-wfall--animate .ic-wfall__tick--bad,
       .igris-console .ic-wfall--animate .ic-wfall__tick--muted {
         transform-origin: bottom center;
-        animation: ic-wfall-tick-in 520ms cubic-bezier(0.16,0.84,0.44,1) both;
+        animation: ic-wfall-tick-in 360ms cubic-bezier(0.16,0.84,0.44,1) both;
       }
       @media (prefers-reduced-motion: reduce) {
         .igris-console .ic-wfall--animate .ic-wfall__row,
-        .igris-console .ic-wfall--animate .ic-wfall__segment,
         .igris-console .ic-wfall--animate .ic-wfall__tick--ok,
         .igris-console .ic-wfall--animate .ic-wfall__tick--warn,
         .igris-console .ic-wfall--animate .ic-wfall__tick--bad,
@@ -1063,9 +1053,16 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
   )
 }
 
-const EXECUTION_PROFILE_TICKS = 36
+const EXECUTION_PROFILE_TICKS = 56
 
 type ProfileTone = 'ok' | 'warn' | 'bad' | 'muted'
+
+interface ProfileRow {
+  label: string
+  ms: number
+  start: number
+  tone: ProfileTone
+}
 
 function executionProfileTickRange(start: number, ms: number, span: number, tickCount: number) {
   if (span <= 0 || tickCount <= 0) return { startIdx: 0, endIdx: 0 }
@@ -1074,33 +1071,54 @@ function executionProfileTickRange(start: number, ms: number, span: number, tick
   return { startIdx, endIdx }
 }
 
+function executionProfileToneAt(profile: ProfileRow[], span: number, tickIdx: number, tickCount: number): ProfileTone | null {
+  if (span <= 0) return null
+  const t = (tickIdx / tickCount) * span
+  const step = profile.find((p) => t >= p.start && t < p.start + p.ms)
+  return step?.tone ?? null
+}
+
 function ExecutionProfileTickTrack({
+  profile,
   start,
   ms,
   span,
   tone,
   animate,
   rowDelay,
+  timeline = false,
 }: {
-  start: number
-  ms: number
+  profile?: ProfileRow[]
+  start?: number
+  ms?: number
   span: number
-  tone: ProfileTone
+  tone?: ProfileTone
   animate: boolean
   rowDelay?: string
+  timeline?: boolean
 }) {
-  const { startIdx, endIdx } = executionProfileTickRange(start, ms, span, EXECUTION_PROFILE_TICKS)
+  const rowBaseDelay = parseInt(rowDelay ?? '0', 10) || 0
   return (
-    <div className="ic-wfall__track" aria-hidden>
+    <div
+      className={'ic-wfall__track' + (timeline ? ' ic-wfall__track--timeline' : '')}
+      aria-hidden={timeline ? undefined : true}
+      aria-label={timeline ? 'Run timeline utilization' : undefined}
+    >
       {Array.from({ length: EXECUTION_PROFILE_TICKS }, (_, tickIdx) => {
-        const filled = tickIdx >= startIdx && tickIdx < endIdx
-        const tickDelay = animate && filled
-          ? `${parseInt(rowDelay ?? '0', 10) + (tickIdx - startIdx) * 28}ms`
+        let activeTone: ProfileTone | null = null
+        if (timeline && profile) {
+          activeTone = executionProfileToneAt(profile, span, tickIdx, EXECUTION_PROFILE_TICKS)
+        } else if (start != null && ms != null && tone) {
+          const { startIdx, endIdx } = executionProfileTickRange(start, ms, span, EXECUTION_PROFILE_TICKS)
+          activeTone = tickIdx >= startIdx && tickIdx < endIdx ? tone : null
+        }
+        const tickDelay = animate && activeTone
+          ? `${rowBaseDelay + tickIdx * 14}ms`
           : undefined
         return (
           <span
             key={tickIdx}
-            className={'ic-wfall__tick' + (filled ? ` ic-wfall__tick--${tone}` : '')}
+            className={'ic-wfall__tick' + (activeTone ? ` ic-wfall__tick--${activeTone}` : '')}
             style={tickDelay ? { animationDelay: tickDelay } : undefined}
           />
         )
@@ -1128,20 +1146,12 @@ function ExecutionProfile({ animate = false }: { animate?: boolean }) {
       <div className="ic-runinspector__sechead">Execution profile</div>
       <p className="ic-runinspector__hint">Time per step along the run timeline: {profile.length} steps over {total}ms total.</p>
       <div className={'ic-wfall' + (animate ? ' ic-wfall--animate' : '')}>
-        <div className="ic-wfall__segments" aria-label="Run timeline by step duration">
-          {profile.map((p, i) => (
-            <span
-              key={i}
-              className={`ic-wfall__segment ic-wfall__segment--${p.tone}`}
-              style={{
-                flexGrow: p.ms,
-                flexBasis: 0,
-                animationDelay: animate ? `${i * 90}ms` : undefined,
-              }}
-              title={`${p.label} · ${p.ms}ms`}
-            />
-          ))}
-        </div>
+        <ExecutionProfileTickTrack
+          profile={profile}
+          span={span}
+          animate={animate}
+          timeline
+        />
         {profile.map((p, i) => {
           const delay = animate ? `${i * 200}ms` : undefined
           return (
@@ -1167,7 +1177,7 @@ function ExecutionProfile({ animate = false }: { animate?: boolean }) {
           </span>
         </div>
       </div>
-      <p className="ic-runinspector__note">Segments show share of total time; ticks mark when each step ran and how long it held the path.</p>
+      <p className="ic-runinspector__note">Each vertical tick is a time slice; filled ticks show when a step held the execution path.</p>
     </section>
   )
 }
