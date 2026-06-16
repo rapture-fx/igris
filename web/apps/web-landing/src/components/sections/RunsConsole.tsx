@@ -314,7 +314,7 @@ function RunsConsoleStyles() {
     <style>{`
       .igris-console {
         color-scheme: dark;
-        --ic-bg: #0e0e0c; --ic-bg-rail: #070707;
+        --ic-bg: var(--landing-surface); --ic-bg-rail: var(--landing-surface);
         --ic-text: #b0ada5; --ic-text-bright: #d3d2c8; --ic-text-2: #a8a89e;
         --ic-text-3: #9a978f; --ic-text-4: #8a8a82; --ic-text-5: #7a7a72;
         --ic-text-6: #6a6a62; --ic-text-7: #5a5a52; --ic-text-8: #4a4a42; --ic-text-9: #3a3a32;
@@ -323,13 +323,13 @@ function RunsConsoleStyles() {
         --ic-overlay-1: rgba(255,255,255,0.02); --ic-overlay-2: rgba(255,255,255,0.025);
         --ic-overlay-3: rgba(255,255,255,0.03); --ic-overlay-4: rgba(255,255,255,0.045);
         --ic-overlay-5: rgba(255,255,255,0.06); --ic-overlay-bg: rgba(255,255,255,0.015);
-        --ic-rail-active: #d3d2c8; --ic-dot-border: #070707;
+        --ic-rail-active: #d3d2c8; --ic-dot-border: var(--landing-surface);
         --ic-accent: #0f835c; --ic-emerald: #0f835c; --ic-amber: #cf9a45; --ic-rose: #9d4b57;
         --ic-mono: ${MONO};
       }
       .igris-console.igris-console--light {
         color-scheme: light;
-        --ic-bg: #f7f7f5; --ic-bg-rail: #f2f1ee;
+        --ic-bg: var(--landing-surface); --ic-bg-rail: var(--landing-surface);
         --ic-text: #1b1912; --ic-text-bright: #000000; --ic-text-2: #2a2820;
         --ic-text-3: #3a3830; --ic-text-4: #3a3830; --ic-text-5: #4a4740;
         --ic-text-6: #5a574e; --ic-text-7: #6e6b62; --ic-text-8: #84817a; --ic-text-9: #b0ada5;
@@ -338,7 +338,7 @@ function RunsConsoleStyles() {
         --ic-overlay-1: rgba(0,0,0,0.025); --ic-overlay-2: rgba(0,0,0,0.03);
         --ic-overlay-3: rgba(0,0,0,0.035); --ic-overlay-4: rgba(0,0,0,0.05);
         --ic-overlay-5: rgba(0,0,0,0.07); --ic-overlay-bg: rgba(0,0,0,0.02);
-        --ic-rail-active: #1b1912; --ic-dot-border: #f2f1ee;
+        --ic-rail-active: #1b1912; --ic-dot-border: var(--landing-surface);
         --ic-accent: #047857; --ic-emerald: #047857; --ic-amber: #b45309; --ic-rose: #be123c;
         --ic-mono: ${MONO};
       }
