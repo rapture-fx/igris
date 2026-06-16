@@ -38,157 +38,311 @@ const cards = [
 function figWrap(children: React.ReactNode) {
   return (
     <div className="flex h-full w-full items-center justify-center text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: MONO }}>
-      <svg viewBox="0 0 360 240" className="h-full w-full max-h-[420px] min-h-[280px]" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 400 280" className="h-full w-full max-h-[440px] min-h-[300px]" preserveAspectRatio="xMidYMid meet">
         {children}
       </svg>
     </div>
   )
 }
 
-function MicroLabel({ x, y, children, em = false }: { x: number; y: number; children: React.ReactNode; em?: boolean }) {
+function FigPanel({ x, y, w, h, r = 6 }: { x: number; y: number; w: number; h: number; r?: number }) {
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={w}
+      height={h}
+      rx={r}
+      fill="currentColor"
+      fillOpacity="0.018"
+      stroke="currentColor"
+      strokeOpacity="0.34"
+      strokeWidth="0.9"
+    />
+  )
+}
+
+function FigLbl({
+  x,
+  y,
+  children,
+  anchor = 'start',
+  em = false,
+  size = 6.2,
+  op = 0.42,
+}: {
+  x: number
+  y: number
+  children: React.ReactNode
+  anchor?: 'start' | 'middle' | 'end'
+  em?: boolean
+  size?: number
+  op?: number
+}) {
   return (
     <text
       x={x}
       y={y}
-      fontSize="6"
+      textAnchor={anchor}
+      fontSize={size}
       className={em ? EM_FILL : ''}
       fill={em ? undefined : 'currentColor'}
-      fillOpacity={em ? 0.9 : 0.45}
-      style={{ fontFamily: MONO, letterSpacing: '0.14em' }}
+      fillOpacity={em ? 0.88 : op}
+      style={{ fontFamily: MONO, letterSpacing: '0.16em' }}
     >
       {children}
     </text>
   )
 }
 
+function FigTick({ cx, cy, s = 1 }: { cx: number; cy: number; s?: number }) {
+  return (
+    <path
+      d={`M ${cx - 2.6 * s} ${cy} l ${1.7 * s} ${1.8 * s} l ${3.4 * s} ${-3.8 * s}`}
+      fill="none"
+      className={EM_STROKE}
+      strokeWidth={0.95 * s}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  )
+}
+
+function FigSeal({ cx, cy, r = 13 }: { cx: number; cy: number; r?: number }) {
+  return (
+    <g className={EM_STROKE} fill="none">
+      <circle cx={cx} cy={cy} r={r} strokeWidth="0.85" strokeOpacity="0.58" />
+      <circle cx={cx} cy={cy} r={r - 3.5} strokeWidth="0.55" strokeOpacity="0.28" strokeDasharray="2 2.5" />
+      <FigTick cx={cx} cy={cy} s={1.05} />
+    </g>
+  )
+}
+
 function SideEffectsVisual() {
+  const CX = 44
+  const CY = 34
+  const CW = 312
+  const CH = 196
   const targets = [
-    { x: 72, y: 58, label: 'invoice' },
-    { x: 288, y: 58, label: 'api_call' },
-    { x: 72, y: 188, label: 'db_write' },
-    { x: 288, y: 188, label: 'workflow' },
+    { x: 58, y: 72, label: 'create_invoice', status: 'committed' },
+    { x: 226, y: 72, label: 'http_call', status: 'committed' },
+    { x: 58, y: 168, label: 'db_write', status: 'running' },
+    { x: 226, y: 168, label: 'workflow', status: 'queued' },
   ]
   return figWrap(
     <>
-      <rect x="138" y="96" width="84" height="48" rx="5" fill="currentColor" fillOpacity="0.03" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.8" />
-      <text x="180" y="118" textAnchor="middle" fontSize="7" fill="currentColor" fillOpacity="0.75" style={{ fontFamily: MONO }}>
+      <FigPanel x={CX} y={CY} w={CW} h={CH} />
+      <circle cx={CX + 16} cy={CY + 14} r="2.2" className={EM_FILL}>
+        <animate attributeName="opacity" values="1;0.3;1" dur="2.1s" repeatCount="indefinite" />
+      </circle>
+      <text x={CX + 26} y={CY + 17} fontSize="7.2" fill="currentColor" fillOpacity="0.82" style={{ fontFamily: MONO, letterSpacing: '0.05em' }}>
+        action dispatch
+      </text>
+      <FigLbl x={CX + CW - 16} y={CY + 17} anchor="end" size={5.4} op={0.34}>
+        charge_customer
+      </FigLbl>
+      <line x1={CX} y1={CY + 30} x2={CX + CW} y2={CY + 30} stroke="currentColor" strokeOpacity="0.14" strokeWidth="0.7" />
+
+      <rect x={152} y={108} width={96} height={48} rx="6" fill="currentColor" fillOpacity="0.035" stroke="currentColor" strokeOpacity="0.38" strokeWidth="0.85" />
+      <text x={200} y={130} textAnchor="middle" fontSize="7.4" fill="currentColor" fillOpacity="0.78" style={{ fontFamily: MONO }}>
         agent_task
       </text>
-      <circle cx="180" cy="132" r="3" className={EM_FILL}>
-        <animate attributeName="opacity" values="1;0.35;1" dur="2.2s" repeatCount="indefinite" />
-      </circle>
-      {targets.map((t) => (
-        <g key={t.label}>
-          <line x1="180" y1="120" x2={t.x + 36} y2={t.y + 16} stroke="currentColor" strokeOpacity="0.22" strokeWidth="0.7" strokeDasharray="3 3" />
-          <rect x={t.x} y={t.y} width="72" height="32" rx="4" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.3" strokeWidth="0.7" />
-          <text x={t.x + 36} y={t.y + 19} textAnchor="middle" fontSize="5.8" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO }}>
-            {t.label}
-          </text>
-          <circle cx={t.x + 60} cy={t.y + 10} r="2" className={EM_FILL} fillOpacity="0.8" />
-        </g>
-      ))}
-      <MicroLabel x="24" y="228" em>
-        committed actions
-      </MicroLabel>
+      <FigLbl x={200} y={146} anchor="middle" size={5.2} em>
+        real side effects
+      </FigLbl>
+
+      {targets.map((t) => {
+        const tx = t.x + 58
+        const ty = t.y + 20
+        const committed = t.status === 'committed'
+        const running = t.status === 'running'
+        return (
+          <g key={t.label}>
+            <path
+              d={`M 200 120 Q ${(200 + tx) / 2} ${(120 + ty) / 2 - 18} ${tx} ${ty}`}
+              fill="none"
+              stroke="currentColor"
+              strokeOpacity={committed ? 0.34 : 0.18}
+              strokeWidth="0.75"
+              className={committed ? EM_STROKE : ''}
+              strokeDasharray={running ? '3 3' : undefined}
+            />
+            <rect x={t.x} y={t.y} width={116} height={40} rx="5" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.3" strokeWidth="0.75" />
+            <text x={t.x + 12} y={t.y + 17} fontSize="6.4" fill="currentColor" fillOpacity="0.72" style={{ fontFamily: MONO }}>
+              {t.label}
+            </text>
+            <text x={t.x + 12} y={t.y + 30} fontSize="5.2" fill="currentColor" fillOpacity="0.38" style={{ fontFamily: MONO, letterSpacing: '0.1em' }}>
+              {t.status}
+            </text>
+            {committed ? (
+              <g transform={`translate(${t.x + 98} ${t.y + 20})`}>
+                <FigTick cx={0} cy={0} />
+              </g>
+            ) : running ? (
+              <circle cx={t.x + 98} cy={t.y + 20} r="3" fill="none" className={EM_STROKE} strokeWidth="0.8">
+                <animate attributeName="stroke-opacity" values="0.7;0.2;0.7" dur="1.5s" repeatCount="indefinite" />
+              </circle>
+            ) : null}
+          </g>
+        )
+      })}
+
+      <FigLbl x={200} y={CY + CH + 18} anchor="middle" size={5.4} op={0.38}>
+        STATE CHANGES · APIS · WORKFLOWS
+      </FigLbl>
     </>,
   )
 }
 
 function ProofVisual() {
-  const rows = ['charge_customer', 'http_call', 'db_write', 'signed_receipt']
+  const CX = 48
+  const CY = 38
+  const CW = 304
+  const CH = 188
+  const rows = [
+    { action: 'charge_customer', proof: 'verified', hash: 'r0a8…f2' },
+    { action: 'http_call', proof: 'verified', hash: 'r1c3…9b' },
+    { action: 'db_write', proof: 'pending', hash: 'r2d1…44' },
+    { action: 'signed_receipt', proof: 'sealed', hash: 'r3e7…aa' },
+  ]
   return figWrap(
     <>
-      <rect x="52" y="36" width="256" height="168" rx="6" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.28" strokeWidth="0.8" />
-      <text x="68" y="58" fontSize="6.5" fill="currentColor" fillOpacity="0.5" style={{ fontFamily: MONO, letterSpacing: '0.12em' }}>
-        action evidence
-      </text>
+      <FigPanel x={CX} y={CY} w={CW} h={CH} />
+      <FigLbl x={CX + 16} y={CY + 18} size={6.4} op={0.48}>
+        EVIDENCE LEDGER
+      </FigLbl>
+      <line x1={CX} y1={CY + 28} x2={CX + CW} y2={CY + 28} stroke="currentColor" strokeOpacity="0.14" strokeWidth="0.7" />
+
       {rows.map((row, i) => {
-        const y = 78 + i * 30
+        const y = CY + 48 + i * 34
+        const verified = row.proof === 'verified' || row.proof === 'sealed'
         return (
-          <g key={row}>
-            <line x1="68" y1={y + 18} x2="292" y2={y + 18} stroke="currentColor" strokeOpacity="0.12" strokeWidth="0.6" />
-            <text x="76" y={y + 12} fontSize="6" fill="currentColor" fillOpacity="0.62" style={{ fontFamily: MONO }}>
-              {row}
+          <g key={row.action}>
+            {i > 0 && <line x1={CX + 14} y1={y - 10} x2={CX + CW - 14} y2={y - 10} stroke="currentColor" strokeOpacity="0.08" strokeWidth="0.55" />}
+            <text x={CX + 18} y={y + 4} fontSize="6.8" fill="currentColor" fillOpacity="0.78" style={{ fontFamily: MONO }}>
+              {row.action}
             </text>
-            <circle cx="286" cy={y + 8} r="7" fill="none" className={EM_STROKE} strokeWidth="0.7" strokeOpacity="0.55" />
-            <path
-              d={`M ${286 - 3} ${y + 8} l 2 2.2 l 4.2 -4.6`}
-              fill="none"
-              className={EM_STROKE}
-              strokeWidth="0.9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <text x={CX + CW - 108} y={y + 4} fontSize="5.6" fill="currentColor" fillOpacity="0.4" style={{ fontFamily: MONO }}>
+              {row.hash}
+            </text>
+            <text x={CX + CW - 44} y={y + 4} textAnchor="end" fontSize="5.8" className={verified ? EM_FILL : ''} fill={verified ? undefined : 'currentColor'} fillOpacity={verified ? 0.75 : 0.42} style={{ fontFamily: MONO, letterSpacing: '0.1em' }}>
+              {row.proof}
+            </text>
+            {verified ? <FigTick cx={CX + CW - 24} cy={y} s={0.95} /> : <circle cx={CX + CW - 24} cy={y} r="2.5" fill="currentColor" fillOpacity="0.25" />}
           </g>
         )
       })}
-      <MicroLabel x="24" y="228" em>
-        inspectable proof
-      </MicroLabel>
+
+      <rect x={CX + CW - 92} y={CY + CH - 54} width={72} height={38} rx="5" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.22" strokeWidth="0.7" />
+      <FigSeal cx={CX + CW - 56} cy={CY + CH - 35} r={11} />
+      <FigLbl x={CX + CW - 56} y={CY + CH - 8} anchor="middle" size={5} em>
+        inspectable
+      </FigLbl>
     </>,
   )
 }
 
 function HybridVisual() {
   const nodes = [
-    { x: 56, y: 92, label: 'cloud', sub: 'hosted api' },
-    { x: 144, y: 156, label: 'runtime', sub: 'rt_prod_01' },
-    { x: 248, y: 92, label: 'edge', sub: 'local worker' },
+    { x: 52, y: 78, label: 'CLOUD', sub: 'hosted api', em: false },
+    { x: 152, y: 178, label: 'RUNTIME', sub: 'rt_prod_01', em: true },
+    { x: 252, y: 78, label: 'EDGE', sub: 'local worker', em: false },
   ]
   return figWrap(
     <>
-      <circle cx="180" cy="118" r="22" fill="currentColor" fillOpacity="0.03" stroke="currentColor" strokeOpacity="0.35" strokeWidth="0.8" />
-      <text x="180" y="116" textAnchor="middle" fontSize="6" fill="currentColor" fillOpacity="0.7" style={{ fontFamily: MONO }}>
-        igris
+      <circle cx={200} cy={128} r="34" fill="currentColor" fillOpacity="0.025" stroke="currentColor" strokeOpacity="0.22" strokeWidth="0.8" />
+      <circle cx={200} cy={128} r="22" fill="currentColor" fillOpacity="0.04" stroke="currentColor" strokeOpacity="0.42" strokeWidth="0.85" />
+      <text x={200} y={124} textAnchor="middle" fontSize="7.2" fill="currentColor" fillOpacity="0.82" style={{ fontFamily: MONO, letterSpacing: '0.08em' }}>
+        IGRIS
       </text>
-      <text x="180" y="126" textAnchor="middle" fontSize="5" fill="currentColor" fillOpacity="0.4" style={{ fontFamily: MONO }}>
+      <FigLbl x={200} y={138} anchor="middle" size={5.2} em>
         router
-      </text>
-      {nodes.map((n) => (
-        <g key={n.label}>
-          <line x1="180" y1="118" x2={n.x + 28} y2={n.y + 18} stroke="currentColor" strokeOpacity="0.25" strokeWidth="0.8" />
-          <rect x={n.x} y={n.y} width="56" height="36" rx="4" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.32" strokeWidth="0.7" />
-          <text x={n.x + 28} y={n.y + 14} textAnchor="middle" fontSize="6" fill="currentColor" fillOpacity="0.62" style={{ fontFamily: MONO }}>
-            {n.label}
-          </text>
-          <text x={n.x + 28} y={n.y + 26} textAnchor="middle" fontSize="4.8" fill="currentColor" fillOpacity="0.38" style={{ fontFamily: MONO }}>
-            {n.sub}
-          </text>
-        </g>
-      ))}
-      <MicroLabel x="24" y="228" em>
-        same governance
-      </MicroLabel>
+      </FigLbl>
+
+      <ellipse cx={200} cy={128} rx="118" ry="72" fill="none" stroke="currentColor" strokeOpacity="0.1" strokeWidth="0.7" strokeDasharray="4 4" />
+
+      {nodes.map((n) => {
+        const nx = n.x + 48
+        const ny = n.y + 24
+        return (
+          <g key={n.label}>
+            <line x1={200} y1={128} x2={nx} y2={ny} stroke="currentColor" strokeOpacity="0.22" strokeWidth="0.85" className={n.em ? EM_STROKE : ''} />
+            <rect x={n.x} y={n.y} width={96} height={48} rx="6" fill="currentColor" fillOpacity={n.em ? 0.04 : 0.02} stroke="currentColor" strokeOpacity={n.em ? 0.45 : 0.3} strokeWidth="0.8" className={n.em ? 'dark:stroke-emerald-400/45' : ''} />
+            <FigLbl x={n.x + 48} y={n.y + 18} anchor="middle" size={6} op={0.62}>
+              {n.label}
+            </FigLbl>
+            <text x={n.x + 48} y={n.y + 34} textAnchor="middle" fontSize="5.4" fill="currentColor" fillOpacity="0.38" style={{ fontFamily: MONO }}>
+              {n.sub}
+            </text>
+            <circle cx={n.x + 84} cy={n.y + 12} r="2.2" className={n.em ? EM_FILL : ''} fill={n.em ? undefined : 'currentColor'} fillOpacity={n.em ? 1 : 0.35} />
+          </g>
+        )
+      })}
+
+      <FigLbl x={200} y={252} anchor="middle" size={5.4} op={0.38}>
+        ONE GOVERNANCE MODEL · ANY SURFACE
+      </FigLbl>
     </>,
   )
 }
 
 function BoundariesVisual() {
+  const steps = [
+    { x: 62, label: 'policy', sub: 'limits' },
+    { x: 152, label: 'execute', sub: 'bounded' },
+    { x: 242, label: 'proof', sub: 'receipt' },
+    { x: 332, label: 'inspect', sub: 'operator' },
+  ]
+  const Y = 118
   return figWrap(
     <>
-      <rect x="48" y="88" width="72" height="34" rx="4" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.3" strokeWidth="0.7" />
-      <text x="84" y="108" textAnchor="middle" fontSize="6" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO }}>
-        policy
-      </text>
-      <line x1="120" y1="105" x2="156" y2="105" stroke="currentColor" strokeOpacity="0.28" strokeWidth="0.8" />
-      <rect x="156" y="88" width="72" height="34" rx="4" fill="currentColor" fillOpacity="0.04" stroke="currentColor" strokeOpacity="0.45" strokeWidth="0.8" className="dark:stroke-emerald-400/50" />
-      <text x="192" y="108" textAnchor="middle" fontSize="6" fill="currentColor" fillOpacity="0.7" style={{ fontFamily: MONO }}>
-        execute
-      </text>
-      <line x1="228" y1="105" x2="264" y2="105" stroke="currentColor" strokeOpacity="0.28" strokeWidth="0.8" />
-      <rect x="264" y="88" width="48" height="34" rx="4" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.3" strokeWidth="0.7" />
-      <text x="288" y="108" textAnchor="middle" fontSize="6" fill="currentColor" fillOpacity="0.55" style={{ fontFamily: MONO }}>
-        proof
-      </text>
-      <path d="M 192 122 v 26" stroke="currentColor" strokeOpacity="0.2" strokeWidth="0.7" />
-      <path d="M 192 148 h 44 v 24 h -88 v -24 h 44" fill="none" stroke="currentColor" strokeOpacity="0.28" strokeWidth="0.7" strokeDasharray="3 3" />
-      <rect x="124" y="172" width="136" height="30" rx="4" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.28" strokeWidth="0.7" />
-      <text x="192" y="190" textAnchor="middle" fontSize="5.8" fill="currentColor" fillOpacity="0.5" style={{ fontFamily: MONO }}>
-        recovery path · retry · compensate
-      </text>
-      <MicroLabel x="24" y="228" em>
-        bounded execution
-      </MicroLabel>
+      <FigPanel x={36} y={52} w={328} h={148} />
+
+      {steps.map((s, i) => {
+        const cx = s.x + 34
+        const em = i === 1 || i === 2
+        return (
+          <g key={s.label}>
+            {i < steps.length - 1 && (
+              <line
+                x1={cx + 22}
+                y1={Y}
+                x2={steps[i + 1].x + 12}
+                y2={Y}
+                stroke="currentColor"
+                strokeOpacity="0.24"
+                strokeWidth="0.8"
+                className={i >= 1 ? EM_STROKE : ''}
+              />
+            )}
+            <rect x={s.x} y={Y - 22} width={68} height={44} rx="5" fill="currentColor" fillOpacity={em ? 0.04 : 0.02} stroke="currentColor" strokeOpacity={em ? 0.42 : 0.28} strokeWidth="0.8" />
+            <text x={cx} y={Y - 4} textAnchor="middle" fontSize="6.6" fill="currentColor" fillOpacity="0.74" style={{ fontFamily: MONO }}>
+              {s.label}
+            </text>
+            <text x={cx} y={Y + 10} textAnchor="middle" fontSize="5.2" fill="currentColor" fillOpacity="0.36" style={{ fontFamily: MONO }}>
+              {s.sub}
+            </text>
+            <circle cx={cx} cy={Y + 28} r="3.2" fill="none" className={em ? EM_STROKE : ''} stroke={em ? undefined : 'currentColor'} strokeWidth="0.8" strokeOpacity={em ? 0.7 : 0.35} />
+          </g>
+        )
+      })}
+
+      <path
+        d="M 186 166 Q 200 198 152 210 Q 104 222 120 196"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.26"
+        strokeWidth="0.75"
+        strokeDasharray="3 3"
+      />
+      <rect x={118} y={206} width={124} height={32} rx="5" fill="currentColor" fillOpacity="0.02" stroke="currentColor" strokeOpacity="0.24" strokeWidth="0.7" />
+      <FigLbl x={180} y={226} anchor="middle" size={5.4} em>
+        recovery · retry · compensate
+      </FigLbl>
+
+      <FigLbl x={200} y={72} anchor="middle" size={5.6} op={0.4}>
+        OPINIONATED EXECUTION PATH
+      </FigLbl>
     </>,
   )
 }
