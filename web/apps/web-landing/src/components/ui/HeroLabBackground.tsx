@@ -8,10 +8,18 @@ import { useEffect, useRef } from 'react'
  * Two separate dotted ribbons — green and blue/violet — each rendered
  * alone in its own card as straight vertical columns that follow the
  * card edges, with a slow downward shimmer when motion is allowed.
+ * Dots are batched into Path2D fills for smooth display-rate animation.
  */
 
 type RGB = [number, number, number]
 type RibbonKind = 'green' | 'blue'
+
+const ALPHA_STEPS = 8
+const GAIN_MIN = 0.64
+const GAIN_MAX = 1.0
+const SIN_LUT = Float32Array.from({ length: 256 }, (_, i) =>
+  Math.sin((i / 256) * Math.PI * 2),
+)
 
 function mulberry32(seed: number) {
   return function () {
@@ -21,6 +29,11 @@ function mulberry32(seed: number) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
+}
+
+function fastSin(x: number) {
+  const t = x - Math.floor(x / (Math.PI * 2)) * (Math.PI * 2)
+  return SIN_LUT[(t / (Math.PI * 2) * 256) & 255]
 }
 
 function palette(dark: boolean) {
@@ -44,15 +57,25 @@ function palette(dark: boolean) {
 interface StreamDot {
   x: number
   y: number
-  t: number
-  pre: string
+  r: number
+  g: number
+  b: number
   base: number
-  phase: number
   size: number
+  waveOffset: number
 }
 
 interface Scene {
   dots: StreamDot[]
+  streamStyles: string[]
+  streamStyleIndex: Int16Array
+}
+
+function gainToStep(gain: number) {
+  return Math.min(
+    ALPHA_STEPS - 1,
+    Math.max(0, Math.round(((gain - GAIN_MIN) / (GAIN_MAX - GAIN_MIN)) * (ALPHA_STEPS - 1))),
+  )
 }
 
 function buildScene(
@@ -112,16 +135,83 @@ function buildScene(
       dots.push({
         x: xc + fan(xc, t),
         y: yy,
-        t,
-        pre: `rgba(${tint[0]},${tint[1]},${tint[2]},`,
+        r: tint[0],
+        g: tint[1],
+        b: tint[2],
         base,
-        phase: spec.phase,
         size: dotSize,
+        waveOffset: -t * 9 + spec.phase,
       })
     }
   }
 
-  return { dots }
+  const styleMap = new Map<string, number>()
+  const streamStyles: string[] = []
+  const streamStyleIndex = new Int16Array(dots.length * ALPHA_STEPS)
+
+  const registerStyle = (r: number, g: number, b: number, alpha: number) => {
+    const key = `${r}|${g}|${b}|${alpha.toFixed(3)}`
+    let idx = styleMap.get(key)
+    if (idx === undefined) {
+      idx = streamStyles.length
+      styleMap.set(key, idx)
+      streamStyles.push(`rgba(${r},${g},${b},${alpha.toFixed(3)})`)
+    }
+    return idx
+  }
+
+  for (let i = 0; i < dots.length; i++) {
+    const d = dots[i]
+    for (let step = 0; step < ALPHA_STEPS; step++) {
+      const gain = GAIN_MIN + ((GAIN_MAX - GAIN_MIN) * step) / (ALPHA_STEPS - 1)
+      streamStyleIndex[i * ALPHA_STEPS + step] = registerStyle(
+        d.r,
+        d.g,
+        d.b,
+        d.base * gain,
+      )
+    }
+  }
+
+  return { dots, streamStyles, streamStyleIndex }
+}
+
+function fillStreamPaths(
+  paths: (Path2D | undefined)[],
+  scene: Scene,
+  T: number,
+  animated: boolean,
+) {
+  paths.length = scene.streamStyles.length
+  paths.fill(undefined)
+
+  const mid = Math.floor(ALPHA_STEPS / 2)
+  for (let i = 0; i < scene.dots.length; i++) {
+    const d = scene.dots[i]
+    const step = animated
+      ? gainToStep(0.82 + 0.18 * fastSin(T * 1.6 + d.waveOffset))
+      : mid
+    const styleIdx = scene.streamStyleIndex[i * ALPHA_STEPS + step]
+    let path = paths[styleIdx]
+    if (!path) {
+      path = new Path2D()
+      paths[styleIdx] = path
+    }
+    path.rect(d.x, d.y, d.size, d.size)
+  }
+}
+
+function drawPaths(
+  ctx: CanvasRenderingContext2D,
+  paths: (Path2D | undefined)[],
+  styles: string[],
+) {
+  for (let i = 0; i < paths.length; i++) {
+    const path = paths[i]
+    if (!path) continue
+    ctx.fillStyle = styles[i]
+    ctx.fill(path)
+  }
 }
 
 export default function HeroLabBackground({
@@ -140,48 +230,51 @@ export default function HeroLabBackground({
   useEffect(() => {
     const canvas = ref.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { alpha: true })
     if (!ctx) return
 
     let scene: Scene | null = null
     let raf = 0
-    let last = 0
     let visible = true
     let w = 0
     let h = 0
     let dpr = 1
+    let rebuildTimer = 0
+    const streamPaths: (Path2D | undefined)[] = []
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)')
 
-    const drawDots = (animated: boolean, T = 0) => {
+    const stop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      }
+    }
+
+    const drawFrame = (animated: boolean, T = 0) => {
       if (!scene) return
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       ctx.clearRect(0, 0, w, h)
-      for (const d of scene.dots) {
-        const gain = animated
-          ? 0.82 + 0.18 * Math.sin(T * 1.6 - d.t * 9 + d.phase)
-          : 1
-        ctx.fillStyle = d.pre + (d.base * gain).toFixed(3) + ')'
-        ctx.fillRect(d.x, d.y, d.size, d.size)
-      }
+      fillStreamPaths(streamPaths, scene, T, animated)
+      drawPaths(ctx, streamPaths, scene.streamStyles)
     }
 
     const frame = (now: number) => {
-      raf = 0
-      if (!scene) return
-      if (now - last < 33) {
-        raf = requestAnimationFrame(frame)
+      if (!scene || !visible || reduced.matches) {
+        stop()
         return
       }
-      last = now
-      drawDots(true, now / 1000)
-      if (visible && !reduced.matches) raf = requestAnimationFrame(frame)
+      raf = requestAnimationFrame(frame)
+      drawFrame(true, now / 1000)
     }
 
     const start = () => {
+      stop()
       if (reduced.matches) {
-        drawDots(false)
-      } else if (visible && !raf) {
+        drawFrame(false)
+        return
+      }
+      if (visible) {
         raf = requestAnimationFrame(frame)
       }
     }
@@ -190,9 +283,10 @@ export default function HeroLabBackground({
       w = canvas.clientWidth
       h = canvas.clientHeight
       if (w === 0 || h === 0) return
-      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      dpr = Math.min(window.devicePixelRatio || 1, 1.25)
       canvas.width = Math.round(w * dpr)
       canvas.height = Math.round(h * dpr)
+      ctx.imageSmoothingEnabled = false
       scene = buildScene(
         w,
         h,
@@ -203,29 +297,40 @@ export default function HeroLabBackground({
       start()
     }
 
+    const scheduleRebuild = () => {
+      if (rebuildTimer) window.clearTimeout(rebuildTimer)
+      rebuildTimer = window.setTimeout(() => {
+        rebuildTimer = 0
+        rebuild()
+      }, 120)
+    }
+
     rebuild()
 
-    const ro = new ResizeObserver(rebuild)
+    const ro = new ResizeObserver(scheduleRebuild)
     ro.observe(canvas)
 
-    const mo = new MutationObserver(rebuild)
+    const mo = new MutationObserver(scheduleRebuild)
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
 
     const io = new IntersectionObserver((entries) => {
       visible = entries[0]?.isIntersecting ?? true
       if (visible) start()
-    })
+      else stop()
+    }, { rootMargin: '80px' })
     io.observe(canvas)
 
     const onVis = () => {
       visible = document.visibilityState === 'visible'
       if (visible) start()
+      else stop()
     }
     document.addEventListener('visibilitychange', onVis)
     reduced.addEventListener?.('change', start)
 
     return () => {
-      if (raf) cancelAnimationFrame(raf)
+      stop()
+      if (rebuildTimer) window.clearTimeout(rebuildTimer)
       ro.disconnect()
       mo.disconnect()
       io.disconnect()
@@ -235,7 +340,11 @@ export default function HeroLabBackground({
   }, [contained, ribbon])
 
   return (
-    <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 pointer-events-none"
+      style={{ contain: 'strict', transform: 'translateZ(0)' }}
+    >
       <canvas ref={ref} className="h-full w-full" />
       {!contained && (
         <>
