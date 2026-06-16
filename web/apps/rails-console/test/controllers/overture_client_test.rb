@@ -122,6 +122,32 @@ class OvertureClientTest < ActiveSupport::TestCase
     assert_equal 'network', err.code
   end
 
+  test 'session cookie mode does not send Bearer service key' do
+    captured_auth = nil
+    captured_cookie = nil
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.get('/v1/actions') do |env|
+        captured_auth = env.request_headers['Authorization']
+        captured_cookie = env.request_headers['Cookie']
+        [200, { 'Content-Type' => 'application/json' }, { actions: [] }.to_json]
+      end
+    end
+    conn = Faraday.new(url: 'http://overture.test') do |f|
+      f.request :json
+      f.response :json, content_type: /\bjson$/
+      f.adapter :test, stubs
+    end
+    client = Igris::OvertureClient.new(
+      base_url: 'http://overture.test',
+      api_key: 'igris_service_key',
+      session_cookie: 'better-auth.session_token=abc',
+    )
+    client.instance_variable_set(:@conn, conn)
+    client.list_actions
+    assert_nil captured_auth
+    assert_equal 'better-auth.session_token=abc', captured_cookie
+  end
+
   test 'auth header is set when api_key present, never logged' do
     captured = nil
     stubs = Faraday::Adapter::Test::Stubs.new do |s|

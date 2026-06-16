@@ -9,12 +9,16 @@
 // proof verification failure, missing API key.
 
 pub mod action_task;
+pub mod actions_run;
+pub mod agents;
 pub mod api;
 pub mod auth;
 pub mod demo;
 pub mod mcp;
+pub mod packs;
 pub mod receipts;
 pub mod tasks;
+pub mod templates;
 
 use clap::Subcommand;
 
@@ -142,6 +146,126 @@ pub enum ActionsSub {
         /// Path to igris.actions.json.
         #[arg(default_value = "igris.actions.json")]
         file: String,
+    },
+    /// Run a registered action through the action gateway.
+    Run {
+        /// Registered action name (for example demo.echo).
+        name: String,
+        /// Inline JSON object or path to a JSON file used as action input.
+        #[arg(long)]
+        input: Option<String>,
+        /// Idempotency key for the run.
+        #[arg(long)]
+        idempotency_key: Option<String>,
+        #[arg(long)]
+        api_url: Option<String>,
+        #[arg(long)]
+        console_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum AgentsSub {
+    /// List registered agents for the authenticated tenant.
+    List {
+        #[arg(long)]
+        api_url: Option<String>,
+        #[arg(long)]
+        include_archived: bool,
+    },
+    /// Register a tenant-scoped agent identity.
+    Register {
+        #[arg(long)]
+        name: String,
+        #[arg(long)]
+        agent_type: String,
+        #[arg(long)]
+        display_name: Option<String>,
+        #[arg(long)]
+        template_name: Option<String>,
+        #[arg(long)]
+        version: Option<String>,
+        #[arg(long)]
+        description: Option<String>,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Show one registered agent by id.
+    Show {
+        agent_id: String,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Archive a registered agent.
+    Archive {
+        agent_id: String,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum TemplatesSub {
+    /// List built-in agent templates.
+    List,
+    /// Show one template (files, setup, verification).
+    Show {
+        /// Template name (claude-code, codex, cursor, custom-agent).
+        name: String,
+    },
+    /// Write or print template configuration files.
+    Install {
+        /// Template name.
+        name: String,
+        /// Output directory (default: .igris/templates/<name>).
+        #[arg(long)]
+        output: Option<String>,
+        /// Print generated files to stdout instead of writing.
+        #[arg(long)]
+        print: bool,
+        /// Show what would be written without creating files.
+        #[arg(long)]
+        dry_run: bool,
+        /// Also run `igris packs install starter` when API credentials are set.
+        #[arg(long)]
+        install_pack: bool,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Verify starter pack/actions availability for a template.
+    Verify {
+        /// Template name.
+        name: String,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum PacksSub {
+    /// List built-in Action Packs.
+    List {
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+    /// Install a built-in Action Pack into the authenticated tenant.
+    Install {
+        /// Pack name (for example starter).
+        name: String,
+        #[arg(long)]
+        api_url: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum RunsSub {
+    /// Inspect a registered-action run by run_id/task_id.
+    Inspect {
+        run_id: String,
+        #[arg(long)]
+        api_url: Option<String>,
+        #[arg(long)]
+        console_url: Option<String>,
     },
 }
 

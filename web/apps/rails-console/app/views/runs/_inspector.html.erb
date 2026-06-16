@@ -59,6 +59,17 @@
               <span class="mono"><%= dash.call(run[:action]) %></span>
             </div>
           </div>
+          <% if (agent = run[:agent]).present? %>
+            <div class="ic-def">
+              <span class="ic-def__label">Agent</span>
+              <div class="ic-def__value">
+                <span class="mono"><%= dash.call(agent[:display_name] || agent[:name]) %></span>
+                <% if agent[:agent_type].present? %>
+                  <span class="ic-def__hint"><%= agent[:agent_type] %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
           <div class="ic-def"><span class="ic-def__label">Status</span><div class="ic-def__value"><%= status_pill run[:status] %></div></div>
           <div class="ic-def"><span class="ic-def__label">Routed via</span><div class="ic-def__value"><%= route_chips(run[:routed_via]) %></div></div>
           <% if run[:runtime_id].to_s.strip.present? %>

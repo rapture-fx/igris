@@ -1,125 +1,382 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useTheme } from 'next-themes';
-import { PRICING_TIERS } from '../../lib/pricing';
+import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, animate, motion, useReducedMotion } from 'framer-motion';
+import {
+  BillingInterval,
+  PRICING_TIERS,
+  PricingTierKey,
+  TierBillingOption,
+  YEARLY_TOGGLE_LABEL,
+  getTierBilling,
+} from '../../lib/pricing';
 
-const SANS = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace';
+const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace';
 
-export default function Pricing() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+const CARD_CLASS =
+  'flex h-full flex-col rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]';
 
-  useEffect(() => { setMounted(true); }, []);
+const DIVIDER = 'border-dashed border-black/[0.14] dark:border-white/[0.12]';
 
-  const isDark = mounted && theme === 'dark';
+const CTA_CLASS =
+  'inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]';
+
+const MOTION_EASE = [0.22, 1, 0.36, 1] as const;
+const PRICE_COUNT_DURATION = 1.4;
+const PRICE_FADE_DURATION = 0.95;
+const TAB_TRANSITION_DURATION = 0.9;
+const MOTION_TRANSITION = { duration: PRICE_FADE_DURATION, ease: MOTION_EASE };
+const TAB_TRANSITION = { duration: TAB_TRANSITION_DURATION, ease: MOTION_EASE };
+
+const PIXEL_PRICE_STYLE: React.CSSProperties = {
+  fontFamily: PIXEL,
+  fontSize: 'clamp(1.35rem, 2vw, 1.65rem)',
+  lineHeight: 1.1,
+  letterSpacing: '-0.01em',
+};
+
+const PIXEL_COMPARE_STYLE: React.CSSProperties = {
+  fontFamily: PIXEL,
+  fontSize: 'clamp(1.1rem, 1.6vw, 1.35rem)',
+  lineHeight: 1.1,
+  letterSpacing: '-0.01em',
+};
+
+function parsePriceAmount(price: string): number | null {
+  if (!price.startsWith('$')) return null;
+  const amount = Number(price.replace(/[$,]/g, ''));
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function formatPriceAmount(amount: number): string {
+  return amount >= 1000 ? `$${amount.toLocaleString('en-US')}` : `$${amount}`;
+}
+
+function AnimatedPriceValue({
+  price,
+  tierKey,
+  interval,
+}: {
+  price: string;
+  tierKey: PricingTierKey;
+  interval: BillingInterval;
+}) {
+  const reducedMotion = useReducedMotion();
+  const amount = parsePriceAmount(price);
+  const [shown, setShown] = useState(price);
+  const prevAmountRef = useRef<number | null>(amount);
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (amount === null) {
+      setShown(price);
+      prevAmountRef.current = null;
+      return;
+    }
+
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      prevAmountRef.current = amount;
+      setShown(formatPriceAmount(amount));
+      return;
+    }
+
+    if (reducedMotion) {
+      prevAmountRef.current = amount;
+      setShown(formatPriceAmount(amount));
+      return;
+    }
+
+    const from = prevAmountRef.current ?? amount;
+    prevAmountRef.current = amount;
+
+    if (from === amount) {
+      setShown(formatPriceAmount(amount));
+      return;
+    }
+
+    const controls = animate(from, amount, {
+      duration: PRICE_COUNT_DURATION,
+      ease: MOTION_EASE,
+      onUpdate: (value) => setShown(formatPriceAmount(Math.round(value))),
+    });
+
+    return () => controls.stop();
+  }, [amount, interval, price, reducedMotion, tierKey]);
 
   return (
-    <section id="pricing" className="pt-0 pb-0 bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] relative transition-colors duration-200">
-      <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-2 md:px-4 lg:px-6 py-8 bg-white dark:bg-dark-bg z-10">
+    <motion.span
+      layout="position"
+      className="text-gray-700 dark:text-[#c8c8b8] tabular-nums"
+      style={PIXEL_PRICE_STYLE}
+      initial={reducedMotion ? false : { opacity: 0.9, y: 2 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+    >
+      {shown}
+    </motion.span>
+  );
+}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {PRICING_TIERS.map((tier, index) => (
-                <div
-                  key={index}
-                  className="rounded-3xl border border-gray-200 dark:border-[#2a2a2a] shadow overflow-hidden bg-white dark:bg-[#1a1a1a] flex flex-col"
-                >
-                  {/* Header strip */}
-                  <div className="px-5 pt-4 pb-3 flex items-center justify-between" style={{ fontFamily: SANS }}>
-                    <span className="text-base font-semibold text-black dark:text-[#f6f6f4]">{tier.name}</span>
-                    {tier.recommended && (
-                      <span
-                        className="text-[10px] px-2 py-0.5 rounded-full"
+function TierPriceDisplay({
+  billing,
+  tierKey,
+  interval,
+}: {
+  billing: TierBillingOption;
+  tierKey: PricingTierKey;
+  interval: BillingInterval;
+}) {
+  const reducedMotion = useReducedMotion();
+  const motionKey = `${tierKey}-${interval}`;
+  const fade = reducedMotion
+    ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 } }
+    : {
+        initial: { opacity: 0, y: 2 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -1 },
+      };
+
+  return (
+    <>
+      <div className="mt-4 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+        <AnimatePresence mode="sync" initial={false}>
+          {billing.comparePrice && (
+            <motion.span
+              key={`${motionKey}-compare`}
+              layout="position"
+              className="text-gray-400 dark:text-[#6a6a5c] line-through tabular-nums"
+              style={PIXEL_COMPARE_STYLE}
+              {...fade}
+              transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+            >
+              {billing.comparePrice}
+            </motion.span>
+          )}
+        </AnimatePresence>
+
+        <AnimatedPriceValue price={billing.price} tierKey={tierKey} interval={interval} />
+
+        <AnimatePresence mode="sync" initial={false}>
+          {billing.period && (
+            <motion.span
+              key={`${motionKey}-period`}
+              layout="position"
+              className="text-gray-500 dark:text-[#a8a898]"
+              style={{ fontFamily: SANS, fontSize: '0.875rem' }}
+              {...fade}
+              transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+            >
+              {billing.period}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence mode="sync" initial={false}>
+        {billing.detail && (
+          <motion.p
+            key={`${motionKey}-detail`}
+            layout="position"
+            className="mt-2 text-gray-500 dark:text-[#8a8a7a]"
+            style={{ fontFamily: SANS, fontSize: '0.8rem', lineHeight: 1.4 }}
+            {...fade}
+            transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+          >
+            {billing.detail}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function BillingToggle({
+  interval,
+  onChange,
+}: {
+  interval: BillingInterval;
+  onChange: (next: BillingInterval) => void;
+}) {
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <div className="mb-8 md:mb-10 flex justify-center">
+      <div
+        className="relative inline-flex items-center gap-1 rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white/50 dark:bg-white/[0.02] p-1"
+        role="group"
+        aria-label="Billing interval"
+      >
+        {(['monthly', 'yearly'] as const).map((option) => {
+          const active = interval === option;
+          const label = option === 'monthly' ? 'Monthly' : `Yearly · ${YEARLY_TOGGLE_LABEL}`;
+
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              aria-pressed={active}
+              className={
+                'relative rounded-lg px-3.5 py-1.5 text-[11px] ' +
+                (active
+                  ? 'text-[#f6f6f4] dark:text-[#1b1912]'
+                  : 'text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4]')
+              }
+              style={{
+                fontFamily: SANS,
+                transition: reducedMotion
+                  ? undefined
+                  : `color ${TAB_TRANSITION_DURATION}s cubic-bezier(0.22, 1, 0.36, 1)`,
+              }}
+            >
+              {active && (
+                <motion.span
+                  layoutId="billing-toggle-pill"
+                  className="absolute inset-0 rounded-lg bg-[#1b1912] dark:bg-[#f6f6f4]"
+                  transition={{
+                    duration: reducedMotion ? 0 : TAB_TRANSITION_DURATION,
+                    ease: MOTION_EASE,
+                  }}
+                  aria-hidden
+                />
+              )}
+              <span className="relative z-10">{label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export default function Pricing() {
+  const [interval, setInterval] = useState<BillingInterval>('yearly');
+
+  return (
+    <section
+      id="pricing"
+      className="bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+    >
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 pb-16 md:pb-20">
+        <BillingToggle interval={interval} onChange={setInterval} />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-stretch">
+          {PRICING_TIERS.map((tier) => {
+            const billing = getTierBilling(tier, interval);
+
+            return (
+              <article
+                key={tier.key}
+                className={
+                  CARD_CLASS +
+                  (tier.recommended ? ' ring-1 ring-black/[0.06] dark:ring-white/[0.08]' : '')
+                }
+              >
+                <div className="flex h-full flex-col px-6 py-6 md:px-7 md:py-7">
+                  <header className={`${DIVIDER} border-b pb-5`}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3
+                        className="text-gray-700 dark:text-[#c8c8b8]"
                         style={{
-                          backgroundColor: isDark ? '#f6f6f4' : '#1b1912',
-                          color: isDark ? '#1b1912' : '#f6f6f4',
                           fontFamily: SANS,
+                          fontWeight: 500,
+                          fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
+                          lineHeight: 1.3,
+                          letterSpacing: '-0.01em',
                         }}
                       >
-                        Recommended
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Inner nested panel */}
-                  <div className="bg-gray-50 dark:bg-[#111] border-t border-gray-200 dark:border-[#2a2a2a] rounded-t-3xl px-5 pt-4 pb-4 flex flex-col flex-1">
-                    {/* Price */}
-                    <div className="mb-3">
-                      <span
-                        className="text-3xl text-black dark:text-[#f6f6f4]"
-                        style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}
-                      >
-                        {tier.price}
-                      </span>
-                      {tier.period && (
-                        <span className="text-xs text-gray-500 dark:text-[#a8a898] ml-1.5" style={{ fontFamily: SANS }}>
-                          {tier.period}
+                        {tier.name}
+                      </h3>
+                      {tier.recommended && (
+                        <span
+                          className="shrink-0 rounded-md border border-black/[0.08] dark:border-white/[0.1] bg-white/60 dark:bg-white/[0.04] px-2 py-0.5 text-[10px] text-gray-500 dark:text-[#a8a898]"
+                          style={{ fontFamily: MONO, letterSpacing: '0.08em' }}
+                        >
+                          Recommended
                         </span>
                       )}
                     </div>
 
-                    {/* Description */}
-                    <p className="text-sm text-gray-600 dark:text-[#a8a898] mb-3 leading-relaxed" style={{ fontFamily: SANS }}>
+                    <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} />
+
+                    <p
+                      className="mt-3 text-gray-600 dark:text-[#a8a898]"
+                      style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.55 }}
+                    >
                       {tier.description}
                     </p>
+                  </header>
 
-                    {/* Features */}
-                    <ul className="space-y-1.5 flex-1 mb-4">
-                      {tier.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-gray-400 dark:text-[#555] text-xs mt-0.5 select-none">–</span>
-                          <span className="text-sm text-gray-700 dark:text-[#c8c8b8]" style={{ fontFamily: SANS }}>{feature}</span>
+                  <div className="flex-1 py-5">
+                    <ul className="space-y-2.5">
+                      {tier.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2.5">
+                          <span
+                            className="mt-[0.45rem] h-1 w-1 shrink-0 rounded-full bg-gray-400 dark:bg-[#6a6a5c]"
+                            aria-hidden
+                          />
+                          <span
+                            className="text-gray-600 dark:text-[#a8a898]"
+                            style={{ fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.5 }}
+                          >
+                            {feature}
+                          </span>
                         </li>
                       ))}
                     </ul>
-
-                    {/* CTA */}
-                    <a
-                      href={tier.checkoutUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl transition-opacity hover:opacity-80 self-start"
-                      style={{
-                        fontFamily: SANS,
-                        backgroundColor: isDark ? '#f6f6f4' : '#1b1912',
-                        color: isDark ? '#1b1912' : '#f6f6f4',
-                      }}
-                    >
-                      {tier.cta}
-                    </a>
                   </div>
-                </div>
-              ))}
-            </div>
 
-            {/* Private preview CTA */}
-            <div
-              className="mt-6 rounded-2xl border border-gray-200 dark:border-[#2a2a2a] px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-              style={{ backgroundColor: isDark ? '#1a1a1a' : '#f9fafb' }}
-            >
-              <div>
-                <p className="text-sm font-medium text-black dark:text-[#f6f6f4]" style={{ fontFamily: SANS }}>
-                  Evaluating Igris for your team?
-                </p>
-                <p className="text-sm text-gray-600 dark:text-[#a8a898] mt-0.5" style={{ fontFamily: SANS }}>
-                  Request private preview access for a guided technical demo and validation support.
-                </p>
-              </div>
-              <a
-                href="mailto:sales@igrisinertial.com"
-                className="shrink-0 inline-flex items-center justify-center px-4 py-2 text-xs font-medium rounded-xl border transition-opacity hover:opacity-80"
+                  <footer className={`${DIVIDER} border-t pt-5`}>
+                    <a
+                      href={billing.checkoutUrl}
+                      target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
+                      rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                      className={CTA_CLASS}
+                      style={{ fontFamily: SANS }}
+                    >
+                      {billing.cta}
+                    </a>
+                  </footer>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className={`mt-8 md:mt-10 ${CARD_CLASS}`}>
+          <div className="flex flex-col gap-5 px-6 py-6 md:px-8 md:py-7 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-[52ch]">
+              <p
+                className="text-gray-700 dark:text-[#c8c8b8]"
                 style={{
                   fontFamily: SANS,
-                  borderColor: isDark ? 'rgba(246,246,244,0.12)' : 'rgba(0,0,0,0.1)',
-                  color: isDark ? '#f6f6f4' : '#1b1912',
-                  backgroundColor: isDark ? 'rgba(246,246,244,0.06)' : '#ffffff',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
+                  lineHeight: 1.35,
+                  letterSpacing: '-0.01em',
                 }}
               >
-                Request private preview
-              </a>
+                Evaluating Igris for production use?
+              </p>
+              <p
+                className="mt-2 text-gray-600 dark:text-[#a8a898]"
+                style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.6 }}
+              >
+                Request a private preview for a guided technical demo, architecture review, and
+                validation support.
+              </p>
             </div>
-
+            <a
+              href="mailto:sales@igrisinertial.com"
+              className="shrink-0 inline-flex items-center justify-center rounded-xl border border-dashed border-black/[0.14] dark:border-white/[0.12] bg-white/80 dark:bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-medium text-gray-700 dark:text-[#f6f6f4] transition-opacity hover:opacity-80"
+              style={{ fontFamily: SANS }}
+            >
+              Request private preview
+            </a>
+          </div>
         </div>
       </div>
     </section>

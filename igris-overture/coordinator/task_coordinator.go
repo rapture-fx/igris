@@ -100,6 +100,8 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		CredentialRequests:   governance.CredentialRequests,
 		IdempotencyKey:       idempotencyKey,
 		DeadlineAt:           req.DeadlineAt,
+		RegisteredAgentID:    req.RegisteredAgentID,
+		RegisteredAgentName:  req.RegisteredAgentName,
 		CreatedAt:            time.Now(),
 	}
 
@@ -175,6 +177,73 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 	// Dispatch asynchronously so Submit returns immediately.
 	go tc.dispatchToRuntime(context.Background(), &runtimeTask, nil)
 
+	return task, nil
+}
+
+// SubmitDemoSimulatedFailure creates a durable task record and marks it failed
+// without dispatching to a runtime. Used by mock_demo starter-pack actions
+// that demonstrate failure visibility (demo.fail_once).
+func (tc *TaskCoordinator) SubmitDemoSimulatedFailure(ctx context.Context, req *TaskSubmitRequest, failureReason string) (*TaskRecord, error) {
+	normalizedDefinition, err := normalizePublicTaskDefinition(req.TaskType, req.TaskDefinition)
+	if err != nil {
+		return nil, err
+	}
+	governance := normalizeTaskGovernance(req.TenantID, req.AgentIdentity, req.RequiredCapabilities, req.CredentialRequests)
+	governance.RequiredCapabilities = normalizeCapabilityList(append(
+		governance.RequiredCapabilities,
+		deriveRequiredCapabilitiesFromTaskDefinition(normalizedDefinition)...,
+	))
+	normalizedDefinition = attachTaskGovernanceToDefinition(normalizedDefinition, governance)
+
+	taskID := uuid.New()
+	if req.TaskID != uuid.Nil {
+		taskID = req.TaskID
+	}
+	idempotencyKey := req.IdempotencyKey
+	if idempotencyKey == "" {
+		idempotencyKey = taskID.String()
+	}
+	protectedDefinition, err := protectTaskDefinitionInputs(normalizedDefinition, req.TenantID, taskID)
+	if err != nil {
+		return nil, err
+	}
+	task := &TaskRecord{
+		TaskID:               taskID,
+		TenantID:             req.TenantID,
+		Status:               TaskStatusPending,
+		TaskDefinition:       protectedDefinition.Definition,
+		AgentIdentity:        governance.AgentIdentity,
+		RequiredCapabilities: governance.RequiredCapabilities,
+		CredentialRequests:   governance.CredentialRequests,
+		IdempotencyKey:       idempotencyKey,
+		DeadlineAt:           req.DeadlineAt,
+		RegisteredAgentID:    req.RegisteredAgentID,
+		RegisteredAgentName:  req.RegisteredAgentName,
+		CreatedAt:            time.Now(),
+	}
+	inserted, err := tc.store.CreateTaskWithExecutionInputRefs(ctx, task, protectedDefinition.Refs)
+	if err != nil {
+		return nil, fmt.Errorf("create task record: %w", err)
+	}
+	if !inserted {
+		existing, err := tc.store.GetTaskByIdempotencyKey(req.TenantID, idempotencyKey)
+		if err == nil {
+			return existing, nil
+		}
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("idempotency key is already in use")
+		}
+		return nil, fmt.Errorf("lookup idempotent task: %w", err)
+	}
+	reason := strings.TrimSpace(failureReason)
+	if reason == "" {
+		reason = "demo simulated failure"
+	}
+	if err := tc.store.MarkFailedWithDetails(taskID, reason, overtureTaskFailureDetails("submit", "demo_simulated_failure", reason)); err != nil {
+		return nil, fmt.Errorf("mark demo failure: %w", err)
+	}
+	task.Status = TaskStatusFailed
+	task.FailureReason = &reason
 	return task, nil
 }
 
@@ -1529,6 +1598,9 @@ type TaskSubmitRequest struct {
 	// action. The runtime must still be tenant-scoped and healthy; if no such
 	// runtime exists Submit returns a no-healthy-runtime error.
 	PreferredRuntimeID string `json:"-"`
+
+	RegisteredAgentID   *uuid.UUID `json:"-"`
+	RegisteredAgentName string     `json:"-"`
 }
 
 func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.RawMessage, error) {

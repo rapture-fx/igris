@@ -1,9 +1,12 @@
 require 'test_helper'
 
-# Locks the onboarding/workspace split: /welcome teaches Igris (endpoint call,
-# target/runtime explanation), while /home is the everyday workspace
+# Locks the onboarding/workspace split: /home teaches Igris (endpoint call,
+# target/runtime explanation), while /overview is the everyday workspace
 # (needs-attention, status summaries, recent runs) with no education hero and
 # no fake activity chart.
+#
+# Shared assertion helpers: test/support/console_page_assertions.rb
+# (assert_home_onboarding_page, assert_overview_workspace_page).
 class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   # Real-mode DataSource double so we can drive the zero-actions branch.
   class FakeDS
@@ -40,73 +43,77 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_split }
   end
 
-  # ── Welcome is the onboarding page ───────────────────────────────────────
-  test 'welcome contains the product explanation and first action call path' do
-    get '/welcome'
+  # ── Home is the onboarding page ─────────────────────────────────────────
+  test 'home contains the product explanation and first action call path' do
+    get '/home'
     assert_response :success
-    assert_match 'Give your AI agent a safe action endpoint.', response.body
+    assert_home_onboarding_page
     assert_match 'Your agent calls Igris instead of calling the tool directly.', response.body
     assert_match 'Call Igris from your agent', response.body
     assert_match 'Action endpoint', response.body
     assert_match 'Example request', response.body
-    assert_match 'Where actions run', response.body                # target explanation
+    assert_match 'Where actions run', response.body
     assert_match 'No runtime needed', response.body
     assert_match 'Runtime required', response.body
-    assert_match 'only needed for private files', response.body    # runtime explanation
+    assert_match 'only needed for private files', response.body
+    assert_match 'ic-diagram', response.body
+    assert_match 'Register an action', response.body
   end
 
-  test 'welcome links to create-first-action and to overview' do
-    get '/welcome'
+  test 'home links to create-first-action and to overview' do
+    get '/home'
     assert_match 'Create your first action', response.body
     assert_match 'Go to Overview', response.body
   end
 
-  # ── Welcome lives inside the console chrome (not a standalone page) ───────
-  test 'welcome renders inside the console chrome with the icon rail' do
+  test 'legacy /welcome redirects to /home' do
     get '/welcome'
+    assert_redirected_to home_path
+  end
+
+  test 'home renders inside the console chrome with the icon rail' do
+    get '/home'
     assert_response :success
-    assert_match 'ic-rail', response.body                      # icon rail present
-    assert_match 'Overview', response.body                     # Overview rail item
-    assert_match 'Get started', response.body                  # topbar title
+    assert_match 'ic-rail', response.body
+    assert_match 'Overview', response.body
+    assert_match 'Home', response.body
   end
 
   test 'create-first-action CTA lands on the new-action wizard' do
-    post '/welcome/enter', params: { to: 'new_action' }
+    post '/home/enter', params: { to: 'new_action' }
     assert_redirected_to new_action_path
     assert_equal '1', cookies[:igris_welcomed]
   end
 
-  # ── Home is the workspace ────────────────────────────────────────────────
-  test 'home does not render the education hero or diagram when actions exist' do
-    get '/home' # fixture mode ships actions
+  # ── Overview is the workspace ───────────────────────────────────────────
+  test 'overview does not render the education hero when actions exist' do
+    get '/overview' # fixture mode ships actions
     assert_response :success
-    refute_match 'Give your AI agent a safe action endpoint.', response.body
-    refute_match 'ic-diagram', response.body
+    assert_overview_workspace_page
   end
 
-  test 'home shows compact workspace sections when actions exist' do
-    get '/home?tab=attention' # the needs-attention section lives on its own tab
+  test 'overview shows compact workspace sections when actions exist' do
+    get '/overview?tab=attention'
     assert_response :success
-    assert_match 'Needs attention', response.body
-    assert_match 'Workspace', response.body
+    assert_overview_workspace_page(needs_attention: true)
     assert_match 'Actions ready', response.body
     assert_match 'Runtime status', response.body
   end
 
-  test 'home shows a first-action empty state with a welcome link when no actions' do
+  test 'overview shows a first-action empty state with a home link when no actions' do
     with_fake_ds(FakeDS.new(actions: [])) do
-      get '/home'
+      get '/overview'
       assert_response :success
       assert_match 'Create your first action', response.body
       assert_match 'See how Igris works', response.body
-      assert_match welcome_path, response.body
-      refute_match 'Needs attention', response.body # no workspace sections with zero actions
+      assert_match home_path, response.body
+      refute_match 'Needs attention', response.body
     end
   end
 
   # ── No fake production metrics in demo mode ──────────────────────────────
-  test 'home never renders a 105-day fake activity chart in demo mode' do
-    get '/home' # fixture/demo mode
+  test 'overview never renders a 105-day fake activity chart in demo mode' do
+    get '/overview'
     assert_response :success
     refute_match 'ic-chartcard', response.body
     refute_match 'ic-pulse', response.body
@@ -114,16 +121,16 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   # ── Workspace profile layout ─────────────────────────────────────────────
-  test 'home renders the workspace shell without the retired banner' do
-    get '/home'
+  test 'overview renders the workspace shell without the retired banner' do
+    get '/overview'
     assert_response :success
     assert_match 'ic-workspace-layout', response.body
     refute_match '/home.png', response.body
     refute_match 'ic-workspace-banner', response.body
   end
 
-  test 'home workspace panel shows the status rows' do
-    get '/home'
+  test 'overview workspace panel shows the status rows' do
+    get '/overview'
     assert_response :success
     assert_match 'Actions ready', response.body
     assert_match 'Last run', response.body
@@ -131,36 +138,35 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     assert_match 'Igris API', response.body
   end
 
-  test 'home quick actions include create action, connect runtime, view runs' do
-    get '/home'
+  test 'overview quick actions include create action, connect runtime, view runs' do
+    get '/overview'
     assert_response :success
     assert_match 'Create action', response.body
     assert_match 'Connect runtime', response.body
     assert_match 'View runs', response.body
   end
 
-  test 'home feed shows notification-style activity events when runs exist' do
-    get '/home?tab=feed' # fixtures ship runs; feed events live on the feed tab
+  test 'overview feed shows notification-style activity events when runs exist' do
+    get '/overview?tab=feed'
     assert_response :success
-    assert_match 'ic-feed-item', response.body          # separate events, not a table
+    assert_match 'ic-feed-item', response.body
     assert_match(%r{Action <strong>\w+</strong>}, response.body)
-    assert_match 'ic-feed-badge', response.body         # routing/proof/status now render as badges
+    assert_match 'ic-feed-badge', response.body
   end
 
-  test 'home feed shows an honest empty state when no runs in real mode' do
+  test 'overview feed shows an honest empty state when no runs in real mode' do
     action = { id: 'a1', name: 'send_email', target_type: 'hosted_api',
                target_label: 'Hosted API', setup: 'Ready', endpoint_readiness: 'ready' }
     with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [])) do
-      get '/home?tab=feed' # the no-activity empty state lives on the feed tab
+      get '/overview?tab=feed'
       assert_response :success
       assert_match 'No activity yet', response.body
       refute_match 'ic-chartcard', response.body
     end
   end
 
-  # ── Execution Machine (below the Run Activity Map on the map tab) ─────────
   test 'map tab renders the Run Activity Map with outcome bands' do
-    get '/home?tab=map' # fixtures ship runs
+    get '/overview?tab=map'
     assert_response :success
     assert_match 'ic-runmap', response.body
     ['Verified', 'Completed', 'Recovered', 'Waiting', 'Blocked', 'Failed'].each do |band|
@@ -169,7 +175,7 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
   end
 
   test 'map tab does not invent caller identity' do
-    get '/home?tab=map'
+    get '/overview?tab=map'
     assert_response :success
     refute_match 'Caller unavailable', response.body
     refute_match 'Submitter', response.body
@@ -179,10 +185,10 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     action = { id: 'a1', name: 'send_email', target_type: 'hosted_api',
                target_label: 'Hosted API', setup: 'Ready', endpoint_readiness: 'ready' }
     with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [])) do
-      get '/home?tab=map'
+      get '/overview?tab=map'
       assert_response :success
       assert_match 'Run Activity Map', response.body
-      assert_match 'No run activity yet', response.body # run-dependent state is honest, not faked
+      assert_match 'No run activity yet', response.body
       assert_match new_action_path, response.body
     end
   end
@@ -193,10 +199,10 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
             proof: 'Proof unavailable', routed_via: 'Hosted API',
             executed_target: 'hosted_api', policy: 'Safe automation' }
     with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [run])) do
-      get '/home?tab=map'
+      get '/overview?tab=map'
       assert_response :success
       assert_match 'Proof unavailable', response.body
-      refute_match 'Signed', response.body                  # must not overclaim proof
+      refute_match 'Signed', response.body
     end
   end
 
@@ -207,25 +213,25 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
             executed_target: 'hosted_api', policy: 'Safe automation',
             target_url: 'https://secret.internal/private', runtime_id: 'rt_local' }
     with_fake_ds(FakeDS.new(actions: [action], runtimes: [], runs: [run])) do
-      get '/home?tab=map'
+      get '/overview?tab=map'
       assert_response :success
-      refute_match 'secret.internal', response.body # raw target URL/host never rendered
+      refute_match 'secret.internal', response.body
     end
   end
 
-  test 'home zero-actions state links to the new-action wizard and welcome' do
+  test 'overview zero-actions state links to the new-action wizard and home' do
     with_fake_ds(FakeDS.new(actions: [])) do
-      get '/home'
+      get '/overview'
       assert_response :success
       assert_match new_action_path, response.body
-      assert_match welcome_path, response.body
+      assert_match home_path, response.body
       refute_match 'ic-workspace-banner', response.body
     end
   end
 
   # ── Copy guardrail ───────────────────────────────────────────────────────
-  test 'welcome and home never expose Overture wording' do
-    %w[/welcome /home].each do |path|
+  test 'home and overview never expose Overture wording' do
+    %w[/home /overview].each do |path|
       get path
       assert_response :success
       refute_match(/Overture/, response.body, "#{path} exposed 'Overture'")

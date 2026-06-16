@@ -21,32 +21,34 @@ and the top-level `DEPLOY.md` for the end-to-end playbook.
 | DNS        | Cloudflare `console.igrisinertial.com` (+ `app.…`)   |
 | Backend    | Go Overture at `api.igrisinertial.com`               |
 
-## Auth model (two layers)
+## Auth model (three layers)
 
-### 1. Console front door — HTTP Basic auth
+See `AUTH_ROUTES.md` for the full landing ↔ console contract.
 
-End users (just the founder for MVP) reach the console through HTTP
-Basic auth gated on two env vars:
+### 1. Customer session (BetterAuth) — primary
 
-- `ADMIN_USERNAME`
-- `ADMIN_PASSWORD`
+Signed-in customers reach `/home` and product lenses with a BetterAuth
+session cookie. Rails validates the cookie by probing Overture
+(`GET /v1/project` with the session cookie only) and forwards that
+cookie on subsequent Overture calls so data stays tenant-scoped.
 
-When both are set, every request is challenged (`401 + WWW-Authenticate:
-Basic realm="Igris Console"`) unless the browser presents matching
-credentials. Comparison goes through SHA-256-hashed
-`ActiveSupport::SecurityUtils.secure_compare` so neither value nor
-length leaks via timing. The `/up` health endpoint is a Rack lambda,
-not a controller, so it always responds without challenge.
+Landing sign-in calls `/api/auth/*` on the console host. Rails proxies
+those requests to `BETTER_AUTH_UPSTREAM_URL` (typically `web-landing`
+`/api/auth`). Set `BETTER_AUTH_BASE_URL` to the console origin so
+cookies are scoped correctly.
 
-When either env var is unset, the front door is open — fine for dev,
-**must not happen in production**. The `render.yaml` declares both as
-`sync: false` so they're set per-environment in the Render dashboard.
+### 2. Console preview gate — HTTP Basic auth (admin fallback)
 
-Upgrade path: replace with Clerk or BetterAuth-direct when multi-user
-identity matters. The MVP runs single-tenant; one founder = one
-password is the right shape.
+Optional operator fallback via `ADMIN_USERNAME` and `ADMIN_PASSWORD`.
+When both are set, matching Basic credentials also satisfy the console
+gate. This path uses the `OVERTURE_API_KEY` service principal.
 
-### 2. Overture service principal — `igris_` API key
+`/up`, `/onboarding`, `/dashboard`, `/reset-password`, and `/api/auth/*`
+skip the gate. Unauthenticated browser requests to protected routes
+redirect to `LANDING_URL/auth`. Production fails closed when neither
+customer session auth nor admin Basic Auth is configured.
+
+### 3. Overture service principal — `igris_` API key (admin/preview)
 
 The console authenticates to Overture as a **service principal** — a
 single `igris_` prefixed API key issued for the console's own tenant.
@@ -73,23 +75,56 @@ the auth middleware can't tell them apart):
 
 ## Environment variables
 
+### Rails console service
+
 | Name                       | Required (prod) | Purpose                                                              |
 | -------------------------- | --------------- | -------------------------------------------------------------------- |
 | `RAILS_ENV`                | yes             | `production`                                                          |
 | `SECRET_KEY_BASE`          | yes             | Rails session/cookie signing key. `bin/rails secret` or `generateValue` |
-| `OVERTURE_API_BASE_URL`    | yes             | `https://api.igrisinertial.com`                                       |
-| `OVERTURE_API_KEY`         | yes             | `igris_…` service-principal key — see auth model above                |
-| `OVERTURE_PUBLIC_API_URL`  | no              | Override of the public endpoint URL used in snippets                 |
+| `OVERTURE_API_BASE_URL`    | yes             | `https://api.igrisinertial.com` — session probe + product data        |
+| `BETTER_AUTH_UPSTREAM_URL` | yes (customer)  | `better-auth-upstream` base, e.g. `https://auth.igrisinertial.com/api/auth` |
+| `LANDING_URL`              | recommended     | Account portal for unauthenticated redirect (default `https://igrisinertial.com`) |
 | `APP_HOST`                 | yes             | `console.igrisinertial.com`                                           |
-| `ADMIN_USERNAME`           | yes             | Console front-door HTTP Basic username                                |
-| `ADMIN_PASSWORD`           | yes             | Console front-door HTTP Basic password — long random, store in pw manager |
+| `OVERTURE_API_KEY`         | admin path      | `igris_…` service principal — used with HTTP Basic fallback only      |
+| `ADMIN_USERNAME`           | optional        | HTTP Basic admin fallback username                                    |
+| `ADMIN_PASSWORD`           | optional        | HTTP Basic admin fallback password                                    |
+| `OVERTURE_PUBLIC_API_URL`  | no              | Override of the public endpoint URL used in snippets                 |
 | `PORT`                     | yes             | Render sets to `3100` (see `config/puma.rb`)                         |
 | `RAILS_SERVE_STATIC_FILES` | yes             | Set to `1` so Puma serves digested CSS from `public/`                |
 | `RAILS_LOG_TO_STDOUT`      | recommended     | Render wants logs on stdout                                          |
 
-**Never set `OVERTURE_API_KEY` in `render.yaml` or any committed file.**
-`render.yaml` declares the key with `sync: false`; set the value in the
-Render dashboard.
+Production must have **either** customer session auth (`OVERTURE_API_BASE_URL` +
+`BETTER_AUTH_UPSTREAM_URL`) **or** admin Basic Auth (`ADMIN_USERNAME` +
+`ADMIN_PASSWORD`), or both. Customer path is primary for end users.
+
+### `better-auth-upstream` (separate Node service)
+
+Deploy `web/apps/better-auth-upstream` with `output: 'standalone'`. Not on
+Cloudflare Pages static landing. Set on the auth service, not on Rails:
+
+| Name | Required | Purpose |
+| ---- | -------- | ------- |
+| `DATABASE_URL` | yes | Neon pooled URL (shared `user`/`session` tables) |
+| `BETTER_AUTH_SECRET` | yes | Must match Overture |
+| `BETTER_AUTH_BASE_URL` | yes | Console origin, e.g. `https://console.igrisinertial.com` |
+| `NEXT_PUBLIC_CONSOLE_URL` | recommended | Fallback for `BETTER_AUTH_BASE_URL` |
+| `NEXT_PUBLIC_LANDING_URL` | recommended | `trustedOrigins`, e.g. `https://igrisinertial.com` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | optional | Google OAuth |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | optional | GitHub OAuth |
+
+### Overture (session validation)
+
+| Name | Required | Purpose |
+| ---- | -------- | ------- |
+| `DATABASE_URL` | yes | Session table lookup |
+| `BETTER_AUTH_SECRET` | yes | Same value as landing upstream |
+| `ALLOWED_ORIGINS` | yes | Include `https://console.igrisinertial.com` |
+
+See `AUTH_ROUTES.md` for host relationships and `AUTH_SMOKE.md` for the smoke
+checklist.
+
+**Never set `OVERTURE_API_KEY` or `BETTER_AUTH_SECRET` in committed files.**
+Set values in the deployment dashboard only.
 
 ## Modes
 
@@ -137,7 +172,9 @@ bundle exec puma -C config/puma.rb
 
 ## Smoke checklist
 
-See `SMOKE.md` at repo root. The Rails-specific steps:
+Auth bridge: `AUTH_SMOKE.md` and `./scripts/smoke/auth-bridge-smoke.sh`.
+
+Broader deploy: `SMOKE.md` at repo root. Rails-specific steps:
 
 ```bash
 # health

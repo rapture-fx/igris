@@ -3,7 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
+import { DOCS_LINKS } from '../../lib/docs-urls';
+import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections';
+import LandingSectionLink from '../LandingSectionLink';
 import { useTheme } from 'next-themes';
+import ThemeToggleButton from '../ThemeToggleButton';
 
 
 const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
@@ -24,18 +28,18 @@ interface DropdownItem {
 }
 
 const productItems: DropdownItem[] = [
-  { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: '/#product' },
-  { label: 'Recover', description: 'Resume from recorded progress — committed actions never replay.', href: '/#product' },
-  { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: '/#product' },
-  { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: '/#product' },
+  { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
+  { label: 'Recover', description: 'Resume from recorded progress. Committed actions never replay.', href: landingHash(LANDING_SECTIONS.productRecover) },
+  { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: landingHash(LANDING_SECTIONS.productProve) },
+  { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: landingHash(LANDING_SECTIONS.overview) },
 ];
 
 const docsItems: DropdownItem[] = [
-  { label: 'Getting Started', description: 'Run your first verified execution path.', href: 'https://docs.igrisinertial.com/docs/', external: true },
-  { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: 'https://docs.igrisinertial.com/docs/api-reference/', external: true },
-  { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: 'https://docs.igrisinertial.com/docs/sdk/', external: true },
-  { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: 'https://docs.igrisinertial.com/docs/verification/', external: true },
-  { label: 'Architecture', description: 'How Igris governs execution across environments.', href: 'https://docs.igrisinertial.com/docs/architecture/', external: true },
+  { label: 'Getting Started', description: 'Run your first verified execution path.', href: DOCS_LINKS.quickstart, external: true },
+  { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: DOCS_LINKS.apiReference, external: true },
+  { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: DOCS_LINKS.sdk, external: true },
+  { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: DOCS_LINKS.verification, external: true },
+  { label: 'Architecture', description: 'How Igris governs execution across environments.', href: DOCS_LINKS.architecture, external: true },
 ];
 
 export default function Header() {
@@ -46,17 +50,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const [consoleUrl, setConsoleUrl] = useState('https://console.igrisinertial.com');
-
   const navRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-      setConsoleUrl('http://localhost:3005');
-    } else {
-      setConsoleUrl('https://console.igrisinertial.com');
-    }
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
@@ -96,6 +90,16 @@ export default function Header() {
           >
             {item.label}
           </a>
+        ) : item.href.startsWith('/#') ? (
+          <LandingSectionLink
+            key={item.label}
+            href={item.href}
+            onClick={closeAll}
+            className="block rounded-md px-3 py-1.5 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+            style={NAV_ITEM_STYLE}
+          >
+            {item.label}
+          </LandingSectionLink>
         ) : (
           <Link
             key={item.label}
@@ -169,38 +173,43 @@ export default function Header() {
                 Pricing
               </Link>
 
+              <ThemeToggleButton className="rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 dark:text-[#f6f6f4] dark:hover:bg-white/[0.08]" />
+
               <span className="mx-1 h-4 w-px bg-gray-300 dark:bg-white/[0.12]" />
 
               {/* Sign in */}
-              <a
-                href={`${consoleUrl}/auth?mode=signin`}
+              <Link
+                href="/auth?mode=signin"
+                prefetch={false}
                 onClick={closeAll}
                 className="rounded-md px-3 py-1.5 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Sign in
-              </a>
+              </Link>
 
-              {/* Get started */}
-              <a
-                href={`${consoleUrl}/auth?mode=signup`}
+              <Link
+                href="/auth?mode=signup"
+                prefetch={false}
                 onClick={closeAll}
-                className="rounded-xl px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+                className="rounded-md px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
                 style={NAV_ITEM_STYLE}
               >
-                Get started
-              </a>
+                Get API key
+              </Link>
             </nav>
 
-            {/* Mobile toggle */}
-            <button
-              type="button"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden text-gray-500 dark:text-[#c8c8b8]"
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            <div className="flex items-center gap-2 md:hidden">
+              <ThemeToggleButton className="rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 dark:text-[#f6f6f4] dark:hover:bg-white/[0.08]" />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="text-gray-500 dark:text-[#c8c8b8]"
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </div>
 
           </div>
         </div>
@@ -210,14 +219,15 @@ export default function Header() {
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 pt-14 bg-white dark:bg-[#010203] overflow-y-auto">
           <nav className="flex flex-col px-5 py-6">
-            <a
-              href={`${consoleUrl}/auth?mode=signin`}
+            <Link
+              href="/auth?mode=signin"
+              prefetch={false}
               onClick={closeAll}
               className="block w-full py-2 text-gray-700 dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Sign in
-            </a>
+            </Link>
 
             <Link
               href="/pricing"
@@ -242,16 +252,15 @@ export default function Header() {
             {productOpen && (
               <div className="mb-2 pl-3 border-l border-gray-200 dark:border-white/[0.12]">
                 {productItems.map((item) => (
-                  <Link
+                  <LandingSectionLink
                     key={item.label}
                     href={item.href}
-                    prefetch={false}
                     onClick={closeAll}
                     className="block w-full py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
                     style={{ fontFamily: NAV_FONT }}
                   >
                     {item.label}
-                  </Link>
+                  </LandingSectionLink>
                 ))}
               </div>
             )}
@@ -284,14 +293,15 @@ export default function Header() {
               </div>
             )}
 
-            <a
-              href={`${consoleUrl}/auth?mode=signup`}
+            <Link
+              href="/auth?mode=signup"
+              prefetch={false}
               onClick={closeAll}
-               className="mt-4 inline-flex items-center justify-center w-full rounded-xl px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+              className="mt-4 inline-flex items-center justify-center w-full rounded-md px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
-              Get started
-            </a>
+              Get API key
+            </Link>
           </nav>
         </div>
       )}

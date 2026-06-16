@@ -24,6 +24,12 @@ if [ -z "${OVERTURE_API_BASE_URL:-}" ]; then
 else
   green "Mode: real Overture (${OVERTURE_API_BASE_URL})"
 fi
+if [ -n "${BETTER_AUTH_UPSTREAM_URL:-}" ]; then
+  green "Auth proxy: ${BETTER_AUTH_UPSTREAM_URL}"
+else
+  dim   "  Customer auth: export BETTER_AUTH_UPSTREAM_URL=http://localhost:3001/api/auth"
+  dim   "  (and run web/apps/better-auth-upstream with DATABASE_URL + BETTER_AUTH_SECRET)"
+fi
 echo
 bold "Open: http://localhost:${PORT}/home"
 echo

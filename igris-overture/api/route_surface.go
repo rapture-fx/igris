@@ -113,9 +113,19 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "agent_mcp_surface", DefaultExposureAfterTask: "registered", RiskNotes: "strict versioned schemas and param validation",
 	},
 	{
+		Method: "GET,POST", Path: "/v1/action-packs,/v1/action-packs/:name/install", RegistrationFile: "igris-overture/api/routes_action_packs.go",
+		HandlerOrGroup: "action packs", RegistrationFunction: "RegisterActionPackRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "installs registered actions only; no raw task execution",
+	},
+	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/actions,/v1/actions/run,/v1/actions/runs/:id", RegistrationFile: "igris-overture/api/routes_actions.go",
 		HandlerOrGroup: "registered actions", RegistrationFunction: "RegisterActionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "registered tenant-owned actions only",
+	},
+	{
+		Method: "GET,POST,PATCH,DELETE", Path: "/v1/agents,/v1/agents/:id", RegistrationFile: "igris-overture/api/routes_agent_registry.go",
+		HandlerOrGroup: "agent registry", RegistrationFunction: "RegisterAgentRegistryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped agent identity and attribution only; PATCH dispatches registry vs execution settings",
 	},
 	{
 		Method: "GET,POST", Path: "/v1/tasks", RegistrationFile: "igris-overture/api/routes_tasks.go",

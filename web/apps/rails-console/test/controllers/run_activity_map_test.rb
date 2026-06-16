@@ -2,7 +2,7 @@
 
 require 'test_helper'
 
-# Covers the Run Activity Map on the Overview page (/home?tab=map): it renders
+# Covers the Run Activity Map on the Overview page (/overview?tab=map): it renders
 # one dot per loaded run, each dot links to its run detail and carries an
 # accessible summary, the no-runs state is honest (no fabricated dots), fixture
 # data is clearly labelled, and no unsafe fields or off-brand wording leak into
@@ -80,7 +80,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'renders the Run Activity Map with one dot per loaded run' do
     stub_with(sample_runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_response :success
       assert_select 'section.ic-runmap'
       assert_select '.ic-runmap__title', text: 'Run Activity Map'
@@ -90,7 +90,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'each dot links to its run detail page' do
     stub_with(sample_runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_select "a.ic-runmap__dot[href=?]", run_path('run_v')
       assert_select "a.ic-runmap__dot[href=?]", run_path('run_f')
     end
@@ -98,7 +98,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'dots carry an accessible label with action, status and proof' do
     stub_with(sample_runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       # Verified run dot — action + band + proof are all present in the label.
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'charge_card'
       assert_select 'a.ic-runmap__dot[aria-label*=?]', 'Verified'
@@ -112,7 +112,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'outcome lanes are mapped honestly across statuses' do
     stub_with(sample_runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_select '.ic-runmap__band', text: /Verified/
       assert_select '.ic-runmap__band', text: /Waiting/
       assert_select 'a.ic-runmap__dot.ic-runmap__dot--verified'
@@ -126,7 +126,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'activity map renders concrete lane grid rows' do
     stub_with(sample_runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_response :success
       assert_match(/grid-template-columns: minmax\(82px, max-content\) repeat\(\d+, minmax\(0, 1fr\)\)/, response.body)
       assert_match(/class="ic-runmap__band"[^>]+grid-row: \d+;/, response.body)
@@ -136,7 +136,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'no-runs state renders an honest empty map with no dots' do
     stub_with([]) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_response :success
       assert_select 'section.ic-runmap'
       assert_select '.ic-runmap__empty-title', text: 'No run activity yet'
@@ -146,7 +146,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'map header has a View all link to the runs page' do
     stub_with(sample_runs, mode: :fixtures) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_response :success
       assert_select ".ic-runmap__head a.ic-runmap__viewall[href=?]", runs_path, text: 'View all'
     end
@@ -154,7 +154,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'map no longer renders the demo data badge' do
     stub_with(sample_runs, mode: :fixtures) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_select '.ic-runmap__demo', count: 0
     end
   end
@@ -168,7 +168,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
               signature: 'RAWSIGNATUREBYTES'),
     ]
     stub_with(runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       assert_response :success
       %w[SECRET_FAILURE_REASON internal-host-10-0-0-1 postgres://leaked RAWSIGNATUREBYTES].each do |leak|
         assert_not_includes response.body, leak
@@ -178,7 +178,7 @@ class RunActivityMapTest < ActionDispatch::IntegrationTest
 
   test 'map copy avoids off-brand and overclaiming wording' do
     stub_with(sample_runs) do
-      get home_path(tab: 'map')
+      get overview_path(tab: 'map')
       body = response.body.downcase
       File.write('/tmp/runs_body.html', response.body) unless body.exclude?('overture')
       assert_not_includes body, 'overture'

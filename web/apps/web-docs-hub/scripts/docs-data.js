@@ -83,6 +83,12 @@ const mcpReference = {
       summary: 'Connect Claude Code, Codex, Cursor, or a custom agent to registered actions, run one action, and inspect the run safely.',
     },
     {
+      slug: 'agent-templates',
+      title: 'Agent Templates',
+      href: '/docs/agent-templates',
+      summary: 'Generate safe MCP and CLI setup files for Claude Code, Codex, Cursor, and custom agents.',
+    },
+    {
       slug: 'mcp',
       title: 'Overview',
       href: '/docs/mcp',
@@ -190,6 +196,78 @@ const mcpReference = {
 };
 
 const rawApiSections = [
+  {
+    title: 'Action Packs',
+    summary:
+      'Built-in Action Packs install safe registered actions for first-agent onboarding. A pack is a small manifest of action definitions — it does not execute raw tasks, call external providers, or store secrets. After install, run actions through the normal Actions API or MCP `call_action` like any other registered action.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/v1/action-packs',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Lists built-in Action Packs available for install into the authenticated tenant.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/action-packs/:name/install',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description:
+          'Installs a built-in Action Pack by registering its actions in your tenant. Installed actions are normal registered actions — not raw task submissions.',
+      },
+    ],
+  },
+  {
+    title: 'Agents',
+    summary:
+      'Tenant-scoped Agent Registry for identity and run attribution. Register an agent before first runs, then pass agent_id or agent_name on action runs and MCP call_action. Metadata is sanitized — no secrets, prompts, or tenant_id from clients.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/v1/agents',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Lists registered agents for the authenticated tenant. Use include_archived=true to include archived agents.',
+      },
+      {
+        method: 'POST',
+        path: '/v1/agents',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Registers a tenant-scoped agent identity for run attribution.',
+      },
+      {
+        method: 'GET',
+        path: '/v1/agents/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Gets one registered agent by id.',
+      },
+      {
+        method: 'PATCH',
+        path: '/v1/agents/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description:
+          'Updates registry fields (name, display_name, description, agent_type, template_name, version, metadata) or execution settings (shadow_mode, reflection_mode, council_mode, cognitive_advisor_enabled) — not both in one request.',
+      },
+      {
+        method: 'DELETE',
+        path: '/v1/agents/:id',
+        auth: 'Session cookie or igris_ API key',
+        surface: 'Cloud API',
+        stability: 'stable',
+        description: 'Archives a registered agent.',
+      },
+    ],
+  },
   {
     title: 'Actions',
     summary:
@@ -1148,6 +1226,13 @@ const rawApiSections = [
 ];
 
 const coreEndpointKeys = new Set([
+  'GET /v1/action-packs',
+  'POST /v1/action-packs/:name/install',
+  'GET /v1/agents',
+  'POST /v1/agents',
+  'GET /v1/agents/:id',
+  'PATCH /v1/agents/:id',
+  'DELETE /v1/agents/:id',
   'GET /v1/actions',
   'POST /v1/actions',
   'POST /v1/actions/run',

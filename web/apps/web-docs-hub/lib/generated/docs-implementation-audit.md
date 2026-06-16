@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-06-12T12:44:51.035Z
+Generated: 2026-06-14T13:09:21.996Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 893
-- Implemented on expected surface: 893
+- Route claims audited: 918
+- Implemented on expected surface: 918
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 126
-- Implemented on expected surface: 126
+- Guide route claims audited: 135
+- Implemented on expected surface: 135
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -25,6 +25,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/agent-templates.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/agents.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/approval-workflows.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/architecture.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -34,7 +35,7 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 7 | 7 | 0 | 0 | 0 |
@@ -64,12 +65,15 @@ No unsupported guide-page route claims were found.
 | Page | Route claims | Implemented | Missing | Wrong surface | Wrong method |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `web/apps/web-docs-hub/content/docs/agent-lifecycle.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/agent-templates.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/agents.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/delete-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-api-subscription-plans.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-api-subscription-status.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/get-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/account-trial-and-billing/post-v1-account-api-key.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/action-packs/get-v1-action-packs.mdx` | 5 | 5 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/action-packs/post-v1-action-packs-name-install.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/actions/delete-v1-actions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/actions/get-v1-actions-runs-id.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -95,13 +99,14 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify.mdx` | 6 | 6 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 106 | 106 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 108 | 108 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-models.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-providers-stats.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-chat-completions.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer-multimodal.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer.mdx` | 8 | 8 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/introduction.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-btree-events.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-federated-model-latest.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -183,7 +188,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/deploy-local-runtime.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/durable-tasks.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/execution-receipts.mdx` | 7 | 7 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/first-agent-onboarding.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-cloud-integration.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/first-verified-run.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/fleet-management.mdx` | 7 | 7 | 0 | 0 | 0 |

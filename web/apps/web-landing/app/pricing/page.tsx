@@ -3,42 +3,54 @@
 import Header from '../../src/components/sections/Header'
 import Footer from '../../src/components/sections/Footer'
 import Pricing from '../../src/components/sections/Pricing'
+import { PRICING_SUBTITLE } from '../../src/lib/pricing'
 import Faq from '../../src/components/sections/Faq'
 import ClosingPosition from '../../src/components/sections/ClosingPosition'
 import ScrollReveal from '../../src/components/ui/ScrollReveal'
 
 export default function PricingPage() {
   return (
-    <div className="relative min-h-screen bg-white dark:bg-[#110f0f] pt-14">
-      <div className="relative z-10">
-        <Header />
-        <main>
-          <ScrollReveal>
-            <section className="pt-40 pb-6 px-4 sm:px-6 lg:px-8">
-              <div className="mx-auto max-w-[1000px] text-center">
-                <h1 className="text-xl md:text-3xl lg:text-4xl mb-4 text-[#000000] dark:text-[#f6f6f4] max-w-lg mx-auto" style={{ fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)' }}>
-                  Pricing
-                </h1>
-                
-              </div>
-            </section>
-          </ScrollReveal>
+    <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200 pt-14">
+      <Header />
+      <main>
+        <ScrollReveal>
+          <section className="pt-40 pb-10 md:pb-12">
+            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
+              <h1
+                className="text-gray-700 dark:text-[#c8c8b8] max-w-lg mx-auto"
+                style={{
+                  fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Pricing
+              </h1>
+              <p
+                className="mt-5 mx-auto max-w-[52ch] text-gray-600 dark:text-[#a8a898]"
+                style={{
+                  fontFamily: 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                  fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+                  lineHeight: 1.6,
+                }}
+              >
+                {PRICING_SUBTITLE}
+              </p>
+            </div>
+          </section>
+        </ScrollReveal>
 
-          <ScrollReveal delay={0.1}><Pricing /></ScrollReveal>
-          
-          <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
-            <div>
-              <ScrollReveal delay={0.1}><Faq /></ScrollReveal>
-            </div>
-          </div>
-          <div className="mx-auto max-w-[1000px] px-4 sm:px-6 lg:px-8">
-            <div>
-              <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
-            </div>
-          </div>
-        </main>
-        <Footer />
-      </div>
+        <ScrollReveal delay={0.1}><Pricing /></ScrollReveal>
+
+        <ScrollReveal delay={0.1}><Faq large /></ScrollReveal>
+
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

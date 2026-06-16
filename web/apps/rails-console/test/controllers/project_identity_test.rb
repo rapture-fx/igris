@@ -1,7 +1,7 @@
 require 'test_helper'
 
 # Locks the single-project naming flow and project identity across the console:
-#   - /welcome prompts "Create your project" only when a real tenant has no name
+#   - /home prompts "Create your project" only when a real tenant has no name
 #   - the project name shows on Home, Actions, Runs, Runtimes, and Settings
 #   - Settings can rename the project through the DataSource (real mode)
 #   - fixture/demo mode never writes to a real backend
@@ -65,10 +65,10 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_proj }
   end
 
-  # ── First-run naming on /welcome ─────────────────────────────────────────
-  test 'welcome prompts to create a project when real mode has no name' do
+  # ── First-run naming on /home ────────────────────────────────────────────
+  test 'home prompts to create a project when real mode has no name' do
     with_fake_ds(FakeDS.new(project_name: nil, needs_name: true)) do
-      get '/welcome'
+      get '/home'
       assert_response :success
       assert_match 'Create your project', response.body
       assert_match 'This project will contain your actions, runs, runtime keys, and evidence.', response.body
@@ -77,26 +77,26 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'welcome does not prompt for a project when one is already named' do
+  test 'home does not prompt for a project when one is already named' do
     with_fake_ds(FakeDS.new(project_name: 'Acme AI Actions', needs_name: false)) do
-      get '/welcome'
+      get '/home'
       assert_response :success
       refute_match 'Create your project', response.body
       assert_match 'Acme AI Actions', response.body # chip still shows the name
     end
   end
 
-  test 'welcome without a live API shows the sample project name and never prompts' do
-    get '/welcome' # real fixture DataSource (no OVERTURE_API_BASE_URL in test)
+  test 'home without a live API shows the sample project name and never prompts' do
+    get '/home' # real fixture DataSource (no OVERTURE_API_BASE_URL in test)
     assert_response :success
     refute_match 'Create your project', response.body
     assert_match 'Support Agent', response.body
-    refute_match(/demo/i, response.body)
+    assert_match 'Demo data', response.body # fixture mode shows the demo chip on Home
   end
 
   # ── Project name appears across the console ──────────────────────────────
-  test 'project name appears on home, actions, runs, runtimes, and settings' do
-    %w[/home /actions /runs /runtimes /settings].each do |path|
+  test 'project name appears on home, overview, actions, runs, runtimes, and settings' do
+    %w[/home /overview /actions /runs /runtimes /settings].each do |path|
       with_fake_ds(FakeDS.new(project_name: 'Support Agent')) do
         get path
         assert_response :success
@@ -106,7 +106,7 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
   end
 
   test 'without a live API the sample project name shows on the workspace surfaces' do
-    %w[/home /actions /runs /runtimes /settings].each do |path|
+    %w[/home /overview /actions /runs /runtimes /settings].each do |path|
       get path
       assert_response :success
       assert_match 'Support Agent', response.body, "#{path} should show the sample project name"
@@ -114,7 +114,7 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
   end
 
   test 'the project name is never the literal "Demo Project" anywhere' do
-    %w[/home /actions /runs /runtimes /settings /welcome].each do |path|
+    %w[/home /overview /actions /runs /runtimes /settings].each do |path|
       get path
       assert_response :success
       refute_match 'Demo Project', response.body, "#{path} still shows the Demo Project name"
@@ -141,9 +141,9 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test 'naming the project from welcome completes onboarding and continues to the wizard' do
+  test 'naming the project from home completes onboarding and continues to the wizard' do
     with_fake_ds(FakeDS.new(project_name: nil, needs_name: true)) do |ds|
-      patch project_path, params: { name: 'Support Agent', source: 'welcome' }
+      patch project_path, params: { name: 'Support Agent', source: 'home' }
       assert_redirected_to new_action_path
       assert_equal ['Support Agent'], ds.update_calls
       assert_equal '1', cookies[:igris_welcomed]
@@ -185,10 +185,10 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
 
   # ── Copy guardrail ───────────────────────────────────────────────────────
   test 'project surfaces never leak Overture, Next.js, or tenant wording' do
-    # /welcome with the naming card, plus the Settings project section.
+    # /home with the naming card, plus the Settings project section.
     with_fake_ds(FakeDS.new(project_name: nil, needs_name: true)) do
-      get '/welcome'
-      assert_no_legacy_wording('/welcome')
+      get '/home'
+      assert_no_legacy_wording('/home')
     end
     with_fake_ds(FakeDS.new(project_name: 'Support Agent')) do
       get '/settings?section=project'

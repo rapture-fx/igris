@@ -6,6 +6,7 @@ import { ModalProvider } from '../../contexts/ModalContext';
 import { ProductPopupProvider } from '../../contexts/ProductPopupContext';
 import { ViewModeProvider } from '../../contexts/ViewModeContext';
 import { ScrollFix } from './ScrollFix';
+import { OverscrollThemeSync } from './OverscrollThemeSync';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ProductPopupProvider>
           <ViewModeProvider>
             <ScrollFix />
+            <OverscrollThemeSync />
             {children}
           </ViewModeProvider>
         </ProductPopupProvider>

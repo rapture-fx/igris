@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
+	"github.com/Igris-inertial/system/igris-overture/agentregistry"
 	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/Igris-inertial/system/igris-overture/internal"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
@@ -59,6 +60,8 @@ type actionRunRequest struct {
 	RuntimeTarget  string                 `json:"runtime_target,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+	AgentID        string                 `json:"agent_id,omitempty"`
+	AgentName      string                 `json:"agent_name,omitempty"`
 
 	// Internal-only fields populated by the gateway from the registered Action
 	// definition. Unexported so encoding/json cannot read or write them —
@@ -125,13 +128,17 @@ type actionRunByNameRequest struct {
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
+	AgentID        string                 `json:"agent_id,omitempty"`
+	AgentName      string                 `json:"agent_name,omitempty"`
 }
 
-var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_]{1,63}$`)
+var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_.]{1,63}$`)
 
 // RegisterActionRoutes wires the product-facing action gateway. These routes
 // adapt customer action calls onto the same durable task path used by /v1/tasks.
 func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordinator) {
+	RegisterActionPackRoutes(app, db)
+
 	v1 := app.Group("/v1/actions")
 	v1.Use(middleware.BetterAuth(db))
 
@@ -176,6 +183,8 @@ func handleActionRun(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler 
 			Metadata:       req.Metadata,
 			IdempotencyKey: req.IdempotencyKey,
 			DeadlineAt:     req.DeadlineAt,
+			AgentID:        req.AgentID,
+			AgentName:      req.AgentName,
 		})
 		if err != nil {
 			return c.Status(http.StatusConflict).JSON(fiber.Map{
@@ -191,7 +200,7 @@ func handleActionRun(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler 
 				})
 			}
 		}
-		return submitActionRun(c, tc, tenantID, runReq, &def)
+		return submitActionRun(c, db, tc, tenantID, runReq, &def)
 	}
 }
 
@@ -236,7 +245,7 @@ func handleActionRunByName(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Ha
 				})
 			}
 		}
-		return submitActionRun(c, tc, tenantID, runReq, &def)
+		return submitActionRun(c, db, tc, tenantID, runReq, &def)
 	}
 }
 
@@ -288,7 +297,15 @@ func tenantHasHealthyRuntime(ctx context.Context, db *sql.DB, tenantID, preferre
 	return false
 }
 
-func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest, def *actionDefinition) error {
+func submitActionRun(c *fiber.Ctx, db *sql.DB, tc *coordinator.TaskCoordinator, tenantID string, req actionRunRequest, def *actionDefinition) error {
+	resolved, err := resolveActionRunAgent(c.Context(), db, tenantID, req.AgentID, req.AgentName)
+	if err != nil {
+		status := statusForAgentResolveErr(err)
+		return c.Status(status).JSON(fiber.Map{
+			"error":   "agent_not_found",
+			"message": "registered agent not found",
+		})
+	}
 	taskReq, err := buildActionTaskSubmitRequest(req, tenantID)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -296,8 +313,18 @@ func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID str
 			"message": err.Error(),
 		})
 	}
+	applyResolvedAgentToTaskRequest(taskReq, resolved)
 
-	task, err := tc.Submit(c.Context(), taskReq)
+	var task *coordinator.TaskRecord
+	if mockDemoFailOnceFirstAttempt(def, req) {
+		task, err = tc.SubmitDemoSimulatedFailure(
+			c.Context(),
+			taskReq,
+			"demo.fail_once simulated failure on first attempt; retry with input.retry=true or a new idempotency key",
+		)
+	} else {
+		task, err = tc.Submit(c.Context(), taskReq)
+	}
 	if err != nil {
 		if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
 			return c.Status(http.StatusForbidden).JSON(fiber.Map{
@@ -333,7 +360,7 @@ func submitActionRun(c *fiber.Ctx, tc *coordinator.TaskCoordinator, tenantID str
 	if task.Status == coordinator.TaskStatusApprovalRequired {
 		status = http.StatusConflict
 	}
-	resp := buildActionRunResponse(task)
+	resp := buildActionRunResponse(task, resolved)
 	if def != nil {
 		resp["action_name"] = def.Name
 		resp["target_type"] = def.TargetType
@@ -369,7 +396,7 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 				task.Proof = proof
 			}
 		}
-		return c.JSON(buildActionRunResponse(task))
+		return c.JSON(buildActionRunResponse(task, nil))
 	}
 }
 
@@ -594,6 +621,8 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 		Metadata:       metadata,
 		IdempotencyKey: req.IdempotencyKey,
 		DeadlineAt:     req.DeadlineAt,
+		AgentID:        req.AgentID,
+		AgentName:      req.AgentName,
 	}
 
 	// Resolve legacy `api` rows to `hosted_api` for the dispatch switch.
@@ -603,9 +632,14 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 	switch targetType {
 	case actionTargetMockDemo:
 		runReq.executedTarget = actionTargetMockDemo
+		demoVariant := stringFromMap(def.TargetMetadata, "demo_variant")
+		demoBehavior := "mock_demo target; no external API was called"
+		if demoVariant == "fail_once" && !mockDemoRetryRequested(req.Input) {
+			demoBehavior = "demo.fail_once simulated failure on first attempt; retry with input.retry=true or a new idempotency key"
+		}
 		record := map[string]interface{}{
 			"demo":                 true,
-			"demo_behavior":        "mock_demo target; no external API was called",
+			"demo_behavior":        demoBehavior,
 			"action":               def.Name,
 			"action_definition_id": def.ID,
 			"requested_input":      req.Input,
@@ -615,6 +649,9 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 			"irreversible":         def.Irreversible,
 			"created_by_gateway":   true,
 			"target_configuration": "mock_demo",
+		}
+		if demoVariant != "" {
+			record["demo_variant"] = demoVariant
 		}
 		runReq.RuntimeTarget = "database_write"
 		runReq.Input = map[string]interface{}{
@@ -731,7 +768,7 @@ func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage,
 	return buildExecutionGraphDefinition(req.Action, []map[string]interface{}{node})
 }
 
-func buildActionRunResponse(task *coordinator.TaskRecord) fiber.Map {
+func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistry.ResolvedAgent) fiber.Map {
 	proofStatus := "pending"
 	executionID := ""
 	if task.Proof == nil {
@@ -766,6 +803,9 @@ func buildActionRunResponse(task *coordinator.TaskRecord) fiber.Map {
 	}
 	if consoleURL := actionConsoleURL(task.TaskID.String()); consoleURL != "" {
 		resp["console_url"] = consoleURL
+	}
+	if agent := agentSummaryForTask(task, resolved); agent != nil {
+		resp["agent"] = agent
 	}
 	return resp
 }
@@ -1192,6 +1232,23 @@ func validReplayClass(replayClass string) bool {
 	default:
 		return false
 	}
+}
+
+func mockDemoRetryRequested(input map[string]interface{}) bool {
+	if retry, ok := input["retry"].(bool); ok && retry {
+		return true
+	}
+	return false
+}
+
+func mockDemoFailOnceFirstAttempt(def *actionDefinition, req actionRunRequest) bool {
+	if def == nil || canonicalActionTargetType(def.TargetType) != actionTargetMockDemo {
+		return false
+	}
+	if stringFromMap(def.TargetMetadata, "demo_variant") != "fail_once" {
+		return false
+	}
+	return !mockDemoRetryRequested(req.Input)
 }
 
 func copyActionMap(values map[string]interface{}) map[string]interface{} {

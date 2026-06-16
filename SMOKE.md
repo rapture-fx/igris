@@ -40,28 +40,38 @@ curl -fsS $API/v1/actions -H "Authorization: Bearer $KEY" | jq '.actions | lengt
 # Expect: integer (0 for a fresh tenant)
 ```
 
-## 3. Rails front-door (HTTP Basic auth)
+## 3. Rails front-door (customer session + admin fallback)
+
+Customer auth is primary. Unauthenticated requests should **not** return 200.
 
 ```bash
-# Without credentials → 401 + WWW-Authenticate header
-curl -i $CONSOLE/home | head -3
-# Expect:
-#   HTTP/2 401
-#   www-authenticate: Basic realm="Igris Console"
+# Auth API proxy (no console gate) — 200 when upstream wired, 503 pre-wiring
+curl -sS -o /dev/null -w "%{http_code}\n" $CONSOLE/api/auth/get-session
 
-# Wrong credentials → 401
-curl -i -u badname:badpass $CONSOLE/home | head -1
+# Without session → redirect to landing /auth (customer path)
+#   OR 401 + WWW-Authenticate when admin-only gate is configured
+curl -i $CONSOLE/home | head -5
 
-# Right credentials → 200
-curl -fsS $AUTH $CONSOLE/home > /dev/null && echo "front-door ok"
+# Admin Basic fallback (when ADMIN_* set)
+curl -i -u badname:badpass $CONSOLE/home | head -1   # expect 401
+curl -fsS $AUTH $CONSOLE/home > /dev/null && echo "admin fallback ok"
 
-# /up bypasses Basic (Render liveness probe path)
+# /up bypasses gate (liveness probe)
 curl -fsS $CONSOLE/up && echo "(no auth needed for /up)"
 ```
 
-If the un-credentialed request returns 200 instead of 401, the
-`ADMIN_USERNAME` and `ADMIN_PASSWORD` env vars are not both set on
-Render. **Fix before continuing — production must never be open.**
+Automated structural checks:
+
+```bash
+CONSOLE_BASE=$CONSOLE LANDING_BASE=https://igrisinertial.com \
+  ./scripts/smoke/auth-bridge-smoke.sh
+```
+
+After a real sign-in, re-run with `SESSION_COOKIE` from browser DevTools
+(see `web/apps/rails-console/AUTH_SMOKE.md`).
+
+If unauthenticated `/home` returns 200, the gate is open — **fix before
+continuing.**
 
 ## 4. Rails sees Overture
 

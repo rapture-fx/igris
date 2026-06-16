@@ -47,9 +47,10 @@ module Igris
 
     # ── Construction ──────────────────────────────────────────────────────
     def initialize(base_url: ENV['OVERTURE_API_BASE_URL'], api_key: ENV['OVERTURE_API_KEY'],
-                   logger: Rails.logger, timeout: 6)
+                   session_cookie: nil, logger: Rails.logger, timeout: 6)
       @base_url = base_url.to_s.strip.presence
-      @api_key = api_key.to_s.strip.presence
+      @api_key = api_key.to_s.strip.presence unless session_cookie.present?
+      @session_cookie = session_cookie.to_s.strip.presence
       @logger = logger
       @timeout = timeout
     end
@@ -253,7 +254,11 @@ module Igris
 
     def headers
       h = { 'Accept' => 'application/json', 'User-Agent' => 'igris-rails-console/0.1' }
-      h['Authorization'] = "Bearer #{@api_key}" if @api_key
+      if @session_cookie.present?
+        h['Cookie'] = @session_cookie
+      elsif @api_key.present?
+        h['Authorization'] = "Bearer #{@api_key}"
+      end
       h
     end
 
