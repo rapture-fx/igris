@@ -25,7 +25,7 @@ function ProductBrowserChrome({ url }: { url: string }) {
         aria-label="Home"
         className="inline-flex shrink-0 cursor-default items-center justify-center p-0 text-gray-500 transition-colors hover:text-gray-700 dark:text-[#8a8a7a] dark:hover:text-[#d3d2c8]"
       >
-        <Home className="h-3.5 w-3.5" strokeWidth={1.75} />
+        <Home className="h-5 w-5" strokeWidth={1.65} />
       </button>
 
       <div className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-lg border border-black/[0.08] bg-white/80 px-2.5 dark:border-white/[0.1] dark:bg-[#0e0e0c]/80">
@@ -46,11 +46,10 @@ function ProductBrowserChrome({ url }: { url: string }) {
         href={DOCS_LINKS.home}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-medium text-gray-600 transition-opacity hover:opacity-80 dark:text-[#c8c8b8]"
+        className="inline-flex shrink-0 items-center text-gray-600 transition-opacity hover:opacity-80 dark:text-[#c8c8b8]"
         aria-label="Open documentation"
       >
-        <BookOpen className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
-        <span className="hidden sm:inline">Docs</span>
+        <BookOpen className="h-5 w-5" strokeWidth={1.65} aria-hidden />
       </a>
     </div>
   )
