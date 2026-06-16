@@ -471,13 +471,13 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__row:hover { background: var(--ic-overlay-1); }
       .igris-console .ic-wfall__label { font-size: 10px; color: var(--ic-text-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__track {
-        display: flex; align-items: stretch; gap: 2px; height: 18px;
-        padding: 0; background: transparent; width: 100%;
+        display: flex; align-items: stretch; justify-content: space-between;
+        height: 14px; padding: 0; background: transparent; width: 100%;
       }
-      .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 20px; }
+      .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 16px; }
       .igris-console .ic-wfall__tick {
-        flex: 1 1 0; min-width: 4px; height: 100%;
-        border-radius: 1px; background: var(--ic-text-8); opacity: 0.22;
+        flex: 0 0 1px; width: 1px; height: 100%; border-radius: 0;
+        background: var(--ic-text-8); opacity: 0.28;
       }
       .igris-console .ic-wfall__tick--ok { opacity: 1; background: var(--ic-emerald); }
       .igris-console .ic-wfall__tick--warn { opacity: 1; background: var(--ic-amber); }
@@ -490,14 +490,13 @@ function ConsoleStyles() {
 
       /* Execution-profile reveal (Recover tab): rows fade in, ticks fill out. */
       @keyframes ic-wfall-row-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes ic-wfall-tick-in { from { opacity: 0.15; transform: scaleY(0.25); } to { opacity: 1; transform: scaleY(1); } }
+      @keyframes ic-wfall-tick-in { from { opacity: 0.12; } to { opacity: 1; } }
       .igris-console .ic-wfall--animate .ic-wfall__row { animation: ic-wfall-row-in 880ms cubic-bezier(0.16,0.84,0.44,1) both; }
       .igris-console .ic-wfall--animate .ic-wfall__tick--ok,
       .igris-console .ic-wfall--animate .ic-wfall__tick--warn,
       .igris-console .ic-wfall--animate .ic-wfall__tick--bad,
       .igris-console .ic-wfall--animate .ic-wfall__tick--muted {
-        transform-origin: bottom center;
-        animation: ic-wfall-tick-in 360ms cubic-bezier(0.16,0.84,0.44,1) both;
+        animation: ic-wfall-tick-in 280ms cubic-bezier(0.16,0.84,0.44,1) both;
       }
       @media (prefers-reduced-motion: reduce) {
         .igris-console .ic-wfall--animate .ic-wfall__row,
@@ -1053,7 +1052,7 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
   )
 }
 
-const EXECUTION_PROFILE_TICKS = 32
+const EXECUTION_PROFILE_TICKS = 48
 
 type ProfileTone = 'ok' | 'warn' | 'bad' | 'muted'
 
@@ -1067,9 +1066,8 @@ interface ProfileRow {
 function executionProfileTickRange(start: number, ms: number, span: number, tickCount: number) {
   if (span <= 0 || tickCount <= 0) return { startIdx: 0, endIdx: 0 }
   const startIdx = Math.min(tickCount - 1, Math.floor((start / span) * tickCount))
-  const widthTicks = Math.max(2, Math.round((ms / span) * tickCount))
-  const endIdx = Math.min(tickCount, startIdx + widthTicks)
-  return { startIdx, endIdx: Math.max(startIdx + 1, endIdx) }
+  const endIdx = Math.max(startIdx + 1, Math.min(tickCount, Math.ceil(((start + ms) / span) * tickCount)))
+  return { startIdx, endIdx }
 }
 
 function executionProfileToneAt(profile: ProfileRow[], span: number, tickIdx: number, tickCount: number): ProfileTone | null {
