@@ -18,7 +18,7 @@ export const PRODUCT_SURFACE_LIGHT = '#f9f9fa'
 export const PRODUCT_SURFACE_DARK = '#161515'
 
 const LANDING_SURFACE_FRAME_CLASS =
-  'product-console-frame relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_10px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_48px_rgba(0,0,0,0.55)]'
+  'product-console-frame relative overflow-hidden rounded-lg border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[0_1px_3px_rgba(0,0,0,0.03),0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.22)]'
 
 function ProductConsoleSurfaceStyles() {
   return (
