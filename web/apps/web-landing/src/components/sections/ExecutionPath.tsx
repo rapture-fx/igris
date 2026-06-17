@@ -23,6 +23,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 import { LandingSurfaceFrame } from '../ui/ProductConsoleShell'
+import { LandingFeatureList, LandingPillarHeader } from '../ui/LandingPillarSection'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -202,30 +203,12 @@ export default function ExecutionPath() {
     >
       <EndpointStyles />
       <div className="pt-10 md:pt-14 pb-20 md:pb-32">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8 mb-12 md:mb-16">
-          <h2
-            className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[28ch]"
-            style={{
-              fontFamily: SANS,
-              fontWeight: 400,
-              fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-              lineHeight: 1.2,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            One endpoint for every agent action.
-          </h2>
-          <p
-            className="text-gray-600 dark:text-[#a8a898] max-w-[42ch] md:text-right"
-            style={{
-              fontFamily: SANS,
-              fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
-              lineHeight: 1.6,
-            }}
-          >
-            One action, many clients. Compare how the same call looks in the
-            language or tool your team already uses.
-          </p>
+        <div className="mb-12 md:mb-16">
+          <LandingPillarHeader
+            title="Connect"
+            description="One action, many clients. Call the same endpoint from your agent framework, SDK, or shell — then route through cloud APIs, webhooks, or a connected worker."
+            titleAsPixel
+          />
         </div>
 
         <div className="ae-endpoint-row">
@@ -243,6 +226,16 @@ function ConnectPanel() {
   return (
     <div className="ae-connect mt-10 md:mt-12">
       <ChipGroup label="Run through" items={ROUTE_CHIPS} />
+      <div className="mt-8 md:mt-10">
+        <LandingFeatureList
+          features={[
+            'Action run endpoint',
+            'Language SDKs',
+            'MCP integration',
+            'Worker install path',
+          ]}
+        />
+      </div>
     </div>
   )
 }
