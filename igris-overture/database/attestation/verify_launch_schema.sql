@@ -188,6 +188,159 @@ WITH checks AS (
 
     UNION ALL
     SELECT
+        '063_agent_evidence_memory_table_present',
+        to_regclass('public.agent_evidence_memory') IS NOT NULL,
+        COALESCE(to_regclass('public.agent_evidence_memory')::text, 'missing agent_evidence_memory table')
+
+    UNION ALL
+    SELECT
+        '063_agent_evidence_memory_required_columns',
+        NOT EXISTS (
+            SELECT 1
+            FROM (VALUES
+                ('memory_id'),
+                ('tenant_id'),
+                ('task_id'),
+                ('execution_id'),
+                ('registered_agent_id'),
+                ('registered_agent_name'),
+                ('goal_summary'),
+                ('decision_summary'),
+                ('evidence_summary'),
+                ('outcome_summary'),
+                ('redaction_status'),
+                ('retention_expires_at'),
+                ('created_at'),
+                ('updated_at')
+            ) AS required(column_name)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'agent_evidence_memory'
+                  AND column_name = required.column_name
+            )
+        ),
+        COALESCE((
+            SELECT string_agg(required.column_name, ',' ORDER BY required.column_name)
+            FROM (VALUES
+                ('memory_id'),
+                ('tenant_id'),
+                ('task_id'),
+                ('execution_id'),
+                ('registered_agent_id'),
+                ('registered_agent_name'),
+                ('goal_summary'),
+                ('decision_summary'),
+                ('evidence_summary'),
+                ('outcome_summary'),
+                ('redaction_status'),
+                ('retention_expires_at'),
+                ('created_at'),
+                ('updated_at')
+            ) AS required(column_name)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'agent_evidence_memory'
+                  AND column_name = required.column_name
+            )
+        ), 'all required columns present')
+
+    UNION ALL
+    SELECT
+        '063_agent_evidence_memory_redaction_default',
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'agent_evidence_memory'
+              AND column_name = 'redaction_status'
+              AND column_default ILIKE '%redacted%'
+              AND is_nullable = 'NO'
+        ),
+        COALESCE((
+            SELECT 'default=' || COALESCE(column_default, 'NULL') || ', nullable=' || is_nullable
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'agent_evidence_memory'
+              AND column_name = 'redaction_status'
+        ), 'redaction_status column missing')
+
+    UNION ALL
+    SELECT
+        '063_agent_evidence_memory_constraints',
+        to_regclass('public.agent_evidence_memory') IS NOT NULL
+        AND NOT EXISTS (
+            SELECT 1
+            FROM (VALUES
+                ('agent_evidence_memory_redaction_status_check'),
+                ('agent_evidence_memory_attachment_check'),
+                ('agent_evidence_memory_evidence_summary_array_check')
+            ) AS required(conname)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conrelid = to_regclass('public.agent_evidence_memory')
+                  AND conname = required.conname
+                  AND contype = 'c'
+            )
+        ),
+        COALESCE((
+            SELECT string_agg(required.conname, ',' ORDER BY required.conname)
+            FROM (VALUES
+                ('agent_evidence_memory_redaction_status_check'),
+                ('agent_evidence_memory_attachment_check'),
+                ('agent_evidence_memory_evidence_summary_array_check')
+            ) AS required(conname)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM pg_constraint
+                WHERE conrelid = to_regclass('public.agent_evidence_memory')
+                  AND conname = required.conname
+                  AND contype = 'c'
+            )
+        ), 'all required constraints present')
+
+    UNION ALL
+    SELECT
+        '063_agent_evidence_memory_indexes',
+        NOT EXISTS (
+            SELECT 1
+            FROM (VALUES
+                ('agent_evidence_memory_task_idx'),
+                ('agent_evidence_memory_execution_idx'),
+                ('agent_evidence_memory_agent_idx'),
+                ('agent_evidence_memory_retention_idx')
+            ) AS required(indexname)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM pg_indexes
+                WHERE schemaname = 'public'
+                  AND tablename = 'agent_evidence_memory'
+                  AND indexname = required.indexname
+            )
+        ),
+        COALESCE((
+            SELECT string_agg(required.indexname, ',' ORDER BY required.indexname)
+            FROM (VALUES
+                ('agent_evidence_memory_task_idx'),
+                ('agent_evidence_memory_execution_idx'),
+                ('agent_evidence_memory_agent_idx'),
+                ('agent_evidence_memory_retention_idx')
+            ) AS required(indexname)
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM pg_indexes
+                WHERE schemaname = 'public'
+                  AND tablename = 'agent_evidence_memory'
+                  AND indexname = required.indexname
+            )
+        ), 'all required indexes present')
+
+    UNION ALL
+    SELECT
         'tenant_tier_enum_seed_horizon_infinite',
         NOT EXISTS (
             SELECT 1
