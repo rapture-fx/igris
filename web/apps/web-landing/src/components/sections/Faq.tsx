@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { LandingSurfaceFrame } from '../ui/ProductConsoleShell'
+import { LandingPillarHeader } from '../ui/LandingPillarSection'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -155,7 +156,6 @@ const faqSections: FaqSection[] = [
 export default function Faq({ large = false }: { large?: boolean }) {
   const [openSectionIndex, setOpenSectionIndex] = useState<number | null>(null)
 
-  const titleSize = large ? 'clamp(1.2rem, 2.6vw, 2rem)' : 'clamp(1.1rem, 2.2vw, 1.75rem)'
   const sectionTitleSize = large ? 'clamp(1rem, 1.2vw, 1.1rem)' : '0.95rem'
   const questionSize = large ? '0.95rem' : '0.875rem'
   const answerSize = large ? '0.95rem' : '0.875rem'
@@ -172,18 +172,11 @@ export default function Faq({ large = false }: { large?: boolean }) {
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="pt-24 md:pt-40 pb-10 md:pb-14">
-          <h2
-            className="text-gray-700 dark:text-[#c8c8b8] font-normal"
-            style={{
-              fontFamily: SANS,
-              fontWeight: 400,
-              fontSize: titleSize,
-              lineHeight: 1.2,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Questions and answers
-          </h2>
+          <LandingPillarHeader
+            title="Questions"
+            description="Common questions about getting started, pricing, execution, verification, and deployment."
+            titleAsPixel={large}
+          />
 
           <div className="mt-10 md:mt-12">
             <LandingSurfaceFrame>
