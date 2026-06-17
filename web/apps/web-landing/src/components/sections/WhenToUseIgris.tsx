@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react'
 import { RunDetailSnippet, type RunDetailSnippetVariant } from './Products'
+import { LandingPillarHeader } from '../ui/LandingPillarSection'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
@@ -207,32 +208,12 @@ export default function WhenToUseIgris() {
       `}</style>
 
       <div className="pt-10 md:pt-14 pb-20 md:pb-32">
-        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-8">
-          <h2
-            id="when-to-use-heading"
-            className="shrink-0 text-gray-700 dark:text-[#c8c8b8]"
-            style={{
-              fontFamily: SANS,
-              fontWeight: 400,
-              fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-              lineHeight: 1.2,
-              letterSpacing: '-0.02em',
-              maxWidth: '28ch',
-            }}
-          >
-            Use Igris when the action matters.
-          </h2>
-          <p
-            className="max-w-[42ch] text-gray-600 dark:text-[#a8a898] md:text-right"
-            style={{
-              fontFamily: SANS,
-              fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
-              lineHeight: 1.6,
-            }}
-          >
-            Igris is most useful when agent actions have consequences and your team
-            needs control, recovery, and proof around execution.
-          </p>
+        <div id="when-to-use-heading">
+          <LandingPillarHeader
+            title="Scenarios"
+            description="Igris is most useful when agent actions have consequences and your team needs control, recovery, and proof around execution."
+            titleAsPixel
+          />
         </div>
 
         <div className="relative mt-8 overflow-hidden rounded-xl sm:mt-12 md:mt-16">
