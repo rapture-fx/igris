@@ -392,6 +392,18 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/execution/intelligence",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "execution_intelligence",
+			RegistrationSource:     "RegisterExecutionIntelligenceRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound execution metrics derived from durable task truth",
+			Notes:                  "Agent and action reliability metrics from task, approval, and recovery records",
+		},
+	},
+	{
 		Path: "/v1/execution/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "execution",
@@ -425,6 +437,18 @@ var routeManifestRules = []routeManifestRule{
 			AuthExpectation:        "BetterAuth tenant credential",
 			TenantScopeExpectation: "tenant-bound registry CRUD and execution agent state",
 			Notes:                  "Registered agent management, settings patch dispatch, and BT state",
+		},
+	},
+	{
+		Path: "/v1/agent-memory",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "agent_memory",
+			RegistrationSource:     "RegisterAgentMemoryRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound summary memory attached to tasks, runs, or registered agents",
+			Notes:                  "Summary-only evidence memory; rejects prompts, chain-of-thought, and secrets",
 		},
 	},
 	{
