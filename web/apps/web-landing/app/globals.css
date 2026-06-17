@@ -387,7 +387,7 @@ body.modal-open {
   animation: hero-cursor-blink 1s infinite;
 }
 
-/* Price number scrolling animation */
+/* Price number rolling animation */
 .price-number-container {
   display: inline-block;
   overflow: hidden;
@@ -397,6 +397,7 @@ body.modal-open {
 
 .price-number {
   font-variant-numeric: tabular-nums;
-  display: inline-block;
-  will-change: contents;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
 }
