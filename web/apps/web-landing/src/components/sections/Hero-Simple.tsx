@@ -25,25 +25,13 @@ export default function Hero() {
                 style={{
                   fontFamily: PIXEL,
                   fontWeight: 400,
-                  fontSize: 'clamp(2rem, 5.5vw, 3.75rem)',
+                  fontSize: 'clamp(2.5rem, 7vw, 5rem)',
                   lineHeight: 1.1,
                   letterSpacing: '-0.01em',
                 }}
               >
-                Give agents a safe way to act.
+                Action layer<br />for AI agents.
               </h1>
-              <p
-                className="mt-7 max-w-[580px] text-gray-600 dark:text-[#a8a898] lg:mt-8"
-                style={{
-                  fontFamily: SANS,
-                  fontSize: 'clamp(1.2rem, 1.65vw, 1.4rem)',
-                  lineHeight: 1.65,
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Igris lets agents call APIs, trigger workflows, access files, and run tasks through one
-                controlled path, with policy, recovery, and proof built in.
-              </p>
             </div>
             <div className="mt-8 flex shrink-0 flex-wrap items-center gap-3 lg:mt-6">
               <a
