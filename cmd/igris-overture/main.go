@@ -620,6 +620,8 @@ func main() {
 		api.RegisterStatsRoutes(app, dbInstance, redisClient, tenantAuth)
 		api.RegisterAgentRegistryRoutes(app, dbInstance, api.NewExecutionHandler(dbInstance))
 		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
+		api.RegisterExecutionIntelligenceRoutes(app, dbInstance)
+		api.RegisterAgentMemoryRoutes(app, dbInstance)
 		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
 		api.RegisterGovernanceRoutes(app, dbInstance)
 		if api.ExperimentalRoutingRoutesEnabled() {
