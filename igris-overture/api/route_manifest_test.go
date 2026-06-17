@@ -178,6 +178,8 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterStatsRoutes(app, db, nil, nil)
 	RegisterAgentRegistryRoutes(app, db, NewExecutionHandler(db))
 	RegisterExecutionRoutes(app, db, nil)
+	RegisterExecutionIntelligenceRoutes(app, db)
+	RegisterAgentMemoryRoutes(app, db)
 	RegisterProofRoutes(app, db, nil)
 	RegisterGovernanceRoutes(app, db)
 	RegisterFrontendRoutes(app, db)
