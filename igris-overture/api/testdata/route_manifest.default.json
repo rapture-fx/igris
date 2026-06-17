@@ -365,6 +365,30 @@
     },
     {
       "method": "GET",
+      "path": "/v1/agent-memory",
+      "route_group": "agent_memory",
+      "handler_or_registration_source_if_available": "RegisterAgentMemoryRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound summary memory attached to tasks, runs, or registered agents",
+      "feature_flag": "",
+      "notes": "Summary-only evidence memory; rejects prompts, chain-of-thought, and secrets"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/agent-memory",
+      "route_group": "agent_memory",
+      "handler_or_registration_source_if_available": "RegisterAgentMemoryRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound summary memory attached to tasks, runs, or registered agents",
+      "feature_flag": "",
+      "notes": "Summary-only evidence memory; rejects prompts, chain-of-thought, and secrets"
+    },
+    {
+      "method": "GET",
       "path": "/v1/agents",
       "route_group": "agent_registry",
       "handler_or_registration_source_if_available": "RegisterAgentRegistryRoutes",
@@ -614,6 +638,18 @@
       "tenant_scope_expectation": "tenant-bound execution inspection",
       "feature_flag": "",
       "notes": "Execution inspection and governance"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/execution/intelligence",
+      "route_group": "execution_intelligence",
+      "handler_or_registration_source_if_available": "RegisterExecutionIntelligenceRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound execution metrics derived from durable task truth",
+      "feature_flag": "",
+      "notes": "Agent and action reliability metrics from task, approval, and recovery records"
     },
     {
       "method": "GET",
