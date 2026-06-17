@@ -70,8 +70,8 @@ export default function Hero() {
                 <span className="font-medium text-gray-700 dark:text-[#c8c8b8]">
                   Fits into your agent stack.
                 </span>{' '}
-                Use your agent framework for reasoning and planning. Use Igris for the final actions
-                that need policy, recovery, and receipts.
+                Keep reasoning in your framework. Route side effects through Igris when actions need
+                policy, recovery, and receipts.
               </p>
             </div>
           </div>
