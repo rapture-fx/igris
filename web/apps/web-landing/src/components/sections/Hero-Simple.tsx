@@ -18,22 +18,20 @@ export default function Hero() {
     <section className="relative w-full h-[calc(100dvh-3.5rem)] overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="relative mx-auto flex h-full max-w-[1400px] flex-col px-4 pb-8 pt-6 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
         <div className="flex min-h-0 flex-1 flex-col gap-8 lg:flex-row lg:items-stretch lg:justify-between lg:gap-10">
-          <div className="flex min-h-0 flex-col lg:h-full lg:max-w-[520px] lg:shrink-0">
-            <div className="flex min-h-0 flex-1 flex-col justify-center">
-              <h1
-                className="text-gray-700 dark:text-[#c8c8b8]"
-                style={{
-                  fontFamily: PIXEL,
-                  fontWeight: 400,
-                  fontSize: 'clamp(2.5rem, 7vw, 5rem)',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                Action layer<br />for AI agents.
-              </h1>
-            </div>
-            <div className="mt-8 flex shrink-0 flex-wrap items-center gap-3 lg:mt-6">
+          <div className="flex min-h-0 flex-col justify-center lg:h-full lg:max-w-[520px] lg:shrink-0">
+            <h1
+              className="text-gray-700 dark:text-[#c8c8b8]"
+              style={{
+                fontFamily: PIXEL,
+                fontWeight: 400,
+                fontSize: 'clamp(2.5rem, 7vw, 5rem)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.01em',
+              }}
+            >
+              Action layer<br />for AI agents.
+            </h1>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="/auth?mode=signup"
                 className="inline-flex items-center justify-center rounded-md bg-[#1b1912] px-5 py-2.5 text-[13px] font-medium text-[#f6f6f4] transition-opacity hover:opacity-80 dark:bg-[#f6f6f4] dark:text-[#1b1912]"
