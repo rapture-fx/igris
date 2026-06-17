@@ -23,7 +23,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Globe, Webhook, Server, Plug, type LucideIcon } from 'lucide-react'
 import { LandingSurfaceFrame } from '../ui/ProductConsoleShell'
-import { LandingFeatureList, LandingPillarHeader } from '../ui/LandingPillarSection'
+import { LandingPillarHeader } from '../ui/LandingPillarSection'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -226,16 +226,6 @@ function ConnectPanel() {
   return (
     <div className="ae-connect mt-10 md:mt-12">
       <ChipGroup label="Run through" items={ROUTE_CHIPS} />
-      <div className="mt-8 md:mt-10">
-        <LandingFeatureList
-          features={[
-            'Action run endpoint',
-            'Language SDKs',
-            'MCP integration',
-            'Worker install path',
-          ]}
-        />
-      </div>
     </div>
   )
 }
