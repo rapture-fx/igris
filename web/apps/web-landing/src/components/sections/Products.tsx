@@ -13,6 +13,7 @@ import {
   LANDING_PRODUCT_TAB_EVENT,
   type ProductTab,
 } from '../../lib/landing-sections'
+import { LandingPillarHeader } from '../ui/LandingPillarSection'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -1948,6 +1949,24 @@ const SHOWCASE_TABS: { id: ShowcaseTab; label: string }[] = [
   { id: 'prove', label: 'Prove' },
 ]
 
+const SHOWCASE_PILLARS: Record<ShowcaseTab, { title: string; description: string }> = {
+  run: {
+    title: 'Run',
+    description:
+      'Turn agent decisions into controlled actions with recorded progress, policy checks, and committed side effects.',
+  },
+  recover: {
+    title: 'Recover',
+    description:
+      'Resume from recorded progress when providers rate-limit, workers fail, or execution stalls mid-run.',
+  },
+  prove: {
+    title: 'Prove',
+    description:
+      'Inspect runs after the fact with signed receipts, verification state, and operator-readable evidence.',
+  },
+}
+
 function ProductShowcaseTabs() {
   const [tab, setTab] = useState<ShowcaseTab>('run')
   // `revealed` flips once the section first scrolls into view, so the panel
@@ -2007,9 +2026,16 @@ function ProductShowcaseTabs() {
     holdUntilRef.current = Date.now() + 15000
     setTab(id)
   }
+  const pillar = SHOWCASE_PILLARS[tab]
   return (
     <div>
-      <div className="flex justify-center">
+      <LandingPillarHeader
+        title={pillar.title}
+        description={pillar.description}
+        titleAsPixel
+      />
+
+      <div className="mt-10 md:mt-12 flex justify-center">
         <div
           role="tablist"
           aria-label="Product surfaces"
@@ -2053,7 +2079,7 @@ function ProductShowcaseTabs() {
           />
         </div>
       </div>
-      <div className="mt-8" ref={panelRef}>
+      <div className="mt-8 md:mt-10" ref={panelRef}>
         {revealed ? (
           // Keyed by tab so the panel's own reveal animations replay on switch.
           // No wrapper fade: it would paint the first frame at opacity 0 and
@@ -2080,50 +2106,27 @@ export default function Products() {
       <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="px-0">
           <div className="px-0">
-            <div className="pt-10 md:pt-14 pb-20 md:pb-32">
+            <div className="pt-20 md:pt-28 lg:pt-32 pb-20 md:pb-32">
               <ProductShowcaseTabs />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Execution-matters + Run Activity Map */}
+      {/* Inspect — Run Activity Map */}
       <section id="overview" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
         <div className="px-0">
           <div className="px-0">
-            <div className="pb-20 md:pb-28">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5 md:gap-8">
-                <h2
-                  className="text-gray-700 dark:text-[#c8c8b8] font-normal shrink-0 max-w-[34ch]"
-                  style={{
-                    fontFamily: SANS,
-                    fontWeight: 400,
-                    fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
-                    lineHeight: 1.2,
-                    letterSpacing: '-0.02em',
-                  }}
-                >
-                  Execution matters as much as intelligence.
-                </h2>
-                <p
-                  className="text-gray-600 dark:text-[#a8a898] max-w-[38ch] md:text-right"
-                  style={{ fontFamily: SANS, fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)', lineHeight: 1.6 }}
-                >
-                  Outcomes from many runs in one view. Spot what is completing,
-                  recovering, or stalling across your environment.
-                </p>
-              </div>
+            <div className="pb-20 md:pb-32">
+              <LandingPillarHeader
+                title="Inspect"
+                description="Outcomes from many runs in one view. Spot what is completing, recovering, or stalling across your environment."
+                titleAsPixel
+              />
 
-              {/* Run Activity Map — map surface only (no rail/topbar/panel) */}
-              <div className="mt-12 md:mt-16">
+              <div className="mt-10 md:mt-14">
                 <RunActivityMapConsole />
               </div>
-              <p
-                className="mt-5 text-[0.95rem] text-gray-500 dark:text-[#8a8a7a] max-w-[52ch]"
-                style={{ fontFamily: SANS, lineHeight: 1.5 }}
-              >
-                Each dot is one run. See what completed, recovered, failed, or was verified.
-              </p>
             </div>
           </div>
         </div>
