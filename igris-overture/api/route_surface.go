@@ -128,6 +128,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped agent identity and attribution only; PATCH dispatches registry vs execution settings",
 	},
 	{
+		Method: "GET,POST", Path: "/v1/agent-memory", RegistrationFile: "igris-overture/api/routes_agent_memory.go",
+		HandlerOrGroup: "agent evidence memory", RegistrationFunction: "RegisterAgentMemoryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "summary-only memory attached to tenant-owned tasks, executions, or registered agents; rejects prompts, chain-of-thought, and secrets",
+	},
+	{
 		Method: "GET,POST", Path: "/v1/tasks", RegistrationFile: "igris-overture/api/routes_tasks.go",
 		HandlerOrGroup: "durable tasks and runtime callbacks", RegistrationFunction: "RegisterTaskRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential/runtime-forwarded tenant",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "runtime callback handlers remain covered by existing callback signature checks",
@@ -146,6 +151,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Method: "GET,POST", Path: "/v1/execution/*,/v1/execution/governance/*", RegistrationFile: "igris-overture/api/routes_execution.go",
 		HandlerOrGroup: "execution inspection and governance", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "inspection and governance console surface",
+	},
+	{
+		Method: "GET", Path: "/v1/execution/intelligence", RegistrationFile: "igris-overture/api/routes_execution_intelligence.go",
+		HandlerOrGroup: "execution intelligence", RegistrationFunction: "RegisterExecutionIntelligenceRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only metrics derived from task, approval, policy, and recovery records; no prompt or model-output source",
 	},
 	{
 		Method: "GET,POST", Path: "/proof/receipts,/v1/proof/*,/v1/receipts/*", RegistrationFile: "igris-overture/api/routes_proof.go",
