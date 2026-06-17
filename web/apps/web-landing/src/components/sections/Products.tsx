@@ -6,6 +6,7 @@ import {
   Home, LayoutDashboard, ListChecks, Zap, Box, Settings, type LucideIcon,
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
+import ProductConsoleShell, { PRODUCT_SHOWCASE_URLS } from '../ui/ProductConsoleShell'
 import { RunActivityMapConsole } from './OverviewConsole'
 import {
   LANDING_PRODUCT_REVEAL_EVENT,
@@ -72,6 +73,8 @@ interface ProjectGroup {
   runs: RunRow[]
 }
 
+export type RunDetailSnippetVariant = 'actions' | 'proof' | 'routing' | 'policy'
+
 // Mirrors the rails-console runs picker: runs grouped into projects by their
 // target, action name leading each row. The active run drives the detail pane.
 const PROJECTS: ProjectGroup[] = [
@@ -114,7 +117,13 @@ const PROJECTS: ProjectGroup[] = [
 // `frozen` renders the same run-detail surface in a static state — the
 // committed-actions log shows all steps at once (no reveal/cycle animation), so
 // the layout sits still on the full Execution profile. Used by the Recover tab.
-export function ExecutionPreview({ frozen = false }: { frozen?: boolean }) {
+export function ExecutionPreview({
+  frozen = false,
+  url = PRODUCT_SHOWCASE_URLS.run,
+}: {
+  frozen?: boolean
+  url?: string
+}) {
   const { resolvedTheme } = useTheme()
   // Read the resolved theme directly (no `mounted` gate): this panel only
   // mounts after the skeleton/intersection gate, so the theme is already known
@@ -122,28 +131,22 @@ export function ExecutionPreview({ frozen = false }: { frozen?: boolean }) {
   const isLight = resolvedTheme === 'light'
   const [query, setQuery] = useState('')
   return (
-    <div
-      className="relative rounded-[18px] p-[6px] bg-black/[0.03] dark:bg-white/[0.02] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]"
-    >
+    <ProductConsoleShell url={url}>
       <div
-        className="relative rounded-[14px] p-[4px] bg-black/[0.04] dark:bg-white/[0.025] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]"
+        className={
+          'igris-console ' + (isLight ? 'igris-console--light ' : '') +
+          'relative overflow-hidden'
+        }
+        style={{ fontFamily: SANS, background: 'var(--landing-surface)', color: 'var(--ic-text)' }}
       >
-        <div
-          className={
-            'igris-console ' + (isLight ? 'igris-console--light ' : '') +
-            'relative overflow-hidden rounded-[10px] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.06)]'
-          }
-          style={{ fontFamily: SANS, background: 'var(--ic-bg)', color: 'var(--ic-text)' }}
-        >
-          <ConsoleStyles />
-          <div className="grid ic-shell">
-            <IconRail />
-            <Sidebar query={query} setQuery={setQuery} />
-            <Main frozen={frozen} />
-          </div>
+        <ConsoleStyles />
+        <div className="grid ic-shell">
+          <IconRail />
+          <Sidebar query={query} setQuery={setQuery} />
+          <Main frozen={frozen} />
         </div>
       </div>
-    </div>
+    </ProductConsoleShell>
   )
 }
 
@@ -152,8 +155,8 @@ function ConsoleStyles() {
     <style>{`
       .igris-console {
         color-scheme: dark;
-        --ic-bg: #0e0e0c;
-        --ic-bg-rail: #070707;
+        --ic-bg: #161515;
+        --ic-bg-rail: #161515;
         --ic-text: #b0ada5;
         --ic-text-bright: #d3d2c8;
         --ic-text-2: #a8a89e;
@@ -175,7 +178,7 @@ function ConsoleStyles() {
         --ic-overlay-5: rgba(255,255,255,0.06);
         --ic-overlay-bg: rgba(255,255,255,0.015);
         --ic-rail-active: #d3d2c8;
-        --ic-dot-border: #070707;
+        --ic-dot-border: #161515;
         --ic-accent: #0f835c;
         --ic-emerald: #0f835c;
         --ic-emerald-dim: rgba(15,131,92,0.85);
@@ -185,8 +188,8 @@ function ConsoleStyles() {
       }
       .igris-console.igris-console--light {
         color-scheme: light;
-        --ic-bg: #f7f7f5;
-        --ic-bg-rail: #f2f1ee;
+        --ic-bg: #f9f9fa;
+        --ic-bg-rail: #f9f9fa;
         --ic-text: #1b1912;
         --ic-text-bright: #000000;
         --ic-text-2: #2a2820;
@@ -208,7 +211,7 @@ function ConsoleStyles() {
         --ic-overlay-5: rgba(0,0,0,0.07);
         --ic-overlay-bg: rgba(0,0,0,0.02);
         --ic-rail-active: #1b1912;
-        --ic-dot-border: #f2f1ee;
+        --ic-dot-border: #f9f9fa;
         --ic-accent: #047857;
         --ic-emerald: #047857;
         --ic-emerald-dim: #059669;
@@ -395,6 +398,10 @@ function ConsoleStyles() {
       .igris-console .ic-line__receipt { font-family: var(--ic-mono); font-size: 9.5px; }
       .igris-console .ic-line__receipt--ok { color: var(--ic-emerald); }
       .igris-console .ic-line__receipt--none { color: var(--ic-text-7); }
+      .igris-console .ic-line__status { font-family: var(--ic-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: lowercase; }
+      .igris-console .ic-line__status--ok { color: var(--ic-emerald); }
+      .igris-console .ic-line__status--run { color: var(--ic-emerald); }
+      .igris-console .ic-panel--actions .ic-line { grid-template-columns: 68px minmax(0,1fr) auto auto; }
       .igris-console .ic-line--fault .ic-line__name { color: #fcd34d; }
       .igris-console--light .ic-line--fault .ic-line__name { color: #b45309; }
       .igris-console .ic-line--fault .ic-line__detail { color: var(--ic-fault-text); }
@@ -469,25 +476,40 @@ function ConsoleStyles() {
       .igris-console .ic-wfall__row { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; align-items: center; gap: 8px; border-radius: 4px; padding: 1px 0; }
       .igris-console .ic-wfall__row:hover { background: var(--ic-overlay-1); }
       .igris-console .ic-wfall__label { font-size: 10px; color: var(--ic-text-4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ic-mono); }
-      .igris-console .ic-wfall__track { position: relative; height: 11px; border-radius: 3px; background: var(--ic-overlay-2); background-image: repeating-linear-gradient(to right, var(--ic-border-soft) 0 1px, transparent 1px 25%); }
-      .igris-console .ic-wfall__bar { position: absolute; top: 1.5px; bottom: 1.5px; min-width: 2px; border-radius: 2px; background-image: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0)); box-shadow: inset 2px 0 0 rgba(255,255,255,0.35); }
-      .igris-console .ic-wfall__bar--ok { background-color: var(--ic-emerald); }
-      .igris-console .ic-wfall__bar--warn { background-color: var(--ic-amber); }
-      .igris-console .ic-wfall__bar--bad { background-color: var(--ic-rose); }
-      .igris-console .ic-wfall__bar--muted { background-color: var(--ic-text-6); }
+      .igris-console .ic-wfall__track {
+        display: flex; align-items: stretch; justify-content: space-between;
+        height: 14px; padding: 0; background: transparent; width: 100%;
+      }
+      .igris-console .ic-wfall__track--timeline { margin-bottom: 10px; height: 16px; }
+      .igris-console .ic-wfall__tick {
+        flex: 0 0 1px; width: 1px; height: 100%; border-radius: 0;
+        background: var(--ic-text-8); opacity: 0.28;
+      }
+      .igris-console .ic-wfall__tick--ok { opacity: 1; background: var(--ic-emerald); }
+      .igris-console .ic-wfall__tick--warn { opacity: 1; background: var(--ic-amber); }
+      .igris-console .ic-wfall__tick--bad { opacity: 1; background: var(--ic-rose); }
+      .igris-console .ic-wfall__tick--muted { opacity: 1; background: var(--ic-text-6); }
       .igris-console .ic-wfall__val { font-size: 10px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; text-align: right; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__axis { display: grid; grid-template-columns: 76px minmax(0,1fr) 48px; gap: 8px; margin-top: 3px; }
       .igris-console .ic-wfall__scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 9px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; font-family: var(--ic-mono); }
       .igris-console .ic-wfall__scale-mid { color: var(--ic-text-8); letter-spacing: 0.04em; }
 
-      /* Execution-profile reveal (Recover tab): rows fade in, bars draw out. */
+      /* Execution-profile reveal (Recover tab): rows fade in, ticks fill out. */
       @keyframes ic-wfall-row-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
-      @keyframes ic-wfall-bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      @keyframes ic-wfall-tick-in { from { opacity: 0.12; } to { opacity: 1; } }
       .igris-console .ic-wfall--animate .ic-wfall__row { animation: ic-wfall-row-in 880ms cubic-bezier(0.16,0.84,0.44,1) both; }
-      .igris-console .ic-wfall--animate .ic-wfall__bar { transform-origin: left center; animation: ic-wfall-bar-grow 1250ms cubic-bezier(0.16,0.84,0.44,1) both; }
+      .igris-console .ic-wfall--animate .ic-wfall__tick--ok,
+      .igris-console .ic-wfall--animate .ic-wfall__tick--warn,
+      .igris-console .ic-wfall--animate .ic-wfall__tick--bad,
+      .igris-console .ic-wfall--animate .ic-wfall__tick--muted {
+        animation: ic-wfall-tick-in 280ms cubic-bezier(0.16,0.84,0.44,1) both;
+      }
       @media (prefers-reduced-motion: reduce) {
         .igris-console .ic-wfall--animate .ic-wfall__row,
-        .igris-console .ic-wfall--animate .ic-wfall__bar { animation: none; }
+        .igris-console .ic-wfall--animate .ic-wfall__tick--ok,
+        .igris-console .ic-wfall--animate .ic-wfall__tick--warn,
+        .igris-console .ic-wfall--animate .ic-wfall__tick--bad,
+        .igris-console .ic-wfall--animate .ic-wfall__tick--muted { animation: none; }
       }
 
       /* Hero footer */
@@ -548,7 +570,7 @@ function IconRail({ active = 3 }: { active?: number }) {
   const logoSrc = resolvedTheme === 'light' ? '/inertia.png' : '/inertiadm.png'
   const icons = [Home, LayoutDashboard, ListChecks, Zap, Box, Settings]
   return (
-    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
+    <nav className="flex flex-col items-center py-2 border-r" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border)' }}>
       <div className="flex items-center justify-center h-9 w-9 mb-1">
         <img src={logoSrc} alt="" width={15} height={15} className="block select-none" draggable={false} />
       </div>
@@ -577,10 +599,10 @@ function Sidebar({ query, setQuery }: { query: string; setQuery: (v: string) => 
   const total = PROJECTS.reduce((n, g) => n + g.runs.length, 0)
 
   return (
-    <aside className="flex flex-col border-r" style={{ background: 'var(--ic-bg-rail)', borderColor: 'var(--ic-border)' }}>
+    <aside className="flex flex-col border-r" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border)' }}>
       {/* search — filters the runs picker live */}
       <div className="px-3 pt-3 pb-2">
-        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] focus-within:border-[color:var(--ic-border)]" style={{ background: 'var(--ic-bg)', borderColor: 'var(--ic-border-soft)' }}>
+        <div className="flex items-center gap-1.5 px-2 h-[22px] rounded-md border-[0.5px] focus-within:border-[color:var(--ic-border)]" style={{ background: 'var(--landing-surface)', borderColor: 'var(--ic-border-soft)' }}>
           <svg width="9" height="9" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--ic-text-7)' }}>
             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
             <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -793,13 +815,29 @@ function FacetChips({ items }: { items: string[] }) {
   )
 }
 
-function Evidence() {
-  const [visible, setVisible] = useState(1)
+function Evidence({
+  compact = false,
+  frozen = false,
+  showNarrative = true,
+  showReceipts = true,
+  panelTitle,
+}: {
+  compact?: boolean
+  frozen?: boolean
+  showNarrative?: boolean
+  showReceipts?: boolean
+  panelTitle?: string
+}) {
+  const [visible, setVisible] = useState(frozen ? STEPS.length : 1)
   const [cycle, setCycle] = useState(0)
   const [fading, setFading] = useState(false)
   const [committedOpen, setCommittedOpen] = useState(true)
 
   useEffect(() => {
+    if (frozen) {
+      setVisible(STEPS.length)
+      return
+    }
     const reduced =
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -820,7 +858,7 @@ function Evidence() {
       })
     }, 1100)
     return () => { clearInterval(id); if (to) clearTimeout(to) }
-  }, [])
+  }, [frozen])
 
   const steps = STEPS.slice(0, visible)
   const committed = steps.filter((s) => s.kind === 'action' && s.status === 'committed').length
@@ -829,35 +867,37 @@ function Evidence() {
 
   return (
     <div className="min-w-0">
-      {/* ── Demo context ─────────────────────────────────────────────── */}
-      <div className="ic-evidence--flat">
-        <div className="ic-evidence__head">Demo context</div>
-        <div className="ic-def">
-          <span className="ic-def__label">Submitter</span>
-          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">mateo@acme.io</span><span className="ic-def__hint">engineer, integrations</span></div>
+      {!compact && (
+        <div className="ic-evidence--flat">
+          <div className="ic-evidence__head">Demo context</div>
+          <div className="ic-def">
+            <span className="ic-def__label">Submitter</span>
+            <div className="ic-def__value"><span className="ic-chip ic-chip--sm">mateo@acme.io</span><span className="ic-def__hint">engineer, integrations</span></div>
+          </div>
+          <div className="ic-def">
+            <span className="ic-def__label">Region</span>
+            <div className="ic-def__value"><span className="ic-chip ic-chip--sm">fra1</span><span className="ic-chip ic-chip--sm">prod</span><span className="ic-def__hint">eu-central, primary</span></div>
+          </div>
+          <div className="ic-def">
+            <span className="ic-def__label">Worker</span>
+            <div className="ic-def__value"><span className="ic-chip ic-chip--sm">worker_b</span><span className="ic-def__hint">recovered from</span><span className="ic-chip ic-chip--sm">worker_a</span></div>
+          </div>
+          <div className="ic-def">
+            <span className="ic-def__label">Submitted</span>
+            <div className="ic-def__value"><span className="ic-chip ic-chip--sm">{RUN.started}</span><span className="ic-def__hint">{RUN.ago}, action workflow</span></div>
+          </div>
         </div>
-        <div className="ic-def">
-          <span className="ic-def__label">Region</span>
-          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">fra1</span><span className="ic-chip ic-chip--sm">prod</span><span className="ic-def__hint">eu-central, primary</span></div>
-        </div>
-        <div className="ic-def">
-          <span className="ic-def__label">Worker</span>
-          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">worker_b</span><span className="ic-def__hint">recovered from</span><span className="ic-chip ic-chip--sm">worker_a</span></div>
-        </div>
-        <div className="ic-def">
-          <span className="ic-def__label">Submitted</span>
-          <div className="ic-def__value"><span className="ic-chip ic-chip--sm">{RUN.started}</span><span className="ic-def__hint">{RUN.ago}, action workflow</span></div>
-        </div>
-      </div>
+      )}
 
-      {/* ── Receipt-chain narrative ──────────────────────────────────── */}
-      <p className="ic-narrative">
-        The receipt chain is <span className="accent">valid</span> up to{' '}
-        <span className="mono">action 11</span>. Action 12 (<span className="mono">ledger_sync</span>) is currently running.
-      </p>
+      {showNarrative && (
+        <p className="ic-narrative">
+          The receipt chain is <span className="accent">valid</span> up to{' '}
+          <span className="mono">action 11</span>. Action 12 (<span className="mono">ledger_sync</span>) is currently running.
+        </p>
+      )}
 
       {/* ── Committed actions panel ──────────────────────────────────── */}
-      <div className="ic-panel" id="evidence">
+      <div className={'ic-panel' + (showReceipts ? '' : ' ic-panel--actions')} id="evidence">
         <div className="ic-loggroup">
           <button
             type="button"
@@ -869,7 +909,7 @@ function Evidence() {
                 className={'ic-loggroup__chev' + (committedOpen ? ' ic-loggroup__chev--open' : '')}
                 aria-hidden
               />
-              <span>Committed actions ({totalActions})</span>
+              <span>{panelTitle ?? `Committed actions (${totalActions})`}</span>
               <span className="ic-panel__count-plus">+{committed}</span>
               <span className="ic-panel__count-minus">−0</span>
             </div>
@@ -905,9 +945,15 @@ function Evidence() {
                       <span className="ic-line__detail">{s.detail}</span>
                     </div>
                     <span className="ic-line__latency">{s.latency != null ? `${s.latency}ms` : ''}</span>
-                    {s.receipt
-                      ? <span className="ic-line__receipt ic-line__receipt--ok">{s.receipt}</span>
-                      : <span className="ic-line__receipt ic-line__receipt--none">—</span>}
+                    {showReceipts ? (
+                      s.receipt
+                        ? <span className="ic-line__receipt ic-line__receipt--ok">{s.receipt}</span>
+                        : <span className="ic-line__receipt ic-line__receipt--none">—</span>
+                    ) : (
+                      <span className={'ic-line__status' + (isRunning ? ' ic-line__status--run' : ' ic-line__status--ok')}>
+                        {isRunning ? 'running' : 'committed'}
+                      </span>
+                    )}
                   </div>
                 )
               })}
@@ -1036,35 +1082,129 @@ function AuditRow({ label, value, note }: { label: string; value: string; note: 
   )
 }
 
-// run_execution_profile(run): one bar per step that has a latency, placed by
-// cumulative start time, length = time-on-step. The in-flight ledger_sync (no
-// latency) is excluded — matching the rails helper.
-function ExecutionProfile({ animate = false }: { animate?: boolean }) {
+const EXECUTION_PROFILE_TICKS = 256
+
+type ProfileTone = 'ok' | 'warn' | 'bad' | 'muted'
+
+interface ProfileRow {
+  label: string
+  ms: number
+  start: number
+  tone: ProfileTone
+}
+
+function executionProfileTickRange(start: number, ms: number, span: number, tickCount: number) {
+  if (span <= 0 || tickCount <= 0) return { startIdx: 0, endIdx: 0 }
+  const startIdx = Math.min(tickCount - 1, Math.floor((start / span) * tickCount))
+  const endIdx = Math.max(startIdx + 1, Math.min(tickCount, Math.ceil(((start + ms) / span) * tickCount)))
+  return { startIdx, endIdx }
+}
+
+function executionProfileToneAt(profile: ProfileRow[], span: number, tickIdx: number, tickCount: number): ProfileTone | null {
+  if (span <= 0) return null
+  const t = (tickIdx / tickCount) * span
+  const step = profile.find((p) => t >= p.start && t < p.start + p.ms)
+  return step?.tone ?? null
+}
+
+function ExecutionProfileTickTrack({
+  profile,
+  start,
+  ms,
+  span,
+  tone,
+  animate,
+  rowDelay,
+  timeline = false,
+}: {
+  profile?: ProfileRow[]
+  start?: number
+  ms?: number
+  span: number
+  tone?: ProfileTone
+  animate: boolean
+  rowDelay?: string
+  timeline?: boolean
+}) {
+  const rowBaseDelay = parseInt(rowDelay ?? '0', 10) || 0
+  return (
+    <div
+      className={'ic-wfall__track' + (timeline ? ' ic-wfall__track--timeline' : '')}
+      aria-hidden={timeline ? undefined : true}
+      aria-label={timeline ? 'Run timeline utilization' : undefined}
+    >
+      {Array.from({ length: EXECUTION_PROFILE_TICKS }, (_, tickIdx) => {
+        let activeTone: ProfileTone | null = null
+        if (timeline && profile) {
+          activeTone = executionProfileToneAt(profile, span, tickIdx, EXECUTION_PROFILE_TICKS)
+        } else if (start != null && ms != null && tone) {
+          const { startIdx, endIdx } = executionProfileTickRange(start, ms, span, EXECUTION_PROFILE_TICKS)
+          activeTone = tickIdx >= startIdx && tickIdx < endIdx ? tone : null
+        }
+        const tickDelay = animate && activeTone
+          ? `${rowBaseDelay + tickIdx * 14}ms`
+          : undefined
+        return (
+          <span
+            key={tickIdx}
+            className={'ic-wfall__tick' + (activeTone ? ` ic-wfall__tick--${activeTone}` : '')}
+            style={tickDelay ? { animationDelay: tickDelay } : undefined}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// run_execution_profile(run): segmented timeline + tick-based utilization per
+// step. The in-flight ledger_sync (no latency) is excluded — matching the rails
+// helper.
+function ExecutionProfile({
+  animate = false,
+  expanded = false,
+  maxRows,
+  showNote = true,
+}: {
+  animate?: boolean
+  expanded?: boolean
+  maxRows?: number
+  showNote?: boolean
+}) {
   let cursor = 0
   const profile = STEPS.filter((s) => s.latency != null).map((s) => {
     const ms = s.latency as number
-    const row = { label: s.name, ms, start: cursor, tone: s.kind === 'fault' ? 'warn' : 'ok' }
+    const row = { label: s.name, ms, start: cursor, tone: (s.kind === 'fault' ? 'warn' : 'ok') as ProfileTone }
     cursor += ms
     return row
   })
+  const rows = maxRows != null ? profile.slice(0, maxRows) : profile
   const span = Math.max(...profile.map((p) => p.start + p.ms))
   const total = profile.reduce((n, p) => n + p.ms, 0)
 
   return (
-    <section className="ic-runinspector__section ic-runinspector__section--last">
+    <section className={'ic-runinspector__section ic-runinspector__section--last' + (expanded ? ' ic-wfall--expanded' : '')}>
       <div className="ic-runinspector__sechead">Execution profile</div>
       <p className="ic-runinspector__hint">Time per step along the run timeline: {profile.length} steps over {total}ms total.</p>
-      <div className={'ic-wfall' + (animate ? ' ic-wfall--animate' : '')}>
-        {profile.map((p, i) => {
-          const left = span > 0 ? (p.start / span) * 100 : 0
-          const width = span > 0 ? Math.max((p.ms / span) * 100, 1.5) : 0
+      <div className={'ic-wfall' + (animate ? ' ic-wfall--animate' : '') + (expanded ? ' ic-wfall--expanded' : '')}>
+        <ExecutionProfileTickTrack
+          profile={profile}
+          span={span}
+          animate={animate}
+          timeline
+        />
+        {rows.map((p, i) => {
           const delay = animate ? `${i * 200}ms` : undefined
           return (
             <div className="ic-wfall__row" key={i} style={{ animationDelay: delay }}>
               <span className="ic-wfall__label" title={p.label}>{p.label}</span>
-              <div className="ic-wfall__track">
-                <div className={`ic-wfall__bar ic-wfall__bar--${p.tone}`} style={{ marginLeft: `${left}%`, width: `${width}%`, animationDelay: delay }} />
-              </div>
+              <ExecutionProfileTickTrack
+                start={p.start}
+                ms={p.ms}
+                span={span}
+                tone={p.tone}
+                animate={animate}
+                rowDelay={delay}
+              />
               <span className="ic-wfall__val">{p.ms}ms</span>
             </div>
           )
@@ -1077,14 +1217,38 @@ function ExecutionProfile({ animate = false }: { animate?: boolean }) {
           </span>
         </div>
       </div>
-      <p className="ic-runinspector__note">Bars are placed by when each step ran; length is time-on-step. Faults/retries appear as their own bar.</p>
+      {showNote && (
+        <p className="ic-runinspector__note">Each vertical tick is a time slice; filled ticks show when a step held the execution path.</p>
+      )}
     </section>
   )
 }
 
 // ── Execution detail — sticky context rail, right side of the pane ──
 
-function ExecDetailRail() {
+function ExecDetailRail({ variant }: { variant?: RunDetailSnippetVariant }) {
+  const next =
+    variant === 'proof'
+      ? {
+          kicker: 'Inspect proof',
+          title: 'Receipt chain is valid to action 11.',
+          sub: 'Open the run to verify signed receipts and the ed25519 chain.',
+          cta: 'View receipts',
+        }
+      : variant === 'policy'
+        ? {
+            kicker: 'Governed path',
+            title: 'Policy allowed · recovery in flight.',
+            sub: 'Igris retried rate limits and resumed on worker_b without losing checkpoint.',
+            cta: 'Open recovery',
+          }
+        : {
+            kicker: 'What to do next',
+            title: 'Run is still in flight.',
+            sub: 'Step evidence appears here as the run commits each action.',
+            cta: 'Open action',
+          }
+
   return (
     <aside className="ic-run-detail-rail" aria-label="Execution detail">
       <div className="ic-summary">
@@ -1098,10 +1262,12 @@ function ExecDetailRail() {
             <div className="ic-summary__k">Status</div>
             <div className="ic-summary__v"><Pill tone="muted" label="Running" /></div>
           </div>
-          <div className="ic-summary__cell">
-            <div className="ic-summary__k">Routed via</div>
-            <div className="ic-summary__v"><RoutedVia /></div>
-          </div>
+          {variant !== 'proof' && (
+            <div className="ic-summary__cell">
+              <div className="ic-summary__k">Routed via</div>
+              <div className="ic-summary__v"><RoutedVia /></div>
+            </div>
+          )}
           <div className="ic-summary__cell">
             <div className="ic-summary__k">Policy</div>
             <div className="ic-summary__v"><FacetChips items={['Idempotent', '3 retries']} /></div>
@@ -1110,6 +1276,18 @@ function ExecDetailRail() {
             <div className="ic-summary__k">Proof</div>
             <div className="ic-summary__v"><Pill tone="warn" label="Pending" /></div>
           </div>
+          {variant === 'proof' && (
+            <div className="ic-summary__cell ic-summary__cell--wide">
+              <div className="ic-summary__k">Receipts</div>
+              <div className="ic-summary__v mono">r₀₁ → r₁₁ signed · ed25519</div>
+            </div>
+          )}
+          {variant === 'policy' && (
+            <div className="ic-summary__cell">
+              <div className="ic-summary__k">Recovery</div>
+              <div className="ic-summary__v"><Pill tone="ok" label="In flight" /></div>
+            </div>
+          )}
           <div className="ic-summary__cell">
             <div className="ic-summary__k">Started</div>
             <div className="ic-summary__v">{RUN.started}</div>
@@ -1119,17 +1297,21 @@ function ExecDetailRail() {
             <div className="ic-summary__v">—</div>
           </div>
         </div>
-        <p className="ic-summary__note">Proof is available when signed runtime evidence exists.</p>
+        <p className="ic-summary__note">
+          {variant === 'proof'
+            ? 'Each committed step carries a signed receipt when runtime evidence is attached.'
+            : 'Proof is available when signed runtime evidence exists.'}
+        </p>
       </div>
 
       <div className="ic-nextstep">
         <div>
-          <div className="ic-nextstep__kicker">What to do next</div>
-          <div className="ic-nextstep__title">Run is still in flight.</div>
-          <p className="ic-nextstep__sub">Step evidence appears here as the run commits each step.</p>
+          <div className="ic-nextstep__kicker">{next.kicker}</div>
+          <div className="ic-nextstep__title">{next.title}</div>
+          <p className="ic-nextstep__sub">{next.sub}</p>
         </div>
         <div className="ic-nextstep__cta">
-          <button type="button" className="inline-flex items-center h-6 px-2 rounded-md text-[11px] cursor-default bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/25">Open action</button>
+          <button type="button" className="inline-flex items-center h-6 px-2 rounded-md text-[11px] cursor-default bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/25">{next.cta}</button>
         </div>
       </div>
     </aside>
@@ -1142,6 +1324,604 @@ function MainFooter() {
       <div className="ic-footer__bar">
         <span className="ic-footer__chip"><span className="dot" /><span>action_workflow v1</span></span>
         <span>Receipts ed25519</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Compact run-detail embed — cropped Run tab console for landing sections ──
+
+const PROOF_RECEIPT_STEPS = STEPS.filter((s) => s.receipt)
+
+function ActionsSnippet() {
+  return (
+    <Evidence
+      compact
+      showNarrative={false}
+      showReceipts={false}
+      panelTitle="Committed actions (12)"
+    />
+  )
+}
+
+function ProofAuditCell({ label, value, note }: { label: string; value: string; note: string }) {
+  return (
+    <div className="wtu-proof-audit__cell">
+      <div className="wtu-proof-audit__label">{label}</div>
+      <div className="wtu-proof-audit__value">{value}</div>
+      <p className="wtu-proof-audit__note">{note}</p>
+    </div>
+  )
+}
+
+function ProofSnippet() {
+  return (
+    <div className="wtu-proof-snippet">
+      <div className="wtu-proof-snippet__summary">
+        <div className="wtu-proof-snippet__summary-main">
+          <span className="wtu-proof-snippet__title">Receipt chain</span>
+          <p className="wtu-proof-snippet__lead">
+            Valid to <span className="mono accent">action 11</span> ·{' '}
+            {PROOF_RECEIPT_STEPS.length} signed · <span className="mono">ed25519</span>
+          </p>
+        </div>
+        <div className="wtu-proof-snippet__summary-meta">
+          <Pill tone="ok" label="Verified" />
+          <span className="wtu-proof-snippet__pending mono">action 12 pending</span>
+        </div>
+      </div>
+
+      <div className="wtu-proof-snippet__ledger ic-panel ic-panel--proof">
+        <div className="wtu-proof-snippet__thead">
+          <span>Time</span>
+          <span>Action</span>
+          <span>Detail</span>
+          <span>Receipt</span>
+          <span>Sig</span>
+        </div>
+        <div className="wtu-proof-snippet__tbody">
+          {PROOF_RECEIPT_STEPS.map((s) => (
+            <div key={s.id} className="wtu-proof-snippet__row">
+              <span className="wtu-proof-snippet__ts mono">{s.at}</span>
+              <span className="wtu-proof-snippet__action mono">{s.name}</span>
+              <span className="wtu-proof-snippet__detail">{s.detail}</span>
+              <span className="wtu-proof-snippet__receipt mono">{s.receipt}</span>
+              <span className="wtu-proof-snippet__sig">ed25519</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="wtu-proof-snippet__audit">
+        <div className="ic-runinspector__sechead">Audit interpretation</div>
+        <div className="wtu-proof-audit__grid">
+          <ProofAuditCell
+            label="Evidence receipt"
+            value="11 signed · 1 pending"
+            note="Signed, tamper-evident record from the runtime."
+          />
+          <ProofAuditCell
+            label="Verification"
+            value="Valid to action 11"
+            note="Registered runtime key when available."
+          />
+          <ProofAuditCell
+            label="Data exposure"
+            value="Minimized"
+            note="Only safe identifiers and digests are shown."
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function RunSnippetStyles() {
+  return (
+    <style>{`
+      .wtu-run-snippet {
+        height: 100%;
+        width: 100%;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--landing-surface);
+      }
+      .wtu-run-snippet__top {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 12px;
+        border-bottom: 1px solid var(--ic-border);
+      }
+      .wtu-run-snippet__body {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        padding: 10px 12px 12px;
+        scrollbar-width: none;
+      }
+      .wtu-run-snippet__body::-webkit-scrollbar { display: none; }
+      .wtu-run-snippet .ic-run-detail-layout {
+        height: 100%;
+        min-height: 100%;
+        grid-template-columns: minmax(0, 1fr) 188px;
+        gap: 12px;
+      }
+      .wtu-run-snippet[data-variant="policy"] .ic-run-detail-layout {
+        grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.86fr);
+      }
+      .wtu-run-snippet .ic-run-detail-scroll {
+        overflow: hidden;
+      }
+      .wtu-run-snippet .ic-panel {
+        margin-top: 0;
+      }
+      .wtu-run-snippet .ic-narrative {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 11.5px;
+        line-height: 1.5;
+      }
+      .wtu-run-snippet .ic-runinspector__section {
+        padding-right: 0;
+      }
+      .wtu-run-snippet .ic-runinspector__section:first-child {
+        padding-top: 0;
+      }
+      .wtu-run-snippet .ic-log__body {
+        max-height: none;
+      }
+      .wtu-run-snippet .ic-line {
+        grid-template-columns: 68px minmax(0,1fr) auto auto;
+        padding: 3px 8px;
+      }
+      .wtu-proof-snippet {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        height: 100%;
+        min-height: 0;
+      }
+      .wtu-proof-snippet__summary {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--ic-border-soft);
+        flex-shrink: 0;
+      }
+      .wtu-proof-snippet__title {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        color: var(--ic-text-6);
+        margin-bottom: 4px;
+      }
+      .wtu-proof-snippet__lead {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ic-text-3);
+      }
+      .wtu-proof-snippet__lead .mono { font-family: var(--ic-mono); }
+      .wtu-proof-snippet__lead .accent { color: var(--ic-emerald); }
+      .wtu-proof-snippet__summary-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .wtu-proof-snippet__pending {
+        font-size: 9.5px;
+        color: var(--ic-text-6);
+        letter-spacing: 0.04em;
+      }
+      .wtu-proof-snippet__ledger {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 10px 12px 8px;
+      }
+      .wtu-proof-snippet__thead,
+      .wtu-proof-snippet__row {
+        display: grid;
+        grid-template-columns: 72px 72px minmax(0, 1fr) 44px 52px;
+        align-items: center;
+        column-gap: 10px;
+      }
+      .wtu-proof-snippet__thead {
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ic-text-6);
+        padding: 0 4px 8px;
+        border-bottom: 1px solid var(--ic-border-soft);
+        flex-shrink: 0;
+      }
+      .wtu-proof-snippet__tbody {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding-top: 4px;
+        scrollbar-width: none;
+      }
+      .wtu-proof-snippet__tbody::-webkit-scrollbar { display: none; }
+      .wtu-proof-snippet__row {
+        padding: 5px 4px;
+        border-radius: 4px;
+        font-size: 10.5px;
+      }
+      .wtu-proof-snippet__row:hover { background: var(--ic-overlay-1); }
+      .wtu-proof-snippet__ts { color: var(--ic-text-6); font-variant-numeric: tabular-nums; }
+      .wtu-proof-snippet__action { color: var(--ic-text-2); }
+      .wtu-proof-snippet__detail {
+        color: var(--ic-text-5);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 10px;
+      }
+      .wtu-proof-snippet__receipt { color: var(--ic-emerald); }
+      .wtu-proof-snippet__sig {
+        font-family: var(--ic-mono);
+        font-size: 8.5px;
+        letter-spacing: 0.08em;
+        color: var(--ic-text-7);
+        text-transform: uppercase;
+      }
+      .wtu-proof-snippet__audit {
+        flex-shrink: 0;
+        padding-top: 4px;
+        border-top: 1px solid var(--ic-border-soft);
+      }
+      .wtu-proof-audit__grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .wtu-proof-audit__cell {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--ic-border-soft);
+        background: var(--ic-overlay-bg);
+      }
+      .wtu-proof-audit__label {
+        font-size: 9.5px;
+        letter-spacing: 0.06em;
+        color: var(--ic-text-6);
+        margin-bottom: 4px;
+      }
+      .wtu-proof-audit__value {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ic-text-2);
+        margin-bottom: 4px;
+      }
+      .wtu-proof-audit__note {
+        margin: 0;
+        font-size: 10px;
+        line-height: 1.45;
+        color: var(--ic-text-6);
+      }
+      .wtu-run-snippet__routing,
+      .wtu-run-snippet__proof {
+        height: 100%;
+        min-height: 0;
+      }
+      .wtu-run-snippet__routing {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .wtu-routing-snippet__paths {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 16px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--ic-border-soft);
+      }
+      .wtu-routing-snippet__path {
+        min-width: 0;
+      }
+      .wtu-routing-snippet__path-k {
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        color: var(--ic-text-6);
+        margin-bottom: 6px;
+        text-transform: uppercase;
+      }
+      .wtu-routing-snippet__profile {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        padding-top: 2px;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded {
+        gap: 7px;
+        margin-top: 10px;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__row {
+        grid-template-columns: 70px minmax(0, 1fr) 44px;
+        gap: 14px;
+        padding: 5px 0;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__axis {
+        grid-template-columns: 70px minmax(0, 1fr) 44px;
+        gap: 14px;
+        margin-top: 6px;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__track {
+        height: 20px;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__track--timeline {
+        height: 24px;
+        margin-bottom: 12px;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__tick {
+        flex: 0 0 1px;
+        width: 1px;
+        min-height: 100%;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-runinspector__section--last {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+      .wtu-run-snippet[data-variant="routing"] .ic-runinspector__hint {
+        margin-bottom: 4px;
+      }
+      .wtu-policy-snippet .ic-runinspector__pills {
+        padding: 0 0 10px;
+        border-bottom: 1px solid var(--ic-border-soft);
+      }
+      .wtu-policy-snippet .ic-runinspector__section {
+        padding: 10px 0;
+      }
+      .wtu-policy-snippet .ic-wfall {
+        margin-top: 4px;
+      }
+      @media (max-width: 1023px) {
+        .wtu-run-snippet .ic-run-detail-layout {
+          grid-template-columns: minmax(0, 1fr) 148px;
+          gap: 10px;
+        }
+        .wtu-run-snippet__body {
+          padding: 8px 10px 10px;
+        }
+        .wtu-routing-snippet__paths {
+          grid-template-columns: 1fr;
+        }
+        .wtu-proof-audit__grid {
+          grid-template-columns: 1fr;
+        }
+        .wtu-proof-snippet__summary {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .wtu-proof-snippet__summary-meta {
+          flex-direction: row;
+          align-items: center;
+          width: 100%;
+          justify-content: space-between;
+        }
+        .wtu-proof-snippet__thead,
+        .wtu-proof-snippet__row {
+          grid-template-columns: 58px 64px minmax(0, 1fr) 38px 44px;
+          column-gap: 6px;
+        }
+        .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__row,
+        .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__axis {
+          grid-template-columns: 58px minmax(0, 1fr) 40px;
+          gap: 10px;
+        }
+      }
+      @media (max-width: 639px) {
+        .wtu-run-snippet__top {
+          flex-wrap: wrap;
+          height: auto;
+          min-height: 32px;
+          row-gap: 4px;
+          padding: 6px 10px;
+        }
+        .wtu-run-snippet__top .ml-auto {
+          margin-left: 0;
+          width: 100%;
+        }
+        .wtu-run-snippet .ic-run-detail-layout {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .wtu-run-snippet .ic-run-detail-scroll {
+          overflow: visible;
+        }
+        .wtu-run-snippet .ic-run-detail-rail {
+          border-left: 0;
+          padding-left: 0;
+          border-top: 1px solid var(--ic-border);
+          padding-top: 12px;
+          margin-top: 4px;
+        }
+        .wtu-run-snippet .ic-line {
+          grid-template-columns: 56px minmax(0,1fr) auto;
+          column-gap: 6px;
+          padding: 3px 4px;
+        }
+        .wtu-run-snippet .ic-panel--actions .ic-line__latency {
+          display: none;
+        }
+        .wtu-proof-snippet__thead span:nth-child(3),
+        .wtu-proof-snippet__thead span:nth-child(5),
+        .wtu-proof-snippet__detail,
+        .wtu-proof-snippet__sig {
+          display: none;
+        }
+        .wtu-proof-snippet__thead,
+        .wtu-proof-snippet__row {
+          grid-template-columns: 54px minmax(0, 1fr) 40px;
+        }
+        .wtu-proof-snippet__ledger {
+          padding: 8px 8px 6px;
+        }
+        .wtu-run-snippet[data-variant="policy"] .ic-wfall__row,
+        .wtu-run-snippet[data-variant="policy"] .ic-wfall__axis {
+          grid-template-columns: 52px minmax(0, 1fr) 36px;
+          gap: 6px;
+        }
+        .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__row,
+        .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__axis {
+          grid-template-columns: 52px minmax(0, 1fr) 36px;
+          gap: 8px;
+        }
+        .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__track {
+          height: 16px;
+        }
+        .wtu-run-snippet[data-variant="routing"] .ic-wfall--expanded .ic-wfall__track--timeline {
+          height: 18px;
+        }
+        .wtu-policy-snippet .ic-runinspector__pills {
+          gap: 4px;
+        }
+        .wtu-policy-snippet .ic-runinspector__auditrow {
+          padding: 8px 0;
+        }
+      }
+    `}</style>
+  )
+}
+
+function SnippetTopBar() {
+  return (
+    <div className="wtu-run-snippet__top">
+      <span className="text-[10px] text-[var(--ic-text-6)]">Runs</span>
+      <span className="text-[10px] text-[var(--ic-text-8)]">/</span>
+      <span className="text-[10.5px] font-medium text-[var(--ic-text-bright)] truncate" style={{ letterSpacing: '-0.01em', fontFamily: MONO }}>
+        {RUN.action}
+      </span>
+      <span className="text-[10px] text-[var(--ic-text-6)] truncate" style={{ fontFamily: MONO }}>{RUN.id}</span>
+      <span className="ml-auto ic-chip" style={{ fontSize: '9.5px', padding: '0 5px', lineHeight: '16px' }}>
+        <span className="ic-chip-icon" style={{ color: 'rgb(192,132,252)', verticalAlign: 'middle' }}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+        </span>
+        {RUN.project}
+      </span>
+    </div>
+  )
+}
+
+function RoutingSnippet() {
+  return (
+    <div className="wtu-routing-snippet">
+      <div className="wtu-routing-snippet__paths">
+        <div className="wtu-routing-snippet__path">
+          <div className="wtu-routing-snippet__path-k">Cloud path</div>
+          <RoutedVia />
+        </div>
+        <div className="wtu-routing-snippet__path">
+          <div className="wtu-routing-snippet__path-k">Local / edge</div>
+          <span className="ic-chips">
+            <span className="ic-chip ic-chip--sm mono">{RUN.runtimeId}</span>
+            <span className="ic-chip ic-chip--sm">worker_b</span>
+            <span className="ic-chip ic-chip--sm">fra1</span>
+          </span>
+        </div>
+      </div>
+      <div className="wtu-routing-snippet__profile">
+        <ExecutionProfile expanded maxRows={7} showNote={false} />
+      </div>
+    </div>
+  )
+}
+
+function PolicySnippet() {
+  return (
+    <div className="ic-runinspector wtu-policy-snippet">
+      <div className="ic-runinspector__pills">
+        <Pill tone="muted" label="Running" />
+        <Pill tone="ok" label="Policy allowed" />
+        <Pill tone="ok" label="Recovery in flight" />
+        <Pill tone="warn" label="Proof pending" />
+      </div>
+
+      <section className="ic-runinspector__section">
+        <div className="ic-runinspector__sechead">Execution assessment</div>
+        <div className="ic-runinspector__rows">
+          <InspDef label="Action completed"><Pill tone="warn" label="Running" /></InspDef>
+          <InspDef label="Policy followed"><Pill tone="ok" label="Allowed" /></InspDef>
+          <InspDef label="Runtime path"><Pill tone="ok" label="Hosted API" /></InspDef>
+          <InspDef label="Recovery"><Pill tone="ok" label="In flight" /></InspDef>
+          <InspDef label="Proof"><Pill tone="muted" label="Not available" /></InspDef>
+        </div>
+      </section>
+
+      <section className="ic-runinspector__section">
+        <div className="ic-runinspector__sechead">Audit interpretation</div>
+        <div className="ic-runinspector__auditrows">
+          <AuditRow label="Control decision" value="Idempotent, 3 retries" note="Policy decision record: the policy preset Igris applied before allowing execution." />
+          <AuditRow label="Execution record" value="Running" note="Tamper-evident record of what Igris did when the action was called." />
+          <AuditRow label="Recovery / replay status" value="In flight" note="Replay / recovery record: whether Igris retried or compensated the action." />
+        </div>
+      </section>
+
+      <ExecutionProfile maxRows={4} showNote={false} />
+    </div>
+  )
+}
+
+function RunDetailSnippetBody({ variant }: { variant: RunDetailSnippetVariant }) {
+  if (variant === 'routing') {
+    return (
+      <div className="wtu-run-snippet__routing" aria-label="Hybrid routing and execution profile">
+        <RoutingSnippet />
+      </div>
+    )
+  }
+
+  if (variant === 'proof') {
+    return (
+      <div className="wtu-run-snippet__proof" aria-label="Receipt trail and audit interpretation">
+        <ProofSnippet />
+      </div>
+    )
+  }
+
+  return (
+    <div className="ic-run-detail-layout">
+      <section className="ic-run-detail-scroll" aria-label="Run evidence">
+        {variant === 'actions' && <ActionsSnippet />}
+        {variant === 'policy' && <PolicySnippet />}
+      </section>
+      <ExecDetailRail variant={variant} />
+    </div>
+  )
+}
+
+/** Cropped Run-tab console for landing embeds (no browser chrome / sidebar). */
+export function RunDetailSnippet({ variant }: { variant: RunDetailSnippetVariant }) {
+  const { resolvedTheme } = useTheme()
+  const isLight = resolvedTheme === 'light'
+  return (
+    <div
+      className={'igris-console wtu-run-snippet ' + (isLight ? 'igris-console--light ' : '')}
+      data-variant={variant}
+      style={{ fontFamily: SANS, background: 'var(--landing-surface)', color: 'var(--ic-text)' }}
+    >
+      <ConsoleStyles />
+      <RunSnippetStyles />
+      <SnippetTopBar />
+      <div className="wtu-run-snippet__body">
+        <RunDetailSnippetBody variant={variant} />
       </div>
     </div>
   )
@@ -1279,13 +2059,15 @@ function ProductShowcaseTabs() {
           // No wrapper fade: it would paint the first frame at opacity 0 and
           // flash empty space (the "blink"). Instant swap, internal motion only.
           <div key={tab}>
-            {tab === 'run' && <ExecutionPreview />}
-            {tab === 'recover' && <ExecutionPreview frozen />}
-            {tab === 'prove' && <RunsConsole />}
+            {tab === 'run' && <ExecutionPreview url={PRODUCT_SHOWCASE_URLS.run} />}
+            {tab === 'recover' && (
+              <ExecutionPreview frozen url={PRODUCT_SHOWCASE_URLS.recover} />
+            )}
+            {tab === 'prove' && <RunsConsole url={PRODUCT_SHOWCASE_URLS.prove} />}
           </div>
         ) : (
           // Reserve the framed console height so nothing jumps before reveal.
-          <div aria-hidden style={{ height: 660 }} />
+          <div aria-hidden style={{ height: 684 }} />
         )}
       </div>
     </div>
