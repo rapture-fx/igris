@@ -34,14 +34,14 @@ export default function Hero() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="/auth?mode=signup"
-                className="inline-flex items-center justify-center rounded-md bg-[#1b1912] px-5 py-2.5 text-[13px] font-medium text-[#f6f6f4] transition-opacity hover:opacity-80 dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                className="inline-flex items-center justify-center rounded-full bg-[#1b1912] px-6 py-2.5 text-[13px] font-medium text-[#f6f6f4] transition-opacity hover:opacity-80 dark:bg-[#f6f6f4] dark:text-[#1b1912]"
                 style={{ fontFamily: SANS }}
               >
                 Get API key
               </a>
               <a
                 href={DOCS_LINKS.agents}
-                className="inline-flex items-center justify-center rounded-md border border-gray-200 px-5 py-2.5 text-[13px] font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 dark:border-[rgba(246,246,244,0.12)] dark:text-[#f6f6f4] dark:hover:border-[rgba(246,246,244,0.2)] dark:hover:bg-white/[0.04]"
+                className="inline-flex items-center justify-center rounded-full border border-gray-200 px-6 py-2.5 text-[13px] font-medium text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50 dark:border-[rgba(246,246,244,0.12)] dark:text-[#f6f6f4] dark:hover:border-[rgba(246,246,244,0.2)] dark:hover:bg-white/[0.04]"
                 style={{ fontFamily: SANS }}
               >
                 Set up an agent
@@ -58,11 +58,12 @@ export default function Hero() {
                 <HeroLabBackground contained ribbon="blue" />
               </div>
               <p
-                className="shrink-0 px-0.5 text-gray-600 dark:text-[#a8a898]"
+                className="shrink-0 px-0.5 text-gray-600 dark:text-[#a8a898] uppercase"
                 style={{
                   fontFamily: SANS,
                   fontSize: 'clamp(1rem, 1.1vw, 1.125rem)',
                   lineHeight: 1.6,
+                  letterSpacing: '0.04em',
                 }}
               >
                 <span className="font-medium text-gray-700 dark:text-[#c8c8b8]">
