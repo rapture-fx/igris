@@ -1,17 +1,10 @@
 'use client'
 
 import React from 'react'
-import HeroLabBackground from '../ui/HeroLabBackground'
 import { DOCS_LINKS } from '../../lib/docs-urls'
 
 const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
-
-const LAB_CARD_BASE =
-  'relative overflow-hidden rounded-xl border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] transition-colors duration-200 dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]'
-
-const LAB_CARD_TALL = `${LAB_CARD_BASE} h-full min-h-[240px]`
-const LAB_CARD_BLUE = `${LAB_CARD_BASE} min-h-[200px] flex-1`
 
 export default function Hero() {
   return (
@@ -49,30 +42,22 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="grid h-full min-h-0 w-full grid-cols-2 items-stretch gap-3 sm:gap-4 lg:ml-auto lg:w-[min(58%,720px)] lg:shrink-0">
-            <div className={LAB_CARD_TALL} aria-hidden>
-              <HeroLabBackground contained ribbon="green" />
-            </div>
-            <div className="flex h-full min-h-0 flex-col gap-3 sm:gap-4">
-              <div className={LAB_CARD_BLUE} aria-hidden>
-                <HeroLabBackground contained ribbon="blue" />
-              </div>
-              <p
-                className="shrink-0 px-0.5 text-gray-600 dark:text-[#a8a898] uppercase"
-                style={{
-                  fontFamily: SANS,
-                  fontSize: 'clamp(1rem, 1.1vw, 1.125rem)',
-                  lineHeight: 1.6,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                <span className="font-medium text-gray-700 dark:text-[#c8c8b8]">
-                  Fits into your agent stack.
-                </span>{' '}
-                Keep reasoning in your framework. Route side effects through Igris when actions need
-                policy, recovery, and receipts.
-              </p>
-            </div>
+          <div className="flex h-full min-h-0 flex-col justify-center gap-3 sm:gap-4 lg:ml-auto lg:w-[min(58%,720px)] lg:shrink-0">
+            <p
+              className="px-0.5 text-gray-600 dark:text-[#a8a898] uppercase"
+              style={{
+                fontFamily: SANS,
+                fontSize: 'clamp(1rem, 1.1vw, 1.125rem)',
+                lineHeight: 1.6,
+                letterSpacing: '0.04em',
+              }}
+            >
+              <span className="font-medium text-gray-700 dark:text-[#c8c8b8]">
+                Fits into your agent stack.
+              </span>{' '}
+              Keep reasoning in your framework. Route side effects through Igris when actions need
+              policy, recovery, and receipts.
+            </p>
           </div>
         </div>
       </div>
