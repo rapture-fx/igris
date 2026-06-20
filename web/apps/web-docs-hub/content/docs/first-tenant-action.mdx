@@ -1,0 +1,264 @@
+---
+title: "First Tenant Action in 5 Minutes"
+description: "Create an account, get the first API key, install the starter Action Pack, register an agent, run demo.echo, and inspect proof, evidence memory, and execution intelligence."
+audience: "public"
+---
+
+# First Tenant Action in 5 Minutes
+
+This is the canonical first tenant path. It is the shortest supported route from
+zero account to one attributed `demo.echo` run.
+
+Use this path when you want the first run to be tenant-scoped, visible in the
+console, inspectable after the fact, and usable from Claude Code, Codex, Cursor,
+or any custom agent.
+
+## 1. Install The CLI
+
+```bash
+curl -fsSL https://igrisinertial.com/install | bash
+export PATH="$HOME/.igris/bin:$PATH"
+igris doctor
+```
+
+`igris doctor` should report that the local first-run demo does not require
+Postgres, Docker, or a repository checkout.
+
+## 2. Create Account And First API Key
+
+Open the console signup page:
+
+```text
+https://console.igrisinertial.com/auth?mode=signup
+```
+
+Create your account, then create the first agent key:
+
+```text
+Settings -> Agent / app API keys -> Create API key
+```
+
+The key is shown once. Store it in your password manager or secret store. Do not
+paste it into tickets, chat, screenshots, or public logs.
+
+Set the local environment:
+
+```bash
+export IGRIS_API_URL="https://overture.igrisinertial.com"
+export IGRIS_CONSOLE_URL="https://console.igrisinertial.com"
+export IGRIS_API_KEY="igris_..."
+```
+
+Validate the key:
+
+```bash
+igris auth login
+```
+
+## 3. Install Agent Template
+
+For terminal or Codex-style agents:
+
+```bash
+igris templates install codex
+```
+
+For Claude Code or Cursor, replace `codex` with `claude-code` or `cursor`:
+
+```bash
+igris templates list
+igris templates install claude-code
+igris templates install cursor
+```
+
+Templates write local config only. They do not run actions and they do not store
+the raw API key in generated files.
+
+## 4. Register Agent
+
+Use one stable name per environment. This name is attached to the first run so
+the run is attributable.
+
+```bash
+igris agents register \
+  --name codex_agent \
+  --agent-type codex \
+  --template-name codex
+```
+
+Confirm it exists:
+
+```bash
+igris agents list
+```
+
+## 5. Install Starter Action Pack
+
+```bash
+igris packs list
+igris packs install starter
+```
+
+The starter pack registers safe `mock_demo` actions:
+
+| Action | Purpose |
+|---|---|
+| `demo.echo` | Happy path echo. |
+| `demo.fail_once` | Simulated first-attempt failure for recovery visibility. |
+| `demo.needs_approval` | Human-gated pause at `approval_required`. |
+
+## 6. Run `demo.echo`
+
+Use an idempotency key so a retry cannot create a duplicate logical run.
+
+```bash
+export IGRIS_IDEMPOTENCY_KEY="starter-echo-$(date +%Y%m%d%H%M%S)"
+RUN_LOG="$(mktemp -t igris-first-run.XXXXXX)"
+
+igris actions run demo.echo \
+  --agent-name codex_agent \
+  --input '{"message":"first tenant run"}' \
+  --idempotency-key "$IGRIS_IDEMPOTENCY_KEY" | tee "$RUN_LOG"
+
+RUN_ID="$(awk '/^run_id:/ {print $2; exit}' "$RUN_LOG")"
+TASK_ID="$(awk '/^task_id:/ {print $2; exit}' "$RUN_LOG")"
+if [ -z "$TASK_ID" ]; then TASK_ID="$RUN_ID"; fi
+```
+
+The response must include `run_id`, `task_id`, `status`, and `proof_status`. It
+must not echo `Authorization`, cookies, raw API keys, raw runtime keys, or raw
+secret values.
+
+Retry the same command with the same `IGRIS_IDEMPOTENCY_KEY`. It should return
+the same logical run instead of creating a duplicate side effect.
+
+## 7. Inspect Run
+
+```bash
+INSPECT_LOG="$(mktemp -t igris-run-inspect.XXXXXX)"
+igris runs inspect "$RUN_ID" | tee "$INSPECT_LOG"
+EXECUTION_ID="$(awk '/^execution_id:/ {print $2; exit}' "$INSPECT_LOG")"
+```
+
+Use the console for the same run:
+
+```text
+https://console.igrisinertial.com/runs
+```
+
+Open the run with id `$RUN_ID`. Confirm action name, agent attribution, status,
+policy, proof status, and safe input summary.
+
+## 8. Inspect Proof
+
+The first proof check is the run proof state:
+
+```bash
+igris runs inspect "$RUN_ID"
+```
+
+If the run has a task proof record, verify it:
+
+```bash
+igris tasks verify "$TASK_ID"
+```
+
+If `execution_id` is present, verify the receipt:
+
+```bash
+if [ -n "$EXECUTION_ID" ]; then
+  igris receipts verify "$EXECUTION_ID"
+fi
+```
+
+Read proof states literally:
+
+| State | Meaning |
+|---|---|
+| `verified` | Igris found verification material and verification passed. |
+| `pending` | The run exists but proof is not final yet. |
+| `unavailable` | No signed proof material is available for this run. |
+| `failed` or `mismatch` | Treat the run as not verified and investigate before relying on it. |
+
+Do not treat logs, stored hashes, or successful fetches as proof by themselves.
+
+## 9. Inspect Evidence Memory
+
+Evidence Memory is summary-only operator memory attached to a task, execution,
+or registered agent. It is not a prompt store or chain-of-thought store.
+
+Inspect memory for this run:
+
+```bash
+curl -sS "$IGRIS_API_URL/v1/agent-memory?task_id=$TASK_ID" \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+If the response has no memory rows yet, create a safe summary for the first run:
+
+```bash
+curl -sS -X POST "$IGRIS_API_URL/v1/agent-memory" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_id": "'"$TASK_ID"'",
+    "goal_summary": "Run the starter demo.echo action.",
+    "decision_summary": "Use the starter Action Pack and codex_agent attribution.",
+    "evidence_summary": ["run accepted", "idempotency key set", "proof status inspected"],
+    "outcome_summary": "First tenant action completed or reached an inspectable terminal state."
+  }'
+```
+
+Inspect again:
+
+```bash
+curl -sS "$IGRIS_API_URL/v1/agent-memory?task_id=$TASK_ID" \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+The response should contain safe summaries only. It must not contain API keys,
+Authorization headers, cookies, raw request bodies, private URLs, or model
+chain-of-thought.
+
+## 10. Inspect Execution Intelligence
+
+Execution Intelligence is read-only and derived from execution records, policy
+decisions, approvals, and recovery events.
+
+```bash
+curl -sS "$IGRIS_API_URL/v1/execution/intelligence?range=last_24h" \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+Confirm the response includes:
+
+- `summary.total_runs`
+- `summary.success_rate`
+- `agents`
+- `actions`
+
+The `actions` list should include `demo.echo` after the first run has been
+recorded.
+
+## Stop Conditions
+
+Stop and fix setup before continuing if any of these happen:
+
+- `igris doctor` is missing or fails before the local checks.
+- You cannot create an account or first agent key from the console.
+- `igris auth login` fails with the copied key.
+- `igris packs install starter` does not make `demo.echo` available.
+- `igris actions run demo.echo` does not return a run id.
+- Retrying the same idempotency key creates a second logical run.
+- Proof is shown as verified when no verification material exists.
+- Any secret, token, cookie, raw body, private key, or private URL appears in
+  command output, console output, evidence memory, or logs.
+
+## Related Pages
+
+- [Install](/docs/install)
+- [First Agent Onboarding](/docs/first-agent-onboarding)
+- [Agent Templates](/docs/agent-templates)
+- [Verification](/docs/verification)
+- [Execution Receipts](/docs/execution-receipts)
+- [MCP Server](/docs/mcp-server)
