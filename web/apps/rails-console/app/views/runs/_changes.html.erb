@@ -1,0 +1,130 @@
+<%#
+  Changes — the right-hand diff panel. The run's effect on the world: what it
+  read, called, and wrote, presented in a diff layout (gutter + add/remove
+  signs). Igris redacts raw content by design, so each line carries a digest or
+  safe summary instead of the actual payload. `run` is the normalized run.
+%>
+<aside class="ic-run-detail-changes ic-doc ic-run-detail-scroll" aria-label="Changes this run made">
+  <% if demo_mode? %>
+    <% steps = run[:steps] || [] %>
+    <% log_times = committed_log_times(run, steps) %>
+    <% committed_count = steps.count { |s| s[:kind] == :action && s[:status] == :committed } %>
+    <% latest_committed = steps.select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
+    <% total_actions = steps.count { |s| s[:kind] == :action } %>
+    <% failed_count = steps.count { |s| s[:status] == :failed } %>
+    <div class="ic-evidence ic-diff">
+      <div class="ic-evidence__head">
+        Changes
+        <span class="ic-diff__stat"><span class="ic-diff__add">+<%= committed_count %></span> <span class="ic-diff__del">−<%= failed_count %></span></span>
+      </div>
+      <p class="ic-narrative">
+        <% if running %>
+          The receipt chain is <span class="accent">valid</span> up to
+          <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
+          <% rn = steps.find { |s| s[:status] == :running } %>
+          <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
+        <% elsif run[:status] == 'Failed' %>
+          The receipt chain stops at the failed call. The console honestly reports
+          the absence, with no fabricated proof.
+        <% else %>
+          The receipt chain is <span class="accent">valid</span> end-to-end.
+          <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
+          <span class="mono"><%= run[:duration_ms] %>ms</span>.
+        <% end %>
+      </p>
+      <div class="ic-panel">
+        <details class="ic-loggroup" open>
+          <summary class="ic-panel__head ic-loggroup__head">
+            <div class="ic-panel__head-l">
+              <span class="ic-loggroup__chev" aria-hidden="true"></span>
+              <span>Committed actions (<%= total_actions %>)</span>
+              <span class="ic-panel__count-plus">+<%= committed_count %></span>
+              <span class="ic-panel__count-minus">−<%= failed_count %></span>
+            </div>
+            <div class="ic-panel__head-r">
+              <% if run[:duration_ms].present? %>
+                <span class="ic-log__dur mono"><%= run[:duration_ms] %>ms</span>
+              <% end %>
+              <% if running %>
+                <span class="ic-log__status ic-log__status--run"><span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>running</span>
+              <% elsif failed_count.positive? %>
+                <span class="ic-log__status ic-log__status--fail">failed</span>
+              <% else %>
+                <span class="ic-log__status ic-log__status--ok"><svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>committed</span>
+              <% end %>
+            </div>
+          </summary>
+
+          <div class="ic-log__body">
+            <% steps.each_with_index do |s, i| %>
+              <% ts = log_times[i] %>
+              <% if s[:kind] == :fault %>
+                <div class="ic-line ic-line--fault ic-step-in">
+                  <span class="ic-line__ts mono"><%= ts %></span>
+                  <div class="ic-line__main">
+                    <span class="ic-line__name"><%= s[:name] %></span>
+                    <span class="ic-line__detail"><%= log_detail_html(s[:detail]) %></span>
+                  </div>
+                  <span class="ic-line__latency"><%= s[:latency] %>ms</span>
+                  <span class="ic-line__receipt">recovered</span>
+                </div>
+              <% else %>
+                <% is_running = s[:status] == :running %>
+                <div class="ic-line ic-step-in">
+                  <span class="ic-line__ts mono"><%= ts %></span>
+                  <div class="ic-line__main">
+                    <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
+                    <span class="ic-line__detail"><%= log_detail_html(s[:detail]) %></span>
+                  </div>
+                  <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
+                  <% if s[:receipt] %>
+                    <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
+                  <% else %>
+                    <span class="ic-line__receipt ic-line__receipt--none">—</span>
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </details>
+      </div>
+    </div>
+  <% else %>
+    <%# ════════════ REAL MODE — diff from data-derived step evidence ════════ %>
+    <% steps = run[:execution_steps] || [] %>
+    <% added   = steps.count { |s| s[:status_tone] == :ok } %>
+    <% removed = steps.count { |s| s[:status_tone] == :bad } %>
+    <div class="ic-evidence ic-diff">
+      <div class="ic-evidence__head">
+        Changes
+        <% if steps.any? %>
+          <span class="ic-diff__stat"><span class="ic-diff__add">+<%= added %></span> <span class="ic-diff__del">−<%= removed %></span></span>
+        <% end %>
+      </div>
+      <p class="ic-evidence__intro">
+        Step evidence: what the run read, called, and wrote. Content is redacted; a digest stands in for the raw input or output of each step.
+      </p>
+      <% if steps.any? %>
+        <div class="ic-diff__body">
+          <% steps.each do |st| %>
+            <% tone = st[:status_tone].to_s.presence || 'muted' %>
+            <% sign = tone == 'ok' ? '+' : (tone == 'bad' ? '−' : ' ') %>
+            <div class="ic-diff__line ic-diff__line--<%= tone %>">
+              <span class="ic-diff__num mono"><%= format('%02d', st[:index]) %></span>
+              <span class="ic-diff__sign mono"><%= sign %></span>
+              <span class="ic-diff__ic" aria-hidden="true"><%= step_kind_icon(st[:kind]) %></span>
+              <span class="ic-diff__label"><%= st[:label].presence || '—' %></span>
+              <span class="ic-diff__kind"><%= st[:kind] %></span>
+              <span class="ic-diff__digest mono"><%= st[:digest].presence || '—' %></span>
+              <span class="ic-diff__proof"><%= st[:proof] %></span>
+              <span class="ic-diff__status ic-stepev__status--<%= tone %>"><%= st[:status] %></span>
+            </div>
+          <% end %>
+        </div>
+        <p class="ic-doc__note">Step proof appears when signed receipt data is available.</p>
+      <% else %>
+        <p class="ic-doc__note">No ordered step evidence is available for this run yet.</p>
+      <% end %>
+    </div>
+  <% end %>
+</aside>
