@@ -92,7 +92,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     key: 'infinite',
     name: 'Infinite',
-    description: 'For private deployments, custom retention, and advanced governance.',
+    description: 'For private deployments, custom retention, and custom controls.',
     features: [
       'Custom action volume',
       'Custom execution environments',
@@ -130,4 +130,4 @@ export const FLEET_GATING_COPY =
   'The fleet dashboard is included with every paid tier. Seed covers one execution environment with hosted actions, signed receipts, and baseline operator visibility. Horizon expands to 10 execution environments with connected workers, team access, advanced event search, recovery configuration, and tool controls. Infinite adds private deployment options, custom retention policy, advanced audit exports, dedicated onboarding, and security review support.';
 
 export const RUNTIME_PLAN_COPY =
-  'Deploy to one execution environment with Seed, expand to 10 environments plus team workflows with Horizon, or move to Infinite for private deployment and custom governance.';
+  'Deploy to one execution environment with Seed, expand to 10 environments plus team workflows with Horizon, or move to Infinite for private deployment and custom controls.';
