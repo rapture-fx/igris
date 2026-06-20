@@ -3,7 +3,8 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
-const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
+const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
 const LINE_1 = 'For AI agents'
 const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled action layer.'
@@ -14,7 +15,7 @@ const LINE_2_CONT = ' in Cloud, webhooks, MCP, and connected workers, with polic
 const LINE_3 = 'Proven by runs'
 const LINE_3_CONT = ' that record what happened, recover from failures, and leave evidence your team can inspect.'
 
-const BASE_SIZE = 'clamp(2rem, 6vw, 4.5rem)'
+const BASE_SIZE = 'clamp(1.5rem, 4.5vw, 3rem)'
 const MOTION_EASE = [0.22, 1, 0.36, 1] as const
 const TRANSITION = { duration: 0.45, ease: MOTION_EASE }
 
@@ -25,11 +26,11 @@ const LINES = [
 ] as const
 
 const LINE_STYLE: React.CSSProperties = {
-  fontFamily: PIXEL,
+  fontFamily: SANS,
   fontWeight: 400,
   fontSize: BASE_SIZE,
   lineHeight: 1.2,
-  letterSpacing: '-0.01em',
+  letterSpacing: '-0.03em',
 }
 
 function HoverLine({
@@ -80,7 +81,7 @@ function HoverLine({
         </p>
         <p ref={expandedRef} className="m-0" style={LINE_STYLE}>
           {base}
-          <span className="text-gray-400 dark:text-[#7a7a72]">{cont}</span>
+          <span className="text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: SANS }}>{cont}</span>
         </p>
       </div>
 
@@ -90,15 +91,17 @@ function HoverLine({
         transition={reducedMotion ? { duration: 0 } : TRANSITION}
         className="overflow-hidden"
       >
-        <p className="relative m-0 text-gray-700 dark:text-[#c8c8b8]" style={LINE_STYLE}>
+        <p className="relative m-0 text-gray-900 dark:text-[#f6f6f4]" style={LINE_STYLE}>
           <span>{base}</span>
           <span
-            className="text-gray-400 dark:text-[#7a7a72]"
+            className="text-gray-500 dark:text-[#8a8a7a]"
             style={
               active
                 ? {
                     opacity: 1,
                     transition: reducedMotion ? 'none' : 'opacity 0.35s ease 0.1s',
+                    fontFamily: SANS,
+                    fontWeight: 400,
                   }
                 : {
                     position: 'absolute',
@@ -106,6 +109,8 @@ function HoverLine({
                     height: 0,
                     overflow: 'hidden',
                     opacity: 0,
+                    fontFamily: SANS,
+                    fontWeight: 400,
                   }
             }
           >
@@ -125,7 +130,7 @@ export default function Vision() {
       aria-labelledby="vision-heading"
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
-      <div className="mx-auto flex min-h-[80vh] max-w-[1400px] flex-col justify-center px-4 sm:px-6 lg:px-8 py-24 md:py-40 lg:py-48">
+      <div className="mx-auto flex min-h-[80vh] max-w-[800px] flex-col justify-center px-4 sm:px-6 lg:px-8 py-24 md:py-40 lg:py-48">
         <h2 id="vision-heading" className="sr-only">Vision</h2>
         <motion.div
           layout
