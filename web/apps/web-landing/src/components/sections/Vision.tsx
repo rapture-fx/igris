@@ -27,26 +27,26 @@ function HoverLine({
   onHover: (v: boolean) => void
 }) {
   return (
-    <p
-      className="text-gray-700 dark:text-[#c8c8b8] cursor-default"
-      style={{
-        fontFamily: PIXEL,
-        fontWeight: 400,
-        fontSize: BASE_SIZE,
-        lineHeight: 1.15,
-        letterSpacing: '-0.01em',
-      }}
+    <div
+      className="cursor-default"
+      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: BASE_SIZE, lineHeight: 1.2, letterSpacing: '-0.01em' }}
       onMouseEnter={() => onHover(true)}
       onMouseLeave={() => onHover(false)}
     >
-      <span>{base}</span>
-      <span
-        className="text-gray-400 dark:text-[#7a7a72] transition-opacity duration-500 ease-out"
-        style={{ opacity: hovered ? 1 : 0 }}
-      >
-        {cont}
-      </span>
-    </p>
+      <p className="text-gray-700 dark:text-[#c8c8b8] m-0">
+        {base}
+        <span
+          className="text-gray-400 dark:text-[#7a7a72]"
+          style={{
+            opacity: hovered ? 1 : 0,
+            transition: 'opacity 700ms cubic-bezier(0.4, 0, 0.2, 1)',
+            display: hovered ? 'inline' : 'none',
+          }}
+        >
+          {cont}
+        </span>
+      </p>
+    </div>
   )
 }
 
@@ -60,7 +60,7 @@ export default function Vision() {
       aria-labelledby="vision-heading"
       className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
     >
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-20 md:py-32 lg:py-40">
+      <div className="mx-auto flex min-h-[80vh] max-w-[1400px] flex-col justify-center px-4 sm:px-6 lg:px-8 py-24 md:py-40 lg:py-48">
         <h2 id="vision-heading" className="sr-only">Vision</h2>
         <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
           <HoverLine base={LINE_1} cont={LINE_1_CONT} hovered={hovered1} onHover={setHovered1} />
