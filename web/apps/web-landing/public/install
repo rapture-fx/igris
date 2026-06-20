@@ -8,7 +8,7 @@
 
 set -euo pipefail
 
-IGRIS_VERSION="${IGRIS_VERSION:-v1.6.0}"
+IGRIS_VERSION="${IGRIS_VERSION:-runtime-v1.6.0}"
 IGRIS_INSTALL_DIR="${IGRIS_INSTALL_DIR:-$HOME/.igris/bin}"
 IGRIS_RELEASE_BASE="${IGRIS_RELEASE_BASE:-https://github.com/Igris-inertial/system/releases/download}"
 IGRIS_DOWNLOAD_BASE="${IGRIS_DOWNLOAD_BASE:-https://overture.igrisinertial.com/v1/runtime}"
@@ -30,7 +30,7 @@ Usage:
   IGRIS_LOCAL_BINARY=./target/release/igris bash install
 
 Environment:
-  IGRIS_VERSION       Release tag to install. Default: v1.6.0
+  IGRIS_VERSION       Release tag to install. Default: runtime-v1.6.0
   IGRIS_INSTALL_DIR  User-local install dir. Default: ~/.igris/bin
   IGRIS_DRY_RUN      Print actions without installing. Default: false
   IGRIS_RUN_DEMO     Run `igris demo --recover-prove` after install. Default: true
@@ -56,7 +56,7 @@ detect_platform() {
 
   case "$(uname -m)" in
     arm64|aarch64) arch="arm64" ;;
-    x86_64|amd64) arch="x86_64" ;;
+    x86_64|amd64) arch="x64" ;;
     *) die "unsupported CPU architecture: $(uname -m). Supported: arm64 and x86_64." ;;
   esac
 
@@ -82,8 +82,8 @@ download() {
 download_archive() {
   local platform="$1"
   local out="$2"
-  local primary="${IGRIS_RELEASE_BASE}/${IGRIS_VERSION}/igris-${platform}.tar.gz"
-  local fallback_platform="${platform/x86_64/amd64}"
+  local primary="${IGRIS_RELEASE_BASE}/${IGRIS_VERSION}/igris-runtime-${platform}.tar.gz"
+  local fallback_platform="${platform/x64/amd64}"
   local fallback="${IGRIS_DOWNLOAD_BASE}/install?platform=${fallback_platform}"
 
   info "Downloading Igris CLI for ${platform}"
@@ -170,7 +170,7 @@ main() {
   platform="$(detect_platform)"
   tmp="$(mktemp -d)"
   trap 'rm -rf "${tmp:-}"' EXIT
-  archive="$tmp/igris-${platform}.tar.gz"
+  archive="$tmp/igris-runtime-${platform}.tar.gz"
 
   info "Detected platform: ${platform}"
   info "Install directory: ${IGRIS_INSTALL_DIR}"
