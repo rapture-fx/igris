@@ -4,7 +4,7 @@ import React from 'react'
 
 const SANS =
   'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
 export interface LandingPillarSectionProps {
   id?: string
@@ -37,13 +37,13 @@ export function LandingPillarHeader({
     >
       <div className={hasAside ? 'min-w-0 shrink-0 md:max-w-[min(58%,600px)]' : ''}>
         <h2
-          className="text-gray-700 dark:text-[#c8c8b8]"
+          className="text-black dark:text-[#f6f6f4]"
           style={{
-            fontFamily: titleAsPixel ? PIXEL : SANS,
+            fontFamily: SANS,
             fontWeight: 400,
-            fontSize: titleAsPixel ? 'clamp(2.5rem, 6vw, 4.25rem)' : 'clamp(2rem, 4.5vw, 3.5rem)',
+            fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
             lineHeight: 1.1,
-            letterSpacing: titleAsPixel ? '-0.01em' : '-0.03em',
+            letterSpacing: '-0.03em',
             maxWidth: hasAside ? undefined : '28ch',
           }}
         >
@@ -53,8 +53,8 @@ export function LandingPillarHeader({
           <p
             className="mt-5 max-w-[48ch] text-gray-500 dark:text-[#8a8a7a]"
             style={{
-              fontFamily: SANS,
-              fontSize: 'clamp(0.95rem, 1.05vw, 1.05rem)',
+              fontFamily: MONO,
+              fontSize: 'clamp(0.9rem, 1.05vw, 1rem)',
               lineHeight: 1.55,
             }}
           >
@@ -66,8 +66,8 @@ export function LandingPillarHeader({
         <p
           className="max-w-[42ch] text-gray-600 dark:text-[#a8a898] md:text-right"
           style={{
-            fontFamily: SANS,
-            fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+            fontFamily: MONO,
+            fontSize: 'clamp(0.9rem, 1.1vw, 1rem)',
             lineHeight: 1.6,
           }}
         >
