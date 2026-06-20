@@ -155,7 +155,7 @@ function RollingPriceValue({
   return (
     <motion.span
       layout="position"
-      className="inline-flex items-baseline text-gray-700 dark:text-[#c8c8b8] tabular-nums"
+      className="inline-flex items-baseline text-black dark:text-[#f6f6f4] tabular-nums"
       style={PIXEL_PRICE_STYLE}
       initial={reducedMotion ? false : { opacity: 0.9, y: 2 }}
       animate={{ opacity: 1, y: 0 }}
@@ -223,7 +223,7 @@ function AnimatedPriceValue({
     return (
       <motion.span
         layout="position"
-        className="text-gray-700 dark:text-[#c8c8b8] tabular-nums"
+        className="text-black dark:text-[#f6f6f4] tabular-nums"
         style={PIXEL_PRICE_STYLE}
         initial={false}
         animate={{ opacity: 1, y: 0 }}
@@ -402,7 +402,7 @@ export default function Pricing() {
                   <header className={`${DIVIDER} border-b pb-5`}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
-                        className="text-gray-700 dark:text-[#c8c8b8]"
+                        className="text-black dark:text-[#f6f6f4]"
                         style={{
                           fontFamily: SANS,
                           fontWeight: 500,
@@ -473,7 +473,7 @@ export default function Pricing() {
           <div className="flex flex-col gap-5 px-6 py-6 md:px-8 md:py-7 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-[52ch]">
               <p
-                className="text-gray-700 dark:text-[#c8c8b8]"
+                className="text-black dark:text-[#f6f6f4]"
                 style={{
                   fontFamily: SANS,
                   fontWeight: 500,
