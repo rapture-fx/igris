@@ -23,7 +23,6 @@ const columns: FooterColumn[] = [
       { label: 'Run', href: landingHash(LANDING_SECTIONS.productRun), section: true },
       { label: 'Recover', href: landingHash(LANDING_SECTIONS.productRecover), section: true },
       { label: 'Verify', href: landingHash(LANDING_SECTIONS.productProve), section: true },
-      { label: 'Inspect', href: landingHash(LANDING_SECTIONS.overview), section: true },
       { label: 'Action endpoint', href: landingHash(LANDING_SECTIONS.actionEndpoint), section: true },
       { label: 'Pricing', href: '/pricing' },
     ],
