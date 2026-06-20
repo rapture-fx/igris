@@ -1,6 +1,7 @@
 'use client'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
 const FLOW_STEPS = ['Reasoning framework', 'Igris action', 'Receipt / proof']
 
@@ -11,11 +12,11 @@ export default function AgentStackStrip() {
         <div className="landing-surface-card flex flex-col gap-5 rounded-xl border border-[var(--landing-surface-border)] bg-[var(--landing-surface)] p-5 sm:p-6 md:flex-row md:items-center md:justify-between md:gap-10">
           <div className="min-w-0 md:max-w-[52ch]">
             <h2
-              className="text-gray-700 dark:text-[#c8c8b8]"
+              className="text-black dark:text-[#f6f6f4]"
               style={{
                 fontFamily: SANS,
                 fontSize: 'clamp(1.05rem, 1.2vw, 1.15rem)',
-                fontWeight: 500,
+                fontWeight: 400,
                 lineHeight: 1.35,
                 letterSpacing: '-0.01em',
               }}
@@ -25,8 +26,8 @@ export default function AgentStackStrip() {
             <p
               className="mt-2 text-gray-600 dark:text-[#a8a898]"
               style={{
-                fontFamily: SANS,
-                fontSize: 'clamp(0.95rem, 1.05vw, 1rem)',
+                fontFamily: MONO,
+                fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
                 lineHeight: 1.6,
               }}
             >
@@ -36,13 +37,13 @@ export default function AgentStackStrip() {
           </div>
           <ol
             className="flex flex-wrap items-center gap-2 md:flex-nowrap md:gap-3"
-            style={{ fontFamily: SANS }}
+            style={{ fontFamily: MONO }}
             aria-label="Agent stack flow"
           >
             {FLOW_STEPS.map((step, i, arr) => (
               <li key={step} className="flex items-center gap-2 md:gap-3">
                 <span
-                  className="whitespace-nowrap rounded-full border border-[var(--landing-surface-border)] px-3 py-1.5 text-[12px] text-gray-700 dark:text-[#c8c8b8]"
+                  className="whitespace-nowrap rounded-full border border-[var(--landing-surface-border)] px-3 py-1.5 text-[12px] text-black dark:text-[#f6f6f4]"
                   style={{ letterSpacing: '-0.01em' }}
                 >
                   {step}
