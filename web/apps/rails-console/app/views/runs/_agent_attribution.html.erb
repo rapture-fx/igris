@@ -1,0 +1,41 @@
+<%#
+  Agent attribution — which registered agent this run is attributed to.
+  Reads only the safe `agent` object the API attaches to a task (agent_id,
+  name, display_name, agent_type, template_name). When a run carries no
+  registered agent it reads as an honest "Unattributed", never a guess.
+  `run` is the normalized run detail.
+%>
+<% agent = run[:agent] %>
+<div class="ic-evidence ic-agentcard" id="agent-attribution">
+  <div class="ic-evidence__head">Agent attribution</div>
+  <% if agent.present? %>
+    <p class="ic-evidence__intro">
+      The registered agent Igris recorded as the author of this run.
+    </p>
+    <div class="ic-agentcard__id">
+      <span class="ic-agentcard__avatar" aria-hidden="true"><%= console_icon('user', size: 15, stroke: 1.7) %></span>
+      <div class="ic-agentcard__idtext">
+        <span class="ic-agentcard__name"><%= agent[:display_name].presence || agent[:name] %></span>
+        <% if agent[:name].present? && agent[:name] != (agent[:display_name].presence || agent[:name]) %>
+          <span class="ic-agentcard__handle mono"><%= agent[:name] %></span>
+        <% end %>
+      </div>
+    </div>
+    <div class="ic-def"><span class="ic-def__label">Agent name</span><div class="ic-def__value mono"><%= agent[:name].presence || '—' %></div></div>
+    <% if agent[:agent_type].present? %>
+      <div class="ic-def"><span class="ic-def__label">Type</span><div class="ic-def__value"><span class="ic-chip ic-chip--sm"><%= agent[:agent_type] %></span></div></div>
+    <% end %>
+    <% if agent[:template_name].present? %>
+      <div class="ic-def"><span class="ic-def__label">Template</span><div class="ic-def__value"><span class="ic-chip ic-chip--sm"><%= agent[:template_name] %></span></div></div>
+    <% end %>
+  <% else %>
+    <p class="ic-evidence__intro">
+      This run is not attributed to a registered agent. Attribution appears when
+      the calling agent identifies itself against the Agent Registry.
+    </p>
+    <div class="ic-agentcard__empty">
+      <span class="ic-chip ic-chip--sm">Unattributed</span>
+      <span class="ic-def__hint">No registered agent on this run.</span>
+    </div>
+  <% end %>
+</div>
