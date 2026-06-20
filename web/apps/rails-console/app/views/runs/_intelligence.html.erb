@@ -1,0 +1,76 @@
+<%#
+  Execution Intelligence — read-only operational metrics derived from
+  execution truth (task records, policy decisions, recovery events). It never
+  reads prompts or model output. `intelligence` is the normalized
+  { range:, source:, summary:, agents:, actions: } hash; `range` is the
+  selected window token.
+%>
+<% summary = intelligence[:summary] || {} %>
+<% empty = summary[:total_runs].to_i.zero? %>
+
+<div class="ic-body ic-scroll ic-intel">
+  <%# Range selector — same window the API aggregates over. %>
+  <div class="ic-intel__bar">
+    <div class="ic-intel__ranges" role="group" aria-label="Time range">
+      <% RunsController::INTELLIGENCE_RANGES.each do |value, label| %>
+        <%= link_to label, runs_path(view: 'intelligence', range: value),
+              class: "ic-intel__range #{'is-active' if range == value}",
+              'aria-pressed': (range == value).to_s %>
+      <% end %>
+    </div>
+    <span class="ic-intel__source">Derived from execution records — no prompts or model output.</span>
+  </div>
+
+  <% if empty %>
+    <div class="ic-intel__empty">
+      <div class="ic-intel__empty-title">No runs in this window</div>
+      <p class="ic-intel__empty-sub">
+        Execution Intelligence aggregates completed runs. Once agents execute
+        actions in the selected window, success, recovery, and approval rates
+        appear here with per-agent and per-action breakdowns.
+      </p>
+      <%= link_to 'View actions', actions_path, class: 'ic-btn' %>
+    </div>
+  <% else %>
+    <%# Headline metrics — run volume + the rates that describe execution health. %>
+    <div class="ic-intel__stats">
+      <div class="ic-intel__stat">
+        <span class="ic-intel__stat-k">Run volume</span>
+        <span class="ic-intel__stat-v"><%= number_with_delimiter(summary[:total_runs]) %></span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:successful_runs]) %> succeeded · <%= number_with_delimiter(summary[:failed_runs]) %> failed</span>
+      </div>
+      <div class="ic-intel__stat">
+        <span class="ic-intel__stat-k">Success rate</span>
+        <span class="ic-intel__stat-v is-<%= intel_rate_tone(summary[:success_rate]) %>"><%= intel_pct(summary[:success_rate]) %></span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:successful_runs]) %> of <%= number_with_delimiter(summary[:total_runs]) %></span>
+      </div>
+      <div class="ic-intel__stat">
+        <span class="ic-intel__stat-k">Failure rate</span>
+        <span class="ic-intel__stat-v"><%= intel_pct(summary[:failure_rate]) %></span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:failed_runs]) %> failed</span>
+      </div>
+      <div class="ic-intel__stat">
+        <span class="ic-intel__stat-k">Recovery rate</span>
+        <span class="ic-intel__stat-v"><%= intel_pct(summary[:recovery_rate]) %></span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:recovery_runs]) %> recovered</span>
+      </div>
+      <div class="ic-intel__stat">
+        <span class="ic-intel__stat-k">Approval rate</span>
+        <span class="ic-intel__stat-v"><%= intel_pct(summary[:approval_rate]) %></span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:approval_required_runs]) %> needed approval</span>
+      </div>
+      <div class="ic-intel__stat">
+        <span class="ic-intel__stat-k">Average runtime</span>
+        <span class="ic-intel__stat-v"><%= intel_duration(summary[:average_duration_ms]) %></span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:human_intervention_runs]) %> needed human intervention</span>
+      </div>
+    </div>
+
+    <div class="ic-intel__tables">
+      <%= render 'intelligence_table', title: 'Agent comparison', subject: 'Agent',
+            rows: intelligence[:agents], empty_hint: 'No attributed agents in this window.' %>
+      <%= render 'intelligence_table', title: 'Action comparison', subject: 'Action',
+            rows: intelligence[:actions], empty_hint: 'No actions executed in this window.' %>
+    </div>
+  <% end %>
+</div>
