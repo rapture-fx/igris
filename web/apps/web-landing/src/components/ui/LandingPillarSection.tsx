@@ -23,8 +23,7 @@ export function LandingPillarHeader({
   title,
   description,
   attribution,
-  titleAsPixel = false,
-}: Pick<LandingPillarSectionProps, 'title' | 'description' | 'attribution' | 'titleAsPixel'>) {
+}: Pick<LandingPillarSectionProps, 'title' | 'description' | 'attribution'>) {
   const hasAside = Boolean(description || attribution)
 
   return (
