@@ -281,6 +281,53 @@ export default function WhenToUseIgris() {
             <VisualRail activeIndex={activeIndex} />
           </div>
         </div>
+
+        <div className="mt-10 md:mt-14">
+          <h2
+            className="text-gray-700 dark:text-[#c8c8b8]"
+            style={{
+              fontFamily: SANS,
+              fontSize: 'clamp(1.05rem, 1.3vw, 1.25rem)',
+              fontWeight: 500,
+              lineHeight: 1.35,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Fits into your agent stack
+          </h2>
+          <p
+            className="mt-3 max-w-[52ch] text-gray-600 dark:text-[#a8a898]"
+            style={{
+              fontFamily: SANS,
+              fontSize: 'clamp(0.95rem, 1.05vw, 1.05rem)',
+              lineHeight: 1.6,
+            }}
+          >
+            Use your agent framework for reasoning and planning. Use Igris for the final actions
+            that need policy, recovery, and receipts.
+          </p>
+          <ol
+            className="mt-5 flex flex-wrap items-center gap-2 lg:flex-nowrap lg:gap-3"
+            style={{ fontFamily: SANS }}
+            aria-label="Agent stack flow"
+          >
+            {['Reasoning framework', 'Igris action', 'Receipt / proof'].map((step, i, arr) => (
+              <li key={step} className="flex items-center gap-2 lg:gap-3">
+                <span
+                  className="whitespace-nowrap text-[12px] text-gray-500 dark:text-[#8a8a7a]"
+                  style={{ letterSpacing: '-0.01em' }}
+                >
+                  {step}
+                </span>
+                {i < arr.length - 1 && (
+                  <span className="text-gray-400 dark:text-[#5a5a52]" aria-hidden>
+                    →
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   )
