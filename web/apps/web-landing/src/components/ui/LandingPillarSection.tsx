@@ -54,7 +54,7 @@ export function LandingPillarHeader({
             className="mt-5 max-w-[48ch] text-gray-500 dark:text-[#8a8a7a]"
             style={{
               fontFamily: MONO,
-              fontSize: 'clamp(0.9rem, 1.05vw, 1rem)',
+              fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
               lineHeight: 1.55,
             }}
           >
@@ -65,13 +65,13 @@ export function LandingPillarHeader({
       {description && (
         <p
           className="max-w-[42ch] text-gray-600 dark:text-[#a8a898] md:text-right"
-          style={{
-            fontFamily: MONO,
-            fontSize: 'clamp(0.9rem, 1.1vw, 1rem)',
-            lineHeight: 1.6,
-          }}
-        >
-          {description}
+            style={{
+              fontFamily: MONO,
+              fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
+              lineHeight: 1.6,
+            }}
+          >
+            {description}
         </p>
       )}
     </div>
