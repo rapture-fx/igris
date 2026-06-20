@@ -56,10 +56,14 @@ class RunsController < ApplicationController
 
   def show
     @run = data_source.find_run(params[:id])
-    return head :not_found unless @run
-    # Recent runs power the master-detail mini-sidebar picker on this page,
-    # grouped into plausible projects by their target so it reads like a real
-    # multi-project workspace rather than one flat list.
+    if @run.nil?
+      # A clean not-found is a 404. A backend ERROR instead renders a degraded
+      # page with a calm, safe banner (the flash partial shows only the error
+      # class / HTTP status / machine code — never the raw upstream message).
+      return head :not_found unless data_source.error
+      @run = degraded_run(params[:id])
+    end
+    # Recent runs power the master-detail mini-sidebar picker, grouped by status.
     @all_runs = data_source.all_runs
     @run_groups = group_runs_by_status(@all_runs)
     @action_known = data_source.actions.any? { |a| a[:name].to_s == @run[:action].to_s }
@@ -76,6 +80,21 @@ class RunsController < ApplicationController
   # bucket — newest first within each group. No synthetic folders: every group
   # is derived from data the run actually carries.
   RUN_STATUS_ORDER = %w[Running Succeeded Blocked Failed].freeze
+
+  # A safe placeholder run for the degraded page: only the id is known. Every
+  # other field is an honest empty/unavailable value so the normal layout
+  # renders without crashing — and the banner carries the safe error detail.
+  def degraded_run(id)
+    {
+      id: id.to_s, action: '', status: 'Unavailable',
+      routed_via: '', executed_target: '', runtime_id: '',
+      policy: '', recovery: '', proof: 'Proof unavailable',
+      started_at: nil, duration_ms: nil,
+      story: [], execution_steps: [], steps: [], raw_evidence: [],
+      agent: nil, request_summary: nil, request_digest: nil,
+      runtime_unavailable: false,
+    }
+  end
 
   def status_bucket_for(run)
     s = run[:status].to_s

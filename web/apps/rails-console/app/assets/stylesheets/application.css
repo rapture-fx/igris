@@ -1239,10 +1239,12 @@ html.dark .ic-btn--accent:hover {
   height: 100%;
   min-height: 0;
 }
-.ic-run-detail-report { min-width: 0; padding-right: 28px; }
+/* Fill the columns evenly so spacing is symmetric around the divider. */
+.ic-run-detail-report.ic-doc, .ic-run-detail-side.ic-doc { max-width: none; }
+.ic-run-detail-report { min-width: 0; padding-left: 18px; padding-right: 32px; }
 .ic-run-detail-side {
   min-width: 0;
-  padding-left: 24px;
+  padding-left: 28px;
   border-left: 1px solid var(--ic-border-soft);
 }
 .ic-run-detail-side__bar {
@@ -4628,6 +4630,25 @@ html.dark, html[data-theme="dark"] {
     font-size: 11px;
   }
   .ic-intel__source { margin-left: 0; }
+  /* Run story beats stack label-over-value on narrow screens so the 96px label
+     column never crowds the value text. */
+  .ic-runstory__beat {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+    row-gap: 2px;
+    padding: 6px 0;
+    border-top: 1px solid var(--ic-border-soft);
+  }
+  .ic-runstory__beat:first-child { border-top: 0; }
+  .ic-runstory__label { font-size: 11px; }
+}
+
+/* Phone-width comparison table: keep the primary scannable columns (name, runs,
+   success, avg runtime) and drop failure/recovery to avoid horizontal crowding. */
+@media (max-width: 480px) {
+  .ic-intel__row { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); column-gap: 5px; padding: 8px 10px; }
+  .ic-intel__row .ic-intel__col--failure,
+  .ic-intel__row .ic-intel__col--recovery { display: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -4697,8 +4718,25 @@ html.dark, html[data-theme="dark"] {
 .ic-doc__stat--bad   { color: var(--ic-rose); }
 .ic-doc__stat--muted { color: var(--ic-text-6); }
 /* Inline text link — sentence-flow, never a button. */
-.ic-doc__link { color: var(--ic-emerald-2); text-decoration: none; }
-.ic-doc__link:hover { text-decoration: underline; }
+/* Green is reserved for status + numbers; links/triggers/accents are neutral. */
+.ic-doc__link { color: var(--ic-text-2); text-decoration: underline; }
+.ic-doc__inspector-open {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--ic-text-bright);
+}
+.ic-doc__inspector-open:hover { color: var(--ic-text-2); }
+.ic-doc__inspector-arrow { width: 13px; height: 13px; color: var(--ic-text-7); }
+.ic-run-detail-side__back { cursor: pointer; font-size: 12px; color: var(--ic-text-6); }
+.ic-run-detail-side__back:hover { color: var(--ic-text-2); }
+.ic-diff .ic-narrative .accent { color: var(--ic-text-bright); font-weight: 600; }
+.ic-changes-log { margin-top: 10px; border: 1px solid var(--ic-border-soft); border-radius: 7px; overflow: hidden; }
+.ic-changes-log__head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-bottom: 1px solid var(--ic-border-soft);
+  background: var(--ic-overlay-bg); font-size: 11.5px; color: var(--ic-text-6);
+}
+.ic-changes-log__title { font-weight: 500; color: var(--ic-text-3); margin-right: auto; }
+.ic-changes-log .ic-log__body { margin: 0; }
 
 /* Summary lead paragraph — the document's opening sentence. */
 .ic-doc__summary { margin-bottom: 20px; }
@@ -4829,34 +4867,23 @@ html.dark, html[data-theme="dark"] {
   padding: 0;
 }
 
-/* ── Changes panel — a diff view of the run's recorded operations ────────── */
+/* ── Changes panel — a flat diff: no box, full-width tinted lines ────────── */
 .ic-diff__stat { margin-left: 8px; font-family: var(--ic-mono); font-size: 11.5px; font-weight: 400; }
 .ic-diff__add { color: var(--ic-emerald); }
 .ic-diff__del { color: var(--ic-rose); }
-
-.ic-diff__body {
-  margin-top: 8px;
-  border: 1px solid var(--ic-border-soft);
-  border-radius: 7px;
-  overflow: hidden;
-}
+.ic-diff__lines { margin-top: 8px; font-family: var(--ic-mono); font-size: 11.5px; }
 .ic-diff__line {
   display: grid;
-  grid-template-columns: 30px 14px 18px minmax(0, 1fr) auto auto auto;
-  align-items: center;
-  column-gap: 8px;
-  padding: 3px 10px 3px 0;
-  font-family: var(--ic-mono);
-  font-size: 11.5px;
-  border-top: 1px solid var(--ic-border-soft);
+  grid-template-columns: 32px 14px minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 10px;
+  padding: 2.5px 10px 2.5px 0;
 }
-.ic-diff__line:first-child { border-top: 0; }
-.ic-diff__line--ok  { background: rgba(4, 120, 87, 0.055); }
-.ic-diff__line--bad { background: rgba(190, 18, 60, 0.055); }
+.ic-diff__line--ok  { background: rgba(4, 120, 87, 0.07); }
+.ic-diff__line--bad { background: rgba(190, 18, 60, 0.07); }
 .ic-diff__num {
   text-align: right;
-  padding-right: 5px;
-  font-size: 10.5px;
+  padding-right: 6px;
   color: var(--ic-text-7);
   background: var(--ic-overlay-bg);
   align-self: stretch;
@@ -4867,13 +4894,9 @@ html.dark, html[data-theme="dark"] {
 .ic-diff__sign { text-align: center; color: var(--ic-text-7); }
 .ic-diff__line--ok  .ic-diff__sign { color: var(--ic-emerald); }
 .ic-diff__line--bad .ic-diff__sign { color: var(--ic-rose); }
-.ic-diff__ic { display: inline-flex; color: var(--ic-text-6); }
-.ic-diff__label { color: var(--ic-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ic-diff__kind { display: none; }
-.ic-diff__digest { color: var(--ic-text-6); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
-.ic-diff__proof { color: var(--ic-text-6); font-size: 10.5px; white-space: nowrap; }
-.ic-diff__status { font-size: 10.5px; white-space: nowrap; }
+.ic-diff__text { color: var(--ic-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ic-diff__dim { color: var(--ic-text-6); }
+.ic-diff__meta { display: inline-flex; gap: 10px; align-items: baseline; color: var(--ic-text-6); font-size: 10.5px; white-space: nowrap; }
 @media (max-width: 980px) {
-  .ic-diff__line { grid-template-columns: 28px 14px 18px minmax(0, 1fr) auto; }
-  .ic-diff__digest, .ic-diff__proof { display: none; }
+  .ic-diff__meta { display: none; }
 }
