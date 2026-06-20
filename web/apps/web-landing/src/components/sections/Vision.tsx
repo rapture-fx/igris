@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 
 const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
 
@@ -14,46 +15,110 @@ const LINE_3 = 'Proven by runs'
 const LINE_3_CONT = ' that record what happened, recover from failures, and leave evidence your team can inspect.'
 
 const BASE_SIZE = 'clamp(2rem, 6vw, 4.5rem)'
+const MOTION_EASE = [0.22, 1, 0.36, 1] as const
+const TRANSITION = { duration: 0.45, ease: MOTION_EASE }
+
+const LINES = [
+  { base: LINE_1, cont: LINE_1_CONT },
+  { base: LINE_2, cont: LINE_2_CONT },
+  { base: LINE_3, cont: LINE_3_CONT },
+] as const
+
+const LINE_STYLE: React.CSSProperties = {
+  fontFamily: PIXEL,
+  fontWeight: 400,
+  fontSize: BASE_SIZE,
+  lineHeight: 1.2,
+  letterSpacing: '-0.01em',
+}
 
 function HoverLine({
   base,
   cont,
-  hovered,
-  onHover,
+  active,
+  onActivate,
 }: {
   base: string
   cont: string
-  hovered: boolean
-  onHover: (v: boolean) => void
+  active: boolean
+  onActivate: () => void
 }) {
+  const collapsedRef = useRef<HTMLParagraphElement>(null)
+  const expandedRef = useRef<HTMLParagraphElement>(null)
+  const [heights, setHeights] = useState({ collapsed: 0, expanded: 0 })
+  const reducedMotion = useReducedMotion()
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      setHeights({
+        collapsed: collapsedRef.current?.offsetHeight ?? 0,
+        expanded: expandedRef.current?.offsetHeight ?? 0,
+      })
+    }
+
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    if (collapsedRef.current) observer.observe(collapsedRef.current)
+    if (expandedRef.current) observer.observe(expandedRef.current)
+
+    return () => observer.disconnect()
+  }, [base, cont])
+
+  const targetHeight = active ? heights.expanded : heights.collapsed
+
   return (
-    <div
-      className="cursor-default"
-      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: BASE_SIZE, lineHeight: 1.2, letterSpacing: '-0.01em' }}
-      onMouseEnter={() => onHover(true)}
-      onMouseLeave={() => onHover(false)}
+    <motion.div
+      layout="position"
+      transition={{ layout: TRANSITION }}
+      className="relative cursor-default py-2 md:py-3"
+      onMouseEnter={onActivate}
     >
-      <p className="text-gray-700 dark:text-[#c8c8b8] m-0">
-        {base}
-        <span
-          className="text-gray-400 dark:text-[#7a7a72]"
-          style={{
-            opacity: hovered ? 1 : 0,
-            transition: 'opacity 700ms cubic-bezier(0.4, 0, 0.2, 1)',
-            display: hovered ? 'inline' : 'none',
-          }}
-        >
-          {cont}
-        </span>
-      </p>
-    </div>
+      <div className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden" aria-hidden>
+        <p ref={collapsedRef} className="m-0" style={LINE_STYLE}>
+          {base}
+        </p>
+        <p ref={expandedRef} className="m-0" style={LINE_STYLE}>
+          {base}
+          <span className="text-gray-400 dark:text-[#7a7a72]">{cont}</span>
+        </p>
+      </div>
+
+      <motion.div
+        initial={false}
+        animate={{ height: targetHeight }}
+        transition={reducedMotion ? { duration: 0 } : TRANSITION}
+        className="overflow-hidden"
+      >
+        <p className="relative m-0 text-gray-700 dark:text-[#c8c8b8]" style={LINE_STYLE}>
+          <span>{base}</span>
+          <span
+            className="text-gray-400 dark:text-[#7a7a72]"
+            style={
+              active
+                ? {
+                    opacity: 1,
+                    transition: reducedMotion ? 'none' : 'opacity 0.35s ease 0.1s',
+                  }
+                : {
+                    position: 'absolute',
+                    width: 0,
+                    height: 0,
+                    overflow: 'hidden',
+                    opacity: 0,
+                  }
+            }
+          >
+            {cont}
+          </span>
+        </p>
+      </motion.div>
+    </motion.div>
   )
 }
 
 export default function Vision() {
-  const [hovered1, setHovered1] = useState(false)
-  const [hovered2, setHovered2] = useState(false)
-  const [hovered3, setHovered3] = useState(false)
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   return (
     <section
@@ -62,11 +127,21 @@ export default function Vision() {
     >
       <div className="mx-auto flex min-h-[80vh] max-w-[1400px] flex-col justify-center px-4 sm:px-6 lg:px-8 py-24 md:py-40 lg:py-48">
         <h2 id="vision-heading" className="sr-only">Vision</h2>
-        <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
-          <HoverLine base={LINE_1} cont={LINE_1_CONT} hovered={hovered1} onHover={setHovered1} />
-          <HoverLine base={LINE_2} cont={LINE_2_CONT} hovered={hovered2} onHover={setHovered2} />
-          <HoverLine base={LINE_3} cont={LINE_3_CONT} hovered={hovered3} onHover={setHovered3} />
-        </div>
+        <motion.div
+          layout
+          className="flex flex-col gap-4 md:gap-6 lg:gap-8"
+          onMouseLeave={() => setActiveIndex(null)}
+        >
+          {LINES.map((line, index) => (
+            <HoverLine
+              key={line.base}
+              base={line.base}
+              cont={line.cont}
+              active={activeIndex === index}
+              onActivate={() => setActiveIndex(index)}
+            />
+          ))}
+        </motion.div>
       </div>
     </section>
   )
