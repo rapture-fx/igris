@@ -23,19 +23,16 @@
     </div>
     <div class="ic-def"><span class="ic-def__label">Agent name</span><div class="ic-def__value mono"><%= agent[:name].presence || '—' %></div></div>
     <% if agent[:agent_type].present? %>
-      <div class="ic-def"><span class="ic-def__label">Type</span><div class="ic-def__value"><span class="ic-chip ic-chip--sm"><%= agent[:agent_type] %></span></div></div>
+      <div class="ic-def"><span class="ic-def__label">Type</span><div class="ic-def__value mono"><%= agent[:agent_type] %></div></div>
     <% end %>
     <% if agent[:template_name].present? %>
-      <div class="ic-def"><span class="ic-def__label">Template</span><div class="ic-def__value"><span class="ic-chip ic-chip--sm"><%= agent[:template_name] %></span></div></div>
+      <div class="ic-def"><span class="ic-def__label">Template</span><div class="ic-def__value mono"><%= agent[:template_name] %></div></div>
     <% end %>
   <% else %>
     <p class="ic-evidence__intro">
       This run is not attributed to a registered agent. Attribution appears when
       the calling agent identifies itself against the Agent Registry.
     </p>
-    <div class="ic-agentcard__empty">
-      <span class="ic-chip ic-chip--sm">Unattributed</span>
-      <span class="ic-def__hint">No registered agent on this run.</span>
-    </div>
+    <p class="ic-doc__note">Unattributed. No registered agent on this run.</p>
   <% end %>
 </div>
