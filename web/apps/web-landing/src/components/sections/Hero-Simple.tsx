@@ -8,10 +8,10 @@ const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospac
 
 export default function Hero() {
   return (
-    <section className="relative w-full h-[calc(100dvh-3.5rem)] overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-      <div className="relative mx-auto flex h-full max-w-[1400px] flex-col px-4 pb-8 pt-6 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
-        <div className="flex min-h-0 flex-1 flex-col gap-8 lg:flex-row lg:items-stretch lg:justify-between lg:gap-10">
-          <div className="flex min-h-0 flex-col justify-center lg:h-full lg:max-w-[520px] lg:shrink-0">
+    <section className="relative w-full min-h-[90vh] overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <div className="relative mx-auto flex min-h-[90vh] max-w-[1400px] flex-col px-4 pb-24 pt-32 sm:px-6 lg:px-8 lg:pb-32 lg:pt-40">
+        <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+          <div className="flex flex-col lg:max-w-[520px] lg:shrink-0">
             <h1
               className="text-gray-700 dark:text-[#c8c8b8]"
               style={{
@@ -40,24 +40,6 @@ export default function Hero() {
                 Set up an agent
               </a>
             </div>
-          </div>
-
-          <div className="flex h-full min-h-0 flex-col justify-center gap-3 sm:gap-4 lg:ml-auto lg:w-[min(58%,720px)] lg:shrink-0">
-            <p
-              className="px-0.5 text-gray-600 dark:text-[#a8a898] uppercase"
-              style={{
-                fontFamily: SANS,
-                fontSize: 'clamp(1rem, 1.1vw, 1.125rem)',
-                lineHeight: 1.6,
-                letterSpacing: '0.04em',
-              }}
-            >
-              <span className="font-medium text-gray-700 dark:text-[#c8c8b8]">
-                Fits into your agent stack.
-              </span>{' '}
-              Keep reasoning in your framework. Route side effects through Igris when actions need
-              policy, recovery, and receipts.
-            </p>
           </div>
         </div>
       </div>
