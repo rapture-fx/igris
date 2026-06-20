@@ -18,7 +18,7 @@
               'aria-pressed': (range == value).to_s %>
       <% end %>
     </div>
-    <span class="ic-intel__source">Derived from execution records — no prompts or model output.</span>
+    <span class="ic-intel__source">Derived from execution records, with no prompts or model output.</span>
   </div>
 
   <% if empty %>
@@ -37,7 +37,7 @@
       <div class="ic-intel__stat">
         <span class="ic-intel__stat-k">Run volume</span>
         <span class="ic-intel__stat-v"><%= number_with_delimiter(summary[:total_runs]) %></span>
-        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:successful_runs]) %> succeeded · <%= number_with_delimiter(summary[:failed_runs]) %> failed</span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:successful_runs]) %> succeeded, <%= number_with_delimiter(summary[:failed_runs]) %> failed</span>
       </div>
       <div class="ic-intel__stat">
         <span class="ic-intel__stat-k">Success rate</span>
