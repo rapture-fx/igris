@@ -118,15 +118,16 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # ── Run detail: title id + copy, linkbacks, at-a-glance summary ─────────
-  test 'run detail shows the copyable run id, linkbacks, and routed-via context' do
+  # ── Run detail: copyable run id, action linkback, routed-via context ────
+  # The page has no header/footer of its own; the run id + copy live in the
+  # Execution detail section and the action linkback in "What to do next".
+  test 'run detail shows the copyable run id, action linkback, and routed-via context' do
     get '/runs/run_01HGJ3R6T7E' # export_ledger, routed through a runtime
     assert_response :success
-    assert_match 'run_01HGJ3R6T7E', response.body    # run id shown in the topbar
-    assert_match 'Routed via', response.body         # at-a-glance context in the summary
-    assert_match 'Copy', response.body               # inline copy button
-    assert_match 'Back to action', response.body     # action is known in fixtures
-    assert_match 'Open runtime', response.body       # ran through a runtime
+    assert_match 'run_01HGJ3R6T7E', response.body    # run id shown in Execution detail
+    assert_match 'Routed via', response.body         # at-a-glance context
+    assert_match 'Copy', response.body               # inline copy button on the Task ID
+    assert_match 'Open action', response.body        # action linkback (action is known in fixtures)
   end
 
   # ── Run detail: "What to do next" is state-aware ────────────────────────
