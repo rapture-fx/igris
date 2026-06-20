@@ -10,7 +10,7 @@ import { useTheme } from 'next-themes';
 
 
 const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-const MONO_FONT = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace';
+const MONO_FONT = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace';
 
 const NAV_ITEM_STYLE: React.CSSProperties = {
   fontFamily: NAV_FONT,
@@ -83,7 +83,7 @@ export default function Header() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={closeAll}
-            className="block rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+            className="block rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
             style={NAV_ITEM_STYLE}
           >
             {item.label}
@@ -93,7 +93,7 @@ export default function Header() {
             key={item.label}
             href={item.href}
             onClick={closeAll}
-            className="block rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+            className="block rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
             style={NAV_ITEM_STYLE}
           >
             {item.label}
@@ -104,7 +104,7 @@ export default function Header() {
             href={item.href}
             prefetch={false}
             onClick={closeAll}
-            className="block rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+            className="block rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
             style={NAV_ITEM_STYLE}
           >
             {item.label}
@@ -137,7 +137,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }}
-                  className="flex items-center gap-1 rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+                  className="flex items-center gap-1 rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
                   style={NAV_ITEM_STYLE}
                 >
                   <span>Product</span>
@@ -151,7 +151,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }}
-                  className="flex items-center gap-1 rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+                  className="flex items-center gap-1 rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
                   style={NAV_ITEM_STYLE}
                 >
                   <span>Docs</span>
@@ -165,7 +165,7 @@ export default function Header() {
                 href="/pricing"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+                className="rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Pricing
@@ -178,7 +178,7 @@ export default function Header() {
                 href="/auth?mode=signin"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-md px-4 py-2 text-gray-700 dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+                className="rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Sign in
@@ -188,7 +188,7 @@ export default function Header() {
                 href="/auth?mode=signup"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-md px-5 py-2 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+                className="rounded-md px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
                 style={NAV_ITEM_STYLE}
               >
                 Get API key
@@ -218,7 +218,7 @@ export default function Header() {
               href="/auth?mode=signin"
               prefetch={false}
               onClick={closeAll}
-              className="block w-full py-2 text-gray-700 dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Sign in
@@ -228,7 +228,7 @@ export default function Header() {
               href="/pricing"
               prefetch={false}
               onClick={closeAll}
-              className="block w-full py-2 text-gray-700 dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Pricing
@@ -238,7 +238,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setProductOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-gray-700 dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               <span>Product</span>
@@ -264,7 +264,7 @@ export default function Header() {
             <button
               type="button"
               onClick={() => setDocsOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-gray-700 dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
+              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               <span>Docs</span>
@@ -292,7 +292,7 @@ export default function Header() {
               href="/auth?mode=signup"
               prefetch={false}
               onClick={closeAll}
-              className="mt-4 inline-flex items-center justify-center w-full rounded-md px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+              className="mt-4 inline-flex items-center justify-center w-full rounded-full px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
               style={NAV_ITEM_STYLE}
             >
               Get API key
