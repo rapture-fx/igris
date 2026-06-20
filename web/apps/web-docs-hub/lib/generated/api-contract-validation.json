@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14T13:09:19.555Z",
+  "generated_at": "2026-06-20T05:17:50.348Z",
   "endpoints": [
     {
       "endpoint": "GET /v1/action-packs",
@@ -17,6 +17,51 @@
       "response_contract": null,
       "response_fields": 0,
       "schema_policy": "example-only: Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/agents",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/agents",
+      "source_schema": "agentRegistryRequest (go, igris-overture/api/routes_agent_registry.go)",
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "source-backed",
+      "status": "verified"
+    },
+    {
+      "endpoint": "GET /v1/agents/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
+      "status": "verified"
+    },
+    {
+      "endpoint": "PATCH /v1/agents/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Agent registry PATCH first rejects tenant overrides and mixed registry/settings fields, then validates registry updates field-by-field or dispatches execution settings to PatchAgent.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "DELETE /v1/agents/:id",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "not-required",
       "status": "verified"
     },
     {
