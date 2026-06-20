@@ -10,14 +10,13 @@
   <% if memory.present? %>
     <p class="ic-evidence__intro">
       What the agent recorded about this run, in its own operator-facing
-      summary. Stored as redacted summaries — never prompts or hidden reasoning.
+      summary. Stored as redacted summaries, never prompts or hidden reasoning.
     </p>
     <% memory.each do |mem| %>
       <div class="ic-memory__card">
-        <div class="ic-memory__top">
-          <span class="ig-pill ig-pill--<%= memory_status_tone(mem[:redaction_status]) %>"><%= mem[:redaction_status].titleize %></span>
-          <span class="ic-memory__retention"><%= mem[:retention_label] %></span>
-        </div>
+        <p class="ic-memory__top">
+          <span class="ic-memory__status"><%= mem[:redaction_status].titleize %></span> summary, <span class="ic-memory__retention"><%= mem[:retention_label].downcase %></span>.
+        </p>
 
         <% if mem[:goal_summary].present? %>
           <div class="ic-memory__field">
