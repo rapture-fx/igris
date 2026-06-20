@@ -1,0 +1,42 @@
+<%#
+  Execution Intelligence comparison table — one row per agent or action with
+  its run volume and execution-health rates. Reused for both the agent and
+  action breakdowns. `title`/`subject` are labels; `rows` is the normalized
+  breakdown array; `empty_hint` shows when there are no rows.
+%>
+<section class="ic-intel__table" aria-label="<%= title %>">
+  <div class="ic-intel__table-head"><%= title %></div>
+  <% if rows.present? %>
+    <div class="ic-intel__grid" role="table">
+      <div class="ic-intel__row ic-intel__row--head" role="row">
+        <span role="columnheader"><%= subject %></span>
+        <span role="columnheader" class="ic-intel__num">Runs</span>
+        <span role="columnheader" class="ic-intel__num">Success</span>
+        <span role="columnheader" class="ic-intel__num">Failure</span>
+        <span role="columnheader" class="ic-intel__num">Recovery</span>
+        <span role="columnheader" class="ic-intel__num">Avg runtime</span>
+      </div>
+      <% rows.each do |row| %>
+        <% unattributed = row[:key].to_s == 'unattributed' || row[:key].to_s == 'unknown_action' %>
+        <div class="ic-intel__row" role="row">
+          <span class="ic-intel__name <%= 'mono' unless unattributed %>" role="cell" title="<%= row[:name] %>">
+            <% if unattributed %>
+              <span class="ic-def__hint"><%= row[:name] %></span>
+            <% else %>
+              <%= row[:name] %>
+            <% end %>
+          </span>
+          <span class="ic-intel__num mono" role="cell"><%= number_with_delimiter(row[:total_runs]) %></span>
+          <span class="ic-intel__num" role="cell">
+            <span class="ig-pill ig-pill--<%= intel_rate_tone(row[:success_rate]) %>"><%= intel_pct(row[:success_rate]) %></span>
+          </span>
+          <span class="ic-intel__num mono" role="cell"><%= intel_pct(row[:failure_rate]) %></span>
+          <span class="ic-intel__num mono" role="cell"><%= intel_pct(row[:recovery_rate]) %></span>
+          <span class="ic-intel__num mono" role="cell"><%= intel_duration(row[:average_duration_ms]) %></span>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="ic-intel__table-empty"><%= empty_hint %></p>
+  <% end %>
+</section>
