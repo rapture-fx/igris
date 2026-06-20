@@ -1,6 +1,6 @@
 # API Contract Validation
 
-Generated: 2026-06-14T13:09:19.562Z
+Generated: 2026-06-20T05:17:50.352Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
@@ -8,6 +8,11 @@ This report validates API reference request/response examples and compares docum
 | --- | ---: | --- | --- | --- | ---: | --- |
 | `GET /v1/action-packs` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/action-packs/:name/install` | 0 | not discovered | example-only: Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential. | not required | 0 | verified |
+| `GET /v1/agents` | 0 | not discovered | not-required | not required | 0 | verified |
+| `POST /v1/agents` | 0 | `agentRegistryRequest (go, igris-overture/api/routes_agent_registry.go)` | source-backed | not required | 0 | verified |
+| `GET /v1/agents/:id` | 0 | not discovered | not-required | not required | 0 | verified |
+| `PATCH /v1/agents/:id` | 0 | not discovered | example-only: Agent registry PATCH first rejects tenant overrides and mixed registry/settings fields, then validates registry updates field-by-field or dispatches execution settings to PatchAgent. | not required | 0 | verified |
+| `DELETE /v1/agents/:id` | 0 | not discovered | not-required | not required | 0 | verified |
 | `GET /v1/actions` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/actions` | 12 | `actionDefinitionRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
 | `GET /v1/actions/:id` | 0 | not discovered | not-required | not required | 0 | verified |
