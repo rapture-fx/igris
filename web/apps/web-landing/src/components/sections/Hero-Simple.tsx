@@ -10,8 +10,8 @@ export default function Hero() {
   return (
     <section className="relative w-full min-h-[90vh] overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="relative mx-auto flex min-h-[90vh] max-w-[1400px] flex-col px-4 pb-24 pt-32 sm:px-6 lg:px-8 lg:pb-32 lg:pt-40">
-        <div className="flex flex-1 flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
-          <div className="flex flex-col lg:max-w-[520px] lg:shrink-0">
+        <div className="flex flex-1 flex-col items-center justify-center gap-10 text-center lg:gap-14">
+          <div className="flex flex-col items-center">
             <h1
               className="text-gray-700 dark:text-[#c8c8b8]"
               style={{
@@ -24,7 +24,7 @@ export default function Hero() {
             >
               Action layer<br />for AI agents.
             </h1>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a
                 href="/auth?mode=signup"
                 className="inline-flex items-center justify-center rounded-full bg-[#1b1912] px-6 py-2.5 text-[13px] font-medium text-[#f6f6f4] transition-opacity hover:opacity-80 dark:bg-[#f6f6f4] dark:text-[#1b1912]"
