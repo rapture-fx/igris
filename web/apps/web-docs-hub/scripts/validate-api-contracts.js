@@ -23,6 +23,11 @@ const SOURCE_ROUTE_SCHEMA_OVERRIDES = {
     schema: 'actionRunRequest',
     reason: 'routes_actions.go handleActionRun parses the body as actionRunRequest and resolves the registered action by id or name.',
   },
+  'POST /v1/agents': {
+    language: 'go',
+    schema: 'agentRegistryRequest',
+    reason: 'routes_agent_registry.go handleAgentRegistryCreate unmarshals the tenant-scoped create body as agentRegistryRequest before store validation.',
+  },
   'POST /v1/actions/:name/run': {
     language: 'go',
     schema: 'actionRunByNameRequest',
@@ -72,6 +77,7 @@ const EXAMPLE_ONLY_SCHEMA_REASONS = {
   'POST /v1/tasks/:id/proof/verify': 'Task proof verification is path-param driven and reconciles persisted proof state; no JSON body is required.',
   'POST /v1/mcp': 'MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct.',
   'POST /v1/action-packs/:name/install': 'Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential.',
+  'PATCH /v1/agents/:id': 'Agent registry PATCH first rejects tenant overrides and mixed registry/settings fields, then validates registry updates field-by-field or dispatches execution settings to PatchAgent.',
   'POST /v1/plan': 'Local planning is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/reflect': 'Local reflection is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/admin/models/load': 'Model loading is an admin operation validated against runtime model-manager state rather than a public route struct.',

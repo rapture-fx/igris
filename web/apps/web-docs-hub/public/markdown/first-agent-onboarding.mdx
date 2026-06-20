@@ -11,6 +11,10 @@ The fastest supported path is **templates-first**: install the CLI, generate an 
 template, install the starter Action Pack, run one registered action with an
 idempotency key, then inspect the run and evidence.
 
+If you are starting from zero account and no API key, use
+[First Tenant Action in 5 Minutes](/docs/first-tenant-action) first. This page
+is the agent-specific expansion of that path.
+
 ## 0. Install An Agent Template
 
 Pick the template that matches your agent environment:
@@ -51,14 +55,12 @@ export IGRIS_IDEMPOTENCY_KEY="starter-echo-$(date +%Y%m%d%H%M%S)"
 Run the readiness doctor before wiring the agent:
 
 ```bash
-./scripts/igris_doctor.sh
+igris doctor
 ```
 
-The doctor checks required env names, API reachability, API-key acceptance on
-safe endpoints, MCP `tools/list` when credentials are available, optional MCP
-config JSON, runtime install metadata, optional local-runtime reachability, and
-suggests `igris templates install <name>` when MCP config is missing an Igris
-bridge. It never echoes the API key.
+The doctor checks the local CLI install and first-run prerequisites. It never
+echoes the API key. After the key is set, `igris auth login` validates hosted API
+access.
 
 ## 1. Install The CLI
 
@@ -139,10 +141,13 @@ tasks or call external providers.
 ## 4. Run The First Action
 
 ```bash
+RUN_LOG="$(mktemp -t igris-first-run.XXXXXX)"
 igris actions run demo.echo \
   --api-url "$IGRIS_API_URL" \
+  --agent-name claude_code_agent \
   --input '{"message":"first agent run"}' \
-  --idempotency-key "$IGRIS_IDEMPOTENCY_KEY"
+  --idempotency-key "$IGRIS_IDEMPOTENCY_KEY" | tee "$RUN_LOG"
+RUN_ID="$(awk '/^run_id:/ {print $2; exit}' "$RUN_LOG")"
 ```
 
 Equivalent REST call:
@@ -154,7 +159,8 @@ curl -sS -X POST "$IGRIS_API_URL/v1/actions/demo.echo/run" \
   -H "Idempotency-Key: $IGRIS_IDEMPOTENCY_KEY" \
   -d '{
     "input": { "message": "first agent run" },
-    "idempotency_key": "'"$IGRIS_IDEMPOTENCY_KEY"'"
+    "idempotency_key": "'"$IGRIS_IDEMPOTENCY_KEY"'",
+    "agent_name": "claude_code_agent"
   }'
 ```
 
@@ -261,6 +267,7 @@ Stop and fix setup before continuing if any of these happen:
 ## Related Guides
 
 - [Agent Templates](/docs/agent-templates)
+- [First Tenant Action in 5 Minutes](/docs/first-tenant-action)
 - [GET /v1/action-packs](/docs/api-reference/action-packs/get-v1-action-packs)
 - [POST /v1/action-packs/:name/install](/docs/api-reference/action-packs/post-v1-action-packs-name-install)
 - [POST /v1/actions/:name/run](/docs/api-reference/actions/post-v1-actions-name-run)

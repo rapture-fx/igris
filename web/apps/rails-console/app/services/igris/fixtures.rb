@@ -269,6 +269,76 @@ module Igris
       )
     end
 
+    # Evidence Memory for a demo run — operator-facing summaries only (goal /
+    # decision / evidence / outcome), mirroring the shape the real API returns.
+    # Verified runs carry richer memory; failed runs record the failure outcome.
+    def agent_memory_for_run(run)
+      return [] unless run
+
+      agent = run[:agent] || { name: 'support_agent', display_name: 'Support Agent' }
+      failed = run[:status].to_s.casecmp('Failed').zero?
+      [
+        {
+          memory_id:        'mem_demo_01',
+          task_id:          run[:id].to_s,
+          execution_id:     'exec_demo_01',
+          agent_id:         agent[:agent_id].to_s,
+          agent_name:       agent[:name].to_s.presence || 'support_agent',
+          goal_summary:     "Complete the #{run[:action]} action requested by the calling agent.",
+          decision_summary: failed ?
+            'Chose the configured target and proceeded; the downstream call was rejected.' :
+            'Selected the configured target after policy allowed the call, then executed once.',
+          evidence_summary: failed ?
+            ['Policy preset allowed the call', 'Target returned a non-2xx response', 'No signed receipt produced'] :
+            ['Policy preset allowed the call', 'Target acknowledged the side effect', 'Runtime co-signed the receipt'],
+          outcome_summary:  failed ?
+            'Action failed at the target; recorded for review, no proof attached.' :
+            'Action completed and a verified proof receipt was recorded.',
+          redaction_status:     'redacted',
+          retention_expires_at: 83.days.from_now,
+          retention_label:      'Expires in 83 days',
+          created_at:           run[:started_at],
+        },
+      ]
+    end
+
+    # Execution Intelligence demo metrics — deterministic, plausible operational
+    # numbers so the metrics tab renders its full shape offline. Rates are
+    # fractions (0..1) to match the real API contract.
+    def execution_intelligence(range = 'last_30d')
+      summary = {
+        total_runs: 342, successful_runs: 298, failed_runs: 28,
+        approval_required_runs: 16, human_intervention_runs: 9, recovery_runs: 21,
+        average_duration_ms: 486.0,
+        success_rate: 298 / 342.0, failure_rate: 28 / 342.0,
+        approval_rate: 16 / 342.0, human_intervention_rate: 9 / 342.0,
+        recovery_rate: 21 / 342.0,
+      }
+      agents = [
+        intel_row('a1f2c3d4-e5f6-7890-abcd-ef1234567890', 'Claude Code Agent', 181, 168, 9, 7, 11, 442.0),
+        intel_row('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Support Agent',     112, 96, 12, 6, 8, 503.0),
+        intel_row('unattributed', 'unattributed', 49, 34, 7, 3, 2, 612.0),
+      ]
+      actions = [
+        intel_row('send_email',      'send_email',      154, 142, 6, 4, 5, 318.0),
+        intel_row('charge_customer', 'charge_customer', 88, 71, 11, 9, 9, 642.0),
+        intel_row('sync_inventory',  'sync_inventory',  61, 55, 4, 1, 4, 421.0),
+        intel_row('open_pr',         'open_pr',         39, 30, 7, 2, 3, 587.0),
+      ]
+      { range: range, source: 'demo', summary: summary, agents: agents, actions: actions }
+    end
+
+    def intel_row(key, name, total, ok, failed, approvals, recoveries, avg)
+      {
+        key: key, name: name, total_runs: total, successful_runs: ok,
+        failed_runs: failed, approval_required_runs: approvals, recovery_runs: recoveries,
+        average_duration_ms: avg,
+        success_rate: total.positive? ? ok.to_f / total : 0.0,
+        failure_rate: total.positive? ? failed.to_f / total : 0.0,
+        recovery_rate: total.positive? ? recoveries.to_f / total : 0.0,
+      }
+    end
+
     # 14-day daily run counts for the Home sparkline. Hand-tuned to feel
     # realistic — weekend dip, midweek spike — and small enough that the
     # SVG is calm and readable.

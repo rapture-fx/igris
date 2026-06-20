@@ -43,7 +43,10 @@ pub async fn run_register(api_url: Option<String>, body: &Value) -> Result<()> {
         .get("agent_id")
         .and_then(Value::as_str)
         .unwrap_or("unknown");
-    let name = created.get("name").and_then(Value::as_str).unwrap_or("unknown");
+    let name = created
+        .get("name")
+        .and_then(Value::as_str)
+        .unwrap_or("unknown");
     println!("Registered agent {name} ({id})");
     Ok(())
 }

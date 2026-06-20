@@ -129,6 +129,44 @@ module Igris
       Array(body.is_a?(Hash) ? (body['items'] || body['runtimes']) : body)
     end
 
+    # ── Execution Intelligence ────────────────────────────────────────────
+    # Read-only operational metrics derived from execution truth (task records,
+    # policy decisions, recovery events). Never reads prompts or model output.
+
+    # GET /v1/execution/intelligence?range=… →
+    #   { range, source, summary{…}, agents[…], actions[…] }
+    def get_execution_intelligence(range: nil)
+      query = range.present? ? { range: range } : nil
+      request(:get, '/v1/execution/intelligence', query: query)
+    end
+
+    # ── Agent Evidence Memory ─────────────────────────────────────────────
+    # Summary-only operator memory for agent runs. The API stores and returns
+    # ONLY operator-facing summaries (goal / decision / evidence / outcome) —
+    # never prompts, chain-of-thought, tokens, or raw bodies.
+
+    # GET /v1/agent-memory?task_id=&execution_id=&registered_agent_id=&
+    #   registered_agent_name=&limit= → { memory: [Memory…], total }
+    def list_agent_memory(task_id: nil, execution_id: nil, registered_agent_id: nil,
+                          registered_agent_name: nil, limit: 50)
+      query = { limit: limit }
+      query[:task_id] = task_id                             if task_id.present?
+      query[:execution_id] = execution_id                   if execution_id.present?
+      query[:registered_agent_id] = registered_agent_id     if registered_agent_id.present?
+      query[:registered_agent_name] = registered_agent_name if registered_agent_name.present?
+      body = request(:get, '/v1/agent-memory', query: query)
+      Array(body && body['memory'])
+    end
+
+    # ── Agent Registry ────────────────────────────────────────────────────
+
+    # GET /v1/agents → { agents: [{ agent_id, name, display_name, agent_type, … }] }
+    def list_agents(include_archived: false)
+      query = include_archived ? { include_archived: 'true' } : nil
+      body = request(:get, '/v1/agents', query: query)
+      Array(body && body['agents'])
+    end
+
     # ── Runtime API key ──────────────────────────────────────────────────
     # Dedicated runtime-connect keys, stored separately from the console
     # service key so minting one never revokes OVERTURE_API_KEY.

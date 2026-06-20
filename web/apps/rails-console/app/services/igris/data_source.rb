@@ -121,6 +121,50 @@ module Igris
       capture(e); []
     end
 
+    # ── Agent Evidence Memory ─────────────────────────────────────────────
+    # Operator-facing, summary-only memory attached to a run. The API persists
+    # and returns ONLY summaries (goal / decision / evidence / outcome) — never
+    # prompts, chain-of-thought, tokens, or raw bodies. We surface those
+    # summaries as-is and add safe presentation metadata (retention, status).
+    # Returns [] (honest empty state) when a run has no memory or the endpoint
+    # is unavailable.
+    def agent_memory_for_run(run)
+      return Fixtures.agent_memory_for_run(run) unless real?
+      return [] unless run
+
+      task_id = run[:id].to_s.strip
+      return [] if task_id.empty?
+
+      @client.list_agent_memory(task_id: task_id, limit: 20).map { |m| normalize_agent_memory(m) }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    # ── Execution Intelligence ────────────────────────────────────────────
+    # Read-only operational metrics derived from execution truth. Returns a
+    # normalized { range:, summary:, agents:, actions: } hash, or a degraded
+    # shell (zeros + empty breakdowns) when the endpoint is unavailable so the
+    # view always renders an honest empty state rather than crashing.
+    VALID_INTELLIGENCE_RANGES = %w[last_1h last_6h last_24h last_7d last_30d].freeze
+
+    def execution_intelligence(range: 'last_30d')
+      range = 'last_30d' unless VALID_INTELLIGENCE_RANGES.include?(range.to_s)
+      return Fixtures.execution_intelligence(range) unless real?
+
+      raw = @client.get_execution_intelligence(range: range)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        range:   raw[:range].to_s.presence || range,
+        source:  raw[:source].to_s,
+        summary: normalize_intelligence_summary(raw[:summary]),
+        agents:  Array(raw[:agents]).map { |b| normalize_intelligence_breakdown(b) },
+        actions: Array(raw[:actions]).map { |b| normalize_intelligence_breakdown(b) },
+      }
+    rescue OvertureClient::Error => e
+      capture(e)
+      { range: range, source: '', summary: normalize_intelligence_summary(nil), agents: [], actions: [] }
+    end
+
     # Daily run counts (14d) for the Home sparkline. Real mode would aggregate
     # `/v1/runs` server-side; for now we just return the fixture or [].
     def daily_run_counts
@@ -441,6 +485,78 @@ module Igris
         agent_type: agent[:agent_type].to_s.strip.presence,
         template_name: agent[:template_name].to_s.strip.presence,
       }.compact
+    end
+
+    # Map one raw Evidence Memory row → safe view hash. The summaries are
+    # already operator-only and server-validated against prompt/CoT/secret
+    # leakage; we surface them verbatim (the view HTML-escapes) and only
+    # normalize identifiers, timestamps, and the retention/status presentation.
+    def normalize_agent_memory(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      evidence = Array(raw[:evidence_summary]).map { |e| e.to_s.strip }.reject(&:empty?)
+      expires  = parse_time(raw[:retention_expires_at])
+      {
+        memory_id:       raw[:memory_id].to_s,
+        task_id:         raw[:task_id].to_s,
+        execution_id:    raw[:execution_id].to_s,
+        agent_id:        raw[:registered_agent_id].to_s,
+        agent_name:      raw[:registered_agent_name].to_s,
+        goal_summary:    raw[:goal_summary].to_s.strip,
+        decision_summary: raw[:decision_summary].to_s.strip,
+        evidence_summary: evidence,
+        outcome_summary: raw[:outcome_summary].to_s.strip,
+        redaction_status: raw[:redaction_status].to_s.strip.presence || 'redacted',
+        retention_expires_at: expires,
+        retention_label: retention_label_for(expires),
+        created_at:      parse_time(raw[:created_at]),
+      }
+    end
+
+    # Human label for a memory's retention window. Past expiry reads as expired;
+    # absent expiry reads as indefinite. Never invents a date.
+    def retention_label_for(expires)
+      return 'No expiry set' unless expires
+
+      days = ((expires - Time.now) / 86_400.0).ceil
+      return 'Retention expired' if days <= 0
+      return 'Expires today'     if days == 1
+      "Expires in #{days} days"
+    end
+
+    def normalize_intelligence_summary(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      raw ||= {}
+      {
+        total_runs:              raw[:total_runs].to_i,
+        successful_runs:         raw[:successful_runs].to_i,
+        failed_runs:             raw[:failed_runs].to_i,
+        approval_required_runs:  raw[:approval_required_runs].to_i,
+        human_intervention_runs: raw[:human_intervention_runs].to_i,
+        recovery_runs:           raw[:recovery_runs].to_i,
+        average_duration_ms:     raw[:average_duration_ms].to_f,
+        success_rate:            raw[:success_rate].to_f,
+        failure_rate:            raw[:failure_rate].to_f,
+        approval_rate:           raw[:approval_rate].to_f,
+        human_intervention_rate: raw[:human_intervention_rate].to_f,
+        recovery_rate:           raw[:recovery_rate].to_f,
+      }
+    end
+
+    def normalize_intelligence_breakdown(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        key:                    raw[:key].to_s,
+        name:                   raw[:name].to_s.presence || raw[:key].to_s.presence || '—',
+        total_runs:             raw[:total_runs].to_i,
+        successful_runs:        raw[:successful_runs].to_i,
+        failed_runs:            raw[:failed_runs].to_i,
+        approval_required_runs: raw[:approval_required_runs].to_i,
+        recovery_runs:          raw[:recovery_runs].to_i,
+        average_duration_ms:    raw[:average_duration_ms].to_f,
+        success_rate:           raw[:success_rate].to_f,
+        failure_rate:           raw[:failure_rate].to_f,
+        recovery_rate:          raw[:recovery_rate].to_f,
+      }
     end
 
     def sanitize_display_url(value)

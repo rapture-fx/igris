@@ -755,6 +755,84 @@ module ConsoleHelper
     end
   end
 
+  public
+
+  # ── Run Story ──────────────────────────────────────────────────────────
+  # The six-beat narrative of a run for an operator: Agent → Action → Decision
+  # → Evidence → Outcome → Proof. Built strictly from already-safe data — the
+  # normalized run fields plus the first Evidence Memory summary (operator-only,
+  # never prompts/CoT). Each beat is honest: when a fact wasn't recorded it
+  # reads "Not recorded", never a fabricated value.
+  #
+  # Returns [{ key, label, value, tone, items? }] in narrative order.
+  def run_story(run, memory = nil)
+    mem = Array(memory).first
+    agent = run[:agent]
+    agent_name = agent && (agent[:display_name].presence || agent[:name].presence)
+
+    decision = mem && mem[:decision_summary].presence
+    decision ||= ("Policy applied: #{filter_label(run[:policy])}" if run[:policy].to_s.strip.present?)
+
+    evidence_items = mem ? Array(mem[:evidence_summary]).reject(&:blank?) : []
+    outcome = mem && mem[:outcome_summary].presence
+
+    proof = run[:proof].to_s.presence || 'Proof unavailable'
+
+    [
+      { key: :agent, label: 'Agent', tone: agent_name ? :ok : :muted,
+        value: agent_name || 'Unattributed run' },
+      { key: :action, label: 'Action', tone: :ok,
+        value: run[:action].to_s.presence || '—' },
+      { key: :decision, label: 'Decision', tone: decision ? :ok : :muted,
+        value: decision || 'Not recorded' },
+      { key: :evidence, label: 'Evidence', tone: evidence_items.any? ? :ok : :muted,
+        value: evidence_items.any? ? nil : 'Not recorded', items: evidence_items },
+      { key: :outcome, label: 'Outcome', tone: run_story_outcome_tone(run),
+        value: outcome || run[:status].to_s.presence || 'Not recorded' },
+      { key: :proof, label: 'Proof', tone: infer_tone(proof), value: proof },
+    ]
+  end
+
+  def run_story_outcome_tone(run)
+    return :bad  if run_failed?(run)
+    return :warn if run_running?(run)
+    :ok
+  end
+
+  # Tone for an Evidence Memory redaction status badge. "redacted" is the
+  # expected, safe state (summaries are stored redacted by design).
+  def memory_status_tone(status)
+    case status.to_s
+    when /redacted/i then :ok
+    when /pending/i  then :warn
+    else :muted
+    end
+  end
+
+  # ── Execution Intelligence formatting ──────────────────────────────────
+  # Rates arrive as fractions (0..1). Render them as whole-percent text so the
+  # metric is legible and never colour-only.
+  def intel_pct(rate)
+    "#{(rate.to_f * 100).round}%"
+  end
+
+  # Average/step durations arrive in milliseconds. Show ms under a second and
+  # one-decimal seconds above, so the number stays readable across scales.
+  def intel_duration(ms)
+    ms = ms.to_f
+    return '—' if ms <= 0
+    ms < 1000 ? "#{ms.round} ms" : "#{(ms / 1000.0).round(1)} s"
+  end
+
+  # Tone for a success-rate value so the comparison tables read at a glance
+  # without relying on colour alone (the percentage text is always shown).
+  def intel_rate_tone(rate)
+    r = rate.to_f
+    return :ok   if r >= 0.9
+    return :warn if r >= 0.6
+    :bad
+  end
+
   def infer_tone(label)
     case label.to_s
     when /verified|ready|success|healthy|completed|connected/i then :ok

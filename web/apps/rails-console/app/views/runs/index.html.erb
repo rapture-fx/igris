@@ -1,13 +1,16 @@
 <%#
-  Runs — the primary debugging and trust surface: the list of runs with a
-  filter + search bar over the loaded window. Each row links to its run detail.
+  Runs — the primary debugging and trust surface. Two in-page views under the
+  same Runs lens (no parallel navigation):
+    · Run history   — the filterable list of runs.
+    · Intelligence  — read-only Execution Intelligence metrics (success /
+                      failure / recovery / approval rates, run volume, average
+                      runtime, and agent / action comparisons).
 %>
 <div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
   <div class="ic-topbar">
     <div class="ic-topbar__group">
       <span class="ic-topbar__title">Runs</span>
       <%= project_chip %>
-      
     </div>
     <div class="ic-topbar__group">
       <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
@@ -15,56 +18,71 @@
     </div>
   </div>
 
-  <%= render 'shared/flash', degraded_error: @degraded_error %>
-
-  <%# Filter + search bar — server-rendered, custom dropdowns (no native
-      <select>). Dropdowns narrow by status / route / date; search matches
-      action name, run id, or target and preserves the active filters. %>
-  <div class="ic-filters">
-    <%= render 'filter_dropdown', param: :status, selected: @status,
-          placeholder: 'All statuses',
-          options: [['succeeded', 'Succeeded'], ['running', 'Running'],
-                    ['failed', 'Failed'], ['blocked', 'Blocked / held']] %>
-    <%= render 'filter_dropdown', param: :route, selected: @route,
-          placeholder: 'All routes', options: @routes.map { |r| [r, r] } %>
-    <%= render 'filter_dropdown', param: :range, selected: @range,
-          placeholder: 'All time',
-          options: [['hour', 'Last hour'], ['day', 'Last 24 hours'], ['week', 'Last 7 days']] %>
-
-    <form class="ic-runsearch" method="get" action="<%= runs_path %>" role="search" data-turbo="false">
-      <% if @status.present? %><input type="hidden" name="status" value="<%= @status %>"><% end %>
-      <% if @route.present?  %><input type="hidden" name="route" value="<%= @route %>"><% end %>
-      <% if @range.present?  %><input type="hidden" name="range" value="<%= @range %>"><% end %>
-      <svg class="ic-runsearch__ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-        <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <input type="text" name="q" value="<%= @query %>" autocomplete="off"
-             placeholder="Search runs" class="ic-input ic-runsearch__input"
-             aria-label="Search runs">
-    </form>
+  <%# In-page view switch — Run history / Intelligence. Plain links so the
+      active view is shareable and survives a refresh. %>
+  <div class="ic-viewtabs" role="tablist" aria-label="Runs view">
+    <%= link_to 'Run history', runs_path,
+          class: "ic-viewtab #{'is-active' if @view == 'history'}",
+          role: 'tab', 'aria-selected': (@view == 'history').to_s %>
+    <%= link_to 'Intelligence', runs_path(view: 'intelligence'),
+          class: "ic-viewtab #{'is-active' if @view == 'intelligence'}",
+          role: 'tab', 'aria-selected': (@view == 'intelligence').to_s %>
   </div>
 
-  <%# Close any open filter dropdown on outside-click / Escape (mirrors the
-      icon-rail account menu). %>
-  <script>
-    (function () {
-      var bar = document.currentScript.previousElementSibling;
-      if (!bar) return;
-      var menus = bar.querySelectorAll('details.ic-dropdown');
-      menus.forEach(function (d) {
-        d.addEventListener('toggle', function () {
-          if (d.open) menus.forEach(function (o) { if (o !== d) o.open = false; });
-        });
-      });
-      document.addEventListener('click', function (e) {
-        menus.forEach(function (d) { if (d.open && !d.contains(e.target)) d.open = false; });
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') menus.forEach(function (d) { d.open = false; });
-      });
-    })();
-  </script>
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-  <%= render 'history' %>
+  <% if @view == 'intelligence' %>
+    <%= render 'intelligence', intelligence: @intelligence, range: @range %>
+  <% else %>
+    <%# Filter + search bar — server-rendered, custom dropdowns (no native
+        <select>). Dropdowns narrow by status / route / date; search matches
+        action name, run id, or target and preserves the active filters. %>
+    <div class="ic-filters">
+      <%= render 'filter_dropdown', param: :status, selected: @status,
+            placeholder: 'All statuses',
+            options: [['succeeded', 'Succeeded'], ['running', 'Running'],
+                      ['failed', 'Failed'], ['blocked', 'Blocked / held']] %>
+      <%= render 'filter_dropdown', param: :route, selected: @route,
+            placeholder: 'All routes', options: @routes.map { |r| [r, r] } %>
+      <%= render 'filter_dropdown', param: :range, selected: @range,
+            placeholder: 'All time',
+            options: [['hour', 'Last hour'], ['day', 'Last 24 hours'], ['week', 'Last 7 days']] %>
+
+      <form class="ic-runsearch" method="get" action="<%= runs_path %>" role="search" data-turbo="false">
+        <% if @status.present? %><input type="hidden" name="status" value="<%= @status %>"><% end %>
+        <% if @route.present?  %><input type="hidden" name="route" value="<%= @route %>"><% end %>
+        <% if @range.present?  %><input type="hidden" name="range" value="<%= @range %>"><% end %>
+        <svg class="ic-runsearch__ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" name="q" value="<%= @query %>" autocomplete="off"
+               placeholder="Search runs" class="ic-input ic-runsearch__input"
+               aria-label="Search runs">
+      </form>
+    </div>
+
+    <%# Close any open filter dropdown on outside-click / Escape (mirrors the
+        icon-rail account menu). %>
+    <script>
+      (function () {
+        var bar = document.currentScript.previousElementSibling;
+        if (!bar) return;
+        var menus = bar.querySelectorAll('details.ic-dropdown');
+        menus.forEach(function (d) {
+          d.addEventListener('toggle', function () {
+            if (d.open) menus.forEach(function (o) { if (o !== d) o.open = false; });
+          });
+        });
+        document.addEventListener('click', function (e) {
+          menus.forEach(function (d) { if (d.open && !d.contains(e.target)) d.open = false; });
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') menus.forEach(function (d) { d.open = false; });
+        });
+      })();
+    </script>
+
+    <%= render 'history' %>
+  <% end %>
 </div>

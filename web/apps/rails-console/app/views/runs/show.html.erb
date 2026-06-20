@@ -343,6 +343,16 @@
       </div>
     <% end %>
 
+    <%# ── Run Story — Agent → Action → Decision → Evidence → Outcome → Proof.
+        The operator-facing narrative of why the agent acted and what came of
+        it, built only from safe run fields + Evidence Memory summaries. ───── %>
+    <%= render 'run_story', run: @run, memory: @agent_memory %>
+
+    <%# ── Agent attribution + Evidence Memory — who acted, and the persisted
+        summary of its decision/evidence/outcome (never prompts or CoT). ──── %>
+    <%= render 'agent_attribution', run: @run %>
+    <%= render 'evidence_memory', memory: @agent_memory, run: @run %>
+
     <%# ── Run Inspector — server-rendered, redacted quick-inspection of this
         run. Carries its own Audit interpretation + Execution profile, so no
         separate audit block is rendered below it. ───────────────────────── %>

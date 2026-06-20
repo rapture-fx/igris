@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-06-14T13:09:21.996Z
+Generated: 2026-06-20T05:18:02.429Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,8 +8,8 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 918
-- Implemented on expected surface: 918
+- Route claims audited: 953
+- Implemented on expected surface: 953
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -82,6 +82,11 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-name-run.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions-run.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/actions/post-v1-actions.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/agents/delete-v1-agents-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/agents/get-v1-agents-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/agents/get-v1-agents.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/agents/patch-v1-agents-id.mdx` | 6 | 6 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/agents/post-v1-agents.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/behavior-trees/delete-v1-bt-definitions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/behavior-trees/get-v1-bt-definitions-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/behavior-trees/get-v1-bt-definitions.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -99,7 +104,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts-id.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/get-v1-receipts.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/execution-history-and-receipts/post-proof-receipts-verify.mdx` | 6 | 6 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 108 | 108 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/index.mdx` | 113 | 113 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-infer-multimodal-stats.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-models.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/get-v1-providers-stats.mdx` | 6 | 6 | 0 | 0 | 0 |

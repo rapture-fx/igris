@@ -2034,7 +2034,7 @@ function ProductShowcaseTabs() {
         className="text-gray-600 dark:text-[#a8a898] md:text-right"
         style={{
           fontFamily: MONO,
-          fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
+          fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
           lineHeight: 1.6,
           maxWidth: '42ch',
           marginLeft: 'auto',

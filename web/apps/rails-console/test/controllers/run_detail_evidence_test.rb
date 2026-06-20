@@ -19,6 +19,7 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
     def list_runtimes          = []
     def get_task(_id)          = @task
     def get_task_steps(_id)    = @steps
+    def list_agent_memory(**)  = []
     def get_action(_)          = nil
     def find_action_by_name(_) = nil
   end

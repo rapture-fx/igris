@@ -212,7 +212,7 @@ Not needed for live mode: `ENABLE_MULTI_TENANCY`, `JWT_SECRET`,
 | --- | --- | --- |
 | `RAILS_ENV` | `production` | |
 | `SECRET_KEY_BASE` | secret → `openssl rand -hex 64` | cookie/session signing |
-| `OVERTURE_API_BASE_URL` | API FQDN / `https://api.igrisinertial.com` | **the** switch out of fixture mode |
+| `OVERTURE_API_BASE_URL` | API FQDN / `https://overture.igrisinertial.com` | **the** switch out of fixture mode |
 | `OVERTURE_PUBLIC_API_URL` | same as above | endpoint URLs shown in snippets |
 | `OVERTURE_API_KEY` | secret → `igris_…` | service-principal key (step 3) |
 | `ADMIN_USERNAME` | your handle | front-door HTTP Basic |

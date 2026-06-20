@@ -3996,12 +3996,23 @@ async fn main() -> anyhow::Result<()> {
                 name,
                 input,
                 idempotency_key,
+                agent_id,
+                agent_name,
                 api_url,
                 console_url,
             } => {
                 let api = cli::resolve_api_url(&api_url);
                 let console = cli::resolve_console_url(&console_url);
-                cli::actions_run::run_action(&api, &console, &name, input.as_deref(), idempotency_key.as_deref()).await?;
+                cli::actions_run::run_action(
+                    &api,
+                    &console,
+                    &name,
+                    input.as_deref(),
+                    idempotency_key.as_deref(),
+                    agent_id.as_deref(),
+                    agent_name.as_deref(),
+                )
+                .await?;
                 return Ok(());
             }
         },
