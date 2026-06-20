@@ -1,0 +1,42 @@
+<%#
+  Run Story — the six-beat narrative of a run for an operator:
+  Agent → Action → Decision → Evidence → Outcome → Proof.
+
+  Reads only already-safe data: the normalized run fields and the first
+  Evidence Memory summary (operator-only — never prompts, chain-of-thought,
+  tokens, or raw bodies). Beats with no recorded fact read "Not recorded"
+  rather than inventing a value. `run` is the normalized run; `memory` is the
+  Evidence Memory array for the run (may be empty).
+%>
+<div class="ic-evidence ic-runstory" id="run-story">
+  <div class="ic-evidence__head">Run story</div>
+  <p class="ic-evidence__intro">
+    Why this agent acted and what came of it — reconstructed from execution
+    truth and the run's persisted Evidence Memory. Summaries only; no prompts
+    or hidden reasoning are stored or shown.
+  </p>
+
+  <ol class="ic-runstory__beats">
+    <% run_story(run, memory).each do |beat| %>
+      <li class="ic-runstory__beat is-<%= beat[:tone] %>">
+        <span class="ic-runstory__rail" aria-hidden="true"></span>
+        <div class="ic-runstory__body">
+          <span class="ic-runstory__label"><%= beat[:label] %></span>
+          <% if beat[:items].present? %>
+            <ul class="ic-runstory__items">
+              <% beat[:items].each do |item| %>
+                <li class="ic-runstory__item"><%= item %></li>
+              <% end %>
+            </ul>
+          <% elsif beat[:key] == :proof %>
+            <div class="ic-runstory__value"><%= status_pill beat[:value] %></div>
+          <% elsif beat[:key] == :action %>
+            <div class="ic-runstory__value mono"><%= beat[:value] %></div>
+          <% else %>
+            <div class="ic-runstory__value"><%= beat[:value] %></div>
+          <% end %>
+        </div>
+      </li>
+    <% end %>
+  </ol>
+</div>
