@@ -341,24 +341,56 @@ WITH checks AS (
 
     UNION ALL
     SELECT
-        'tenant_tier_enum_seed_horizon_infinite',
-        NOT EXISTS (
-            SELECT 1
-            FROM (VALUES ('seed'), ('horizon'), ('infinite')) AS required(enumlabel)
-            WHERE NOT EXISTS (
+        'tenant_tier_seed_horizon_infinite',
+        -- Two valid lineages are accepted:
+        --   (1) a tenant_tier ENUM type carrying seed/horizon/infinite (some
+        --       environments), OR
+        --   (2) the production lineage where tenants.tier is a TEXT/VARCHAR
+        --       column, NOT NULL, defaulting to 'seed' (no enum type exists and
+        --       migrations/026 must NOT be run there).
+        (
+            NOT EXISTS (
                 SELECT 1
+                FROM (VALUES ('seed'), ('horizon'), ('infinite')) AS required(enumlabel)
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM pg_enum e
+                    JOIN pg_type t ON t.oid = e.enumtypid
+                    WHERE t.typname = 'tenant_tier'
+                      AND e.enumlabel = required.enumlabel
+                )
+            )
+            AND EXISTS (
+                SELECT 1 FROM pg_type WHERE typname = 'tenant_tier' AND typtype = 'e'
+            )
+        )
+        OR EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'tenants'
+              AND column_name = 'tier'
+              AND data_type IN ('text', 'character varying')
+              AND is_nullable = 'NO'
+              AND column_default ILIKE '%''seed''%'
+        ),
+        COALESCE(
+            (
+                SELECT 'enum tenant_tier={' || string_agg(e.enumlabel, ',' ORDER BY e.enumsortorder) || '}'
                 FROM pg_enum e
                 JOIN pg_type t ON t.oid = e.enumtypid
                 WHERE t.typname = 'tenant_tier'
-                  AND e.enumlabel = required.enumlabel
-            )
-        ),
-        COALESCE((
-            SELECT string_agg(e.enumlabel, ',' ORDER BY e.enumsortorder)
-            FROM pg_enum e
-            JOIN pg_type t ON t.oid = e.enumtypid
-            WHERE t.typname = 'tenant_tier'
-        ), 'tenant_tier enum missing')
+            ),
+            (
+                SELECT 'text tenants.tier (' || data_type || ', nullable=' || is_nullable
+                       || ', default=' || COALESCE(column_default, 'NULL') || ')'
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                  AND table_name = 'tenants'
+                  AND column_name = 'tier'
+            ),
+            'neither tenant_tier enum nor tenants.tier text/varchar column found'
+        )
 
     UNION ALL
     SELECT
@@ -390,6 +422,138 @@ WITH checks AS (
               AND p.proname = 'sync_task_record_proof_state_from_lineage'
         ),
         'sync_task_record_proof_state_from_lineage'
+
+    -- ── Prerequisites: canonical baseline objects the 057-063 set depends on ──
+    UNION ALL
+    SELECT
+        'prereq_task_records_present',
+        to_regclass('public.task_records') IS NOT NULL,
+        COALESCE(to_regclass('public.task_records')::text,
+                 'missing task_records (canonical baseline <=031 required; STOP)')
+
+    UNION ALL
+    SELECT
+        'prereq_action_definitions_present',
+        to_regclass('public.action_definitions') IS NOT NULL,
+        COALESCE(to_regclass('public.action_definitions')::text,
+                 'missing action_definitions (migration 054 required; STOP)')
+
+    UNION ALL
+    SELECT
+        'prereq_execution_input_refs_present',
+        to_regclass('public.execution_input_refs') IS NOT NULL,
+        COALESCE(to_regclass('public.execution_input_refs')::text,
+                 'missing execution_input_refs (migration 056 required; STOP)')
+
+    -- ── 059: safe key rotation metadata on input-ref decrypt audits ──────────
+    UNION ALL
+    SELECT
+        '059_execution_input_ref_audit_key_version_column',
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'execution_input_ref_audit'
+              AND column_name = 'key_version'
+        ),
+        COALESCE((
+            SELECT 'nullable=' || is_nullable || ', default=' || COALESCE(column_default, 'NULL')
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'execution_input_ref_audit'
+              AND column_name = 'key_version'
+        ), 'missing execution_input_ref_audit.key_version column')
+
+    -- ── 061: tenant-scoped Agent Registry ───────────────────────────────────
+    UNION ALL
+    SELECT
+        '061_registered_agents_table_present',
+        to_regclass('public.registered_agents') IS NOT NULL,
+        COALESCE(to_regclass('public.registered_agents')::text,
+                 'missing registered_agents table')
+
+    UNION ALL
+    SELECT
+        '061_registered_agents_active_unique_index',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'registered_agents'
+              AND indexname = 'registered_agents_tenant_name_active_idx'
+              AND indexdef ILIKE '%UNIQUE%'
+              AND indexdef ILIKE '%tenant_id%'
+              AND indexdef ILIKE '%name%'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'registered_agents'
+              AND indexname = 'registered_agents_tenant_name_active_idx'
+            LIMIT 1
+        ), 'missing registered_agents active tenant/name unique index')
+
+    -- ── 062: registered agent attribution on durable task runs ──────────────
+    UNION ALL
+    SELECT
+        '062_task_records_registered_agent_id_column',
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'task_records'
+              AND column_name = 'registered_agent_id'
+        ),
+        COALESCE((
+            SELECT 'data_type=' || data_type
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'task_records'
+              AND column_name = 'registered_agent_id'
+        ), 'missing task_records.registered_agent_id column')
+
+    UNION ALL
+    SELECT
+        '062_task_records_registered_agent_name_column',
+        EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'task_records'
+              AND column_name = 'registered_agent_name'
+        ),
+        COALESCE((
+            SELECT 'data_type=' || data_type || ', nullable=' || is_nullable
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'task_records'
+              AND column_name = 'registered_agent_name'
+        ), 'missing task_records.registered_agent_name column')
+
+    -- ── schema_migrations advisory: object checks above are authoritative ────
+    -- Two incompatible ledger shapes exist in this repo (migration_name vs
+    -- version). Rather than trust a ledger that may disagree with reality, this
+    -- row only surfaces the ledger's presence/shape so a stale "applied" marker
+    -- can be reconciled by hand. A genuine "applied but object missing" conflict
+    -- shows up as a FAIL in the object checks above, which are the source of
+    -- truth. This row always passes by design.
+    UNION ALL
+    SELECT
+        'schema_migrations_advisory',
+        TRUE,
+        CASE
+            WHEN to_regclass('public.schema_migrations') IS NULL
+                THEN 'schema_migrations absent; object checks above are authoritative'
+            ELSE 'schema_migrations present (cols: ' ||
+                COALESCE((
+                    SELECT string_agg(column_name, ',' ORDER BY ordinal_position)
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                      AND table_name = 'schema_migrations'
+                ), '?') ||
+                '); trust the object checks above, not this ledger'
+        END
 )
 SELECT
     CASE WHEN passed THEN 'PASS' ELSE 'FAIL' END AS status,
