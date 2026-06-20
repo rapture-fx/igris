@@ -12,8 +12,8 @@
         <span role="columnheader"><%= subject %></span>
         <span role="columnheader" class="ic-intel__num">Runs</span>
         <span role="columnheader" class="ic-intel__num">Success</span>
-        <span role="columnheader" class="ic-intel__num">Failure</span>
-        <span role="columnheader" class="ic-intel__num">Recovery</span>
+        <span role="columnheader" class="ic-intel__num ic-intel__col--failure">Failure</span>
+        <span role="columnheader" class="ic-intel__num ic-intel__col--recovery">Recovery</span>
         <span role="columnheader" class="ic-intel__num">Avg runtime</span>
       </div>
       <% rows.each do |row| %>
@@ -30,8 +30,8 @@
           <span class="ic-intel__num" role="cell">
             <span class="ig-pill ig-pill--<%= intel_rate_tone(row[:success_rate]) %>"><%= intel_pct(row[:success_rate]) %></span>
           </span>
-          <span class="ic-intel__num mono" role="cell"><%= intel_pct(row[:failure_rate]) %></span>
-          <span class="ic-intel__num mono" role="cell"><%= intel_pct(row[:recovery_rate]) %></span>
+          <span class="ic-intel__num mono ic-intel__col--failure" role="cell"><%= intel_pct(row[:failure_rate]) %></span>
+          <span class="ic-intel__num mono ic-intel__col--recovery" role="cell"><%= intel_pct(row[:recovery_rate]) %></span>
           <span class="ic-intel__num mono" role="cell"><%= intel_duration(row[:average_duration_ms]) %></span>
         </div>
       <% end %>
