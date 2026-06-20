@@ -43,6 +43,8 @@ const ROUTE_CHIPS: Chip[] = [
 ]
 
 const WORKER_INSTALL_CMD = 'curl -fsSL https://igrisinertial.com/install | bash'
+const WORKER_AUTH_CMD = 'igris-runtime auth igris_...'
+const WORKER_SERVE_CMD = 'igris-runtime serve'
 
 const WORKER_COPY_STYLE: CSSProperties = {
   fontFamily: SANS,
@@ -205,8 +207,8 @@ export default function ExecutionPath() {
       <div className="pt-10 md:pt-14 pb-20 md:pb-32">
         <div className="mb-12 md:mb-16">
           <LandingPillarHeader
-            title="Connect"
-            description="One action, many clients. Call the same endpoint from your agent framework, SDK, or shell — then route through cloud APIs, webhooks, or a connected worker."
+            title="Actions"
+            description="One endpoint for every agent action. Create an action in Igris, then call it from your agent, app, workflow, or MCP client. Igris applies policy, routes the work, recovers from failures, and keeps proof behind the endpoint."
             titleAsPixel
           />
         </div>
@@ -303,9 +305,9 @@ function WorkerInstallCallout() {
     <aside className="ae-worker-callout" aria-label="Optional worker install for private access">
       <div className="ae-worker-copy">
         <p className="ae-worker-body text-gray-600 dark:text-[#a8a898]" style={WORKER_COPY_STYLE}>
-          Start in Cloud. Add a worker when needed. Hosted APIs and webhooks can run through
-          Igris Cloud. Install a worker only when an action needs access to private files,
-          internal APIs, databases, or local runtimes.
+          Start in Cloud. Add private access when needed. Hosted APIs and webhooks can run through
+          Igris Cloud. Connect a worker only when an action needs internal APIs, private files,
+          databases, local systems, or edge runtimes.
         </p>
         <p className="ae-worker-note" style={{ fontFamily: MONO }}>
           No worker is required for hosted API or webhook actions.
@@ -314,10 +316,20 @@ function WorkerInstallCallout() {
 
       <div className="ae-worker-terminal">
         <div className="ae-worker-code">
-          <code className="ae-worker-line" style={{ fontFamily: MONO }}>
-            <span className="ae-worker-prompt" aria-hidden>$ </span>
-            {highlightCurl(WORKER_INSTALL_CMD)}
-          </code>
+          <div className="ae-worker-lines">
+            <code className="ae-worker-line" style={{ fontFamily: MONO }}>
+              <span className="ae-worker-prompt" aria-hidden>$ </span>
+              {highlightCurl(WORKER_INSTALL_CMD)}
+            </code>
+            <code className="ae-worker-line" style={{ fontFamily: MONO }}>
+              <span className="ae-worker-prompt" aria-hidden>$ </span>
+              {highlightCurl(WORKER_AUTH_CMD)}
+            </code>
+            <code className="ae-worker-line" style={{ fontFamily: MONO }}>
+              <span className="ae-worker-prompt" aria-hidden>$ </span>
+              {highlightCurl(WORKER_SERVE_CMD)}
+            </code>
+          </div>
           <button
             type="button"
             onClick={copyInstallCmd}
@@ -667,6 +679,13 @@ function EndpointStyles() {
         color: #1b1912;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+      }
+      .ae-worker-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        flex: 1;
       }
       html.dark .ae-worker-code { color: #b0ada5; }
       .ae-worker-line {
