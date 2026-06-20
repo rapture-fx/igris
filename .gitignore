@@ -330,3 +330,4 @@ igris-overture-windows.exe
 !web/apps/*/lib/**
 .neon_branch_env
 .neon_preprod_env
+.neon_prod_env
