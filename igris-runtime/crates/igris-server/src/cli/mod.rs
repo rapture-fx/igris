@@ -23,7 +23,7 @@ pub mod templates;
 use clap::Subcommand;
 
 /// Default Overture base URL when --api-url is not passed and IGRIS_API_URL is unset.
-pub const DEFAULT_API_BASE: &str = "https://api.igrisinertial.com";
+pub const DEFAULT_API_BASE: &str = "https://overture.igrisinertial.com";
 
 /// Resolve the API base URL from (in order): explicit flag, IGRIS_API_URL env, default.
 pub fn resolve_api_url(flag: &Option<String>) -> String {
@@ -157,6 +157,12 @@ pub enum ActionsSub {
         /// Idempotency key for the run.
         #[arg(long)]
         idempotency_key: Option<String>,
+        /// Registered agent id to attribute this run to.
+        #[arg(long)]
+        agent_id: Option<String>,
+        /// Registered agent name to attribute this run to.
+        #[arg(long)]
+        agent_name: Option<String>,
         #[arg(long)]
         api_url: Option<String>,
         #[arg(long)]

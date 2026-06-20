@@ -4363,3 +4363,322 @@ html.dark, html[data-theme="dark"] {
   line-height: 1.5;
   color: var(--ic-text-6);
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Execution Intelligence Console — operator UX
+   Run Story · Agent attribution · Evidence Memory (run detail) and the
+   Intelligence metrics tab on /runs. Reuses .ic-evidence / .ic-def / .ig-pill;
+   only the component-specific structure is defined here.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── In-page view switch (Run history / Intelligence) ───────────────────── */
+.ic-viewtabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--ic-border);
+  margin-bottom: 12px;
+}
+.ic-viewtab {
+  font-size: 12px;
+  color: var(--ic-text-6);
+  text-decoration: none;
+  padding: 9px 12px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+.ic-viewtab:hover { color: var(--ic-text-3); }
+.ic-viewtab.is-active {
+  color: var(--ic-text-bright);
+  border-bottom-color: var(--ic-emerald);
+}
+
+/* ── Run Story — six narrative beats ────────────────────────────────────── */
+.ic-runstory__beats {
+  list-style: none;
+  margin: 4px 0 6px;
+  padding: 0;
+}
+.ic-runstory__beat {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  column-gap: 12px;
+  padding: 0 0 14px;
+}
+.ic-runstory__beat:last-child { padding-bottom: 2px; }
+.ic-runstory__rail {
+  position: relative;
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: var(--ic-text-8);
+  box-shadow: 0 0 0 3px var(--ic-overlay-bg);
+}
+.ic-runstory__beat::before {
+  content: "";
+  position: absolute;
+  left: 6.5px;
+  top: 15px;
+  bottom: 0;
+  width: 1px;
+  background: var(--ic-border);
+}
+.ic-runstory__beat:last-child::before { display: none; }
+.ic-runstory__beat.is-ok    .ic-runstory__rail { background: var(--ic-emerald); }
+.ic-runstory__beat.is-warn  .ic-runstory__rail { background: var(--ic-amber); }
+.ic-runstory__beat.is-bad   .ic-runstory__rail { background: var(--ic-rose); }
+.ic-runstory__beat.is-muted .ic-runstory__rail { background: var(--ic-text-8); }
+.ic-runstory__label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ic-text-7);
+  margin-bottom: 2px;
+}
+.ic-runstory__value {
+  font-size: 12.5px;
+  color: var(--ic-text-2);
+  line-height: 1.5;
+}
+.ic-runstory__value.mono { font-family: var(--ic-mono); font-size: 12px; }
+.ic-runstory__beat.is-muted .ic-runstory__value { color: var(--ic-text-7); }
+.ic-runstory__items {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.ic-runstory__item {
+  position: relative;
+  font-size: 12px;
+  color: var(--ic-text-3);
+  line-height: 1.5;
+  padding-left: 14px;
+}
+.ic-runstory__item::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ic-emerald);
+}
+
+/* ── Agent attribution card ─────────────────────────────────────────────── */
+.ic-agentcard__id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.ic-agentcard__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--ic-border);
+  background: var(--ic-overlay-bg);
+  color: var(--ic-text-5);
+  flex: none;
+}
+.ic-agentcard__idtext { display: flex; flex-direction: column; gap: 1px; }
+.ic-agentcard__name { font-size: 13px; color: var(--ic-text-bright); font-weight: 500; }
+.ic-agentcard__handle { font-family: var(--ic-mono); font-size: 11px; color: var(--ic-text-7); }
+.ic-agentcard__empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 6px;
+}
+
+/* ── Evidence Memory ────────────────────────────────────────────────────── */
+.ic-memory__card {
+  border: 1px solid var(--ic-border-soft);
+  border-radius: 7px;
+  padding: 12px 13px;
+  margin-bottom: 10px;
+  background: var(--ic-overlay-bg);
+}
+.ic-memory__card:last-child { margin-bottom: 4px; }
+.ic-memory__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.ic-memory__retention {
+  font-size: 11px;
+  color: var(--ic-text-6);
+  margin-left: auto;
+}
+.ic-memory__field { margin-bottom: 9px; }
+.ic-memory__field:last-of-type { margin-bottom: 4px; }
+.ic-memory__k {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ic-text-7);
+  margin-bottom: 3px;
+}
+.ic-memory__v {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ic-text-2);
+  line-height: 1.55;
+  max-width: 78ch;
+}
+.ic-memory__v--muted { color: var(--ic-text-7); }
+.ic-memory__list { margin: 0; padding: 0; list-style: none; }
+.ic-memory__listitem {
+  position: relative;
+  font-size: 12px;
+  color: var(--ic-text-3);
+  line-height: 1.55;
+  padding-left: 15px;
+}
+.ic-memory__listitem::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ic-text-7);
+}
+.ic-memory__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--ic-border-soft);
+}
+.ic-memory__metaitem { font-size: 10.5px; color: var(--ic-text-7); }
+.ic-memory__metaitem.mono { font-family: var(--ic-mono); }
+.ic-memory__empty { padding: 2px 0 6px; }
+
+/* ── Execution Intelligence metrics ─────────────────────────────────────── */
+.ic-intel { padding: 0 16px 24px; }
+.ic-intel__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 16px;
+}
+.ic-intel__ranges { display: inline-flex; gap: 2px; }
+.ic-intel__range {
+  font-size: 11.5px;
+  color: var(--ic-text-6);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--ic-border);
+  border-radius: 6px;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.ic-intel__range:hover { color: var(--ic-text-3); }
+.ic-intel__range.is-active {
+  color: var(--ic-text-bright);
+  border-color: var(--ic-emerald);
+  background: rgba(4, 120, 87, 0.06);
+}
+.ic-intel__source { font-size: 11px; color: var(--ic-text-7); margin-left: auto; }
+
+.ic-intel__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1px;
+  background: var(--ic-border);
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.ic-intel__stat {
+  background: var(--ic-bg);
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ic-intel__stat-k {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ic-text-7);
+}
+.ic-intel__stat-v { font-size: 22px; color: var(--ic-text-bright); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ic-intel__stat-v.is-ok   { color: var(--ic-emerald); }
+.ic-intel__stat-v.is-warn { color: var(--ic-amber); }
+.ic-intel__stat-v.is-bad  { color: var(--ic-rose); }
+.ic-intel__stat-sub { font-size: 11px; color: var(--ic-text-6); }
+
+.ic-intel__tables { display: flex; flex-direction: column; gap: 20px; }
+.ic-intel__table-head {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ic-text-6);
+  margin-bottom: 8px;
+}
+.ic-intel__grid {
+  border: 1px solid var(--ic-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ic-intel__row {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) repeat(5, minmax(0, 1fr));
+  align-items: center;
+  column-gap: 10px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--ic-border-soft);
+}
+.ic-intel__row:first-child { border-top: 0; }
+.ic-intel__row--head {
+  background: var(--ic-overlay-bg);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ic-text-7);
+}
+.ic-intel__num { text-align: right; font-variant-numeric: tabular-nums; }
+.ic-intel__row .ic-intel__num { font-size: 12px; color: var(--ic-text-3); }
+.ic-intel__name {
+  font-size: 12px;
+  color: var(--ic-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ic-intel__name.mono { font-family: var(--ic-mono); font-size: 11.5px; }
+.ic-intel__table-empty { font-size: 12px; color: var(--ic-text-7); margin: 4px 0 0; }
+
+.ic-intel__empty {
+  border: 1px dashed var(--ic-border);
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  max-width: 520px;
+  margin: 8px auto;
+}
+.ic-intel__empty-title { font-size: 14px; color: var(--ic-text-2); margin-bottom: 6px; }
+.ic-intel__empty-sub { font-size: 12px; color: var(--ic-text-6); line-height: 1.55; margin: 0 auto 14px; max-width: 46ch; }
+
+@media (max-width: 720px) {
+  .ic-intel__row {
+    grid-template-columns: minmax(0, 1.6fr) repeat(5, minmax(0, 1fr));
+    column-gap: 6px;
+    font-size: 11px;
+  }
+  .ic-intel__source { margin-left: 0; }
+}

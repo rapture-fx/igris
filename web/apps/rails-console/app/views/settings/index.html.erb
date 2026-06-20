@@ -66,7 +66,7 @@
 
         <div class="ic-field" style="margin-top: 16px;">
           <label class="ic-field__label">Public API URL</label>
-          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" readonly />
+          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://overture.igrisinertial.com' %>" readonly />
           <p class="ic-field__help">The base URL your agent calls. Public, not secret.</p>
         </div>
       </div>
@@ -82,7 +82,7 @@
 
         <div class="ic-field">
           <label class="ic-field__label">Public API URL</label>
-          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://api.igrisinertial.com' %>" readonly />
+          <input class="ic-input" type="text" value="<%= ENV['OVERTURE_PUBLIC_API_URL'].to_s.presence || 'https://overture.igrisinertial.com' %>" readonly />
           <p class="ic-field__help">The base URL shown in action code snippets (the endpoint your agent calls). Public, not secret.</p>
         </div>
 

@@ -117,7 +117,7 @@ export default function Header() {
   return (
     <>
       {/* Top navigation bar — fixed, full width */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md pt-2">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md pt-4">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
 
@@ -171,14 +171,12 @@ export default function Header() {
                 Pricing
               </Link>
 
-              <span className="mx-1 h-4 w-px bg-gray-300 dark:bg-white/[0.12]" />
-
               {/* Sign in */}
               <Link
                 href="/auth?mode=signin"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+                className="rounded-full border border-gray-300 px-4 py-2 text-black dark:text-[#f6f6f4] dark:border-[rgba(246,246,244,0.2)] hover:border-gray-400 dark:hover:border-[rgba(246,246,244,0.35)] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Sign in
@@ -188,7 +186,7 @@ export default function Header() {
                 href="/auth?mode=signup"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-md px-3.5 py-1.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+                className="rounded-full px-4 py-2 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
                 style={NAV_ITEM_STYLE}
               >
                 Get API key

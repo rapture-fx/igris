@@ -55,15 +55,15 @@ az containerapp hostname bind -g "$AZ_RG" -n "$APP" --hostname "$HOST" \
 Repoint the console at the API's stable hostname and redeploy the console:
 
 ```bash
-export OVERTURE_API_BASE_URL=https://api.igrisinertial.com
+export OVERTURE_API_BASE_URL=https://overture.igrisinertial.com
 # re-run scripts/azure/03-deploy-console.sh with the other required env vars
 ```
 
 Verify:
 
 ```bash
-curl -fsS https://api.igrisinertial.com/healthz   # liveness
-curl -fsS https://api.igrisinertial.com/readyz    # DB-aware
+curl -fsS https://overture.igrisinertial.com/healthz   # liveness
+curl -fsS https://overture.igrisinertial.com/readyz    # DB-aware
 curl -fsS https://app.igrisinertial.com/up        # console (no auth challenge)
 ```
 

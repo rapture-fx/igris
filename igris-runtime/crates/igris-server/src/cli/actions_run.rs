@@ -11,9 +11,11 @@ pub async fn run_action(
     action_name: &str,
     input: Option<&str>,
     idempotency_key: Option<&str>,
+    agent_id: Option<&str>,
+    agent_name: Option<&str>,
 ) -> Result<()> {
     let client = Client::new(api_url)?;
-    let payload = build_run_payload(input, idempotency_key)?;
+    let payload = build_run_payload(input, idempotency_key, agent_id, agent_name)?;
     let body = client
         .call_action(None, Some(action_name), &payload)
         .await
@@ -53,7 +55,12 @@ pub async fn inspect_run(api_url: &str, console_url: &str, run_id: &str) -> Resu
     Ok(())
 }
 
-fn build_run_payload(input: Option<&str>, idempotency_key: Option<&str>) -> Result<serde_json::Value> {
+fn build_run_payload(
+    input: Option<&str>,
+    idempotency_key: Option<&str>,
+    agent_id: Option<&str>,
+    agent_name: Option<&str>,
+) -> Result<serde_json::Value> {
     let mut payload = serde_json::json!({ "input": {} });
     if let Some(raw) = input.map(str::trim).filter(|s| !s.is_empty()) {
         let parsed = parse_input_value(raw)?;
@@ -61,6 +68,12 @@ fn build_run_payload(input: Option<&str>, idempotency_key: Option<&str>) -> Resu
     }
     if let Some(key) = idempotency_key.map(str::trim).filter(|s| !s.is_empty()) {
         payload["idempotency_key"] = key.into();
+    }
+    if let Some(id) = agent_id.map(str::trim).filter(|s| !s.is_empty()) {
+        payload["agent_id"] = id.into();
+    }
+    if let Some(name) = agent_name.map(str::trim).filter(|s| !s.is_empty()) {
+        payload["agent_name"] = name.into();
     }
     Ok(payload)
 }
@@ -79,6 +92,11 @@ fn print_action_run_summary(body: &serde_json::Value) {
         .or_else(|| body.get("task_id"))
         .and_then(|v| v.as_str())
         .unwrap_or("-");
+    let task_id = body.get("task_id").and_then(|v| v.as_str()).unwrap_or("");
+    let execution_id = body
+        .get("execution_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
     let status = body.get("status").and_then(|v| v.as_str()).unwrap_or("-");
     let proof = body
         .get("proof_status")
@@ -89,6 +107,12 @@ fn print_action_run_summary(body: &serde_json::Value) {
         .and_then(|v| v.as_str())
         .unwrap_or("-");
     println!("run_id: {run_id}");
+    if !task_id.is_empty() {
+        println!("task_id: {task_id}");
+    }
+    if !execution_id.is_empty() {
+        println!("execution_id: {execution_id}");
+    }
     println!("action: {action_name}");
     println!("status: {status}");
     println!("proof_status: {proof}");
@@ -106,8 +130,16 @@ mod tests {
 
     #[test]
     fn build_run_payload_accepts_inline_json() {
-        let payload = build_run_payload(Some(r#"{"message":"hi"}"#), Some("key-1")).unwrap();
+        let payload =
+            build_run_payload(Some(r#"{"message":"hi"}"#), Some("key-1"), None, None).unwrap();
         assert_eq!(payload["input"]["message"], "hi");
+        assert_eq!(payload["idempotency_key"], "key-1");
+    }
+
+    #[test]
+    fn build_run_payload_accepts_agent_attribution() {
+        let payload = build_run_payload(None, Some("key-1"), None, Some("codex_agent")).unwrap();
+        assert_eq!(payload["agent_name"], "codex_agent");
         assert_eq!(payload["idempotency_key"], "key-1");
     }
 }

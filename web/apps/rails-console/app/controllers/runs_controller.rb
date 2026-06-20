@@ -10,7 +10,28 @@ class RunsController < ApplicationController
     'week' => -> { 7.days.ago },
   }.freeze
 
+  # The two in-page views on /runs. History is the filterable run list;
+  # intelligence is the read-only Execution Intelligence metrics surface. Both
+  # live under the Runs lens — no parallel navigation.
+  VIEWS = %w[history intelligence].freeze
+
+  # Range options the intelligence tab offers, mapped to the API's range tokens.
+  INTELLIGENCE_RANGES = {
+    'last_24h' => 'Last 24 hours',
+    'last_7d'  => 'Last 7 days',
+    'last_30d' => 'Last 30 days',
+  }.freeze
+
   def index
+    @view = VIEWS.include?(params[:view].to_s) ? params[:view].to_s : 'history'
+
+    if @view == 'intelligence'
+      @range = INTELLIGENCE_RANGES.key?(params[:range].to_s) ? params[:range].to_s : 'last_30d'
+      @intelligence = data_source.execution_intelligence(range: @range)
+      @degraded_error = data_source.error
+      return
+    end
+
     @all_runs = data_source.all_runs
 
     # Selected filter values (blank = no filter on that dimension).
@@ -43,6 +64,9 @@ class RunsController < ApplicationController
     @run_groups = group_runs_by_project(@all_runs)
     @action_known = data_source.actions.any? { |a| a[:name].to_s == @run[:action].to_s }
     @any_healthy_runtime = data_source.healthy_runtime?
+    # Operator-facing Evidence Memory for this run — summary-only (goal /
+    # decision / evidence / outcome). [] when the run has none.
+    @agent_memory = data_source.agent_memory_for_run(@run)
     @degraded_error = data_source.error
   end
 

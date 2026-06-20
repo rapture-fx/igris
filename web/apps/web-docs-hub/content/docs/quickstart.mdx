@@ -7,11 +7,15 @@ audience: "public"
 # Quick Start
 
 Start here if you want to understand what Igris shows on first run and what the
-advanced proof path verifies today.
+advanced proof path verifies today. If you want to adopt Igris with a real
+tenant, start with [First Tenant Action in 5 Minutes](/docs/first-tenant-action).
 
 This quickstart is intentionally not a generic hosted-inference tutorial. Direct model calls are fine for simple chat. Igris is for the point where AI output starts doing work and you need governed execution, visible failure paths, and records you can inspect after the run.
 
-When you are ready to integrate for real, the standard path is actions-first: register an action on the hosted API, run it with an idempotency key, and inspect the durable run. [First Hosted Integration →](/docs/first-cloud-integration) walks through it.
+When you are ready to integrate for real, the standard path is actions-first:
+create an account, get a tenant API key, install the starter Action Pack, run an
+attributed action with an idempotency key, and inspect the durable run. [First
+Tenant Action in 5 Minutes](/docs/first-tenant-action) walks through that path.
 
 If you are connecting Claude Code, Codex, Cursor, or a custom agent, use
 [First Agent Onboarding →](/docs/first-agent-onboarding). It gives the smallest
@@ -133,9 +137,10 @@ Use this only when you are intentionally proving a sanctioned provider path. Do 
 
 ## 5. Choose The Next Path
 
-1. [First Agent Onboarding](/docs/first-agent-onboarding) to connect Claude Code, Codex, Cursor, or a custom agent through registered actions.
-2. [First Hosted Integration](/docs/first-cloud-integration) to register an action, run it with an idempotency key, and inspect the run.
-3. [First Verified Run](/docs/first-verified-run) for a deeper walkthrough of the proof demo and its artifacts.
-4. [Request -> Execute -> Verify](/docs/request-execute-verify) for the core mental model.
-5. [Verification](/docs/verification) for receipt hashes, signatures, and current proof-route semantics.
-6. [API Reference](/docs/api-reference) when you are ready to integrate against specific routes — the Actions section comes first.
+1. [First Tenant Action in 5 Minutes](/docs/first-tenant-action) to create an account, install the starter Action Pack, run `demo.echo`, and inspect evidence.
+2. [First Agent Onboarding](/docs/first-agent-onboarding) to connect Claude Code, Codex, Cursor, or a custom agent through registered actions.
+3. [First Hosted Integration](/docs/first-cloud-integration) to register a non-demo action, run it with an idempotency key, and inspect the run.
+4. [First Verified Run](/docs/first-verified-run) for a deeper walkthrough of the proof demo and its artifacts.
+5. [Request -> Execute -> Verify](/docs/request-execute-verify) for the core mental model.
+6. [Verification](/docs/verification) for receipt hashes, signatures, and current proof-route semantics.
+7. [API Reference](/docs/api-reference) when you are ready to integrate against specific routes. The Actions section comes first.

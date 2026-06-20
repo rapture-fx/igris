@@ -102,6 +102,7 @@ Areas such as real-provider proof, local fallback, checkpoint recovery, fleet fa
 - Quick install: `curl -fsSL https://igrisinertial.com/install | bash`
 - Docs app: [web/apps/web-docs-hub](./web/apps/web-docs-hub)
 - Docs overview: [web/apps/web-docs-hub/content/docs/index.mdx](./web/apps/web-docs-hub/content/docs/index.mdx)
+- First tenant action: [web/apps/web-docs-hub/content/docs/first-tenant-action.mdx](./web/apps/web-docs-hub/content/docs/first-tenant-action.mdx)
 - Quick start: [web/apps/web-docs-hub/content/docs/quickstart.mdx](./web/apps/web-docs-hub/content/docs/quickstart.mdx)
 - First verified run: [web/apps/web-docs-hub/content/docs/first-verified-run.mdx](./web/apps/web-docs-hub/content/docs/first-verified-run.mdx)
 - Request -> Execute -> Verify: [web/apps/web-docs-hub/content/docs/request-execute-verify.mdx](./web/apps/web-docs-hub/content/docs/request-execute-verify.mdx)

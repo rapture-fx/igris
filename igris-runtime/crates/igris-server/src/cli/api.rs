@@ -144,7 +144,9 @@ impl Client {
 
     pub async fn install_action_pack(&self, pack_name: &str) -> Result<serde_json::Value> {
         if !is_safe_pack_name(pack_name) {
-            return Err(anyhow!("pack name must be lowercase letters, digits, or hyphens"));
+            return Err(anyhow!(
+                "pack name must be lowercase letters, digits, or hyphens"
+            ));
         }
         let url = format!("{}/v1/action-packs/{}/install", self.base, pack_name);
         let resp = self
@@ -410,9 +412,9 @@ fn is_safe_action_name(name: &str) -> bool {
     if !bytes[0].is_ascii_lowercase() {
         return false;
     }
-    bytes.iter().all(|b| {
-        b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_' || *b == b'.'
-    })
+    bytes
+        .iter()
+        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'_' || *b == b'.')
 }
 
 fn is_safe_pack_name(name: &str) -> bool {
@@ -420,9 +422,9 @@ fn is_safe_pack_name(name: &str) -> bool {
     if bytes.is_empty() || bytes.len() > 64 {
         return false;
     }
-    bytes.iter().all(|b| {
-        b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'-'
-    })
+    bytes
+        .iter()
+        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || *b == b'-')
 }
 
 #[cfg(test)]

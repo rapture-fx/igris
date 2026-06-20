@@ -112,7 +112,9 @@ pub fn validate_relative_output_path(relative: &str) -> Result<()> {
         return Err(anyhow!("generated file path must use forward slashes"));
     }
     if trimmed.starts_with('/') || trimmed.starts_with("..") || trimmed.contains("/../") {
-        return Err(anyhow!("generated file path must stay inside the output directory"));
+        return Err(anyhow!(
+            "generated file path must stay inside the output directory"
+        ));
     }
     let path = Path::new(trimmed);
     if path.components().any(|c| matches!(c, Component::ParentDir)) {
@@ -420,7 +422,10 @@ pub fn run_list() -> Result<()> {
             "{} ({}) — {}",
             template.display_name, template.name, template.description
         );
-        println!("  agent_type: {}  recommended_pack: {}", template.agent_type, template.recommended_pack);
+        println!(
+            "  agent_type: {}  recommended_pack: {}",
+            template.agent_type, template.recommended_pack
+        );
     }
     Ok(())
 }
@@ -493,7 +498,8 @@ pub async fn run_install(opts: InstallOptions<'_>) -> Result<()> {
         None => {
             let dir = default_output_dir(opts.name)?;
             fs::create_dir_all(&dir)?;
-            dir.canonicalize().context("could not canonicalize output dir")?
+            dir.canonicalize()
+                .context("could not canonicalize output dir")?
         }
     };
 
@@ -542,7 +548,10 @@ pub async fn run_verify(name: &str, api_url: Option<String>) -> Result<()> {
     let template = get_template(name)?;
     let api = resolve_api_url(&api_url);
 
-    println!("Verifying template: {} ({})", template.display_name, template.name);
+    println!(
+        "Verifying template: {} ({})",
+        template.display_name, template.name
+    );
     println!("Recommended pack: {}", template.recommended_pack);
     println!();
 
@@ -624,7 +633,10 @@ pub async fn run_verify(name: &str, api_url: Option<String>) -> Result<()> {
         }
     }
     if missing.is_empty() {
-        println!("All starter actions are registered: {}", STARTER_ACTIONS.join(", "));
+        println!(
+            "All starter actions are registered: {}",
+            STARTER_ACTIONS.join(", ")
+        );
     } else {
         println!(
             "Missing starter actions: {}. Run `igris packs install starter`.",

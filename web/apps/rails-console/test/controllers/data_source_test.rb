@@ -19,6 +19,10 @@ class DataSourceTest < ActiveSupport::TestCase
     def find_action_by_name(n) = @actions.find { |a| a['name'] == n || a[:name] == n }
     def create_action(p) = p
     def run_action(name, **) = { 'task_id' => 'task_new', 'status' => 'dispatched', 'proof_status' => 'pending' }
+    def list_agent_memory(**) = raise_or(@memory || [], :list_agent_memory)
+    def get_execution_intelligence(**) = raise_or(@intelligence || {}, :get_execution_intelligence)
+    def with_memory(memory) = (@memory = memory; self)
+    def with_intelligence(intel) = (@intelligence = intel; self)
     private
     def raise_or(value, key)
       raise @errors[key] if @errors[key]
