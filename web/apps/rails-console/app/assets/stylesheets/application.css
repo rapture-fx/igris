@@ -14,7 +14,8 @@
    the hero's dark palette. */
 :root {
   --ic-bg: #f7f7f5;
-  --ic-bg-rail: #f2f1ee;
+  /* Uniform surface: the icon rail and sidebar share the main background. */
+  --ic-bg-rail: #f7f7f5;
   --ic-text: #1b1912;
   --ic-text-bright: #000000;
   --ic-text-2: #2a2820;
@@ -51,7 +52,7 @@
 
 html.dark, html[data-theme="dark"] {
   --ic-bg: #0e0e0c;
-  --ic-bg-rail: #070707;
+  --ic-bg-rail: #0e0e0c;
   --ic-text: #b0ada5;
   --ic-text-bright: #d3d2c8;
   --ic-text-2: #a8a89e;
@@ -495,7 +496,7 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
 .ic-task:hover { background: var(--ic-overlay-1); }
 .ic-task.is-active { background: var(--ic-overlay-4); }
 /* Runs picker: action name leads (flexible), status sizes to its own text. */
-.ic-task--run { grid-template-columns: 10px minmax(0, 1fr) auto auto; }
+.ic-task--run { grid-template-columns: minmax(0, 1fr) auto auto; }
 .ic-task--run .ic-task__title { color: var(--ic-text-2); }
 .ic-task--run .ic-task__status { overflow: visible; }
 .ic-task__dot {
@@ -1231,12 +1232,24 @@ html.dark .ic-btn--accent:hover {
 }
 .ic-run-detail-layout {
   display: grid;
-  /* Evidence is the main column; Execution detail is the sticky right rail. */
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 16px;
+  /* Two panels: the explanatory report on the left, the recorded operations
+     ("Changes") on the right — each scrolls independently. */
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
+  gap: 0;
   height: 100%;
   min-height: 0;
 }
+.ic-run-detail-report { min-width: 0; padding-right: 28px; }
+.ic-run-detail-side {
+  min-width: 0;
+  padding-left: 24px;
+  border-left: 1px solid var(--ic-border-soft);
+}
+.ic-run-detail-side__bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 8px; margin-bottom: 4px;
+}
+.ic-run-detail-side__title { font-size: 14px; font-weight: 600; color: var(--ic-text-bright); }
 .ic-run-detail-rail {
   min-width: 0;
   align-self: stretch;
@@ -1300,12 +1313,14 @@ html.dark .ic-btn--accent:hover {
     flex-direction: column;
     height: auto;
   }
-  .ic-run-detail-rail {
-    position: static;
-    max-height: none;
-    overflow: visible;
-    /* Stack the Execution-detail summary above the evidence on small screens. */
-    order: -1;
+  /* Stack the Changes panel below the report on small screens. */
+  .ic-run-detail-report { padding-right: 0; }
+  .ic-run-detail-side {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--ic-border-soft);
+    padding-top: 16px;
+    margin-top: 4px;
   }
   .ic-run-detail-scroll {
     overflow: visible;
@@ -3690,37 +3705,36 @@ html.dark .ic-nextstep { border-color: rgba(4,120,87,0.22); background: rgba(4,1
   max-width: 74ch;
 }
 
-/* Ordered per-step WAL evidence rows */
-.ic-stepev-list { display: flex; flex-direction: column; margin-top: 4px; }
-.ic-stepev {
+/* Ordered per-step WAL evidence — icon-led entry rows (changelog style) */
+.ic-stepev { display: flex; flex-direction: column; margin-top: 2px; }
+.ic-stepev__row {
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) 96px 64px 130px 70px;
+  grid-template-columns: 18px 24px minmax(0, 1fr) 132px 60px 84px 62px;
   align-items: center;
   gap: 10px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--ic-border-soft);
+  padding: 4px 2px;
 }
-.ic-stepev:last-child { border-bottom: 0; }
-.ic-stepev__idx { font-size: 11px; color: var(--ic-text-6); }
+.ic-stepev__ic { display: inline-flex; color: var(--ic-text-6); }
+.ic-stepev__idx { font-size: 11px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; }
 .ic-stepev__main { display: flex; flex-direction: column; min-width: 0; }
 .ic-stepev__label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ic-text-2);
   letter-spacing: -0.005em;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.ic-stepev__kind { font-size: 10.5px; color: var(--ic-text-6); }
-.ic-stepev__status { font-size: 11px; }
+.ic-stepev__kind { font-size: 10.5px; color: var(--ic-text-7); }
+.ic-stepev__status { font-size: 11px; text-align: right; }
 .ic-stepev__status--ok    { color: var(--ic-emerald); }
 .ic-stepev__status--warn  { color: var(--ic-amber); }
 .ic-stepev__status--bad   { color: var(--ic-rose); }
 .ic-stepev__status--muted { color: var(--ic-text-6); }
-.ic-stepev__proof { font-size: 11px; color: var(--ic-text-5); }
-.ic-stepev__digest { font-size: 10.5px; color: var(--ic-text-5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ic-stepev__time { font-size: 10.5px; color: var(--ic-text-7); text-align: right; }
+.ic-stepev__proof { font-size: 11px; color: var(--ic-text-6); text-align: right; }
+.ic-stepev__digest { font-family: var(--ic-mono); font-size: 10.5px; color: var(--ic-text-6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ic-stepev__ts { font-size: 10.5px; color: var(--ic-text-7); text-align: right; }
 @media (max-width: 720px) {
-  .ic-stepev { grid-template-columns: 26px minmax(0, 1fr) 80px; }
-  .ic-stepev__proof, .ic-stepev__digest, .ic-stepev__time { display: none; }
+  .ic-stepev__row { grid-template-columns: 18px 24px minmax(0, 1fr) 78px; }
+  .ic-stepev__proof, .ic-stepev__digest, .ic-stepev__ts { display: none; }
 }
 
 /* ── Wizard field validation + examples ─────────────────────────────── */
@@ -4394,80 +4408,31 @@ html.dark, html[data-theme="dark"] {
   border-bottom-color: var(--ic-emerald);
 }
 
-/* ── Run Story — six narrative beats ────────────────────────────────────── */
-.ic-runstory__beats {
-  list-style: none;
-  margin: 4px 0 6px;
-  padding: 0;
-}
+/* ── Run Story — Agent → Action → … → Proof, as a plain definition list ──── */
+.ic-runstory__beats { margin: 2px 0 0; padding: 0; }
 .ic-runstory__beat {
-  position: relative;
   display: grid;
-  grid-template-columns: 14px 1fr;
-  column-gap: 12px;
-  padding: 0 0 14px;
+  grid-template-columns: 96px 1fr;
+  column-gap: 18px;
+  padding: 4px 0;
 }
-.ic-runstory__beat:last-child { padding-bottom: 2px; }
-.ic-runstory__rail {
-  position: relative;
-  display: block;
-  width: 9px;
-  height: 9px;
-  margin-top: 4px;
-  border-radius: 999px;
-  background: var(--ic-text-8);
-  box-shadow: 0 0 0 3px var(--ic-overlay-bg);
-}
-.ic-runstory__beat::before {
-  content: "";
-  position: absolute;
-  left: 6.5px;
-  top: 15px;
-  bottom: 0;
-  width: 1px;
-  background: var(--ic-border);
-}
-.ic-runstory__beat:last-child::before { display: none; }
-.ic-runstory__beat.is-ok    .ic-runstory__rail { background: var(--ic-emerald); }
-.ic-runstory__beat.is-warn  .ic-runstory__rail { background: var(--ic-amber); }
-.ic-runstory__beat.is-bad   .ic-runstory__rail { background: var(--ic-rose); }
-.ic-runstory__beat.is-muted .ic-runstory__rail { background: var(--ic-text-8); }
-.ic-runstory__label {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--ic-text-7);
-  margin-bottom: 2px;
-}
-.ic-runstory__value {
-  font-size: 12.5px;
-  color: var(--ic-text-2);
-  line-height: 1.5;
-}
-.ic-runstory__value.mono { font-family: var(--ic-mono); font-size: 12px; }
-.ic-runstory__beat.is-muted .ic-runstory__value { color: var(--ic-text-7); }
-.ic-runstory__items {
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-}
+.ic-runstory__label { font-size: 12px; color: var(--ic-text-6); margin: 0; }
+.ic-runstory__value { font-size: 12.5px; color: var(--ic-text-2); line-height: 1.5; margin: 0; }
+.ic-runstory__value.is-muted { color: var(--ic-text-7); }
+.ic-runstory__value .mono { font-family: var(--ic-mono); font-size: 12px; }
+.ic-runstory__items { margin: 0; padding: 0; list-style: none; }
 .ic-runstory__item {
   position: relative;
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--ic-text-3);
   line-height: 1.5;
   padding-left: 14px;
 }
 .ic-runstory__item::before {
-  content: "";
+  content: "•";
   position: absolute;
   left: 2px;
-  top: 8px;
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--ic-emerald);
+  color: var(--ic-text-7);
 }
 
 /* ── Agent attribution card ─────────────────────────────────────────────── */
@@ -4480,13 +4445,7 @@ html.dark, html[data-theme="dark"] {
 .ic-agentcard__avatar {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  border: 1px solid var(--ic-border);
-  background: var(--ic-overlay-bg);
-  color: var(--ic-text-5);
+  color: var(--ic-text-6);
   flex: none;
 }
 .ic-agentcard__idtext { display: flex; flex-direction: column; gap: 1px; }
@@ -4501,32 +4460,24 @@ html.dark, html[data-theme="dark"] {
 
 /* ── Evidence Memory ────────────────────────────────────────────────────── */
 .ic-memory__card {
-  border: 1px solid var(--ic-border-soft);
-  border-radius: 7px;
-  padding: 12px 13px;
-  margin-bottom: 10px;
-  background: var(--ic-overlay-bg);
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--ic-border-soft);
 }
-.ic-memory__card:last-child { margin-bottom: 4px; }
+.ic-memory__card:last-child { margin-bottom: 2px; padding-bottom: 0; border-bottom: 0; }
 .ic-memory__top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.ic-memory__retention {
-  font-size: 11px;
+  margin: 0 0 10px;
+  font-size: 11.5px;
   color: var(--ic-text-6);
-  margin-left: auto;
 }
+.ic-memory__sep { color: var(--ic-text-8); margin: 0 5px; }
+.ic-memory__retention { color: var(--ic-text-6); }
 .ic-memory__field { margin-bottom: 9px; }
 .ic-memory__field:last-of-type { margin-bottom: 4px; }
 .ic-memory__k {
   display: block;
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--ic-text-7);
+  font-size: 11.5px;
+  color: var(--ic-text-6);
   margin-bottom: 3px;
 }
 .ic-memory__v {
@@ -4612,10 +4563,8 @@ html.dark, html[data-theme="dark"] {
   gap: 3px;
 }
 .ic-intel__stat-k {
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ic-text-7);
+  font-size: 11.5px;
+  color: var(--ic-text-6);
 }
 .ic-intel__stat-v { font-size: 22px; color: var(--ic-text-bright); font-variant-numeric: tabular-nums; line-height: 1.1; }
 .ic-intel__stat-v.is-ok   { color: var(--ic-emerald); }
@@ -4646,10 +4595,8 @@ html.dark, html[data-theme="dark"] {
 .ic-intel__row:first-child { border-top: 0; }
 .ic-intel__row--head {
   background: var(--ic-overlay-bg);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ic-text-7);
+  font-size: 11px;
+  color: var(--ic-text-6);
 }
 .ic-intel__num { text-align: right; font-variant-numeric: tabular-nums; }
 .ic-intel__row .ic-intel__num { font-size: 12px; color: var(--ic-text-3); }
@@ -4681,4 +4628,252 @@ html.dark, html[data-theme="dark"] {
     font-size: 11px;
   }
   .ic-intel__source { margin-left: 0; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   Run detail — document layout (plain text + icons, no cards)
+   Converts the right pane from separated evidence cards into a single-column
+   readout: icon-led section heads, an inline-chip Summary lead, changelog-style
+   step rows, and a bullet execution story. Scoped to `.ic-doc` so nothing else
+   in the console changes. Keeps the icon rail + mini-sidebar untouched.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Both panels read as plain documents (report on the left, Changes on the
+   right). The grid columns are defined on .ic-run-detail-layout above. */
+.ic-doc {
+  max-width: 760px;
+  padding-top: 6px;
+  padding-bottom: 28px;
+  line-height: 1.55;
+}
+
+/* Sections are plain — no border, background, or radius. A hairline rule and
+   spacing carry the separation instead of a card. */
+.ic-doc .ic-evidence,
+.ic-doc .ic-evidence--flat {
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin: 0 0 22px;
+}
+.ic-doc .ic-evidence + .ic-evidence { padding-top: 0; }
+
+/* Section heading — plain bold, sentence-case title (no icon, no caps). */
+.ic-doc .ic-evidence__head {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ic-text-bright);
+  margin-bottom: 8px;
+}
+.ic-evidence__count { font-size: 13px; font-weight: 400; color: var(--ic-text-7); }
+.ic-evidence__count::before { content: "("; }
+.ic-evidence__count::after { content: ")"; }
+.ic-doc .ic-evidence__intro {
+  font-size: 12px;
+  color: var(--ic-text-6);
+  margin: 0 0 10px;
+  max-width: 72ch;
+}
+
+/* Inline mono chip — identifiers and load-bearing values read inline in prose,
+   set off by a soft fill rather than a separate column. */
+.ic-doc__code {
+  font-family: var(--ic-mono);
+  font-size: 11.5px;
+  color: var(--ic-text-2);
+  background: var(--ic-border-soft);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+/* Status as plain tone-coloured text — never a pill. */
+.ic-doc__stat { font-size: 12px; }
+.ic-doc__stat--ok    { color: var(--ic-emerald); }
+.ic-doc__stat--warn  { color: var(--ic-amber); }
+.ic-doc__stat--bad   { color: var(--ic-rose); }
+.ic-doc__stat--muted { color: var(--ic-text-6); }
+/* Inline text link — sentence-flow, never a button. */
+.ic-doc__link { color: var(--ic-emerald-2); text-decoration: none; }
+.ic-doc__link:hover { text-decoration: underline; }
+
+/* Summary lead paragraph — the document's opening sentence. */
+.ic-doc__summary { margin-bottom: 20px; }
+.ic-doc__lead {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ic-text-2);
+  line-height: 1.6;
+  max-width: 70ch;
+}
+
+/* Definition rows read as plain label → value lines. */
+.ic-doc .ic-def {
+  grid-template-columns: 116px 1fr;
+  column-gap: 18px;
+  padding: 4px 0;
+}
+.ic-doc .ic-def__label { font-size: 11.5px; color: var(--ic-text-6); }
+.ic-doc .ic-def__value { font-size: 12px; }
+
+/* A quiet note line under a section (proof caveats, empty states). */
+.ic-doc__note {
+  font-size: 11.5px;
+  color: var(--ic-text-6);
+  margin: 9px 0 0;
+  max-width: 70ch;
+}
+
+/* Execution story — a bullet sequence with a per-step tone dot. */
+.ic-doc__story { list-style: none; margin: 4px 0 0; padding: 0; }
+.ic-doc__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 9px;
+  padding: 3px 0;
+}
+.ic-doc__step-dot {
+  width: 7px;
+  height: 7px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--ic-text-8);
+}
+.ic-doc__step.is-ok   .ic-doc__step-dot { background: var(--ic-emerald); }
+.ic-doc__step.is-warn .ic-doc__step-dot { background: var(--ic-amber); }
+.ic-doc__step.is-bad  .ic-doc__step-dot { background: var(--ic-rose); }
+.ic-doc__step-title { font-size: 12.5px; color: var(--ic-text-2); }
+.ic-doc__step-meta { grid-column: 2; font-size: 11.5px; color: var(--ic-text-6); }
+
+/* Next step — a plain document section (no box); the lead carries the advice. */
+.ic-doc__next .ic-doc__lead { color: var(--ic-text-3); }
+
+/* Full inspector — a disclosure so the deep, redacted inspection stays out of
+   the way until asked for. */
+.ic-doc__inspector { margin: 14px 0 4px; }
+.ic-doc__inspector-sum {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ic-text-bright);
+}
+.ic-doc__inspector-sum::-webkit-details-marker { display: none; }
+.ic-doc__inspector-hint { font-size: 11px; font-weight: 400; color: var(--ic-text-7); }
+.ic-doc__inspector-chev {
+  width: 13px; height: 13px; color: var(--ic-text-7); margin-left: auto;
+  transition: transform 0.15s ease;
+}
+.ic-doc__inspector[open] .ic-doc__inspector-chev { transform: rotate(90deg); }
+.ic-doc__inspector .ic-run-expand { margin-top: 12px; }
+
+/* Nothing inside the document reads as a pill or a bordered chip: status text
+   is plain and tone-coloured; any remaining chips (e.g. the demo context) read
+   as subtle inline code, not bordered tags. */
+.ic-doc .ig-pill {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+}
+.ic-doc .ic-chip,
+.ic-doc .ic-chip--sm {
+  border: 0;
+  border-radius: 4px;
+  background: var(--ic-border-soft);
+  color: var(--ic-text-2);
+  font-size: 11.5px;
+  padding: 1px 6px;
+}
+.ic-doc .ic-chips { gap: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ic-doc__inspector-chev { transition: none; }
+}
+@media (max-width: 720px) {
+  .ic-doc { max-width: 100%; }
+  .ic-doc .ic-def { grid-template-columns: 96px 1fr; column-gap: 12px; }
+}
+
+/* The run document is an explanatory report — no panels, frames, boxes, or
+   disclosure chrome inside it. The demo "Committed actions" log and the folded
+   inspector both flatten to plain text + lists. */
+.ic-doc .ic-panel {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.ic-doc .ic-panel__head,
+.ic-doc .ic-loggroup__head {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.ic-doc .ic-log__body { margin-top: 4px; }
+.ic-doc .ic-run-expand,
+.ic-doc .ic-run-expand .ic-runinspector {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* ── Changes panel — a diff view of the run's recorded operations ────────── */
+.ic-diff__stat { margin-left: 8px; font-family: var(--ic-mono); font-size: 11.5px; font-weight: 400; }
+.ic-diff__add { color: var(--ic-emerald); }
+.ic-diff__del { color: var(--ic-rose); }
+
+.ic-diff__body {
+  margin-top: 8px;
+  border: 1px solid var(--ic-border-soft);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.ic-diff__line {
+  display: grid;
+  grid-template-columns: 30px 14px 18px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  column-gap: 8px;
+  padding: 3px 10px 3px 0;
+  font-family: var(--ic-mono);
+  font-size: 11.5px;
+  border-top: 1px solid var(--ic-border-soft);
+}
+.ic-diff__line:first-child { border-top: 0; }
+.ic-diff__line--ok  { background: rgba(4, 120, 87, 0.055); }
+.ic-diff__line--bad { background: rgba(190, 18, 60, 0.055); }
+.ic-diff__num {
+  text-align: right;
+  padding-right: 5px;
+  font-size: 10.5px;
+  color: var(--ic-text-7);
+  background: var(--ic-overlay-bg);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.ic-diff__sign { text-align: center; color: var(--ic-text-7); }
+.ic-diff__line--ok  .ic-diff__sign { color: var(--ic-emerald); }
+.ic-diff__line--bad .ic-diff__sign { color: var(--ic-rose); }
+.ic-diff__ic { display: inline-flex; color: var(--ic-text-6); }
+.ic-diff__label { color: var(--ic-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ic-diff__kind { display: none; }
+.ic-diff__digest { color: var(--ic-text-6); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
+.ic-diff__proof { color: var(--ic-text-6); font-size: 10.5px; white-space: nowrap; }
+.ic-diff__status { font-size: 10.5px; white-space: nowrap; }
+@media (max-width: 980px) {
+  .ic-diff__line { grid-template-columns: 28px 14px 18px minmax(0, 1fr) auto; }
+  .ic-diff__digest, .ic-diff__proof { display: none; }
 }
