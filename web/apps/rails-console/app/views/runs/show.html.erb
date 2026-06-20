@@ -1,8 +1,8 @@
 <%#
-  Run detail — split view: LEFT is the execution report (what the agent did,
-  including the committed actions / step evidence); RIGHT is the Full inspector
-  (the redacted deep-inspection), shown directly — no header, footer, or
-  disclosure. Fixture mode keeps the illustrative DEMO.
+  Run detail — split view: LEFT is the execution report; RIGHT is the diff
+  (Changes: what the run read, called, and wrote). A "Full inspector" trigger in
+  the left swaps the RIGHT panel to the redacted deep-inspection (no dropdown) —
+  a no-JS checkbox toggle. No page header or footer. Fixture mode keeps the DEMO.
 %>
 <div class="ic-runtime-shell">
 
@@ -93,8 +93,8 @@
     })();
   </script>
 
-  <%# Layout-critical CSS is inlined so it reloads with the view (Propshaft
-      caches application.css until a server restart). Mirrors application.css. %>
+  <%# Layout-critical + diff/toggle CSS inlined so it reloads with the view
+      (Propshaft caches application.css until a server restart). %>
   <style>
     .ic-rail, .ic-sidebar { background: var(--ic-bg); }
 
@@ -103,9 +103,10 @@
       grid-template-columns: minmax(0, 1fr) minmax(340px, 0.85fr);
       gap: 0; height: 100%; min-height: 0;
     }
-    .ic-run-detail-report { min-width: 0; padding-right: 28px; }
+    .ic-run-detail-report.ic-doc, .ic-run-detail-side.ic-doc { max-width: none; }
+    .ic-run-detail-report { min-width: 0; padding-left: 18px; padding-right: 32px; }
     .ic-run-detail-side {
-      min-width: 0; padding-left: 24px;
+      min-width: 0; padding-left: 28px;
       border-left: 1px solid var(--ic-border-soft);
     }
     .ic-run-detail-report, .ic-run-detail-side {
@@ -120,9 +121,59 @@
     .ic-run-detail-side__title { font-size: 14px; font-weight: 600; color: var(--ic-text-bright); }
     .ic-run-detail-side .ic-run-expand { margin-top: 0; }
 
+    /* Right-panel views: Changes (default) ↔ Full inspector (when triggered) */
+    .ic-inspector-view { display: none; }
+    .ic-inspector-toggle:checked ~ .ic-run-detail-layout .ic-changes-view { display: none; }
+    .ic-inspector-toggle:checked ~ .ic-run-detail-layout .ic-inspector-view { display: block; }
+
+    /* "Full inspector" trigger — neutral text, never green. */
+    .ic-doc__inspector-open {
+      display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+      margin-top: 4px; font-size: 13px; font-weight: 600; color: var(--ic-text-bright);
+    }
+    .ic-doc__inspector-open:hover { color: var(--ic-text-2); }
+    .ic-doc__inspector-arrow { width: 13px; height: 13px; color: var(--ic-text-7); }
+    .ic-run-detail-side__back { cursor: pointer; font-size: 12px; color: var(--ic-text-6); }
+    .ic-run-detail-side__back:hover { color: var(--ic-text-2); }
+    /* Green is reserved for status + numbers; not for prose accents/links. */
+    .ic-doc__link { color: var(--ic-text-2); text-decoration: underline; }
+    .ic-diff .ic-narrative .accent { color: var(--ic-text-bright); font-weight: 600; }
+
+    /* Changes log — clean, always open (no collapsible). */
+    .ic-changes-log { margin-top: 10px; border: 1px solid var(--ic-border-soft); border-radius: 7px; overflow: hidden; }
+    .ic-changes-log__head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 12px; border-bottom: 1px solid var(--ic-border-soft);
+      background: var(--ic-overlay-bg); font-size: 11.5px; color: var(--ic-text-6);
+    }
+    .ic-changes-log__title { font-weight: 500; color: var(--ic-text-3); margin-right: auto; }
+    .ic-changes-log .ic-log__body { margin: 0; }
+
+    /* Changes — a flat diff: no box, full-width tinted lines, gutter + sign. */
+    .ic-diff__stat { margin-left: 8px; font-family: var(--ic-mono); font-size: 11.5px; font-weight: 400; }
+    .ic-diff__add { color: var(--ic-emerald); }
+    .ic-diff__del { color: var(--ic-rose); }
+    .ic-diff__lines { margin-top: 8px; font-family: var(--ic-mono); font-size: 11.5px; }
+    .ic-diff__line {
+      display: grid; grid-template-columns: 32px 14px minmax(0, 1fr) auto;
+      align-items: baseline; column-gap: 10px; padding: 2.5px 10px 2.5px 0;
+    }
+    .ic-diff__line--ok  { background: rgba(4, 120, 87, 0.07); }
+    .ic-diff__line--bad { background: rgba(190, 18, 60, 0.07); }
+    .ic-diff__num { text-align: right; padding-right: 6px; color: var(--ic-text-7); background: var(--ic-overlay-bg); align-self: stretch; display: flex; align-items: center; justify-content: flex-end; }
+    .ic-diff__sign { text-align: center; color: var(--ic-text-7); }
+    .ic-diff__line--ok  .ic-diff__sign { color: var(--ic-emerald); }
+    .ic-diff__line--bad .ic-diff__sign { color: var(--ic-rose); }
+    .ic-diff__text { color: var(--ic-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ic-diff__dim { color: var(--ic-text-6); }
+    .ic-diff__meta { display: inline-flex; gap: 10px; align-items: baseline; color: var(--ic-text-6); font-size: 10.5px; white-space: nowrap; }
+
+    @media (max-width: 980px) {
+      .ic-diff__meta { display: none; }
+    }
     @media (max-width: 720px) {
       .ic-run-detail-layout { display: flex; flex-direction: column; height: auto; }
-      .ic-run-detail-report { padding-right: 0; }
+      .ic-run-detail-report { padding-left: 0; padding-right: 0; }
       .ic-run-detail-side {
         padding-left: 0; border-left: 0;
         border-top: 1px solid var(--ic-border-soft); padding-top: 16px; margin-top: 4px;
@@ -130,7 +181,7 @@
     }
   </style>
 
-  <%# ── Main pane — execution report (left) + inspector (right). ──────────── %>
+  <%# ── Main pane — execution report (left) + Changes/inspector (right). ──── %>
   <div class="ic-runtime-main">
 
     <%= render 'shared/flash', degraded_error: @degraded_error %>
@@ -142,6 +193,10 @@
          started_label = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—'
          duration_label = @run[:duration_ms].present? ? "#{@run[:duration_ms]}ms" : '—' %>
       <% guidance = run_guidance_state(@run) %>
+
+      <%# No-JS toggle: the "Full inspector" trigger (left) swaps the right panel
+          from Changes to the inspector. The checkbox must precede the layout. %>
+      <input type="checkbox" id="ic-inspector-toggle" class="ic-inspector-toggle" hidden>
 
       <div class="ic-run-detail-layout">
 
@@ -209,119 +264,7 @@
                 </div>
               </div>
             </div>
-
-            <%# Committed actions — the run's operations, in the left report %>
-            <% steps = @run[:steps] || [] %>
-            <% log_times = committed_log_times(@run, steps) %>
-            <% committed_count = steps.count { |s| s[:kind] == :action && s[:status] == :committed } %>
-            <% latest_committed = steps.select { |s| s[:kind] == :action && s[:status] == :committed }.last %>
-            <% total_actions = steps.count { |s| s[:kind] == :action } %>
-            <% failed_count = steps.count { |s| s[:status] == :failed } %>
-            <div class="ic-evidence">
-              <div class="ic-evidence__head">Committed actions</div>
-              <p class="ic-narrative">
-                <% if running %>
-                  The receipt chain is <span class="accent">valid</span> up to
-                  <span class="mono"><%= latest_committed ? "action #{latest_committed[:num]}" : 'the first step' %></span>.
-                  <% rn = steps.find { |s| s[:status] == :running } %>
-                  <% if rn %>Action <%= rn[:num] %> (<span class="mono"><%= rn[:name] %></span>) is currently running.<% end %>
-                <% elsif @run[:status] == 'Failed' %>
-                  The receipt chain stops at the failed call. The console honestly reports
-                  the absence, with no fabricated proof.
-                <% else %>
-                  The receipt chain is <span class="accent">valid</span> end-to-end.
-                  <%= committed_count %> action<%= 's' if committed_count != 1 %> committed in
-                  <span class="mono"><%= @run[:duration_ms] %>ms</span>.
-                <% end %>
-              </p>
-              <div class="ic-panel">
-                <details class="ic-loggroup" open>
-                  <summary class="ic-panel__head ic-loggroup__head">
-                    <div class="ic-panel__head-l">
-                      <span class="ic-loggroup__chev" aria-hidden="true"></span>
-                      <span>Committed actions (<%= total_actions %>)</span>
-                      <span class="ic-panel__count-plus">+<%= committed_count %></span>
-                      <span class="ic-panel__count-minus">−<%= failed_count %></span>
-                    </div>
-                    <div class="ic-panel__head-r">
-                      <% if @run[:duration_ms].present? %>
-                        <span class="ic-log__dur mono"><%= @run[:duration_ms] %>ms</span>
-                      <% end %>
-                      <% if running %>
-                        <span class="ic-log__status ic-log__status--run"><span class="ic-bullet-dot ic-bullet-dot--running ic-breathing"></span>running</span>
-                      <% elsif failed_count.positive? %>
-                        <span class="ic-log__status ic-log__status--fail">failed</span>
-                      <% else %>
-                        <span class="ic-log__status ic-log__status--ok"><svg class="ic-bullet-check" viewBox="0 0 24 24" fill="none"><path d="M5 12.5 L10 17 L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>committed</span>
-                      <% end %>
-                    </div>
-                  </summary>
-
-                  <div class="ic-log__body">
-                    <% steps.each_with_index do |s, i| %>
-                      <% ts = log_times[i] %>
-                      <% if s[:kind] == :fault %>
-                        <div class="ic-line ic-line--fault ic-step-in">
-                          <span class="ic-line__ts mono"><%= ts %></span>
-                          <div class="ic-line__main">
-                            <span class="ic-line__name"><%= s[:name] %></span>
-                            <span class="ic-line__detail"><%= log_detail_html(s[:detail]) %></span>
-                          </div>
-                          <span class="ic-line__latency"><%= s[:latency] %>ms</span>
-                          <span class="ic-line__receipt">recovered</span>
-                        </div>
-                      <% else %>
-                        <% is_running = s[:status] == :running %>
-                        <div class="ic-line ic-step-in">
-                          <span class="ic-line__ts mono"><%= ts %></span>
-                          <div class="ic-line__main">
-                            <span class="ic-line__name <%= 'ic-line__name--running' if is_running %>"><%= s[:name] %></span>
-                            <span class="ic-line__detail"><%= log_detail_html(s[:detail]) %></span>
-                          </div>
-                          <span class="ic-line__latency"><%= s[:latency] ? "#{s[:latency]}ms" : '' %></span>
-                          <% if s[:receipt] %>
-                            <span class="ic-line__receipt ic-line__receipt--ok"><%= s[:receipt] %></span>
-                          <% else %>
-                            <span class="ic-line__receipt ic-line__receipt--none">—</span>
-                          <% end %>
-                        </div>
-                      <% end %>
-                    <% end %>
-                  </div>
-                </details>
-              </div>
-            </div>
           <% else %>
-            <%# ════════════ REAL MODE — strictly data-derived evidence ═══════ %>
-            <div class="ic-evidence">
-              <% steps = @run[:execution_steps] || [] %>
-              <div class="ic-evidence__head">Step evidence<% if steps.any? %> <span class="ic-evidence__count"><%= steps.size %></span><% end %></div>
-              <p class="ic-evidence__intro">
-                Ordered execution events from the run record — what the run read, called, and wrote, shown as digests instead of raw content.
-              </p>
-              <% if steps.any? %>
-                <div class="ic-stepev">
-                  <% steps.each do |st| %>
-                    <div class="ic-stepev__row">
-                      <span class="ic-stepev__ic" aria-hidden="true"><%= step_kind_icon(st[:kind]) %></span>
-                      <span class="ic-stepev__idx mono"><%= format('%02d', st[:index]) %></span>
-                      <div class="ic-stepev__main">
-                        <span class="ic-stepev__label"><%= st[:label].presence || '—' %></span>
-                        <span class="ic-stepev__kind"><%= st[:kind] %></span>
-                      </div>
-                      <span class="ic-stepev__digest mono"><%= st[:digest].presence || '—' %></span>
-                      <span class="ic-stepev__proof"><%= st[:proof] %></span>
-                      <span class="ic-stepev__status ic-stepev__status--<%= st[:status_tone] %>"><%= st[:status] %></span>
-                      <span class="ic-stepev__ts mono"><%= step_evidence_time(st[:at]) %></span>
-                    </div>
-                  <% end %>
-                </div>
-                <p class="ic-doc__note">Step proof appears when signed receipt data is available.</p>
-              <% else %>
-                <p class="ic-doc__note">No ordered step evidence is available for this run yet.</p>
-              <% end %>
-            </div>
-
             <div class="ic-evidence">
               <div class="ic-evidence__head">Execution story</div>
               <p class="ic-evidence__intro">
@@ -355,23 +298,34 @@
                 <% case guidance
                    when :runtime_unavailable %>This run required a runtime that was unavailable. Connect a runtime, then re-run the action so it can execute locally.
                 <% when :failed %>Run failed. Open the action to review its target and policy, or copy the run ID to share it.
-                <% when :running %>Run is still in flight. Step evidence appears above as the run commits each step.
+                <% when :running %>Run is still in flight. The changes appear in the right panel as the run commits each step.
                 <% when :proof_unavailable %>Proof is not yet available for this run. It appears once signed runtime evidence exists.
-                <% when :completed %>Run completed successfully. Review the signed evidence above, or open the action to run it again.
+                <% when :completed %>Run completed successfully. Review the changes in the right panel.
                 <% end %>
-                <% if @action_known %><%= link_to 'Open action', action_path(@run[:action]), class: 'ic-doc__link' %><% end %>
               </p>
             </div>
           <% end %>
+
+          <%# Full inspector trigger — swaps the RIGHT panel to the inspector. %>
+          <label for="ic-inspector-toggle" class="ic-doc__inspector-open">
+            Full inspector
+            <svg class="ic-doc__inspector-arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </label>
         </section>
 
-        <%# ══════════ RIGHT — Full inspector (shown directly) ══════════════ %>
-        <aside class="ic-run-detail-side ic-doc ic-run-detail-scroll" aria-label="Full inspector">
-          <div class="ic-run-detail-side__bar">
-            <span class="ic-run-detail-side__title">Full inspector</span>
+        <%# ══════════ RIGHT — Changes (default) ⇆ Full inspector ═══════════ %>
+        <aside class="ic-run-detail-side ic-doc ic-run-detail-scroll" aria-label="Changes and inspector">
+          <div class="ic-changes-view">
+            <%= render 'changes', run: @run, running: running %>
           </div>
-          <div class="ic-run-expand">
-            <%= render 'inspector', run: @run, run_id: @run[:id], action_known: @action_known %>
+          <div class="ic-inspector-view">
+            <div class="ic-run-detail-side__bar">
+              <span class="ic-run-detail-side__title">Full inspector</span>
+              <label for="ic-inspector-toggle" class="ic-run-detail-side__back" aria-label="Back to changes">← Back to changes</label>
+            </div>
+            <div class="ic-run-expand">
+              <%= render 'inspector', run: @run, run_id: @run[:id], action_known: @action_known %>
+            </div>
           </div>
         </aside>
       </div>
