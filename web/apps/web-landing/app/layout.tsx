@@ -1,9 +1,10 @@
 import './globals.css'
 import { Providers } from '../src/components/providers/Providers'
 import React from 'react'
-import { Inter } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const fontVariables = `${GeistSans.variable} ${GeistMono.variable}`
 
 export const viewport = {
   width: 'device-width',
@@ -45,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable} style={{ backgroundColor: '#ffffff' }}>
+    <html lang="en" suppressHydrationWarning className={fontVariables} style={{ backgroundColor: '#ffffff' }}>
       <head>
         <meta name="theme-color" content="#ffffff" />
         <script
