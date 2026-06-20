@@ -11,17 +11,16 @@
 <div class="ic-evidence ic-runstory" id="run-story">
   <div class="ic-evidence__head">Run story</div>
   <p class="ic-evidence__intro">
-    Why this agent acted and what came of it — reconstructed from execution
+    Why this agent acted and what came of it, reconstructed from execution
     truth and the run's persisted Evidence Memory. Summaries only; no prompts
     or hidden reasoning are stored or shown.
   </p>
 
-  <ol class="ic-runstory__beats">
+  <dl class="ic-runstory__beats">
     <% run_story(run, memory).each do |beat| %>
-      <li class="ic-runstory__beat is-<%= beat[:tone] %>">
-        <span class="ic-runstory__rail" aria-hidden="true"></span>
-        <div class="ic-runstory__body">
-          <span class="ic-runstory__label"><%= beat[:label] %></span>
+      <div class="ic-runstory__beat">
+        <dt class="ic-runstory__label"><%= beat[:label] %></dt>
+        <dd class="ic-runstory__value <%= 'is-muted' if beat[:tone] == :muted %>">
           <% if beat[:items].present? %>
             <ul class="ic-runstory__items">
               <% beat[:items].each do |item| %>
@@ -29,14 +28,14 @@
               <% end %>
             </ul>
           <% elsif beat[:key] == :proof %>
-            <div class="ic-runstory__value"><%= status_pill beat[:value] %></div>
+            <%= status_text beat[:value] %>
           <% elsif beat[:key] == :action %>
-            <div class="ic-runstory__value mono"><%= beat[:value] %></div>
+            <span class="mono"><%= beat[:value] %></span>
           <% else %>
-            <div class="ic-runstory__value"><%= beat[:value] %></div>
+            <%= beat[:value] %>
           <% end %>
-        </div>
-      </li>
+        </dd>
+      </div>
     <% end %>
-  </ol>
+  </dl>
 </div>
