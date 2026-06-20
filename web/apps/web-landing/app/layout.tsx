@@ -13,10 +13,10 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL('https://igris.inertial'),
-  title: 'Run AI that survives failure',
+  title: 'Action layer for AI agents.',
   description: 'Deploy AI anywhere with a 16MB binary. BYOM (bring your own model). Works offline with governed execution, signed records, and fleet visibility that scales with your plan.',
   openGraph: {
-    title: 'Run AI that survives failure',
+    title: 'Action layer for AI agents.',
     description: 'Secure AI execution for edge devices. 16MB binary, works offline, with governed execution and fleet visibility that scales with your plan.',
     url: 'https://igris.inertial',
     siteName: 'Igris Inertial',
@@ -26,7 +26,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Run AI that survives failure',
+    title: 'Action layer for AI agents.',
     description: 'Secure AI execution for edge devices. 16MB binary, works offline, with governed execution and fleet visibility that scales with your plan.',
     images: ['/foot2.png']
   },
