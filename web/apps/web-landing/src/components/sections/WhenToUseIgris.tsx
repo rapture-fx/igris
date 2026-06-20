@@ -5,7 +5,7 @@ import { RunDetailSnippet, type RunDetailSnippetVariant } from './Products'
 import { LandingPillarHeader } from '../ui/LandingPillarSection'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
 const cards = [
   {
@@ -212,7 +212,6 @@ export default function WhenToUseIgris() {
           <LandingPillarHeader
             title="Agent Work"
             description="Igris is built for agent actions your team needs to trust."
-            titleAsPixel
           />
         </div>
 
@@ -252,11 +251,11 @@ export default function WhenToUseIgris() {
                       {String(index + 1).padStart(2, '0')}
                     </p>
                     <h3
-                      className="mt-3 text-gray-700 dark:text-[#c8c8b8]"
+                      className="mt-3 text-black dark:text-[#f6f6f4]"
                       style={{
                         fontFamily: SANS,
                         fontSize: 'clamp(1.05rem, 1.2vw, 1.15rem)',
-                        fontWeight: 500,
+                        fontWeight: 400,
                         lineHeight: 1.35,
                         letterSpacing: '-0.01em',
                       }}
@@ -266,8 +265,8 @@ export default function WhenToUseIgris() {
                     <p
                       className="mt-3 text-gray-600 dark:text-[#a8a898]"
                       style={{
-                        fontFamily: SANS,
-                        fontSize: 'clamp(0.95rem, 1.05vw, 1rem)',
+                        fontFamily: MONO,
+                        fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
                         lineHeight: 1.65,
                       }}
                     >
@@ -284,11 +283,11 @@ export default function WhenToUseIgris() {
 
         <div className="mt-10 md:mt-14">
           <h2
-            className="text-gray-700 dark:text-[#c8c8b8]"
+            className="text-black dark:text-[#f6f6f4]"
             style={{
               fontFamily: SANS,
               fontSize: 'clamp(1.05rem, 1.3vw, 1.25rem)',
-              fontWeight: 500,
+              fontWeight: 400,
               lineHeight: 1.35,
               letterSpacing: '-0.01em',
             }}
@@ -298,8 +297,8 @@ export default function WhenToUseIgris() {
           <p
             className="mt-3 max-w-[52ch] text-gray-600 dark:text-[#a8a898]"
             style={{
-              fontFamily: SANS,
-              fontSize: 'clamp(0.95rem, 1.05vw, 1.05rem)',
+              fontFamily: MONO,
+              fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
               lineHeight: 1.6,
             }}
           >
@@ -308,7 +307,7 @@ export default function WhenToUseIgris() {
           </p>
           <ol
             className="mt-5 flex flex-wrap items-center gap-2 lg:flex-nowrap lg:gap-3"
-            style={{ fontFamily: SANS }}
+            style={{ fontFamily: MONO }}
             aria-label="Agent stack flow"
           >
             {['Reasoning framework', 'Igris action', 'Receipt / proof'].map((step, i, arr) => (
