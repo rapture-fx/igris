@@ -68,6 +68,15 @@ module ConsoleHelper
     'user'             => '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     'globe'            => '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
     'link'             => '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+    # Section-head glyphs for the run-detail document layout.
+    'file-text'        => '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>',
+    'info'             => '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    'layers'           => '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+    'git-commit'       => '<circle cx="12" cy="12" r="3"/><path d="M3 12h6"/><path d="M15 12h6"/>',
+    'database'         => '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+    'shield-check'     => '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    'circle-check'     => '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    'arrow-right'      => '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
     # Brand mark — Igris cross-hair. Not lucide; kept distinct on purpose.
     'igris-mark'       => '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>',
   }.freeze
@@ -749,7 +758,7 @@ module ConsoleHelper
   def audit_receipt_value(proof)
     case proof.to_s
     when /verified/i        then 'Signed runtime evidence present'
-    when /failed|mismatch/i then 'Receipt withheld — signature mismatch'
+    when /failed|mismatch/i then 'Receipt withheld after a signature mismatch'
     when /present|receipt/i then 'Receipt present'
     else 'No signed runtime evidence attached'
     end
@@ -797,6 +806,68 @@ module ConsoleHelper
     return :bad  if run_failed?(run)
     return :warn if run_running?(run)
     :ok
+  end
+
+  # ── Run detail document layout ─────────────────────────────────────────
+  # The run detail right pane reads as a plain document (no cards): plain-text
+  # section headings, with icons reserved for entry rows (step evidence) and the
+  # agent avatar — never on the headings themselves.
+
+  # The lead line of the run document — a plain-English reading of the run with
+  # the load-bearing facts as inline mono chips, mirroring how an operator would
+  # describe it. Reads only safe normalized fields (status, action, routed_via,
+  # duration, proof); never raw bodies, hosts, or failure text. Returns
+  # html_safe markup for a single paragraph.
+  def run_summary_html(run)
+    code   = ->(text) { content_tag(:code, text, class: 'ic-doc__code') }
+    status = run[:status].to_s
+    action = run[:action].to_s.strip.presence
+    proof  = run[:proof].to_s
+
+    verb =
+      if    status.match?(/failed|error/i)                       then 'failed at its target'
+      elsif status.match?(/running|awaiting|in.?flight|pending/i) then 'is still in flight'
+      elsif status.match?(/denied|blocked|cancel/i)              then 'was stopped before completing'
+      else 'completed'
+      end
+
+    pieces = ['Action', (action ? code.call(action) : 'This run'), verb]
+    if run[:routed_via].to_s.strip.present?
+      pieces << 'via' << code.call(filter_label(run[:routed_via]))
+    end
+    if run[:duration_ms].present? && !status.match?(/running|awaiting|pending/i)
+      pieces << 'in' << code.call("#{run[:duration_ms]}ms")
+    end
+    lead = safe_join(pieces, ' ').+('.')
+
+    proof_line =
+      if    proof.match?(/verified/i)        then 'A signed proof receipt was recorded for this run.'
+      elsif proof.match?(/failed|mismatch/i) then 'A receipt was withheld because the signature did not verify.'
+      elsif proof.match?(/present|receipt/i) then 'A receipt is present but has not been verified yet.'
+      else 'No verified proof receipt is attached to this run yet.'
+      end
+
+    safe_join([lead, ' ', proof_line])
+  end
+
+  # A status as plain, tone-coloured text — never a bordered pill. Used inside
+  # the run-detail document so nothing reads as a card.
+  def status_text(label, tone: nil)
+    tone ||= infer_tone(label)
+    content_tag(:span, label, class: "ic-doc__stat ic-doc__stat--#{tone}")
+  end
+
+  # Per-kind glyph for a step-evidence entry row, so the ordered events read
+  # like a changelog rather than a table. Falls back to a neutral commit dot.
+  def step_kind_icon(kind)
+    name = case kind.to_s
+           when /tool/      then 'zap'
+           when /checkpoint/ then 'circle-check'
+           when /inference/ then 'activity'
+           when /robotics/  then 'box'
+           else 'git-commit'
+           end
+    console_icon(name, size: 13, stroke: 1.7)
   end
 
   # Tone for an Evidence Memory redaction status badge. "redacted" is the
