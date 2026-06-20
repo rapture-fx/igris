@@ -9,7 +9,7 @@ import LandingSectionLink from '../LandingSectionLink'
 import ThemeToggleButton from '../ThemeToggleButton'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
-const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 const borderStyle = 'var(--section-border)'
 
 type FooterLink = { label: string; href: string; external?: boolean; section?: boolean }
@@ -114,8 +114,8 @@ export default function Footer() {
   return (
     <footer className="bg-gray-50 dark:bg-[#0e0e0c] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="pt-14 md:pt-16 pb-10 md:pb-12">
-          <div className="flex flex-col gap-12 lg:gap-16 lg:flex-row lg:items-start lg:justify-between">
+        <div className="pt-10 md:pt-14 pb-16 md:pb-20">
+          <div className="flex flex-col items-start gap-16 lg:gap-24 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-[280px] shrink-0">
               <Link href="/" prefetch={false} className="inline-flex" aria-label="Igris Inertial home">
                 <FooterLogo />
@@ -158,7 +158,7 @@ export default function Footer() {
 
         <div style={{ borderTop: borderStyle }} />
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-y-4 py-8 md:py-9">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-y-4 py-12 md:py-14">
           <p
             className="text-gray-500 dark:text-[#8a8a7a]"
             style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
