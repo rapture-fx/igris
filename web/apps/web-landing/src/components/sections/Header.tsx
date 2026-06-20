@@ -7,7 +7,6 @@ import { DOCS_LINKS } from '../../lib/docs-urls';
 import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections';
 import LandingSectionLink from '../LandingSectionLink';
 import { useTheme } from 'next-themes';
-import ThemeToggleButton from '../ThemeToggleButton';
 
 
 const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
@@ -31,7 +30,6 @@ const productItems: DropdownItem[] = [
   { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
   { label: 'Recover', description: 'Resume from recorded progress. Committed actions never replay.', href: landingHash(LANDING_SECTIONS.productRecover) },
   { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: landingHash(LANDING_SECTIONS.productProve) },
-  { label: 'Inspect', description: 'Operator-readable evidence without raw payloads.', href: landingHash(LANDING_SECTIONS.overview) },
 ];
 
 const docsItems: DropdownItem[] = [
@@ -119,7 +117,7 @@ export default function Header() {
   return (
     <>
       {/* Top navigation bar — fixed, full width */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-dark-bg/80 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md pt-2">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="flex h-14 items-center justify-between">
 
@@ -128,7 +126,7 @@ export default function Header() {
               <img
                 src={mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png'}
                 alt="Igris Inertial"
-                className="h-7 w-auto rounded-lg"
+                className="h-10 w-auto rounded-lg"
               />
             </Link>
 
@@ -173,8 +171,6 @@ export default function Header() {
                 Pricing
               </Link>
 
-              <ThemeToggleButton className="rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 dark:text-[#f6f6f4] dark:hover:bg-white/[0.08]" />
-
               <span className="mx-1 h-4 w-px bg-gray-300 dark:bg-white/[0.12]" />
 
               {/* Sign in */}
@@ -200,7 +196,6 @@ export default function Header() {
             </nav>
 
             <div className="flex items-center gap-2 md:hidden">
-              <ThemeToggleButton className="rounded-md p-1.5 text-gray-700 transition-colors hover:bg-gray-100 dark:text-[#f6f6f4] dark:hover:bg-white/[0.08]" />
               <button
                 type="button"
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -217,7 +212,7 @@ export default function Header() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-40 pt-14 bg-white dark:bg-[#010203] overflow-y-auto">
+        <div className="md:hidden fixed inset-0 z-40 pt-16 bg-white dark:bg-[#010203] overflow-y-auto">
           <nav className="flex flex-col px-5 py-6">
             <Link
               href="/auth?mode=signin"
