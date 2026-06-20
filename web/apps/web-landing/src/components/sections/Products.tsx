@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import RunsConsole from './RunsConsole'
 import ProductConsoleShell, { PRODUCT_SHOWCASE_URLS } from '../ui/ProductConsoleShell'
-import { RunActivityMapConsole } from './OverviewConsole'
 import {
   LANDING_PRODUCT_REVEAL_EVENT,
   LANDING_PRODUCT_TAB_EVENT,
@@ -1963,7 +1962,7 @@ const SHOWCASE_PILLARS: Record<ShowcaseTab, { title: string; description: string
   prove: {
     title: 'Prove',
     description:
-      'Inspect runs after the fact with signed receipts, verification state, and operator-readable evidence.',
+      'Signed receipts and verification state after the run — what ran, what recovered, and what was approved.',
   },
 }
 
@@ -2029,11 +2028,18 @@ function ProductShowcaseTabs() {
   const pillar = SHOWCASE_PILLARS[tab]
   return (
     <div>
-      <LandingPillarHeader
-        title={pillar.title}
-        description={pillar.description}
-        titleAsPixel
-      />
+      <p
+        className="text-gray-600 dark:text-[#a8a898] md:text-right"
+        style={{
+          fontFamily: SANS,
+          fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+          lineHeight: 1.6,
+          maxWidth: '42ch',
+          marginLeft: 'auto',
+        }}
+      >
+        {pillar.description}
+      </p>
 
       <div className="mt-10 md:mt-12 flex justify-center">
         <div
@@ -2102,35 +2108,21 @@ function ProductShowcaseTabs() {
 
 export default function Products() {
   return (
-    <>
-      <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+      <div className="px-0">
         <div className="px-0">
-          <div className="px-0">
-            <div className="pt-20 md:pt-28 lg:pt-32 pb-20 md:pb-32">
-              <ProductShowcaseTabs />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Inspect — Run Activity Map */}
-      <section id="overview" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
-        <div className="px-0">
-          <div className="px-0">
-            <div className="pb-20 md:pb-32">
+          <div className="pt-20 md:pt-28 lg:pt-32 pb-20 md:pb-32">
+            <div className="mb-10 md:mb-14">
               <LandingPillarHeader
-                title="Inspect"
-                description="Outcomes from many runs in one view. Spot what is completing, recovering, or stalling across your environment."
+                title="Receipts"
+                description="Every action leaves proof. See what ran, what failed, what recovered, and what was verified after execution."
                 titleAsPixel
               />
-
-              <div className="mt-10 md:mt-14">
-                <RunActivityMapConsole />
-              </div>
             </div>
+            <ProductShowcaseTabs />
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   )
 }
