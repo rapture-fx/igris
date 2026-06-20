@@ -90,7 +90,7 @@ class ExecutionIntelligenceConsoleTest < ActionDispatch::IntegrationTest
       assert_match 'Selected the configured Stripe target', response.body
       assert_match 'Target acknowledged the charge', response.body
       assert_match 'Charge completed and a verified receipt was recorded.', response.body
-      assert_select '#evidence-memory .ig-pill', text: 'Redacted'
+      assert_select '#evidence-memory .ic-memory__status', text: 'Redacted'
     end
   end
 
