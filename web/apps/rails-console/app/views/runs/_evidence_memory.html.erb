@@ -1,0 +1,78 @@
+<%#
+  Evidence Memory — the persisted, operator-facing summary of an agent run:
+  goal, decision, evidence, and outcome. These are stored summaries ONLY; the
+  API rejects prompt text, chain-of-thought, tokens, and secrets at write time
+  and marks each record redacted. `memory` is the normalized memory array for
+  this run (usually one entry); `run` is the normalized run.
+%>
+<div class="ic-evidence ic-memory" id="evidence-memory">
+  <div class="ic-evidence__head">Evidence Memory</div>
+  <% if memory.present? %>
+    <p class="ic-evidence__intro">
+      What the agent recorded about this run, in its own operator-facing
+      summary. Stored as redacted summaries — never prompts or hidden reasoning.
+    </p>
+    <% memory.each do |mem| %>
+      <div class="ic-memory__card">
+        <div class="ic-memory__top">
+          <span class="ig-pill ig-pill--<%= memory_status_tone(mem[:redaction_status]) %>"><%= mem[:redaction_status].titleize %></span>
+          <span class="ic-memory__retention"><%= mem[:retention_label] %></span>
+        </div>
+
+        <% if mem[:goal_summary].present? %>
+          <div class="ic-memory__field">
+            <span class="ic-memory__k">Goal</span>
+            <p class="ic-memory__v"><%= mem[:goal_summary] %></p>
+          </div>
+        <% end %>
+
+        <% if mem[:decision_summary].present? %>
+          <div class="ic-memory__field">
+            <span class="ic-memory__k">Decision</span>
+            <p class="ic-memory__v"><%= mem[:decision_summary] %></p>
+          </div>
+        <% end %>
+
+        <div class="ic-memory__field">
+          <span class="ic-memory__k">Evidence</span>
+          <% if mem[:evidence_summary].present? %>
+            <ul class="ic-memory__list">
+              <% mem[:evidence_summary].each do |item| %>
+                <li class="ic-memory__listitem"><%= item %></li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="ic-memory__v ic-memory__v--muted">No evidence summary recorded.</p>
+          <% end %>
+        </div>
+
+        <% if mem[:outcome_summary].present? %>
+          <div class="ic-memory__field">
+            <span class="ic-memory__k">Outcome</span>
+            <p class="ic-memory__v"><%= mem[:outcome_summary] %></p>
+          </div>
+        <% end %>
+
+        <div class="ic-memory__meta">
+          <% if mem[:created_at].respond_to?(:strftime) %>
+            <span class="ic-memory__metaitem">Recorded <%= time_ago(mem[:created_at]) %></span>
+          <% end %>
+          <% if mem[:agent_name].present? %>
+            <span class="ic-memory__metaitem mono"><%= mem[:agent_name] %></span>
+          <% end %>
+          <% if mem[:memory_id].present? %>
+            <span class="ic-memory__metaitem mono"><%= mem[:memory_id] %></span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="ic-evidence__intro">
+      No Evidence Memory was recorded for this run. Agents write a summary when
+      they want a durable, operator-facing record of why they acted.
+    </p>
+    <div class="ic-memory__empty">
+      <span class="ic-def__hint">Decision, evidence, and outcome summaries appear here once an agent records them for a run.</span>
+    </div>
+  <% end %>
+</div>
