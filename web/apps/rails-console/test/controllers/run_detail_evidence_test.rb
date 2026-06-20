@@ -180,11 +180,9 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
     get '/runs/run_01HGJ8K2Z9F' # ships in Igris::Fixtures
     assert_response :success
     assert_match 'Demo context', response.body
-    assert_match 'Committed actions', response.body
-    # Committed actions reads as a log: the title row is the only collapse
-    # toggle, and each step is a flat, timestamped line (no per-line collapse).
-    assert_select 'details.ic-loggroup > summary.ic-loggroup__head'
-    assert_select '.ic-log__body div.ic-line'
-    assert_select '.ic-line__ts'
+    # The right panel is a flat diff (Changes): gutter + sign + tinted lines,
+    # no collapsible, no wrapping log box.
+    assert_match 'Changes', response.body
+    assert_select '.ic-diff__lines .ic-diff__line'
   end
 end
