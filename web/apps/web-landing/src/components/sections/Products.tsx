@@ -1910,7 +1910,9 @@ function RunDetailSnippetBody({ variant }: { variant: RunDetailSnippetVariant })
 /** Cropped Run-tab console for landing embeds (no browser chrome / sidebar). */
 export function RunDetailSnippet({ variant }: { variant: RunDetailSnippetVariant }) {
   const { resolvedTheme } = useTheme()
-  const isLight = resolvedTheme === 'light'
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+  const isLight = mounted && resolvedTheme === 'light'
   return (
     <div
       className={'igris-console wtu-run-snippet ' + (isLight ? 'igris-console--light ' : '')}
@@ -2031,8 +2033,8 @@ function ProductShowcaseTabs() {
       <p
         className="text-gray-600 dark:text-[#a8a898] md:text-right"
         style={{
-          fontFamily: SANS,
-          fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
+          fontFamily: MONO,
+          fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
           lineHeight: 1.6,
           maxWidth: '42ch',
           marginLeft: 'auto',
@@ -2060,7 +2062,7 @@ function ProductShowcaseTabs() {
                 className={
                   'relative flex flex-col items-center gap-3 min-w-0 flex-1 sm:flex-none sm:min-w-[280px] text-[13px] font-normal transition-colors duration-300 ' +
                   (active
-                    ? 'text-gray-700 dark:text-[#c8c8b8]'
+                    ? 'text-black dark:text-[#f6f6f4]'
                     : 'text-gray-400 dark:text-[#7a7a72] hover:text-gray-600 dark:hover:text-[#a8a898]')
                 }
                 style={{ fontFamily: SANS, letterSpacing: '-0.01em', fontWeight: 400 }}
@@ -2116,7 +2118,6 @@ export default function Products() {
               <LandingPillarHeader
                 title="Receipts"
                 description="Every action leaves proof. See what ran, what failed, what recovered, and what was verified after execution."
-                titleAsPixel
               />
             </div>
             <ProductShowcaseTabs />
