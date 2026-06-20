@@ -10,7 +10,6 @@ import { useTheme } from 'next-themes';
 
 
 const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-const MONO_FONT = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace';
 
 const NAV_ITEM_STYLE: React.CSSProperties = {
   fontFamily: NAV_FONT,
