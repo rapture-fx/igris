@@ -824,6 +824,12 @@ module ConsoleHelper
     action = run[:action].to_s.strip.presence
     proof  = run[:proof].to_s
 
+    # Degraded placeholder (backend error): say so plainly, don't imply success.
+    if status.match?(/unavailable|unknown/i)
+      return safe_join([content_tag(:span,
+        'This run could not be loaded from the Igris API. The banner above shows the error class and status.')])
+    end
+
     verb =
       if    status.match?(/failed|error/i)                       then 'failed at its target'
       elsif status.match?(/running|awaiting|in.?flight|pending/i) then 'is still in flight'
@@ -902,6 +908,15 @@ module ConsoleHelper
     return :ok   if r >= 0.9
     return :warn if r >= 0.6
     :bad
+  end
+
+  # Inverted tone for a failure rate — high failure is bad, low failure is good.
+  # Kept separate from intel_rate_tone so the threshold semantics stay explicit.
+  def intel_failure_tone(rate)
+    r = rate.to_f
+    return :bad  if r >= 0.10
+    return :warn if r >= 0.04
+    :ok
   end
 
   def infer_tone(label)

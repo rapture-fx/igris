@@ -34,7 +34,8 @@ module Igris
       access[_-]?key|refresh[_-]?token|private[_-]?key|credential|body|raw[_-]?body|
       request[_-]?body|response[_-]?body|payload|content|file[_-]?content|
       file[_-]?contents|full[_-]?text|file[_-]?path|absolute[_-]?path|full[_-]?absolute[_-]?path|
-      hostname|ip[_-]?address|database[_-]?url|dsn
+      hostname|ip[_-]?address|database[_-]?url|dsn|
+      prompt|chain[_-]?of[_-]?thought|hidden[_-]?reasoning|ciphertext
     /ix
     SAFE_HEADER_KEYS = %w[
       content_type content_length etag last_modified cache_control x_request_id x_correlation_id

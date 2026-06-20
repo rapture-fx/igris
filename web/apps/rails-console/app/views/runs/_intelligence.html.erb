@@ -46,7 +46,7 @@
       </div>
       <div class="ic-intel__stat">
         <span class="ic-intel__stat-k">Failure rate</span>
-        <span class="ic-intel__stat-v"><%= intel_pct(summary[:failure_rate]) %></span>
+        <span class="ic-intel__stat-v is-<%= intel_failure_tone(summary[:failure_rate]) %>"><%= intel_pct(summary[:failure_rate]) %></span>
         <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:failed_runs]) %> failed</span>
       </div>
       <div class="ic-intel__stat">
@@ -57,12 +57,12 @@
       <div class="ic-intel__stat">
         <span class="ic-intel__stat-k">Approval rate</span>
         <span class="ic-intel__stat-v"><%= intel_pct(summary[:approval_rate]) %></span>
-        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:approval_required_runs]) %> needed approval</span>
+        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:approval_required_runs]) %> needed approval · <%= number_with_delimiter(summary[:human_intervention_runs]) %> needed human intervention</span>
       </div>
       <div class="ic-intel__stat">
         <span class="ic-intel__stat-k">Average runtime</span>
         <span class="ic-intel__stat-v"><%= intel_duration(summary[:average_duration_ms]) %></span>
-        <span class="ic-intel__stat-sub"><%= number_with_delimiter(summary[:human_intervention_runs]) %> needed human intervention</span>
+        <span class="ic-intel__stat-sub">across <%= number_with_delimiter(summary[:total_runs]) %> runs</span>
       </div>
     </div>
 
