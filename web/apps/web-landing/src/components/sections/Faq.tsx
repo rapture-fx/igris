@@ -175,7 +175,6 @@ export default function Faq({ large = false }: { large?: boolean }) {
           <LandingPillarHeader
             title="Questions"
             description="Common questions about getting started, pricing, execution, verification, and deployment."
-            titleAsPixel={large}
           />
 
           <div className="mt-10 md:mt-12">
@@ -198,7 +197,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
                           aria-expanded={isOpen}
                         >
                           <span
-                            className="text-gray-700 dark:text-[#c8c8b8]"
+                            className="text-black dark:text-[#f6f6f4]"
                             style={{
                               fontSize: sectionTitleSize,
                               fontWeight: 500,
@@ -229,7 +228,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
                                 className={entryIndex > 0 ? 'pt-5 border-t border-[var(--landing-surface-border)]' : ''}
                               >
                                 <p
-                                  className="text-gray-700 dark:text-[#c8c8b8] mb-2"
+                                  className="text-black dark:text-[#f6f6f4] mb-2"
                                   style={{
                                     fontFamily: SANS,
                                     fontSize: questionSize,
@@ -259,13 +258,13 @@ export default function Faq({ large = false }: { large?: boolean }) {
                                     <div className="rounded-md border border-[var(--landing-surface-border)] bg-black/[0.02] p-3 font-mono text-xs overflow-x-auto dark:bg-white/[0.02]">
                                       <div className="mb-2">
                                         <span className="text-gray-500 dark:text-[#8a8a7a]"># Old</span>
-                                        <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
+                                        <div className="text-black dark:text-[#f6f6f4] mt-1 break-all">
                                           {faq.codeExample?.old}
                                         </div>
                                       </div>
                                       <div>
                                         <span className="text-gray-500 dark:text-[#8a8a7a]"># New</span>
-                                        <div className="text-gray-700 dark:text-[#c8c8b8] mt-1 break-all">
+                                        <div className="text-black dark:text-[#f6f6f4] mt-1 break-all">
                                           {faq.codeExample?.new}
                                         </div>
                                       </div>
