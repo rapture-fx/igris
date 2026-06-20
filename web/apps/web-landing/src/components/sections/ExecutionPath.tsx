@@ -209,7 +209,6 @@ export default function ExecutionPath() {
           <LandingPillarHeader
             title="Actions"
             description="One endpoint for every agent action. Create an action in Igris, then call it from your agent, app, workflow, or MCP client. Igris applies policy, routes the work, recovers from failures, and keeps proof behind the endpoint."
-            titleAsPixel
           />
         </div>
 
@@ -242,11 +241,11 @@ function ChipGroup({
   return (
     <div className="ae-connect-row">
       <p
-        className="ae-connect-label text-gray-700 dark:text-[#c8c8b8]"
+        className="ae-connect-label text-black dark:text-[#f6f6f4]"
         style={{
           fontFamily: SANS,
           fontSize: '0.95rem',
-          fontWeight: 500,
+          fontWeight: 400,
           lineHeight: 1.4,
           letterSpacing: '-0.01em',
         }}
