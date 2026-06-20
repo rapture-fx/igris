@@ -10,36 +10,36 @@ const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", u
 const cards = [
   {
     id: 'side-effects',
-    title: 'Real side effects',
-    body: 'Use Igris when agents need to perform actions with business impact: creating invoices, calling APIs, triggering workflows, writing to databases, or changing state.',
+    title: 'Change data',
+    body: 'Create invoices, update records, call APIs, or trigger workflows without giving agents direct access.',
     fig: 'RUN · COMMITTED ACTIONS',
     snippet: 'actions' as RunDetailSnippetVariant,
   },
   {
     id: 'proof',
-    title: 'Auditability and proof',
-    body: 'Use Igris when your team needs a clear record of what the agent actually did, not just logs, screenshots, or a final answer.',
+    title: 'Prove it',
+    body: 'Keep a receipt for every action: what ran, what failed, what recovered, and what was approved.',
     fig: 'RUN · RECEIPT TRAIL',
     snippet: 'proof' as RunDetailSnippetVariant,
   },
   {
     id: 'hybrid',
-    title: 'Hybrid execution',
-    body: 'Use Igris when some actions run through cloud endpoints and others need private, local, edge, or internal execution with the same governance model.',
+    title: 'Run privately',
+    body: 'Use workers when actions need internal APIs, files, databases, local systems, or edge access.',
     fig: 'RUN · ROUTED VIA',
     snippet: 'routing' as RunDetailSnippetVariant,
   },
   {
     id: 'boundaries',
-    title: 'Opinionated execution',
-    body: 'Use Igris when you want stronger boundaries, recovery, and proof than a general workflow engine usually provides.',
+    title: 'Recover safely',
+    body: 'Resume from checkpoints when something fails instead of blindly starting over.',
     fig: 'RUN · POLICY & RECOVERY',
     snippet: 'policy' as RunDetailSnippetVariant,
   },
 ] as const
 
 const CARD_BASE =
-  'landing-surface-card flex w-full max-w-none flex-col rounded-xl border p-5 text-left transition-all duration-300 sm:p-6 md:max-w-md md:p-8 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.04)] backdrop-blur-[2px] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.04)]'
+  'flex w-full max-w-none flex-col p-2 text-left transition-colors duration-300 sm:p-3 md:max-w-md md:p-4'
 
 /** Fixed rail width — height stretches to match the stacked card column. */
 const RAIL_WIDTH_PX = 520
@@ -210,21 +210,14 @@ export default function WhenToUseIgris() {
       <div className="pt-10 md:pt-14 pb-20 md:pb-32">
         <div id="when-to-use-heading">
           <LandingPillarHeader
-            title="Scenarios"
-            description="Igris is most useful when agent actions have consequences and your team needs control, recovery, and proof around execution."
+            title="Agent Work"
+            description="Igris is built for agent actions your team needs to trust."
             titleAsPixel
           />
         </div>
 
-        <div className="relative mt-8 overflow-hidden rounded-xl sm:mt-12 md:mt-16">
-          <div
-            className="absolute inset-0 bg-center bg-no-repeat bg-cover"
-            style={{ backgroundImage: 'url(/pkrllgol.png)' }}
-            aria-hidden
-          />
-          <div className="absolute inset-0 bg-white/55 dark:bg-[#110f0f]/50" aria-hidden />
-
-          <div className="relative z-10 wtu-detail-layout p-4 sm:p-6 lg:p-10">
+        <div className="mt-8 sm:mt-12 md:mt-16">
+          <div className="wtu-detail-layout p-4 sm:p-6 lg:p-10">
             <div className="wtu-detail-scroll flex min-w-0 w-full flex-col items-stretch gap-3 md:items-start md:gap-4">
               {cards.map((card, index) => {
                 const isActive = activeIndex === index
@@ -246,10 +239,10 @@ export default function WhenToUseIgris() {
                     }}
                     className={
                       CARD_BASE +
-                      ' cursor-pointer hover:border-[var(--landing-surface-border-strong)] ' +
+                      ' cursor-pointer ' +
                       (isActive
-                        ? 'border-emerald-700/35 bg-white/85 ring-1 ring-emerald-700/20 dark:border-emerald-400/35 dark:bg-[#161515]/90 dark:ring-emerald-400/20'
-                        : 'border-[var(--landing-surface-border)] bg-[var(--landing-surface)]/88')
+                        ? 'border-l-2 border-emerald-700/60 dark:border-emerald-400/60'
+                        : 'border-l-2 border-transparent hover:border-gray-200 dark:hover:border-white/[0.12]')
                     }
                   >
                     <p
