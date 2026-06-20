@@ -266,7 +266,7 @@ export default function WhenToUseIgris() {
                       className="mt-3 text-gray-600 dark:text-[#a8a898]"
                       style={{
                         fontFamily: MONO,
-                        fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
+                        fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
                         lineHeight: 1.65,
                       }}
                     >
@@ -298,7 +298,7 @@ export default function WhenToUseIgris() {
             className="mt-3 max-w-[52ch] text-gray-600 dark:text-[#a8a898]"
             style={{
               fontFamily: MONO,
-              fontSize: 'clamp(0.85rem, 1vw, 0.95rem)',
+              fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
               lineHeight: 1.6,
             }}
           >
