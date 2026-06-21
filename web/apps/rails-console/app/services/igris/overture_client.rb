@@ -140,6 +140,18 @@ module Igris
       request(:get, '/v1/execution/intelligence', query: query)
     end
 
+    # GET /v1/execution/affinity?range=&agent_id=&action_name=&pack= →
+    #   { agent_actions[…], action_agents[…], pack_edges[…], hotspots[…] }
+    # Read-only aggregates only; Overture never returns raw execution payloads.
+    def get_execution_affinity(range: nil, agent_id: nil, action_name: nil, pack: nil)
+      query = {}
+      query[:range] = range if range.present?
+      query[:agent_id] = agent_id if agent_id.present?
+      query[:action_name] = action_name if action_name.present?
+      query[:pack] = pack if pack.present?
+      request(:get, '/v1/execution/affinity', query: query.presence)
+    end
+
     # GET /v1/execution-evals/runs/:run_id →
     #   { eval_runs: [{ eval_name, status, passed_count, failed_count, results_json }] }
     # The Rails console asks by task/run id on the run detail page. Overture
@@ -169,6 +181,53 @@ module Igris
     #     affected_agents[], affected_actions[], sample_runs[], warnings[] }
     def simulate_policy(payload)
       request(:post, '/v1/policy/simulate', body: payload)
+    end
+
+    # ── Policy Proposals ──────────────────────────────────────────────────
+    # Lifecycle for tenant-owned draft policy rules, built on top of the
+    # read-only policy simulation surface. Approval is governance metadata only —
+    # the backend never mutates active policy, replays runs, or dispatches tasks,
+    # and persists only safe metadata, allow-listed criteria, and safe simulation
+    # summaries. Tenant identity is derived server-side; tenant_id is never sent.
+
+    # GET /v1/policy/proposals → { proposals: [Proposal...], total }
+    def list_policy_proposals
+      body = request(:get, '/v1/policy/proposals')
+      Array(body && body['proposals'])
+    end
+
+    # GET /v1/policy/proposals/:id → { proposal: Proposal, events: [Event...] }
+    def get_policy_proposal(id)
+      request(:get, "/v1/policy/proposals/#{escape(id)}")
+    end
+
+    # POST /v1/policy/proposals → { proposal: Proposal } (201)
+    def create_policy_proposal(payload)
+      body = request(:post, '/v1/policy/proposals', body: payload)
+      body && body['proposal']
+    end
+
+    # PATCH /v1/policy/proposals/:id → { proposal: Proposal }
+    def update_policy_proposal(id, payload)
+      body = request(:patch, "/v1/policy/proposals/#{escape(id)}", body: payload)
+      body && body['proposal']
+    end
+
+    # DELETE /v1/policy/proposals/:id → { ok: true } (soft archive)
+    def archive_policy_proposal(id)
+      request(:delete, "/v1/policy/proposals/#{escape(id)}")
+    end
+
+    # POST /v1/policy/proposals/:id/simulate → { proposal: Proposal, simulation: {...} }
+    # Re-runs the read-only simulation over fresh execution truth (no body).
+    def simulate_policy_proposal(id)
+      request(:post, "/v1/policy/proposals/#{escape(id)}/simulate")
+    end
+
+    # POST /v1/policy/proposals/:id/approve → { proposal: Proposal }
+    def approve_policy_proposal(id)
+      body = request(:post, "/v1/policy/proposals/#{escape(id)}/approve")
+      body && body['proposal']
     end
 
     # ── Execution Evaluation definitions ──────────────────────────────────
