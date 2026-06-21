@@ -22,12 +22,34 @@ class RunsController < ApplicationController
     'last_30d' => 'Last 30 days',
   }.freeze
 
+  # Policy Simulation form options (operator-facing label => API token). The
+  # backend re-validates every value; these only shape the compact form.
+  POLICY_SIM_RANGES = {
+    '24h' => 'Last 24 hours',
+    '7d'  => 'Last 7 days',
+    '30d' => 'Last 30 days',
+  }.freeze
+  POLICY_SIM_MODES = {
+    'require_approval' => 'Would require approval',
+    'block'           => 'Would block',
+  }.freeze
+  POLICY_SIM_MATCH_KINDS = {
+    'match_action_name'   => 'Action name is',
+    'match_action_prefix' => 'Action name starts with',
+  }.freeze
+  POLICY_SIM_STATUSES = %w[
+    completed failed canceled approval_required dispatched in_flight running pending
+  ].freeze
+
   def index
     @view = VIEWS.include?(params[:view].to_s) ? params[:view].to_s : 'history'
 
     if @view == 'intelligence'
       @range = INTELLIGENCE_RANGES.key?(params[:range].to_s) ? params[:range].to_s : 'last_30d'
       @intelligence = data_source.execution_intelligence(range: @range)
+      # Policy Simulation is a read-only preview computed only when the operator
+      # submits the form (params[:simulate]); otherwise the card shows its intro.
+      @policy_simulation = run_policy_simulation if params[:simulate].present?
       @degraded_error = data_source.error
       return
     end
@@ -71,10 +93,35 @@ class RunsController < ApplicationController
     # Operator-facing Evidence Memory for this run — summary-only (goal /
     # decision / evidence / outcome). [] when the run has none.
     @agent_memory = data_source.agent_memory_for_run(@run)
+    @evaluation_results = data_source.execution_evaluations_for_run(@run)
     @degraded_error = data_source.error
   end
 
   private
+
+  # Build the read-only Policy Simulation from the submitted form params. Only
+  # allow-listed, bounded values are passed through; the DataSource forwards
+  # them to Igris (which re-validates and computes deterministically) and never
+  # sends a tenant id. The match-kind selector maps one text value to exactly
+  # one of the action-match criteria.
+  def run_policy_simulation
+    sim_range = POLICY_SIM_RANGES.key?(params[:sim_range].to_s) ? params[:sim_range].to_s : '30d'
+    sim_mode  = POLICY_SIM_MODES.key?(params[:sim_mode].to_s) ? params[:sim_mode].to_s : 'require_approval'
+
+    criteria = {}
+    match_kind  = params[:sim_match_kind].to_s
+    match_value = params[:sim_match_value].to_s.strip
+    criteria[match_kind] = match_value if POLICY_SIM_MATCH_KINDS.key?(match_kind) && match_value.present?
+
+    status = params[:sim_status].to_s
+    criteria[:match_result_status] = status if POLICY_SIM_STATUSES.include?(status)
+
+    criteria[:require_proof_missing]     = true if params[:sim_proof_missing].present?
+    criteria[:require_recovery_occurred] = true if params[:sim_recovery].present?
+    criteria[:require_eval_failed]       = true if params[:sim_eval_failed].present?
+
+    data_source.simulate_policy(range: sim_range, policy_mode: sim_mode, criteria: criteria)
+  end
 
   # The mini-sidebar groups recent runs by a real run attribute — their status
   # bucket — newest first within each group. No synthetic folders: every group
