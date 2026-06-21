@@ -47,10 +47,16 @@ type intelligenceBreakdown struct {
 	FailedRuns           int64   `json:"failed_runs"`
 	ApprovalRequiredRuns int64   `json:"approval_required_runs"`
 	RecoveryRuns         int64   `json:"recovery_runs"`
+	EvalRunCount         int64   `json:"eval_run_count"`
+	EvalPassedRuns       int64   `json:"eval_passed_runs"`
+	ProofCoveredRuns     int64   `json:"proof_covered_runs"`
 	AverageDurationMs    float64 `json:"average_duration_ms"`
 	SuccessRate          float64 `json:"success_rate"`
 	FailureRate          float64 `json:"failure_rate"`
+	ApprovalRate         float64 `json:"approval_rate"`
 	RecoveryRate         float64 `json:"recovery_rate"`
+	EvalPassRate         float64 `json:"eval_pass_rate"`
+	ProofCoverage        float64 `json:"proof_coverage"`
 }
 
 func handleExecutionIntelligence(db *sql.DB) fiber.Handler {
@@ -162,12 +168,27 @@ func queryExecutionIntelligenceBreakdown(ctx context.Context, db *sql.DB, tenant
 				tr.dispatched_at,
 				tr.completed_at,
 				tr.canceled_at,
+				(
+					COALESCE(tr.proof_verified, false)
+					OR COALESCE(tr.proof_signature, '') <> ''
+					OR COALESCE(tr.proof_status, '') IN ('verified', 'present')
+				) AS proof_covered,
 				EXISTS (
 					SELECT 1 FROM task_recovery_events tre
 					WHERE tre.tenant_id = tr.tenant_id AND tre.task_id = tr.task_id
-				) AS had_recovery
+				) AS had_recovery,
+				COALESCE(eval_stats.eval_run_count, 0)::bigint AS eval_run_count,
+				COALESCE(eval_stats.eval_passed_count, 0)::bigint AS eval_passed_count
 			FROM task_records tr
 			` + join + `
+			LEFT JOIN LATERAL (
+				SELECT
+					COUNT(*)::bigint AS eval_run_count,
+					COUNT(*) FILTER (WHERE er.status = 'passed')::bigint AS eval_passed_count
+				FROM execution_eval_runs er
+				WHERE er.tenant_id = tr.tenant_id
+				  AND er.task_id = tr.task_id
+			) eval_stats ON true
 			WHERE tr.tenant_id = $1
 			  AND ` + intervalWhereClause(interval) + `
 		)
@@ -179,6 +200,9 @@ func queryExecutionIntelligenceBreakdown(ctx context.Context, db *sql.DB, tenant
 			COUNT(*) FILTER (WHERE status = 'failed')::bigint,
 			COUNT(*) FILTER (WHERE status = 'approval_required')::bigint,
 			COUNT(*) FILTER (WHERE had_recovery)::bigint,
+			COALESCE(SUM(eval_run_count), 0)::bigint,
+			COALESCE(SUM(eval_passed_count), 0)::bigint,
+			COUNT(*) FILTER (WHERE proof_covered)::bigint,
 			AVG(` + durationExpr() + `)
 		FROM base
 		GROUP BY key, name
@@ -201,12 +225,21 @@ func queryExecutionIntelligenceBreakdown(ctx context.Context, db *sql.DB, tenant
 			failed      int64
 			approvals   int64
 			recoveries  int64
+			evalRuns    int64
+			evalPassed  int64
+			proofRuns   int64
 			avgDuration sql.NullFloat64
 		)
-		if err := rows.Scan(&key, &name, &total, &successful, &failed, &approvals, &recoveries, &avgDuration); err != nil {
+		if err := rows.Scan(
+			&key, &name, &total, &successful, &failed, &approvals, &recoveries,
+			&evalRuns, &evalPassed, &proofRuns, &avgDuration,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, buildExecutionIntelligenceBreakdown(key, name, total, successful, failed, approvals, recoveries, avgDuration))
+		items = append(items, buildExecutionIntelligenceBreakdown(
+			key, name, total, successful, failed, approvals, recoveries,
+			evalRuns, evalPassed, proofRuns, avgDuration,
+		))
 	}
 	return items, rows.Err()
 }
@@ -232,7 +265,11 @@ func buildExecutionIntelligenceSummary(total, successful, failed, approvals, int
 	}
 }
 
-func buildExecutionIntelligenceBreakdown(key, name string, total, successful, failed, approvals, recoveries int64, avgDuration sql.NullFloat64) intelligenceBreakdown {
+func buildExecutionIntelligenceBreakdown(
+	key, name string,
+	total, successful, failed, approvals, recoveries, evalRuns, evalPassed, proofRuns int64,
+	avgDuration sql.NullFloat64,
+) intelligenceBreakdown {
 	avg := 0.0
 	if avgDuration.Valid {
 		avg = avgDuration.Float64
@@ -245,10 +282,16 @@ func buildExecutionIntelligenceBreakdown(key, name string, total, successful, fa
 		FailedRuns:           failed,
 		ApprovalRequiredRuns: approvals,
 		RecoveryRuns:         recoveries,
+		EvalRunCount:         evalRuns,
+		EvalPassedRuns:       evalPassed,
+		ProofCoveredRuns:     proofRuns,
 		AverageDurationMs:    avg,
 		SuccessRate:          rate(successful, total),
 		FailureRate:          rate(failed, total),
+		ApprovalRate:         rate(approvals, total),
 		RecoveryRate:         rate(recoveries, total),
+		EvalPassRate:         rate(evalPassed, evalRuns),
+		ProofCoverage:        rate(proofRuns, total),
 	}
 }
 
