@@ -1,0 +1,95 @@
+<%#
+  Pack Detail — explanatory Pack → Action → Agent relationship view. Uses only
+  execution affinity aggregates: safe identifiers, labels, counts, and rates.
+%>
+<%= render 'shared/runs_header_style' %>
+<style>
+  .ic-packd { max-width: 860px; width: 100%; margin: 0 auto; padding: 18px 16px; }
+  .ic-packd__title { font-size: 18px; font-weight: 650; color: var(--ic-text-bright); }
+  .ic-packd__meta { margin-top: 3px; font-size: 12px; color: var(--ic-text-6); font-family: var(--ic-mono); }
+  .ic-packtree { margin-top: 14px; border-left: 2px solid var(--ic-border); padding-left: 14px; }
+  .ic-packtree__action { padding: 12px 0; border-bottom: 1px solid var(--ic-border-soft); }
+  .ic-packtree__action:last-child { border-bottom: 0; }
+  .ic-packtree__name { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); text-decoration: none; }
+  .ic-packtree__name:hover { text-decoration: underline; }
+  .ic-packtree__summary { margin-top: 4px; font-size: 12px; color: var(--ic-text-5); line-height: 1.55; }
+  .ic-packtree__agents { margin-top: 8px; padding-left: 14px; border-left: 1px solid var(--ic-border-soft); }
+  .ic-packtree__agent { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 4px 0; font-size: 12px; color: var(--ic-text-5); }
+  .ic-packtree__agent a { color: var(--ic-text-3); text-decoration: none; font-weight: 600; }
+  .ic-packtree__agent a:hover { text-decoration: underline; }
+  .ic-packtree__facts { color: var(--ic-text-6); font-size: 11.5px; }
+</style>
+
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-runs-header">
+    <%= link_to '← Action packs', agents_path(view: 'packs'), class: 'ic-viewtab' %>
+    <div class="ic-runs-header__actions">
+      <%= project_chip %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <div class="ic-body ic-scroll ic-doc">
+    <div class="ic-packd">
+      <div class="ic-packd__title"><%= @pack[:display_name].presence || @pack[:name] %></div>
+      <div class="ic-packd__meta"><%= @pack[:name] %></div>
+      <% if @pack[:description].present? %>
+        <p class="ic-doc__lead" style="margin-top: 10px;"><%= @pack[:description] %></p>
+      <% end %>
+
+      <div class="ic-section-head" style="margin-top: 22px;">
+        <span class="ic-section-head__label">Pack relationships</span>
+        <span class="ic-section-head__hint">last 30 days</span>
+      </div>
+      <p class="ic-doc__note" style="margin-top: 6px;">
+        This shows the installed pack as an execution path: each action in the
+        pack, then the agents that actually used that action.
+      </p>
+
+      <% pack_actions = Array(@affinity && @affinity[:pack_actions]) %>
+      <% if pack_actions.any? %>
+        <div class="ic-packtree">
+          <% pack_actions.each do |action| %>
+            <div class="ic-packtree__action">
+              <%= link_to action[:action_display_name].presence || action[:action_name], action_path(action[:action_name]), class: 'ic-packtree__name' %>
+              <div class="ic-packtree__summary">
+                <%= pluralize(action[:run_count], 'recorded run') %> across
+                <%= pluralize(action[:agent_count], 'agent') %>.
+              </div>
+              <div class="ic-packtree__agents">
+                <% Array(action[:agents]).each do |agent| %>
+                  <div class="ic-packtree__agent">
+                    <%= link_to agent[:agent_name], agent_path(agent[:agent_id]) %>
+                    <span class="ic-packtree__facts">
+                      <%= pluralize(agent[:run_count], 'run') %>,
+                      <%= intel_pct(agent[:success_rate]) %> success,
+                      <%= intel_pct(agent[:recovery_rate]) %> recovery,
+                      <%= intel_pct(agent[:approval_rate]) %> approval
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% elsif @pack[:installed] && Array(@pack[:installed_actions]).any? %>
+        <div class="ic-packtree">
+          <% @pack[:installed_actions].each do |action| %>
+            <div class="ic-packtree__action">
+              <%= link_to action[:display_name].presence || action[:name], action_path(action[:name]), class: 'ic-packtree__name' %>
+              <div class="ic-packtree__summary">
+                Installed, but no agent has recorded usage for this action in the
+                last 30 days.
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="ic-doc__note" style="margin-top: 10px;">
+          This pack is not installed yet, so there is no agent/action usage to show.
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>
