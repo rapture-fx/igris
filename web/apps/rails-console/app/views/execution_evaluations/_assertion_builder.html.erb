@@ -9,23 +9,10 @@
    rows = Array(assertions).presence || [{ type: '', value: '', name: '' }] %>
 
 <style>
-  /* Custom dropdown — pixel-matched to the text inputs beside it (.ig-input
-     resolves to bg var(--ic-overlay-bg), border var(--ic-border), 12px text,
-     6px 9px padding, radius 6px). The base .ic-dropdown__btn already carries
-     the right bg/border/hover, so we only override sizing + layout. */
-  .ic-form-dd { position: relative; display: block; min-width: 0; }
-  .ic-form-dd > .ic-dropdown__btn {
-    display: flex; width: 100%; height: auto; min-height: 32px;
-    justify-content: space-between; gap: 8px;
-    padding: 6px 9px; font-size: 12px; border-radius: 6px;
-    color: var(--ic-text); white-space: nowrap;
-  }
-  .ic-form-dd[open] > .ic-dropdown__btn { border-color: #047857; }
-  .ic-form-dd .ic-dropdown__value { color: var(--ic-text); max-width: none; }
-  .ic-form-dd .ic-dropdown__value:not(.is-set) { color: var(--ic-text-6); }
-  .ic-form-dd .ic-dropdown__chev { width: 13px; height: 13px; color: var(--ic-text-6); }
-  .ic-form-dd .ic-dropdown__menu { width: max(100%, 260px); }
-  .ic-form-dd .ic-dropdown__item { font-size: 12px; padding: 7px 10px; }
+  /* The check selector uses the shared .ic-form-dd dropdown (defined in the
+     Runs-lens header style) so it matches the Runs list filter dropdown. Here we
+     only set the per-row layout. */
+  .ic-form-dd .ic-dropdown__menu { width: max(100%, 240px); }
 
   /* Clean rows — separated by spacing + a hairline, not boxed like cards. */
   .ic-asserts { display: flex; flex-direction: column; }
