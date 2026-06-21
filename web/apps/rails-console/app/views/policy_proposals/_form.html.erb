@@ -1,0 +1,98 @@
+<%#
+  Create / edit a policy proposal. Plain report-style sections (no hand-written
+  JSON). The same allow-listed fields Policy Simulation accepts. Dropdowns and
+  checkboxes are the console's own controls (no native browser widgets), matching
+  the Runs list filter dropdown. The backend validates everything; this form only
+  guides. `proposal` is a draft hash; `url`/`method` differ for new vs edit.
+  `errors` is a hash of field => message.
+%>
+<% errors ||= {} %>
+<% criteria = proposal[:match_criteria] || {} %>
+<% kind = match_kind_for(criteria) %>
+<% value = match_value_for(criteria) %>
+
+<%= form_with url: url, method: method, local: true do %>
+  <% if errors[:base].present? %>
+    <div class="ig-field__error" style="margin-bottom: 12px;"><%= errors[:base] %></div>
+  <% end %>
+
+  <div class="ic-evidence" style="margin-bottom: 16px;">
+    <div class="ic-evidence__head">Proposal</div>
+    <p class="ic-evidence__intro">Name the proposal and say what the rule should do when it matches a run.</p>
+
+    <div class="ig-field">
+      <label class="ig-field__label" for="name">Name</label>
+      <%= text_field_tag :name, proposal[:name], id: 'name', class: "ig-input #{'is-error' if errors[:name]}",
+            placeholder: 'Pause large Stripe refunds', autocomplete: 'off', autofocus: true %>
+      <% if errors[:name] %>
+        <div class="ig-field__error"><%= errors[:name] %></div>
+      <% else %>
+        <div class="ig-field__help">Shown in the proposals list and on the detail page.</div>
+      <% end %>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label" for="description">Description <span class="ig-mut">(optional)</span></label>
+      <%= text_area_tag :description, proposal[:description], id: 'description', class: 'ig-textarea',
+            placeholder: 'What is this rule for? (no prompts, secrets, or raw bodies)' %>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label">If a run matches, it should</label>
+      <%= render 'shared/form_dropdown', name: 'policy_mode',
+            options: proposal_modes.map { |v, l| [l, v] }, selected: proposal[:policy_mode] %>
+      <div class="ig-field__help">“Require approval” pauses the run for a human; “Block” stops it before execution.</div>
+    </div>
+  </div>
+
+  <div class="ic-evidence">
+    <div class="ic-evidence__head">Match criteria</div>
+    <p class="ic-evidence__intro">
+      A run is affected when it matches every criterion you set. Leave fields blank to ignore them.
+      These are evaluated read-only over recorded execution truth, with no prompts or model output.
+    </p>
+
+    <div class="ig-field">
+      <label class="ig-field__label">Window</label>
+      <%= render 'shared/form_dropdown', name: 'range',
+            options: proposal_ranges.map { |v, l| [l, v] }, selected: criteria[:range].presence || '30d' %>
+      <div class="ig-field__help">The simulation window this proposal is evaluated over.</div>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label" for="match_value">Action / agent match <span class="ig-mut">(optional)</span></label>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start;">
+        <div style="flex: 0 0 220px; max-width: 220px;">
+          <%= render 'shared/form_dropdown', name: 'match_kind',
+                options: proposal_match_kinds.map { |v, l| [l, v] }, selected: kind %>
+        </div>
+        <%= text_field_tag :match_value, value, id: 'match_value', class: 'ig-input', style: 'flex: 1; min-width: 180px;',
+              placeholder: 'e.g. stripe.refund', maxlength: 256, autocomplete: 'off' %>
+      </div>
+      <div class="ig-field__help">Pick one dimension to match on and the value it must have.</div>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label">Result status <span class="ig-mut">(optional)</span></label>
+      <%= render 'shared/form_dropdown', name: 'match_result_status',
+            options: [['Any', '']] + proposal_statuses.map { |s| [s.tr('_', ' '), s] },
+            selected: criteria[:match_result_status].to_s, placeholder: 'Any' %>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label">Also require <span class="ig-mut">(optional)</span></label>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 6px;">
+        <%= render 'shared/check_box', name: 'require_proof_missing', checked: criteria[:require_proof_missing], label: 'Proof missing' %>
+        <%= render 'shared/check_box', name: 'require_recovery_occurred', checked: criteria[:require_recovery_occurred], label: 'Recovery occurred' %>
+        <%= render 'shared/check_box', name: 'require_eval_failed', checked: criteria[:require_eval_failed], label: 'Evaluation failed' %>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 16px; display: flex; gap: 8px;">
+    <%= submit_tag submit_label, class: 'ic-btn ic-btn--accent' %>
+    <%= link_to 'Cancel', (proposal[:id].present? ? proposal_path(proposal[:id]) : proposals_path), class: 'ic-btn' %>
+  </div>
+<% end %>
+
+<%= render 'shared/dropdown_js' %>
