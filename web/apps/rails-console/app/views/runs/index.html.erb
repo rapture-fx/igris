@@ -1,74 +1,78 @@
 <%#
-  Runs — the primary debugging and trust surface. Two in-page views under the
-  same Runs lens (no parallel navigation):
-    · Run history   — the filterable list of runs.
-    · Intelligence  — read-only Execution Intelligence metrics (success /
-                      failure / recovery / approval rates, run volume, average
-                      runtime, and agent / action comparisons).
+  Runs — two in-page views (Run history / Intelligence) under the Runs lens.
+  The page header carries the tabs on the left (no title) and the actions on the
+  right, with no divider. Run history is a filterable table whose header does
+  not scroll; each column header carries its own filter.
 %>
+<%# Layout/theme CSS inlined so it reloads with the view (Propshaft caches
+    application.css until a server restart). Mirrors application.css. %>
+<style>
+  /* One uniform surface end to end, matching the filter dropdown (--ic-bg). */
+  .ic-rail, .ic-sidebar { background: var(--ic-bg); }
+  .ic-rail__logo { border-bottom: 0; }          /* no divider on the icon rail */
+
+  .ic-runs-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 6px 16px; min-height: 44px;
+  }
+  .ic-runs-header .ic-viewtabs { border-bottom: 0; padding: 0; margin: 0; gap: 2px; }
+  .ic-runs-header__actions { display: inline-flex; gap: 8px; }
+
+  .ic-runs-table { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--ic-bg); }
+  .ic-runs-row {
+    display: grid;
+    grid-template-columns: minmax(170px, 1.7fr) 134px minmax(150px, 1.5fr) minmax(120px, 1.2fr) 92px 116px;
+    align-items: center; column-gap: 14px; padding: 0 16px;
+  }
+  /* Header — does NOT scroll. */
+  .ic-runs-table__head {
+    flex: none; background: var(--ic-bg);
+    border-bottom: 1px solid var(--ic-border); min-height: 38px;
+  }
+  .ic-runs-table__body { flex: 1; min-height: 0; overflow-y: auto; background: var(--ic-bg); }
+  .ic-runs-th { display: flex; align-items: center; min-width: 0; }
+  .ic-runs-th__label { font-size: 11px; color: var(--ic-text-6); }
+  .ic-runs-th .ic-dropdown { width: 100%; }
+  .ic-runs-th .ic-dropdown__btn { width: 100%; padding: 4px 6px; font-size: 11px; }
+  .ic-runs-th .ic-runsearch { width: 100%; }
+  .ic-runs-th--search .ic-runsearch__input { height: 26px; font-size: 12px; }
+
+  /* Rows reuse the same column grid as the header. */
+  .ic-run-row__open.ic-runs-row { padding-top: 9px; padding-bottom: 9px; }
+  .ic-run-row__cell { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--ic-text-3); }
+  .ic-run-row__cell--action { flex-direction: column; align-items: flex-start; gap: 1px; }
+  .ic-run-row__cell .ic-run-row__id { font-size: 10.5px; }
+  .ic-run-row__proof, .ic-run-row__when { color: var(--ic-text-6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-run-row__dur { color: var(--ic-text-4); }
+  .ic-run-row__cell .ic-chips { flex-wrap: nowrap; min-width: 0; overflow: hidden; }
+
+  @media (max-width: 900px) {
+    .ic-runs-row { grid-template-columns: minmax(150px, 1.7fr) 120px minmax(0, 1.3fr) 96px; }
+    .ic-runs-th--proof, .ic-runs-th--dur, .ic-run-row__proof, .ic-run-row__dur { display: none; }
+  }
+</style>
+
 <div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-  <div class="ic-topbar">
-    <div class="ic-topbar__group">
-      <span class="ic-topbar__title">Runs</span>
+  <div class="ic-runs-header">
+    <%= render 'shared/runs_view_tabs', active: @view %>
+    <div class="ic-runs-header__actions">
       <%= project_chip %>
-    </div>
-    <div class="ic-topbar__group">
       <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
       <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
     </div>
   </div>
 
-  <%# In-page view switch — Run history / Intelligence. Plain links so the
-      active view is shareable and survives a refresh. %>
-  <div class="ic-viewtabs" role="tablist" aria-label="Runs view">
-    <%= link_to 'Run history', runs_path,
-          class: "ic-viewtab #{'is-active' if @view == 'history'}",
-          role: 'tab', 'aria-selected': (@view == 'history').to_s %>
-    <%= link_to 'Intelligence', runs_path(view: 'intelligence'),
-          class: "ic-viewtab #{'is-active' if @view == 'intelligence'}",
-          role: 'tab', 'aria-selected': (@view == 'intelligence').to_s %>
-  </div>
-
   <%= render 'shared/flash', degraded_error: @degraded_error %>
 
   <% if @view == 'intelligence' %>
-    <%= render 'intelligence', intelligence: @intelligence, range: @range %>
+    <%= render 'intelligence', intelligence: @intelligence, range: @range, policy_simulation: @policy_simulation %>
   <% else %>
-    <%# Filter + search bar — server-rendered, custom dropdowns (no native
-        <select>). Dropdowns narrow by status / route / date; search matches
-        action name, run id, or target and preserves the active filters. %>
-    <div class="ic-filters">
-      <%= render 'filter_dropdown', param: :status, selected: @status,
-            placeholder: 'All statuses',
-            options: [['succeeded', 'Succeeded'], ['running', 'Running'],
-                      ['failed', 'Failed'], ['blocked', 'Blocked / held']] %>
-      <%= render 'filter_dropdown', param: :route, selected: @route,
-            placeholder: 'All routes', options: @routes.map { |r| [r, r] } %>
-      <%= render 'filter_dropdown', param: :range, selected: @range,
-            placeholder: 'All time',
-            options: [['hour', 'Last hour'], ['day', 'Last 24 hours'], ['week', 'Last 7 days']] %>
+    <%= render 'history' %>
 
-      <form class="ic-runsearch" method="get" action="<%= runs_path %>" role="search" data-turbo="false">
-        <% if @status.present? %><input type="hidden" name="status" value="<%= @status %>"><% end %>
-        <% if @route.present?  %><input type="hidden" name="route" value="<%= @route %>"><% end %>
-        <% if @range.present?  %><input type="hidden" name="range" value="<%= @range %>"><% end %>
-        <svg class="ic-runsearch__ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-          <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <input type="text" name="q" value="<%= @query %>" autocomplete="off"
-               placeholder="Search runs" class="ic-input ic-runsearch__input"
-               aria-label="Search runs">
-      </form>
-    </div>
-
-    <%# Close any open filter dropdown on outside-click / Escape (mirrors the
-        icon-rail account menu). %>
+    <%# Close any open filter dropdown on outside-click / Escape. %>
     <script>
       (function () {
-        var bar = document.currentScript.previousElementSibling;
-        if (!bar) return;
-        var menus = bar.querySelectorAll('details.ic-dropdown');
+        var menus = Array.prototype.slice.call(document.querySelectorAll('.ic-runs-table__head details.ic-dropdown'));
         menus.forEach(function (d) {
           d.addEventListener('toggle', function () {
             if (d.open) menus.forEach(function (o) { if (o !== d) o.open = false; });
@@ -82,7 +86,5 @@
         });
       })();
     </script>
-
-    <%= render 'history' %>
   <% end %>
 </div>
