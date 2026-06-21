@@ -163,6 +163,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only agent/action/pack relationship aggregates from durable execution records; no prompt, model-output, secret, or raw execution row source",
 	},
 	{
+		Method: "GET", Path: "/v1/execution/trust-recommendations", RegistrationFile: "igris-overture/api/routes_trust_recommendations.go",
+		HandlerOrGroup: "trust recommendations", RegistrationFunction: "RegisterTrustRecommendationRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only deterministic attention items from durable execution aggregates and proposal freshness; no LLM, no mutation, no persistence, no prompt/model-output/secret/raw-row source; rejects tenant override",
+	},
+	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/execution-evals,/v1/execution-evals/:id,/v1/execution-evals/:id/run,/v1/execution-evals/:id/runs,/v1/execution-evals/runs/:run_id", RegistrationFile: "igris-overture/api/routes_execution_evals.go",
 		HandlerOrGroup: "execution evaluations", RegistrationFunction: "RegisterExecutionEvalRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "deterministic assertions over tenant-owned task, proof, approval, and recovery records; rejects tenant body overrides",
