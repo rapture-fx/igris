@@ -1,0 +1,21 @@
+<%= render 'shared/runs_header_style' %>
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-runs-header">
+    <%= render 'shared/runs_view_tabs', active: 'evaluations' %>
+    <div class="ic-runs-header__actions">
+      <%= project_chip %>
+      <%= link_to 'All evaluations', evaluations_path, class: 'ic-btn' %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <div class="ic-body ic-scroll ic-doc" style="padding: 18px 16px; max-width: 760px; width: 100%; margin: 0 auto;">
+    <div class="ic-evidence" style="margin-bottom: 14px;">
+      <div class="ic-evidence__head">New execution evaluation</div>
+      <p class="ic-evidence__intro">Define what should be true about an action’s execution, then run it against any recorded run.</p>
+    </div>
+    <%= render 'form', evaluation: @evaluation, errors: @errors,
+          url: evaluations_path, method: :post, submit_label: 'Create evaluation' %>
+  </div>
+</div>
