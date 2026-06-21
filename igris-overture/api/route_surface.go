@@ -158,6 +158,16 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only metrics derived from task, approval, policy, and recovery records; no prompt or model-output source",
 	},
 	{
+		Method: "GET,POST,PATCH,DELETE", Path: "/v1/execution-evals,/v1/execution-evals/:id,/v1/execution-evals/:id/run,/v1/execution-evals/:id/runs,/v1/execution-evals/runs/:run_id", RegistrationFile: "igris-overture/api/routes_execution_evals.go",
+		HandlerOrGroup: "execution evaluations", RegistrationFunction: "RegisterExecutionEvalRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "deterministic assertions over tenant-owned task, proof, approval, and recovery records; rejects tenant body overrides",
+	},
+	{
+		Method: "POST", Path: "/v1/policy/simulate", RegistrationFile: "igris-overture/api/routes_policy_simulation.go",
+		HandlerOrGroup: "policy simulation", RegistrationFunction: "RegisterPolicySimulationRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only deterministic preview of a proposed policy rule over durable execution records; no policy mutation, replay, dispatch, persistence, or prompt/model-output source; rejects tenant body overrides",
+	},
+	{
 		Method: "GET,POST", Path: "/proof/receipts,/v1/proof/*,/v1/receipts/*", RegistrationFile: "igris-overture/api/routes_proof.go",
 		HandlerOrGroup: "proof and receipts", RegistrationFunction: "RegisterProofRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-bound evidence reads",
