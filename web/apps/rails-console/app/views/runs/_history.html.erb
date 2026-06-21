@@ -1,6 +1,39 @@
-<%# ── Run list — each row links straight to its run detail. %>
-<div class="ic-runs-layout">
-  <div class="ic-body ic-scroll">
+<%# Run list — a filterable table. The header row carries a filter per column
+    and does not scroll; the body scrolls beneath it. Each row links straight to
+    its run detail. %>
+<div class="ic-runs-table">
+  <div class="ic-runs-table__head ic-runs-row">
+    <div class="ic-runs-th ic-runs-th--search">
+      <form class="ic-runsearch" method="get" action="<%= runs_path %>" role="search" data-turbo="false">
+        <% if @status.present? %><input type="hidden" name="status" value="<%= @status %>"><% end %>
+        <% if @route.present?  %><input type="hidden" name="route" value="<%= @route %>"><% end %>
+        <% if @range.present?  %><input type="hidden" name="range" value="<%= @range %>"><% end %>
+        <svg class="ic-runsearch__ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" name="q" value="<%= @query %>" autocomplete="off"
+               placeholder="Search runs" class="ic-input ic-runsearch__input" aria-label="Search runs">
+      </form>
+    </div>
+    <div class="ic-runs-th">
+      <%= render 'filter_dropdown', param: :status, selected: @status, placeholder: 'Status',
+            options: [['succeeded', 'Succeeded'], ['running', 'Running'],
+                      ['failed', 'Failed'], ['blocked', 'Blocked / held']] %>
+    </div>
+    <div class="ic-runs-th">
+      <%= render 'filter_dropdown', param: :route, selected: @route, placeholder: 'Route',
+            options: @routes.map { |r| [r, r] } %>
+    </div>
+    <div class="ic-runs-th ic-runs-th--proof"><span class="ic-runs-th__label">Proof</span></div>
+    <div class="ic-runs-th ic-runs-th--dur"><span class="ic-runs-th__label">Duration</span></div>
+    <div class="ic-runs-th">
+      <%= render 'filter_dropdown', param: :range, selected: @range, placeholder: 'When',
+            options: [['hour', 'Last hour'], ['day', 'Last 24 hours'], ['week', 'Last 7 days']] %>
+    </div>
+  </div>
+
+  <div class="ic-runs-table__body ic-scroll">
     <% if @runs.empty? %>
       <% any_filter = @status.present? || @route.present? || @range.present? || @query.present? %>
       <% if any_filter %>
@@ -12,9 +45,7 @@
       <% else %>
         <div class="ic-empty" style="padding: 48px 16px;">
           <div class="ic-empty__title">No runs yet</div>
-          <p class="ic-empty__sub">
-            Runs appear when an agent or app calls an Igris action endpoint.
-          </p>
+          <p class="ic-empty__sub">Runs appear when an agent or app calls an Igris action endpoint.</p>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
             <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
@@ -22,40 +53,34 @@
         </div>
       <% end %>
     <% else %>
-      <div class="ic-runs-list">
-        <% @runs.each do |r| %>
-          <% tone = run_tone(r)
-             attn = run_needs_attention?(r) %>
-          <div class="ic-run-row <%= 'ic-run-row--attn' if attn %>">
-            <%= link_to run_path(r[:id]), class: 'ic-run-row__open',
-                  'aria-label': "Open run #{r[:id]}" do %>
+      <% @runs.each do |r| %>
+        <% tone = run_tone(r)
+           attn = run_needs_attention?(r) %>
+        <div class="ic-run-row <%= 'ic-run-row--attn' if attn %>">
+          <%= link_to run_path(r[:id]), class: 'ic-run-row__open ic-runs-row',
+                'aria-label': "Open run #{r[:id]}" do %>
+            <span class="ic-run-row__cell ic-run-row__cell--action">
               <span class="ic-run-row__title"><%= r[:action] %></span>
-              <span class="ic-run-row__id-group">
-                <span class="ic-run-row__id-row">
-                  <span class="ic-run-row__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
-                  <span class="ic-run-row__id mono"><%= r[:id] %></span>
-                </span>
-                <span class="ic-run-row__status ic-run-row__status--<%= tone %>">
-                  <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'Succeeded') %>
-                </span>
+              <span class="ic-run-row__id mono"><%= r[:id] %></span>
+            </span>
+            <span class="ic-run-row__cell">
+              <span class="ic-run-row__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
+              <span class="ic-run-row__status ic-run-row__status--<%= tone %>">
+                <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'Succeeded') %>
               </span>
-              <span class="ic-run-row__sub">
-                <%= route_chips(r[:routed_via]) %>
-              </span>
-              <span class="ic-run-row__sub">
-                <%= r[:proof] %>
-                <% if r[:recovery].present? && r[:recovery] != 'Not needed' %>
-                  <span class="ic-chip ic-chip--sm"><%= r[:recovery] %></span>
-                <% end %>
-              </span>
-              <span class="ic-run-row__time">
-                <%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '—' %><br>
-                <span style="color: var(--ic-text-7);"><%= time_ago(r[:started_at]) %></span>
-              </span>
-            <% end %>
-          </div>
-        <% end %>
-      </div>
+            </span>
+            <span class="ic-run-row__cell"><%= route_chips(r[:routed_via]) %></span>
+            <span class="ic-run-row__cell ic-run-row__proof">
+              <%= r[:proof] %>
+              <% if r[:recovery].present? && r[:recovery] != 'Not needed' %>
+                <span class="ic-chip ic-chip--sm"><%= r[:recovery] %></span>
+              <% end %>
+            </span>
+            <span class="ic-run-row__cell mono ic-run-row__dur"><%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '—' %></span>
+            <span class="ic-run-row__cell ic-run-row__when"><%= time_ago(r[:started_at]) %></span>
+          <% end %>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>
