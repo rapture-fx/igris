@@ -1,0 +1,30 @@
+<%#
+  Agents — the adoption layer's operator home. Three in-page views under one
+  lens: the agent catalog, the action-pack catalog, and getting started.
+%>
+<%= render 'shared/runs_header_style' %>
+
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-runs-header">
+    <%= render 'agents/view_tabs', active: @view %>
+    <div class="ic-runs-header__actions">
+      <%= project_chip %>
+      <% if @view == 'packs' %>
+        <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
+      <% else %>
+        <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+      <% end %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <% case @view %>
+  <% when 'packs' %>
+    <%= render 'packs', packs: @packs %>
+  <% when 'adoption' %>
+    <%= render 'adoption', health: @health %>
+  <% else %>
+    <%= render 'catalog', agents: @agents %>
+  <% end %>
+</div>
