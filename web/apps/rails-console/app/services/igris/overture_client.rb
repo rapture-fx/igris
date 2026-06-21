@@ -140,6 +140,19 @@ module Igris
       request(:get, '/v1/execution/intelligence', query: query)
     end
 
+    # GET /v1/execution/trust-recommendations?range=&limit= →
+    #   { range, generated_at, recommendations: [{ id, severity, category, title,
+    #     summary, reason, recommended_action, entity_type, entity_id,
+    #     entity_name, metrics, links }] }
+    # Deterministic, read-only attention items derived from execution truth. No
+    # prompts or model output; tenant identity is derived server-side.
+    def get_trust_recommendations(range: nil, limit: nil)
+      query = {}
+      query[:range] = range if range.present?
+      query[:limit] = limit if limit.present?
+      request(:get, '/v1/execution/trust-recommendations', query: query.presence)
+    end
+
     # GET /v1/execution/affinity?range=&agent_id=&action_name=&pack= →
     #   { agent_actions[…], action_agents[…], pack_edges[…], hotspots[…] }
     # Read-only aggregates only; Overture never returns raw execution payloads.
