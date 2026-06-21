@@ -32,3 +32,19 @@ func TestBuildExecutionIntelligenceSummaryHandlesEmptyWindow(t *testing.T) {
 	require.Equal(t, 0.0, summary.RecoveryRate)
 	require.Equal(t, 0.0, summary.AverageDurationMs)
 }
+
+func TestBuildExecutionIntelligenceBreakdownComputesQualityRates(t *testing.T) {
+	t.Parallel()
+
+	row := buildExecutionIntelligenceBreakdown(
+		"agent-1", "Claude Code", 20, 16, 3, 5, 4,
+		12, 9, 15, sql.NullFloat64{Float64: 340, Valid: true},
+	)
+
+	require.Equal(t, int64(12), row.EvalRunCount)
+	require.Equal(t, int64(9), row.EvalPassedRuns)
+	require.Equal(t, int64(15), row.ProofCoveredRuns)
+	require.Equal(t, 0.25, row.ApprovalRate)
+	require.Equal(t, 0.75, row.EvalPassRate)
+	require.Equal(t, 0.75, row.ProofCoverage)
+}
