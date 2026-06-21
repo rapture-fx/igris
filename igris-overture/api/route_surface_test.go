@@ -145,6 +145,7 @@ func TestRouteRegistrationSourceGuard(t *testing.T) {
 		"RegisterExecutionRoutes":             "core_public_product_api",
 		"RegisterExecutionIntelligenceRoutes": "core_public_product_api",
 		"RegisterExecutionAffinityRoutes":     "core_public_product_api",
+		"RegisterTrustRecommendationRoutes":   "core_public_product_api",
 		"RegisterExecutionEvalRoutes":         "core_public_product_api",
 		"RegisterPolicySimulationRoutes":      "core_public_product_api",
 		"RegisterPolicyProposalRoutes":        "core_public_product_api",
