@@ -1,0 +1,66 @@
+<% evaluations ||= { state: :not_evaluated, runs: [] } %>
+<% state = evaluations[:state].to_sym rescue :not_evaluated %>
+<% runs = Array(evaluations[:runs]) %>
+
+<section id="evaluation-results" class="ic-evidence ic-evals" aria-label="Evaluation results">
+  <div class="ic-evidence__head">Evaluation results</div>
+  <p class="ic-evidence__intro">
+    Deterministic checks for this run. Each result is derived from recorded execution facts only; raw prompts, request bodies, response bodies, and secrets are not shown.
+    <%= link_to 'Manage evaluations', evaluations_path, class: 'ic-doc__link' %>.
+  </p>
+
+  <% case state
+     when :unavailable %>
+    <p class="ic-doc__note">Evaluation results are unavailable right now.</p>
+  <% when :not_evaluated %>
+    <p class="ic-doc__note">No Execution Evaluation has been recorded for this run.</p>
+  <% else %>
+    <% runs.each do |eval_run| %>
+      <% failed = eval_run[:status].to_s.casecmp('Failed').zero? %>
+      <% passed_count = eval_run[:passed_count].to_i
+         failed_count = eval_run[:failed_count].to_i
+         total_count = passed_count + failed_count %>
+      <div class="ic-eval-detail <%= 'is-failed' if failed %>">
+        <div class="ic-def">
+          <span class="ic-def__label">Evaluation</span>
+          <div class="ic-def__value"><%= eval_run[:eval_name] %></div>
+        </div>
+        <div class="ic-def">
+          <span class="ic-def__label">Result</span>
+          <div class="ic-def__value">
+            <span class="ic-doc__stat ic-doc__stat--<%= failed ? 'bad' : 'ok' %>"><%= eval_run[:status] %></span>
+            <span class="ic-eval-detail__counts">
+              <%= pluralize(passed_count, 'passed check') %>;
+              <%= pluralize(failed_count, 'failed check') %>.
+            </span>
+          </div>
+        </div>
+
+        <p class="ic-eval-detail__summary">
+          <% if failed %>
+            This evaluation failed because at least one required execution fact did not match the recorded run.
+          <% elsif total_count.positive? %>
+            This evaluation passed because all recorded checks matched the run facts available to the server.
+          <% else %>
+            This evaluation returned no check rows, so there is no assertion detail to explain.
+          <% end %>
+        </p>
+
+        <% if eval_run[:results].present? %>
+          <div class="ic-eval-detail__assertions">
+            <% eval_run[:results].each do |result| %>
+              <% row_failed = result[:status].to_s.casecmp('Failed').zero? %>
+              <p class="ic-eval-detail__assertion <%= 'is-failed' if row_failed %>">
+                <span class="ic-doc__stat ic-doc__stat--<%= row_failed ? 'bad' : 'ok' %>"><%= result[:status] %>.</span>
+                <span class="ic-eval-detail__assertion-name"><%= result[:name] %>:</span>
+                <span class="ic-eval-detail__reason"><%= result[:reason].presence || 'No reason was returned for this check.' %></span>
+              </p>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="ic-doc__note">No assertion detail was returned for this evaluation.</p>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</section>
