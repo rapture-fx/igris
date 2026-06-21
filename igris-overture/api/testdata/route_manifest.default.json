@@ -869,6 +869,18 @@
     },
     {
       "method": "GET",
+      "path": "/v1/execution/trust-recommendations",
+      "route_group": "trust_recommendations",
+      "handler_or_registration_source_if_available": "RegisterTrustRecommendationRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-bound deterministic attention items derived from durable execution aggregates",
+      "feature_flag": "",
+      "notes": "Read-only execution-trust findings (recovery/proof/eval/approval thresholds + stale approved proposals); no LLM, no mutation, no persistence, no raw payloads"
+    },
+    {
+      "method": "GET",
       "path": "/v1/health",
       "route_group": "health",
       "handler_or_registration_source_if_available": "RegisterHealthRoutes",
