@@ -621,6 +621,7 @@ func main() {
 		api.RegisterAgentRegistryRoutes(app, dbInstance, api.NewExecutionHandler(dbInstance))
 		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
 		api.RegisterExecutionIntelligenceRoutes(app, dbInstance)
+		api.RegisterExecutionEvalRoutes(app, dbInstance)
 		api.RegisterAgentMemoryRoutes(app, dbInstance)
 		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
 		api.RegisterGovernanceRoutes(app, dbInstance)
@@ -634,7 +635,7 @@ func main() {
 		} else {
 			log.Printf("[Routes] Model provider routes disabled (%s not enabled)", api.ExperimentalModelRoutesFlag)
 		}
-		log.Println("[Routes] ✅ Core dashboard routes registered (stats, execution, proof, governance)")
+		log.Println("[Routes] ✅ Core dashboard routes registered (stats, execution, evals, proof, governance)")
 
 		// Register all web-console frontend endpoints (tenant/current, usage/summary,
 		// cognitive/status, speculative/races, shadow/*, council/*, escapevector/*)
