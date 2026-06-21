@@ -28,6 +28,7 @@ class PolicySimulationConsoleTest < ActionDispatch::IntegrationTest
     def list_agent_memory(**)  = []
     def list_execution_eval_runs(_) = []
     def get_execution_intelligence(**) = @intelligence
+    def get_trust_recommendations(**) = { 'recommendations' => [] }
 
     def simulate_policy(payload)
       @last_sim_payload = payload
