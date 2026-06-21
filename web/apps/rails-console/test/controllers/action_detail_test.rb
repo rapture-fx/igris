@@ -27,6 +27,16 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
     def actions   = [@action]
     def find_action(id) = (@action if @action[:id] == id || @action[:name] == id)
     def runs_for_action(_) = @runs
+    def action_consumer_affinity(_)
+      {
+        range: 'last_30d',
+        action_agents: [],
+        agent_actions: [],
+        pack_edges: [],
+        pack_actions: [],
+        hotspots: [],
+      }
+    end
     def recent_runs(**) = []
     def all_runs(**) = []
     def runtimes = []
@@ -100,6 +110,33 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
       assert_match 'taken to the run record', response.body          # real mode success copy
       assert_select "form[action=?]", run_action_path('a-send') # test form posts to the run action
       assert_match 'Send test request', response.body
+    end
+  end
+
+  test 'overview explains which agents use this action when affinity data exists' do
+    ds = FakeDS.new(action: HOSTED_ACTION, runs: [], healthy: true)
+    def ds.action_consumer_affinity(_)
+      {
+        range: 'last_30d',
+        action_agents: [
+          {
+            agent_id: 'agent-1', agent_name: 'Support Agent', agent_type: 'support',
+            run_count: 9, successful_runs: 8, failed_runs: 1,
+            approval_required_runs: 2, recovery_runs: 1,
+            eval_run_count: 3, eval_passed_runs: 3, proof_covered_runs: 8,
+            success_rate: 8 / 9.0, approval_rate: 2 / 9.0,
+            recovery_rate: 1 / 9.0, eval_pass_rate: 1.0, proof_coverage: 8 / 9.0,
+          },
+        ],
+        agent_actions: [], pack_edges: [], pack_actions: [], hotspots: [],
+      }
+    end
+    with_fake_ds(ds) do
+      get action_path('a-send')
+      assert_response :success
+      assert_match 'Who uses this action', response.body
+      assert_match 'Support Agent', response.body
+      assert_match 'recorded executions', response.body
     end
   end
 
