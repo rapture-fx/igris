@@ -141,6 +141,140 @@ module Igris
       capture(e); []
     end
 
+    # ── Agent Catalog (adoption layer) ────────────────────────────────────
+    # The operator-facing roster of registered agents in the tenant, each joined
+    # with its execution metrics. Built from existing aggregate endpoints only —
+    # the Agent Registry (identity) plus Execution Intelligence (per-agent run
+    # counts, success/eval/proof rates, keyed by registered_agent_id) and a
+    # single Evidence Memory read for last-activity. No per-agent fan-out, so the
+    # roster costs three aggregate reads regardless of how many agents exist.
+    #
+    # Metrics reflect the requested window (default last 30 days — the widest the
+    # intelligence contract offers); the view labels them as such. Never surfaces
+    # agent metadata, prompts, or any free-text the registry may hold.
+    def agent_catalog(range: 'last_30d', include_archived: false)
+      agents   = agents_registry(include_archived: include_archived)
+      metrics  = execution_intelligence(range: range)[:agents].index_by { |b| b[:key].to_s }
+      last_map = agent_last_activity_map
+      agents.map do |agent|
+        m = metrics[agent[:agent_id].to_s]
+        agent.merge(
+          run_count:        m ? m[:total_runs] : 0,
+          success_rate:     m ? m[:success_rate] : 0.0,
+          failure_rate:     m ? m[:failure_rate] : 0.0,
+          recovery_rate:    m ? m[:recovery_rate] : 0.0,
+          eval_run_count:   m ? m[:eval_run_count] : 0,
+          eval_pass_rate:   m ? m[:eval_pass_rate] : 0.0,
+          proof_coverage:   m ? m[:proof_coverage] : 0.0,
+          has_metrics:      !m.nil?,
+          last_activity_at: last_map[agent[:agent_id].to_s] || agent[:last_activity_at],
+        )
+      end
+    end
+
+    # One agent's safe registry identity, or nil when unknown. Used by the Agent
+    # Detail page (which adds metrics + memory on top).
+    def find_agent(id)
+      if real?
+        normalize_registry_agent(@client.get_agent(id))
+      else
+        Fixtures.agents.find { |a| a[:agent_id].to_s == id.to_s || a[:name].to_s == id.to_s }
+      end
+    rescue OvertureClient::NotFound
+      nil
+    rescue OvertureClient::Error => e
+      capture(e); nil
+    end
+
+    # Per-agent execution metrics from the intelligence breakdown (keyed by
+    # registered_agent_id), or nil when the agent has no runs in the window.
+    def agent_metrics(agent_id, range: 'last_30d')
+      execution_intelligence(range: range)[:agents].find { |b| b[:key].to_s == agent_id.to_s }
+    end
+
+    # Recent Evidence Memory attributed to one agent — summary-only (goal /
+    # decision / evidence / outcome), the same safe shape the run-detail surface
+    # uses. [] when the agent has no memory or the endpoint is unavailable.
+    def agent_memory_for_agent(agent_id, limit: 10)
+      return Fixtures.agent_memory_for_agent(agent_id) unless real?
+      return [] if agent_id.to_s.strip.empty?
+
+      @client.list_agent_memory(registered_agent_id: agent_id.to_s, limit: limit)
+             .map { |m| normalize_agent_memory(m) }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    # Soft-archive an agent. Raises in fixture mode and on error so the
+    # controller can surface the outcome.
+    def archive_agent(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.archive_agent(id)
+    end
+
+    # ── Action Pack Catalog (adoption layer) ──────────────────────────────
+    # The catalog of built-in Action Packs joined with what this tenant has
+    # actually installed. Built from two aggregate reads — the pack list and the
+    # action list — with no per-pack fan-out. A pack reads as "installed" when
+    # the tenant has registered actions tagged with that pack (target_metadata
+    # carries the pack name on pack-installed actions); the contributed action
+    # names and earliest install time come from those actions.
+    def action_packs
+      return Fixtures.action_packs.map { |p| normalize_action_pack(p) } unless real?
+
+      installed = installed_pack_index
+      packs = @client.list_action_packs.map { |p| normalize_action_pack(p) }
+      seen  = packs.map { |p| p[:name] }.to_set
+      # Surface any installed pack that is no longer in the built-in catalog, so
+      # the tenant's real state is never hidden by a catalog change.
+      installed.each do |name, info|
+        next if seen.include?(name)
+        packs << normalize_action_pack(name: name, display_name: name, description: '', action_count: info[:actions].size)
+      end
+      packs.map { |pack| merge_installed_pack(pack, installed[pack[:name]]) }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    # ── Adoption Health (adoption layer) ──────────────────────────────────
+    # An honest onboarding checklist derived entirely from real backend state:
+    # has the tenant registered an agent, installed a pack, executed an action,
+    # produced proof, and authored an evaluation. Every step is true only when
+    # the corresponding read confirms it — no fabricated completion.
+    def adoption_health
+      agents = agents_registry
+      packs  = action_packs
+      runs   = all_runs(limit: 50)
+      evals  = execution_evals
+
+      has_agent  = agents.any?
+      has_pack   = packs.any? { |p| p[:installed] }
+      has_run    = runs.any?
+      has_proof  = runs.any? { |r| r[:proof].to_s.match?(/verified|present|receipt/i) }
+      has_eval   = evals.any?
+
+      steps = [
+        adoption_step(:agent,      'Register an agent', has_agent,
+                      'A registered agent lets Igris attribute every run to a known caller.'),
+        adoption_step(:pack,       'Install an action pack', has_pack,
+                      'Action packs give an agent a safe first set of capabilities to call.'),
+        adoption_step(:action,     'Execute a first action', has_run,
+                      'Running an action proves the path from agent to target end to end.'),
+        adoption_step(:proof,      'Generate proof', has_proof,
+                      'A signed receipt makes a run independently verifiable after the fact.'),
+        adoption_step(:evaluation, 'Create a first evaluation', has_eval,
+                      'Evaluations assert how a run should behave and check it deterministically.'),
+      ]
+      done = steps.count { |s| s[:done] }
+      { steps: steps, done: done, total: steps.size,
+        complete: done == steps.size, counts: {
+          agents: agents.size,
+          packs:  packs.count { |p| p[:installed] },
+          runs:   runs.size,
+          evals:  evals.size,
+        } }
+    end
+
     # ── Execution Intelligence ────────────────────────────────────────────
     # Read-only operational metrics derived from execution truth. Returns a
     # normalized { range:, summary:, agents:, actions: } hash, or a degraded
@@ -164,6 +298,129 @@ module Igris
     rescue OvertureClient::Error => e
       capture(e)
       { range: range, source: '', summary: normalize_intelligence_summary(nil), agents: [], actions: [] }
+    end
+
+    # ── Policy Simulation ─────────────────────────────────────────────────
+    # Read-only, deterministic preview of how a proposed policy rule would have
+    # classified recent execution records. Igris (Go) owns the computation; it
+    # mutates nothing, replays nothing, and reads only execution truth. This
+    # layer validates/bounds the operator's inputs, forwards them, and
+    # normalizes the safe response. It NEVER sends tenant_id (derived server
+    # side). Degrades to an honest :unavailable state on backend error so the
+    # card renders a calm notice instead of crashing.
+    POLICY_SIM_RANGES = %w[24h 7d 30d].freeze
+    POLICY_SIM_MODES  = %w[require_approval block].freeze
+    POLICY_SIM_STATUSES = %w[
+      completed failed canceled approval_required dispatched in_flight running pending
+    ].freeze
+
+    def simulate_policy(range:, policy_mode:, criteria: {})
+      range = '30d' unless POLICY_SIM_RANGES.include?(range.to_s)
+      policy_mode = 'require_approval' unless POLICY_SIM_MODES.include?(policy_mode.to_s)
+      payload = build_policy_sim_payload(range, policy_mode, criteria)
+      requested = { range: range, policy_mode: policy_mode, criteria: payload.except(:range, :policy_mode) }
+
+      return Fixtures.policy_simulation(payload).merge(requested: requested) unless real?
+
+      raw = @client.simulate_policy(payload)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      normalize_policy_simulation(raw).merge(requested: requested)
+    rescue OvertureClient::Error => e
+      capture(e)
+      { state: :unavailable, requested: requested, range: range, policy_mode: policy_mode,
+        total_runs_considered: 0, would_allow: 0, would_require_approval: 0, would_block: 0,
+        affected_run_count: 0, affected_agents: [], affected_actions: [], sample_runs: [], warnings: [] }
+    end
+
+    # ── Execution Evaluations ─────────────────────────────────────────────
+    # Deterministic assertion results over execution truth. The API returns
+    # only safe assertion names, pass/fail status, and reasons; never prompts,
+    # raw request/response bodies, ciphertext, nonces, or secrets.
+    def execution_evaluations_for_run(run)
+      return { state: :not_evaluated, runs: [] } unless run
+      return Fixtures.execution_evaluations_for_run(run) unless real?
+
+      task_id = run[:id].to_s.strip
+      return { state: :not_evaluated, runs: [] } if task_id.empty?
+
+      runs = @client.list_execution_eval_runs(task_id).map { |item| normalize_execution_eval_run(item) }.compact
+      { state: runs.any? ? :evaluated : :not_evaluated, runs: runs }
+    rescue OvertureClient::Error => e
+      capture(e)
+      { state: :unavailable, runs: [] }
+    end
+
+    # ── Execution Evaluation definitions ──────────────────────────────────
+    # Operator-authored deterministic evaluation definitions. The backend is the
+    # source of truth and validates every assertion type/value; Rails never
+    # persists them. Reads degrade to an honest empty list; writes raise typed
+    # errors so the controller can surface them inline.
+
+    def execution_evals
+      raw = real? ? @client.list_execution_evals : Fixtures.execution_evals
+      raw.map { |e| normalize_execution_eval(e) }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    def find_execution_eval(id)
+      raw = real? ? @client.get_execution_eval(id) : Fixtures.find_execution_eval(id)
+      raw && normalize_execution_eval(raw)
+    rescue OvertureClient::NotFound
+      nil
+    rescue OvertureClient::Error => e
+      capture(e); nil
+    end
+
+    def create_execution_eval(payload)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_execution_eval(@client.create_execution_eval(payload))
+    end
+
+    def update_execution_eval(id, payload)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_execution_eval(@client.update_execution_eval(id, payload))
+    end
+
+    def archive_execution_eval(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.archive_execution_eval(id)
+    end
+
+    # Runs one evaluation definition against a single task/run id and returns the
+    # normalized eval-run result (same safe shape the run-detail surface uses).
+    def run_execution_eval(id, task_id:)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_execution_eval_run(@client.run_execution_eval(id, task_id: task_id))
+    end
+
+    # Recent eval-run history for one definition. Read-only, tenant scoped by
+    # Overture, and summary-only: assertion names/statuses/reasons, no raw
+    # request bodies or prompts.
+    def execution_eval_history(eval_id, limit: 20)
+      runs =
+        if real?
+          @client.list_execution_eval_history(eval_id, limit: limit).map { |item| normalize_execution_eval_run(item) }.compact
+        else
+          Fixtures.execution_eval_history(eval_id).map { |item| normalize_execution_eval_run(item) }.compact
+        end
+      build_execution_eval_history(runs)
+    rescue OvertureClient::Error => e
+      capture(e)
+      build_execution_eval_history([], state: :unavailable)
+    end
+
+    # Agents available for the optional target-agent selector. Honest empty list
+    # when the registry is unavailable so the form falls back to a free-text id.
+    def agents_for_select
+      return [] unless real?
+
+      @client.list_agents.map do |a|
+        a = a.with_indifferent_access if a.respond_to?(:with_indifferent_access)
+        { id: a[:agent_id].to_s, name: a[:display_name].to_s.presence || a[:name].to_s }
+      end.reject { |a| a[:id].empty? }
+    rescue OvertureClient::Error => e
+      capture(e); []
     end
 
     # Daily run counts (14d) for the Home sparkline. Real mode would aggregate
@@ -345,6 +602,122 @@ module Igris
       }
     end
 
+    # The registered-agent roster as safe view rows. Real mode reads the Agent
+    # Registry; fixture mode serves the demo roster. Honest empty list on error.
+    def agents_registry(include_archived: false)
+      if real?
+        @client.list_agents(include_archived: include_archived).map { |a| normalize_registry_agent(a) }
+      else
+        Fixtures.agents
+      end
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    # Map a raw Agent Registry row → safe view hash. Surfaces only identity,
+    # template, version, and timestamps. Metadata is intentionally dropped — it
+    # is free-form and could carry values we don't render in this layer.
+    def normalize_registry_agent(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        agent_id:      raw[:agent_id].to_s,
+        name:          raw[:name].to_s,
+        display_name:  raw[:display_name].to_s.presence || raw[:name].to_s,
+        agent_type:    raw[:agent_type].to_s,
+        template_name: raw[:template_name].to_s,
+        version:       raw[:version].to_s,
+        description:   raw[:description].to_s,
+        created_at:    parse_time(raw[:created_at]),
+        updated_at:    parse_time(raw[:updated_at]),
+        archived:      parse_time(raw[:archived_at]).present?,
+        archived_at:   parse_time(raw[:archived_at]),
+      }
+    end
+
+    # agent_id → most-recent activity timestamp, from a single tenant-wide
+    # Evidence Memory read. Evidence Memory is written as agents execute, so its
+    # newest entry per agent is an honest "last activity" without a per-agent
+    # fan-out. Empty in fixture mode (the roster carries its own demo timestamps)
+    # and on error.
+    def agent_last_activity_map
+      return {} unless real?
+
+      @client.list_agent_memory(limit: 100).each_with_object({}) do |raw, acc|
+        raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+        id = raw[:registered_agent_id].to_s
+        ts = parse_time(raw[:created_at])
+        next if id.empty? || ts.nil?
+        acc[id] = ts if acc[id].nil? || ts > acc[id]
+      end
+    rescue OvertureClient::Error => e
+      capture(e); {}
+    end
+
+    # The pack tag an installed action carries in its target_metadata, or nil.
+    # Pack-installed actions are stamped with target_metadata.pack; plain actions
+    # are not, so this is how the catalog tells installed-from-a-pack apart.
+    def action_pack_tag(metadata)
+      return nil unless metadata.respond_to?(:[]) || metadata.is_a?(Hash)
+      meta = metadata.respond_to?(:with_indifferent_access) ? metadata.with_indifferent_access : metadata
+      meta[:pack].to_s.strip.presence
+    end
+
+    # pack_name → { actions: [safe action row], installed_at: earliest created_at }
+    # built from the tenant's action list grouped by pack tag. One read, no
+    # per-pack queries.
+    def installed_pack_index
+      actions.each_with_object({}) do |action, acc|
+        pack = action[:pack].to_s
+        next if pack.empty?
+
+        bucket = (acc[pack] ||= { actions: [], installed_at: nil })
+        bucket[:actions] << {
+          name:         action[:name].to_s,
+          display_name: action[:display_name].to_s,
+          policy:       action[:policy].to_s,
+          target_label: action[:target_label].to_s,
+        }
+        ts = action[:created_at]
+        bucket[:installed_at] = ts if ts && (bucket[:installed_at].nil? || ts < bucket[:installed_at])
+      end
+    end
+
+    # Normalize a raw pack summary (real list, fixtures, or a synthesized
+    # installed-only entry) → safe catalog row.
+    def normalize_action_pack(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        name:         raw[:name].to_s,
+        display_name: raw[:display_name].to_s.presence || raw[:name].to_s,
+        description:  raw[:description].to_s,
+        action_count: raw[:action_count].to_i,
+        # Fixture-mode rich shape (real mode fills these from installed_pack_index).
+        installed:         raw.key?(:installed) ? !!raw[:installed] : false,
+        installed_actions: Array(raw[:installed_actions]),
+        installed_count:   raw[:installed_count].to_i,
+        installed_at:      parse_time(raw[:installed_at]),
+      }
+    end
+
+    # Layer a pack's installed state (from installed_pack_index) onto its catalog
+    # row. nil info means the tenant has not installed the pack.
+    def merge_installed_pack(pack, info)
+      return pack.merge(installed: false, installed_actions: [], installed_count: 0, installed_at: nil) unless info
+
+      actions = info[:actions]
+      pack.merge(
+        installed:         true,
+        installed_actions: actions,
+        installed_count:   actions.size,
+        installed_at:      info[:installed_at],
+      )
+    end
+
+    # One adoption-health checklist step from a real boolean signal.
+    def adoption_step(key, label, done, hint)
+      { key: key, label: label, done: !!done, hint: hint }
+    end
+
     def load_project
       unless real?
         return { name: 'Support Agent', mode: :fixtures, needs_name: false }
@@ -389,6 +762,8 @@ module Igris
         target_type:    target_type,
         target_label:   target_label_for(target_type, target_url),
         target_url:     target_url,
+        pack:           action_pack_tag(raw[:target_metadata]),
+        created_at:     parse_time(raw[:created_at]),
         method:         raw[:method].to_s.upcase.presence || 'POST',
         policy:         policy_label_for(raw[:policy_preset], raw[:approval_required], raw[:irreversible]),
         policy_preset:  raw[:policy_preset].to_s,
@@ -553,10 +928,79 @@ module Igris
         failed_runs:            raw[:failed_runs].to_i,
         approval_required_runs: raw[:approval_required_runs].to_i,
         recovery_runs:          raw[:recovery_runs].to_i,
+        eval_run_count:         raw[:eval_run_count].to_i,
+        eval_passed_runs:       raw[:eval_passed_runs].to_i,
+        proof_covered_runs:     raw[:proof_covered_runs].to_i,
         average_duration_ms:    raw[:average_duration_ms].to_f,
         success_rate:           raw[:success_rate].to_f,
         failure_rate:           raw[:failure_rate].to_f,
+        approval_rate:          raw[:approval_rate].to_f,
         recovery_rate:          raw[:recovery_rate].to_f,
+        eval_pass_rate:         raw[:eval_pass_rate].to_f,
+        proof_coverage:         raw[:proof_coverage].to_f,
+      }
+    end
+
+    # Build the allow-listed POST body from operator inputs. Only non-blank,
+    # bounded criteria are forwarded; tenant_id is never included. Match strings
+    # are length-capped here too so an over-long value is rejected before it ever
+    # reaches the API.
+    def build_policy_sim_payload(range, policy_mode, criteria)
+      criteria = (criteria || {}).respond_to?(:with_indifferent_access) ? criteria.with_indifferent_access : (criteria || {})
+      payload = { range: range, policy_mode: policy_mode }
+
+      {
+        match_action_name:   :match_action_name,
+        match_action_prefix: :match_action_prefix,
+        match_agent_id:      :match_agent_id,
+        match_agent_type:    :match_agent_type,
+      }.each do |key, src|
+        val = criteria[src].to_s.strip
+        payload[key] = val[0, 256] if val.present?
+      end
+
+      status = criteria[:match_result_status].to_s.strip
+      payload[:match_result_status] = status if POLICY_SIM_STATUSES.include?(status)
+
+      payload[:require_proof_missing]     = true if truthy?(criteria[:require_proof_missing])
+      payload[:require_recovery_occurred] = true if truthy?(criteria[:require_recovery_occurred])
+      payload[:require_eval_failed]       = true if truthy?(criteria[:require_eval_failed])
+      payload
+    end
+
+    def truthy?(value)
+      %w[1 true on yes].include?(value.to_s.strip.downcase)
+    end
+
+    # Normalize the safe simulation response. Counts are coerced to integers and
+    # breakdown rows carry only safe identifiers (agent key/name, action name)
+    # and task ids — never raw bodies, prompts, or secrets. State is :empty when
+    # the window had no runs, else :ok.
+    def normalize_policy_simulation(raw)
+      raw ||= {}
+      total = raw[:total_runs_considered].to_i
+      {
+        state:                  total.zero? ? :empty : :ok,
+        range:                  raw[:range].to_s.presence || '30d',
+        policy_mode:            raw[:policy_mode].to_s.presence || 'require_approval',
+        total_runs_considered:  total,
+        would_allow:            raw[:would_allow].to_i,
+        would_require_approval: raw[:would_require_approval].to_i,
+        would_block:            raw[:would_block].to_i,
+        affected_run_count:     raw[:affected_run_count].to_i,
+        affected_agents: Array(raw[:affected_agents]).map do |a|
+          a = a.with_indifferent_access if a.respond_to?(:with_indifferent_access)
+          { key: a[:key].to_s, name: a[:name].to_s.presence || a[:key].to_s.presence || '—', run_count: a[:run_count].to_i }
+        end,
+        affected_actions: Array(raw[:affected_actions]).map do |a|
+          a = a.with_indifferent_access if a.respond_to?(:with_indifferent_access)
+          { name: a[:name].to_s.presence || '—', run_count: a[:run_count].to_i }
+        end,
+        sample_runs: Array(raw[:sample_runs]).map do |s|
+          s = s.with_indifferent_access if s.respond_to?(:with_indifferent_access)
+          { task_id: s[:task_id].to_s, status: status_label_for(s[:status]) }
+        end,
+        warnings: Array(raw[:warnings]).map { |w| w.to_s.strip }.reject(&:blank?),
       }
     end
 
@@ -1046,7 +1490,8 @@ module Igris
              else
                'no verified receipt yet'
              end
-      { title: 'Receipt signed', tone: tone, meta: meta }
+      title = state[:label] == 'Proof verified' ? 'Receipt signed' : 'Receipt status'
+      { title: title, tone: tone, meta: meta }
     end
 
     def build_raw_evidence(raw)
@@ -1058,6 +1503,93 @@ module Igris
         { key: 'receipt_hash',    value: (receipt && (receipt['hash'] || receipt[:hash])).to_s.presence || '—' },
         { key: 'receipt_signed',  value: (receipt ? (receipt['signed'] || receipt[:signed]).to_s : '—') },
       ]
+    end
+
+    def normalize_execution_eval_run(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      results = Array(raw[:results_json] || raw[:results]).map do |result|
+        r = result.respond_to?(:with_indifferent_access) ? result.with_indifferent_access : result
+        {
+          name:   r[:name].to_s,
+          status: normalize_eval_status(r[:status]),
+          reason: r[:reason].to_s,
+        }
+      end
+      {
+        eval_run_id:  raw[:eval_run_id].to_s,
+        eval_id:      raw[:eval_id].to_s,
+        task_id:      raw[:task_id].to_s,
+        execution_id: raw[:execution_id].to_s,
+        eval_name:    raw[:eval_name].to_s.presence || 'Execution evaluation',
+        status:       normalize_eval_status(raw[:status]),
+        passed_count: raw[:passed_count].to_i,
+        failed_count: raw[:failed_count].to_i,
+        results:      results,
+        created_at:   parse_time(raw[:created_at]),
+      }
+    end
+
+    def normalize_eval_status(status)
+      case status.to_s.downcase
+      when 'passed' then 'Passed'
+      when 'failed' then 'Failed'
+      else 'Unavailable'
+      end
+    end
+
+    # Map one raw evaluation definition → safe view hash. Definitions are
+    # operator-authored and the backend already rejects prompts/secrets via its
+    # own allow-list; we surface the values verbatim (ERB escapes on render) and
+    # only normalize identifiers, the assertion list, and timestamps.
+    def normalize_execution_eval(raw)
+      return nil unless raw
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      assertions = Array(raw[:assertions_json] || raw[:assertions]).map do |a|
+        a = a.with_indifferent_access if a.respond_to?(:with_indifferent_access)
+        {
+          name:        a[:name].to_s,
+          type:        a[:type].to_s,
+          value:       a[:value].to_s,
+          action_name: a[:action_name].to_s,
+          agent_id:    a[:agent_id].to_s,
+        }
+      end
+      {
+        id:                 raw[:eval_id].to_s,
+        name:               raw[:name].to_s,
+        description:        raw[:description].to_s,
+        target_action_name: raw[:target_action_name].to_s,
+        target_agent_id:    raw[:target_agent_id].to_s,
+        enabled:            raw.key?(:enabled) ? !!raw[:enabled] : true,
+        archived:           parse_time(raw[:archived_at]).present?,
+        assertions:         assertions,
+        assertion_count:    assertions.size,
+        created_at:         parse_time(raw[:created_at]),
+        updated_at:         parse_time(raw[:updated_at]),
+      }
+    end
+
+    def build_execution_eval_history(runs, state: nil)
+      passed = runs.count { |run| run[:status] == 'Passed' }
+      failed = runs.count { |run| run[:status] == 'Failed' }
+      total = runs.size
+      reasons = runs.flat_map do |run|
+        next [] unless run[:status] == 'Failed'
+
+        run[:results].select { |result| result[:status] == 'Failed' }
+                     .map { |result| result[:reason].to_s.strip }
+      end.reject(&:blank?)
+
+      {
+        state: state || (runs.any? ? :evaluated : :empty),
+        runs: runs,
+        total: total,
+        passed: passed,
+        failed: failed,
+        pass_rate: total.positive? ? passed.to_f / total : 0.0,
+        failure_reasons: reasons.tally.sort_by { |reason, count| [-count, reason] }.first(5)
+                              .map { |reason, count| { reason: reason, count: count } },
+      }
     end
   end
 end
