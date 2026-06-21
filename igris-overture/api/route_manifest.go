@@ -404,6 +404,18 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/execution/affinity",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "execution_affinity",
+			RegistrationSource:     "RegisterExecutionAffinityRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound agent/action/pack relationship aggregates",
+			Notes:                  "Agent-to-action, action-to-agent, and pack relationship metrics from durable execution truth; no raw execution payloads",
+		},
+	},
+	{
 		Path: "/v1/execution-evals/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "execution_evals",
@@ -425,6 +437,30 @@ var routeManifestRules = []routeManifestRule{
 			AuthExpectation:        "BetterAuth tenant credential",
 			TenantScopeExpectation: "tenant-owned deterministic eval definitions",
 			Notes:                  "Execution evaluation CRUD; rejects tenant_id body overrides",
+		},
+	},
+	{
+		Path: "/v1/policy/proposals",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "policy_proposals",
+			RegistrationSource:     "RegisterPolicyProposalRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-owned draft policy rules and their governance events",
+			Notes:                  "Policy proposal lifecycle (draft/review/approve) over the read-only simulation engine; no active-policy mutation, replay, dispatch, or raw-body persistence; rejects tenant_id body overrides",
+		},
+	},
+	{
+		Path: "/v1/policy/proposals/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "policy_proposals",
+			RegistrationSource:     "RegisterPolicyProposalRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-owned draft policy rule detail, re-simulation, and approval",
+			Notes:                  "Proposal get/update/archive/simulate/approve; re-simulation reuses /v1/policy/simulate engine; safe summaries only",
 		},
 	},
 	{
