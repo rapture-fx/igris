@@ -33,6 +33,29 @@ Rails.application.routes.draw do
     end
   end
 
+  # Execution Evaluation definitions live under the Runs lens (no new top-level
+  # nav). Declared BEFORE `resources :runs` so /runs/evaluations resolves here
+  # and never collides with runs#show (GET /runs/:id).
+  scope path: 'runs' do
+    resources :evaluations, controller: 'execution_evaluations',
+              only: %i[index new create show edit update destroy] do
+      member do
+        post :run
+      end
+    end
+  end
+
+  # Agent Adoption Layer — the operator home for registered agents and the
+  # capabilities (action packs) available to them. Catalog / Packs / Getting
+  # started live as in-page views under one Agents lens (mirrors the Runs lens),
+  # so no navigation beyond the single rail item. Agent detail is /agents/:id;
+  # archive is a member POST (Go soft-archives via DELETE /v1/agents).
+  resources :agents, only: %i[index show] do
+    member do
+      post :archive
+    end
+  end
+
   resources :runs, only: %i[index show]
   resources :runtimes, only: :index do
     collection do
