@@ -1,0 +1,63 @@
+<%#
+  Trust Journey — a lightweight, contextual map of how Igris turns an agent into
+  verifiable, evaluated execution: Agent → Action → Proof → Evaluation →
+  Intelligence. NOT a tour, popup, or marketing — just an honest orientation
+  strip whose stages reflect real adoption state (reached / not yet) and link to
+  the surface where each step happens.
+
+  Expects `health` — the data_source.adoption_health hash. Each stage's reached
+  state is derived from the real health steps, so the journey never claims a step
+  the tenant hasn't actually taken.
+%>
+<% steps = Array(health && health[:steps]).index_by { |s| s[:key] } %>
+<%
+  reached = ->(key) { steps[key] && steps[key][:done] }
+  stages = [
+    { key: :agent,        label: 'Agent',        done: reached.call(:agent),
+      sub: 'Registered caller',  href: agents_path },
+    { key: :action,       label: 'Action',       done: reached.call(:action),
+      sub: 'Executed safely',    href: actions_path },
+    { key: :proof,        label: 'Proof',        done: reached.call(:proof),
+      sub: 'Signed receipt',     href: runs_path },
+    { key: :evaluation,   label: 'Evaluation',   done: reached.call(:evaluation),
+      sub: 'Behaviour checked',  href: evaluations_path },
+    { key: :intelligence, label: 'Intelligence', done: reached.call(:action),
+      sub: 'Operational truth',  href: runs_path(view: 'intelligence') },
+  ]
+%>
+<style>
+  .ic-journey { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .ic-journey__stage {
+    display: flex; flex-direction: column; gap: 3px; text-decoration: none;
+    padding: 10px 14px; border: 1px solid var(--ic-border-soft); border-radius: 10px;
+    min-width: 120px; flex: 1; color: inherit; background: var(--ic-overlay-bg);
+  }
+  .ic-journey__stage:hover { border-color: var(--ic-border); }
+  .ic-journey__top { display: flex; align-items: center; gap: 7px; }
+  .ic-journey__dot { width: 8px; height: 8px; border-radius: 999px; flex: none; }
+  .ic-journey__dot--ok { background: var(--ic-emerald); }
+  .ic-journey__dot--pending { background: var(--ic-text-8); }
+  .ic-journey__label { font-size: 12.5px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-journey__sub { font-size: 11px; color: var(--ic-text-6); }
+  .ic-journey__state { font-size: 10.5px; }
+  .ic-journey__arrow { display: flex; align-items: center; color: var(--ic-text-8); padding: 0 2px; }
+  @media (max-width: 760px) { .ic-journey__arrow { display: none; } }
+</style>
+
+<div class="ic-journey" role="list" aria-label="Trust journey">
+  <% stages.each_with_index do |stage, i| %>
+    <%= link_to stage[:href], class: 'ic-journey__stage', role: 'listitem' do %>
+      <div class="ic-journey__top">
+        <span class="ic-journey__dot ic-journey__dot--<%= stage[:done] ? 'ok' : 'pending' %>" aria-hidden="true"></span>
+        <span class="ic-journey__label"><%= stage[:label] %></span>
+      </div>
+      <span class="ic-journey__sub"><%= stage[:sub] %></span>
+      <span class="ic-journey__state ic-doc__stat ic-doc__stat--<%= stage[:done] ? 'ok' : 'muted' %>">
+        <%= stage[:done] ? 'Reached' : 'Not yet' %>
+      </span>
+    <% end %>
+    <% unless i == stages.size - 1 %>
+      <span class="ic-journey__arrow" aria-hidden="true"><%= console_icon('arrow-right', size: 14, stroke: 1.7) %></span>
+    <% end %>
+  <% end %>
+</div>
