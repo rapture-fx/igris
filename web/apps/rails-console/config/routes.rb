@@ -43,6 +43,20 @@ Rails.application.routes.draw do
         post :run
       end
     end
+
+    # Policy Proposal lifecycle — save a simulated rule as a draft, re-simulate
+    # it, mark it ready, and approve it. Governance only: nothing here mutates
+    # active policy. Lives under the Runs lens (no new top-level navigation) and
+    # is declared BEFORE `resources :runs` so /runs/proposals never collides with
+    # runs#show (GET /runs/:id).
+    resources :proposals, controller: 'policy_proposals',
+              only: %i[index new create show edit update destroy] do
+      member do
+        post :simulate
+        post :approve
+        post :ready
+      end
+    end
   end
 
   # Agent Adoption Layer — the operator home for registered agents and the
@@ -50,6 +64,7 @@ Rails.application.routes.draw do
   # started live as in-page views under one Agents lens (mirrors the Runs lens),
   # so no navigation beyond the single rail item. Agent detail is /agents/:id;
   # archive is a member POST (Go soft-archives via DELETE /v1/agents).
+  get '/agents/packs/:id', to: 'agents#pack', as: :agent_pack
   resources :agents, only: %i[index show] do
     member do
       post :archive
