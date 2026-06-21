@@ -1,0 +1,33 @@
+<%# Generic custom-dropdown behaviour for .ic-dropdown[data-dd] — no native
+    <select>. Each [data-dd-opt] sets the dropdown's hidden [data-dd-input] and
+    updates the [data-dd-label]. Render once per page that uses _form_dropdown. %>
+<script>
+  (function () {
+    if (window.__icDropdownWired) return;
+    window.__icDropdownWired = true;
+
+    function chooseOption(opt) {
+      var dd = opt.closest('.ic-dropdown');
+      if (!dd) return;
+      var input = dd.querySelector('[data-dd-input]');
+      var label = dd.querySelector('[data-dd-label]');
+      var value = opt.getAttribute('data-value') || '';
+      if (input) input.value = value;
+      if (label) { label.textContent = opt.textContent.trim(); label.classList.toggle('is-set', value !== ''); }
+      dd.querySelectorAll('[data-dd-opt]').forEach(function (o) { o.classList.toggle('is-active', o === opt); });
+      dd.open = false;
+      if (input) input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    document.addEventListener('click', function (e) {
+      var opt = e.target.closest('[data-dd-opt]');
+      if (opt) { e.preventDefault(); chooseOption(opt); return; }
+      document.querySelectorAll('.ic-dropdown[data-dd][open]').forEach(function (dd) {
+        if (!dd.contains(e.target)) dd.open = false;
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') document.querySelectorAll('.ic-dropdown[data-dd][open]').forEach(function (dd) { dd.open = false; });
+    });
+  })();
+</script>
