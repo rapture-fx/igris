@@ -1,0 +1,100 @@
+<%#
+  Agent Catalog — the registered-agent roster with per-agent execution metrics.
+  A plain explanatory list (no cards). Each row links to the agent's detail page.
+  Metrics are joined from Execution Intelligence over the last 30 days and the
+  view says so; rows with no runs in the window read an honest "No runs yet".
+  Never renders agent metadata, prompts, or any unsafe field.
+%>
+<style>
+  .ic-agentcat { border-top: 1px solid var(--ic-border-soft); }
+  .ic-agentcat-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) 104px 70px 92px 92px 116px;
+    align-items: center; gap: 14px; padding: 12px 4px;
+    border-bottom: 1px solid var(--ic-border-soft); text-decoration: none; color: inherit;
+  }
+  .ic-agentcat-row:hover { background: var(--ic-overlay-bg); }
+  .ic-agentcat-row__id { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .ic-agentcat-row__name { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-agentcat-row__handle { margin-top: 1px; font-size: 11px; color: var(--ic-text-6); font-family: var(--ic-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-agentcat-row__cell { font-size: 12px; color: var(--ic-text-4); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-agentcat-row__cell.mono { font-family: var(--ic-mono); }
+  .ic-agentcat-row__cell--num { font-variant-numeric: tabular-nums; }
+  @media (max-width: 980px) {
+    .ic-agentcat-row { grid-template-columns: minmax(0, 1.7fr) 70px 92px 116px; }
+    .ic-agentcat-row__cell--template, .ic-agentcat-row__cell--status, .ic-agentcat-row__cell--eval { display: none; }
+  }
+</style>
+
+<div class="ic-body ic-scroll ic-doc" style="padding: 18px 16px; max-width: 980px; width: 100%; margin: 0 auto;">
+  <div class="ic-evidence" style="margin-bottom: 14px;">
+    <div class="ic-evidence__head">Agent catalog</div>
+    <p class="ic-evidence__intro">
+      Every agent registered in this project, with what each one has actually done.
+      Run counts and rates are drawn from execution truth over the last 30 days —
+      never from prompts or model output. Open an agent to see it explain itself.
+    </p>
+  </div>
+
+  <% if Array(agents).blank? %>
+    <div class="ic-evidence">
+      <div class="ic-evidence__head">No agents registered yet</div>
+      <p class="ic-doc__note">
+        A registered agent lets Igris attribute every run to a known caller and
+        track its success, recovery, evaluation, and proof history. Agents register
+        themselves against the Agent Registry when they first identify to the API.
+      </p>
+      <p style="margin-top: 12px;">
+        <%= link_to 'See getting started', agents_path(view: 'adoption'), class: 'ic-btn ic-btn--accent' %>
+      </p>
+    </div>
+  <% else %>
+    <div class="ic-agentcat" role="table" aria-label="Registered agents">
+      <div class="ic-agentcat-row" role="row" style="border-bottom: 1px solid var(--ic-border); padding-top: 0; padding-bottom: 8px;">
+        <div class="ic-agentcat-row__cell" style="color: var(--ic-text-6);">Agent</div>
+        <div class="ic-agentcat-row__cell ic-agentcat-row__cell--template" style="color: var(--ic-text-6);">Template</div>
+        <div class="ic-agentcat-row__cell ic-agentcat-row__cell--status" style="color: var(--ic-text-6);">Status</div>
+        <div class="ic-agentcat-row__cell ic-agentcat-row__cell--num" style="color: var(--ic-text-6);">Runs</div>
+        <div class="ic-agentcat-row__cell ic-agentcat-row__cell--num" style="color: var(--ic-text-6);">Success</div>
+        <div class="ic-agentcat-row__cell ic-agentcat-row__cell--num ic-agentcat-row__cell--eval" style="color: var(--ic-text-6);">Eval pass</div>
+        <div class="ic-agentcat-row__cell" style="color: var(--ic-text-6);">Last activity</div>
+      </div>
+
+      <% agents.each do |agent| %>
+        <%= link_to agent_path(agent[:agent_id].presence || agent[:name]), class: 'ic-agentcat-row', role: 'row' do %>
+          <div class="ic-agentcat-row__id">
+            <span class="ic-agentcard__avatar" aria-hidden="true"><%= console_icon('user', size: 14, stroke: 1.7) %></span>
+            <div style="min-width: 0;">
+              <div class="ic-agentcat-row__name"><%= agent[:display_name].presence || agent[:name].presence || 'Unnamed agent' %></div>
+              <div class="ic-agentcat-row__handle"><%= agent[:agent_type].presence || agent[:name].presence || '—' %></div>
+            </div>
+          </div>
+          <div class="ic-agentcat-row__cell mono ic-agentcat-row__cell--template"><%= agent[:template_name].presence || '—' %></div>
+          <div class="ic-agentcat-row__cell ic-agentcat-row__cell--status">
+            <% if agent[:archived] %>
+              <span class="ic-doc__stat ic-doc__stat--muted">Archived</span>
+            <% else %>
+              <span class="ic-doc__stat ic-doc__stat--ok">Active</span>
+            <% end %>
+          </div>
+          <div class="ic-agentcat-row__cell ic-agentcat-row__cell--num"><%= agent[:run_count].to_i %></div>
+          <div class="ic-agentcat-row__cell ic-agentcat-row__cell--num">
+            <% if agent[:has_metrics] %>
+              <span class="ic-doc__stat ic-doc__stat--<%= intel_rate_tone(agent[:success_rate]) %>"><%= intel_pct(agent[:success_rate]) %></span>
+            <% else %>
+              —
+            <% end %>
+          </div>
+          <div class="ic-agentcat-row__cell ic-agentcat-row__cell--num ic-agentcat-row__cell--eval">
+            <% if agent[:eval_run_count].to_i.positive? %>
+              <span class="ic-doc__stat ic-doc__stat--<%= intel_rate_tone(agent[:eval_pass_rate]) %>"><%= intel_pct(agent[:eval_pass_rate]) %></span>
+            <% else %>
+              <span style="color: var(--ic-text-6);">No evals</span>
+            <% end %>
+          </div>
+          <div class="ic-agentcat-row__cell"><%= agent[:last_activity_at] ? time_ago(agent[:last_activity_at]) : 'No runs yet' %></div>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
