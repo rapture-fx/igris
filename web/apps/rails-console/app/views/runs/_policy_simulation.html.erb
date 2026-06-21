@@ -184,6 +184,26 @@
       <% end %>
     <% end %>
 
+    <%# Turn this preview into a saved, reviewable proposal. The criteria that
+        were just simulated are carried over so the draft opens prefilled. This
+        only navigates to the proposal form — it creates nothing by itself. %>
+    <% unless simulation[:state] == :unavailable %>
+      <% req = simulation[:requested] || {} %>
+      <% crit = req[:criteria] || {} %>
+      <% match_kind = %i[match_action_name match_action_prefix match_agent_id match_agent_type].find { |k| crit[k].present? } %>
+      <div class="ic-polsim__samples" style="margin-top: 14px;">
+        <%= link_to 'Save as proposal', new_proposal_path(
+              range: req[:range], policy_mode: req[:policy_mode],
+              match_kind: match_kind, match_value: (match_kind ? crit[match_kind] : nil),
+              match_result_status: crit[:match_result_status],
+              require_proof_missing: crit[:require_proof_missing],
+              require_recovery_occurred: crit[:require_recovery_occurred],
+              require_eval_failed: crit[:require_eval_failed]
+            ), class: 'ic-btn ic-btn--accent' %>
+        <%= link_to 'View proposals', proposals_path, class: 'ic-btn' %>
+      </div>
+    <% end %>
+
     <% simulation[:warnings].each do |w| %>
       <p class="ic-polsim__warn"><%= w %></p>
     <% end %>
