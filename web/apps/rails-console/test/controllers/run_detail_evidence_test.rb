@@ -9,9 +9,10 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
   # Minimal Overture client stub returning one task. The task carries hostile
   # extra fields that must never reach the rendered page.
   class FakeClient
-    def initialize(task, steps: [])
+    def initialize(task, steps: [], eval_runs: [])
       @task = task
       @steps = steps
+      @eval_runs = eval_runs
     end
     def configured?            = true
     def list_actions           = []
@@ -20,6 +21,7 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
     def get_task(_id)          = @task
     def get_task_steps(_id)    = @steps
     def list_agent_memory(**)  = []
+    def list_execution_eval_runs(_) = @eval_runs
     def get_action(_)          = nil
     def find_action_by_name(_) = nil
   end
@@ -172,6 +174,89 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_match 'Step evidence', response.body
       assert_match 'No ordered step evidence is available for this run yet.', response.body
+    end
+  end
+
+  test 'run detail shows passed evaluation results' do
+    eval_runs = [
+      {
+        'eval_name' => 'Billing correctness',
+        'status' => 'passed',
+        'passed_count' => 2,
+        'failed_count' => 0,
+        'results_json' => [
+          { 'name' => 'Proof generated', 'status' => 'passed', 'reason' => 'proof or receipt state was recorded' },
+          { 'name' => 'No unsafe marker detected', 'status' => 'passed', 'reason' => 'no unsafe marker was detected in stored execution metadata' },
+        ],
+      },
+    ]
+    with_real_ds(FakeClient.new(real_task, eval_runs: eval_runs)) do
+      get '/runs/task_real_1'
+      assert_response :success
+      assert_select '#evaluation-results'
+      assert_match 'Billing correctness', response.body
+      assert_match 'Passed', response.body
+      assert_match '2 passed checks', response.body
+      assert_match 'This evaluation passed because all recorded checks matched the run facts available to the server.', response.body
+    end
+  end
+
+  test 'run detail shows failed evaluation results clearly' do
+    eval_runs = [
+      {
+        'eval_name' => 'Billing correctness',
+        'status' => 'failed',
+        'passed_count' => 1,
+        'failed_count' => 1,
+        'results_json' => [
+          { 'name' => 'Required action completed', 'status' => 'failed', 'reason' => 'action was not observed in execution truth' },
+        ],
+      },
+    ]
+    with_real_ds(FakeClient.new(real_task, eval_runs: eval_runs)) do
+      get '/runs/task_real_1'
+      assert_response :success
+      assert_select '#evaluation-results .ic-eval-detail.is-failed'
+      assert_match '1 failed check', response.body
+      assert_match 'This evaluation failed because at least one required execution fact did not match the recorded run.', response.body
+      assert_match 'action was not observed in execution truth', response.body
+    end
+  end
+
+  test 'run detail shows not evaluated and unavailable evaluation states' do
+    with_real_ds(FakeClient.new(real_task, eval_runs: [])) do
+      get '/runs/task_real_1'
+      assert_response :success
+      assert_match 'No Execution Evaluation has been recorded for this run.', response.body
+    end
+
+    failing = FakeClient.new(real_task)
+    def failing.list_execution_eval_runs(_) = raise Igris::OvertureClient::ServerError.new('boom', status: 500)
+    with_real_ds(failing) do
+      get '/runs/task_real_1'
+      assert_response :success
+      assert_match 'Evaluation results are unavailable right now.', response.body
+    end
+  end
+
+  test 'evaluation results never render unsafe raw values' do
+    eval_runs = [
+      {
+        'eval_name' => 'Secret scan',
+        'status' => 'failed',
+        'passed_count' => 0,
+        'failed_count' => 1,
+        'results_json' => [
+          { 'name' => 'No unsafe marker detected', 'status' => 'failed', 'reason' => 'unsafe marker was detected in stored execution metadata' },
+        ],
+      },
+    ]
+    with_real_ds(FakeClient.new(real_task, eval_runs: eval_runs)) do
+      get '/runs/task_real_1'
+      assert_response :success
+      ['sk_live_supersecret', 'DATABASE_URL', 'callback_body', 'raw_body', 'bearer'].each do |secret|
+        refute_includes response.body.downcase, secret.downcase
+      end
     end
   end
 
