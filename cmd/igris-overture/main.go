@@ -622,6 +622,7 @@ func main() {
 		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
 		api.RegisterExecutionIntelligenceRoutes(app, dbInstance)
 		api.RegisterExecutionAffinityRoutes(app, dbInstance)
+		api.RegisterTrustRecommendationRoutes(app, dbInstance)
 		api.RegisterExecutionEvalRoutes(app, dbInstance)
 		api.RegisterPolicySimulationRoutes(app, dbInstance)
 		api.RegisterPolicyProposalRoutes(app, dbInstance)
