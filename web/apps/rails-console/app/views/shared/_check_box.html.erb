@@ -1,0 +1,16 @@
+<%#
+  Custom checkbox — the console's own control, not the native browser checkbox.
+  Submits exactly like check_box_tag (value "1" when checked, absent otherwise).
+  Locals: name, label, checked (bool), value (default "1").
+%>
+<%
+  value   = local_assigns.fetch(:value, '1')
+  checked = local_assigns.fetch(:checked, false)
+%>
+<label class="ic-check">
+  <%= check_box_tag name, value, checked %>
+  <span class="ic-check__box" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-11" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </span>
+  <span><%= label %></span>
+</label>
