@@ -1,0 +1,75 @@
+<%#
+  Trust Recommendations — deterministic, read-only attention items computed by
+  Igris from execution truth (recovery / proof / evaluation / approval thresholds
+  and stale approved proposals). Not AI advice: no prompts, model output, or
+  confidence. `trust` is the normalized { state:, generated_at:, recommendations: }
+  hash. Every value is ERB-escaped; links only point at existing console surfaces.
+%>
+<% trust ||= { state: :empty, recommendations: [] } %>
+<style>
+  .ic-trust { margin-top: 20px; }
+  .ic-trust__intro { color: var(--ic-text-5); font-size: 12px; margin: 4px 0 12px; max-width: 70ch; }
+  .ic-trust__list { display: flex; flex-direction: column; border-top: 1px solid var(--ic-border-soft); }
+  .ic-trust__row { display: flex; flex-direction: column; gap: 4px; padding: 12px 2px; border-bottom: 1px solid var(--ic-border-soft); }
+  .ic-trust__top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .ic-trust__sev { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ic-text-6); }
+  /* Tonal (grayscale) emphasis only — no color. */
+  .ic-trust__sev.is-critical { color: var(--ic-text-bright); font-weight: 600; }
+  .ic-trust__sev.is-warning { color: var(--ic-text-3); }
+  .ic-trust__sev.is-info { color: var(--ic-text-6); }
+  .ic-trust__cat { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ic-text-6); }
+  .ic-trust__title { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-trust__reason { font-size: 12px; color: var(--ic-text-5); }
+  .ic-trust__entity { color: var(--ic-text-4); }
+  .ic-trust__action { font-size: 12px; color: var(--ic-text-4); }
+  .ic-trust__action b { color: var(--ic-text-3); font-weight: 600; }
+  .ic-trust__links { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .ic-trust__notice { font-size: 12px; color: var(--ic-text-5); padding: 10px 0; }
+</style>
+
+<div class="ic-evidence ic-trust">
+  <div class="ic-evidence__head">Trust recommendations</div>
+  <p class="ic-trust__intro">
+    Attention items derived from recorded execution truth in this window. These are observations,
+    not automated changes: nothing here is replayed, dispatched, or modified.
+  </p>
+
+  <% case trust[:state] %>
+  <% when :unavailable %>
+    <p class="ic-trust__notice">
+      Recommendations are unavailable right now, so no attention items could be computed.
+      The banner above carries the safe error detail. Nothing was changed.
+    </p>
+  <% when :ok %>
+    <% if trust[:recommendations].blank? %>
+      <p class="ic-trust__notice">No attention items found for this window.</p>
+    <% else %>
+      <div class="ic-trust__list">
+        <% trust[:recommendations].each do |rec| %>
+          <div class="ic-trust__row">
+            <div class="ic-trust__top">
+              <span class="ic-trust__sev is-<%= rec[:severity] %>"><%= trust_severity_label(rec[:severity]) %></span>
+              <span class="ic-trust__cat"><%= rec[:category] %></span>
+              <span class="ic-trust__title"><%= rec[:title] %></span>
+              <% if rec[:entity_name].present? %>
+                <span class="ic-trust__entity"><%= rec[:entity_name] %></span>
+              <% end %>
+            </div>
+            <div class="ic-trust__reason"><%= rec[:reason] %></div>
+            <div class="ic-trust__action"><b>Recommended:</b> <%= rec[:recommended_action] %></div>
+            <% hrefs = rec[:links].filter_map { |l| h = trust_link_href(rec, l[:rel]); [l[:label], h] if h } %>
+            <% if hrefs.any? %>
+              <div class="ic-trust__links">
+                <% hrefs.each do |label, href| %>
+                  <%= link_to label, href, class: 'ic-btn ic-btn--sm' %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="ic-trust__notice">No attention items found for this window.</p>
+  <% end %>
+</div>
