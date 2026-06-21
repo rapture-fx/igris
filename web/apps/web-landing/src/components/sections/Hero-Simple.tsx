@@ -9,8 +9,8 @@ export default function Hero() {
   return (
     <section className="relative w-full min-h-[90vh] overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="relative mx-auto flex min-h-[90vh] max-w-[1400px] flex-col px-4 pb-24 pt-32 sm:px-6 lg:px-8 lg:pb-32 lg:pt-40">
-        <div className="flex flex-1 flex-col items-start justify-center gap-10 text-left lg:gap-14">
-          <div className="flex flex-col items-start">
+        <div className="flex flex-1 flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-14">
+          <div className="flex w-full flex-col items-start lg:w-2/5">
             <h1
               className="text-black dark:text-[#f6f6f4]"
               style={{
@@ -39,6 +39,13 @@ export default function Hero() {
                 Set up an agent
               </a>
             </div>
+          </div>
+          <div className="flex w-full items-center justify-end lg:-mt-32 lg:w-3/5">
+            <img
+              src="/hero.png"
+              alt="Hero illustration"
+              className="h-auto w-full max-w-4xl"
+            />
           </div>
         </div>
       </div>
