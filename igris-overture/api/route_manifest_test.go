@@ -87,6 +87,8 @@ func TestCoreRoutesPresentInDefaultManifest(t *testing.T) {
 		"POST /v1/tasks/submit",
 		"GET /v1/tasks",
 		"GET /v1/tasks/:id",
+		"GET /v1/execution-evals",
+		"POST /v1/execution-evals",
 		"POST /api/v1/runtime/register",
 		"POST /api/v1/runtime/heartbeat",
 		"GET /api/v1/runtime/commands",
@@ -179,6 +181,8 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterAgentRegistryRoutes(app, db, NewExecutionHandler(db))
 	RegisterExecutionRoutes(app, db, nil)
 	RegisterExecutionIntelligenceRoutes(app, db)
+	RegisterExecutionEvalRoutes(app, db)
+	RegisterPolicySimulationRoutes(app, db)
 	RegisterAgentMemoryRoutes(app, db)
 	RegisterProofRoutes(app, db, nil)
 	RegisterGovernanceRoutes(app, db)
