@@ -404,6 +404,42 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/execution-evals/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "execution_evals",
+			RegistrationSource:     "RegisterExecutionEvalRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound deterministic eval definitions and eval run results",
+			Notes:                  "Execution-truth assertions over durable task, proof, approval, and recovery records",
+		},
+	},
+	{
+		Path: "/v1/execution-evals",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "execution_evals",
+			RegistrationSource:     "RegisterExecutionEvalRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-owned deterministic eval definitions",
+			Notes:                  "Execution evaluation CRUD; rejects tenant_id body overrides",
+		},
+	},
+	{
+		Path: "/v1/policy/simulate",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "policy_simulation",
+			RegistrationSource:     "RegisterPolicySimulationRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound read-only impact preview over durable execution records",
+			Notes:                  "Deterministic policy-change preview; read-only aggregation, no policy mutation, replay, dispatch, or persistence; rejects tenant_id body overrides",
+		},
+	},
+	{
 		Path: "/v1/execution/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "execution",
