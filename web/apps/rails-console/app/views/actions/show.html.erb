@@ -1,6 +1,18 @@
 <%# Action detail — the place where you copy the endpoint and send the first
     test request. Next-step card sits above the tabs. %>
 <% latest = @runs_for_action.first %>
+<style>
+  .ic-action-affinity { margin-top: 14px; padding-top: 2px; }
+  .ic-action-affinity__intro { margin: 0 0 8px; font-size: 12.5px; color: var(--ig-text-muted); line-height: 1.55; }
+  .ic-action-affinity__list { border-left: 2px solid var(--ig-border); padding-left: 14px; }
+  .ic-action-affinity__row { padding: 10px 0; border-bottom: 1px solid var(--ig-border-subtle); }
+  .ic-action-affinity__row:last-child { border-bottom: 0; }
+  .ic-action-affinity__name { color: var(--ig-text-primary); font-size: 13px; font-weight: 600; text-decoration: none; }
+  .ic-action-affinity__name:hover { text-decoration: underline; }
+  .ic-action-affinity__type { margin-left: 6px; color: var(--ig-text-muted); font-size: 11px; font-family: var(--ig-mono); }
+  .ic-action-affinity__sentence { margin-top: 4px; font-size: 12px; color: var(--ig-text-body); line-height: 1.55; }
+  .ic-action-affinity__facts { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--ig-text-muted); }
+</style>
 <div class="ic-topbar ic-topbar--wrap">
   <div class="ic-topbar__group">
     <%= link_to 'Actions', actions_path, class: 'ic-topbar__crumb' %>
@@ -126,6 +138,44 @@
                 <span class="ig-mut" style="margin-left: 10px;">Demo mode — submission is inert.</span>
               <% end %>
             <% end %>
+          <% end %>
+        </div>
+
+        <div class="ic-action-affinity">
+          <div class="ig-card__title">Who uses this action</div>
+          <% agents_using = Array(@affinity && @affinity[:action_agents]) %>
+          <% if agents_using.any? %>
+            <p class="ic-action-affinity__intro">
+              These agents called this action in recorded executions. The rows are
+              aggregate execution facts, not sampled requests.
+            </p>
+            <div class="ic-action-affinity__list">
+              <% agents_using.each do |agent| %>
+                <div class="ic-action-affinity__row">
+                  <div>
+                    <%= link_to agent[:agent_name], agent_path(agent[:agent_id]), class: 'ic-action-affinity__name' %>
+                    <% if agent[:agent_type].present? %>
+                      <span class="ic-action-affinity__type"><%= agent[:agent_type] %></span>
+                    <% end %>
+                  </div>
+                  <div class="ic-action-affinity__sentence">
+                    Used <%= pluralize(agent[:run_count], 'time') %>;
+                    <%= intel_pct(agent[:success_rate]) %> succeeded,
+                    <%= intel_pct(agent[:recovery_rate]) %> needed recovery,
+                    and <%= intel_pct(agent[:approval_rate]) %> required approval.
+                  </div>
+                  <div class="ic-action-affinity__facts">
+                    <span>Eval pass <%= agent[:eval_run_count].to_i.positive? ? intel_pct(agent[:eval_pass_rate]) : '—' %></span>
+                    <span>Proof coverage <%= intel_pct(agent[:proof_coverage]) %></span>
+                    <span><%= pluralize(agent[:failed_runs], 'failed run') %></span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="ic-action-affinity__intro">
+              No agent has recorded usage for this action in the last 30 days.
+            </p>
           <% end %>
         </div>
       </div>
