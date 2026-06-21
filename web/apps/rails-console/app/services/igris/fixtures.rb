@@ -401,6 +401,50 @@ module Igris
       { range: range, source: 'demo', summary: summary, agents: agents, actions: actions }
     end
 
+    def execution_affinity(range: 'last_30d', agent_id: nil, action_name: nil, pack: nil)
+      agent_actions = [
+        affinity_action('demo.echo', 'Demo Echo', 'starter', 88, 83, 2, 0, 4, 22, 21, 84),
+        affinity_action('demo.needs_approval', 'Demo Needs Approval', 'starter', 31, 28, 1, 31, 1, 8, 8, 30),
+        affinity_action('charge_customer', 'Charge Customer', 'finance', 18, 14, 3, 11, 4, 12, 10, 15),
+      ]
+      action_agents = [
+        affinity_agent('a1f2c3d4-e5f6-7890-abcd-ef1234567890', 'Claude Code Agent', 'developer_agent', 'demo.echo', 'Demo Echo', 'starter', 88, 83, 2, 0, 4, 22, 21, 84),
+        affinity_agent('a1f2c3d4-e5f6-7890-abcd-ef1234567890', 'Claude Code Agent', 'developer_agent', 'demo.needs_approval', 'Demo Needs Approval', 'starter', 31, 28, 1, 31, 1, 8, 8, 30),
+        affinity_agent('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Support Agent', 'support_agent', 'demo.echo', 'Demo Echo', 'starter', 54, 50, 2, 0, 3, 12, 12, 53),
+      ]
+      pack_edges = action_agents.map do |row|
+        {
+          pack_name: row[:pack_name], action_name: row[:action_name],
+          action_display_name: row[:action_display_name], agent_id: row[:agent_id],
+          agent_name: row[:agent_name], run_count: row[:run_count],
+          success_rate: row[:success_rate], recovery_rate: row[:recovery_rate],
+          approval_rate: row[:approval_rate], eval_pass_rate: row[:eval_pass_rate],
+          proof_coverage: row[:proof_coverage],
+        }
+      end
+
+      agent_actions = agent_actions.select { |row| row[:action_name] == action_name.to_s } if action_name.present?
+      agent_actions = agent_actions.select { |row| row[:pack_name] == pack.to_s } if pack.present?
+      action_agents = action_agents.select { |row| row[:agent_id] == agent_id.to_s } if agent_id.present?
+      action_agents = action_agents.select { |row| row[:action_name] == action_name.to_s } if action_name.present?
+      action_agents = action_agents.select { |row| row[:pack_name] == pack.to_s } if pack.present?
+      pack_edges = pack_edges.select { |row| row[:agent_id] == agent_id.to_s } if agent_id.present?
+      pack_edges = pack_edges.select { |row| row[:action_name] == action_name.to_s } if action_name.present?
+      pack_edges = pack_edges.select { |row| row[:pack_name] == pack.to_s } if pack.present?
+
+      {
+        range: range,
+        source: 'demo',
+        agent_actions: agent_actions,
+        action_agents: action_agents,
+        pack_edges: pack_edges,
+        hotspots: [
+          { scope: 'action', name: 'Demo Needs Approval', observation: 'Approval appears in at least half of recorded runs.', run_count: 31 },
+          { scope: 'action', name: 'Charge Customer', observation: 'Recovery appeared in at least one in ten recorded runs.', run_count: 18 },
+        ],
+      }
+    end
+
     # Demo Policy Simulation result so the read-only preview card renders
     # offline. Deterministic, derived from the requested mode, and clearly demo
     # data (the page carries the global "Demo data" indicator). Never real.
@@ -426,6 +470,80 @@ module Igris
           { task_id: 'run_demo_sim_02', status: 'Succeeded' },
         ],
         warnings: [],
+      }
+    end
+
+    # Demo policy proposals so the Proposals surface renders offline. Hard-coded
+    # and never confused with real data (the page shows the global "Demo data"
+    # indicator and writes are inert in fixture mode). Shaped like the backend
+    # response so it flows through the same normalizer.
+    def policy_proposals
+      now = Time.current
+      [
+        {
+          'proposal_id' => 'prop_demo_refund_guard',
+          'name' => 'Pause large Stripe refunds',
+          'description' => 'Require human approval for stripe.refund actions before they execute.',
+          'status' => 'review_ready',
+          'policy_mode' => 'require_approval',
+          'match_criteria_json' => { 'range' => '30d', 'match_action_prefix' => 'stripe.refund' },
+          'latest_simulation_json' => demo_proposal_simulation('require_approval', now - 3.hours),
+          'created_at' => (now - 6.days).iso8601,
+          'updated_at' => (now - 3.hours).iso8601,
+        },
+        {
+          'proposal_id' => 'prop_demo_block_unproven_writes',
+          'name' => 'Block db writes without proof',
+          'description' => 'Block db.write actions that completed without a recorded proof.',
+          'status' => 'draft',
+          'policy_mode' => 'block',
+          'match_criteria_json' => { 'range' => '7d', 'match_action_prefix' => 'db.', 'require_proof_missing' => true },
+          'latest_simulation_json' => nil,
+          'created_at' => (now - 2.days).iso8601,
+          'updated_at' => (now - 2.days).iso8601,
+        },
+      ]
+    end
+
+    def find_policy_proposal(id)
+      policy_proposals.find { |p| p['proposal_id'] == id.to_s }
+    end
+
+    def policy_proposal_events(id)
+      now = Time.current
+      case id.to_s
+      when 'prop_demo_refund_guard'
+        [
+          { 'event_type' => 'status_changed', 'safe_summary' => 'Marked ready for review', 'created_at' => (now - 3.hours).iso8601 },
+          { 'event_type' => 'simulated', 'safe_summary' => 'Re-simulated: 18 of 142 runs affected', 'created_at' => (now - 3.hours).iso8601 },
+          { 'event_type' => 'created', 'safe_summary' => 'Draft proposal created', 'created_at' => (now - 6.days).iso8601 },
+        ]
+      when 'prop_demo_block_unproven_writes'
+        [{ 'event_type' => 'created', 'safe_summary' => 'Draft proposal created', 'created_at' => (now - 2.days).iso8601 }]
+      else
+        []
+      end
+    end
+
+    def demo_proposal_simulation(mode, at)
+      total = 142
+      affected = 18
+      {
+        'range' => '30d',
+        'policy_mode' => mode,
+        'total_runs_considered' => total,
+        'would_allow' => total - affected,
+        'would_require_approval' => mode == 'block' ? 0 : affected,
+        'would_block' => mode == 'block' ? affected : 0,
+        'affected_run_count' => affected,
+        'affected_agents' => [{ 'key' => 'demo-agent', 'name' => 'claude-production', 'run_count' => affected }],
+        'affected_actions' => [{ 'name' => 'stripe.refund_payment', 'run_count' => affected }],
+        'sample_runs' => [
+          { 'task_id' => 'run_demo_sim_01', 'status' => 'completed' },
+          { 'task_id' => 'run_demo_sim_02', 'status' => 'completed' },
+        ],
+        'warnings' => [],
+        'simulated_at' => at.iso8601,
       }
     end
 
@@ -538,6 +656,28 @@ module Igris
         eval_pass_rate: eval_runs.positive? ? eval_passed.to_f / eval_runs : 0.0,
         proof_coverage: total.positive? ? proof_covered.to_f / total : 0.0,
       }
+    end
+
+    def affinity_action(action_name, display_name, pack_name, total, ok, failed, approvals, recoveries, eval_runs, eval_passed, proof_runs)
+      {
+        action_name: action_name, action_display_name: display_name, pack_name: pack_name,
+        run_count: total, successful_runs: ok, failed_runs: failed,
+        approval_required_runs: approvals, recovery_runs: recoveries,
+        eval_run_count: eval_runs, eval_passed_runs: eval_passed,
+        proof_covered_runs: proof_runs,
+        success_rate: total.positive? ? ok.to_f / total : 0.0,
+        failure_rate: total.positive? ? failed.to_f / total : 0.0,
+        approval_rate: total.positive? ? approvals.to_f / total : 0.0,
+        recovery_rate: total.positive? ? recoveries.to_f / total : 0.0,
+        eval_pass_rate: eval_runs.positive? ? eval_passed.to_f / eval_runs : 0.0,
+        proof_coverage: total.positive? ? proof_runs.to_f / total : 0.0,
+      }
+    end
+
+    def affinity_agent(agent_id, agent_name, agent_type, action_name, display_name, pack_name, total, ok, failed, approvals, recoveries, eval_runs, eval_passed, proof_runs)
+      affinity_action(action_name, display_name, pack_name, total, ok, failed, approvals, recoveries, eval_runs, eval_passed, proof_runs).merge(
+        agent_id: agent_id, agent_name: agent_name, agent_type: agent_type,
+      )
     end
 
     def eval_history_row(eval_id, task_id, status, passed, failed, created_at, failed_reason = nil)
