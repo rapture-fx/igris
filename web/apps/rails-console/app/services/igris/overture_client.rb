@@ -140,6 +140,78 @@ module Igris
       request(:get, '/v1/execution/intelligence', query: query)
     end
 
+    # GET /v1/execution-evals/runs/:run_id →
+    #   { eval_runs: [{ eval_name, status, passed_count, failed_count, results_json }] }
+    # The Rails console asks by task/run id on the run detail page. Overture
+    # returns only safe assertion names, statuses, and reasons.
+    def list_execution_eval_runs(run_id)
+      body = request(:get, "/v1/execution-evals/runs/#{escape(run_id)}")
+      Array(body && (body['eval_runs'] || body['runs']))
+    end
+
+    # GET /v1/execution-evals/:id/runs →
+    #   { eval_runs: [{ task_id, status, passed_count, failed_count, results_json, created_at }] }
+    # Tenant-scoped recent history for one evaluation definition.
+    def list_execution_eval_history(eval_id, limit: 20)
+      body = request(:get, "/v1/execution-evals/#{escape(eval_id)}/runs", query: { limit: limit })
+      Array(body && (body['eval_runs'] || body['runs']))
+    end
+
+    # ── Policy Simulation ─────────────────────────────────────────────────
+    # POST /v1/policy/simulate → read-only, deterministic preview of how a
+    # proposed policy rule would have classified recent execution records.
+    # The backend mutates nothing, replays nothing, and reads only execution
+    # truth (no prompts or model output). Tenant identity is derived server-side
+    # and must never be sent in the body.
+    #
+    # → { range, policy_mode, total_runs_considered, would_allow,
+    #     would_require_approval, would_block, affected_run_count,
+    #     affected_agents[], affected_actions[], sample_runs[], warnings[] }
+    def simulate_policy(payload)
+      request(:post, '/v1/policy/simulate', body: payload)
+    end
+
+    # ── Execution Evaluation definitions ──────────────────────────────────
+    # CRUD for operator-authored deterministic execution-evaluation definitions.
+    # The backend is the source of truth and validates every assertion against an
+    # allow-list of types; tenant identity is derived server-side and must never
+    # be sent in the body.
+
+    # GET /v1/execution-evals → { evals: [Eval...], total }
+    def list_execution_evals
+      body = request(:get, '/v1/execution-evals')
+      Array(body && body['evals'])
+    end
+
+    # GET /v1/execution-evals/:id → { eval: Eval }
+    def get_execution_eval(id)
+      body = request(:get, "/v1/execution-evals/#{escape(id)}")
+      body && body['eval']
+    end
+
+    # POST /v1/execution-evals → { eval: Eval } (201)
+    def create_execution_eval(payload)
+      body = request(:post, '/v1/execution-evals', body: payload)
+      body && body['eval']
+    end
+
+    # PATCH /v1/execution-evals/:id → { eval: Eval }
+    def update_execution_eval(id, payload)
+      body = request(:patch, "/v1/execution-evals/#{escape(id)}", body: payload)
+      body && body['eval']
+    end
+
+    # DELETE /v1/execution-evals/:id → { ok: true } (soft archive)
+    def archive_execution_eval(id)
+      request(:delete, "/v1/execution-evals/#{escape(id)}")
+    end
+
+    # POST /v1/execution-evals/:id/run → { eval_run: Run } (201)
+    def run_execution_eval(id, task_id:)
+      body = request(:post, "/v1/execution-evals/#{escape(id)}/run", body: { task_id: task_id })
+      body && body['eval_run']
+    end
+
     # ── Agent Evidence Memory ─────────────────────────────────────────────
     # Summary-only operator memory for agent runs. The API stores and returns
     # ONLY operator-facing summaries (goal / decision / evidence / outcome) —
@@ -165,6 +237,26 @@ module Igris
       query = include_archived ? { include_archived: 'true' } : nil
       body = request(:get, '/v1/agents', query: query)
       Array(body && body['agents'])
+    end
+
+    # GET /v1/agents/:id → { agent_id, name, display_name, agent_type, … }
+    def get_agent(id)
+      request(:get, "/v1/agents/#{escape(id)}")
+    end
+
+    # DELETE /v1/agents/:id → 204 (soft archive). Returns nil on success.
+    def archive_agent(id)
+      request(:delete, "/v1/agents/#{escape(id)}")
+    end
+
+    # ── Action Packs ──────────────────────────────────────────────────────
+    # Built-in, tenant-installable bundles of safe action definitions. The list
+    # is the catalog of available packs; install creates registered actions only.
+
+    # GET /v1/action-packs → { packs: [{ name, display_name, description, action_count }] }
+    def list_action_packs
+      body = request(:get, '/v1/action-packs')
+      Array(body && body['packs'])
     end
 
     # ── Runtime API key ──────────────────────────────────────────────────
