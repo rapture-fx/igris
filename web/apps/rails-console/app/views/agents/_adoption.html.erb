@@ -1,0 +1,75 @@
+<%#
+  Getting started — Adoption Health (Layer 4) + Trust Journey (Layer 5).
+  Adoption health is an honest checklist computed entirely from real backend
+  state: every ✓ means the corresponding read confirmed it. Nothing here
+  fabricates completion. The trust journey orients the operator on how the
+  product fits together.
+%>
+<style>
+  .ic-adopt-progress { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+  .ic-adopt-bar { flex: 1; height: 6px; border-radius: 999px; background: var(--ic-overlay-2); overflow: hidden; }
+  .ic-adopt-bar__fill { height: 100%; background: var(--ic-emerald); border-radius: 999px; }
+  .ic-adopt-count { font-size: 12px; color: var(--ic-text-5); font-variant-numeric: tabular-nums; }
+  .ic-adopt-list { margin-top: 6px; }
+  .ic-adopt-step {
+    display: flex; align-items: flex-start; gap: 10px; padding: 11px 0;
+    border-bottom: 1px solid var(--ic-border-soft);
+  }
+  .ic-adopt-step__mark { flex: none; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .ic-adopt-step__mark--ok { color: var(--ic-emerald); }
+  .ic-adopt-step__mark--pending { color: var(--ic-amber); }
+  .ic-adopt-step__label { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-adopt-step__hint { margin-top: 2px; font-size: 11.5px; color: var(--ic-text-6); }
+  .ic-adopt-step__state { margin-left: auto; font-size: 11px; flex: none; }
+</style>
+
+<div class="ic-body ic-scroll ic-doc" style="padding: 18px 16px; max-width: 820px; width: 100%; margin: 0 auto;">
+  <div class="ic-evidence" style="margin-bottom: 16px;">
+    <div class="ic-evidence__head">Getting started</div>
+    <p class="ic-evidence__intro">
+      Where this project stands on the path from a registered agent to verifiable,
+      evaluated execution. Every check below reflects real state — nothing is
+      marked done until Igris has actually recorded it.
+    </p>
+
+    <% total = health[:total].to_i %>
+    <% done  = health[:done].to_i %>
+    <div class="ic-adopt-progress">
+      <div class="ic-adopt-bar" role="img" aria-label="<%= done %> of <%= total %> steps complete">
+        <div class="ic-adopt-bar__fill" style="width: <%= total.positive? ? (done * 100 / total) : 0 %>%;"></div>
+      </div>
+      <span class="ic-adopt-count"><%= done %> / <%= total %></span>
+    </div>
+  </div>
+
+  <div class="ic-evidence" style="margin-bottom: 16px;">
+    <div class="ic-evidence__head"><%= health[:complete] ? 'Onboarding complete' : 'Onboarding checklist' %></div>
+    <div class="ic-adopt-list">
+      <% health[:steps].each do |step| %>
+        <div class="ic-adopt-step">
+          <span class="ic-adopt-step__mark ic-adopt-step__mark--<%= step[:done] ? 'ok' : 'pending' %>" aria-hidden="true">
+            <%= console_icon(step[:done] ? 'circle-check' : 'info', size: 16, stroke: 1.8) %>
+          </span>
+          <div style="min-width: 0;">
+            <div class="ic-adopt-step__label"><%= step[:label] %></div>
+            <div class="ic-adopt-step__hint"><%= step[:hint] %></div>
+          </div>
+          <span class="ic-adopt-step__state ic-doc__stat ic-doc__stat--<%= step[:done] ? 'ok' : 'warn' %>">
+            <%= step[:done] ? 'Done' : 'Missing' %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="ic-evidence">
+    <div class="ic-evidence__head">Trust journey</div>
+    <p class="ic-evidence__intro">
+      How Igris turns an agent into execution you can trust — each stage links to
+      where it happens.
+    </p>
+    <div style="margin-top: 12px;">
+      <%= render 'shared/trust_journey', health: health %>
+    </div>
+  </div>
+</div>
