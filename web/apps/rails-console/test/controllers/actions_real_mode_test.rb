@@ -33,6 +33,7 @@ class ActionsRealModeTest < ActionDispatch::IntegrationTest
     def find_run(_) = nil
     def runtimes = []
     def healthy_runtime? = false
+    def action_consumer_affinity(*, **) = { range: 'last_30d', source: '', agent_actions: [], action_agents: [], pack_edges: [], pack_actions: [], hotspots: [] }
     def runtime_required_for?(action) = action && action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     def create_action(p) = @actions_data.first.merge(name: p[:name])
     def run_action(_name, **_)
