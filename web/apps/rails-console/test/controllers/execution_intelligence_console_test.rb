@@ -27,6 +27,7 @@ class ExecutionIntelligenceConsoleTest < ActionDispatch::IntegrationTest
     def list_agent_memory(**)  = @memory
     def list_execution_eval_runs(_) = []
     def get_execution_intelligence(**) = @intelligence
+    def get_trust_recommendations(**) = { 'recommendations' => [] }
   end
 
   def with_real_ds(client)
