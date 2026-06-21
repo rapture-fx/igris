@@ -12,13 +12,14 @@ class AgentsTest < ActionDispatch::IntegrationTest
     attr_reader :archived_id
 
     def initialize(agents: [], packs: [], actions: [], tasks: [], memory: [],
-                   intelligence: nil, evals: [])
+                   intelligence: nil, affinity: nil, evals: [])
       @agents = agents
       @packs = packs
       @actions = actions
       @tasks = tasks
       @memory = memory
       @intelligence = intelligence || { 'range' => 'last_30d', 'summary' => {}, 'agents' => [], 'actions' => [] }
+      @affinity = affinity || { 'range' => 'last_30d', 'agent_actions' => [], 'action_agents' => [], 'pack_edges' => [], 'hotspots' => [] }
       @evals = evals
     end
 
@@ -31,6 +32,7 @@ class AgentsTest < ActionDispatch::IntegrationTest
     def get_agent(id) = @agents.find { |a| (a['agent_id'] || a[:agent_id]).to_s == id.to_s } || raise(Igris::OvertureClient::NotFound.new('not found', status: 404))
     def list_action_packs = @packs
     def get_execution_intelligence(**) = @intelligence
+    def get_execution_affinity(**) = @affinity
 
     def list_agent_memory(task_id: nil, execution_id: nil, registered_agent_id: nil, **)
       rows = @memory
@@ -80,6 +82,46 @@ class AgentsTest < ActionDispatch::IntegrationTest
           'eval_pass_rate' => 0.8, 'proof_coverage' => 0.75 },
       ],
       'actions' => [],
+    }
+  end
+
+  def affinity_with_agent(agent_id)
+    {
+      'range' => 'last_30d',
+      'source' => 'test',
+      'agent_actions' => [
+        {
+          'action_name' => 'demo.echo', 'action_display_name' => 'Demo Echo', 'pack_name' => 'starter',
+          'run_count' => 12, 'successful_runs' => 11, 'failed_runs' => 1,
+          'approval_required_runs' => 0, 'recovery_runs' => 1,
+          'eval_run_count' => 4, 'eval_passed_runs' => 4, 'proof_covered_runs' => 10,
+          'success_rate' => 11 / 12.0, 'recovery_rate' => 1 / 12.0,
+          'approval_rate' => 0.0, 'eval_pass_rate' => 1.0, 'proof_coverage' => 10 / 12.0,
+        },
+      ],
+      'action_agents' => [
+        {
+          'agent_id' => agent_id, 'agent_name' => 'Support Agent', 'agent_type' => 'support',
+          'action_name' => 'demo.echo', 'action_display_name' => 'Demo Echo', 'pack_name' => 'starter',
+          'run_count' => 12, 'successful_runs' => 11, 'failed_runs' => 1,
+          'approval_required_runs' => 0, 'recovery_runs' => 1,
+          'eval_run_count' => 4, 'eval_passed_runs' => 4, 'proof_covered_runs' => 10,
+          'success_rate' => 11 / 12.0, 'recovery_rate' => 1 / 12.0,
+          'approval_rate' => 0.0, 'eval_pass_rate' => 1.0, 'proof_coverage' => 10 / 12.0,
+        },
+      ],
+      'pack_edges' => [
+        {
+          'pack_name' => 'starter', 'action_name' => 'demo.echo', 'action_display_name' => 'Demo Echo',
+          'agent_id' => agent_id, 'agent_name' => 'Support Agent',
+          'run_count' => 12, 'success_rate' => 11 / 12.0,
+          'recovery_rate' => 1 / 12.0, 'approval_rate' => 0.0,
+          'eval_pass_rate' => 1.0, 'proof_coverage' => 10 / 12.0,
+        },
+      ],
+      'hotspots' => [
+        { 'scope' => 'action', 'name' => 'Demo Echo', 'observation' => 'Proof coverage is below 80 percent for recorded runs.', 'run_count' => 12 },
+      ],
     }
   end
 
@@ -165,6 +207,7 @@ class AgentsTest < ActionDispatch::IntegrationTest
     agent_id = 'aaaaaaaa-1111-2222-3333-444444444444'
     client = FakeClient.new(
       agents: [sample_agent], intelligence: intel_with_agent(agent_id),
+      affinity: affinity_with_agent(agent_id),
       memory: [memory_row(agent_id, 'run_99', 'Action completed and proof recorded.')]
     )
     with_real_ds(client) do
@@ -173,6 +216,9 @@ class AgentsTest < ActionDispatch::IntegrationTest
       assert_match 'Support Agent', response.body
       assert_match 'customer-support', response.body  # template
       assert_match 'Execution metrics', response.body
+      assert_match 'Actions used', response.body
+      assert_match 'Demo Echo', response.body
+      assert_select 'a[href=?]', action_path('demo.echo')
       assert_match 'Proof coverage', response.body
       assert_match 'Evidence Memory', response.body
       # Recent runs derived from evidence link to run detail.
@@ -225,6 +271,7 @@ class AgentsTest < ActionDispatch::IntegrationTest
     assert_match 'Starter Pack', response.body
     assert_match 'demo.echo', response.body
     assert_match 'Installed', response.body
+    assert_select 'a[href=?]', agent_pack_path('starter')
   end
 
   test 'real-mode pack catalog reports installed state from tenant actions' do
@@ -236,6 +283,24 @@ class AgentsTest < ActionDispatch::IntegrationTest
       assert_match 'Starter Pack', response.body
       assert_match 'Installed', response.body
       assert_match 'demo.echo', response.body
+    end
+  end
+
+  test 'pack detail shows pack action agent relationships' do
+    agent_id = 'aaaaaaaa-1111-2222-3333-444444444444'
+    client = FakeClient.new(
+      packs: [starter_pack_summary],
+      actions: [pack_action('demo.echo')],
+      affinity: affinity_with_agent(agent_id)
+    )
+    with_real_ds(client) do
+      get agent_pack_path('starter')
+      assert_response :success
+      assert_match 'Pack relationships', response.body
+      assert_match 'Demo Echo', response.body
+      assert_match 'Support Agent', response.body
+      assert_select 'a[href=?]', action_path('demo.echo')
+      assert_select 'a[href=?]', agent_path(agent_id)
     end
   end
 
