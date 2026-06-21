@@ -14,7 +14,9 @@
         <span role="columnheader" class="ic-intel__num">Success</span>
         <span role="columnheader" class="ic-intel__num ic-intel__col--failure">Failure</span>
         <span role="columnheader" class="ic-intel__num ic-intel__col--recovery">Recovery</span>
-        <span role="columnheader" class="ic-intel__num">Avg runtime</span>
+        <span role="columnheader" class="ic-intel__num ic-intel__col--approval">Approval</span>
+        <span role="columnheader" class="ic-intel__num">Eval pass</span>
+        <span role="columnheader" class="ic-intel__num ic-intel__col--proof">Proof</span>
       </div>
       <% rows.each do |row| %>
         <% unattributed = row[:key].to_s == 'unattributed' || row[:key].to_s == 'unknown_action' %>
@@ -32,7 +34,9 @@
           </span>
           <span class="ic-intel__num mono ic-intel__col--failure" role="cell"><%= intel_pct(row[:failure_rate]) %></span>
           <span class="ic-intel__num mono ic-intel__col--recovery" role="cell"><%= intel_pct(row[:recovery_rate]) %></span>
-          <span class="ic-intel__num mono" role="cell"><%= intel_duration(row[:average_duration_ms]) %></span>
+          <span class="ic-intel__num mono ic-intel__col--approval" role="cell"><%= intel_pct(row[:approval_rate]) %></span>
+          <span class="ic-intel__num mono" role="cell"><%= row[:eval_run_count].to_i.positive? ? intel_pct(row[:eval_pass_rate]) : '—' %></span>
+          <span class="ic-intel__num mono ic-intel__col--proof" role="cell"><%= intel_pct(row[:proof_coverage]) %></span>
         </div>
       <% end %>
     </div>
