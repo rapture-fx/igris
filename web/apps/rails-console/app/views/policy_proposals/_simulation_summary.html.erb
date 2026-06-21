@@ -1,0 +1,98 @@
+<%#
+  Safe, read-only render of a proposal's latest simulation summary. `simulation`
+  is the normalized hash (nil if never simulated). Only counts and safe
+  identifiers (agent name, action name, task id) appear — never prompts, raw
+  bodies, or secrets. All values are ERB-escaped.
+%>
+<% simulation = local_assigns[:simulation] %>
+<div class="ic-evidence ic-polsim">
+  <div class="ic-evidence__head">Simulated impact</div>
+
+  <% if simulation.nil? %>
+    <p class="ic-polsim__notice">
+      This proposal has not been simulated yet. Re-simulate it to preview how many recent runs the rule
+      would affect. The preview is read-only, over recorded execution truth.
+    </p>
+  <% elsif simulation[:state] == :unavailable %>
+    <p class="ic-polsim__notice">
+      The last simulation could not be computed. Re-simulate to refresh the impact preview. Nothing was changed.
+    </p>
+  <% elsif simulation[:state] == :empty || simulation[:total_runs_considered].to_i.zero? %>
+    <p class="ic-polsim__notice">
+      No execution records were found in the selected window, so there is nothing to preview yet.
+      <% if simulation[:simulated_at] %><span class="ic-prop-row__desc">Simulated <%= time_ago(simulation[:simulated_at]) %>.</span><% end %>
+    </p>
+  <% else %>
+    <div class="ic-polsim__counts">
+      <div class="ic-polsim__count">
+        <div class="ic-polsim__count-k">Would allow</div>
+        <div class="ic-polsim__count-v is-allow"><%= number_with_delimiter(simulation[:would_allow]) %></div>
+        <div class="ic-polsim__count-sub">unchanged by this rule</div>
+      </div>
+      <div class="ic-polsim__count">
+        <div class="ic-polsim__count-k">Would require approval</div>
+        <div class="ic-polsim__count-v is-approval"><%= number_with_delimiter(simulation[:would_require_approval]) %></div>
+        <div class="ic-polsim__count-sub">paused for a human reviewer</div>
+      </div>
+      <div class="ic-polsim__count">
+        <div class="ic-polsim__count-k">Would block</div>
+        <div class="ic-polsim__count-v is-block"><%= number_with_delimiter(simulation[:would_block]) %></div>
+        <div class="ic-polsim__count-sub">stopped before execution</div>
+      </div>
+    </div>
+
+    <p class="ic-polsim__count-sub">
+      <%= number_with_delimiter(simulation[:affected_run_count]) %> of
+      <%= number_with_delimiter(simulation[:total_runs_considered]) %> runs would be affected.
+      <% if simulation[:simulated_at] %>Simulated <%= time_ago(simulation[:simulated_at]) %>.<% end %>
+    </p>
+
+    <div class="ic-polsim__cols">
+      <div>
+        <div class="ic-polsim__col-h">Most affected agents</div>
+        <% if simulation[:affected_agents].any? %>
+          <div class="ic-polsim__rows">
+            <% simulation[:affected_agents].first(8).each do |a| %>
+              <div class="ic-polsim__row">
+                <span><%= a[:name] %></span>
+                <span class="ic-polsim__row-n"><%= number_with_delimiter(a[:run_count]) %></span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="ic-polsim__row-n">No attributed agents affected.</div>
+        <% end %>
+      </div>
+      <div>
+        <div class="ic-polsim__col-h">Most affected actions</div>
+        <% if simulation[:affected_actions].any? %>
+          <div class="ic-polsim__rows">
+            <% simulation[:affected_actions].first(8).each do |a| %>
+              <div class="ic-polsim__row">
+                <span><%= a[:name] %></span>
+                <span class="ic-polsim__row-n"><%= number_with_delimiter(a[:run_count]) %></span>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="ic-polsim__row-n">No actions affected.</div>
+        <% end %>
+      </div>
+    </div>
+
+    <% if simulation[:sample_runs].any? %>
+      <div class="ic-polsim__col-h" style="margin-top: 14px;">Sample affected runs</div>
+      <div class="ic-polsim__samples">
+        <% simulation[:sample_runs].first(12).each do |s| %>
+          <%= link_to run_path(s[:task_id]), class: 'ic-chip ic-chip--sm' do %>
+            <%= s[:task_id] %> <%= s[:status] %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% Array(simulation[:warnings]).each do |w| %>
+      <p class="ic-polsim__warn"><%= w %></p>
+    <% end %>
+  <% end %>
+</div>
