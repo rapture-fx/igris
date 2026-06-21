@@ -32,6 +32,7 @@ class RuntimeOnboardingTest < ActionDispatch::IntegrationTest
     def daily_run_counts = []
     def find_run(_) = nil
     def healthy_runtime? = @runtimes.any? { |r| r[:status] == 'Healthy' }
+    def action_consumer_affinity(*, **) = { range: 'last_30d', source: '', agent_actions: [], action_agents: [], pack_edges: [], pack_actions: [], hotspots: [] }
     def runtime_required_for?(action)
       action && action[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     end
