@@ -1,0 +1,31 @@
+<%#
+  Custom form dropdown — the same visual language as the Runs list filter
+  dropdown (base .ic-dropdown), backed by a hidden input so it submits like a
+  field. No native <select>. Pair with shared/_dropdown_js once per page.
+
+  Locals:
+    name        — form field name (also the hidden input id unless :id given)
+    options     — array of [label, value]
+    selected    — current value (string)
+    placeholder — shown when nothing is selected (optional)
+%>
+<%
+  options     = local_assigns.fetch(:options)
+  selected    = local_assigns.fetch(:selected, '').to_s
+  placeholder = local_assigns.fetch(:placeholder, 'Select…')
+  field_id    = local_assigns.fetch(:id, name)
+  current     = options.find { |(_label, value)| value.to_s == selected }
+  current_label = current ? current.first : placeholder
+%>
+<details class="ic-dropdown ic-form-dd" data-dd>
+  <summary class="ic-dropdown__btn">
+    <span class="ic-dropdown__value <%= 'is-set' if current %>" data-dd-label><%= current_label %></span>
+    <svg class="ic-dropdown__chev" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </summary>
+  <div class="ic-dropdown__menu" role="listbox">
+    <% options.each do |(label, value)| %>
+      <button type="button" class="ic-dropdown__item <%= 'is-active' if value.to_s == selected %>" data-dd-opt data-value="<%= value %>"><%= label %></button>
+    <% end %>
+  </div>
+  <%= hidden_field_tag name, selected, id: field_id, data: { dd_input: true } %>
+</details>
