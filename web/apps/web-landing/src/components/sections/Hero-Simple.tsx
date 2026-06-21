@@ -1,11 +1,15 @@
 'use client'
 
 import React from 'react'
+import { useTheme } from 'next-themes'
 import { DOCS_LINKS } from '../../lib/docs-urls'
 
 const SANS  = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
 export default function Hero() {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+
   return (
     <section className="relative w-full min-h-[90vh] overflow-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
       <div className="relative mx-auto flex min-h-[90vh] max-w-[1400px] flex-col px-4 pb-24 pt-32 sm:px-6 lg:px-8 lg:pb-32 lg:pt-40">
@@ -42,7 +46,7 @@ export default function Hero() {
           </div>
           <div className="flex w-full items-center justify-end lg:-mt-32 lg:w-3/5">
             <img
-              src="/hero.png"
+              src={isDark ? '/dark.png' : '/hero.png'}
               alt="Hero illustration"
               className="h-auto w-full max-w-4xl"
             />
