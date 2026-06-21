@@ -1,5 +1,7 @@
 <%# Shared Runs-lens header layout. Inlined (not in application.css) so it
-    reloads with the view during development, mirroring runs/index. %>
+    reloads with the view during development, mirroring runs/index. Also carries
+    the shared form controls (custom dropdown + checkbox) and the no-scrollbar
+    rule so every Runs-lens page stays consistent without an asset rebuild. %>
 <style>
   .ic-rail, .ic-sidebar { background: var(--ic-bg); }
   .ic-rail__logo { border-bottom: 0; }
@@ -9,4 +11,31 @@
   }
   .ic-runs-header .ic-viewtabs { border-bottom: 0; padding: 0; margin: 0; gap: 2px; }
   .ic-runs-header__actions { display: inline-flex; gap: 8px; align-items: center; }
+
+  /* No scrollbar chrome anywhere in the console — scrolling stays, the bar
+     does not. Covers every scroll container (report panes, side panes, body). */
+  .igris-console, .igris-console * { scrollbar-width: none; -ms-overflow-style: none; }
+  .igris-console::-webkit-scrollbar, .igris-console *::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+  /* Form dropdown — same visual language as the Runs list filter dropdown
+     (base .ic-dropdown), just full-width to sit in a form. No native <select>. */
+  .ic-form-dd { position: relative; display: block; min-width: 0; }
+  .ic-form-dd > .ic-dropdown__btn {
+    display: flex; width: 100%; height: 32px; justify-content: space-between; gap: 8px;
+  }
+  .ic-form-dd .ic-dropdown__value { max-width: none; }
+  .ic-form-dd .ic-dropdown__menu { width: 100%; min-width: 0; }
+
+  /* Custom checkbox — replaces the native control in console forms. */
+  .ic-check { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ic-text-4); cursor: pointer; user-select: none; }
+  .ic-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .ic-check__box {
+    width: 16px; height: 16px; flex: none; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--ic-border); border-radius: 4px; background: var(--ic-overlay-bg);
+    color: transparent; transition: background 120ms ease, border-color 120ms ease;
+  }
+  .ic-check__box svg { width: 11px; height: 11px; }
+  .ic-check:hover .ic-check__box { border-color: var(--ic-text-7); }
+  .ic-check input:checked + .ic-check__box { background: var(--ic-emerald); border-color: var(--ic-emerald); color: #fff; }
+  .ic-check input:focus-visible + .ic-check__box { border-color: var(--ic-text-7); }
 </style>
