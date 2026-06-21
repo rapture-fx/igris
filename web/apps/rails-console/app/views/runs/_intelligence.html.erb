@@ -72,5 +72,7 @@
       <%= render 'intelligence_table', title: 'Action comparison', subject: 'Action',
             rows: intelligence[:actions], empty_hint: 'No actions executed in this window.' %>
     </div>
+
+    <%= render 'policy_simulation', simulation: local_assigns[:policy_simulation], range: range %>
   <% end %>
 </div>
