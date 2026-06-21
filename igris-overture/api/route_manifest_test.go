@@ -182,6 +182,7 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterExecutionRoutes(app, db, nil)
 	RegisterExecutionIntelligenceRoutes(app, db)
 	RegisterExecutionAffinityRoutes(app, db)
+	RegisterTrustRecommendationRoutes(app, db)
 	RegisterExecutionEvalRoutes(app, db)
 	RegisterPolicySimulationRoutes(app, db)
 	RegisterPolicyProposalRoutes(app, db)
