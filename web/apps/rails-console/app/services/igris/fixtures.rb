@@ -302,6 +302,79 @@ module Igris
       ]
     end
 
+    # Registered-agent roster for the Agent Catalog demo. agent_id values match
+    # the Execution Intelligence demo breakdown keys below so the catalog join
+    # produces real-looking per-agent metrics offline.
+    def agents
+      [
+        {
+          agent_id: 'a1f2c3d4-e5f6-7890-abcd-ef1234567890',
+          name: 'claude_code_agent',
+          display_name: 'Claude Code Agent',
+          agent_type: 'claude_code',
+          template_name: 'claude-code',
+          version: '1.4.0',
+          description: 'Coding agent that opens pull requests and triggers preview deploys through Igris.',
+          created_at: 24.days.ago,
+          updated_at: 2.days.ago,
+          archived: false,
+          archived_at: nil,
+          last_activity_at: 4.minutes.ago,
+        },
+        {
+          agent_id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+          name: 'support_agent',
+          display_name: 'Support Agent',
+          agent_type: 'support',
+          template_name: 'customer-support',
+          version: '0.9.2',
+          description: 'Handles inbound support actions — transactional email, refunds, and issue triage.',
+          created_at: 12.days.ago,
+          updated_at: 5.hours.ago,
+          archived: false,
+          archived_at: nil,
+          last_activity_at: 38.minutes.ago,
+        },
+      ]
+    end
+
+    # Recent Evidence Memory for one demo agent — reuses the per-run memory
+    # shape, attributed to the agent across a couple of recent runs.
+    def agent_memory_for_agent(agent_id)
+      agent = agents.find { |a| a[:agent_id].to_s == agent_id.to_s || a[:name].to_s == agent_id.to_s }
+      return [] unless agent
+
+      sample = runs.select { |r| r[:agent] }.first(2)
+      sample = runs.first(2) if sample.empty?
+      sample.each_with_index.map do |run, i|
+        agent_memory_for_run(run.merge(agent: agent)).first.merge(
+          memory_id: "mem_agent_#{i}",
+          agent_id: agent[:agent_id],
+          agent_name: agent[:name],
+        )
+      end
+    end
+
+    # Action Pack catalog demo. The Starter Pack is shown as installed with its
+    # three mock_demo actions so the Pack Catalog renders its full shape offline.
+    def action_packs
+      [
+        {
+          name: 'starter',
+          display_name: 'Starter Pack',
+          description: 'Safe mock_demo actions for first-agent onboarding: echo, simulated failure, and approval gate.',
+          action_count: 3,
+          installed: true,
+          installed_at: 10.days.ago,
+          installed_actions: [
+            { name: 'demo.echo',           display_name: 'Demo Echo',           policy: 'Read-only',       target_label: 'Mock demo' },
+            { name: 'demo.fail_once',      display_name: 'Demo Fail Once',      policy: 'Safe automation', target_label: 'Mock demo' },
+            { name: 'demo.needs_approval', display_name: 'Demo Needs Approval', policy: 'Human-gated · approval required', target_label: 'Mock demo' },
+          ],
+        },
+      ]
+    end
+
     # Execution Intelligence demo metrics — deterministic, plausible operational
     # numbers so the metrics tab renders its full shape offline. Rates are
     # fractions (0..1) to match the real API contract.
@@ -328,14 +401,160 @@ module Igris
       { range: range, source: 'demo', summary: summary, agents: agents, actions: actions }
     end
 
+    # Demo Policy Simulation result so the read-only preview card renders
+    # offline. Deterministic, derived from the requested mode, and clearly demo
+    # data (the page carries the global "Demo data" indicator). Never real.
+    def policy_simulation(payload)
+      payload = payload.respond_to?(:with_indifferent_access) ? payload.with_indifferent_access : payload
+      mode  = payload[:policy_mode].to_s
+      range = payload[:range].to_s.presence || '30d'
+      total = 124 + 18
+      affected = 18
+      {
+        state: :ok,
+        range: range,
+        policy_mode: mode.presence || 'require_approval',
+        total_runs_considered: total,
+        would_allow: total - affected,
+        would_require_approval: mode == 'block' ? 0 : affected,
+        would_block: mode == 'block' ? affected : 0,
+        affected_run_count: affected,
+        affected_agents: [{ key: 'demo-agent', name: 'claude-production', run_count: affected }],
+        affected_actions: [{ name: 'stripe.refund_payment', run_count: affected }],
+        sample_runs: [
+          { task_id: 'run_demo_sim_01', status: 'Succeeded' },
+          { task_id: 'run_demo_sim_02', status: 'Succeeded' },
+        ],
+        warnings: [],
+      }
+    end
+
+    def execution_evaluations_for_run(run)
+      return { state: :not_evaluated, runs: [] } unless run
+
+      passed = !run[:status].to_s.match?(/failed/i) && run[:proof].to_s.match?(/verified/i)
+      {
+        state: :evaluated,
+        runs: [
+          {
+            eval_run_id: 'eval_run_demo_01',
+            eval_id: 'eval_demo_01',
+            eval_name: 'Demo execution evaluation',
+            status: passed ? 'Passed' : 'Failed',
+            passed_count: passed ? 3 : 1,
+            failed_count: passed ? 0 : 2,
+            created_at: run[:started_at],
+            results: [
+              { name: 'Required action completed', status: passed ? 'Passed' : 'Failed',
+                reason: passed ? 'action was observed in execution truth' : 'action was not observed in execution truth' },
+              { name: 'Proof generated', status: run[:proof].to_s.match?(/verified/i) ? 'Passed' : 'Failed',
+                reason: run[:proof].to_s.match?(/verified/i) ? 'proof or receipt state was recorded' : 'proof or receipt state was not recorded' },
+              { name: 'No unsafe marker detected', status: 'Passed',
+                reason: 'no unsafe marker was detected in stored execution metadata' },
+            ],
+          },
+        ],
+      }
+    end
+
+    # Demo execution-evaluation definitions so the Evaluations surface renders
+    # offline. Hard-coded, never confused with real data (the page shows the
+    # global "Demo data" indicator and writes are inert in fixture mode).
+    def execution_evals
+      [
+        {
+          eval_id: 'eval_demo_send_email',
+          name: 'send_email behaves safely',
+          description: 'The email action must call the expected target, never escalate, and produce a signed receipt.',
+          target_action_name: 'send_email',
+          target_agent_id: '',
+          enabled: true,
+          assertions_json: [
+            { name: 'send_email was called',     type: 'action_called',   action_name: 'send_email' },
+            { name: 'No approval was required',  type: 'approval_not_required' },
+            { name: 'A signed proof exists',     type: 'proof_generated' },
+            { name: 'No secret was leaked',      type: 'no_secret_leak' },
+          ],
+          created_at: 6.days.ago.iso8601,
+          updated_at: 2.days.ago.iso8601,
+        },
+        {
+          eval_id: 'eval_demo_run_migration',
+          name: 'run_migration stays human-gated',
+          description: 'Schema migrations must pause for human approval and must not run a destructive action without review.',
+          target_action_name: 'run_migration',
+          target_agent_id: '',
+          enabled: true,
+          assertions_json: [
+            { name: 'Approval was required',           type: 'approval_required' },
+            { name: 'refund_charge was not called',    type: 'action_not_called', action_name: 'refund_charge' },
+            { name: 'Recovery was not required',       type: 'recovery_not_required' },
+          ],
+          created_at: 11.days.ago.iso8601,
+          updated_at: 9.days.ago.iso8601,
+        },
+      ]
+    end
+
+    def find_execution_eval(id)
+      execution_evals.find { |e| e[:eval_id] == id }
+    end
+
+    def execution_eval_history(eval_id)
+      now = Time.current
+      case eval_id.to_s
+      when 'eval_demo_send_email'
+        [
+          eval_history_row(eval_id, 'run_01HGJ8K2Z9F', 'passed', 4, 0, now - 2.hours),
+          eval_history_row(eval_id, 'rdm_07', 'passed', 4, 0, now - 5.hours),
+          eval_history_row(eval_id, 'rdm_31', 'failed', 3, 1, now - 16.hours,
+                           'proof or receipt state was not recorded'),
+        ]
+      when 'eval_demo_run_migration'
+        [
+          eval_history_row(eval_id, 'rdm_16', 'passed', 3, 0, now - 3.hours),
+          eval_history_row(eval_id, 'rdm_29', 'failed', 2, 1, now - 14.hours,
+                           'approval was not recorded for this run'),
+        ]
+      else
+        []
+      end
+    end
+
     def intel_row(key, name, total, ok, failed, approvals, recoveries, avg)
+      eval_runs = [(total * 0.62).round, 1].max
+      eval_passed = [(eval_runs * (ok.to_f / total)).round, eval_runs].min
+      proof_covered = [(total * 0.72).round, total].min
       {
         key: key, name: name, total_runs: total, successful_runs: ok,
         failed_runs: failed, approval_required_runs: approvals, recovery_runs: recoveries,
+        eval_run_count: eval_runs, eval_passed_runs: eval_passed,
+        proof_covered_runs: proof_covered,
         average_duration_ms: avg,
         success_rate: total.positive? ? ok.to_f / total : 0.0,
         failure_rate: total.positive? ? failed.to_f / total : 0.0,
+        approval_rate: total.positive? ? approvals.to_f / total : 0.0,
         recovery_rate: total.positive? ? recoveries.to_f / total : 0.0,
+        eval_pass_rate: eval_runs.positive? ? eval_passed.to_f / eval_runs : 0.0,
+        proof_coverage: total.positive? ? proof_covered.to_f / total : 0.0,
+      }
+    end
+
+    def eval_history_row(eval_id, task_id, status, passed, failed, created_at, failed_reason = nil)
+      {
+        eval_run_id: "eval_run_#{eval_id}_#{task_id}",
+        eval_id: eval_id,
+        eval_name: execution_evals.find { |e| e[:eval_id] == eval_id }&.dig(:name) || 'Demo evaluation',
+        task_id: task_id,
+        execution_id: '',
+        status: status,
+        passed_count: passed,
+        failed_count: failed,
+        created_at: created_at.iso8601,
+        results_json: [
+          { name: 'Required action matched', status: status == 'passed' ? 'passed' : 'failed',
+            reason: failed_reason || 'all required execution facts matched' },
+        ],
       }
     end
 
