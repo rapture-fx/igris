@@ -20,9 +20,11 @@ class DataSourceTest < ActiveSupport::TestCase
     def create_action(p) = p
     def run_action(name, **) = { 'task_id' => 'task_new', 'status' => 'dispatched', 'proof_status' => 'pending' }
     def list_agent_memory(**) = raise_or(@memory || [], :list_agent_memory)
+    def list_execution_eval_runs(_) = raise_or(@eval_runs || [], :list_execution_eval_runs)
     def get_execution_intelligence(**) = raise_or(@intelligence || {}, :get_execution_intelligence)
     def with_memory(memory) = (@memory = memory; self)
     def with_intelligence(intel) = (@intelligence = intel; self)
+    def with_eval_runs(eval_runs) = (@eval_runs = eval_runs; self)
     private
     def raise_or(value, key)
       raise @errors[key] if @errors[key]
@@ -51,6 +53,32 @@ class DataSourceTest < ActiveSupport::TestCase
     assert_equal 'rt_unroutable', runtime[:runtime_id]
     assert_equal 'Degraded', runtime[:status]
     assert_equal false, runtime[:routable]
+  end
+
+  test 'execution evaluations normalize result states and degrade on error' do
+    client = FakeClient.new.with_eval_runs([
+      {
+        'eval_name' => 'Billing correctness',
+        'status' => 'failed',
+        'passed_count' => 1,
+        'failed_count' => 1,
+        'results_json' => [
+          { 'name' => 'Proof generated', 'status' => 'passed', 'reason' => 'proof or receipt state was recorded' },
+          { 'name' => 'Required action completed', 'status' => 'failed', 'reason' => 'action was not observed in execution truth' },
+        ],
+      },
+    ])
+    src = Igris::DataSource.new(client: client)
+    result = src.execution_evaluations_for_run(id: 'task_1')
+
+    assert_equal :evaluated, result[:state]
+    assert_equal 'Failed', result[:runs].first[:status]
+    assert_equal 'Passed', result[:runs].first[:results].first[:status]
+
+    failing = FakeClient.new(errors: { list_execution_eval_runs: Igris::OvertureClient::ServerError.new('boom', status: 500) })
+    result = Igris::DataSource.new(client: failing).execution_evaluations_for_run(id: 'task_1')
+    assert_equal :unavailable, result[:state]
+    assert_empty result[:runs]
   end
 
   test 'real mode normalizes hosted_api action' do
