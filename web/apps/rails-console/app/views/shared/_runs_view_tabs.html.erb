@@ -1,0 +1,17 @@
+<%#
+  The Runs lens view switch. Shared by /runs (Run history, Intelligence) and
+  /runs/evaluations (Evaluations) so all three live under one lens with no
+  parallel navigation. `active` is one of: history | intelligence | evaluations.
+%>
+<% active = local_assigns.fetch(:active, 'history').to_s %>
+<div class="ic-viewtabs" role="tablist" aria-label="Runs view">
+  <%= link_to 'Run history', runs_path,
+        class: "ic-viewtab #{'is-active' if active == 'history'}",
+        role: 'tab', 'aria-selected': (active == 'history').to_s %>
+  <%= link_to 'Intelligence', runs_path(view: 'intelligence'),
+        class: "ic-viewtab #{'is-active' if active == 'intelligence'}",
+        role: 'tab', 'aria-selected': (active == 'intelligence').to_s %>
+  <%= link_to 'Evaluations', evaluations_path,
+        class: "ic-viewtab #{'is-active' if active == 'evaluations'}",
+        role: 'tab', 'aria-selected': (active == 'evaluations').to_s %>
+</div>
