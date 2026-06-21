@@ -236,6 +236,10 @@ module Igris
       capture(e); []
     end
 
+    def find_action_pack(id)
+      action_packs.find { |pack| pack[:name].to_s == id.to_s || pack[:display_name].to_s == id.to_s }
+    end
+
     # ── Adoption Health (adoption layer) ──────────────────────────────────
     # An honest onboarding checklist derived entirely from real backend state:
     # has the tenant registered an agent, installed a pack, executed an action,
@@ -300,6 +304,34 @@ module Igris
       { range: range, source: '', summary: normalize_intelligence_summary(nil), agents: [], actions: [] }
     end
 
+    # ── Execution Affinity ────────────────────────────────────────────────
+    # Agent ↔ action ↔ pack relationship metrics derived from backend aggregate
+    # SQL. Rails only normalizes and groups the safe response: identifiers,
+    # labels, counts, rates, and observation text. It never asks for raw task
+    # records and never renders unsafe execution payloads.
+    def execution_affinity(range: 'last_30d', agent_id: nil, action_name: nil, pack: nil)
+      range = 'last_30d' unless VALID_INTELLIGENCE_RANGES.include?(range.to_s)
+      return normalize_execution_affinity(Fixtures.execution_affinity(range: range, agent_id: agent_id, action_name: action_name, pack: pack)) unless real?
+
+      raw = @client.get_execution_affinity(range: range, agent_id: agent_id, action_name: action_name, pack: pack)
+      normalize_execution_affinity(raw, fallback_range: range)
+    rescue OvertureClient::Error => e
+      capture(e)
+      empty_execution_affinity(range)
+    end
+
+    def agent_action_affinity(agent_id, range: 'last_30d')
+      execution_affinity(range: range, agent_id: agent_id)
+    end
+
+    def action_consumer_affinity(action_name, range: 'last_30d')
+      execution_affinity(range: range, action_name: action_name)
+    end
+
+    def pack_affinity(pack_name, range: 'last_30d')
+      execution_affinity(range: range, pack: pack_name)
+    end
+
     # ── Policy Simulation ─────────────────────────────────────────────────
     # Read-only, deterministic preview of how a proposed policy rule would have
     # classified recent execution records. Igris (Go) owns the computation; it
@@ -330,6 +362,80 @@ module Igris
       { state: :unavailable, requested: requested, range: range, policy_mode: policy_mode,
         total_runs_considered: 0, would_allow: 0, would_require_approval: 0, would_block: 0,
         affected_run_count: 0, affected_agents: [], affected_actions: [], sample_runs: [], warnings: [] }
+    end
+
+    # ── Policy Proposals ──────────────────────────────────────────────────
+    # Lifecycle for tenant-owned draft policy rules built on top of Policy
+    # Simulation. Igris (Go) is the source of truth: it derives tenant identity
+    # server-side, never mutates active policy, and persists only safe metadata,
+    # allow-listed criteria, and safe simulation summaries. Rails never persists
+    # proposals and never sends tenant_id. Reads degrade to honest empty states;
+    # writes raise typed errors so the controller can surface them inline.
+    PROPOSAL_STATUS_LABELS = {
+      'draft'        => 'Draft',
+      'review_ready' => 'Ready for review',
+      'approved'     => 'Approved',
+      'archived'     => 'Archived',
+    }.freeze
+    PROPOSAL_MODE_LABELS = {
+      'require_approval' => 'Require approval',
+      'block'            => 'Block',
+    }.freeze
+
+    def policy_proposals
+      raw = real? ? @client.list_policy_proposals : Fixtures.policy_proposals
+      raw.map { |p| normalize_policy_proposal(p) }
+    rescue OvertureClient::Error => e
+      capture(e); []
+    end
+
+    def find_policy_proposal(id)
+      if real?
+        body = @client.get_policy_proposal(id)
+        return nil unless body
+        body = body.with_indifferent_access if body.respond_to?(:with_indifferent_access)
+        proposal = normalize_policy_proposal(body[:proposal])
+        proposal.merge(events: Array(body[:events]).map { |e| normalize_policy_proposal_event(e) })
+      else
+        raw = Fixtures.find_policy_proposal(id)
+        return nil unless raw
+        normalize_policy_proposal(raw).merge(
+          events: Fixtures.policy_proposal_events(id).map { |e| normalize_policy_proposal_event(e) }
+        )
+      end
+    rescue OvertureClient::NotFound
+      nil
+    rescue OvertureClient::Error => e
+      capture(e); nil
+    end
+
+    def create_policy_proposal(payload)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_policy_proposal(@client.create_policy_proposal(payload))
+    end
+
+    def update_policy_proposal(id, payload)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_policy_proposal(@client.update_policy_proposal(id, payload))
+    end
+
+    def archive_policy_proposal(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.archive_policy_proposal(id)
+    end
+
+    # Re-runs the read-only simulation for a stored proposal over fresh execution
+    # truth and returns the normalized proposal (with its refreshed summary).
+    def simulate_policy_proposal(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      body = @client.simulate_policy_proposal(id)
+      body = body.with_indifferent_access if body.respond_to?(:with_indifferent_access)
+      normalize_policy_proposal(body[:proposal])
+    end
+
+    def approve_policy_proposal(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      normalize_policy_proposal(@client.approve_policy_proposal(id))
     end
 
     # ── Execution Evaluations ─────────────────────────────────────────────
@@ -941,6 +1047,101 @@ module Igris
       }
     end
 
+    def normalize_execution_affinity(raw, fallback_range: 'last_30d')
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      raw ||= {}
+      pack_edges = Array(raw[:pack_edges]).map { |row| normalize_affinity_pack_edge(row) }
+      {
+        range: raw[:range].to_s.presence || fallback_range,
+        source: raw[:source].to_s,
+        agent_actions: Array(raw[:agent_actions]).map { |row| normalize_affinity_action(row) },
+        action_agents: Array(raw[:action_agents]).map { |row| normalize_affinity_agent(row) },
+        pack_edges: pack_edges,
+        pack_actions: group_affinity_pack_actions(pack_edges),
+        hotspots: Array(raw[:hotspots]).map { |row| normalize_affinity_hotspot(row) },
+      }
+    end
+
+    def empty_execution_affinity(range)
+      {
+        range: range, source: '', agent_actions: [], action_agents: [],
+        pack_edges: [], pack_actions: [], hotspots: [],
+      }
+    end
+
+    def normalize_affinity_action(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        action_name: raw[:action_name].to_s,
+        action_display_name: raw[:action_display_name].to_s.presence || raw[:action_name].to_s,
+        pack_name: raw[:pack_name].to_s,
+        run_count: raw[:run_count].to_i,
+        successful_runs: raw[:successful_runs].to_i,
+        failed_runs: raw[:failed_runs].to_i,
+        approval_required_runs: raw[:approval_required_runs].to_i,
+        recovery_runs: raw[:recovery_runs].to_i,
+        eval_run_count: raw[:eval_run_count].to_i,
+        eval_passed_runs: raw[:eval_passed_runs].to_i,
+        proof_covered_runs: raw[:proof_covered_runs].to_i,
+        success_rate: raw[:success_rate].to_f,
+        failure_rate: raw[:failure_rate].to_f,
+        approval_rate: raw[:approval_rate].to_f,
+        recovery_rate: raw[:recovery_rate].to_f,
+        eval_pass_rate: raw[:eval_pass_rate].to_f,
+        proof_coverage: raw[:proof_coverage].to_f,
+      }
+    end
+
+    def normalize_affinity_agent(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      normalize_affinity_action(raw).merge(
+        agent_id: raw[:agent_id].to_s,
+        agent_name: raw[:agent_name].to_s.presence || raw[:agent_id].to_s.presence || 'unattributed',
+        agent_type: raw[:agent_type].to_s,
+      )
+    end
+
+    def normalize_affinity_pack_edge(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        pack_name: raw[:pack_name].to_s.presence || 'unpacked',
+        action_name: raw[:action_name].to_s,
+        action_display_name: raw[:action_display_name].to_s.presence || raw[:action_name].to_s,
+        agent_id: raw[:agent_id].to_s,
+        agent_name: raw[:agent_name].to_s.presence || raw[:agent_id].to_s.presence || 'unattributed',
+        run_count: raw[:run_count].to_i,
+        success_rate: raw[:success_rate].to_f,
+        recovery_rate: raw[:recovery_rate].to_f,
+        approval_rate: raw[:approval_rate].to_f,
+        eval_pass_rate: raw[:eval_pass_rate].to_f,
+        proof_coverage: raw[:proof_coverage].to_f,
+      }
+    end
+
+    def normalize_affinity_hotspot(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        scope: raw[:scope].to_s,
+        name: raw[:name].to_s,
+        observation: raw[:observation].to_s,
+        run_count: raw[:run_count].to_i,
+      }
+    end
+
+    def group_affinity_pack_actions(pack_edges)
+      pack_edges.group_by { |edge| edge[:action_name] }.map do |action_name, edges|
+        first = edges.first || {}
+        {
+          pack_name: first[:pack_name].to_s,
+          action_name: action_name.to_s,
+          action_display_name: first[:action_display_name].to_s.presence || action_name.to_s,
+          run_count: edges.sum { |edge| edge[:run_count].to_i },
+          agent_count: edges.map { |edge| edge[:agent_id].to_s }.reject(&:empty?).uniq.size,
+          agents: edges.sort_by { |edge| [-edge[:run_count].to_i, edge[:agent_name].to_s] },
+        }
+      end.sort_by { |row| [-row[:run_count].to_i, row[:action_name].to_s] }
+    end
+
     # Build the allow-listed POST body from operator inputs. Only non-blank,
     # bounded criteria are forwarded; tenant_id is never included. Match strings
     # are length-capped here too so an over-long value is rejected before it ever
@@ -1001,6 +1202,68 @@ module Igris
           { task_id: s[:task_id].to_s, status: status_label_for(s[:status]) }
         end,
         warnings: Array(raw[:warnings]).map { |w| w.to_s.strip }.reject(&:blank?),
+      }
+    end
+
+    # Normalize a policy proposal to a safe, view-ready hash. Only allow-listed
+    # metadata, criteria, and the safe simulation summary are surfaced — never
+    # raw bodies, prompts, secrets, or the tenant id.
+    def normalize_policy_proposal(raw)
+      raw ||= {}
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      status = raw[:status].to_s.presence || 'draft'
+      mode   = raw[:policy_mode].to_s
+      sim    = raw[:latest_simulation_json]
+      {
+        id:                raw[:proposal_id].to_s,
+        name:              raw[:name].to_s,
+        description:       raw[:description].to_s,
+        status:            status,
+        status_label:      PROPOSAL_STATUS_LABELS[status] || status.tr('_', ' '),
+        policy_mode:       mode,
+        policy_mode_label: PROPOSAL_MODE_LABELS[mode] || mode.tr('_', ' '),
+        editable:          status == 'draft',
+        can_mark_ready:    status == 'draft',
+        can_unmark_ready:  status == 'review_ready',
+        can_approve:       status == 'review_ready',
+        match_criteria:    normalize_proposal_criteria(raw[:match_criteria_json]),
+        last_simulation:   normalize_proposal_simulation(sim),
+        created_at:        parse_time(raw[:created_at]),
+        updated_at:        parse_time(raw[:updated_at]),
+        events:            [],
+      }
+    end
+
+    def normalize_proposal_criteria(raw)
+      raw ||= {}
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        range:                     raw[:range].to_s.presence || '30d',
+        match_action_name:         raw[:match_action_name].to_s,
+        match_action_prefix:       raw[:match_action_prefix].to_s,
+        match_agent_id:            raw[:match_agent_id].to_s,
+        match_agent_type:          raw[:match_agent_type].to_s,
+        match_result_status:       raw[:match_result_status].to_s,
+        require_proof_missing:     !!raw[:require_proof_missing],
+        require_recovery_occurred: !!raw[:require_recovery_occurred],
+        require_eval_failed:       !!raw[:require_eval_failed],
+      }
+    end
+
+    # The stored simulation summary shares the safe Policy Simulation shape, plus
+    # a simulated_at timestamp. nil when the proposal has never been simulated.
+    def normalize_proposal_simulation(raw)
+      return nil if raw.blank?
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      normalize_policy_simulation(raw).merge(simulated_at: parse_time(raw[:simulated_at]))
+    end
+
+    def normalize_policy_proposal_event(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      {
+        type:       raw[:event_type].to_s,
+        summary:    raw[:safe_summary].to_s,
+        created_at: parse_time(raw[:created_at]),
       }
     end
 
