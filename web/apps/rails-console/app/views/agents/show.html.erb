@@ -22,6 +22,17 @@
   .ic-recentrun__id { font-family: var(--ic-mono); font-size: 12px; color: var(--ic-text-3); flex: none; }
   .ic-recentrun__out { font-size: 11.5px; color: var(--ic-text-5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ic-recentrun__when { margin-left: auto; font-size: 11px; color: var(--ic-text-6); flex: none; }
+  .ic-affinity { margin-top: 10px; border-left: 2px solid var(--ic-border); padding-left: 14px; }
+  .ic-affinity__row { padding: 10px 0; border-bottom: 1px solid var(--ic-border-soft); }
+  .ic-affinity__row:last-child { border-bottom: 0; }
+  .ic-affinity__title { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .ic-affinity__name { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); text-decoration: none; }
+  .ic-affinity__name:hover { text-decoration: underline; }
+  .ic-affinity__pack { font-size: 11px; color: var(--ic-text-6); font-family: var(--ic-mono); }
+  .ic-affinity__sentence { margin-top: 4px; font-size: 12px; color: var(--ic-text-5); line-height: 1.55; }
+  .ic-affinity__facts { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: var(--ic-text-6); }
+  .ic-affinity__facts span { white-space: nowrap; }
+  .ic-observations { margin-top: 8px; padding-left: 18px; color: var(--ic-text-5); font-size: 12px; line-height: 1.55; }
 </style>
 
 <div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
@@ -84,6 +95,55 @@
         <p class="ic-doc__note" style="margin-top: 10px;">
           No runs recorded for this agent in the last 30 days. Metrics appear here
           once the agent executes actions.
+        </p>
+      <% end %>
+
+      <%# ── Actions used ──────────────────────────────────────────────── %>
+      <div class="ic-section-head" style="margin-top: 22px;">
+        <span class="ic-section-head__label">Actions used</span>
+        <span class="ic-section-head__hint">last 30 days</span>
+      </div>
+      <% actions_used = Array(@affinity && @affinity[:agent_actions]) %>
+      <% if actions_used.any? %>
+        <p class="ic-doc__note" style="margin-top: 6px;">
+          This is what the agent actually called in recorded executions. Each row
+          is aggregated from task, policy, proof, recovery, and evaluation records.
+        </p>
+        <div class="ic-affinity">
+          <% actions_used.each do |action| %>
+            <div class="ic-affinity__row">
+              <div class="ic-affinity__title">
+                <%= link_to action[:action_display_name].presence || action[:action_name], action_path(action[:action_name]), class: 'ic-affinity__name' %>
+                <% if action[:pack_name].present? %>
+                  <span class="ic-affinity__pack"><%= action[:pack_name] %></span>
+                <% end %>
+              </div>
+              <div class="ic-affinity__sentence">
+                Used <%= pluralize(action[:run_count], 'time') %>;
+                <%= intel_pct(action[:success_rate]) %> succeeded,
+                <%= intel_pct(action[:recovery_rate]) %> needed recovery,
+                and <%= intel_pct(action[:approval_rate]) %> required approval.
+              </div>
+              <div class="ic-affinity__facts">
+                <span>Eval pass <%= action[:eval_run_count].to_i.positive? ? intel_pct(action[:eval_pass_rate]) : '—' %></span>
+                <span>Proof coverage <%= intel_pct(action[:proof_coverage]) %></span>
+                <span><%= pluralize(action[:failed_runs], 'failed run') %></span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <% observations = Array(@affinity && @affinity[:hotspots]).first(4) %>
+        <% if observations.any? %>
+          <ul class="ic-observations">
+            <% observations.each do |item| %>
+              <li><%= item[:name] %>: <%= item[:observation] %></li>
+            <% end %>
+          </ul>
+        <% end %>
+      <% else %>
+        <p class="ic-doc__note" style="margin-top: 6px;">
+          No action usage was found for this agent in the last 30 days.
         </p>
       <% end %>
 
