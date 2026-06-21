@@ -41,6 +41,8 @@ class RunsController < ApplicationController
     completed failed canceled approval_required dispatched in_flight running pending
   ].freeze
 
+  helper_method :trust_link_href, :trust_severity_label
+
   def index
     @view = VIEWS.include?(params[:view].to_s) ? params[:view].to_s : 'history'
 
@@ -50,6 +52,9 @@ class RunsController < ApplicationController
       # Policy Simulation is a read-only preview computed only when the operator
       # submits the form (params[:simulate]); otherwise the card shows its intro.
       @policy_simulation = run_policy_simulation if params[:simulate].present?
+      # Trust Recommendations — deterministic attention items over the same
+      # window. Read-only; degrades to its own safe state on backend error.
+      @trust_recommendations = data_source.trust_recommendations(range: @range)
       @degraded_error = data_source.error
       return
     end
@@ -95,6 +100,25 @@ class RunsController < ApplicationController
     @agent_memory = data_source.agent_memory_for_run(@run)
     @evaluation_results = data_source.execution_evaluations_for_run(@run)
     @degraded_error = data_source.error
+  end
+
+  # Resolve a Trust Recommendation link rel to an existing console path, using
+  # the finding's entity. Unknown/unlinkable rels return nil so the view skips
+  # them. No new surfaces are invented here.
+  def trust_link_href(rec, rel)
+    id = rec[:entity_id].to_s
+    case rel.to_s
+    when 'agent'           then id.present? ? agent_path(id) : nil
+    when 'action'          then id.present? ? action_path(id) : nil
+    when 'proposal'        then id.present? ? proposal_path(id) : nil
+    when 'evaluations'     then evaluations_path
+    when 'evaluations_new' then new_evaluation_path
+    when 'runs'            then runs_path
+    end
+  end
+
+  def trust_severity_label(severity)
+    severity.to_s.capitalize.presence || 'Info'
   end
 
   private
