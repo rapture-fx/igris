@@ -290,6 +290,7 @@
           <%= render 'run_story', run: @run, memory: @agent_memory %>
           <%= render 'agent_attribution', run: @run %>
           <%= render 'evidence_memory', memory: @agent_memory, run: @run %>
+          <%= render 'evaluation_results', evaluations: @evaluation_results %>
 
           <% if guidance %>
             <div class="ic-evidence ic-doc__next">
