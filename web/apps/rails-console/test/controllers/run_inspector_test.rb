@@ -26,6 +26,7 @@ class RunInspectorTest < ActionDispatch::IntegrationTest
     def get_task(id)           = @tasks.find { |t| (t['task_id'] || t[:task_id]).to_s == id.to_s }
     def get_task_steps(id)     = @steps[id.to_s] || []
     def list_agent_memory(**)  = []
+    def list_execution_eval_runs(_) = []
     def get_action(_)          = nil
     def find_action_by_name(n) = @actions.find { |a| (a['name'] || a[:name]).to_s == n.to_s }
   end
