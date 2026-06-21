@@ -1,0 +1,289 @@
+<%#
+  Execution evaluation detail — modelled on the run detail page (no mini-sidebar).
+  LEFT is the explanatory report (summary, checks, run-against-a-run + results)
+  and its action buttons. View / Edit / Archive open inside the RIGHT panel — no
+  redirect to a separate page. In standby (nothing open) the report is centered;
+  opening a pane slides it left and reveals the right panel. No-JS: the panes are
+  driven by radio inputs (the same pattern as the run-detail inspector toggle).
+  Never renders prompts, raw bodies, ciphertext, nonces, tokens, cookies, or keys.
+%>
+<%= render 'shared/runs_header_style' %>
+<style>
+  .ic-check-row { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--ic-border-soft); }
+  .ic-check-row:last-child { border-bottom: 0; }
+  .ic-check-row__type { font-size: 12.5px; color: var(--ic-text-2); font-weight: 500; }
+  .ic-check-row__target { font-size: 12px; color: var(--ic-text-5); font-family: var(--ic-mono); }
+  .ic-eval-run-form { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .ic-eval-run-form .ig-field { margin: 0; flex: 1; min-width: 220px; }
+  .ic-json-preview { margin: 0; font-family: var(--ic-mono); font-size: 11.5px; color: var(--ic-text-3); white-space: pre-wrap; word-break: break-word; }
+  .ic-eval-actions { display: inline-flex; gap: 8px; margin-top: 18px; }
+  .ic-eval-history__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .ic-eval-history__stat { border: 1px solid var(--ic-border-soft); border-radius: 8px; padding: 9px 10px; }
+  .ic-eval-history__k { display: block; font-size: 11px; color: var(--ic-text-6); }
+  .ic-eval-history__v { display: block; margin-top: 2px; font-size: 15px; color: var(--ic-text-bright); font-variant-numeric: tabular-nums; }
+  .ic-eval-history__row { display: grid; grid-template-columns: 92px minmax(0, 1fr) 90px 108px; gap: 10px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--ic-border-soft); }
+  .ic-eval-history__row:first-child { border-top: 0; }
+  .ic-eval-history__cell { min-width: 0; font-size: 12px; color: var(--ic-text-4); }
+  .ic-eval-history__cell.mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-eval-history__reasons { margin: 8px 0 0 0; padding-left: 18px; color: var(--ic-text-5); font-size: 12px; }
+  @media (max-width: 760px) {
+    .ic-eval-history__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ic-eval-history__row { grid-template-columns: 78px minmax(0, 1fr) 82px; }
+    .ic-eval-history__when { display: none; }
+  }
+
+  /* ── Split: report sits centered, then animates to the left and the right
+       panel fades in. All tracks use fr units so grid-template-columns
+       interpolates smoothly (length↔fr does not animate; fr↔fr does). The
+       outer two tracks are collapsing spacers that center the report. ─────── */
+  .ic-eval-split {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 6fr) minmax(0, 0fr) minmax(0, 3fr);
+    gap: 0; flex: 1; min-height: 0; overflow: hidden;
+    transition: grid-template-columns .45s cubic-bezier(.4, 0, .2, 1);
+  }
+  #pane-view:checked ~ .ic-eval-split,
+  #pane-edit:checked ~ .ic-eval-split,
+  #pane-archive:checked ~ .ic-eval-split {
+    grid-template-columns: minmax(0, 0fr) minmax(0, 11fr) minmax(0, 8fr) minmax(0, 0fr);
+  }
+
+  .ic-eval-report { min-width: 0; overflow-y: auto; overflow-x: hidden; padding: 18px 16px; }
+  .ic-eval-report__inner { max-width: 820px; margin: 0 auto; }
+
+  .ic-eval-side { min-width: 0; overflow: hidden; }
+  .ic-eval-side__inner {
+    height: 100%; overflow-y: auto; padding: 18px 22px;
+    border-left: 1px solid var(--ic-border-soft);
+    opacity: 0; transition: opacity .18s ease;       /* hidden while it slides */
+  }
+  #pane-view:checked ~ .ic-eval-split .ic-eval-side__inner,
+  #pane-edit:checked ~ .ic-eval-split .ic-eval-side__inner,
+  #pane-archive:checked ~ .ic-eval-split .ic-eval-side__inner {
+    opacity: 1; transition: opacity .3s ease .24s;   /* appears AFTER the slide */
+  }
+
+  .ic-eval-side__pane { display: none; }
+  #pane-view:checked ~ .ic-eval-split .ic-eval-side__pane--view { display: block; }
+  #pane-edit:checked ~ .ic-eval-split .ic-eval-side__pane--edit { display: block; }
+  #pane-archive:checked ~ .ic-eval-split .ic-eval-side__pane--archive { display: block; }
+
+  /* Active button highlight. */
+  #pane-view:checked ~ .ic-eval-split label[for="pane-view"],
+  #pane-edit:checked ~ .ic-eval-split label[for="pane-edit"],
+  #pane-archive:checked ~ .ic-eval-split label[for="pane-archive"] {
+    border-color: var(--ic-emerald); color: var(--ic-text-bright);
+  }
+  .ic-eval-side__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .ic-eval-side__title { font-size: 14px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-eval-side__back { cursor: pointer; font-size: 12px; color: var(--ic-text-6); }
+  .ic-eval-side__back:hover { color: var(--ic-text-2); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ic-eval-split { transition: none; }
+    .ic-eval-side__inner { transition: none; }
+  }
+  @media (max-width: 760px) {
+    .ic-eval-spacer { display: none; }
+    .ic-eval-split { grid-template-columns: minmax(0, 1fr); }
+    #pane-view:checked ~ .ic-eval-split,
+    #pane-edit:checked ~ .ic-eval-split,
+    #pane-archive:checked ~ .ic-eval-split { grid-template-columns: minmax(0, 1fr); }
+    .ic-eval-side { display: none; }
+    #pane-view:checked ~ .ic-eval-split .ic-eval-side,
+    #pane-edit:checked ~ .ic-eval-split .ic-eval-side,
+    #pane-archive:checked ~ .ic-eval-split .ic-eval-side { display: block; }
+    .ic-eval-side__inner { border-left: 0; border-top: 1px solid var(--ic-border-soft); }
+  }
+</style>
+
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-runs-header">
+    <%= render 'shared/runs_view_tabs', active: 'evaluations' %>
+    <div class="ic-runs-header__actions">
+      <%= project_chip %>
+      <%= link_to 'All evaluations', evaluations_path, class: 'ic-btn' %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <%# Radio panes — must precede .ic-eval-split for the :checked ~ selectors. %>
+  <input type="radio" name="ic-eval-pane" id="pane-none" hidden checked>
+  <input type="radio" name="ic-eval-pane" id="pane-view" hidden>
+  <input type="radio" name="ic-eval-pane" id="pane-edit" hidden>
+  <input type="radio" name="ic-eval-pane" id="pane-archive" hidden>
+
+  <div class="ic-eval-split">
+
+    <%# Collapsing spacer — centers the report in standby, animates to 0. %>
+    <div class="ic-eval-spacer" aria-hidden="true"></div>
+
+    <%# ══════════ LEFT — explanatory report ══════════════════════════════ %>
+    <section class="ic-eval-report ic-doc" aria-label="Evaluation report">
+      <div class="ic-eval-report__inner">
+
+        <div class="ic-evidence" style="margin-bottom: 14px;">
+          <div class="ic-evidence__head"><%= @evaluation[:name].presence || 'Untitled evaluation' %></div>
+          <% if @evaluation[:description].present? %>
+            <p class="ic-evidence__intro"><%= @evaluation[:description] %></p>
+          <% end %>
+          <div class="ic-def"><span class="ic-def__label">Status</span>
+            <div class="ic-def__value"><span class="ic-doc__stat ic-doc__stat--<%= @evaluation[:enabled] ? 'ok' : 'muted' %>"><%= @evaluation[:enabled] ? 'Enabled' : 'Disabled' %></span></div>
+          </div>
+          <div class="ic-def"><span class="ic-def__label">Target action</span>
+            <div class="ic-def__value mono"><%= @evaluation[:target_action_name].presence || 'any' %></div></div>
+          <% if @evaluation[:target_agent_id].present? %>
+            <div class="ic-def"><span class="ic-def__label">Target agent</span>
+              <div class="ic-def__value mono"><%= @evaluation[:target_agent_id] %></div></div>
+          <% end %>
+          <div class="ic-def"><span class="ic-def__label">Updated</span>
+            <div class="ic-def__value"><%= time_ago(@evaluation[:updated_at]) %></div></div>
+        </div>
+
+        <div class="ic-evidence" style="margin-bottom: 14px;">
+          <div class="ic-evidence__head">Checks</div>
+          <p class="ic-evidence__intro">Each row is a deterministic expectation evaluated against recorded execution facts.</p>
+          <% if @evaluation[:assertions].present? %>
+            <% @evaluation[:assertions].each do |a| %>
+              <div class="ic-check-row">
+                <span class="ic-doc__stat ic-doc__stat--ok" aria-hidden="true">check</span>
+                <span class="ic-check-row__type"><%= a[:name].presence || assertion_label(a[:type]) %></span>
+                <% target = assertion_value(a) %>
+                <% if target.present? %><span class="ic-check-row__target"><%= target %></span><% end %>
+              </div>
+            <% end %>
+          <% else %>
+            <p class="ic-doc__note">This evaluation has no checks.</p>
+          <% end %>
+        </div>
+
+        <% history = @eval_history || { state: :empty, runs: [], total: 0, passed: 0, failed: 0, pass_rate: 0.0, failure_reasons: [] } %>
+        <div class="ic-evidence ic-eval-history" style="margin-bottom: 14px;">
+          <div class="ic-evidence__head">Recent runs</div>
+          <p class="ic-evidence__intro">
+            Recent results for this evaluation definition. Each row links to the evaluated run when a task id is available.
+          </p>
+
+          <% if history[:state].to_sym == :unavailable %>
+            <p class="ic-doc__note">Evaluation history is unavailable right now.</p>
+          <% elsif history[:runs].blank? %>
+            <p class="ic-doc__note">No runs have been recorded for this evaluation yet.</p>
+          <% else %>
+            <div class="ic-eval-history__stats">
+              <div class="ic-eval-history__stat"><span class="ic-eval-history__k">Runs</span><span class="ic-eval-history__v"><%= history[:total] %></span></div>
+              <div class="ic-eval-history__stat"><span class="ic-eval-history__k">Pass rate</span><span class="ic-eval-history__v"><%= intel_pct(history[:pass_rate]) %></span></div>
+              <div class="ic-eval-history__stat"><span class="ic-eval-history__k">Passed</span><span class="ic-eval-history__v"><%= history[:passed] %></span></div>
+              <div class="ic-eval-history__stat"><span class="ic-eval-history__k">Failed</span><span class="ic-eval-history__v"><%= history[:failed] %></span></div>
+            </div>
+
+            <div class="ic-eval-history__rows">
+              <% history[:runs].first(10).each do |run| %>
+                <% failed = run[:status].to_s == 'Failed' %>
+                <div class="ic-eval-history__row">
+                  <div class="ic-eval-history__cell"><span class="ic-doc__stat ic-doc__stat--<%= failed ? 'bad' : 'ok' %>"><%= run[:status] %></span></div>
+                  <div class="ic-eval-history__cell mono">
+                    <% if run[:task_id].present? %>
+                      <%= link_to run[:task_id], run_path(run[:task_id]), class: 'ic-doc__link' %>
+                    <% else %>
+                      <%= run[:eval_run_id].presence || '—' %>
+                    <% end %>
+                  </div>
+                  <div class="ic-eval-history__cell"><%= run[:passed_count] %> pass / <%= run[:failed_count] %> fail</div>
+                  <div class="ic-eval-history__cell ic-eval-history__when"><%= time_ago(run[:created_at]) %></div>
+                </div>
+              <% end %>
+            </div>
+
+            <% if history[:failure_reasons].present? %>
+              <p class="ic-evidence__intro" style="margin-top: 12px;">Common failure reasons</p>
+              <ul class="ic-eval-history__reasons">
+                <% history[:failure_reasons].each do |item| %>
+                  <li><%= item[:reason] %> <span class="ic-def__hint">(<%= pluralize(item[:count], 'run') %>)</span></li>
+                <% end %>
+              </ul>
+            <% end %>
+          <% end %>
+        </div>
+
+        <div class="ic-evidence" style="margin-bottom: 14px;">
+          <div class="ic-evidence__head">Run against a run</div>
+          <p class="ic-evidence__intro">Paste a run or task ID to evaluate it now. Results are deterministic and show only safe assertion outcomes.</p>
+          <% if demo_mode? %>
+            <p class="ic-doc__note">Demo mode — running an evaluation is inert here. Set OVERTURE_API_BASE_URL to evaluate real runs.</p>
+          <% end %>
+          <%= form_with url: run_evaluation_path(@evaluation[:id]), method: :post, local: true, html: { class: 'ic-eval-run-form' } do %>
+            <div class="ig-field">
+              <label class="ig-field__label" for="task_id">Run / task ID</label>
+              <%= text_field_tag :task_id, @task_id, id: 'task_id', class: 'ig-input', placeholder: 'task_…', autocomplete: 'off' %>
+            </div>
+            <%= submit_tag 'Run evaluation', class: 'ic-btn ic-btn--accent' %>
+          <% end %>
+
+          <% if @eval_result.present? %>
+            <div id="eval-run-result" style="margin-top: 14px;">
+              <%= render 'runs/evaluation_results', evaluations: { state: :evaluated, runs: [@eval_result] } %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Buttons stay on the left with the report; each opens the right panel. %>
+        <div class="ic-eval-actions">
+          <label for="pane-view" class="ic-btn">View</label>
+          <label for="pane-edit" class="ic-btn">Edit</label>
+          <label for="pane-archive" class="ic-btn">Archive</label>
+        </div>
+      </div>
+    </section>
+
+    <%# ══════════ RIGHT — opened by View / Edit / Archive ════════════════ %>
+    <aside class="ic-eval-side ic-doc" aria-label="Evaluation panel">
+     <div class="ic-eval-side__inner">
+
+      <%# View — the definition as escaped JSON. %>
+      <div class="ic-eval-side__pane ic-eval-side__pane--view">
+        <div class="ic-eval-side__bar">
+          <span class="ic-eval-side__title">Definition (JSON)</span>
+          <label for="pane-none" class="ic-eval-side__back" aria-label="Close panel">← Close</label>
+        </div>
+        <p class="ic-doc__note">A read-only view of the checks as stored. Values are escaped; no secrets are included.</p>
+        <pre class="ic-json-preview" style="margin-top: 10px;"><%= JSON.pretty_generate({
+          name: @evaluation[:name],
+          target_action_name: @evaluation[:target_action_name],
+          target_agent_id: @evaluation[:target_agent_id].presence,
+          enabled: @evaluation[:enabled],
+          assertions_json: @evaluation[:assertions].map { |a| { name: a[:name], type: a[:type], value: assertion_value(a) }.compact },
+        }.compact) %></pre>
+      </div>
+
+      <%# Edit — the full form, in-panel (no redirect). %>
+      <div class="ic-eval-side__pane ic-eval-side__pane--edit">
+        <div class="ic-eval-side__bar">
+          <span class="ic-eval-side__title">Edit evaluation</span>
+          <label for="pane-none" class="ic-eval-side__back" aria-label="Close panel">← Close</label>
+        </div>
+        <%= render 'form', evaluation: @evaluation, errors: @errors,
+              url: evaluation_path(@evaluation[:id]), method: :patch, submit_label: 'Save changes' %>
+      </div>
+
+      <%# Archive — confirm + action. %>
+      <div class="ic-eval-side__pane ic-eval-side__pane--archive">
+        <div class="ic-eval-side__bar">
+          <span class="ic-eval-side__title">Archive evaluation</span>
+          <label for="pane-none" class="ic-eval-side__back" aria-label="Close panel">← Close</label>
+        </div>
+        <p class="ic-doc__note">
+          Archiving removes “<%= @evaluation[:name] %>” from the evaluations list. Recorded eval-run
+          results are unaffected. This cannot be undone from the console.
+        </p>
+        <p style="margin-top: 14px;">
+          <%= button_to 'Archive evaluation', evaluation_path(@evaluation[:id]), method: :delete, class: 'ic-btn' %>
+        </p>
+      </div>
+     </div>
+    </aside>
+
+    <%# Collapsing spacer — mirrors the left one to keep the report centered. %>
+    <div class="ic-eval-spacer" aria-hidden="true"></div>
+  </div>
+</div>
