@@ -25,6 +25,7 @@ class ExecutionIntelligenceConsoleTest < ActionDispatch::IntegrationTest
     def get_action(_)          = nil
     def find_action_by_name(_) = nil
     def list_agent_memory(**)  = @memory
+    def list_execution_eval_runs(_) = []
     def get_execution_intelligence(**) = @intelligence
   end
 
@@ -145,12 +146,18 @@ class ExecutionIntelligenceConsoleTest < ActionDispatch::IntegrationTest
       'agents' => [
         { 'key' => 'a1', 'name' => 'Billing Agent', 'total_runs' => 120,
           'successful_runs' => 112, 'failed_runs' => 5, 'recovery_runs' => 3,
+          'approval_required_runs' => 7, 'eval_run_count' => 40, 'eval_passed_runs' => 36,
+          'proof_covered_runs' => 96, 'approval_rate' => 0.058,
+          'eval_pass_rate' => 0.9, 'proof_coverage' => 0.8,
           'average_duration_ms' => 480.0, 'success_rate' => 0.933,
           'failure_rate' => 0.041, 'recovery_rate' => 0.025 },
       ],
       'actions' => [
         { 'key' => 'charge_customer', 'name' => 'charge_customer', 'total_runs' => 88,
           'successful_runs' => 80, 'failed_runs' => 6, 'recovery_runs' => 4,
+          'approval_required_runs' => 11, 'eval_run_count' => 22, 'eval_passed_runs' => 18,
+          'proof_covered_runs' => 70, 'approval_rate' => 0.125,
+          'eval_pass_rate' => 0.818, 'proof_coverage' => 0.795,
           'average_duration_ms' => 640.0, 'success_rate' => 0.909,
           'failure_rate' => 0.068, 'recovery_rate' => 0.045 },
       ],
@@ -164,6 +171,12 @@ class ExecutionIntelligenceConsoleTest < ActionDispatch::IntegrationTest
       assert_select '.ic-intel__table', 2 # agent + action comparison
       assert_match 'Billing Agent', response.body
       assert_match 'charge_customer', response.body
+      assert_match 'Eval pass', response.body
+      assert_match 'Proof', response.body
+      # Policy Simulation card is present with its read-only preview form.
+      assert_match 'Policy simulation', response.body
+      assert_select 'form.ic-polsim__form'
+      assert_match 'Run preview', response.body
     end
   end
 
