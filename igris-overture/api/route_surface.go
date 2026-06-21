@@ -158,6 +158,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only metrics derived from task, approval, policy, and recovery records; no prompt or model-output source",
 	},
 	{
+		Method: "GET", Path: "/v1/execution/affinity", RegistrationFile: "igris-overture/api/routes_execution_affinity.go",
+		HandlerOrGroup: "execution affinity", RegistrationFunction: "RegisterExecutionAffinityRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only agent/action/pack relationship aggregates from durable execution records; no prompt, model-output, secret, or raw execution row source",
+	},
+	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/execution-evals,/v1/execution-evals/:id,/v1/execution-evals/:id/run,/v1/execution-evals/:id/runs,/v1/execution-evals/runs/:run_id", RegistrationFile: "igris-overture/api/routes_execution_evals.go",
 		HandlerOrGroup: "execution evaluations", RegistrationFunction: "RegisterExecutionEvalRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "deterministic assertions over tenant-owned task, proof, approval, and recovery records; rejects tenant body overrides",
@@ -166,6 +171,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Method: "POST", Path: "/v1/policy/simulate", RegistrationFile: "igris-overture/api/routes_policy_simulation.go",
 		HandlerOrGroup: "policy simulation", RegistrationFunction: "RegisterPolicySimulationRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only deterministic preview of a proposed policy rule over durable execution records; no policy mutation, replay, dispatch, persistence, or prompt/model-output source; rejects tenant body overrides",
+	},
+	{
+		Method: "GET,POST,PATCH,DELETE", Path: "/v1/policy/proposals,/v1/policy/proposals/:id,/v1/policy/proposals/:id/simulate,/v1/policy/proposals/:id/approve", RegistrationFile: "igris-overture/api/routes_policy_proposals.go",
+		HandlerOrGroup: "policy proposals", RegistrationFunction: "RegisterPolicyProposalRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-owned draft policy rules built on the read-only simulation engine; lifecycle/approval is governance metadata only — no active-policy mutation, replay, dispatch, or raw-body persistence; rejects tenant body overrides",
 	},
 	{
 		Method: "GET,POST", Path: "/proof/receipts,/v1/proof/*,/v1/receipts/*", RegistrationFile: "igris-overture/api/routes_proof.go",
