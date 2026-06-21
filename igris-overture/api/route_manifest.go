@@ -416,6 +416,18 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/execution/trust-recommendations",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "trust_recommendations",
+			RegistrationSource:     "RegisterTrustRecommendationRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-bound deterministic attention items derived from durable execution aggregates",
+			Notes:                  "Read-only execution-trust findings (recovery/proof/eval/approval thresholds + stale approved proposals); no LLM, no mutation, no persistence, no raw payloads",
+		},
+	},
+	{
 		Path: "/v1/execution-evals/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "execution_evals",
