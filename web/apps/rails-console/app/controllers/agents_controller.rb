@@ -39,8 +39,17 @@ class AgentsController < ApplicationController
     end
 
     @metrics = data_source.agent_metrics(@agent[:agent_id].presence || params[:id])
+    @affinity = data_source.agent_action_affinity(@agent[:agent_id].presence || params[:id])
     @memory  = data_source.agent_memory_for_agent(@agent[:agent_id].presence || params[:id])
     @recent_runs = recent_runs_from_memory(@memory)
+    @degraded_error = data_source.error
+  end
+
+  def pack
+    @pack = data_source.find_action_pack(params[:id])
+    return head :not_found unless @pack
+
+    @affinity = data_source.pack_affinity(@pack[:name])
     @degraded_error = data_source.error
   end
 
