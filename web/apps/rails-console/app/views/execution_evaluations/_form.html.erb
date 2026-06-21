@@ -65,11 +65,8 @@
     </div>
 
     <div class="ig-field">
-      <label class="ig-field__label" style="display: inline-flex; align-items: center; gap: 8px;">
-        <%= hidden_field_tag :enabled, '0' %>
-        <%= check_box_tag :enabled, '1', evaluation[:enabled] %>
-        Enabled
-      </label>
+      <%= hidden_field_tag :enabled, '0' %>
+      <%= render 'shared/check_box', name: 'enabled', checked: evaluation[:enabled], label: 'Enabled' %>
       <div class="ig-field__help">Only enabled evaluations can be run against a run.</div>
     </div>
   </div>
