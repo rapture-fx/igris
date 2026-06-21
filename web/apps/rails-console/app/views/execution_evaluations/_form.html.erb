@@ -1,0 +1,93 @@
+<%#
+  Create / edit an execution-evaluation definition. Plain report-style sections
+  (no cards). The assertion builder is the primary path (no hand-written JSON).
+  The backend validates everything; this form only guides. `evaluation` is a
+  draft hash; `url`/`method` differ for new vs edit. `errors` is a hash of
+  field => message.
+%>
+<% errors ||= {} %>
+
+<%= form_with url: url, method: method, local: true do %>
+  <% if errors[:base].present? %>
+    <div class="ig-field__error" style="margin-bottom: 12px;"><%= errors[:base] %></div>
+  <% end %>
+
+  <div class="ic-evidence" style="margin-bottom: 16px;">
+    <div class="ic-evidence__head">Definition</div>
+    <p class="ic-evidence__intro">Name the evaluation and say which execution it judges.</p>
+
+    <div class="ig-field">
+      <label class="ig-field__label" for="name">Name</label>
+      <%= text_field_tag :name, evaluation[:name], id: 'name', class: "ig-input #{'is-error' if errors[:name]}",
+            placeholder: 'send_email behaves safely', autocomplete: 'off', autofocus: true %>
+      <% if errors[:name] %>
+        <div class="ig-field__error"><%= errors[:name] %></div>
+      <% else %>
+        <div class="ig-field__help">Shown in the evaluations list and on each run’s results.</div>
+      <% end %>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label" for="description">Description <span class="ig-mut">(optional)</span></label>
+      <%= text_area_tag :description, evaluation[:description], id: 'description', class: 'ig-textarea',
+            placeholder: 'What should be true about this action’s execution?' %>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label" for="target_action_name">Target action <span class="ig-mut">(optional)</span></label>
+      <%= text_field_tag :target_action_name, evaluation[:target_action_name], id: 'target_action_name',
+            class: 'ig-input', placeholder: 'send_email', autocomplete: 'off' %>
+      <div class="ig-field__help">The action this evaluation is about. Leave blank to apply broadly.</div>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label">Target agent <span class="ig-mut">(optional)</span></label>
+      <% if @agents.present? %>
+        <% current = @agents.find { |a| a[:id] == evaluation[:target_agent_id].to_s } %>
+        <details class="ic-dropdown ic-form-dd" data-dd>
+          <summary class="ic-dropdown__btn">
+            <span class="ic-dropdown__value <%= 'is-set' if current %>" data-dd-label><%= current ? current[:name] : 'Any agent' %></span>
+            <svg class="ic-dropdown__chev" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </summary>
+          <div class="ic-dropdown__menu" role="listbox">
+            <button type="button" class="ic-dropdown__item <%= 'is-active' unless current %>" data-dd-opt data-value="">Any agent</button>
+            <% @agents.each do |agent| %>
+              <button type="button" class="ic-dropdown__item <%= 'is-active' if evaluation[:target_agent_id].to_s == agent[:id] %>" data-dd-opt data-value="<%= agent[:id] %>"><%= agent[:name] %></button>
+            <% end %>
+          </div>
+          <%= hidden_field_tag :target_agent_id, evaluation[:target_agent_id], data: { dd_input: true } %>
+        </details>
+      <% else %>
+        <%= text_field_tag :target_agent_id, evaluation[:target_agent_id], id: 'target_agent_id',
+              class: 'ig-input', placeholder: 'agent id (optional)', autocomplete: 'off' %>
+      <% end %>
+      <div class="ig-field__help">Restrict the evaluation to a specific registered agent, or leave as any.</div>
+    </div>
+
+    <div class="ig-field">
+      <label class="ig-field__label" style="display: inline-flex; align-items: center; gap: 8px;">
+        <%= hidden_field_tag :enabled, '0' %>
+        <%= check_box_tag :enabled, '1', evaluation[:enabled] %>
+        Enabled
+      </label>
+      <div class="ig-field__help">Only enabled evaluations can be run against a run.</div>
+    </div>
+  </div>
+
+  <div class="ic-evidence">
+    <div class="ic-evidence__head">Checks</div>
+    <p class="ic-evidence__intro">
+      Each check is a deterministic expectation about what the run did. Pick from the supported checks —
+      no code, queries, or network calls are allowed.
+    </p>
+    <% if errors[:assertions] %>
+      <div class="ig-field__error" style="margin-bottom: 10px;"><%= errors[:assertions] %></div>
+    <% end %>
+    <%= render 'assertion_builder', assertions: evaluation[:assertions] %>
+  </div>
+
+  <div style="margin-top: 16px; display: flex; gap: 8px;">
+    <%= submit_tag submit_label, class: 'ic-btn ic-btn--accent' %>
+    <%= link_to 'Cancel', (evaluation[:id].present? ? evaluation_path(evaluation[:id]) : evaluations_path), class: 'ic-btn' %>
+  </div>
+<% end %>
