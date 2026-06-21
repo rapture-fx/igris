@@ -1,0 +1,171 @@
+<%#
+  Assertion builder. Each row is a plain-language expectation about execution
+  behaviour. The check is chosen from a fully custom dropdown (no native browser
+  <select> popup), backed by a hidden input for submission. Works as a fixed
+  allow-list only — no free-form code, SQL, shell, or network checks. Output
+  shape: assertions[i][type|value|name].
+%>
+<% types = assertion_types
+   rows = Array(assertions).presence || [{ type: '', value: '', name: '' }] %>
+
+<style>
+  /* Custom dropdown — pixel-matched to the text inputs beside it (.ig-input
+     resolves to bg var(--ic-overlay-bg), border var(--ic-border), 12px text,
+     6px 9px padding, radius 6px). The base .ic-dropdown__btn already carries
+     the right bg/border/hover, so we only override sizing + layout. */
+  .ic-form-dd { position: relative; display: block; min-width: 0; }
+  .ic-form-dd > .ic-dropdown__btn {
+    display: flex; width: 100%; height: auto; min-height: 32px;
+    justify-content: space-between; gap: 8px;
+    padding: 6px 9px; font-size: 12px; border-radius: 6px;
+    color: var(--ic-text); white-space: nowrap;
+  }
+  .ic-form-dd[open] > .ic-dropdown__btn { border-color: #047857; }
+  .ic-form-dd .ic-dropdown__value { color: var(--ic-text); max-width: none; }
+  .ic-form-dd .ic-dropdown__value:not(.is-set) { color: var(--ic-text-6); }
+  .ic-form-dd .ic-dropdown__chev { width: 13px; height: 13px; color: var(--ic-text-6); }
+  .ic-form-dd .ic-dropdown__menu { width: max(100%, 260px); }
+  .ic-form-dd .ic-dropdown__item { font-size: 12px; padding: 7px 10px; }
+
+  /* Clean rows — separated by spacing + a hairline, not boxed like cards. */
+  .ic-asserts { display: flex; flex-direction: column; }
+  .ic-assert-row {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--ic-border-soft);
+  }
+  .ic-assert-row:last-child { border-bottom: 0; }
+  .ic-assert-row .ig-input { min-width: 0; }
+  .ic-assert-type-dd { flex: 2 1 220px; }
+  .ic-assert-value   { flex: 1 1 150px; }
+  .ic-assert-name    { flex: 1 1 150px; }
+  .ic-assert-remove  { flex: 0 0 auto; white-space: nowrap; }
+  .ic-assert-row__help { flex: 1 1 100%; margin: 0; font-size: 11px; color: var(--ic-text-6); }
+  /* A check that needs no target hides its value input entirely (no empty gap). */
+  .ic-assert-value.is-hidden { display: none; }
+</style>
+
+<div class="ic-asserts" id="ic-asserts">
+  <% rows.each_with_index do |row, i| %>
+    <% row = row.with_indifferent_access if row.respond_to?(:with_indifferent_access) %>
+    <% requires = types.dig(row[:type].to_s, :requires)
+       value_hidden = !(requires == :action || requires == :agent)
+       current_label = types.dig(row[:type].to_s, :label) %>
+    <div class="ic-assert-row" data-assert-row>
+      <details class="ic-dropdown ic-form-dd ic-assert-type-dd" data-dd>
+        <summary class="ic-dropdown__btn">
+          <span class="ic-dropdown__value <%= 'is-set' if current_label %>" data-dd-label><%= current_label || 'Choose a check…' %></span>
+          <svg class="ic-dropdown__chev" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </summary>
+        <div class="ic-dropdown__menu" role="listbox">
+          <% types.each do |key, meta| %>
+            <button type="button" class="ic-dropdown__item <%= 'is-active' if row[:type].to_s == key %>" data-dd-opt data-value="<%= key %>"><%= meta[:label] %></button>
+          <% end %>
+        </div>
+        <%= hidden_field_tag "assertions[#{i}][type]", row[:type], data: { dd_input: true, assert_type: true } %>
+      </details>
+      <%= text_field_tag "assertions[#{i}][value]", row[:value].presence || row[:action_name].presence || row[:agent_id].presence,
+            class: "ig-input ic-assert-value #{'is-hidden' if value_hidden}", data: { assert_value: true },
+            placeholder: 'action name or agent', 'aria-label': 'Target value' %>
+      <%= text_field_tag "assertions[#{i}][name]", row[:name],
+            class: 'ig-input ic-assert-name', placeholder: 'Label (optional)', 'aria-label': 'Assertion label', autocomplete: 'off' %>
+      <button type="button" class="ic-btn ic-assert-remove" data-assert-remove aria-label="Remove this check">Remove</button>
+      <p class="ic-assert-row__help" data-assert-help></p>
+    </div>
+  <% end %>
+</div>
+
+<p style="margin-top: 10px;">
+  <button type="button" class="ic-btn" id="ic-assert-add">Add a check</button>
+</p>
+
+<script type="application/json" id="ic-assert-meta"><%= raw types.transform_values { |m| { requires: m[:requires], help: m[:help] } }.to_json %></script>
+<script>
+  (function () {
+    // ── Generic custom dropdowns (.ic-dropdown[data-dd]) — no native select. ──
+    function chooseOption(opt) {
+      var dd = opt.closest('.ic-dropdown');
+      if (!dd) return;
+      var input = dd.querySelector('[data-dd-input]');
+      var label = dd.querySelector('[data-dd-label]');
+      var value = opt.getAttribute('data-value') || '';
+      if (input) input.value = value;
+      if (label) { label.textContent = opt.textContent.trim(); label.classList.toggle('is-set', value !== ''); }
+      dd.querySelectorAll('[data-dd-opt]').forEach(function (o) { o.classList.toggle('is-active', o === opt); });
+      dd.open = false;
+      if (input) input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    document.addEventListener('click', function (e) {
+      var opt = e.target.closest('[data-dd-opt]');
+      if (opt) { e.preventDefault(); chooseOption(opt); return; }
+      document.querySelectorAll('.ic-dropdown[data-dd][open]').forEach(function (dd) {
+        if (!dd.contains(e.target)) dd.open = false;
+      });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') document.querySelectorAll('.ic-dropdown[data-dd][open]').forEach(function (dd) { dd.open = false; });
+    });
+
+    // ── Assertion rows: contextual value field + help, driven by the type. ──
+    var list = document.getElementById('ic-asserts');
+    if (!list) return;
+    var meta = {};
+    try { meta = JSON.parse(document.getElementById('ic-assert-meta').textContent || '{}'); } catch (e) {}
+
+    function applyRow(row) {
+      var input = row.querySelector('[data-assert-type]');
+      var val = row.querySelector('[data-assert-value]');
+      var help = row.querySelector('[data-assert-help]');
+      if (!input) return;
+      var info = meta[input.value] || null;
+      var requires = info ? info.requires : 'none';
+      if (val) {
+        var needsValue = requires === 'action' || requires === 'agent';
+        val.classList.toggle('is-hidden', !needsValue);
+        val.placeholder = requires === 'action' ? 'action name (e.g. send_email)'
+          : requires === 'agent' ? 'agent name or id' : '';
+        if (!needsValue) val.value = '';
+      }
+      if (help) help.textContent = info ? info.help : '';
+    }
+
+    function reindex() {
+      list.querySelectorAll('[data-assert-row]').forEach(function (row, i) {
+        row.querySelectorAll('input').forEach(function (el) {
+          var name = el.getAttribute('name');
+          if (name) el.setAttribute('name', name.replace(/assertions\[\d+\]/, 'assertions[' + i + ']'));
+        });
+      });
+    }
+
+    function resetRow(row) {
+      var input = row.querySelector('[data-assert-type]');
+      var label = row.querySelector('[data-dd-label]');
+      if (input) input.value = '';
+      if (label) { label.textContent = 'Choose a check…'; label.classList.remove('is-set'); }
+      row.querySelectorAll('[data-dd-opt]').forEach(function (o) { o.classList.remove('is-active'); });
+      row.querySelectorAll('.ic-assert-value, .ic-assert-name').forEach(function (el) { el.value = ''; });
+      applyRow(row);
+    }
+
+    list.addEventListener('change', function (e) {
+      if (e.target.matches('[data-assert-type]')) applyRow(e.target.closest('[data-assert-row]'));
+    });
+
+    list.addEventListener('click', function (e) {
+      if (!e.target.matches('[data-assert-remove]')) return;
+      var rows = list.querySelectorAll('[data-assert-row]');
+      if (rows.length > 1) { e.target.closest('[data-assert-row]').remove(); reindex(); }
+      else { resetRow(e.target.closest('[data-assert-row]')); }
+    });
+
+    document.getElementById('ic-assert-add').addEventListener('click', function () {
+      var rows = list.querySelectorAll('[data-assert-row]');
+      var clone = rows[rows.length - 1].cloneNode(true);
+      list.appendChild(clone);
+      reindex();
+      resetRow(clone);
+    });
+
+    list.querySelectorAll('[data-assert-row]').forEach(applyRow);
+  })();
+</script>
