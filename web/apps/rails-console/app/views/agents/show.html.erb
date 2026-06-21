@@ -1,0 +1,135 @@
+<%#
+  Agent Detail — make the agent explain itself. Identity + template + registered
+  date, then execution metrics (runs, success, recovery, evaluation pass, proof
+  coverage) joined from Execution Intelligence over the last 30 days, recent runs
+  it touched, recent evaluation posture, and its recorded Evidence Memory.
+  Read-only and safe: no metadata, prompts, raw bodies, or secrets.
+%>
+<%= render 'shared/runs_header_style' %>
+<style>
+  .ic-agentd { max-width: 880px; width: 100%; margin: 0 auto; padding: 18px 16px; }
+  .ic-agentd__top { display: flex; align-items: center; gap: 12px; }
+  .ic-agentd__avatar { width: 38px; height: 38px; border-radius: 10px; background: var(--ic-avatar-bg); display: flex; align-items: center; justify-content: center; color: var(--ic-text-3); flex: none; }
+  .ic-agentd__name { font-size: 17px; font-weight: 650; color: var(--ic-text-bright); }
+  .ic-agentd__handle { font-size: 12px; color: var(--ic-text-6); font-family: var(--ic-mono); margin-top: 1px; }
+  .ic-agentd__top-actions { margin-left: auto; display: inline-flex; gap: 8px; }
+  .ic-metricgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--ic-border-soft); border: 1px solid var(--ic-border-soft); border-radius: 10px; overflow: hidden; }
+  .ic-metric { background: var(--ic-bg); padding: 12px 14px; }
+  .ic-metric__k { font-size: 11px; color: var(--ic-text-6); }
+  .ic-metric__v { margin-top: 4px; font-size: 18px; font-weight: 650; color: var(--ic-text-bright); font-variant-numeric: tabular-nums; }
+  .ic-recentrun { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--ic-border-soft); text-decoration: none; color: inherit; }
+  .ic-recentrun:hover { background: var(--ic-overlay-bg); }
+  .ic-recentrun__id { font-family: var(--ic-mono); font-size: 12px; color: var(--ic-text-3); flex: none; }
+  .ic-recentrun__out { font-size: 11.5px; color: var(--ic-text-5); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-recentrun__when { margin-left: auto; font-size: 11px; color: var(--ic-text-6); flex: none; }
+</style>
+
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-runs-header">
+    <%= link_to '← Agents', agents_path, class: 'ic-viewtab' %>
+    <div class="ic-runs-header__actions">
+      <%= project_chip %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <div class="ic-body ic-scroll ic-doc">
+    <div class="ic-agentd">
+      <%# ── Identity ──────────────────────────────────────────────────── %>
+      <div class="ic-agentd__top">
+        <span class="ic-agentd__avatar" aria-hidden="true"><%= console_icon('user', size: 19, stroke: 1.7) %></span>
+        <div style="min-width: 0;">
+          <div class="ic-agentd__name"><%= @agent[:display_name].presence || @agent[:name].presence || 'Agent' %></div>
+          <% if @agent[:name].present? %>
+            <div class="ic-agentd__handle"><%= @agent[:name] %></div>
+          <% end %>
+        </div>
+        <div class="ic-agentd__top-actions">
+          <% if @agent[:archived] %>
+            <span class="ic-doc__stat ic-doc__stat--muted" style="align-self: center;">Archived</span>
+          <% elsif !demo_mode? && @agent[:agent_id].present? %>
+            <%= button_to 'Archive agent', archive_agent_path(@agent[:agent_id]), method: :post,
+                  class: 'ic-btn',
+                  form: { onsubmit: "return confirm('Archive this agent? It stops appearing in the catalog. Its run history is unaffected.');" } %>
+          <% end %>
+        </div>
+      </div>
+
+      <% if @agent[:description].present? %>
+        <p class="ic-doc__lead" style="margin-top: 12px;"><%= @agent[:description] %></p>
+      <% end %>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px;">
+        <div class="ic-def"><span class="ic-def__label">Type</span><div class="ic-def__value mono"><%= @agent[:agent_type].presence || '—' %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Template</span><div class="ic-def__value mono"><%= @agent[:template_name].presence || '—' %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Version</span><div class="ic-def__value mono"><%= @agent[:version].presence || '—' %></div></div>
+        <div class="ic-def"><span class="ic-def__label">Registered</span><div class="ic-def__value"><%= @agent[:created_at] ? time_ago(@agent[:created_at]) : '—' %></div></div>
+      </div>
+
+      <%# ── Metrics ───────────────────────────────────────────────────── %>
+      <div class="ic-section-head" style="margin-top: 22px;">
+        <span class="ic-section-head__label">Execution metrics</span>
+        <span class="ic-section-head__hint">last 30 days</span>
+      </div>
+      <% if @metrics %>
+        <div class="ic-metricgrid" style="margin-top: 10px;">
+          <div class="ic-metric"><div class="ic-metric__k">Runs</div><div class="ic-metric__v"><%= @metrics[:total_runs] %></div></div>
+          <div class="ic-metric"><div class="ic-metric__k">Success rate</div><div class="ic-metric__v"><%= status_text(intel_pct(@metrics[:success_rate]), tone: intel_rate_tone(@metrics[:success_rate])) %></div></div>
+          <div class="ic-metric"><div class="ic-metric__k">Recovery rate</div><div class="ic-metric__v"><%= intel_pct(@metrics[:recovery_rate]) %></div></div>
+          <div class="ic-metric"><div class="ic-metric__k">Eval pass rate</div><div class="ic-metric__v"><%= @metrics[:eval_run_count].to_i.positive? ? status_text(intel_pct(@metrics[:eval_pass_rate]), tone: intel_rate_tone(@metrics[:eval_pass_rate])) : '—' %></div></div>
+          <div class="ic-metric"><div class="ic-metric__k">Proof coverage</div><div class="ic-metric__v"><%= status_text(intel_pct(@metrics[:proof_coverage]), tone: intel_rate_tone(@metrics[:proof_coverage])) %></div></div>
+        </div>
+      <% else %>
+        <p class="ic-doc__note" style="margin-top: 10px;">
+          No runs recorded for this agent in the last 30 days. Metrics appear here
+          once the agent executes actions.
+        </p>
+      <% end %>
+
+      <%# ── Recent runs (from recorded evidence) ──────────────────────── %>
+      <div class="ic-section-head" style="margin-top: 22px;">
+        <span class="ic-section-head__label">Recent runs</span>
+      </div>
+      <% if @recent_runs.any? %>
+        <div style="margin-top: 6px;">
+          <% @recent_runs.each do |r| %>
+            <%= link_to run_path(r[:task_id]), class: 'ic-recentrun' do %>
+              <span class="ic-recentrun__id"><%= r[:task_id] %></span>
+              <span class="ic-recentrun__out"><%= r[:outcome].presence || 'Run recorded' %></span>
+              <span class="ic-recentrun__when"><%= r[:at] ? time_ago(r[:at]) : '' %></span>
+            <% end %>
+          <% end %>
+        </div>
+        <p class="ic-def__hint" style="margin-top: 8px;">Runs with recorded evidence for this agent. Open one for the full run story and proof.</p>
+      <% else %>
+        <p class="ic-doc__note" style="margin-top: 6px;">
+          No recent runs with recorded evidence for this agent yet.
+        </p>
+      <% end %>
+
+      <%# ── Evaluation posture ────────────────────────────────────────── %>
+      <div class="ic-section-head" style="margin-top: 22px;">
+        <span class="ic-section-head__label">Evaluation results</span>
+        <%= link_to 'Open evaluations', evaluations_path, class: 'ic-section-head__link' %>
+      </div>
+      <% if @metrics && @metrics[:eval_run_count].to_i.positive? %>
+        <p class="ic-doc__note" style="margin-top: 6px;">
+          <%= pluralize(@metrics[:eval_run_count], 'evaluation run') %> recorded for this agent,
+          <span class="ic-doc__stat ic-doc__stat--<%= intel_rate_tone(@metrics[:eval_pass_rate]) %>"><%= intel_pct(@metrics[:eval_pass_rate]) %></span>
+          passing. Run-by-run results live on each run's detail page.
+        </p>
+      <% else %>
+        <p class="ic-doc__note" style="margin-top: 6px;">
+          No evaluations have run against this agent's runs yet. Create one under
+          <%= link_to 'Runs → Evaluations', evaluations_path, class: 'ic-doc__link' %>.
+        </p>
+      <% end %>
+
+      <%# ── Evidence Memory ───────────────────────────────────────────── %>
+      <div style="margin-top: 22px;">
+        <%= render 'runs/evidence_memory', memory: @memory, run: nil %>
+      </div>
+    </div>
+  </div>
+</div>
