@@ -39,6 +39,7 @@ class ProductRepresentationTest < ActionDispatch::IntegrationTest
     def all_runs(**) = []
     def runtimes = []
     def healthy_runtime? = false
+    def action_consumer_affinity(*, **) = { range: 'last_30d', source: '', agent_actions: [], action_agents: [], pack_edges: [], pack_actions: [], hotspots: [] }
     def runtime_required_for?(a) = a && a[:target_type].to_s == 'local_runtime' && !healthy_runtime?
     def find_run(_) = nil
     def run_action(_name, **_)
