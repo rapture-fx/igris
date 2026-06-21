@@ -304,6 +304,27 @@ module Igris
       { range: range, source: '', summary: normalize_intelligence_summary(nil), agents: [], actions: [] }
     end
 
+    # ── Trust Recommendations ─────────────────────────────────────────────
+    # Deterministic, read-only execution-trust attention items computed by Igris
+    # from aggregate execution truth (recovery/proof/eval/approval thresholds and
+    # stale approved proposals). Not AI advice: no prompts, no model output, no
+    # confidence scores. Degrades to an honest unavailable state on backend error.
+    TRUST_SEVERITIES = %w[critical warning info].freeze
+
+    def trust_recommendations(range: 'last_30d')
+      return Fixtures.trust_recommendations(range) unless real?
+
+      raw = @client.get_trust_recommendations(range: range)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      items = Array(raw[:recommendations]).map { |r| normalize_trust_recommendation(r) }
+      { state: items.any? ? :ok : :empty,
+        generated_at: parse_time(raw[:generated_at]),
+        recommendations: items }
+    rescue OvertureClient::Error => e
+      capture(e)
+      { state: :unavailable, generated_at: nil, recommendations: [] }
+    end
+
     # ── Execution Affinity ────────────────────────────────────────────────
     # Agent ↔ action ↔ pack relationship metrics derived from backend aggregate
     # SQL. Rails only normalizes and groups the safe response: identifiers,
@@ -1203,6 +1224,50 @@ module Igris
         end,
         warnings: Array(raw[:warnings]).map { |w| w.to_s.strip }.reject(&:blank?),
       }
+    end
+
+    # Normalize one trust recommendation to a safe, view-ready hash. Severity and
+    # category are bounded to known values; metrics are scalar-only; links carry
+    # only a rel + label (the view resolves the rel to a path). Nothing here can
+    # carry prompts, raw bodies, or secrets.
+    def normalize_trust_recommendation(raw)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      severity = raw[:severity].to_s
+      severity = 'info' unless TRUST_SEVERITIES.include?(severity)
+      {
+        id:                 raw[:id].to_s,
+        severity:           severity,
+        category:           raw[:category].to_s.presence || 'general',
+        title:              raw[:title].to_s,
+        summary:            raw[:summary].to_s,
+        reason:             raw[:reason].to_s,
+        recommended_action: raw[:recommended_action].to_s,
+        entity_type:        raw[:entity_type].to_s,
+        entity_id:          raw[:entity_id].to_s,
+        entity_name:        raw[:entity_name].to_s,
+        metrics:            normalize_trust_metrics(raw[:metrics]),
+        links:              normalize_trust_links(raw[:links]),
+      }
+    end
+
+    def normalize_trust_metrics(raw)
+      return {} unless raw.respond_to?(:each)
+      raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
+      out = {}
+      raw.each do |key, value|
+        next unless value.is_a?(Numeric) || value.is_a?(String) || [true, false].include?(value)
+        out[key.to_s] = value
+      end
+      out
+    end
+
+    def normalize_trust_links(raw)
+      Array(raw).filter_map do |link|
+        link = link.with_indifferent_access if link.respond_to?(:with_indifferent_access)
+        rel = link[:rel].to_s
+        next if rel.empty?
+        { rel: rel, label: link[:label].to_s }
+      end
     end
 
     # Normalize a policy proposal to a safe, view-ready hash. Only allow-listed
