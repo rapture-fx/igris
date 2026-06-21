@@ -1,0 +1,17 @@
+<%#
+  The Agents lens view switch. Shared by the catalog, pack catalog, and getting-
+  started surfaces so all three live under one lens with no parallel navigation.
+  `active` is one of: catalog | packs | adoption. Mirrors shared/_runs_view_tabs.
+%>
+<% active = local_assigns.fetch(:active, 'catalog').to_s %>
+<div class="ic-viewtabs" role="tablist" aria-label="Agents view">
+  <%= link_to 'Agents', agents_path,
+        class: "ic-viewtab #{'is-active' if active == 'catalog'}",
+        role: 'tab', 'aria-selected': (active == 'catalog').to_s %>
+  <%= link_to 'Action packs', agents_path(view: 'packs'),
+        class: "ic-viewtab #{'is-active' if active == 'packs'}",
+        role: 'tab', 'aria-selected': (active == 'packs').to_s %>
+  <%= link_to 'Getting started', agents_path(view: 'adoption'),
+        class: "ic-viewtab #{'is-active' if active == 'adoption'}",
+        role: 'tab', 'aria-selected': (active == 'adoption').to_s %>
+</div>
