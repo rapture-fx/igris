@@ -128,60 +128,77 @@ func handlePolicySimulate(db *sql.DB) fiber.Handler {
 			})
 		}
 
-		normalized, interval, validationErr := validatePolicySimulateRequest(req)
+		resp, validationErr, dbErr := runPolicySimulation(c.Context(), db, tenantID, req)
 		if validationErr != "" {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": validationErr})
 		}
-
-		matchClause, matchArgs, hasCriteria := buildPolicyMatchClause(normalized)
-		warnings := make([]string, 0)
-		if !hasCriteria {
-			warnings = append(warnings, "No match criteria were provided, so no runs were classified as affected. Add at least one criterion to preview impact.")
-		}
-
-		total, affected, err := queryPolicySimulationCounts(c.Context(), db, tenantID, interval, matchClause, matchArgs)
-		if err != nil {
+		if dbErr != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
-		if total == 0 {
-			warnings = append(warnings, "No execution records were found in the selected window.")
-		}
-
-		resp := policySimulateResponse{
-			Range:               normalized.Range,
-			PolicyMode:          normalized.PolicyMode,
-			Source:              policySimSource,
-			TotalRunsConsidered: total,
-			AffectedRunCount:    affected,
-			AffectedAgents:      []policySimAffectedAgent{},
-			AffectedActions:     []policySimAffectedAction{},
-			SampleRuns:          []policySimSampleRun{},
-			Warnings:            warnings,
-		}
-		resp.WouldAllow, resp.WouldRequireApproval, resp.WouldBlock = computePolicyImpact(total, affected, normalized.PolicyMode)
-
-		// Only fan out to the (still bounded) breakdown/sample queries when the
-		// proposed rule actually matched something. Saves three reads otherwise.
-		if affected > 0 {
-			agents, err := queryPolicySimulationAgents(c.Context(), db, tenantID, interval, matchClause, matchArgs)
-			if err != nil {
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
-			}
-			actions, err := queryPolicySimulationActions(c.Context(), db, tenantID, interval, matchClause, matchArgs)
-			if err != nil {
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
-			}
-			samples, err := queryPolicySimulationSamples(c.Context(), db, tenantID, interval, matchClause, matchArgs)
-			if err != nil {
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
-			}
-			resp.AffectedAgents = agents
-			resp.AffectedActions = actions
-			resp.SampleRuns = samples
-		}
-
 		return c.JSON(resp)
 	}
+}
+
+// runPolicySimulation validates the request, runs the deterministic read-only
+// impact computation over execution truth, and returns the safe response. It is
+// the single source of simulation behaviour, shared by the standalone simulate
+// endpoint and by proposal re-simulation. It returns a non-empty validation
+// error code (→ 400) for bad input, or a non-nil error (→ 500) for a DB failure.
+// It NEVER mutates policy, replays runs, dispatches tasks, or persists anything.
+func runPolicySimulation(ctx context.Context, db *sql.DB, tenantID string, req policySimulateRequest) (policySimulateResponse, string, error) {
+	normalized, interval, validationErr := validatePolicySimulateRequest(req)
+	if validationErr != "" {
+		return policySimulateResponse{}, validationErr, nil
+	}
+
+	matchClause, matchArgs, hasCriteria := buildPolicyMatchClause(normalized)
+	warnings := make([]string, 0)
+	if !hasCriteria {
+		warnings = append(warnings, "No match criteria were provided, so no runs were classified as affected. Add at least one criterion to preview impact.")
+	}
+
+	total, affected, err := queryPolicySimulationCounts(ctx, db, tenantID, interval, matchClause, matchArgs)
+	if err != nil {
+		return policySimulateResponse{}, "", err
+	}
+	if total == 0 {
+		warnings = append(warnings, "No execution records were found in the selected window.")
+	}
+
+	resp := policySimulateResponse{
+		Range:               normalized.Range,
+		PolicyMode:          normalized.PolicyMode,
+		Source:              policySimSource,
+		TotalRunsConsidered: total,
+		AffectedRunCount:    affected,
+		AffectedAgents:      []policySimAffectedAgent{},
+		AffectedActions:     []policySimAffectedAction{},
+		SampleRuns:          []policySimSampleRun{},
+		Warnings:            warnings,
+	}
+	resp.WouldAllow, resp.WouldRequireApproval, resp.WouldBlock = computePolicyImpact(total, affected, normalized.PolicyMode)
+
+	// Only fan out to the (still bounded) breakdown/sample queries when the
+	// proposed rule actually matched something. Saves three reads otherwise.
+	if affected > 0 {
+		agents, err := queryPolicySimulationAgents(ctx, db, tenantID, interval, matchClause, matchArgs)
+		if err != nil {
+			return policySimulateResponse{}, "", err
+		}
+		actions, err := queryPolicySimulationActions(ctx, db, tenantID, interval, matchClause, matchArgs)
+		if err != nil {
+			return policySimulateResponse{}, "", err
+		}
+		samples, err := queryPolicySimulationSamples(ctx, db, tenantID, interval, matchClause, matchArgs)
+		if err != nil {
+			return policySimulateResponse{}, "", err
+		}
+		resp.AffectedAgents = agents
+		resp.AffectedActions = actions
+		resp.SampleRuns = samples
+	}
+
+	return resp, "", nil
 }
 
 // validatePolicySimulateRequest normalizes and bounds the request. It returns
