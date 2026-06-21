@@ -185,7 +185,6 @@ code, pre { font-family: 'SF Mono', 'IBM Plex Mono', 'Space Mono', ui-monospace,
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid var(--ic-border-soft);
 }
 .ic-rail__logo-img { width: 20px; height: 20px; display: none; user-select: none; -webkit-user-drag: none; object-fit: contain; }
 .ic-rail__logo-img--light { display: block; }
@@ -4588,7 +4587,7 @@ html.dark, html[data-theme="dark"] {
 }
 .ic-intel__row {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) repeat(5, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 2.1fr) repeat(7, minmax(0, 1fr));
   align-items: center;
   column-gap: 10px;
   padding: 9px 14px;
@@ -4629,6 +4628,8 @@ html.dark, html[data-theme="dark"] {
     column-gap: 6px;
     font-size: 11px;
   }
+  .ic-intel__row .ic-intel__col--failure,
+  .ic-intel__row .ic-intel__col--proof { display: none; }
   .ic-intel__source { margin-left: 0; }
   /* Run story beats stack label-over-value on narrow screens so the 96px label
      column never crowds the value text. */
@@ -4648,7 +4649,9 @@ html.dark, html[data-theme="dark"] {
 @media (max-width: 480px) {
   .ic-intel__row { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); column-gap: 5px; padding: 8px 10px; }
   .ic-intel__row .ic-intel__col--failure,
-  .ic-intel__row .ic-intel__col--recovery { display: none; }
+  .ic-intel__row .ic-intel__col--recovery,
+  .ic-intel__row .ic-intel__col--approval,
+  .ic-intel__row .ic-intel__col--proof { display: none; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -4899,4 +4902,51 @@ html.dark, html[data-theme="dark"] {
 .ic-diff__meta { display: inline-flex; gap: 10px; align-items: baseline; color: var(--ic-text-6); font-size: 10.5px; white-space: nowrap; }
 @media (max-width: 980px) {
   .ic-diff__meta { display: none; }
+}
+
+/* Execution Evaluation results — document-style detail rows, not cards. */
+.ic-evals { display: block; }
+.ic-eval-detail {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ic-border-soft);
+}
+.ic-eval-detail:first-of-type {
+  margin-top: 8px;
+}
+.ic-eval-detail__counts {
+  color: var(--ic-text-6);
+  margin-left: 6px;
+}
+.ic-eval-detail__summary {
+  margin: 4px 0 8px 134px;
+  max-width: 66ch;
+  color: var(--ic-text-6);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.ic-eval-detail__assertions {
+  margin: 8px 0 0 134px;
+  display: grid;
+  gap: 7px;
+}
+.ic-eval-detail__assertion {
+  margin: 0;
+  color: var(--ic-text-3);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ic-eval-detail__assertion-name {
+  color: var(--ic-text-bright);
+  font-weight: 500;
+}
+.ic-eval-detail__reason {
+  color: var(--ic-text-6);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 720px) {
+  .ic-eval-detail__summary,
+  .ic-eval-detail__assertions {
+    margin-left: 0;
+  }
 }
