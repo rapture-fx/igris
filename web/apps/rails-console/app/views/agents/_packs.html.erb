@@ -41,7 +41,7 @@
     <% packs.each do |pack| %>
       <div class="ic-pack">
         <div class="ic-pack__head">
-          <span class="ic-pack__name"><%= pack[:display_name].presence || pack[:name] %></span>
+          <%= link_to pack[:display_name].presence || pack[:name], agent_pack_path(pack[:name]), class: 'ic-pack__name ic-doc__link' %>
           <% if pack[:installed] %>
             <span class="ic-doc__stat ic-doc__stat--ok">Installed</span>
           <% else %>
@@ -61,7 +61,7 @@
           <div class="ic-pack__actions">
             <% pack[:installed_actions].each do |action| %>
               <div class="ic-pack__action">
-                <span class="ic-pack__action-name"><%= action[:name] %></span>
+                <%= link_to action[:name], action_path(action[:name]), class: 'ic-pack__action-name ic-doc__link' %>
                 <% if action[:policy].present? %>
                   <span class="ic-pack__action-policy"><%= filter_label(action[:policy]) %></span>
                 <% end %>
