@@ -550,43 +550,50 @@ module Igris
     # Demo trust recommendations so the section renders offline. Returns the same
     # normalized shape DataSource produces in real mode (no normalizer runs on
     # it). Plain operational findings, never AI advice.
-    def trust_recommendations(_range)
-      {
-        state: :ok,
-        generated_at: Time.current,
-        recommendations: [
-          {
-            id: 'action:low_proof:stripe.refund', severity: 'critical', category: 'proof',
-            title: 'Action proof coverage is low',
-            summary: 'Some runs of this action completed without recorded proof or receipt.',
-            reason: '82% proof coverage across 44 runs in the last 7 days.',
-            recommended_action: 'Inspect proof and receipt state.',
-            entity_type: 'action', entity_id: 'stripe.refund', entity_name: 'stripe.refund',
-            metrics: { 'proof_coverage' => 0.82, 'total_runs' => 44 },
-            links: [{ rel: 'action', label: 'Open action' }],
-          },
-          {
-            id: 'action:high_recovery:db.write', severity: 'warning', category: 'action',
-            title: 'Action recovers often',
-            summary: 'This action needed recovery on a meaningful share of its runs.',
-            reason: 'Recovered in 14% of 96 runs in the last 7 days.',
-            recommended_action: 'Inspect recent recovered runs.',
-            entity_type: 'action', entity_id: 'db.write', entity_name: 'db.write',
-            metrics: { 'recovery_rate' => 0.14, 'total_runs' => 96 },
-            links: [{ rel: 'action', label: 'Open action' }, { rel: 'runs', label: 'View runs' }],
-          },
-          {
-            id: 'agent:no_eval_coverage:agent_demo', severity: 'warning', category: 'agent',
-            title: 'Agent has no evaluations',
-            summary: 'This agent is running actions but no execution evaluations cover its behavior.',
-            reason: '38 runs in the last 7 days with no execution evaluations.',
-            recommended_action: 'Create an evaluation for this agent.',
-            entity_type: 'agent', entity_id: 'agent_demo', entity_name: 'claude-production',
-            metrics: { 'total_runs' => 38 },
-            links: [{ rel: 'agent', label: 'Open agent' }, { rel: 'evaluations_new', label: 'Create evaluation' }],
-          },
-        ],
-      }
+    def trust_recommendations(_range, state_filter: 'active')
+      all = [
+        {
+          id: 'action:low_proof:stripe.refund', severity: 'critical', category: 'proof',
+          title: 'Action proof coverage is low',
+          summary: 'Some runs of this action completed without recorded proof or receipt.',
+          reason: '82% proof coverage across 44 runs in the last 7 days.',
+          recommended_action: 'Inspect proof and receipt state.',
+          entity_type: 'action', entity_id: 'stripe.refund', entity_name: 'stripe.refund',
+          metrics: { 'proof_coverage' => 0.82, 'total_runs' => 44 },
+          links: [{ rel: 'action', label: 'Open action' }],
+          state: 'active', state_reason: '', snoozed_until: nil, acknowledged_at: nil, resolved_at: nil,
+        },
+        {
+          id: 'action:high_recovery:db.write', severity: 'warning', category: 'action',
+          title: 'Action recovers often',
+          summary: 'This action needed recovery on a meaningful share of its runs.',
+          reason: 'Recovered in 14% of 96 runs in the last 7 days.',
+          recommended_action: 'Inspect recent recovered runs.',
+          entity_type: 'action', entity_id: 'db.write', entity_name: 'db.write',
+          metrics: { 'recovery_rate' => 0.14, 'total_runs' => 96 },
+          links: [{ rel: 'action', label: 'Open action' }, { rel: 'runs', label: 'View runs' }],
+          state: 'acknowledged', state_reason: 'Known retry behavior, tracked.', snoozed_until: nil,
+          acknowledged_at: Time.current - 2.hours, resolved_at: nil,
+        },
+        {
+          id: 'agent:no_eval_coverage:agent_demo', severity: 'warning', category: 'agent',
+          title: 'Agent has no evaluations',
+          summary: 'This agent is running actions but no execution evaluations cover its behavior.',
+          reason: '38 runs in the last 7 days with no execution evaluations.',
+          recommended_action: 'Create an evaluation for this agent.',
+          entity_type: 'agent', entity_id: 'agent_demo', entity_name: 'claude-production',
+          metrics: { 'total_runs' => 38 },
+          links: [{ rel: 'agent', label: 'Open agent' }, { rel: 'evaluations_new', label: 'Create evaluation' }],
+          state: 'snoozed', state_reason: '', snoozed_until: Time.current + 6.days,
+          acknowledged_at: nil, resolved_at: nil,
+        },
+      ]
+      include_resolved = %w[resolved all].include?(state_filter.to_s)
+      include_snoozed  = %w[snoozed all].include?(state_filter.to_s)
+      visible = all.reject do |r|
+        (r[:state] == 'snoozed' && !include_snoozed) || (r[:state] == 'resolved' && !include_resolved)
+      end
+      { state: :ok, generated_at: Time.current, recommendations: visible }
     end
 
     def execution_evaluations_for_run(run)
