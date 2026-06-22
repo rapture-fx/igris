@@ -428,6 +428,18 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/execution/trust-recommendations/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "trust_recommendations",
+			RegistrationSource:     "RegisterTrustRecommendationRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-owned trust recommendation lifecycle state (acknowledge/snooze/resolve)",
+			Notes:                  "Lifecycle overlay on deterministic findings; stores only status/reason/timestamps by stable recommendation_id; no payloads, no mutation of execution data; rejects tenant override and unknown fields",
+		},
+	},
+	{
 		Path: "/v1/execution-evals/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "execution_evals",
