@@ -6,6 +6,8 @@ require 'test_helper'
 # only point at existing console surfaces; honest empty + degraded states.
 class TrustRecommendationsTest < ActionDispatch::IntegrationTest
   class FakeClient
+    attr_reader :last_state_update
+
     def initialize(trust: nil, trust_error: nil)
       @trust = trust
       @trust_error = trust_error
@@ -37,6 +39,11 @@ class TrustRecommendationsTest < ActionDispatch::IntegrationTest
       raise @trust_error if @trust_error
 
       @trust
+    end
+
+    def update_trust_recommendation_state(id, status:, reason: nil, snooze_duration: nil)
+      @last_state_update = { id: id, status: status, reason: reason, snooze_duration: snooze_duration }
+      { 'state_id' => 's1', 'recommendation_id' => id, 'status' => status }
     end
   end
 
@@ -76,7 +83,8 @@ class TrustRecommendationsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select '.ic-trust'
     assert_match 'Trust recommendations', response.body
-    assert_match 'Create an evaluation for this agent.', response.body
+    # An active demo finding is visible in the default (active) view.
+    assert_match 'Action proof coverage is low', response.body
   end
 
   test 'real mode renders findings, recommended action, and a link to the entity' do
@@ -147,5 +155,83 @@ class TrustRecommendationsTest < ActionDispatch::IntegrationTest
     result = ds.trust_recommendations(range: 'last_30d')
     assert_equal :unavailable, result[:state]
     assert_empty result[:recommendations]
+  end
+
+  # ── Lifecycle overlay UI + actions ──────────────────────────────────────────
+  test 'state chip, lifecycle filter, and actions render' do
+    acked = trust_payload('recommendations' => [
+      trust_payload['recommendations'].first.merge('state' => 'acknowledged', 'state_reason' => 'tracked by oncall'),
+    ])
+    with_real_ds(FakeClient.new(trust: acked)) do
+      get runs_path(view: 'intelligence', trust_state: 'all')
+      assert_response :success
+      assert_select '.ic-trust__filter'
+      assert_match 'Acknowledged', response.body
+      assert_match 'tracked by oncall', response.body
+      assert_match 'Resolve', response.body
+    end
+  end
+
+  test 'acknowledge posts the lifecycle change and redirects to the intelligence tab' do
+    client = FakeClient.new(trust: trust_payload)
+    with_real_ds(client) do
+      post trust_recommendation_state_path, params: {
+        rec_id: 'action:low_proof:stripe.refund', status: 'acknowledged', range: 'last_7d', trust_state: 'active'
+      }
+      assert_redirected_to runs_path(view: 'intelligence', range: 'last_7d', trust_state: 'active')
+    end
+    assert_equal 'acknowledged', client.last_state_update[:status]
+    assert_equal 'action:low_proof:stripe.refund', client.last_state_update[:id]
+  end
+
+  test 'snooze posts the chosen duration' do
+    client = FakeClient.new(trust: trust_payload)
+    with_real_ds(client) do
+      post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'snoozed', snooze_duration: '7d' }
+      assert_response :redirect
+    end
+    assert_equal 'snoozed', client.last_state_update[:status]
+    assert_equal '7d', client.last_state_update[:snooze_duration]
+  end
+
+  test 'resolve and reactivate post the right statuses' do
+    client = FakeClient.new(trust: trust_payload)
+    with_real_ds(client) do
+      post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'resolved' }
+      assert_response :redirect
+      assert_equal 'resolved', client.last_state_update[:status]
+
+      post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'active' }
+      assert_response :redirect
+      assert_equal 'active', client.last_state_update[:status]
+    end
+  end
+
+  test 'an unknown lifecycle status is rejected before any backend call' do
+    client = FakeClient.new(trust: trust_payload)
+    with_real_ds(client) do
+      post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'deferred' }
+      assert_response :redirect
+    end
+    assert_nil client.last_state_update
+  end
+
+  test 'fixture mode lifecycle changes are inert' do
+    post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'resolved' }
+    assert_response :redirect
+    follow_redirect!
+    assert_match 'Demo mode', response.body
+  end
+
+  test 'hostile state_reason is ERB-escaped' do
+    hostile = trust_payload('recommendations' => [
+      trust_payload['recommendations'].first.merge('state' => 'acknowledged', 'state_reason' => '<script>alert(9)</script>'),
+    ])
+    with_real_ds(FakeClient.new(trust: hostile)) do
+      get runs_path(view: 'intelligence')
+      assert_response :success
+      refute_includes response.body, '<script>alert(9)</script>'
+      assert_match '&lt;script&gt;alert(9)&lt;/script&gt;', response.body
+    end
   end
 end
