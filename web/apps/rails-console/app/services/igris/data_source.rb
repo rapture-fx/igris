@@ -87,18 +87,25 @@ module Igris
       capture(e); []
     end
 
-    def recent_runs(limit: 5)
+    # When agent_id is given the backend scopes the window to that registered
+    # agent, so the result is the agent's own runs (bounded by limit) rather than
+    # a client-side filter over a truncated tenant window. Fixtures mode filters
+    # locally on the same agent_id so the demo console behaves the same way.
+    def recent_runs(limit: 5, agent_id: nil)
+      aid = agent_id.to_s.strip
       if real?
-        @client.list_tasks(limit: limit).map { |t| normalize_run_summary(t) }
+        @client.list_tasks(limit: limit, agent_id: aid.presence).map { |t| normalize_run_summary(t) }
       else
-        Fixtures.runs.first(limit)
+        runs = Fixtures.runs
+        runs = runs.select { |r| r[:agent_id].to_s == aid } if aid.present?
+        runs.first(limit)
       end
     rescue OvertureClient::Error => e
       capture(e); []
     end
 
-    def all_runs(limit: 100)
-      recent_runs(limit: limit)
+    def all_runs(limit: 100, agent_id: nil)
+      recent_runs(limit: limit, agent_id: agent_id)
     end
 
     def find_run(id)
@@ -304,6 +311,18 @@ module Igris
       { range: range, source: '', summary: normalize_intelligence_summary(nil), agents: [], actions: [] }
     end
 
+    # One action's execution-intelligence breakdown row (run counts and
+    # success/failure/recovery/approval/proof/eval rates over the window), or nil
+    # when the action has no recorded runs in the window. Reuses the single
+    # aggregate execution-intelligence read — no per-run fan-out — so action
+    # detail can show reliability without its own query path.
+    def action_intelligence(action_name, range: 'last_30d')
+      name = action_name.to_s
+      return nil if name.empty?
+
+      execution_intelligence(range: range)[:actions].find { |b| b[:key] == name }
+    end
+
     # ── Trust Recommendations ─────────────────────────────────────────────
     # Deterministic, read-only execution-trust attention items computed by Igris
     # from aggregate execution truth (recovery/proof/eval/approval thresholds and
@@ -421,9 +440,17 @@ module Igris
       'block'            => 'Block',
     }.freeze
 
-    def policy_proposals
+    # Optional action/agent filters keep only proposals whose match criteria
+    # target a specific action name or registered agent. The proposal list is a
+    # bounded, fully tenant-scoped read, so this client-side narrowing is exact.
+    # A proposal matches an action filter when either its exact action-name
+    # criterion equals the action OR its action-prefix criterion is a prefix of
+    # it; it matches an agent filter on the agent-id criterion. Blank filters
+    # leave the list untouched.
+    def policy_proposals(action: nil, agent_id: nil)
       raw = real? ? @client.list_policy_proposals : Fixtures.policy_proposals
-      raw.map { |p| normalize_policy_proposal(p) }
+      proposals = raw.map { |p| normalize_policy_proposal(p) }
+      filter_proposals_by_criteria(proposals, action: action, agent_id: agent_id)
     rescue OvertureClient::Error => e
       capture(e); []
     end
@@ -501,9 +528,17 @@ module Igris
     # persists them. Reads degrade to an honest empty list; writes raise typed
     # errors so the controller can surface them inline.
 
-    def execution_evals
+    # Optional action/agent filters narrow the definition list to those targeting
+    # a specific action name or registered agent. The full list is already a
+    # bounded, fully tenant-scoped read (no windowing), so filtering the
+    # normalized result here is exact — every matching definition is present.
+    # Both filters are case-insensitive exact matches on the definition's
+    # declared target; unmatched/blank filters leave the list untouched.
+    def execution_evals(action: nil, agent_id: nil)
       raw = real? ? @client.list_execution_evals : Fixtures.execution_evals
-      raw.map { |e| normalize_execution_eval(e) }
+      evals = raw.map { |e| normalize_execution_eval(e) }
+      filter_by_target(evals, action: action, agent_id: agent_id,
+                        action_key: :target_action_name, agent_key: :target_agent_id)
     rescue OvertureClient::Error => e
       capture(e); []
     end
@@ -724,6 +759,40 @@ module Igris
 
     private
 
+    # Narrow a list of normalized records to those whose target action/agent
+    # match the requested filters. Exact, case-insensitive comparison; blank
+    # filters are no-ops. Used by entity-scoped investigation links so an
+    # operator landing on "evaluations for this action" sees only the relevant
+    # definitions, not the whole list.
+    def filter_by_target(records, action:, agent_id:, action_key:, agent_key:)
+      act = action.to_s.strip.downcase
+      aid = agent_id.to_s.strip.downcase
+      records = records.select { |r| r[action_key].to_s.strip.downcase == act } if act.present?
+      records = records.select { |r| r[agent_key].to_s.strip.downcase == aid } if aid.present?
+      records
+    end
+
+    # Narrow proposals by the action/agent encoded in their match criteria. An
+    # action filter matches an exact action-name criterion or an action-prefix
+    # criterion that the action begins with; an agent filter matches the agent-id
+    # criterion. Blank filters are no-ops.
+    def filter_proposals_by_criteria(proposals, action:, agent_id:)
+      act = action.to_s.strip.downcase
+      aid = agent_id.to_s.strip.downcase
+      if act.present?
+        proposals = proposals.select do |p|
+          c = p[:match_criteria] || {}
+          name   = c[:match_action_name].to_s.strip.downcase
+          prefix = c[:match_action_prefix].to_s.strip.downcase
+          (name.present? && name == act) || (prefix.present? && act.start_with?(prefix))
+        end
+      end
+      if aid.present?
+        proposals = proposals.select { |p| (p[:match_criteria] || {})[:match_agent_id].to_s.strip.downcase == aid }
+      end
+      proposals
+    end
+
     def load_runtimes
       if real?
         @client.list_runtimes.map { |r| normalize_runtime(r) }
@@ -938,6 +1007,7 @@ module Igris
       raw = scrub_sensitive_payload(raw)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       proof = proof_state_for(raw[:proof])
+      agent = raw[:agent].is_a?(Hash) ? raw[:agent] : {}
       {
         id:           (raw[:task_id] || raw[:id]).to_s,
         action:       extract_action_name(raw),
@@ -948,6 +1018,11 @@ module Igris
         policy:       raw.dig(:proof, :policy_preset) || raw[:policy_preset] || 'default',
         recovery:     recovery_label_for(raw[:recovery]),
         proof:        proof[:label],
+        # Safe registered-agent attribution from the API `agent` object only —
+        # never the run's runtime/runtime_id. Lets the run list be scoped to one
+        # agent and lets a row name its caller without a per-run fan-out.
+        agent_id:     agent[:agent_id].to_s,
+        agent_name:   (agent[:display_name].presence || agent[:name]).to_s,
         started_at:   parse_time(raw[:dispatched_at] || raw[:created_at]),
         duration_ms:  raw[:duration_ms] || compute_duration_ms(raw[:dispatched_at], raw[:completed_at]),
       }
