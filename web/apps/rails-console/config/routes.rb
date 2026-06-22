@@ -71,6 +71,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # Trust Recommendation lifecycle (acknowledge/snooze/resolve/reactivate). Lives
+  # under the Runs > Intelligence surface; POST-only triage action.
+  post '/runs/trust-recommendations/state', to: 'trust_recommendations#update', as: :trust_recommendation_state
+
   resources :runs, only: %i[index show]
   resources :runtimes, only: :index do
     collection do
