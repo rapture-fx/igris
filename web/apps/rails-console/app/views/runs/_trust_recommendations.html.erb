@@ -45,7 +45,8 @@
   <p class="ic-trust__intro">
     Attention items derived from recorded execution truth in this window. These are observations,
     not automated changes: nothing here is replayed, dispatched, or modified. Acknowledge, snooze,
-    or resolve a finding to triage it over time.
+    or resolve a finding to triage it over time, then open the related agent, action, evaluation,
+    or proposal when a finding needs deeper review.
   </p>
 
   <div class="ic-trust__filter" role="group" aria-label="Lifecycle filter">
@@ -64,7 +65,12 @@
     </p>
   <% when :ok %>
     <% if trust[:recommendations].blank? %>
-      <p class="ic-trust__notice">No attention items found for this window.</p>
+      <p class="ic-trust__notice">
+        No attention items found for this window. Use the filters above to inspect snoozed or
+        resolved findings, or continue with <%= link_to 'Evaluations', evaluations_path, class: 'ic-doc__link' %>
+        and <%= link_to 'Proposals', proposals_path, class: 'ic-doc__link' %> when you need to check
+        behavior or govern a policy change.
+      </p>
     <% else %>
       <div class="ic-trust__list">
         <% trust[:recommendations].each do |rec| %>
@@ -122,6 +128,8 @@
       </div>
     <% end %>
   <% else %>
-    <p class="ic-trust__notice">No attention items found for this window.</p>
+    <p class="ic-trust__notice">
+      No attention items found for this window. Use the filters above to inspect snoozed or resolved findings.
+    </p>
   <% end %>
 </div>
