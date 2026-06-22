@@ -44,14 +44,37 @@
       </p>
     </div>
 
+    <% if @filter_action.present? || @filter_agent.present? %>
+      <div class="ic-scopebar" style="margin-bottom: 12px;">
+        <span class="ic-scopebar__label"><%= @filter_action.present? ? 'Evaluations for action' : 'Evaluations for agent' %></span>
+        <span class="ic-scopebar__value mono"><%= @filter_action.presence || @filter_agent %></span>
+        <%= link_to 'Clear', evaluations_path, class: 'ic-scopebar__clear' %>
+      </div>
+      <style>
+        .ic-scopebar { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+        .ic-scopebar__label { color: var(--ic-text-6); }
+        .ic-scopebar__value { color: var(--ic-text-bright); }
+        .ic-scopebar__clear { margin-left: auto; color: var(--ic-text-5); text-decoration: none; }
+        .ic-scopebar__clear:hover { color: var(--ic-text-bright); text-decoration: underline; }
+      </style>
+    <% end %>
+
     <% if @evaluations.blank? %>
       <div class="ic-evidence">
-        <div class="ic-evidence__head">No evaluations yet</div>
-        <p class="ic-doc__note">
-          An execution evaluation is a small set of expectations you attach to an action — for example,
-          “send_email was called”, “no approval was required”, and “a signed proof exists”. Run it against
-          any recorded run to see, check by check, whether the run behaved correctly.
-        </p>
+        <% if @filter_action.present? || @filter_agent.present? %>
+          <div class="ic-evidence__head">No evaluations match this filter</div>
+          <p class="ic-doc__note">
+            No evaluation definition targets <%= @filter_action.present? ? 'this action' : 'this agent' %> yet.
+            <%= link_to 'View all evaluations', evaluations_path, class: 'ic-doc__link' %> or create one below.
+          </p>
+        <% else %>
+          <div class="ic-evidence__head">No evaluations yet</div>
+          <p class="ic-doc__note">
+            An execution evaluation is a small set of expectations you attach to an action — for example,
+            “send_email was called”, “no approval was required”, and “a signed proof exists”. Run it against
+            any recorded run to see, check by check, whether the run behaved correctly.
+          </p>
+        <% end %>
         <p style="margin-top: 12px;">
           <%= link_to 'Create your first evaluation', new_evaluation_path, class: 'ic-btn ic-btn--accent' %>
         </p>
