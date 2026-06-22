@@ -12,6 +12,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Igris-inertial/system/igris-overture/trustrecs"
 )
 
 // tb builds an intelligenceBreakdown with rates derived the same way the
@@ -228,6 +230,7 @@ func TestTrustRecommendationsEmptyWindow(t *testing.T) {
 		{columns: trustBreakdownColumns(), rows: [][]driver.Value{}}, // agents
 		{columns: trustBreakdownColumns(), rows: [][]driver.Value{}}, // actions
 		{columns: policyProposalColumns(), rows: [][]driver.Value{}}, // proposals
+		{columns: trustStateColumns(), rows: [][]driver.Value{}},     // lifecycle states
 	})
 	resp := getTrust(t, trustTestApp("tenant-a", db), "/v1/execution/trust-recommendations?range=7d")
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -259,6 +262,10 @@ func TestTrustRecommendationsTenantScopedAndBuilds(t *testing.T) {
 			columns: policyProposalColumns(),
 			rows:    [][]driver.Value{},
 		},
+		{ // lifecycle states — none (every finding reads as active)
+			columns: trustStateColumns(),
+			rows:    [][]driver.Value{},
+		},
 	})
 	resp := getTrust(t, trustTestApp("tenant-a", db), "/v1/execution/trust-recommendations?range=7d")
 	require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -279,11 +286,193 @@ func TestTrustRecommendationsDegradesWhenProposalTableMissing(t *testing.T) {
 		{columns: trustBreakdownColumns(), rows: [][]driver.Value{}},
 		{columns: trustBreakdownColumns(), rows: [][]driver.Value{}},
 		{columns: policyProposalColumns(), err: sql.ErrConnDone}, // simulate unavailable proposal store
+		{columns: trustStateColumns(), rows: [][]driver.Value{}}, // lifecycle states present but empty
 	})
 	resp := getTrust(t, trustTestApp("tenant-a", db), "/v1/execution/trust-recommendations")
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	body := decodeTrustResponse(t, resp)
 	require.Empty(t, body.Recommendations)
+	require.Zero(t, drv.remainingQueries())
+}
+
+// ── Lifecycle overlay (pure) ─────────────────────────────────────────────────
+
+func TestApplyTrustStateFiltersAndOverlays(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+	future := now.Add(24 * time.Hour)
+	past := now.Add(-time.Hour)
+
+	recs := []trustRecommendation{
+		{ID: "a", Severity: trustSeverityWarning},
+		{ID: "b", Severity: trustSeverityWarning},
+		{ID: "c", Severity: trustSeverityWarning},
+		{ID: "d", Severity: trustSeverityWarning},
+		{ID: "e", Severity: trustSeverityWarning},
+	}
+	states := map[string]trustrecs.State{
+		"b": {RecommendationID: "b", Status: trustrecs.StatusAcknowledged},
+		"c": {RecommendationID: "c", Status: trustrecs.StatusSnoozed, SnoozedUntil: &future},
+		"d": {RecommendationID: "d", Status: trustrecs.StatusResolved},
+		"e": {RecommendationID: "e", Status: trustrecs.StatusSnoozed, SnoozedUntil: &past}, // expired
+	}
+
+	// Default view: active (a), acknowledged (b), and expired-snooze (e→active).
+	def := applyTrustState(recs, states, now, false, false)
+	ids := map[string]string{}
+	for _, r := range def {
+		ids[r.ID] = r.State
+	}
+	require.Equal(t, trustrecs.StatusActive, ids["a"])
+	require.Equal(t, trustrecs.StatusAcknowledged, ids["b"])
+	require.Equal(t, trustrecs.StatusActive, ids["e"], "expired snooze reads as active")
+	require.NotContains(t, ids, "c", "snoozed hidden by default")
+	require.NotContains(t, ids, "d", "resolved hidden by default")
+
+	// include_snoozed surfaces the still-snoozed finding.
+	withSnoozed := applyTrustState(recs, states, now, false, true)
+	require.True(t, containsID(withSnoozed, "c"))
+	require.False(t, containsID(withSnoozed, "d"))
+
+	// include_resolved surfaces the resolved finding.
+	withResolved := applyTrustState(recs, states, now, true, false)
+	require.True(t, containsID(withResolved, "d"))
+	require.False(t, containsID(withResolved, "c"))
+}
+
+func containsID(recs []trustRecommendation, id string) bool {
+	for _, r := range recs {
+		if r.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
+// ── Lifecycle routes ─────────────────────────────────────────────────────────
+
+func trustStateColumns() []string {
+	return []string{"state_id", "tenant_id", "recommendation_id", "status", "reason", "snoozed_until", "acknowledged_at", "resolved_at", "created_at", "updated_at"}
+}
+
+func trustStateApp(tenantID string, db *sql.DB) *fiber.App {
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error { c.Locals("clerk_user_id", tenantID); return c.Next() })
+	store := &trustrecs.SQLStore{DB: db}
+	app.Patch("/v1/execution/trust-recommendations/:id/state", handleTrustRecommendationStatePatch(store))
+	app.Get("/v1/execution/trust-recommendations/states", handleTrustRecommendationStates(store))
+	return app
+}
+
+func patchTrustState(t *testing.T, app *fiber.App, id, body string) *http.Response {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodPatch, "/v1/execution/trust-recommendations/"+id+"/state", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	return resp
+}
+
+func TestTrustStatePatchUnauthenticated(t *testing.T) {
+	t.Parallel()
+	db, _ := newQueuedRouteDB(t, nil)
+	resp := patchTrustState(t, trustStateApp("", db), "a", `{"status":"acknowledged"}`)
+	require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestTrustStatePatchRejectsTenantOverride(t *testing.T) {
+	t.Parallel()
+	db, drv := newQueuedRouteDB(t, nil)
+	resp := patchTrustState(t, trustStateApp("tenant-a", db), "a", `{"tenant_id":"tenant-b","status":"acknowledged"}`)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestTrustStatePatchRejectsUnknownField(t *testing.T) {
+	t.Parallel()
+	db, drv := newQueuedRouteDB(t, nil)
+	resp := patchTrustState(t, trustStateApp("tenant-a", db), "a", `{"status":"acknowledged","evil":"x"}`)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestTrustStatePatchRejectsInvalidStatus(t *testing.T) {
+	t.Parallel()
+	db, drv := newQueuedRouteDB(t, nil)
+	resp := patchTrustState(t, trustStateApp("tenant-a", db), "a", `{"status":"deferred"}`)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestTrustStatePatchRejectsUnsafeReason(t *testing.T) {
+	t.Parallel()
+	db, drv := newQueuedRouteDB(t, nil)
+	resp := patchTrustState(t, trustStateApp("tenant-a", db), "a", `{"status":"acknowledged","reason":"see the prompt"}`)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestTrustStatePatchAcknowledgeIsTenantScoped(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: trustStateColumns(),
+		rows: [][]driver.Value{{
+			"11111111-1111-1111-1111-111111111111", "tenant-a", "action:high_recovery:stripe.refund",
+			"acknowledged", "", nil, now, nil, now, now,
+		}},
+		checkArgs: func(query string, args []driver.NamedValue) {
+			require.Contains(t, query, "INSERT INTO trust_recommendation_states")
+			require.Contains(t, query, "ON CONFLICT")
+			require.Equal(t, "tenant-a", args[0].Value)
+			require.Equal(t, "action:high_recovery:stripe.refund", args[1].Value)
+			require.Equal(t, "acknowledged", args[2].Value)
+		},
+	}})
+	resp := patchTrustState(t, trustStateApp("tenant-a", db),
+		"action:high_recovery:stripe.refund", `{"status":"acknowledged"}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestTrustStatePatchSnoozeComputesUntil(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: trustStateColumns(),
+		rows: [][]driver.Value{{
+			"22222222-2222-2222-2222-222222222222", "tenant-a", "rec-1",
+			"snoozed", "", now.Add(7 * 24 * time.Hour), nil, nil, now, now,
+		}},
+		checkArgs: func(query string, args []driver.NamedValue) {
+			// $5 is snoozed_until — must be a non-null future time the server set.
+			snooze, ok := args[4].Value.(time.Time)
+			require.True(t, ok, "snoozed_until must be a server-computed timestamp")
+			require.True(t, snooze.After(now), "snoozed_until must be in the future")
+		},
+	}})
+	resp := patchTrustState(t, trustStateApp("tenant-a", db), "rec-1", `{"status":"snoozed","snooze_duration":"7d"}`)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Zero(t, drv.remainingQueries())
+}
+
+func TestTrustStatesListTenantScoped(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+	db, drv := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: trustStateColumns(),
+		rows: [][]driver.Value{{
+			"33333333-3333-3333-3333-333333333333", "tenant-a", "rec-1", "resolved", "", nil, nil, now, now, now,
+		}},
+		checkArgs: func(query string, args []driver.NamedValue) {
+			require.Contains(t, query, "FROM trust_recommendation_states")
+			require.Equal(t, "tenant-a", args[0].Value)
+		},
+	}})
+	req := httptest.NewRequest(http.MethodGet, "/v1/execution/trust-recommendations/states", nil)
+	resp, err := trustStateApp("tenant-a", db).Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 	require.Zero(t, drv.remainingQueries())
 }
 
