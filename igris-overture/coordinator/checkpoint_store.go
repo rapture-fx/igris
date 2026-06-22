@@ -2366,6 +2366,44 @@ func (s *CheckpointStore) GetTasksByTenant(tenantID string, limit int) ([]*TaskR
 	return tasks, rows.Err()
 }
 
+// GetTasksByTenantAndAgent is GetTasksByTenant scoped to a single registered
+// agent. It lets the console fetch an agent's own run window directly from the
+// database (bounded by limit) rather than over-fetching the tenant's runs and
+// filtering client-side, so an agent-scoped investigation link lands on the
+// agent's runs precisely. Tenant scoping is preserved exactly as in the
+// unfiltered query.
+func (s *CheckpointStore) GetTasksByTenantAndAgent(tenantID string, agentID uuid.UUID, limit int) ([]*TaskRecord, error) {
+	rows, err := s.db.Query(`
+		SELECT task_id, tenant_id, status, runtime_id, runtime_endpoint,
+		       task_definition, last_checkpoint, execution_envelope, execution_receipt,
+		       proof_execution_id, proof_expected_hash, proof_stored_hash, proof_signature, proof_status, proof_checked_at,
+		       proof_verified, proof_hash_valid, proof_signature_matches, proof_runtime_key_found, proof_chain_link_valid, proof_verification_reason, proof_verified_at,
+		       idempotency_key, failure_reason, failure_details,
+		       deadline_at, dispatched_at, completed_at, canceled_at, created_at,
+		       executed_target, fallback_reason,
+		       registered_agent_id, registered_agent_name
+		FROM task_records
+		WHERE tenant_id = $1 AND registered_agent_id = $2
+		ORDER BY created_at DESC
+		LIMIT $3`,
+		tenantID, agentID, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tasks []*TaskRecord
+	for rows.Next() {
+		t, err := scanTaskRecord(rows)
+		if err != nil {
+			return nil, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, rows.Err()
+}
+
 // GetLastCheckpoint returns the most recent checkpoint for a task.
 func (s *CheckpointStore) GetLastCheckpoint(taskID uuid.UUID) (*CheckpointPayload, error) {
 	var cpBytes []byte
