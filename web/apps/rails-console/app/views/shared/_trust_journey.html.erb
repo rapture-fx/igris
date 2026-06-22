@@ -13,16 +13,20 @@
 <%
   reached = ->(key) { steps[key] && steps[key][:done] }
   stages = [
-    { key: :agent,        label: 'Agent',        done: reached.call(:agent),
-      sub: 'Registered caller',  href: agents_path },
-    { key: :action,       label: 'Action',       done: reached.call(:action),
-      sub: 'Executed safely',    href: actions_path },
-    { key: :proof,        label: 'Proof',        done: reached.call(:proof),
-      sub: 'Signed receipt',     href: runs_path },
-    { key: :evaluation,   label: 'Evaluation',   done: reached.call(:evaluation),
-      sub: 'Behaviour checked',  href: evaluations_path },
-    { key: :intelligence, label: 'Intelligence', done: reached.call(:action),
-      sub: 'Operational truth',  href: runs_path(view: 'intelligence') },
+    { key: :agent,          label: 'Agent',          done: reached.call(:agent),
+      sub: 'Registered caller',       href: agents_path },
+    { key: :action,         label: 'Action',         done: reached.call(:action),
+      sub: 'Callable endpoint',       href: actions_path },
+    { key: :run,            label: 'Run',            done: reached.call(:action),
+      sub: 'Recorded execution',      href: runs_path },
+    { key: :proof,          label: 'Proof',          done: reached.call(:proof),
+      sub: 'Signed receipt',          href: runs_path },
+    { key: :evaluation,     label: 'Evaluation',     done: reached.call(:evaluation),
+      sub: 'Behavior checked',        href: evaluations_path },
+    { key: :recommendation, label: 'Recommendation', done: nil, available: reached.call(:action),
+      sub: 'Attention item',          href: runs_path(view: 'intelligence') },
+    { key: :proposal,       label: 'Proposal',       done: nil, available: reached.call(:action),
+      sub: 'Governance change',       href: proposals_path },
   ]
 %>
 <style>
@@ -52,8 +56,18 @@
         <span class="ic-journey__label"><%= stage[:label] %></span>
       </div>
       <span class="ic-journey__sub"><%= stage[:sub] %></span>
-      <span class="ic-journey__state ic-doc__stat ic-doc__stat--<%= stage[:done] ? 'ok' : 'muted' %>">
-        <%= stage[:done] ? 'Reached' : 'Not yet' %>
+      <% state_label = if stage.key?(:available)
+           stage[:available] ? 'Available' : 'Later'
+         else
+           stage[:done] ? 'Reached' : 'Not yet'
+         end
+         state_tone = if stage.key?(:available)
+           stage[:available] ? 'muted' : 'muted'
+         else
+           stage[:done] ? 'ok' : 'muted'
+         end %>
+      <span class="ic-journey__state ic-doc__stat ic-doc__stat--<%= state_tone %>">
+        <%= state_label %>
       </span>
     <% end %>
     <% unless i == stages.size - 1 %>
