@@ -54,7 +54,7 @@ class RunsController < ApplicationController
   }.freeze
   TRUST_SNOOZE_DURATIONS = { '1d' => '1 day', '7d' => '7 days', '30d' => '30 days' }.freeze
 
-  helper_method :trust_link_href, :trust_severity_label, :trust_state_label
+  helper_method :trust_investigation_links, :trust_severity_label, :trust_state_label
 
   def index
     @view = VIEWS.include?(params[:view].to_s) ? params[:view].to_s : 'history'
@@ -74,7 +74,14 @@ class RunsController < ApplicationController
       return
     end
 
-    @all_runs = data_source.all_runs
+    # An agent filter scopes the loaded window to one registered agent
+    # server-side (precise, bounded), so an "agent's runs" investigation link
+    # lands exactly. Other filters still apply in-memory on top of it.
+    @agent = params[:agent].to_s.strip
+    @all_runs = @agent.present? ? data_source.all_runs(agent_id: @agent) : data_source.all_runs
+    # Honest label for the active-agent banner: prefer the attributed name the
+    # runs carry, fall back to the raw id. Never fabricated.
+    @agent_label = @all_runs.map { |r| r[:agent_name] }.find(&:present?).presence || @agent if @agent.present?
 
     # Selected filter values (blank = no filter on that dimension).
     @status = STATUSES.include?(params[:status].to_s) ? params[:status].to_s : ''
@@ -117,19 +124,30 @@ class RunsController < ApplicationController
     @degraded_error = data_source.error
   end
 
-  # Resolve a Trust Recommendation link rel to an existing console path, using
-  # the finding's entity. Unknown/unlinkable rels return nil so the view skips
-  # them. No new surfaces are invented here.
-  def trust_link_href(rec, rel)
+  # The investigation path for one finding: an ordered list of [label, href]
+  # pairs that answer "where do I go next?" for this recommendation type. Every
+  # href resolves to an existing console surface (action / agent / proposal /
+  # filtered runs / evaluations) — no placeholders, no dead ends. The signal is
+  # parsed from the stable recommendation id (`category:signal:key`) so each type
+  # gets the right next steps without the backend having to enumerate them.
+  #
+  # Action recs key by action name (entity_id == the runnable name), so the runs
+  # list can be scoped with its free-text `q` (action) and `status` filters, and
+  # the evaluations / proposals lists with their action filters. Agent recs key
+  # by registered agent id, which now scopes the runs list (`agent`), the
+  # evaluations list (`agent`), and the proposals list (`agent`) precisely.
+  def trust_investigation_links(rec)
+    signal = rec[:id].to_s.split(':')[1].to_s
     id = rec[:entity_id].to_s
-    case rel.to_s
-    when 'agent'           then id.present? ? agent_path(id) : nil
-    when 'action'          then id.present? ? action_path(id) : nil
-    when 'proposal'        then id.present? ? proposal_path(id) : nil
-    when 'evaluations'     then evaluations_path
-    when 'evaluations_new' then new_evaluation_path
-    when 'runs'            then runs_path
-    end
+    links =
+      case rec[:entity_type].to_s
+      when 'action'         then trust_action_links(signal, id)
+      when 'agent'          then trust_agent_links(signal, id)
+      when 'policy_proposal' then trust_proposal_links(id)
+      else []
+      end
+    # De-dupe by destination while preserving order (first label wins).
+    links.uniq { |_label, href| href }
   end
 
   def trust_severity_label(severity)
@@ -141,6 +159,59 @@ class RunsController < ApplicationController
   end
 
   private
+
+  # Per-signal investigation steps for an action finding. `id` is the action
+  # name (used both as the action route key and the runs-list `q` filter).
+  def trust_action_links(signal, id)
+    links = []
+    links << ['Open action', action_path(id)] if id.present?
+    # Evaluations / proposals scope to this action; the labels say "for this
+    # action" because the filter is exact, not a broad index link.
+    evals = id.present? ? ['Evaluations for this action', evaluations_path(action_name: id)] : nil
+    props = id.present? ? ['Proposals for this action', proposals_path(action_name: id)] : nil
+    case signal
+    when 'low_proof'
+      links << ['Related runs', runs_path(q: id)] if id.present?
+      links << ['Failed runs', runs_path(q: id, status: 'failed')] if id.present?
+      links << evals if evals
+      links << props if props
+    when 'high_failure'
+      links << ['Failed runs', runs_path(q: id, status: 'failed')] if id.present?
+      links << evals if evals
+      links << props if props
+    when 'high_recovery'
+      links << ['Recovered runs', runs_path(q: id)] if id.present?
+      links << props if props
+    when 'approval_heavy'
+      links << ['Policy simulation', runs_path(view: 'intelligence')]
+      links << props if props
+    end
+    links
+  end
+
+  # Per-signal investigation steps for an agent finding. The runs, evaluations,
+  # and proposals lists now all accept an `agent` filter, so these route to the
+  # agent's own runs and evaluations precisely instead of broad index links.
+  def trust_agent_links(signal, id)
+    links = []
+    links << ['Open agent', agent_path(id)] if id.present?
+    links << ['Runs by this agent', runs_path(agent: id)] if id.present?
+    case signal
+    when 'no_eval_coverage'
+      links << ['Create evaluation', new_evaluation_path]
+      links << ['Evaluations for this agent', evaluations_path(agent: id)] if id.present?
+    when 'low_eval_pass'
+      links << ['Evaluations for this agent', evaluations_path(agent: id)] if id.present?
+    end
+    links
+  end
+
+  def trust_proposal_links(id)
+    links = []
+    links << ['Open proposal', proposal_path(id)] if id.present?
+    links << ['All proposals', proposals_path]
+    links
+  end
 
   # Build the read-only Policy Simulation from the submitted form params. Only
   # allow-listed, bounded values are passed through; the DataSource forwards
