@@ -1087,6 +1087,116 @@ func TestHandleListTasksIncludesLifecycleDurabilityAndRecovery(t *testing.T) {
 	require.Equal(t, 0, queued.remainingQueries())
 }
 
+func TestHandleListTasksFiltersByAgentID(t *testing.T) {
+	t.Parallel()
+
+	tenantID := "tenant-agent-scope"
+	agentID := uuid.New()
+	createdAt := time.Unix(1_700_002_000, 0).UTC()
+	taskID := uuid.New()
+
+	var sawAgentScope bool
+	db, queued := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{"task_id", "proof_status", "proof_checked_at"},
+				rows:    nil,
+			},
+			{
+				columns: []string{
+					"task_id", "tenant_id", "status", "runtime_id", "runtime_endpoint",
+					"task_definition", "last_checkpoint", "execution_envelope", "execution_receipt",
+					"proof_execution_id", "proof_expected_hash", "proof_stored_hash", "proof_signature", "proof_status", "proof_checked_at",
+					"proof_verified", "proof_hash_valid", "proof_signature_matches", "proof_runtime_key_found", "proof_chain_link_valid", "proof_verification_reason", "proof_verified_at",
+					"idempotency_key", "failure_reason", "failure_details",
+					"deadline_at", "dispatched_at", "completed_at", "canceled_at", "created_at", "executed_target", "fallback_reason", "registered_agent_id", "registered_agent_name",
+				},
+				// The agent-scoped listing must constrain on registered_agent_id
+				// and pass the parsed agent UUID as an argument — never an
+				// unscoped tenant query.
+				checkArgs: func(query string, args []driver.NamedValue) {
+					require.Contains(t, query, "registered_agent_id = $2")
+					var found bool
+					for _, a := range args {
+						if id, ok := a.Value.(string); ok && id == agentID.String() {
+							found = true
+						}
+						if id, ok := a.Value.([]byte); ok && string(id) == agentID.String() {
+							found = true
+						}
+					}
+					require.True(t, found, "expected agent id in query args")
+					sawAgentScope = true
+				},
+				rows: [][]driver.Value{taskRecordRouteRow(
+					taskID,
+					tenantID,
+					coordinator.TaskStatusCompleted,
+					"",
+					"",
+					json.RawMessage(`{"type":"single_inference","model":"gpt-4.1-mini","messages":[{"role":"user","content":"hi"}]}`),
+					nil,
+					"idem-agent",
+					nil,
+					nil,
+					nil,
+					createdAt,
+				)},
+			},
+		},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Get("/v1/tasks", handleListTasks(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/tasks?agent_id="+agentID.String(), nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.EqualValues(t, 1, body["total"])
+	require.True(t, sawAgentScope, "agent-scoped query was not issued")
+	require.Equal(t, 0, queued.remainingQueries())
+}
+
+func TestHandleListTasksRejectsInvalidAgentID(t *testing.T) {
+	t.Parallel()
+
+	tenantID := "tenant-bad-agent"
+	// RefreshPendingProofStates runs before the agent_id is validated; a malformed
+	// id then yields 400 without ever issuing an unscoped tenant listing.
+	db, _ := newQueuedRouteDB(t,
+		[]queuedRouteQueryExpectation{
+			{
+				columns: []string{"task_id", "proof_status", "proof_checked_at"},
+				rows:    nil,
+			},
+		},
+	)
+
+	app := fiber.New()
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("clerk_user_id", tenantID)
+		return c.Next()
+	})
+	app.Get("/v1/tasks", handleListTasks(coordinator.NewTaskCoordinator(db)))
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/tasks?agent_id=not-a-uuid", nil)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	var body map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
+	require.Equal(t, "invalid_agent_id", body["error"])
+}
+
 func TestHandleGetTaskReturnsRuntimeSubmitConflictFailureReason(t *testing.T) {
 	t.Parallel()
 
