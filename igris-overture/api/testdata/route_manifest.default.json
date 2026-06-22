@@ -880,6 +880,30 @@
       "notes": "Read-only execution-trust findings (recovery/proof/eval/approval thresholds + stale approved proposals); no LLM, no mutation, no persistence, no raw payloads"
     },
     {
+      "method": "PATCH",
+      "path": "/v1/execution/trust-recommendations/:id/state",
+      "route_group": "trust_recommendations",
+      "handler_or_registration_source_if_available": "RegisterTrustRecommendationRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned trust recommendation lifecycle state (acknowledge/snooze/resolve)",
+      "feature_flag": "",
+      "notes": "Lifecycle overlay on deterministic findings; stores only status/reason/timestamps by stable recommendation_id; no payloads, no mutation of execution data; rejects tenant override and unknown fields"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/execution/trust-recommendations/states",
+      "route_group": "trust_recommendations",
+      "handler_or_registration_source_if_available": "RegisterTrustRecommendationRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned trust recommendation lifecycle state (acknowledge/snooze/resolve)",
+      "feature_flag": "",
+      "notes": "Lifecycle overlay on deterministic findings; stores only status/reason/timestamps by stable recommendation_id; no payloads, no mutation of execution data; rejects tenant override and unknown fields"
+    },
+    {
       "method": "GET",
       "path": "/v1/health",
       "route_group": "health",
