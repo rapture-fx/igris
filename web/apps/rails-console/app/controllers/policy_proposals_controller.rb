@@ -39,7 +39,12 @@ class PolicyProposalsController < ApplicationController
                 :proposal_statuses, :match_kind_for, :match_value_for
 
   def index
-    @proposals = data_source.policy_proposals
+    # Optional action/agent filters arrive from entity-scoped investigation
+    # links. The DataSource derives the match from each proposal's criteria
+    # (action-name or action-prefix; agent-id) over the fully tenant-scoped list.
+    @filter_action = params[:action_name].to_s.strip.presence
+    @filter_agent  = params[:agent].to_s.strip.presence
+    @proposals = data_source.policy_proposals(action: @filter_action, agent_id: @filter_agent)
     @degraded_error = data_source.error
   end
 
