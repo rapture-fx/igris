@@ -150,6 +150,7 @@
       <%# ── Recent runs (from recorded evidence) ──────────────────────── %>
       <div class="ic-section-head" style="margin-top: 22px;">
         <span class="ic-section-head__label">Recent runs</span>
+        <%= link_to 'All runs by this agent', runs_path(agent: @agent_scope_id), class: 'ic-section-head__link' %>
       </div>
       <% if @recent_runs.any? %>
         <div style="margin-top: 6px;">
@@ -171,7 +172,7 @@
       <%# ── Evaluation posture ────────────────────────────────────────── %>
       <div class="ic-section-head" style="margin-top: 22px;">
         <span class="ic-section-head__label">Evaluation results</span>
-        <%= link_to 'Open evaluations', evaluations_path, class: 'ic-section-head__link' %>
+        <%= link_to 'Evaluations for this agent', evaluations_path(agent: @agent_scope_id), class: 'ic-section-head__link' %>
       </div>
       <% if @metrics && @metrics[:eval_run_count].to_i.positive? %>
         <p class="ic-doc__note" style="margin-top: 6px;">
@@ -185,6 +186,16 @@
           <%= link_to 'Runs → Evaluations', evaluations_path, class: 'ic-doc__link' %>.
         </p>
       <% end %>
+
+      <%# ── Governance ────────────────────────────────────────────────── %>
+      <div class="ic-section-head" style="margin-top: 22px;">
+        <span class="ic-section-head__label">Policy proposals</span>
+        <%= link_to 'Proposals for this agent', proposals_path(agent: @agent_scope_id), class: 'ic-section-head__link' %>
+      </div>
+      <p class="ic-doc__note" style="margin-top: 6px;">
+        Proposals whose match criteria target this agent. Governance only —
+        nothing here changes active policy.
+      </p>
 
       <%# ── Evidence Memory ───────────────────────────────────────────── %>
       <div style="margin-top: 22px;">
