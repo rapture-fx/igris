@@ -15,9 +15,10 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     def initialize(tasks: [], actions: [], runtimes: [], steps: {})
       @tasks = tasks; @actions = actions; @runtimes = runtimes; @steps = steps
     end
+    attr_reader :last_task_args
     def configured?            = true
     def list_actions           = @actions
-    def list_tasks(**)         = @tasks
+    def list_tasks(**kw)       = (@last_task_args = kw; @tasks)
     def list_runtimes          = @runtimes
     def get_task(id)           = @tasks.find { |t| (t['task_id'] || t[:task_id]).to_s == id.to_s }
     def get_task_steps(id)     = @steps[id.to_s] || []
@@ -47,6 +48,40 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     assert_match 'Search runs', response.body
     assert_match 'Running', response.body            # the in-flight fixture run
     assert_match 'Failed', response.body             # the failed fixture run
+  end
+
+  # ── Runs index: agent-scoped investigation filter ──────────────────────
+  def agent_task
+    {
+      'task_id' => 'run_agentic_1', 'status' => 'completed',
+      'executed_target' => 'send_email', 'runtime_id' => 'rt-1',
+      'agent' => { 'agent_id' => 'agent-77', 'name' => 'Support Agent', 'display_name' => 'Support Agent' },
+      'created_at' => Time.current.iso8601,
+    }
+  end
+
+  test 'runs index scopes the list to an agent server-side and offers a clear link' do
+    client = FakeClient.new(tasks: [agent_task])
+    with_real_ds(client) do
+      get runs_path(agent: 'agent-77')
+      assert_response :success
+      # The agent id is forwarded to the backend listing, not filtered client-side.
+      assert_equal 'agent-77', client.last_task_args[:agent_id]
+      # Honest active-scope banner, labeled with the attributed agent name.
+      assert_match 'Runs by agent', response.body
+      assert_match 'Support Agent', response.body
+      assert_select 'a', text: 'Clear'
+    end
+  end
+
+  test 'an unscoped runs index forwards no agent id' do
+    client = FakeClient.new(tasks: [agent_task])
+    with_real_ds(client) do
+      get runs_path
+      assert_response :success
+      assert_nil client.last_task_args[:agent_id]
+      refute_match 'Runs by agent', response.body
+    end
   end
 
   # ── Runs index: custom dropdown filters (status / route / date) + search ─
