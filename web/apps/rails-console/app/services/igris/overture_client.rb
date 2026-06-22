@@ -146,11 +146,30 @@ module Igris
     #     entity_name, metrics, links }] }
     # Deterministic, read-only attention items derived from execution truth. No
     # prompts or model output; tenant identity is derived server-side.
-    def get_trust_recommendations(range: nil, limit: nil)
+    def get_trust_recommendations(range: nil, limit: nil, include_resolved: false, include_snoozed: false)
       query = {}
       query[:range] = range if range.present?
       query[:limit] = limit if limit.present?
+      query[:include_resolved] = true if include_resolved
+      query[:include_snoozed] = true if include_snoozed
       request(:get, '/v1/execution/trust-recommendations', query: query.presence)
+    end
+
+    # PATCH /v1/execution/trust-recommendations/:id/state → { state }
+    # Sets the operator lifecycle decision for a finding. Tenant identity is
+    # derived server-side; never send tenant_id.
+    def update_trust_recommendation_state(id, status:, reason: nil, snooze_duration: nil)
+      body = { status: status }
+      body[:reason] = reason if reason.present?
+      body[:snooze_duration] = snooze_duration if snooze_duration.present?
+      result = request(:patch, "/v1/execution/trust-recommendations/#{escape(id)}/state", body: body)
+      result && result['state']
+    end
+
+    # GET /v1/execution/trust-recommendations/states → { states: [...], total }
+    def list_trust_recommendation_states
+      body = request(:get, '/v1/execution/trust-recommendations/states')
+      Array(body && body['states'])
     end
 
     # GET /v1/execution/affinity?range=&agent_id=&action_name=&pack= →
