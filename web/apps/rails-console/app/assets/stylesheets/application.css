@@ -1155,8 +1155,6 @@ html.dark .ig-btn--primary {
   gap: 12px;
   height: 44px;
   padding: 0 20px;
-  border-bottom: 1px solid var(--ic-border);
-  background: var(--ic-bg);
   flex-shrink: 0;
 }
 .ic-topbar__title {
@@ -2269,27 +2267,7 @@ html.dark .ic-btn--accent:hover {
 
 /* First-run project naming card — focused, command-like, sits above the
    onboarding hero on /welcome. Reuses .ic-field / .ic-input primitives. */
-.ic-projectcard {
-  margin: 0 0 30px;
-  padding: 20px;
-  border: 1px solid var(--ic-border);
-  border-radius: 10px;
-  background: var(--ic-overlay-bg);
-}
-.ic-projectcard__title {
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  color: var(--ic-text-bright);
-  margin: 6px 0 4px;
-}
-.ic-projectcard__sub {
-  font-size: 12px;
-  color: var(--ic-text-5);
-  line-height: 1.5;
-  margin: 0 0 12px;
-}
-.ic-projectcard__cta { margin-top: 6px; }
+
 
 /* Inline field validation message — calm, not alarming. */
 .ic-fielderror {
@@ -2430,182 +2408,61 @@ html.dark .ic-btn--accent:hover {
   margin: 0 0 14px;
   max-width: 58ch;
 }
+.ic-home-onboard__desc {
+  margin: 0 0 22px;
+}
+.ic-home-onboard__desc-heading {
+  font-size: 13px;
+  color: var(--ic-text-3);
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
 .ic-home-onboard__steps {
-  list-style: none;
+  list-style: decimal;
   margin: 0 0 26px;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  padding: 0 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .ic-home-onboard__step {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 12px 12px;
-  border: 1px solid var(--ic-border);
-  border-radius: 10px;
-  background: var(--ic-overlay-bg);
-}
-.ic-home-onboard__step.is-done {
-  border-color: rgba(4,120,87,0.22);
-  background: rgba(4,120,87,0.04);
-}
-html.dark .ic-home-onboard__step.is-done {
-  border-color: rgba(4,120,87,0.25);
-  background: rgba(4,120,87,0.06);
-}
-.ic-home-onboard__step-n {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ic-text-6);
-  border: 1px solid var(--ic-border);
-  background: var(--ic-overlay-2);
-}
-.ic-home-onboard__step.is-done .ic-home-onboard__step-n {
-  color: var(--ic-emerald);
-  border-color: rgba(4,120,87,0.28);
-  background: rgba(4,120,87,0.10);
-}
-.ic-home-onboard__step-body {
-  flex: 1;
-  min-width: 0;
+  padding: 2px 0;
+  line-height: 1.55;
 }
 .ic-home-onboard__step-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ic-text-bright);
+  font-size: 12.5px;
+  color: var(--ic-text-2);
   letter-spacing: -0.005em;
 }
 .ic-home-onboard__step-detail {
-  display: block;
-  font-size: 10.5px;
-  color: var(--ic-text-6);
-  margin-top: 2px;
-  line-height: 1.4;
+  font-size: 12px;
+  color: var(--ic-text-5);
+  margin-left: 4px;
 }
 .ic-home-onboard__step-cta {
-  flex: none;
-  align-self: center;
   font-size: 11px;
   color: var(--ic-emerald);
   text-decoration: none;
-  padding: 2px 0;
+  margin-left: 6px;
 }
 .ic-home-onboard__step-cta:hover { color: var(--ic-text-bright); text-decoration: underline; }
 .ic-home-onboard__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  align-items: start;
   margin-bottom: 22px;
 }
 .ic-home-onboard__story { min-width: 0; }
-.ic-home-onboard__status {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 16px;
-}
-.ic-home-onboard__panel {
-  position: sticky;
-  top: 12px;
-  border: 1px solid var(--ic-border);
-  border-radius: 12px;
-  background: var(--ic-overlay-bg);
-  padding: 14px;
-  min-width: 0;
-}
-.ic-home-onboard__panel-head { margin-bottom: 12px; }
-.ic-home-onboard__panel-title {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--ic-text-bright);
-  letter-spacing: -0.005em;
-}
-.ic-home-onboard__panel-sub {
-  display: block;
-  font-size: 11px;
-  color: var(--ic-text-6);
-  margin-top: 3px;
-  line-height: 1.45;
-}
-.ic-home-onboard__panel-note {
-  font-size: 11px;
-  color: var(--ic-text-6);
-  line-height: 1.5;
-  margin: 12px 0 0;
-}
 .ic-home-onboard__ctarow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding-top: 4px;
-  border-top: 1px solid var(--ic-border-soft);
 }
-@media (max-width: 820px) {
-  .ic-home-onboard__layout { grid-template-columns: 1fr; }
-  .ic-home-onboard__panel { position: static; }
-  .ic-home-onboard__steps { grid-template-columns: 1fr; }
-  .ic-home-onboard__status { grid-template-columns: 1fr; }
 }
 
-/* ── Architecture diagram (Home) ────────────────────────────────────── */
-.ic-diagram {
-  display: grid;
-  grid-template-columns: 1fr auto 1.15fr auto 1fr;
-  align-items: stretch;
-  gap: 6px;
-  margin: 14px 0 18px;
-}
-.ic-diagram__node {
-  border: 1px solid var(--ic-border);
-  border-radius: 8px;
-  background: var(--ic-overlay-bg);
-  padding: 9px 12px;
-  min-width: 0;
-}
-.ic-diagram__node--accent {
-  border-color: rgba(4,120,87,0.25);
-  background: rgba(4,120,87,0.04);
-}
-html.dark .ic-diagram__node--accent {
-  border-color: rgba(4,120,87,0.25);
-  background: rgba(4,120,87,0.06);
-}
-.ic-diagram__node-label {
-  font-size: 12px;
-  color: var(--ic-text-bright);
-  letter-spacing: -0.005em;
-}
-.ic-diagram__node--accent .ic-diagram__node-label { color: var(--ic-emerald); }
-.ic-diagram__node-sub {
-  font-size: 10.5px;
-  color: var(--ic-text-6);
-  margin-top: 1px;
-}
-.ic-diagram__arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ic-text-7);
-}
-@media (max-width: 720px) {
-  .ic-diagram {
-    grid-template-columns: 1fr;
-  }
-  .ic-diagram__arrow { transform: rotate(90deg); padding: 4px 0; }
-}
+
 
 /* ── Status strip (Home) ────────────────────────────────────────────── */
 .ic-status {
@@ -2639,6 +2496,15 @@ html.dark .ic-diagram__node--accent {
 .ic-status__v--muted { color: var(--ic-text-6); font-weight: 400; font-size: 12.5px; }
 .ic-status__total { font-size: 11.5px; color: var(--ic-text-6); font-weight: 400; }
 .ic-status__sub   { font-size: 11px; color: var(--ic-text-6); font-weight: 400; }
+.ic-home-code {
+  margin: 8px 0;
+  font-family: var(--ic-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ic-text-3);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
 .ic-status__pill {
   display: inline-flex;
   align-items: center;
@@ -3786,43 +3652,7 @@ html.dark .ig-textarea.is-error {
 }
 
 /* "Do I need a runtime?" — three side-by-side answer cards. */
-.ic-need {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 6px 0 18px;
-}
-.ic-need__card {
-  border: 1px solid var(--ic-border);
-  border-radius: 10px;
-  background: var(--ic-overlay-bg);
-  padding: 12px 13px;
-  min-width: 0;
-}
-.ic-need__card--accent {
-  border-color: rgba(180,83,9,0.22);
-  background: rgba(180,83,9,0.04);
-}
-html.dark .ic-need__card--accent {
-  border-color: rgba(251,191,36,0.20);
-  background: rgba(251,191,36,0.05);
-}
-.ic-need__title {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--ic-text-bright);
-  letter-spacing: -0.01em;
-  margin-bottom: 7px;
-}
-.ic-need__body {
-  font-size: 11.5px;
-  color: var(--ic-text-5);
-  line-height: 1.5;
-  margin: 9px 0 0;
-}
-@media (max-width: 720px) {
-  .ic-need { grid-template-columns: 1fr; }
-}
+
 
 /* Install / connect steps. */
 .ic-onboard-note {
