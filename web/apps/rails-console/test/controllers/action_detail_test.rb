@@ -140,6 +140,69 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ── Operational context: Usage / Reliability / Investigation ──────────────
+  test 'overview surfaces reliability rates from the intelligence aggregate' do
+    ds = FakeDS.new(action: HOSTED_ACTION, runs: [], healthy: true)
+    def ds.action_intelligence(_name, range: 'last_30d')
+      {
+        key: 'send_email', name: 'send_email', total_runs: 40,
+        successful_runs: 34, failed_runs: 6, approval_required_runs: 2,
+        recovery_runs: 5, eval_run_count: 4, eval_passed_runs: 4,
+        proof_covered_runs: 38, average_duration_ms: 120.0,
+        success_rate: 0.85, failure_rate: 0.15, approval_rate: 0.05,
+        recovery_rate: 0.125, eval_pass_rate: 1.0, proof_coverage: 0.95,
+      }
+    end
+    with_fake_ds(ds) do
+      get action_path('a-send')
+      assert_response :success
+      assert_match 'Reliability', response.body
+      assert_match 'Success rate', response.body
+      assert_match '85%', response.body   # success_rate rendered
+      assert_match '95%', response.body   # proof_coverage rendered
+      assert_match 'Usage', response.body
+      assert_match 'Investigation', response.body
+    end
+  end
+
+  test 'overview shows an honest empty reliability state when the action has no runs' do
+    ds = FakeDS.new(action: HOSTED_ACTION, runs: [], healthy: true)
+    def ds.action_intelligence(_name, range: 'last_30d') = nil
+    with_fake_ds(ds) do
+      get action_path('a-send')
+      assert_response :success
+      assert_match 'Reliability', response.body
+      assert_match 'No recorded runs for this action', response.body
+    end
+  end
+
+  test 'investigation lists recent failed and recovered runs with run links' do
+    runs = [
+      { id: 'run_fail_1', action: 'send_email', status: 'Failed', routed_via: 'Hosted API',
+        recovery: 'Not needed', proof: 'Proof unavailable', started_at: Time.current },
+      { id: 'run_rec_1', action: 'send_email', status: 'Succeeded', routed_via: 'Hosted API',
+        recovery: 'Retried 2x', proof: 'Proof verified', started_at: Time.current },
+    ]
+    ds = FakeDS.new(action: HOSTED_ACTION, runs: runs, healthy: true)
+    def ds.action_intelligence(_name, range: 'last_30d') = nil
+    with_fake_ds(ds) do
+      get action_path('a-send')
+      assert_response :success
+      assert_match 'Recent failed runs', response.body
+      assert_match 'Recent recovered runs', response.body
+      assert_select 'a[href=?]', run_path('run_fail_1')
+      assert_select 'a[href=?]', run_path('run_rec_1')
+      # Investigation links scope the runs list to this action.
+      assert_select 'a[href=?]', runs_path(q: 'send_email', status: 'failed')
+      # Evaluations and proposals links are scoped to this action, not broad
+      # index links.
+      assert_select 'a[href=?]', evaluations_path(action_name: 'send_email')
+      assert_select 'a[href=?]', proposals_path(action_name: 'send_email')
+      assert_match 'Evaluations for this action', response.body
+      assert_match 'Proposals for this action', response.body
+    end
+  end
+
   test 'snippets reference the IGRIS_API_KEY placeholder and never a real key' do
     get '/actions/send_email'
     assert_response :success
