@@ -178,6 +178,10 @@
             </p>
           <% end %>
         </div>
+
+        <%# ── Operational context: Usage / Reliability / Investigation ──── %>
+        <%= render 'operational_context', action: @action, intel: @action_intel,
+              runs: @runs_for_action, affinity: @affinity %>
       </div>
 
       <%# ── Right context panel ───────────────────────────────── %>
