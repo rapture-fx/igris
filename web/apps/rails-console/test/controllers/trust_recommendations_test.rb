@@ -98,6 +98,39 @@ class TrustRecommendationsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test 'an action finding links to evaluations and proposals scoped to the action' do
+    with_real_ds(FakeClient.new(trust: trust_payload)) do
+      get runs_path(view: 'intelligence')
+      assert_response :success
+      # Precise, action-scoped investigation links — not broad index links.
+      assert_select 'a[href=?]', evaluations_path(action_name: 'stripe.refund')
+      assert_select 'a[href=?]', proposals_path(action_name: 'stripe.refund')
+      assert_match 'Evaluations for this action', response.body
+    end
+  end
+
+  test 'an agent finding links to runs and evaluations scoped to the agent' do
+    payload = trust_payload('recommendations' => [
+      {
+        'id' => 'agent:low_eval_pass:agent-7', 'severity' => 'warning', 'category' => 'evaluation',
+        'title' => 'Agent evaluation pass rate is low',
+        'summary' => 'This agent fails more checks than it passes.',
+        'reason' => 'Low pass rate across recent eval runs.',
+        'recommended_action' => 'Review evaluation results.',
+        'entity_type' => 'agent', 'entity_id' => 'agent-7', 'entity_name' => 'agent-7',
+        'metrics' => { 'eval_pass_rate' => 0.4 },
+        'links' => [{ 'rel' => 'agent', 'label' => 'Open agent' }],
+      },
+    ])
+    with_real_ds(FakeClient.new(trust: payload)) do
+      get runs_path(view: 'intelligence')
+      assert_response :success
+      assert_select 'a[href=?]', runs_path(agent: 'agent-7')
+      assert_select 'a[href=?]', evaluations_path(agent: 'agent-7')
+      assert_match 'Runs by this agent', response.body
+    end
+  end
+
   test 'empty recommendations render the honest empty state' do
     with_real_ds(FakeClient.new(trust: trust_payload('recommendations' => []))) do
       get runs_path(view: 'intelligence')
