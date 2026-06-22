@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 	"github.com/Igris-inertial/system/igris-overture/policyproposals"
+	"github.com/Igris-inertial/system/igris-overture/trustrecs"
 )
 
 // RegisterTrustRecommendationRoutes exposes a read-only, deterministic list of
@@ -31,7 +33,10 @@ func RegisterTrustRecommendationRoutes(app *fiber.App, db *sql.DB) {
 	}
 	v1 := app.Group("/v1/execution/trust-recommendations")
 	v1.Use(middleware.BetterAuth(db))
+	store := &trustrecs.SQLStore{DB: db}
 	v1.Get("", handleTrustRecommendations(db))
+	v1.Get("/states", handleTrustRecommendationStates(store))
+	v1.Patch("/:id/state", handleTrustRecommendationStatePatch(store))
 }
 
 const (
@@ -89,6 +94,14 @@ type trustRecommendation struct {
 	EntityName        string         `json:"entity_name,omitempty"`
 	Metrics           map[string]any `json:"metrics"`
 	Links             []trustLink    `json:"links"`
+
+	// Lifecycle overlay (defaults to "active" when an operator has not triaged
+	// the finding). These never change how a recommendation is generated.
+	State          string     `json:"state"`
+	StateReason    string     `json:"state_reason,omitempty"`
+	SnoozedUntil   *time.Time `json:"snoozed_until,omitempty"`
+	AcknowledgedAt *time.Time `json:"acknowledged_at,omitempty"`
+	ResolvedAt     *time.Time `json:"resolved_at,omitempty"`
 }
 
 // trustProposalInput is the safe, minimal projection of a policy proposal the
@@ -141,6 +154,14 @@ func handleTrustRecommendations(db *sql.DB) fiber.Handler {
 		proposals := loadTrustProposals(c.Context(), db, tenantID)
 
 		recs := buildTrustRecommendations(rangeToken, agents, actions, proposals)
+
+		// Overlay the operator lifecycle state (also best-effort: when the state
+		// table is absent every finding simply reads as active). Snoozed and
+		// resolved findings are hidden from the default view.
+		states := loadTrustStates(c.Context(), db, tenantID)
+		recs = applyTrustState(recs, states, time.Now().UTC(),
+			c.QueryBool("include_resolved", false), c.QueryBool("include_snoozed", false))
+
 		if len(recs) > limit {
 			recs = recs[:limit]
 		}
@@ -151,6 +172,129 @@ func handleTrustRecommendations(db *sql.DB) fiber.Handler {
 			"recommendations": recs,
 		})
 	}
+}
+
+// applyTrustState overlays operator lifecycle state onto generated findings by
+// stable id and applies the default visibility filter. It is pure (no DB) so it
+// is unit-tested directly. A snooze whose expiry has passed reads as active.
+func applyTrustState(recs []trustRecommendation, states map[string]trustrecs.State, now time.Time, includeResolved, includeSnoozed bool) []trustRecommendation {
+	out := make([]trustRecommendation, 0, len(recs))
+	for _, r := range recs {
+		effective := trustrecs.StatusActive
+		if st, ok := states[r.ID]; ok {
+			effective = st.EffectiveStatus(now)
+			r.StateReason = st.Reason
+			r.AcknowledgedAt = st.AcknowledgedAt
+			r.ResolvedAt = st.ResolvedAt
+			if effective == trustrecs.StatusSnoozed {
+				r.SnoozedUntil = st.SnoozedUntil
+			}
+		}
+		r.State = effective
+		if effective == trustrecs.StatusResolved && !includeResolved {
+			continue
+		}
+		if effective == trustrecs.StatusSnoozed && !includeSnoozed {
+			continue
+		}
+		out = append(out, r)
+	}
+	return out
+}
+
+// loadTrustStates returns the tenant's lifecycle rows keyed by recommendation id.
+// Any error (including a missing table where migration 066 is unapplied) degrades
+// to an empty map, so every finding reads as active.
+func loadTrustStates(ctx context.Context, db *sql.DB, tenantID string) map[string]trustrecs.State {
+	store := &trustrecs.SQLStore{DB: db}
+	items, err := store.List(ctx, tenantID)
+	if err != nil {
+		return map[string]trustrecs.State{}
+	}
+	out := make(map[string]trustrecs.State, len(items))
+	for _, st := range items {
+		out[st.RecommendationID] = st
+	}
+	return out
+}
+
+type trustStatePatchRequest struct {
+	TenantID       string `json:"tenant_id"`
+	Status         string `json:"status"`
+	Reason         string `json:"reason"`
+	SnoozeDuration string `json:"snooze_duration"`
+}
+
+// trustSnoozeDurations bounds snooze to a few simple windows; clients never send
+// a raw timestamp.
+var trustSnoozeDurations = map[string]time.Duration{
+	"1d":  24 * time.Hour,
+	"7d":  7 * 24 * time.Hour,
+	"30d": 30 * 24 * time.Hour,
+}
+
+func handleTrustRecommendationStatePatch(store *trustrecs.SQLStore) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		recommendationID := strings.TrimSpace(c.Params("id"))
+		if recommendationID == "" {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_recommendation_id"})
+		}
+
+		var req trustStatePatchRequest
+		if err := decodeTrustStateBody(c.Body(), &req); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+		}
+		if strings.TrimSpace(req.TenantID) != "" {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+				"error":   "tenant_override_rejected",
+				"message": "tenant_id must not be supplied in the request body",
+			})
+		}
+
+		input := trustrecs.UpsertInput{
+			RecommendationID: recommendationID,
+			Status:           strings.TrimSpace(req.Status),
+			Reason:           req.Reason,
+		}
+		if input.Status == trustrecs.StatusSnoozed {
+			dur, ok := trustSnoozeDurations[strings.TrimSpace(req.SnoozeDuration)]
+			if !ok {
+				dur = trustSnoozeDurations["7d"]
+			}
+			until := time.Now().UTC().Add(dur)
+			input.SnoozedUntil = &until
+		}
+
+		state, err := store.Upsert(c.Context(), tenantID, input)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_state", "message": err.Error()})
+		}
+		return c.JSON(fiber.Map{"state": state})
+	}
+}
+
+func handleTrustRecommendationStates(store *trustrecs.SQLStore) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		items, err := store.List(c.Context(), tenantID)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(fiber.Map{"states": items, "total": len(items)})
+	}
+}
+
+func decodeTrustStateBody(body []byte, out any) error {
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	decoder.DisallowUnknownFields()
+	return decoder.Decode(out)
 }
 
 // normalizeTrustRange bounds the window to 24h/7d/30d (accepting the last_*
