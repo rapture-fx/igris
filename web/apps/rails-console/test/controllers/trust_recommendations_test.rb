@@ -216,6 +216,22 @@ class TrustRecommendationsTest < ActionDispatch::IntegrationTest
     assert_nil client.last_state_update
   end
 
+  test 'backend validation errors do not echo upstream message text' do
+    client = FakeClient.new(trust: trust_payload)
+    def client.update_trust_recommendation_state(*)
+      raise Igris::OvertureClient::ValidationError.new('raw_body leaked host.internal token=abc123', status: 400, code: 'invalid_state')
+    end
+
+    with_real_ds(client) do
+      post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'resolved' }
+      assert_response :redirect
+      follow_redirect!
+    end
+
+    assert_match 'Could not update this recommendation. Check the lifecycle action and try again.', response.body
+    refute_match 'raw_body leaked host.internal token=abc123', response.body
+  end
+
   test 'fixture mode lifecycle changes are inert' do
     post trust_recommendation_state_path, params: { rec_id: 'r1', status: 'resolved' }
     assert_response :redirect
