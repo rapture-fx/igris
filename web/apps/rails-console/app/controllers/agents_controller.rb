@@ -38,9 +38,12 @@ class AgentsController < ApplicationController
       @agent = degraded_agent(params[:id])
     end
 
-    @metrics = data_source.agent_metrics(@agent[:agent_id].presence || params[:id])
-    @affinity = data_source.agent_action_affinity(@agent[:agent_id].presence || params[:id])
-    @memory  = data_source.agent_memory_for_agent(@agent[:agent_id].presence || params[:id])
+    # The id every agent-scoped read and investigation link keys on: the
+    # registered agent's UUID when present, else the requested id.
+    @agent_scope_id = @agent[:agent_id].presence || params[:id]
+    @metrics = data_source.agent_metrics(@agent_scope_id)
+    @affinity = data_source.agent_action_affinity(@agent_scope_id)
+    @memory  = data_source.agent_memory_for_agent(@agent_scope_id)
     @recent_runs = recent_runs_from_memory(@memory)
     @degraded_error = data_source.error
   end
