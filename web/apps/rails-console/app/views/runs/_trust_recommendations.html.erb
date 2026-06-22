@@ -1,38 +1,60 @@
 <%#
   Trust Recommendations — deterministic, read-only attention items computed by
-  Igris from execution truth (recovery / proof / evaluation / approval thresholds
-  and stale approved proposals). Not AI advice: no prompts, model output, or
+  Igris from execution truth, with a lightweight operator lifecycle overlay
+  (acknowledge / snooze / resolve). Not AI advice: no prompts, model output, or
   confidence. `trust` is the normalized { state:, generated_at:, recommendations: }
-  hash. Every value is ERB-escaped; links only point at existing console surfaces.
+  hash; `range` and `trust_state` preserve the active window/filter across actions.
+  Every value is ERB-escaped; links only point at existing console surfaces.
 %>
 <% trust ||= { state: :empty, recommendations: [] } %>
+<% range ||= 'last_30d' %>
+<% trust_state ||= 'active' %>
 <style>
   .ic-trust { margin-top: 20px; }
   .ic-trust__intro { color: var(--ic-text-5); font-size: 12px; margin: 4px 0 12px; max-width: 70ch; }
+  .ic-trust__filter { display: inline-flex; gap: 2px; margin: 2px 0 10px; }
+  .ic-trust__filter a { font-size: 11.5px; color: var(--ic-text-5); padding: 4px 10px; border: 1px solid var(--ic-border); border-radius: 6px; text-decoration: none; }
+  .ic-trust__filter a.is-active { color: var(--ic-text-bright); border-color: var(--ic-text-7); background: var(--ic-overlay-2); }
   .ic-trust__list { display: flex; flex-direction: column; border-top: 1px solid var(--ic-border-soft); }
-  .ic-trust__row { display: flex; flex-direction: column; gap: 4px; padding: 12px 2px; border-bottom: 1px solid var(--ic-border-soft); }
+  .ic-trust__row { display: flex; flex-direction: column; gap: 5px; padding: 12px 2px; border-bottom: 1px solid var(--ic-border-soft); }
   .ic-trust__top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .ic-trust__sev { font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ic-text-6); }
-  /* Tonal (grayscale) emphasis only — no color. */
   .ic-trust__sev.is-critical { color: var(--ic-text-bright); font-weight: 600; }
   .ic-trust__sev.is-warning { color: var(--ic-text-3); }
   .ic-trust__sev.is-info { color: var(--ic-text-6); }
   .ic-trust__cat { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ic-text-6); }
   .ic-trust__title { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); }
-  .ic-trust__reason { font-size: 12px; color: var(--ic-text-5); }
   .ic-trust__entity { color: var(--ic-text-4); }
+  .ic-trust__statetag { margin-left: auto; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ic-text-6); border: 1px solid var(--ic-border); border-radius: 999px; padding: 1px 8px; }
+  .ic-trust__reason { font-size: 12px; color: var(--ic-text-5); }
+  .ic-trust__note { font-size: 11.5px; color: var(--ic-text-6); }
   .ic-trust__action { font-size: 12px; color: var(--ic-text-4); }
   .ic-trust__action b { color: var(--ic-text-3); font-weight: 600; }
-  .ic-trust__links { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .ic-trust__links { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+  .ic-trust__acts { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .ic-trust__acts form { display: inline; margin: 0; }
+  .ic-trust__acts-label { font-size: 11px; color: var(--ic-text-6); }
+  .ic-btn--sm { font-size: 11px; padding: 3px 8px; }
   .ic-trust__notice { font-size: 12px; color: var(--ic-text-5); padding: 10px 0; }
 </style>
+
+<% snooze_durations = RunsController::TRUST_SNOOZE_DURATIONS %>
 
 <div class="ic-evidence ic-trust">
   <div class="ic-evidence__head">Trust recommendations</div>
   <p class="ic-trust__intro">
     Attention items derived from recorded execution truth in this window. These are observations,
-    not automated changes: nothing here is replayed, dispatched, or modified.
+    not automated changes: nothing here is replayed, dispatched, or modified. Acknowledge, snooze,
+    or resolve a finding to triage it over time.
   </p>
+
+  <div class="ic-trust__filter" role="group" aria-label="Lifecycle filter">
+    <% RunsController::TRUST_STATE_FILTERS.each do |value, label| %>
+      <%= link_to label, runs_path(view: 'intelligence', range: range, trust_state: value),
+            class: "#{'is-active' if trust_state == value}",
+            'aria-pressed': (trust_state == value).to_s %>
+    <% end %>
+  </div>
 
   <% case trust[:state] %>
   <% when :unavailable %>
@@ -54,9 +76,17 @@
               <% if rec[:entity_name].present? %>
                 <span class="ic-trust__entity"><%= rec[:entity_name] %></span>
               <% end %>
+              <span class="ic-trust__statetag"><%= trust_state_label(rec[:state]) %></span>
             </div>
             <div class="ic-trust__reason"><%= rec[:reason] %></div>
+            <% if rec[:state_reason].present? %>
+              <div class="ic-trust__note">Note: <%= rec[:state_reason] %></div>
+            <% end %>
+            <% if rec[:state] == 'snoozed' && rec[:snoozed_until] %>
+              <div class="ic-trust__note">Snoozed until <%= rec[:snoozed_until].to_date.to_s %></div>
+            <% end %>
             <div class="ic-trust__action"><b>Recommended:</b> <%= rec[:recommended_action] %></div>
+
             <% hrefs = rec[:links].filter_map { |l| h = trust_link_href(rec, l[:rel]); [l[:label], h] if h } %>
             <% if hrefs.any? %>
               <div class="ic-trust__links">
@@ -65,6 +95,28 @@
                 <% end %>
               </div>
             <% end %>
+
+            <%# Lifecycle actions — plain POST buttons (no native widgets). %>
+            <div class="ic-trust__acts">
+              <% lifecycle_ctx = { rec_id: rec[:id], range: range, trust_state: trust_state } %>
+              <% unless rec[:state] == 'acknowledged' || rec[:state] == 'resolved' %>
+                <%= button_to 'Acknowledge', trust_recommendation_state_path,
+                      params: lifecycle_ctx.merge(status: 'acknowledged'), class: 'ic-btn ic-btn--sm' %>
+              <% end %>
+              <% unless rec[:state] == 'resolved' %>
+                <span class="ic-trust__acts-label">Snooze:</span>
+                <% snooze_durations.each do |value, label| %>
+                  <%= button_to label, trust_recommendation_state_path,
+                        params: lifecycle_ctx.merge(status: 'snoozed', snooze_duration: value), class: 'ic-btn ic-btn--sm' %>
+                <% end %>
+                <%= button_to 'Resolve', trust_recommendation_state_path,
+                      params: lifecycle_ctx.merge(status: 'resolved'), class: 'ic-btn ic-btn--sm' %>
+              <% end %>
+              <% unless rec[:state] == 'active' %>
+                <%= button_to 'Reactivate', trust_recommendation_state_path,
+                      params: lifecycle_ctx.merge(status: 'active'), class: 'ic-btn ic-btn--sm' %>
+              <% end %>
+            </div>
           </div>
         <% end %>
       </div>
