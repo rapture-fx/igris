@@ -49,15 +49,38 @@
       </p>
     </div>
 
+    <% if @filter_action.present? || @filter_agent.present? %>
+      <div class="ic-scopebar" style="margin-bottom: 12px;">
+        <span class="ic-scopebar__label"><%= @filter_action.present? ? 'Proposals matching action' : 'Proposals matching agent' %></span>
+        <span class="ic-scopebar__value mono"><%= @filter_action.presence || @filter_agent %></span>
+        <%= link_to 'Clear', proposals_path, class: 'ic-scopebar__clear' %>
+      </div>
+      <style>
+        .ic-scopebar { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+        .ic-scopebar__label { color: var(--ic-text-6); }
+        .ic-scopebar__value { color: var(--ic-text-bright); }
+        .ic-scopebar__clear { margin-left: auto; color: var(--ic-text-5); text-decoration: none; }
+        .ic-scopebar__clear:hover { color: var(--ic-text-bright); text-decoration: underline; }
+      </style>
+    <% end %>
+
     <% if @proposals.blank? %>
       <div class="ic-evidence">
-        <div class="ic-evidence__head">No proposals yet</div>
-        <p class="ic-doc__note">
-          A proposal captures a policy rule you want to evaluate. For example, “require approval for
-          actions starting with stripe.refund”. Save it as a draft, re-simulate it over recent runs to
-          see how many would be affected, then mark it ready for review and approve it. You can also start
-          one straight from the <%= link_to 'Policy simulation', runs_path(view: 'intelligence'), class: 'ic-doc__link' %> card.
-        </p>
+        <% if @filter_action.present? || @filter_agent.present? %>
+          <div class="ic-evidence__head">No proposals match this filter</div>
+          <p class="ic-doc__note">
+            No proposal's match criteria target <%= @filter_action.present? ? 'this action' : 'this agent' %> yet.
+            <%= link_to 'View all proposals', proposals_path, class: 'ic-doc__link' %> or create one below.
+          </p>
+        <% else %>
+          <div class="ic-evidence__head">No proposals yet</div>
+          <p class="ic-doc__note">
+            A proposal captures a policy rule you want to evaluate. For example, “require approval for
+            actions starting with stripe.refund”. Save it as a draft, re-simulate it over recent runs to
+            see how many would be affected, then mark it ready for review and approve it. You can also start
+            one straight from the <%= link_to 'Policy simulation', runs_path(view: 'intelligence'), class: 'ic-doc__link' %> card.
+          </p>
+        <% end %>
         <p style="margin-top: 12px;">
           <%= link_to 'Create your first proposal', new_proposal_path, class: 'ic-btn ic-btn--accent' %>
         </p>
