@@ -4,7 +4,8 @@
     Locals: param (symbol), selected (current value), placeholder (the "All …"
     label), options ([[value, label], …]). %>
 <% base = { status: @status.presence, route: @route.presence,
-            range: @range.presence, q: @query.presence }.compact %>
+            range: @range.presence, q: @query.presence,
+            agent: @agent.presence }.compact %>
 <% current_label = options.find { |v, _| v.to_s == selected.to_s }&.last || placeholder %>
 <details class="ic-dropdown">
   <summary class="ic-dropdown__btn">
