@@ -2453,13 +2453,20 @@ html.dark .ic-btn--accent:hover {
   margin-bottom: 22px;
 }
 .ic-home-onboard__story { min-width: 0; }
+.ic-code {
+  font-family: var(--ic-mono);
+  font-size: 0.9em;
+  color: var(--ic-text-2);
+  background: transparent;
+  padding: 0;
+  word-break: break-all;
+}
 .ic-home-onboard__ctarow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding-top: 4px;
-}
 }
 
 
