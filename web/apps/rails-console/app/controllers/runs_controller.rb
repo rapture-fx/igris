@@ -41,7 +41,20 @@ class RunsController < ApplicationController
     completed failed canceled approval_required dispatched in_flight running pending
   ].freeze
 
-  helper_method :trust_link_href, :trust_severity_label
+  # Trust Recommendation lifecycle filters (operator label) and snooze windows.
+  TRUST_STATE_FILTERS = {
+    'active'   => 'Active',
+    'snoozed'  => 'Snoozed',
+    'resolved' => 'Resolved',
+    'all'      => 'All',
+  }.freeze
+  TRUST_STATE_LABELS = {
+    'active' => 'Active', 'acknowledged' => 'Acknowledged',
+    'snoozed' => 'Snoozed', 'resolved' => 'Resolved'
+  }.freeze
+  TRUST_SNOOZE_DURATIONS = { '1d' => '1 day', '7d' => '7 days', '30d' => '30 days' }.freeze
+
+  helper_method :trust_link_href, :trust_severity_label, :trust_state_label
 
   def index
     @view = VIEWS.include?(params[:view].to_s) ? params[:view].to_s : 'history'
@@ -53,8 +66,10 @@ class RunsController < ApplicationController
       # submits the form (params[:simulate]); otherwise the card shows its intro.
       @policy_simulation = run_policy_simulation if params[:simulate].present?
       # Trust Recommendations — deterministic attention items over the same
-      # window. Read-only; degrades to its own safe state on backend error.
-      @trust_recommendations = data_source.trust_recommendations(range: @range)
+      # window, with an operator lifecycle filter. Read-only; degrades to its own
+      # safe state on backend error.
+      @trust_state = TRUST_STATE_FILTERS.key?(params[:trust_state].to_s) ? params[:trust_state].to_s : 'active'
+      @trust_recommendations = data_source.trust_recommendations(range: @range, state_filter: @trust_state)
       @degraded_error = data_source.error
       return
     end
@@ -119,6 +134,10 @@ class RunsController < ApplicationController
 
   def trust_severity_label(severity)
     severity.to_s.capitalize.presence || 'Info'
+  end
+
+  def trust_state_label(state)
+    TRUST_STATE_LABELS[state.to_s] || state.to_s.capitalize.presence || 'Active'
   end
 
   private
