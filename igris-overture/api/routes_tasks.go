@@ -944,7 +944,23 @@ func handleListTasks(tc *coordinator.TaskCoordinator) fiber.Handler {
 
 		_ = tc.Store().RefreshPendingProofStates(tenantID, limit)
 
-		tasks, err := tc.Store().GetTasksByTenant(tenantID, limit)
+		// Optional agent_id filter scopes the listing to one registered agent so
+		// an "agent's runs" investigation link is precise. A malformed id is a
+		// bad request rather than a silent unscoped listing — the caller asked
+		// for a specific agent and must get exactly that or an error.
+		var (
+			tasks []*coordinator.TaskRecord
+			err   error
+		)
+		if raw := strings.TrimSpace(c.Query("agent_id")); raw != "" {
+			agentID, perr := uuid.Parse(raw)
+			if perr != nil {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_agent_id"})
+			}
+			tasks, err = tc.Store().GetTasksByTenantAndAgent(tenantID, agentID, limit)
+		} else {
+			tasks, err = tc.Store().GetTasksByTenant(tenantID, limit)
+		}
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
