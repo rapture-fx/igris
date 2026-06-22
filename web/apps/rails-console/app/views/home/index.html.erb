@@ -12,13 +12,7 @@
      if @degraded_error then 'Degraded'
      elsif demo_mode?   then 'Demo data'
      else                    'Connected'
-     end
-
-   steps = [
-     { n: 1, label: 'Register an action',  detail: 'Define what your agent can call', done: has_actions,  href: new_action_path },
-     { n: 2, label: 'Call the endpoint',   detail: 'Your app POSTs to Igris',         done: has_runs,     href: has_actions ? action_path(@actions.first[:id]) : new_action_path },
-     { n: 3, label: 'Review runs & proof', detail: 'Inspect evidence in the console', done: has_proof,    href: runs_path },
-   ] %>
+     end %>
 
 <div class="ic-topbar">
   <div class="ic-topbar__group">
@@ -40,13 +34,12 @@
   <main class="ic-home-onboard">
 
     <% if show_project_card %>
-      <section class="ic-projectcard" aria-labelledby="project-card-title">
-        <div class="ic-section-head"><span class="ic-section-head__label">First, name your project</span></div>
-        <h2 class="ic-projectcard__title" id="project-card-title">Create your project</h2>
-        <p class="ic-projectcard__sub">
+      <section aria-labelledby="project-card-title">
+        <h2 class="ic-home-onboard__title" id="project-card-title">Create your project</h2>
+        <p class="ic-home-onboard__sub">
           This project will contain your actions, runs, runtime keys, and evidence.
         </p>
-        <%= form_with url: project_path, method: :patch, local: true, class: 'ic-projectcard__form' do |f| %>
+        <%= form_with url: project_path, method: :patch, local: true do |f| %>
           <%= f.hidden_field :source, value: 'home' %>
           <div class="ic-field">
             <%= f.label :name, 'Project name', class: 'ic-field__label' %>
@@ -60,7 +53,7 @@
               Examples: Support Agent, Finance Ops Agent, Internal Tools Agent, Acme AI Actions.
             </p>
           </div>
-          <%= f.button 'Continue to create first action', class: 'ic-btn ic-btn--accent ic-projectcard__cta' %>
+          <%= f.button 'Continue to create first action', class: 'ic-btn ic-btn--accent' %>
         <% end %>
       </section>
     <% end %>
@@ -73,97 +66,45 @@
         policy, routes the action, records what happened, and shows proof when
         signed evidence exists.
       </p>
-
-      <div class="ic-diagram" role="img" aria-label="Agent calls Igris action endpoint, Igris routes to tool or target">
-        <div class="ic-diagram__node">
-          <div class="ic-diagram__node-label">Your agent / app</div>
-          <div class="ic-diagram__node-sub">Reasons, then calls one endpoint</div>
-        </div>
-        <div class="ic-diagram__arrow" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </div>
-        <div class="ic-diagram__node ic-diagram__node--accent">
-          <div class="ic-diagram__node-label">Igris action endpoint</div>
-          <div class="ic-diagram__node-sub">Policy, routing, evidence</div>
-        </div>
-        <div class="ic-diagram__arrow" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </div>
-        <div class="ic-diagram__node">
-          <div class="ic-diagram__node-label">Tool / target</div>
-          <div class="ic-diagram__node-sub">API, webhook, or local runtime</div>
-        </div>
-      </div>
+      <p class="ic-home-onboard__sub">
+        Your agent reasons, then calls the Igris action endpoint with one request.
+        Igris applies policy, routes the action to the target (an API, webhook, or
+        local runtime), records what happened, and returns signed evidence.
+      </p>
     </header>
 
-    <ol class="ic-home-onboard__steps" aria-label="Setup progress">
-      <% steps.each do |step| %>
-        <li class="ic-home-onboard__step <%= 'is-done' if step[:done] %>">
-          <span class="ic-home-onboard__step-n"><%= step[:done] ? '✓' : step[:n] %></span>
-          <div class="ic-home-onboard__step-body">
+    <div class="ic-home-onboard__desc">
+      <p class="ic-home-onboard__desc-heading">Getting started takes three steps:</p>
+      <ol class="ic-home-onboard__steps">
+        <% steps.each do |step| %>
+          <li class="ic-home-onboard__step">
             <span class="ic-home-onboard__step-label"><%= step[:label] %></span>
             <span class="ic-home-onboard__step-detail"><%= step[:detail] %></span>
-          </div>
-          <%= link_to step[:done] ? 'Open' : 'Start', step[:href], class: 'ic-home-onboard__step-cta' %>
-        </li>
-      <% end %>
-    </ol>
+            <%= link_to step[:done] ? 'Open' : 'Start', step[:href], class: 'ic-home-onboard__step-cta' %>
+          </li>
+        <% end %>
+      </ol>
+    </div>
 
     <div class="ic-home-onboard__layout">
-
       <section class="ic-home-onboard__story">
-        <div class="ic-section-head"><span class="ic-section-head__label">Where actions run</span></div>
-        <p class="ic-home-onboard__sub" style="margin-bottom: 14px;">
-          Pick a target when you register an action. A local runtime is only needed for private files, internal APIs, or local databases.
+        <p class="ic-home-onboard__sub">
+          When you register an action, you pick a target. Igris supports three kinds of targets. A <strong>hosted API</strong> or <strong>webhook</strong> needs no local runtime — Igris calls them directly. A <strong>local runtime</strong> is only needed for private files, internal APIs, or local databases. Pick the one that fits your workflow.
         </p>
-        <div class="ic-need">
-          <div class="ic-need__card">
-            <div class="ic-need__title">Hosted API</div>
-            <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
-            <p class="ic-need__body">Igris calls the hosted API through your action target.</p>
-          </div>
-          <div class="ic-need__card">
-            <div class="ic-need__title">Webhook</div>
-            <span class="ic-readiness ic-readiness--ok"><span class="ic-readiness__dot"></span>No runtime needed</span>
-            <p class="ic-need__body">Igris forwards the action request to your webhook.</p>
-          </div>
-          <div class="ic-need__card ic-need__card--accent">
-            <div class="ic-need__title">Local runtime</div>
-            <span class="ic-readiness ic-readiness--warn"><span class="ic-readiness__dot"></span>Runtime required</span>
-            <p class="ic-need__body">For private files, internal APIs, or local databases.</p>
-          </div>
-        </div>
-
-        <div class="ic-home-onboard__status">
-          <div class="ic-status__cell">
-            <div class="ic-status__k">Actions</div>
-            <div class="ic-status__v"><%= @actions.size %></div>
-          </div>
-          <div class="ic-status__cell">
-            <div class="ic-status__k">Recent runs</div>
-            <div class="ic-status__v"><%= @recent_runs.size %></div>
-          </div>
-          <div class="ic-status__cell">
-            <div class="ic-status__k">Igris API</div>
-            <div class="ic-status__v"><span class="ic-status__pill <%= demo_mode? ? 'is-warn' : 'is-ok' %>"><%= api_label %></span></div>
-          </div>
-        </div>
       </section>
 
-      <aside class="ic-home-onboard__panel" aria-label="Quick start">
-        <div class="ic-home-onboard__panel-head">
-          <span class="ic-home-onboard__panel-title">Call Igris from your agent</span>
-          <span class="ic-home-onboard__panel-sub">Once an action exists, POST to its endpoint.</span>
-        </div>
-        <%= code_snippet sample_endpoint, language: 'http', label: 'Action endpoint' %>
-        <div style="height: 8px;"></div>
-        <%= code_snippet action_curl_snippet(sample_endpoint, %({ "input": { "message": "Hello from Igris" } })),
-            language: 'bash', label: 'Example request' %>
-        <p class="ic-home-onboard__panel-note">
+      <div>
+        <p class="ic-home-onboard__sub">
+          Once an action exists, your agent calls Igris by POSTing to
+          <code class="ic-code"><%= sample_endpoint %></code>.
           Igris handles policy, execution, and evidence — your agent only needs
           the endpoint URL and your API key.
         </p>
-      </aside>
+        <p class="ic-home-onboard__sub">
+          From the command line you can call it with
+          <code class="ic-code"><%= action_curl_snippet(sample_endpoint, %({ "input": { "message": "Hello from Igris" } })) %></code>.
+        </p>
+      </div>
     </div>
 
     <div class="ic-home-onboard__ctarow">
