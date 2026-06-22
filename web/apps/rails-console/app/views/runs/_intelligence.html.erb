@@ -21,7 +21,7 @@
     <span class="ic-intel__source">Derived from execution records, with no prompts or model output.</span>
   </div>
 
-  <%= render 'trust_recommendations', trust: local_assigns[:trust_recommendations] %>
+  <%= render 'trust_recommendations', trust: local_assigns[:trust_recommendations], range: range, trust_state: local_assigns[:trust_state] %>
 
   <% if empty %>
     <div class="ic-intel__empty">
