@@ -1,0 +1,162 @@
+<%#
+  Operational context for one action — Usage, Reliability, and Investigation
+  surfaced in one place so an operator can judge an action without opening five
+  pages. Every value comes from existing aggregates already loaded by the
+  controller (execution-intelligence breakdown + consumer affinity +
+  runs_for_action) — no per-run fan-out is triggered here. Only safe, normalized
+  facts are shown: counts, rates, run ids, and labels — never prompts, request
+  or response bodies, secrets, or proof ciphertext. Every value is ERB-escaped.
+
+  Locals: action, intel (breakdown hash or nil), runs (recent runs), affinity.
+%>
+<%
+  total_runs = intel ? intel[:total_runs].to_i : 0
+  has_intel  = intel && total_runs.positive?
+
+  agents_using = Array(affinity && affinity[:action_agents])
+  packs = (agents_using.map { |a| a[:pack_name] } +
+           Array(affinity && affinity[:pack_actions]).map { |p| p[:pack_name] })
+          .map(&:to_s).reject { |p| p.empty? || p == 'unpacked' }.uniq
+
+  recent = Array(runs)
+  failed_runs    = recent.select { |r| r[:status].to_s.casecmp('Failed').zero? }
+  recovered_runs = recent.select { |r| s = r[:recovery].to_s; s.present? && !s.casecmp('Not needed').zero? }
+%>
+<style>
+  .ic-opctx { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+  .ic-opctx__intro { margin: 0 0 8px; font-size: 12.5px; color: var(--ig-text-muted); line-height: 1.55; }
+  .ic-metricgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--ig-border-subtle); border: 1px solid var(--ig-border-subtle); border-radius: 8px; overflow: hidden; }
+  .ic-metric { background: var(--ic-overlay-bg); padding: 10px 12px; }
+  .ic-metric__k { font-size: 11px; color: var(--ig-text-muted); }
+  .ic-metric__v { font-size: 16px; font-weight: 600; color: var(--ig-text-primary); margin-top: 2px; }
+  .ic-metric__sub { font-size: 11px; color: var(--ig-text-muted); margin-top: 1px; }
+  .ic-opctx__runs { border-left: 2px solid var(--ig-border); padding-left: 14px; }
+  .ic-opctx__run { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--ig-border-subtle); font-size: 12.5px; }
+  .ic-opctx__run:last-child { border-bottom: 0; }
+  .ic-opctx__run-id { font-family: var(--ig-mono); color: var(--ig-text-muted); font-size: 11.5px; }
+  .ic-opctx__run-meta { margin-left: auto; color: var(--ig-text-muted); font-size: 11.5px; }
+  .ic-opctx__links { display: inline-flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .ic-opctx__empty { font-size: 12px; color: var(--ig-text-muted); }
+</style>
+
+<div class="ic-opctx">
+  <%# ── Usage ─────────────────────────────────────────────────────────── %>
+  <div class="ig-card">
+    <div class="ig-card__title">Usage</div>
+    <p class="ic-opctx__intro">
+      Who calls this action and how often, over the last 30 days of recorded
+      execution truth.
+    </p>
+    <div class="ic-metricgrid">
+      <div class="ic-metric">
+        <div class="ic-metric__k">Runs</div>
+        <div class="ic-metric__v"><%= total_runs %></div>
+        <div class="ic-metric__sub">recorded executions</div>
+      </div>
+      <div class="ic-metric">
+        <div class="ic-metric__k">Agents</div>
+        <div class="ic-metric__v"><%= agents_using.size %></div>
+        <div class="ic-metric__sub">attributed callers</div>
+      </div>
+      <div class="ic-metric">
+        <div class="ic-metric__k">Packs</div>
+        <div class="ic-metric__v"><%= packs.size %></div>
+        <div class="ic-metric__sub"><%= packs.any? ? packs.first(3).join(', ') : 'no pack' %></div>
+      </div>
+    </div>
+  </div>
+
+  <%# ── Reliability ───────────────────────────────────────────────────── %>
+  <div class="ig-card">
+    <div class="ig-card__title">Reliability</div>
+    <% if has_intel %>
+      <p class="ic-opctx__intro">
+        Outcome rates across <%= pluralize(total_runs, 'run') %> in the window.
+        These are aggregate execution facts, not sampled requests.
+      </p>
+      <div class="ic-metricgrid">
+        <div class="ic-metric">
+          <div class="ic-metric__k">Success rate</div>
+          <div class="ic-metric__v"><%= intel_pct(intel[:success_rate]) %></div>
+          <div class="ic-metric__sub"><%= pluralize(intel[:successful_runs].to_i, 'succeeded') %></div>
+        </div>
+        <div class="ic-metric">
+          <div class="ic-metric__k">Failure rate</div>
+          <div class="ic-metric__v"><%= intel_pct(intel[:failure_rate]) %></div>
+          <div class="ic-metric__sub"><%= pluralize(intel[:failed_runs].to_i, 'failed run') %></div>
+        </div>
+        <div class="ic-metric">
+          <div class="ic-metric__k">Recovery rate</div>
+          <div class="ic-metric__v"><%= intel_pct(intel[:recovery_rate]) %></div>
+          <div class="ic-metric__sub"><%= pluralize(intel[:recovery_runs].to_i, 'recovered run') %></div>
+        </div>
+        <div class="ic-metric">
+          <div class="ic-metric__k">Approval rate</div>
+          <div class="ic-metric__v"><%= intel_pct(intel[:approval_rate]) %></div>
+          <div class="ic-metric__sub"><%= pluralize(intel[:approval_required_runs].to_i, 'run') %> gated</div>
+        </div>
+        <div class="ic-metric">
+          <div class="ic-metric__k">Proof coverage</div>
+          <div class="ic-metric__v"><%= intel_pct(intel[:proof_coverage]) %></div>
+          <div class="ic-metric__sub"><%= pluralize(intel[:proof_covered_runs].to_i, 'run') %> with proof</div>
+        </div>
+        <div class="ic-metric">
+          <div class="ic-metric__k">Evaluation pass</div>
+          <div class="ic-metric__v"><%= intel[:eval_run_count].to_i.positive? ? intel_pct(intel[:eval_pass_rate]) : 'None' %></div>
+          <div class="ic-metric__sub"><%= intel[:eval_run_count].to_i.positive? ? pluralize(intel[:eval_run_count].to_i, 'eval run') : 'no evaluations' %></div>
+        </div>
+      </div>
+    <% else %>
+      <p class="ic-opctx__empty">
+        No recorded runs for this action in the last 30 days, so reliability
+        rates are not available yet. Send a test request above to produce the
+        first run.
+      </p>
+    <% end %>
+  </div>
+
+  <%# ── Investigation ─────────────────────────────────────────────────── %>
+  <div class="ig-card">
+    <div class="ig-card__title">Investigation</div>
+    <p class="ic-opctx__intro">
+      Jump straight to the runs and surfaces that explain this action's behavior.
+    </p>
+
+    <div class="ig-def" style="border: 0; padding: 0 0 6px;"><span class="ig-def__label">Recent failed runs</span></div>
+    <% if failed_runs.any? %>
+      <div class="ic-opctx__runs">
+        <% failed_runs.first(5).each do |r| %>
+          <div class="ic-opctx__run">
+            <%= link_to 'Open run', run_path(r[:id]), class: 'ic-doc__link' %>
+            <span class="ic-opctx__run-id"><%= r[:id] %></span>
+            <span class="ic-opctx__run-meta"><%= r[:routed_via].presence || 'Pending dispatch' %><% if r[:started_at] %>, <%= time_ago(r[:started_at]) %><% end %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="ic-opctx__empty">No failed runs in the loaded history.</p>
+    <% end %>
+
+    <div class="ig-def" style="border: 0; padding: 12px 0 6px;"><span class="ig-def__label">Recent recovered runs</span></div>
+    <% if recovered_runs.any? %>
+      <div class="ic-opctx__runs">
+        <% recovered_runs.first(5).each do |r| %>
+          <div class="ic-opctx__run">
+            <%= link_to 'Open run', run_path(r[:id]), class: 'ic-doc__link' %>
+            <span class="ic-opctx__run-id"><%= r[:id] %></span>
+            <span class="ic-opctx__run-meta"><%= r[:recovery] %><% if r[:started_at] %>, <%= time_ago(r[:started_at]) %><% end %></span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="ic-opctx__empty">No recovered runs in the loaded history.</p>
+    <% end %>
+
+    <div class="ic-opctx__links">
+      <%= link_to 'All runs for this action', runs_path(q: action[:name]), class: 'ic-btn ic-btn--sm' %>
+      <%= link_to 'Failed runs', runs_path(q: action[:name], status: 'failed'), class: 'ic-btn ic-btn--sm' %>
+      <%= link_to 'Evaluations for this action', evaluations_path(action_name: action[:name]), class: 'ic-btn ic-btn--sm' %>
+      <%= link_to 'Proposals for this action', proposals_path(action_name: action[:name]), class: 'ic-btn ic-btn--sm' %>
+    </div>
+  </div>
+</div>
