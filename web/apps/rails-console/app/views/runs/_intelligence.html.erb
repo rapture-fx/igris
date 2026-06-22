@@ -29,9 +29,14 @@
       <p class="ic-intel__empty-sub">
         Execution Intelligence aggregates completed runs. Once agents execute
         actions in the selected window, success, recovery, and approval rates
-        appear here with per-agent and per-action breakdowns.
+        appear here with per-agent and per-action breakdowns. From there, use
+        evaluations to check behavior and proposals to govern policy changes.
       </p>
-      <%= link_to 'View actions', actions_path, class: 'ic-btn' %>
+      <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <%= link_to 'View actions', actions_path, class: 'ic-btn' %>
+        <%= link_to 'Open evaluations', evaluations_path, class: 'ic-btn' %>
+        <%= link_to 'Open proposals', proposals_path, class: 'ic-btn' %>
+      </div>
     </div>
   <% else %>
     <%# Headline metrics — run volume + the rates that describe execution health. %>
