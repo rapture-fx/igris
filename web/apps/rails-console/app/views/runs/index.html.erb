@@ -65,7 +65,7 @@
   <%= render 'shared/flash', degraded_error: @degraded_error %>
 
   <% if @view == 'intelligence' %>
-    <%= render 'intelligence', intelligence: @intelligence, range: @range, policy_simulation: @policy_simulation, trust_recommendations: @trust_recommendations %>
+    <%= render 'intelligence', intelligence: @intelligence, range: @range, policy_simulation: @policy_simulation, trust_recommendations: @trust_recommendations, trust_state: @trust_state %>
   <% else %>
     <%= render 'history' %>
 
