@@ -128,6 +128,40 @@ class PolicyProposalsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ── Entity-scoped filters ────────────────────────────────────────────────
+  test 'index filters proposals by action via exact or prefix criteria' do
+    exact = sample_proposal('proposal_id' => 'prop_exact', 'name' => 'Charge guard',
+                            'match_criteria_json' => { 'range' => '30d', 'match_action_name' => 'charge_card' })
+    with_real_ds(FakeClient.new(proposals: [sample_proposal, exact])) do
+      # 'stripe.refund_payment' begins with the sample's 'stripe.refund' prefix.
+      get proposals_path(action_name: 'stripe.refund_payment')
+      assert_response :success
+      assert_match 'Pause large Stripe refunds', response.body
+      refute_match 'Charge guard', response.body
+      assert_match 'Proposals matching action', response.body
+    end
+  end
+
+  test 'index filters proposals by agent id criterion' do
+    agent_prop = sample_proposal('proposal_id' => 'prop_agent', 'name' => 'Agent guard',
+                                 'match_criteria_json' => { 'range' => '30d', 'match_agent_id' => 'agent-9' })
+    with_real_ds(FakeClient.new(proposals: [sample_proposal, agent_prop])) do
+      get proposals_path(agent: 'agent-9')
+      assert_response :success
+      assert_match 'Agent guard', response.body
+      refute_match 'Pause large Stripe refunds', response.body
+      assert_match 'Proposals matching agent', response.body
+    end
+  end
+
+  test 'a proposal filter with no matches shows a scoped empty state' do
+    with_real_ds(FakeClient.new(proposals: [sample_proposal])) do
+      get proposals_path(agent: 'no-such-agent')
+      assert_response :success
+      assert_match 'No proposals match this filter', response.body
+    end
+  end
+
   test 'a degraded list backend renders an empty state and never crashes' do
     failing = FakeClient.new
     def failing.list_policy_proposals = raise Igris::OvertureClient::ServerError.new('boom', status: 500, code: 'db_error')
