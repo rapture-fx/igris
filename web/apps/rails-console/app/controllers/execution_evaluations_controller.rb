@@ -41,7 +41,12 @@ class ExecutionEvaluationsController < ApplicationController
   helper_method :assertion_types, :assertion_value, :assertion_label
 
   def index
-    @evaluations = data_source.execution_evals
+    # Optional action/agent filters arrive from entity-scoped investigation
+    # links (Action Detail, Agent Detail, Trust recommendations). Both are exact
+    # matches the DataSource applies over the fully tenant-scoped list.
+    @filter_action = params[:action_name].to_s.strip.presence || params[:q].to_s.strip.presence
+    @filter_agent  = params[:agent].to_s.strip.presence
+    @evaluations = data_source.execution_evals(action: @filter_action, agent_id: @filter_agent)
     @degraded_error = data_source.error
   end
 
