@@ -310,11 +310,22 @@ module Igris
     # stale approved proposals). Not AI advice: no prompts, no model output, no
     # confidence scores. Degrades to an honest unavailable state on backend error.
     TRUST_SEVERITIES = %w[critical warning info].freeze
+    TRUST_STATES = %w[active acknowledged snoozed resolved].freeze
+    # Operator-facing state filters → which extra states the backend should
+    # include. The default focuses on active + acknowledged findings.
+    TRUST_STATE_FILTERS = {
+      'active'   => { include_resolved: false, include_snoozed: false },
+      'snoozed'  => { include_resolved: false, include_snoozed: true },
+      'resolved' => { include_resolved: true,  include_snoozed: false },
+      'all'      => { include_resolved: true,  include_snoozed: true },
+    }.freeze
+    TRUST_SNOOZE_DURATIONS = %w[1d 7d 30d].freeze
 
-    def trust_recommendations(range: 'last_30d')
-      return Fixtures.trust_recommendations(range) unless real?
+    def trust_recommendations(range: 'last_30d', state_filter: 'active')
+      filter = TRUST_STATE_FILTERS.fetch(state_filter.to_s, TRUST_STATE_FILTERS['active'])
+      return Fixtures.trust_recommendations(range, state_filter: state_filter) unless real?
 
-      raw = @client.get_trust_recommendations(range: range)
+      raw = @client.get_trust_recommendations(range: range, **filter)
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       items = Array(raw[:recommendations]).map { |r| normalize_trust_recommendation(r) }
       { state: items.any? ? :ok : :empty,
@@ -323,6 +334,13 @@ module Igris
     rescue OvertureClient::Error => e
       capture(e)
       { state: :unavailable, generated_at: nil, recommendations: [] }
+    end
+
+    # Sets the operator lifecycle decision for one finding (acknowledge / snooze /
+    # resolve / reactivate). Raises typed errors so the controller surfaces them.
+    def update_trust_recommendation_state(recommendation_id, status:, reason: nil, snooze_duration: nil)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.update_trust_recommendation_state(recommendation_id, status: status, reason: reason, snooze_duration: snooze_duration)
     end
 
     # ── Execution Affinity ────────────────────────────────────────────────
@@ -1234,6 +1252,8 @@ module Igris
       raw = raw.with_indifferent_access if raw.respond_to?(:with_indifferent_access)
       severity = raw[:severity].to_s
       severity = 'info' unless TRUST_SEVERITIES.include?(severity)
+      state = raw[:state].to_s
+      state = 'active' unless TRUST_STATES.include?(state)
       {
         id:                 raw[:id].to_s,
         severity:           severity,
@@ -1247,8 +1267,18 @@ module Igris
         entity_name:        raw[:entity_name].to_s,
         metrics:            normalize_trust_metrics(raw[:metrics]),
         links:              normalize_trust_links(raw[:links]),
+        state:              state,
+        state_reason:       raw[:state_reason].to_s,
+        snoozed_until:      parse_time(raw[:snoozed_until]),
+        acknowledged_at:    parse_time(raw[:acknowledged_at]),
+        resolved_at:        parse_time(raw[:resolved_at]),
       }
     end
+
+    TRUST_STATE_LABELS = {
+      'active' => 'Active', 'acknowledged' => 'Acknowledged',
+      'snoozed' => 'Snoozed', 'resolved' => 'Resolved'
+    }.freeze
 
     def normalize_trust_metrics(raw)
       return {} unless raw.respond_to?(:each)
