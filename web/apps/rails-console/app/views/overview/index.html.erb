@@ -36,8 +36,43 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
+<%# Operating model — the execution lifecycle Igris runs every action through.
+    Operational orientation (not marketing); each stage links to the surface
+    where that step is observed or governed. Kept compact and neutral. %>
+<% operating_model = [
+     { label: 'Run',      text: 'Every agent call routes through an action and is recorded as a run.',            href: runs_path },
+     { label: 'Recover',  text: 'Failed runs retry or compensate under policy instead of failing silently.',     href: runs_path(status: 'failed') },
+     { label: 'Prove',    text: 'Each run carries a signed proof or receipt of what actually happened.',          href: runs_path },
+     { label: 'Evaluate', text: 'Evaluations check agent behavior against the assertions you define.',            href: evaluations_path },
+     { label: 'Govern',   text: 'Recommendations and policy proposals turn findings into reviewed change.',       href: runs_path(view: 'intelligence') },
+   ] %>
+<style>
+  .ic-opmodel { margin: 0 0 16px; }
+  .ic-opmodel__head { font-size: 12px; color: var(--ic-text-5); margin: 0 0 8px; }
+  .ic-opmodel__grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .ic-opmodel__stage { display: flex; flex-direction: column; gap: 4px; text-decoration: none; padding: 10px 12px; border: 1px solid var(--ic-border-soft); border-radius: 10px; background: var(--ic-overlay-bg); color: inherit; }
+  .ic-opmodel__stage:hover { border-color: var(--ic-border); }
+  .ic-opmodel__label { font-size: 12.5px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-opmodel__text { font-size: 11px; color: var(--ic-text-6); line-height: 1.5; }
+  @media (max-width: 860px) { .ic-opmodel__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+
 <div class="ic-body ic-scroll ic-body--fixed">
   <div class="ic-workspace">
+    <% if has_actions %>
+      <div class="ic-opmodel">
+        <p class="ic-opmodel__head">How Igris runs your agents: every action moves through this lifecycle.</p>
+        <div class="ic-opmodel__grid" role="list" aria-label="Execution operating model">
+          <% operating_model.each do |stage| %>
+            <%= link_to stage[:href], class: 'ic-opmodel__stage', role: 'listitem' do %>
+              <span class="ic-opmodel__label"><%= stage[:label] %></span>
+              <span class="ic-opmodel__text"><%= stage[:text] %></span>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <div class="ic-workspace-layout">
 
       <div class="ic-workspace-feed">
