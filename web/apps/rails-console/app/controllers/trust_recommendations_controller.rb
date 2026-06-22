@@ -27,8 +27,8 @@ class TrustRecommendationsController < ApplicationController
     reason = params[:reason].to_s.strip.presence
     data_source.update_trust_recommendation_state(rec_id, status: status, reason: reason, snooze_duration: snooze)
     back_to_intel(notice: state_notice(status))
-  rescue Igris::OvertureClient::ValidationError => e
-    back_to_intel(alert: "Could not update this recommendation: #{e.message}")
+  rescue Igris::OvertureClient::ValidationError
+    back_to_intel(alert: 'Could not update this recommendation. Check the lifecycle action and try again.')
   rescue Igris::OvertureClient::Error
     back_to_intel(alert: 'Could not update this recommendation right now. Try again in a moment.')
   end
