@@ -136,6 +136,41 @@ class ExecutionEvaluationsTest < ActionDispatch::IntegrationTest
     refute_match '"type":"action_called"', response.body
   end
 
+  # ── Entity-scoped filters ────────────────────────────────────────────────
+  test 'index filters definitions to a target action and labels the scope' do
+    other = sample_eval.merge('eval_id' => 'eval_other', 'name' => 'charge_card behaves',
+                              'target_action_name' => 'charge_card', 'target_agent_id' => '')
+    with_real_ds(FakeClient.new(evals: [sample_eval, other])) do
+      get evaluations_path(action_name: 'send_email')
+      assert_response :success
+      assert_match 'send_email behaves safely', response.body
+      refute_match 'charge_card behaves', response.body
+      assert_match 'Evaluations for action', response.body
+      assert_select 'a[href=?]', evaluations_path # Clear link back to all
+    end
+  end
+
+  test 'index filters definitions to a target agent' do
+    a1 = sample_eval.merge('target_action_name' => '', 'target_agent_id' => 'agent-1')
+    a2 = sample_eval.merge('eval_id' => 'eval_other', 'name' => 'charge_card behaves',
+                           'target_action_name' => '', 'target_agent_id' => 'agent-2')
+    with_real_ds(FakeClient.new(evals: [a1, a2])) do
+      get evaluations_path(agent: 'agent-1')
+      assert_response :success
+      assert_match 'send_email behaves safely', response.body
+      refute_match 'charge_card behaves', response.body
+      assert_match 'Evaluations for agent', response.body
+    end
+  end
+
+  test 'a filter with no matches shows an honest scoped empty state' do
+    with_real_ds(FakeClient.new(evals: [sample_eval])) do
+      get evaluations_path(action_name: 'no_such_action')
+      assert_response :success
+      assert_match 'No evaluations match this filter', response.body
+    end
+  end
+
   test 'index is a plain explanatory list (no card layout)' do
     get evaluations_path
     assert_response :success
