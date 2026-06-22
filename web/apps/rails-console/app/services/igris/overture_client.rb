@@ -111,8 +111,15 @@ module Igris
     end
 
     # GET /v1/tasks → { items: [...], next_cursor: ... }
-    def list_tasks(limit: 50)
-      body = request(:get, '/v1/tasks', query: { limit: limit })
+    # An optional agent_id scopes the listing to one registered agent server-side
+    # (bounded by limit), so an "agent's runs" link is precise rather than a
+    # client-side filter over a truncated window. Blank agent_id is omitted so
+    # the unfiltered tenant listing is unaffected.
+    def list_tasks(limit: 50, agent_id: nil)
+      query = { limit: limit }
+      aid = agent_id.to_s.strip
+      query[:agent_id] = aid if aid.present?
+      body = request(:get, '/v1/tasks', query: query)
       Array(body && (body['items'] || body['tasks']))
     end
 
