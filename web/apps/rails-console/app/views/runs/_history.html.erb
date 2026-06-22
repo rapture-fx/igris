@@ -1,6 +1,21 @@
 <%# Run list — a filterable table. The header row carries a filter per column
     and does not scroll; the body scrolls beneath it. Each row links straight to
     its run detail. %>
+<% if @agent.present? %>
+  <div class="ic-scopebar">
+    <span class="ic-scopebar__label">Runs by agent</span>
+    <span class="ic-scopebar__value mono"><%= @agent_label %></span>
+    <%= link_to 'Clear', runs_path({ status: @status.presence, route: @route.presence,
+          range: @range.presence, q: @query.presence }.compact), class: 'ic-scopebar__clear' %>
+  </div>
+  <style>
+    .ic-scopebar { display: flex; align-items: center; gap: 10px; padding: 8px 4px 10px; font-size: 12px; }
+    .ic-scopebar__label { color: var(--ic-text-6); }
+    .ic-scopebar__value { color: var(--ic-text-bright); }
+    .ic-scopebar__clear { margin-left: auto; color: var(--ic-text-5); text-decoration: none; }
+    .ic-scopebar__clear:hover { color: var(--ic-text-bright); text-decoration: underline; }
+  </style>
+<% end %>
 <div class="ic-runs-table">
   <div class="ic-runs-table__head ic-runs-row">
     <div class="ic-runs-th ic-runs-th--search">
@@ -8,6 +23,7 @@
         <% if @status.present? %><input type="hidden" name="status" value="<%= @status %>"><% end %>
         <% if @route.present?  %><input type="hidden" name="route" value="<%= @route %>"><% end %>
         <% if @range.present?  %><input type="hidden" name="range" value="<%= @range %>"><% end %>
+        <% if @agent.present?  %><input type="hidden" name="agent" value="<%= @agent %>"><% end %>
         <svg class="ic-runsearch__ico" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
           <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -35,7 +51,7 @@
 
   <div class="ic-runs-table__body ic-scroll">
     <% if @runs.empty? %>
-      <% any_filter = @status.present? || @route.present? || @range.present? || @query.present? %>
+      <% any_filter = @status.present? || @route.present? || @range.present? || @query.present? || @agent.present? %>
       <% if any_filter %>
         <div class="ic-empty" style="padding: 40px 16px;">
           <div class="ic-empty__title">No runs match your filters</div>
