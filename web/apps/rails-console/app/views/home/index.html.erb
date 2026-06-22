@@ -66,6 +66,7 @@
         policy, routes the action, records what happened, and shows proof when
         signed evidence exists.
       </p>
+
       <p class="ic-home-onboard__sub">
         Your agent reasons, then calls the Igris action endpoint with one request.
         Igris applies policy, routes the action to the target (an API, webhook, or
@@ -77,7 +78,7 @@
       <p class="ic-home-onboard__desc-heading">Getting started takes three steps:</p>
       <ol class="ic-home-onboard__steps">
         <% steps.each do |step| %>
-          <li class="ic-home-onboard__step">
+          <li class="ic-home-onboard__step <%= 'is-done' if step[:done] %>">
             <span class="ic-home-onboard__step-label"><%= step[:label] %></span>
             <span class="ic-home-onboard__step-detail"><%= step[:detail] %></span>
             <%= link_to step[:done] ? 'Open' : 'Start', step[:href], class: 'ic-home-onboard__step-cta' %>
@@ -95,15 +96,13 @@
 
       <div>
         <p class="ic-home-onboard__sub">
-          Once an action exists, your agent calls Igris by POSTing to
-          <code class="ic-code"><%= sample_endpoint %></code>.
+          Once an action exists, your agent calls Igris by POSTing to its endpoint.
           Igris handles policy, execution, and evidence — your agent only needs
           the endpoint URL and your API key.
         </p>
-        <p class="ic-home-onboard__sub">
-          From the command line you can call it with
-          <code class="ic-code"><%= action_curl_snippet(sample_endpoint, %({ "input": { "message": "Hello from Igris" } })) %></code>.
-        </p>
+        <pre class="ic-home-code"><%= sample_endpoint %></pre>
+        <div style="height: 8px;"></div>
+        <pre class="ic-home-code"><%= action_curl_snippet(sample_endpoint, %({ "input": { "message": "Hello from Igris" } })) %></pre>
       </div>
     </div>
 
