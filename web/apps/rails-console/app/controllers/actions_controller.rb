@@ -107,6 +107,10 @@ class ActionsController < ApplicationController
     @just_created = params[:created].present?
     @runs_for_action = data_source.runs_for_action(@action[:name])
     @affinity = data_source.action_consumer_affinity(@action[:name])
+    # Action-level reliability from the single execution-intelligence aggregate
+    # (no per-run fan-out). nil when the action has no recorded runs in the
+    # window; the view then shows an honest empty state instead of zeroes.
+    @action_intel = data_source.respond_to?(:action_intelligence) ? data_source.action_intelligence(@action[:name]) : nil
     # Local-runtime actions need a connected runtime before they can run. Used
     # by the view to show "Runtime required" guidance above the test panel.
     @runtime_required = data_source.runtime_required_for?(@action)
