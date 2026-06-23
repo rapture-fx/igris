@@ -13,9 +13,9 @@
    Defaults to LIGHT mode (matches landing). `html.dark` overrides to
    the hero's dark palette. */
 :root {
-  --ic-bg: #f7f7f5;
+  --ic-bg: #ffffff;
   /* Uniform surface: the icon rail and sidebar share the main background. */
-  --ic-bg-rail: #f7f7f5;
+  --ic-bg-rail: #ffffff;
   --ic-text: #1b1912;
   --ic-text-bright: #000000;
   --ic-text-2: #2a2820;
@@ -51,8 +51,8 @@
 }
 
 html.dark, html[data-theme="dark"] {
-  --ic-bg: #0e0e0c;
-  --ic-bg-rail: #0e0e0c;
+  --ic-bg: #110f0f;
+  --ic-bg-rail: #110f0f;
   --ic-text: #b0ada5;
   --ic-text-bright: #d3d2c8;
   --ic-text-2: #a8a89e;
