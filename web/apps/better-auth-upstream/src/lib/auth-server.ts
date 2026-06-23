@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { Pool } from 'pg';
+import { sendTransactionalEmail, passwordResetEmail, verificationEmail } from './email';
 
 let pool: Pool | null = null;
 
@@ -41,12 +42,36 @@ export function createAuthHandler() {
     };
   }
 
+  // Gate hard email-verification behind an env flag so a misconfigured mailer
+  // can never lock the whole tenant base out of login. Verification emails are
+  // still sent on signup regardless; this only controls whether login is blocked
+  // until the address is confirmed.
+  const requireEmailVerification =
+    process.env.IGRIS_REQUIRE_EMAIL_VERIFICATION?.trim() === 'true';
+
   return betterAuth({
     database: db,
     secret,
     baseURL: consoleOrigin,
     trustedOrigins: [consoleOrigin, landingOrigin],
-    emailAndPassword: { enabled: true },
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification,
+      // BetterAuth generates the single-use, expiring token and the `url`; we
+      // only deliver it. Never log `url`/`token`.
+      sendResetPassword: async ({ user, url }) => {
+        const msg = passwordResetEmail(url);
+        await sendTransactionalEmail({ to: user.email, ...msg });
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        const msg = verificationEmail(url);
+        await sendTransactionalEmail({ to: user.email, ...msg });
+      },
+    },
     socialProviders: Object.keys(socialProviders).length > 0 ? socialProviders : undefined,
   });
 }

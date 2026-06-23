@@ -531,6 +531,161 @@ WITH checks AS (
               AND column_name = 'registered_agent_name'
         ), 'missing task_records.registered_agent_name column')
 
+    -- ── 064: deterministic execution evaluations ────────────────────────────
+    UNION ALL
+    SELECT
+        '064_execution_evals_table_present',
+        to_regclass('public.execution_evals') IS NOT NULL,
+        COALESCE(to_regclass('public.execution_evals')::text,
+                 'missing execution_evals table')
+
+    UNION ALL
+    SELECT
+        '064_execution_eval_runs_table_present',
+        to_regclass('public.execution_eval_runs') IS NOT NULL,
+        COALESCE(to_regclass('public.execution_eval_runs')::text,
+                 'missing execution_eval_runs table')
+
+    UNION ALL
+    SELECT
+        '064_execution_evals_tenant_active_index',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'execution_evals'
+              AND indexname = 'idx_execution_evals_tenant_active'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'execution_evals'
+              AND indexname = 'idx_execution_evals_tenant_active'
+            LIMIT 1
+        ), 'missing idx_execution_evals_tenant_active')
+
+    UNION ALL
+    SELECT
+        '064_execution_eval_runs_task_index',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'execution_eval_runs'
+              AND indexname = 'idx_execution_eval_runs_task'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'execution_eval_runs'
+              AND indexname = 'idx_execution_eval_runs_task'
+            LIMIT 1
+        ), 'missing idx_execution_eval_runs_task')
+
+    -- ── 065: policy proposal lifecycle ──────────────────────────────────────
+    UNION ALL
+    SELECT
+        '065_policy_proposals_table_present',
+        to_regclass('public.policy_proposals') IS NOT NULL,
+        COALESCE(to_regclass('public.policy_proposals')::text,
+                 'missing policy_proposals table')
+
+    UNION ALL
+    SELECT
+        '065_policy_proposal_events_table_present',
+        to_regclass('public.policy_proposal_events') IS NOT NULL,
+        COALESCE(to_regclass('public.policy_proposal_events')::text,
+                 'missing policy_proposal_events table')
+
+    UNION ALL
+    SELECT
+        '065_policy_proposals_tenant_active_index',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'policy_proposals'
+              AND indexname = 'idx_policy_proposals_tenant_active'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'policy_proposals'
+              AND indexname = 'idx_policy_proposals_tenant_active'
+            LIMIT 1
+        ), 'missing idx_policy_proposals_tenant_active')
+
+    UNION ALL
+    SELECT
+        '065_policy_proposal_events_proposal_index',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'policy_proposal_events'
+              AND indexname = 'idx_policy_proposal_events_proposal'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'policy_proposal_events'
+              AND indexname = 'idx_policy_proposal_events_proposal'
+            LIMIT 1
+        ), 'missing idx_policy_proposal_events_proposal')
+
+    -- ── 066: trust recommendation lifecycle state ───────────────────────────
+    UNION ALL
+    SELECT
+        '066_trust_recommendation_states_table_present',
+        to_regclass('public.trust_recommendation_states') IS NOT NULL,
+        COALESCE(to_regclass('public.trust_recommendation_states')::text,
+                 'missing trust_recommendation_states table')
+
+    UNION ALL
+    SELECT
+        '066_trust_recommendation_states_unique_tenant_recommendation',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'trust_recommendation_states'
+              AND indexdef ILIKE '%UNIQUE%'
+              AND indexdef ILIKE '%tenant_id%'
+              AND indexdef ILIKE '%recommendation_id%'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'trust_recommendation_states'
+              AND indexdef ILIKE '%UNIQUE%'
+              AND indexdef ILIKE '%recommendation_id%'
+            LIMIT 1
+        ), 'missing UNIQUE (tenant_id, recommendation_id) on trust_recommendation_states')
+
+    UNION ALL
+    SELECT
+        '066_trust_recommendation_states_tenant_index',
+        EXISTS (
+            SELECT 1
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'trust_recommendation_states'
+              AND indexname = 'idx_trust_rec_states_tenant'
+        ),
+        COALESCE((
+            SELECT indexdef
+            FROM pg_indexes
+            WHERE schemaname = 'public'
+              AND tablename = 'trust_recommendation_states'
+              AND indexname = 'idx_trust_rec_states_tenant'
+            LIMIT 1
+        ), 'missing idx_trust_rec_states_tenant')
+
     -- ── schema_migrations advisory: object checks above are authoritative ────
     -- Two incompatible ledger shapes exist in this repo (migration_name vs
     -- version). Rather than trust a ledger that may disagree with reality, this
