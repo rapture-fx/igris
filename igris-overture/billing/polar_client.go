@@ -152,6 +152,24 @@ var (
 	}
 )
 
+// init binds each plan's Polar price ID to the same env vars the checkout side
+// uses (POLAR_PRICE_SEED/HORIZON/INFINITE), falling back to the placeholder when
+// unset. This keeps webhook tier resolution (GetTierByPriceID / ResolveTierID)
+// consistent with the real price IDs configured in the Polar dashboard, so a
+// customer's subscription is tiered correctly after checkout. With the env unset
+// (tests, local), the placeholders remain unchanged.
+func init() {
+	if v := os.Getenv("POLAR_PRICE_SEED"); v != "" {
+		PlanSeed.MonthlyPriceID = v
+	}
+	if v := os.Getenv("POLAR_PRICE_HORIZON"); v != "" {
+		PlanHorizon.MonthlyPriceID = v
+	}
+	if v := os.Getenv("POLAR_PRICE_INFINITE"); v != "" {
+		PlanInfinite.MonthlyPriceID = v
+	}
+}
+
 // GetTierByID returns tier plan by ID
 func GetTierByID(tierID string) (*TierPlan, error) {
 	switch Tier(tierID) {

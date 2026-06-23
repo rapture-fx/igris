@@ -13,7 +13,7 @@ const SANS =
   'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace';
 
-type AuthMode = 'signin' | 'signup' | 'forgot';
+type AuthMode = 'signin' | 'signup' | 'forgot' | 'reset';
 
 function AuthLogo() {
   const { theme } = useTheme();
@@ -38,13 +38,24 @@ export default function AuthForm() {
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<AuthMode>('signin');
 
+  // A token in the URL means the user followed a password-reset link — show the
+  // set-new-password step. This takes precedence over the mode param.
+  const resetToken = searchParams.get('token') ?? '';
+  const resetLinkError = searchParams.get('error') ?? '';
+
   useEffect(() => {
+    if (resetToken) {
+      setMode('reset');
+      return;
+    }
     const next = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
     setMode((current) => (current === 'forgot' ? current : next));
-  }, [searchParams]);
+  }, [searchParams, resetToken]);
   const [emailOpen, setEmailOpen] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -92,6 +103,33 @@ export default function AuthForm() {
       setError(message);
     } finally {
       setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetToken) {
+      setError('This reset link is invalid or has expired. Request a new one.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    setResetLoading(true);
+    setError('');
+    try {
+      const result = await authClient.resetPassword({ newPassword: password, token: resetToken });
+      if (result?.error) {
+        setError(result.error.message || 'This reset link is invalid or has expired. Request a new one.');
+        return;
+      }
+      setResetDone(true);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not reset your password. Please try again.';
+      setError(message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -173,7 +211,7 @@ export default function AuthForm() {
         )}
 
         <div className="rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#161515] overflow-hidden">
-          {mode !== 'forgot' && (
+          {mode !== 'forgot' && mode !== 'reset' && (
                 <div className="flex border-b border-gray-200 dark:border-white/[0.08]">
                   {(['signin', 'signup'] as const).map((tab) => {
                     const active = mode === tab;
@@ -258,7 +296,96 @@ export default function AuthForm() {
                 </div>
               )}
 
-              {mode !== 'forgot' && (
+              {mode === 'reset' && (
+                <div className="p-6">
+                  <h2
+                    className="text-gray-700 dark:text-[#c8c8b8] mb-1"
+                    style={{ fontFamily: PIXEL, fontSize: '1rem', fontWeight: 400 }}
+                  >
+                    Set a new password
+                  </h2>
+                  <p
+                    className="text-[13px] text-gray-500 dark:text-[#a8a898] mb-5"
+                    style={{ fontFamily: SANS }}
+                  >
+                    Choose a new password for your account.
+                  </p>
+                  {resetDone ? (
+                    <div className="space-y-4">
+                      <div
+                        className="rounded-lg border border-green-200/80 dark:border-green-800/60 bg-green-50/80 dark:bg-green-950/25 px-4 py-3 text-[12px] text-green-700 dark:text-green-400"
+                        style={{ fontFamily: SANS }}
+                      >
+                        Your password has been reset. You can now sign in with your new password.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => switchMode('signin')}
+                        className="inline-flex items-center justify-center h-9 px-5 rounded-xl text-[11px] font-medium transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                        style={{ fontFamily: SANS }}
+                      >
+                        Sign in
+                      </button>
+                    </div>
+                  ) : resetLinkError ? (
+                    <div className="space-y-4">
+                      <ErrorBanner message="This reset link is invalid or has expired. Request a new one." />
+                      <button
+                        type="button"
+                        onClick={() => switchMode('forgot')}
+                        className="inline-flex items-center justify-center h-9 px-5 rounded-xl text-[11px] font-medium transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                        style={{ fontFamily: SANS }}
+                      >
+                        Request a new link
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleResetPassword} className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label htmlFor="reset-password" className="text-[11px] text-gray-500 dark:text-[#a8a898]" style={{ fontFamily: SANS }}>
+                          New password
+                        </label>
+                        <div className="relative">
+                          <input
+                            id="reset-password"
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            minLength={8}
+                            placeholder="Min. 8 characters"
+                            autoComplete="new-password"
+                            autoFocus
+                            className={`${inputClass} pr-10`}
+                            style={{ fontFamily: SANS }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((v) => !v)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-[#c8c8b8] transition-colors"
+                            tabIndex={-1}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          >
+                            {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                      {error && <ErrorBanner message={error} />}
+                      <button
+                        type="submit"
+                        disabled={resetLoading}
+                        className="inline-flex items-center justify-center h-9 px-5 rounded-xl text-[11px] font-medium transition-opacity hover:opacity-80 disabled:opacity-50 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]"
+                        style={{ fontFamily: SANS }}
+                      >
+                        {resetLoading && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />}
+                        Update password
+                      </button>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {mode !== 'forgot' && mode !== 'reset' && (
                 <div className="p-6 space-y-3">
                   <button type="button" onClick={() => handleOAuth('google')} disabled={!!loadingProvider} className={oauthClass} style={{ fontFamily: SANS }}>
                     {loadingProvider === 'google' ? (

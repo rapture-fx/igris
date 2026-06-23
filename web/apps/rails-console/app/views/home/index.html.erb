@@ -23,13 +23,13 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<div class="ic-body" style="display: flex; align-items: center; justify-content: center;">
-  <main class="ic-home-onboard">
+<div class="ic-body" style="display: flex; align-items: center; justify-content: center; padding: 0;">
+  <main class="ic-home-onboard" style="width: auto; max-width: 600px; margin: 0; padding: 0;">
 
     <header class="ic-home-onboard__hero">
       <h1 class="ic-home-onboard__title">Install Igris</h1>
       <p class="ic-home-onboard__sub">
-        Run <code style="font-family: var(--ic-mono); font-size: 0.9em; color: var(--ic-text-2); background: var(--ic-overlay-3); padding: 1px 5px; border-radius: 4px;">curl -fsSL https://igris.sh/install | sh</code>
+        Run <code style="font-family: var(--ic-mono); font-size: 0.9em; color: var(--ic-text-2); background: var(--ic-overlay-3); padding: 1px 5px; border-radius: 4px;">curl -fsSL https://igrisinertial.com/install | bash</code>
         to install the runtime and connect your first agent.
       </p>
     </header>
