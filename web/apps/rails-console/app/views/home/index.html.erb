@@ -12,7 +12,13 @@
      if @degraded_error then 'Degraded'
      elsif demo_mode?   then 'Demo data'
      else                    'Connected'
-     end %>
+     end
+
+   steps = [
+     { n: 1, label: 'Register an action',  detail: 'Define what your agent can call', done: has_actions,  href: new_action_path },
+     { n: 2, label: 'Call the endpoint',   detail: 'Your app POSTs to Igris',         done: has_runs,     href: has_actions ? action_path(@actions.first[:id]) : new_action_path },
+     { n: 3, label: 'Review runs & proof', detail: 'Inspect evidence in the console', done: has_proof,    href: runs_path },
+   ] %>
 
 <div class="ic-topbar">
   <div class="ic-topbar__group">
