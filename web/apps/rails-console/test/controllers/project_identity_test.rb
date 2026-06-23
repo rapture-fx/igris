@@ -65,15 +65,14 @@ class ProjectIdentityTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_proj }
   end
 
-  # ── First-run naming on /home ────────────────────────────────────────────
-  test 'home prompts to create a project when real mode has no name' do
+  # ── First-run naming — home is install-first, no longer a naming form ──
+  test 'home does not prompt for project naming in install-first layout' do
     with_fake_ds(FakeDS.new(project_name: nil, needs_name: true)) do
       get '/home'
       assert_response :success
-      assert_match 'Create your project', response.body
-      assert_match 'This project will contain your actions, runs, runtime keys, and evidence.', response.body
-      assert_select "form[action=?][method=?]", project_path, 'post' # _method=patch
-      assert_match 'Continue to create first action', response.body
+      assert_home_onboarding_page
+      refute_match 'Create your project', response.body
+      refute_match 'Continue to create first action', response.body
     end
   end
 
