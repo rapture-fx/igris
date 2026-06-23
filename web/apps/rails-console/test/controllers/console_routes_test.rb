@@ -24,13 +24,12 @@ class ConsoleRoutesTest < ActionDispatch::IntegrationTest
     assert_redirected_to '/overview'
   end
 
-  test '/home renders the onboarding page inside the console chrome' do
+  test '/home renders the install-first onboarding page inside the console chrome' do
     get '/home'
     assert_response :success
     assert_home_onboarding_page
-    assert_match 'Call Igris from your agent', response.body
-    assert_match 'Action endpoint', response.body
-    assert_match 'Create your first action', response.body
+    assert_match 'install the runtime', response.body
+    assert_match 'create an agent', response.body
   end
 
   test 'legacy /welcome redirects to /home' do
