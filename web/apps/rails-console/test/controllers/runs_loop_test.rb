@@ -84,6 +84,65 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ── Runs index: per-row agent attribution visibility ────────────────────
+  def unattributed_task
+    {
+      'task_id' => 'run_orphan_1', 'status' => 'completed',
+      'executed_target' => 'send_email', 'runtime_id' => 'rt-2',
+      'created_at' => Time.current.iso8601,
+    }
+  end
+
+  test 'each run row names its executing agent at a glance' do
+    with_real_ds(FakeClient.new(tasks: [agent_task])) do
+      get runs_path
+      assert_response :success
+      # Attribution is visible without opening run detail.
+      assert_match 'by Support Agent', response.body
+      assert_select '.ic-run-row__agent', text: 'by Support Agent'
+    end
+  end
+
+  test 'a run with no registered agent shows an honest unattributed state' do
+    with_real_ds(FakeClient.new(tasks: [unattributed_task])) do
+      get runs_path
+      assert_response :success
+      assert_select '.ic-run-row__agent.ic-run-row__agent--none', text: 'Unattributed'
+      # No fabricated attribution.
+      refute_match 'by Support Agent', response.body
+    end
+  end
+
+  test 'the per-row agent line is hidden when the list is already scoped to one agent' do
+    with_real_ds(FakeClient.new(tasks: [agent_task])) do
+      get runs_path(agent: 'agent-77')
+      assert_response :success
+      # The scope bar already names the agent; the row line would be redundant.
+      assert_select '.ic-run-row__agent', false
+      assert_match 'Runs by agent', response.body
+    end
+  end
+
+  test 'demo (fixture) runs list surfaces attribution from the nested agent shape' do
+    # Fixtures keep agent data nested under :agent (not flattened to :agent_name),
+    # so this proves the row reads both shapes.
+    get runs_path
+    assert_response :success
+    assert_match 'by Claude Code Agent', response.body
+  end
+
+  test 'the runs list shows the agent name, never the raw agent id' do
+    task = agent_task.merge(
+      'agent' => { 'agent_id' => 'a1f2c3d4-e5f6-7890-abcd-ef1234567890', 'name' => 'Support Agent', 'display_name' => 'Support Agent' }
+    )
+    with_real_ds(FakeClient.new(tasks: [task])) do
+      get runs_path
+      assert_response :success
+      assert_match 'by Support Agent', response.body
+      refute_match 'a1f2c3d4-e5f6-7890-abcd-ef1234567890', response.body
+    end
+  end
+
   # ── Runs index: custom dropdown filters (status / route / date) + search ─
   test 'runs index renders the status/route/date dropdowns and a search field' do
     get '/runs'
