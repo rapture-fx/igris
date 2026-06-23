@@ -43,26 +43,22 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     ApplicationController.class_eval { alias_method :data_source, :__orig_ds_split }
   end
 
-  # ── Home is the onboarding page ─────────────────────────────────────────
-  test 'home contains the product explanation and first action call path' do
+  # ── Home is the install-first onboarding page ──────────────────────────
+  test 'home shows the install command and next steps' do
     get '/home'
     assert_response :success
     assert_home_onboarding_page
-    assert_match 'Your agent calls Igris instead of calling the tool directly.', response.body
-    assert_match 'Call Igris from your agent', response.body
-    assert_match 'Action endpoint', response.body
-    assert_match 'Example request', response.body
-    assert_match 'Where actions run', response.body
-    assert_match 'No runtime needed', response.body
-    assert_match 'Runtime required', response.body
-    assert_match 'only needed for private files', response.body
-    assert_match 'ic-diagram', response.body
-    assert_match 'Register an action', response.body
+    assert_match 'install the runtime', response.body
+    assert_match 'create an agent', response.body
+    assert_match 'register an action', response.body
+    assert_match 'execute a run', response.body
+    assert_match 'review proof', response.body
   end
 
-  test 'home links to create-first-action and to overview' do
+  test 'home links to next steps and overview' do
     get '/home'
-    assert_match 'Create your first action', response.body
+    assert_match 'create an agent', response.body
+    assert_match 'register an action', response.body
     assert_match 'Go to Overview', response.body
   end
 
