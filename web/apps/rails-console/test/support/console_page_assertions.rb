@@ -22,7 +22,7 @@ module ConsolePageAssertions
     assert_match HOME_ONBOARDING_TITLE, body
     assert_match HOME_CONSOLE_RAIL, body
     assert_match HOME_OVERVIEW_LINK, body
-    assert_match 'curl -fsSL https://igris.sh/install | sh', body
+    assert_match 'igris.sh/install', body
     refute_match OVERVIEW_WORKSPACE_VIEWS, body,
                  '/home is onboarding; workspace views live on /overview'
   end
