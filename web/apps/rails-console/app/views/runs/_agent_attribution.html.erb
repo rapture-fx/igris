@@ -28,6 +28,10 @@
     <% if agent[:template_name].present? %>
       <div class="ic-def"><span class="ic-def__label">Template</span><div class="ic-def__value mono"><%= agent[:template_name] %></div></div>
     <% end %>
+    <%# Run → Agent navigation is intentionally NOT linked here: the agent
+        profile + run-scope routes are keyed by the agent UUID, and run detail
+        must never render that id (privacy rule, enforced by tests). Operators
+        reach an agent's runs from the Agent surface, which owns those ids. %>
   <% else %>
     <p class="ic-evidence__intro">
       This run is not attributed to a registered agent. Attribution appears when
