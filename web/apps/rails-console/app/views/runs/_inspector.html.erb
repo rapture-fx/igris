@@ -63,6 +63,8 @@
             <div class="ic-def">
               <span class="ic-def__label">Agent</span>
               <div class="ic-def__value">
+                <%# Name only — run detail must never render the agent UUID, so
+                    this is not linked to the id-keyed agent route. %>
                 <span class="mono"><%= dash.call(agent[:display_name] || agent[:name]) %></span>
                 <% if agent[:agent_type].present? %>
                   <span class="ic-def__hint"><%= agent[:agent_type] %></span>
