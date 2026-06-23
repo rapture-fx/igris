@@ -1,24 +1,11 @@
-<%# Home — onboarding and product education. The everyday workspace is /overview. %>
-<% sample_endpoint = action_endpoint_url('send_email')
-   has_actions  = @actions.any?
-   has_runs     = (@recent_runs || []).any?
-   has_proof    = (@recent_runs || []).any? { |r| r[:proof].to_s.match?(/verified/i) }
-
-   project_error = flash[:project_error]
-   show_project_card = @project && (@project[:needs_name] || project_error.present?)
-   project_value = flash[:project_name_value].to_s
-
-   api_label =
-     if @degraded_error then 'Degraded'
-     elsif demo_mode?   then 'Demo data'
-     else                    'Connected'
-     end
-
-   steps = [
-     { n: 1, label: 'Register an action',  detail: 'Define what your agent can call', done: has_actions,  href: new_action_path },
-     { n: 2, label: 'Call the endpoint',   detail: 'Your app POSTs to Igris',         done: has_runs,     href: has_actions ? action_path(@actions.first[:id]) : new_action_path },
-     { n: 3, label: 'Review runs & proof', detail: 'Inspect evidence in the console', done: has_proof,    href: runs_path },
-   ] %>
+<%# Home — onboarding entry point. Compact, action-oriented, no documentation prose. %>
+<%
+  api_label =
+    if @degraded_error then 'Degraded'
+    elsif demo_mode?   then 'Demo data'
+    else                    'Connected'
+    end
+%>
 
 <div class="ic-topbar">
   <div class="ic-topbar__group">
@@ -36,94 +23,23 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<div class="ic-body ic-scroll">
+<div class="ic-body" style="display: flex; align-items: center; justify-content: center;">
   <main class="ic-home-onboard">
 
-    <% if show_project_card %>
-      <section aria-labelledby="project-card-title">
-        <h2 class="ic-home-onboard__title" id="project-card-title">Create your project</h2>
-        <p class="ic-home-onboard__sub">
-          This project will contain your actions, runs, runtime keys, and evidence.
-        </p>
-        <%= form_with url: project_path, method: :patch, local: true do |f| %>
-          <%= f.hidden_field :source, value: 'home' %>
-          <div class="ic-field">
-            <%= f.label :name, 'Project name', class: 'ic-field__label' %>
-            <%= f.text_field :name, value: project_value, class: 'ic-input',
-                  autofocus: true, autocomplete: 'off', maxlength: 80,
-                  placeholder: 'Support Agent', 'aria-describedby': 'project_name_help' %>
-            <% if project_error.present? %>
-              <p class="ic-fielderror" role="alert"><%= project_error %></p>
-            <% end %>
-            <p class="ic-field__help" id="project_name_help">
-              Examples: Support Agent, Finance Ops Agent, Internal Tools Agent, Acme AI Actions.
-            </p>
-          </div>
-          <%= f.button 'Continue to create first action', class: 'ic-btn ic-btn--accent' %>
-        <% end %>
-      </section>
-    <% end %>
-
     <header class="ic-home-onboard__hero">
-      <p class="ic-home-onboard__eyebrow">Get started with Igris</p>
-      <h1 class="ic-home-onboard__title">Give your AI agent a safe action endpoint.</h1>
+      <h1 class="ic-home-onboard__title">Install Igris</h1>
       <p class="ic-home-onboard__sub">
-        Your agent calls Igris instead of calling the tool directly. Igris checks
-        policy, routes the action, records what happened, and shows proof when
-        signed evidence exists.
-      </p>
-
-      <p class="ic-home-onboard__sub">
-        Your agent reasons, then calls the Igris action endpoint with one request.
-        Igris applies policy, routes the action to the target (an API, webhook, or
-        local runtime), records what happened, and returns signed evidence.
+        Run <code style="font-family: var(--ic-mono); font-size: 0.9em; color: var(--ic-text-2); background: var(--ic-overlay-3); padding: 1px 5px; border-radius: 4px;">curl -fsSL https://igris.sh/install | sh</code>
+        to install the runtime and connect your first agent.
       </p>
     </header>
 
-    <div class="ic-home-onboard__desc">
-      <p class="ic-home-onboard__desc-heading">Getting started takes three steps:</p>
-      <ol class="ic-home-onboard__steps">
-        <% steps.each do |step| %>
-          <li class="ic-home-onboard__step <%= 'is-done' if step[:done] %>">
-            <span class="ic-home-onboard__step-label"><%= step[:label] %></span>
-            <span class="ic-home-onboard__step-detail"><%= step[:detail] %></span>
-            <%= link_to step[:done] ? 'Open' : 'Start', step[:href], class: 'ic-home-onboard__step-cta' %>
-          </li>
-        <% end %>
-      </ol>
-    </div>
+    <p class="ic-home-onboard__sub">
+      Next: <a href="<%= agents_path %>" class="ic-home-onboard__step-cta">create an agent</a>,
+      <a href="<%= new_action_path %>" class="ic-home-onboard__step-cta">register an action</a>,
+      <a href="<%= runs_path %>" class="ic-home-onboard__step-cta">execute a run</a>, and
+      <a href="<%= runs_path %>" class="ic-home-onboard__step-cta">review proof</a>.
+    </p>
 
-    <div class="ic-home-onboard__layout">
-      <section class="ic-home-onboard__story">
-        <p class="ic-home-onboard__sub">
-          When you register an action, you pick a target. Igris supports three kinds of targets. A <strong>hosted API</strong> or <strong>webhook</strong> needs no local runtime — Igris calls them directly. A <strong>local runtime</strong> is only needed for private files, internal APIs, or local databases. Pick the one that fits your workflow.
-        </p>
-      </section>
-
-      <div>
-        <p class="ic-home-onboard__sub">
-          Once an action exists, your agent calls Igris by POSTing to its endpoint.
-          Igris handles policy, execution, and evidence — your agent only needs
-          the endpoint URL and your API key.
-        </p>
-        <pre class="ic-home-code"><%= sample_endpoint %></pre>
-        <div style="height: 8px;"></div>
-        <pre class="ic-home-code"><%= action_curl_snippet(sample_endpoint, %({ "input": { "message": "Hello from Igris" } })) %></pre>
-      </div>
-    </div>
-
-    <div class="ic-home-onboard__ctarow">
-      <%= button_to enter_console_path, params: { to: 'new_action' },
-          method: :post, form: { style: 'margin:0;' },
-          class: 'ic-btn ic-btn--accent ic-welcome__cta' do %>
-        Create your first action
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="margin-left: 2px;" aria-hidden="true">
-          <path d="M5 12 L19 12 M13 6 L19 12 L13 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      <% end %>
-      <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
-      <%= link_to 'Go to Overview', overview_path, class: 'ic-btn' %>
-      <%= link_to 'Connect runtime', runtimes_path, class: 'ic-btn' %>
-    </div>
   </main>
 </div>
