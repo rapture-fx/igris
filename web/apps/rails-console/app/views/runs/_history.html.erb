@@ -78,6 +78,20 @@
             <span class="ic-run-row__cell ic-run-row__cell--action">
               <span class="ic-run-row__title"><%= r[:action] %></span>
               <span class="ic-run-row__id mono"><%= r[:id] %></span>
+              <%# Agent attribution — who executed this run, at a glance. Uses the
+                  safe agent name already on the run summary (real mode flattens it
+                  to :agent_name; fixtures keep a nested :agent), never the agent
+                  id, and never a per-run fetch. Hidden when the list is already
+                  scoped to one agent (the scope bar names it). Honest
+                  "Unattributed" when the run carries no registered agent. %>
+              <% unless @agent.present? %>
+                <% agent_label = r[:agent_name].presence || r.dig(:agent, :display_name).presence || r.dig(:agent, :name).presence %>
+                <% if agent_label.present? %>
+                  <span class="ic-run-row__agent">by <%= agent_label %></span>
+                <% else %>
+                  <span class="ic-run-row__agent ic-run-row__agent--none">Unattributed</span>
+                <% end %>
+              <% end %>
             </span>
             <span class="ic-run-row__cell">
               <span class="ic-run-row__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
