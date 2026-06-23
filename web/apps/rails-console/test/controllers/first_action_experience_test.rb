@@ -68,13 +68,12 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
   end
 
   # ── Onboarding lives on /home; Overview is the workspace ────────────────
-  test 'home shows hero copy and the first-action call path' do
+  test 'home shows install command and next steps' do
     get '/home'
     assert_response :success
     assert_home_onboarding_page
-    ['Call Igris from your agent', 'Action endpoint', 'Example request', 'Where actions run'].each do |label|
-      assert_match label, response.body
-    end
+    assert_match 'install the runtime', response.body
+    assert_match 'create an agent', response.body
   end
 
   test 'overview with existing actions shows the workspace, not onboarding' do
