@@ -13,6 +13,22 @@ module.exports = {
         'custom-gray': '#1F1F1F',
         'beige-secondary': '#f6f1ec',
         'dark-bg': '#110f0f',
+        // Geist (Light) — Vercel design system scales
+        geist: {
+          100: '#f2f2f2',
+          200: '#ebebeb',
+          300: '#e6e6e6',
+          400: '#eaeaea',
+          500: '#c9c9c9',
+          600: '#a8a8a8',
+          700: '#8f8f8f',
+          800: '#7d7d7d',
+          900: '#4d4d4d',
+          1000: '#171717',
+          bg: '#ffffff',
+          'bg-200': '#fafafa',
+          blue: '#006bff',
+        },
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',
@@ -31,8 +47,16 @@ module.exports = {
           white: '#FFFFFF',
         }
       },
+      borderRadius: {
+        // Geist radii — 6px controls, 12px menus/modals, 16px fullscreen
+        'geist-sm': '6px',
+        'geist-md': '12px',
+        'geist-lg': '16px',
+      },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif'],
+        geist: ['var(--font-geist-sans)', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        'geist-mono': ['var(--font-geist-mono)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        sans: ['var(--font-geist-sans)', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif'],
         'sf': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'system-ui', 'sans-serif'],
         'sf-text': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'system-ui', 'sans-serif'],
         'cs-monkey': ['Space Mono', 'monospace'],
@@ -42,7 +66,7 @@ module.exports = {
         'pixel': ['VT323', 'monospace'],
         'clean-pixel': ['Roboto Mono', 'monospace'],
         'dot-mincho': ['VT323', 'monospace'],
-        'inter': ['Inter', 'sans-serif'],
+        'inter': ['var(--font-geist-sans)', 'Inter', 'sans-serif'],
       },
       fontSize: {
         'hero': ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '1.1' }],
