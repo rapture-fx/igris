@@ -1,0 +1,86 @@
+<%#
+  Connections — "where does my work go?". A read-only, derived view over the
+  actions this tenant already has: each row is one destination an action routes
+  to (a hosted API, a webhook, or the local runtime). Counts and status come
+  from the same safe action fields the Actions page renders; runtime status is
+  the real fleet. No URLs beyond host, no secrets, no fabricated status. Runtime
+  keys live under Runtimes; secrets under Settings — this page only links out.
+%>
+<style>
+  .ic-conn-note { font-size: 12px; color: var(--ic-text-6); line-height: 1.6; margin: 14px 16px 4px; max-width: 720px; }
+  .ic-conn-list { padding: 8px 12px 24px; display: flex; flex-direction: column; gap: 8px; }
+  .ic-conn-card {
+    display: grid; grid-template-columns: minmax(0,1.6fr) minmax(0,1.4fr) 140px;
+    align-items: center; column-gap: 16px;
+    padding: 13px 14px; border: 1px solid var(--ic-border-soft); border-radius: 10px;
+    background: var(--ic-overlay-bg); color: inherit; text-decoration: none;
+  }
+  a.ic-conn-card:hover { border-color: var(--ic-border); }
+  .ic-conn-kind { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ic-text-7); }
+  .ic-conn-label { font-size: 13px; font-weight: 600; color: var(--ic-text-bright); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-conn-meta { font-size: 11.5px; color: var(--ic-text-6); }
+  .ic-conn-meta__names { font-family: var(--ic-mono); font-size: 10.5px; color: var(--ic-text-7); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ic-conn-status { justify-self: end; }
+  @media (max-width: 760px) {
+    .ic-conn-card { grid-template-columns: minmax(0,1fr) 120px; }
+    .ic-conn-meta { display: none; }
+  }
+</style>
+
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-topbar">
+    <div class="ic-topbar__group">
+      <span class="ic-topbar__title">Connections</span>
+      <%= project_chip %>
+      <% if @connections.any? %><span class="ic-chip"><%= pluralize(@connections.size, 'destination') %></span><% end %>
+    </div>
+    <div class="ic-topbar__group">
+      <%= link_to 'Manage runtimes', runtimes_path, class: 'ic-btn' %>
+      <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <div class="ic-body ic-scroll">
+    <p class="ic-conn-note">
+      Where your actions send work. Each connection is a destination an action routes to:
+      a hosted API, a webhook, or your local runtime. Manage runtime keys under
+      <%= link_to 'Runtimes', runtimes_path %> and secrets under
+      <%= link_to 'Settings', settings_path(section: 'target_access') %>.
+    </p>
+
+    <% if @connections.empty? %>
+      <div class="ic-empty" style="padding: 48px 16px;">
+        <div class="ic-empty__title">No connections yet</div>
+        <p class="ic-empty__sub">
+          Connections appear once you create an action. The action's target — a
+          hosted API, a webhook, or the local runtime — is where work is sent.
+        </p>
+        <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+      </div>
+    <% else %>
+      <div class="ic-conn-list">
+        <% @connections.each do |c|
+             tone = c[:status_tone] == 'ok' ? 'is-ok' : 'is-warn'
+             href = c[:target_type] == 'local_runtime' ? runtimes_path : actions_path(q: c[:label]) %>
+          <%= link_to href, class: 'ic-conn-card', 'aria-label': "#{c[:kind]} #{c[:label]}" do %>
+            <span style="min-width:0;">
+              <span class="ic-conn-kind"><%= c[:kind] %></span>
+              <span class="ic-conn-label"><%= c[:label] %></span>
+            </span>
+            <span class="ic-conn-meta" style="min-width:0;">
+              <%= pluralize(c[:action_count], 'action') %><% if c[:secrets_count].positive? %> · <%= c[:secrets_count] %> with secrets<% end %>
+              <% if c[:action_names].any? %>
+                <span class="ic-conn-meta__names"><%= c[:action_names].join(', ') %></span>
+              <% end %>
+            </span>
+            <span class="ic-conn-status">
+              <span class="ic-status__pill <%= tone %>"><%= c[:status] %></span>
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
