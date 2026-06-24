@@ -73,7 +73,7 @@ export default function Header() {
   };
 
   const DesktopDropdownPanel = (items: DropdownItem[]) => (
-    <div className="absolute left-0 top-full mt-2 w-48 rounded-lg bg-white dark:bg-[#161313] border border-gray-200 dark:border-white/[0.12] shadow-lg shadow-gray-200/40 dark:shadow-black/40 p-1.5 z-50">
+    <div className="absolute left-0 top-full mt-2 w-48 rounded-[12px] bg-white border border-[#ebebeb] shadow-[0_1px_1px_rgba(0,0,0,0.02),0_4px_8px_-4px_rgba(0,0,0,0.04),0_16px_24px_-8px_rgba(0,0,0,0.06)] p-1.5 z-50">
       {items.map((item) =>
         item.external ? (
           <a
@@ -175,7 +175,7 @@ export default function Header() {
                 href="/auth?mode=signin"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-full border border-gray-300 px-4 py-2 text-black dark:text-[#f6f6f4] dark:border-[rgba(246,246,244,0.2)] hover:border-gray-400 dark:hover:border-[rgba(246,246,244,0.35)] transition-colors"
+                className="ml-1 inline-flex h-8 items-center rounded-[6px] border border-[rgba(0,0,0,0.08)] bg-white px-3 text-[#171717] hover:bg-[#fafafa] hover:border-[rgba(0,0,0,0.12)] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
                 Sign in
@@ -185,10 +185,10 @@ export default function Header() {
                 href="/auth?mode=signup"
                 prefetch={false}
                 onClick={closeAll}
-                className="rounded-full px-4 py-2 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+                className="inline-flex h-8 items-center rounded-[6px] px-3 bg-[#171717] text-white hover:bg-[#383838] transition-colors"
                 style={NAV_ITEM_STYLE}
               >
-                Get API key
+                Get API Key
               </Link>
             </nav>
 
@@ -289,10 +289,10 @@ export default function Header() {
               href="/auth?mode=signup"
               prefetch={false}
               onClick={closeAll}
-              className="mt-4 inline-flex items-center justify-center w-full rounded-full px-4 py-2.5 bg-gray-900 dark:bg-[#f6f6f4] text-white dark:text-[#010203] hover:opacity-80 transition-opacity"
+              className="mt-4 inline-flex items-center justify-center w-full rounded-[6px] px-4 py-2.5 bg-[#171717] text-white hover:bg-[#383838] transition-colors"
               style={NAV_ITEM_STYLE}
             >
-              Get API key
+              Get API Key
             </Link>
           </nav>
         </div>
