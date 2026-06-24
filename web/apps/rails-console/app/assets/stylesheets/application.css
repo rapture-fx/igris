@@ -274,7 +274,7 @@ html.dark .ic-rail__logo-img--dark  { display: block; }
   flex-direction: column;
   flex: 1;
   gap: 1px;
-  padding: 4px 8px;
+  padding: 4px 4px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -286,9 +286,10 @@ html.dark .ic-rail__logo-img--dark  { display: block; }
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 34px;
-  padding: 0 6px;
-  border-radius: 6px;
+  height: 38px;
+  padding: 0 8px;
+  margin: 0 4px;
+  border-radius: 7px;
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -296,7 +297,7 @@ html.dark .ic-rail__logo-img--dark  { display: block; }
   transition: background 120ms ease, padding 200ms ease;
   flex-shrink: 0;
 }
-.ic-rail--expanded .ic-rail__btn { padding: 0 8px; }
+.ic-rail--expanded .ic-rail__btn { padding: 0 12px; }
 .ic-rail__btn:hover { background: var(--ic-overlay-2); }
 .ic-rail__btn.is-active { background: var(--ic-overlay-4); }
 
@@ -661,7 +662,7 @@ html.dark .ic-rail__menu__item--danger:hover { background: rgba(244,63,94,0.08);
   border-radius: 999px;
 }
 /* Folder glyph for project groups in the runs picker (replaces the dot). */
-.ic-group__folder { width: 12px; height: 12px; color: var(--ic-text-6); flex-shrink: 0; }
+.ic-group__folder { width: 16px; height: 16px; color: var(--ic-text-6); flex-shrink: 0; }
 .ic-group__name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ic-group__count { font-size: 10px; color: var(--ic-text-7); font-variant-numeric: tabular-nums; }
 
