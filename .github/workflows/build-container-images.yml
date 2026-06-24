@@ -1,7 +1,9 @@
-# Build and push the two live-mode container images to GHCR.
+# Build and push the live-mode container images to GHCR.
 #
-#   - igris-api     → Go Overture API   (root Dockerfile, full-repo context)
-#   - igris-console → Rails console      (web/apps/rails-console/Dockerfile)
+#   - igris-api     → Go Overture API    (root Dockerfile, full-repo context)
+#   - igris-console → Rails console       (web/apps/rails-console/Dockerfile)
+#   - igris-auth    → BetterAuth upstream (web/apps/better-auth-upstream/Dockerfile,
+#                     pnpm-workspace context ./web; serves /api/auth/*)
 #
 # This workflow ONLY builds and pushes images. It never touches Azure, never
 # deploys, and never needs cloud credentials — the founder pulls these tags
@@ -10,6 +12,7 @@
 # Images are published under the repository owner's namespace:
 #   ghcr.io/igris-inertial/system/igris-api:{latest,sha-<short>}
 #   ghcr.io/igris-inertial/system/igris-console:{latest,sha-<short>}
+#   ghcr.io/igris-inertial/system/igris-auth:{latest,sha-<short>}
 
 name: Build container images
 
@@ -61,6 +64,13 @@ jobs:
             image: ghcr.io/igris-inertial/system/igris-console
             context: ./web/apps/rails-console
             dockerfile: ./web/apps/rails-console/Dockerfile
+          # BetterAuth upstream — serves /api/auth/* (signup/login/reset/verify).
+          # Context is the pnpm workspace root so the app resolves against the
+          # committed web/pnpm-lock.yaml (it has no app-level lockfile).
+          - name: igris-auth
+            image: ghcr.io/igris-inertial/system/igris-auth
+            context: ./web
+            dockerfile: ./web/apps/better-auth-upstream/Dockerfile
     steps:
       - name: Checkout
         uses: actions/checkout@v4
