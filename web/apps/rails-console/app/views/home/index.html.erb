@@ -50,8 +50,7 @@
           <div class="ic-step__title">Install the runtime</div>
           <p class="ic-step__text">Installs the Igris runtime on this machine.</p>
           <div class="ic-step__code">
-            <%= render 'shared/code_snippet', language: 'bash',
-                  code: 'curl -fsSL https://igrisinertial.com/install | bash' %>
+            <%= code_snippet 'curl -fsSL https://igrisinertial.com/install | bash', language: 'bash' %>
           </div>
         </div>
       </li>
@@ -65,7 +64,7 @@
             LangGraph, CrewAI, or a custom agent — at Igris with an API key.
           </p>
           <div class="ic-step__code">
-            <%= render 'shared/code_snippet', language: 'bash', code: 'igris-runtime serve' %>
+            <%= code_snippet 'igris-runtime serve', language: 'bash' %>
           </div>
           <div class="ic-step__links">
             <%= link_to 'Create an API key', settings_path(section: 'agent_keys'), class: 'ic-btn' %>
