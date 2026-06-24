@@ -654,6 +654,23 @@ module Igris
       actions.select { |a| a[:target_type].to_s == 'local_runtime' }
     end
 
+    # ── Connections ─────────────────────────────────────────────────────────
+    # "Connections" answers the operator question "where does my work go?". It is
+    # a derived, read-only view over the actions a tenant already has — no new
+    # backend and no stored state. Each connection is one destination an action
+    # routes to: a hosted API or webhook (grouped by host, so many actions to one
+    # provider read as a single connection) or the local runtime (whose health
+    # comes from the real runtime fleet). Counts, secret state, and readiness are
+    # aggregated from the same safe action fields the Actions page renders;
+    # nothing here exposes a URL beyond its host, a secret, or a fabricated
+    # status.
+    def connections
+      rts = runtimes
+      actions.group_by { |a| [a[:target_type].to_s, a[:target_label].to_s] }
+             .map { |(type, label), acts| build_connection(type, label, acts, rts) }
+             .sort_by { |c| [-c[:action_count], c[:label].to_s] }
+    end
+
     # Recent runs that executed through a runtime, newest first. Used by the
     # Runtimes page to connect runtimes back to the Runs they powered.
     def runtime_runs(limit: 5)
@@ -1731,6 +1748,46 @@ module Igris
     end
 
     # ── Label helpers ────────────────────────────────────────────────────
+
+    def build_connection(type, label, acts, rts)
+      kind = target_label_for(type, nil)
+      # Prefer the most specific token of the action's own target label (e.g.
+      # "Hosted API · Resend" → "Resend", "Webhook · api.stripe.com" → host).
+      # Falls back to the generic kind when no provider/host is recorded. Never
+      # exposes more than the host the action label already carries.
+      display =
+        if label.include?('·')
+          label.split('·').map(&:strip).last
+        else
+          label.presence || kind
+        end
+      status, status_tone = connection_status(type, acts, rts)
+      {
+        kind:          kind,
+        label:         display,
+        target_type:   type,
+        action_count:  acts.size,
+        action_names:  acts.map { |a| a[:name].to_s }.reject(&:empty?).first(6),
+        secrets_count: acts.count { |a| a[:secrets_state].to_s == 'Configured' },
+        status:        status,
+        status_tone:   status_tone,
+      }
+    end
+
+    # Honest connection status. Local runtime reflects the real runtime fleet
+    # (never fabricated); hosted/webhook reflect whether every action on the
+    # destination has finished setup. Demo mode is already globally flagged.
+    def connection_status(type, acts, rts)
+      if type == 'local_runtime'
+        healthy = rts.count { |r| r[:status] == 'Healthy' }
+        return ['No runtime connected', 'warn'] if healthy.zero?
+
+        ["#{healthy} runtime#{'s' unless healthy == 1} healthy", 'ok']
+      else
+        needs = acts.count { |a| a[:setup].to_s.casecmp('Ready') != 0 }
+        needs.positive? ? ["#{needs} need setup", 'warn'] : ['Ready', 'ok']
+      end
+    end
 
     def target_label_for(type, url)
       case type
