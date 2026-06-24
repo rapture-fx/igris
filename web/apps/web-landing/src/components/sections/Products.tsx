@@ -190,7 +190,7 @@ function ConsoleStyles() {
         color-scheme: light;
         --ic-bg: #f9f9fa;
         --ic-bg-rail: #f9f9fa;
-        --ic-text: #1b1912;
+        --ic-text: #171717;
         --ic-text-bright: #000000;
         --ic-text-2: #2a2820;
         --ic-text-3: #3a3830;
@@ -210,7 +210,7 @@ function ConsoleStyles() {
         --ic-overlay-4: rgba(0,0,0,0.05);
         --ic-overlay-5: rgba(0,0,0,0.07);
         --ic-overlay-bg: rgba(0,0,0,0.02);
-        --ic-rail-active: #1b1912;
+        --ic-rail-active: #171717;
         --ic-dot-border: #f9f9fa;
         --ic-accent: #047857;
         --ic-emerald: #047857;
@@ -343,7 +343,7 @@ function ConsoleStyles() {
 
       /* Pills */
       .igris-console .ig-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--ic-overlay-3); border: 1px solid var(--ic-border); color: var(--ic-text-3); white-space: nowrap; }
-      .igris-console .ig-pill--ok    { color: var(--ic-emerald); border-color: rgba(4,120,87,0.25); background: rgba(4,120,87,0.10); }
+      .igris-console .ig-pill--ok    { color: #171717; border-color: rgba(23,23,23,0.25); background: rgba(23,23,23,0.10); }
       .igris-console .ig-pill--warn  { color: var(--ic-amber);   border-color: rgba(251,191,36,0.25);  background: rgba(251,191,36,0.08); }
       .igris-console .ig-pill--bad   { color: var(--ic-rose);    border-color: rgba(244,63,94,0.25); background: rgba(244,63,94,0.08); }
       .igris-console .ig-pill--muted { color: var(--ic-text-4); }
@@ -1311,7 +1311,7 @@ function ExecDetailRail({ variant }: { variant?: RunDetailSnippetVariant }) {
           <p className="ic-nextstep__sub">{next.sub}</p>
         </div>
         <div className="ic-nextstep__cta">
-          <button type="button" className="inline-flex items-center h-6 px-2 rounded-md text-[11px] cursor-default bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/25">{next.cta}</button>
+          <button type="button" className="inline-flex items-center h-6 px-2 rounded-md text-[11px] cursor-default bg-[#171717] text-white border border-transparent">{next.cta}</button>
         </div>
       </div>
     </aside>
@@ -2110,7 +2110,7 @@ function ProductShowcaseTabs() {
 
 export default function Products() {
   return (
-    <section id="product" className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <section id="product" className="bg-white text-[#171717]">
       <div className="px-0">
         <div className="px-0">
           <div className="pt-20 md:pt-28 lg:pt-32 pb-20 md:pb-32">
