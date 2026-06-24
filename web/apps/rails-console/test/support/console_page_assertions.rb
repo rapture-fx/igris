@@ -8,8 +8,8 @@
 # like bare "Workspace" on /home — that page intentionally does not render
 # workspace chrome. See welcome_home_split_test.rb for the canonical split.
 module ConsolePageAssertions
-  # /home — onboarding entry point (install-first layout)
-  HOME_ONBOARDING_TITLE = 'Install Igris'
+  # /home — onboarding entry point (setup-first layout)
+  HOME_ONBOARDING_TITLE = 'Set up Igris'
   HOME_CONSOLE_RAIL = 'ic-rail'
   HOME_OVERVIEW_LINK = 'Go to Overview'
 
