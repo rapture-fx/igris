@@ -54,13 +54,13 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('igris-theme') || 'light';
-                  var bg = theme === 'dark' ? '#010203' : '#ffffff';
-                  document.documentElement.classList.add(theme);
-                  document.documentElement.style.backgroundColor = bg;
-                  document.body.style.backgroundColor = bg;
+                  // Geist Light is the single theme for the landing page.
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                  document.documentElement.style.backgroundColor = '#ffffff';
+                  document.body.style.backgroundColor = '#ffffff';
                   var meta = document.querySelector('meta[name="theme-color"]');
-                  if (meta) meta.setAttribute('content', bg);
+                  if (meta) meta.setAttribute('content', '#ffffff');
                 } catch (e) {}
               })();
             `,
