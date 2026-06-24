@@ -370,6 +370,17 @@ html.dark .ic-rail__logo-img--dark  { display: block; }
 }
 .ic-rail__search-input:focus { border-color: var(--ic-text-6); }
 .ic-rail__search-input::placeholder { color: var(--ic-text-7); }
+.ic-rail__search-input-wrap { position: relative; }
+.ic-rail--expanded .ic-rail__search-input-wrap { width: 196px; }
+.ic-rail__search-hint {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  font-family: var(--ic-mono); font-size: 9px; color: var(--ic-text-8);
+  background: var(--ic-overlay-3); padding: 1px 4px; border-radius: 3px;
+  border: 1px solid var(--ic-border-soft); line-height: 1.3;
+  pointer-events: none; opacity: 0; transition: opacity 150ms ease;
+}
+.ic-rail--expanded .ic-rail__search-hint { opacity: 1; }
+.ic-rail__search-input:focus ~ .ic-rail__search-hint { opacity: 0; }
 
 /* Profile avatar — bottom of rail */
 .ic-rail__avatar {
