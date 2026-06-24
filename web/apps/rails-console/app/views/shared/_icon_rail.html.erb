@@ -1,14 +1,37 @@
 <%#
-  Icon rail — 1:1 port of IconRail() in
-  web/apps/web-landing/src/components/sections/Products.tsx.
-  40px column · 36×36 buttons · 15×15 lucide icons at strokeWidth 1.5.
+  Collapsible sidebar — replaces the icon rail.
+  Collapsed: 48px icon-only rail.
+  Expanded: ~212px shows icon + label, toggle button, search bar.
 %>
-<nav class="ic-rail" aria-label="Console lenses">
-  <%= link_to home_path, class: 'ic-rail__logo', 'aria-label': 'Igris' do %>
-    <%= image_tag '/inertia.png',     class: 'ic-rail__logo-img ic-rail__logo-img--light', alt: '' %>
-    <%= image_tag '/fofotlight.png',  class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
-  <% end %>
+<nav class="ic-rail" id="ic-rail" aria-label="Console navigation">
+  <%# Top row: logo + title + toggle %>
+  <div class="ic-rail__top">
+    <%= link_to home_path, class: 'ic-rail__logo', 'aria-label': 'Igris' do %>
+      <%= image_tag '/inertia.png',     class: 'ic-rail__logo-img ic-rail__logo-img--light', alt: '' %>
+      <%= image_tag '/fofotlight.png',  class: 'ic-rail__logo-img ic-rail__logo-img--dark',  alt: '' %>
+    <% end %>
+    <span class="ic-rail__title">Igris</span>
+    <button type="button" class="ic-rail__toggle ic-rail__toggle--top" id="ic-rail-toggle" aria-label="Collapse sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/>
+      </svg>
+    </button>
+  </div>
 
+  <%# Search — icon when collapsed, full input when expanded %>
+  <div class="ic-rail__search">
+    <button type="button" class="ic-rail__search-btn" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+      </svg>
+    </button>
+    <div class="ic-rail__search-input-wrap">
+      <input type="search" class="ic-rail__search-input" placeholder="Search..." aria-label="Search" />
+      <kbd class="ic-rail__search-hint"><%= RUBY_PLATFORM =~ /darwin/ ? '⌘' : 'Ctrl+' %>F</kbd>
+    </div>
+  </div>
+
+  <%# Navigation items %>
   <div class="ic-rail__items">
     <% rail_items = [
       [:home,     home_path,     'Home',     'house'],
@@ -22,17 +45,26 @@
     <% rail_items.each do |id, path, label, icon| %>
       <%= link_to path,
           class: "ic-rail__btn #{'is-active' if active_lens?(id)}",
-          'aria-label': label,
-          'data-tip': label do %>
+          'aria-label': label do %>
         <%= console_icon(icon, size: 18, stroke: 1.7) %>
+        <span class="ic-rail__label"><%= label %></span>
       <% end %>
     <% end %>
   </div>
 
-  <%# Profile — clickable dropdown (Settings, API ref, Status, Support, ...) %>
+  <%# Bottom toggle — visible when collapsed %>
+    <button type="button" class="ic-rail__toggle ic-rail__toggle--bottom" id="ic-rail-toggle-bottom" aria-label="Expand sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m17 9-3 3 3 3"/>
+      </svg>
+    </button>
+
+  <%# Profile — clickable dropdown %>
   <details class="ic-rail__avatar" data-tip="Account">
     <summary aria-label="Account menu">
       <%= image_tag '/emeralds.jpg', alt: '' %>
+      <span class="ic-rail__avatar__dot"></span>
+      <span class="ic-rail__avatar-name">Operator</span>
     </summary>
     <div class="ic-rail__menu" role="menu">
       <div class="ic-rail__menu__head">
@@ -40,7 +72,6 @@
         <span class="ic-rail__menu__email">operator@igrisinertial.com</span>
       </div>
 
-      <%# Settings lives on the icon rail (the gear above) — not duplicated here. %>
       <a href="https://igrisinertial.com/docs/api" target="_blank" rel="noopener" class="ic-rail__menu__item" role="menuitem">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
         <span>API reference</span>
@@ -90,10 +121,78 @@
   </details>
 </nav>
 
-<%# Dropdown dismiss + theme toggle (no JS framework needed). %>
+<%# Search overlay — compact centered input %>
+<div class="ic-search-overlay" id="ic-search-overlay" role="dialog" aria-modal="true" aria-label="Search">
+  <div class="ic-search-overlay__backdrop" id="ic-search-overlay-backdrop"></div>
+  <div class="ic-search-overlay__panel">
+    <svg class="ic-search-overlay__ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+      <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+    </svg>
+    <input type="search" class="ic-search-overlay__input" id="ic-search-overlay-input" placeholder="Search runs, actions, agents\u2026" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Search" />
+    <kbd class="ic-search-overlay__hint">ESC</kbd>
+  </div>
+</div>
+
+<style>
+  .ic-search-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 20vh 16px 0; pointer-events: none; opacity: 0;
+    transition: opacity 120ms ease;
+  }
+  .ic-search-overlay.is-open { pointer-events: auto; opacity: 1; }
+  .ic-search-overlay__backdrop {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.25);
+  }
+  html.dark .ic-search-overlay__backdrop { background: rgba(0,0,0,0.45); }
+  .ic-search-overlay__panel {
+    position: relative; display: flex; align-items: center; gap: 10px;
+    width: 100%; max-width: 480px; height: 44px;
+    background: var(--ic-bg); border: 1px solid var(--ic-border);
+    border-radius: 10px; padding: 0 14px;
+    box-shadow: 0 8px 24px -6px rgba(0,0,0,0.12);
+    transform: translateY(-4px); transition: transform 120ms ease;
+  }
+  .is-open .ic-search-overlay__panel { transform: translateY(0); }
+  .ic-search-overlay__ico { color: var(--ic-text-7); flex-shrink: 0; }
+  .ic-search-overlay__input {
+    flex: 1; min-width: 0; border: 0; outline: none; background: transparent;
+    font-size: 14px; font-family: inherit; color: var(--ic-text); line-height: 1;
+  }
+  .ic-search-overlay__input::placeholder { color: var(--ic-text-7); }
+  .ic-search-overlay__hint {
+    font-family: var(--ic-mono); font-size: 10px; color: var(--ic-text-8);
+    background: var(--ic-overlay-3); padding: 2px 5px; border-radius: 4px;
+    border: 1px solid var(--ic-border-soft); flex-shrink: 0; line-height: 1;
+  }
+</style>
+
 <script>
   (function() {
-    const details = document.querySelector('.ic-rail__avatar');
+    var rail = document.getElementById('ic-rail');
+    var toggle = document.getElementById('ic-rail-toggle');
+
+    // Restore expanded state, but auto-collapse on run detail pages
+    // (runs detail has its own mini sidebar, so the main rail should be collapsed)
+    var isRunDetail = window.location.pathname.match(/^\/runs\/.+/);
+    try {
+      var saved = localStorage.getItem('ic-rail-expanded');
+      if (saved === 'true' && !isRunDetail) rail.classList.add('ic-rail--expanded');
+    } catch (e) {}
+
+    function toggleRail(e) {
+      e.stopPropagation();
+      var isExpanded = rail.classList.toggle('ic-rail--expanded');
+      try { localStorage.setItem('ic-rail-expanded', isExpanded ? 'true' : 'false'); } catch (e) {}
+    }
+
+    // Toggle on click — both top and bottom buttons
+    if (toggle) toggle.addEventListener('click', toggleRail);
+    var toggleBottom = document.getElementById('ic-rail-toggle-bottom');
+    if (toggleBottom) toggleBottom.addEventListener('click', toggleRail);
+
+    // Profile dropdown dismiss
+    var details = document.querySelector('.ic-rail__avatar');
     if (details) {
       document.addEventListener('click', function(e) {
         if (!details.open) return;
@@ -104,30 +203,29 @@
       });
     }
 
+    // Theme toggle sync
     function syncToggle() {
-      const dark = document.documentElement.classList.contains('dark');
-      const state = document.getElementById('ic-theme-toggle-state');
-      const btn = document.getElementById('ic-theme-toggle');
+      var dark = document.documentElement.classList.contains('dark');
+      var state = document.getElementById('ic-theme-toggle-state');
+      var btn = document.getElementById('ic-theme-toggle');
       if (state) state.textContent = dark ? 'on' : 'off';
       if (btn) btn.setAttribute('aria-checked', dark ? 'true' : 'false');
     }
     syncToggle();
-    const btn = document.getElementById('ic-theme-toggle');
-    if (btn) {
-      btn.addEventListener('click', function(e) {
+    var themeBtn = document.getElementById('ic-theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        const dark = !document.documentElement.classList.contains('dark');
+        var dark = !document.documentElement.classList.contains('dark');
         document.documentElement.classList.toggle('dark', dark);
         try { localStorage.setItem('ic-theme', dark ? 'dark' : 'light'); } catch (e) {}
         syncToggle();
       });
     }
 
-    // Sign out: end the BetterAuth session via the console's /api/auth proxy,
-    // then go to /home. With the session cleared, the server redirects to the
-    // landing sign-in page, so no landing URL needs to be hardcoded here.
-    const signout = document.getElementById('ic-signout');
+    // Sign out
+    var signout = document.getElementById('ic-signout');
     if (signout) {
       signout.addEventListener('click', function(e) {
         e.preventDefault();
@@ -142,5 +240,57 @@
         });
       });
     }
+
+    // Search overlay
+    var searchOverlay = document.getElementById('ic-search-overlay');
+    var searchBtn = document.querySelector('.ic-rail__search-btn');
+    var searchInput = document.querySelector('.ic-rail__search-input');
+    var overlayInput = document.getElementById('ic-search-overlay-input');
+    var overlayBackdrop = document.getElementById('ic-search-overlay-backdrop');
+    var searchActiveEl = null;
+
+    function openSearch(e) {
+      if (e) e.stopPropagation();
+      searchActiveEl = document.activeElement;
+      searchOverlay.classList.add('is-open');
+      setTimeout(function() { overlayInput.focus(); }, 50);
+    }
+
+    function closeSearch() {
+      searchOverlay.classList.remove('is-open');
+      overlayInput.value = '';
+      if (searchActiveEl && searchActiveEl.focus) {
+        setTimeout(function() { searchActiveEl.focus(); }, 50);
+      }
+    }
+
+    if (searchBtn) searchBtn.addEventListener('click', openSearch);
+    if (searchInput) searchInput.addEventListener('focus', openSearch);
+
+    if (overlayBackdrop) overlayBackdrop.addEventListener('click', closeSearch);
+
+    if (overlayInput) {
+      overlayInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { e.preventDefault(); closeSearch(); }
+      });
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && searchOverlay.classList.contains('is-open')) {
+        e.preventDefault();
+        closeSearch();
+      }
+      // Cmd+K / Ctrl+K or Cmd+F / Ctrl+F to toggle search
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'f')) {
+        e.preventDefault();
+        if (searchOverlay.classList.contains('is-open')) {
+          closeSearch();
+        } else {
+          searchActiveEl = document.activeElement;
+          searchOverlay.classList.add('is-open');
+          setTimeout(function() { overlayInput.focus(); }, 50);
+        }
+      }
+    });
   })();
 </script>
