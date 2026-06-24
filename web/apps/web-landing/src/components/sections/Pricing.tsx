@@ -16,12 +16,12 @@ const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospac
 const MONO = 'var(--font-geist-pixel-square), "Geist Pixel Square", "SF Mono", ui-monospace, monospace';
 
 const CARD_CLASS =
-  'flex h-full flex-col rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-[#f7f7f5] dark:bg-[#0e0e0c] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.05)]';
+  'flex h-full flex-col rounded-[12px] border border-[#ebebeb] bg-[#fafafa] shadow-[0_2px_2px_rgba(0,0,0,0.04)]';
 
-const DIVIDER = 'border-dashed border-black/[0.14] dark:border-white/[0.12]';
+const DIVIDER = 'border-dashed border-black/[0.1]';
 
 const CTA_CLASS =
-  'inline-flex items-center justify-center px-3.5 py-1.5 text-[11px] font-medium rounded-xl transition-opacity hover:opacity-80 bg-[#1b1912] text-[#f6f6f4] dark:bg-[#f6f6f4] dark:text-[#1b1912]';
+  'inline-flex items-center justify-center h-8 px-3 text-[12px] font-medium rounded-[6px] transition-colors bg-[#171717] text-white hover:bg-[#383838]';
 
 const MOTION_EASE = [0.22, 1, 0.36, 1] as const;
 const PRICE_COUNT_DURATION = 1.4;
@@ -345,8 +345,8 @@ function BillingToggle({
               className={
                 'relative rounded-lg px-3.5 py-1.5 text-[11px] ' +
                 (active
-                  ? 'text-[#f6f6f4] dark:text-[#1b1912]'
-                  : 'text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4]')
+                  ? 'text-white'
+                  : 'text-[#4d4d4d] hover:text-[#171717]')
               }
               style={{
                 fontFamily: SANS,
@@ -358,7 +358,7 @@ function BillingToggle({
               {active && (
                 <motion.span
                   layoutId="billing-toggle-pill"
-                  className="absolute inset-0 rounded-lg bg-[#1b1912] dark:bg-[#f6f6f4]"
+                  className="absolute inset-0 rounded-lg bg-[#171717]"
                   transition={{
                     duration: reducedMotion ? 0 : TAB_TRANSITION_DURATION,
                     ease: MOTION_EASE,
@@ -381,7 +381,7 @@ export default function Pricing() {
   return (
     <section
       id="pricing"
-      className="bg-white dark:bg-[#110f0f] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+      className="bg-white text-[#171717]"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 pb-16 md:pb-20">
         <BillingToggle interval={interval} onChange={setInterval} />
@@ -402,13 +402,13 @@ export default function Pricing() {
                   <header className={`${DIVIDER} border-b pb-5`}>
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
-                        className="text-black dark:text-[#f6f6f4]"
+                        className="text-[#171717]"
                         style={{
                           fontFamily: SANS,
-                          fontWeight: 500,
+                          fontWeight: 600,
                           fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
                           lineHeight: 1.3,
-                          letterSpacing: '-0.01em',
+                          letterSpacing: '-0.02em',
                         }}
                       >
                         {tier.name}
@@ -473,19 +473,19 @@ export default function Pricing() {
           <div className="flex flex-col gap-5 px-6 py-6 md:px-8 md:py-7 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-[52ch]">
               <p
-                className="text-black dark:text-[#f6f6f4]"
+                className="text-[#171717]"
                 style={{
                   fontFamily: SANS,
-                  fontWeight: 500,
+                  fontWeight: 600,
                   fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
                   lineHeight: 1.35,
-                  letterSpacing: '-0.01em',
+                  letterSpacing: '-0.02em',
                 }}
               >
                 Evaluating Igris for production use?
               </p>
               <p
-                className="mt-2 text-gray-600 dark:text-[#a8a898]"
+                className="mt-2 text-[#4d4d4d]"
                 style={{ fontFamily: SANS, fontSize: '0.9rem', lineHeight: 1.6 }}
               >
                 Request a private preview for a guided technical demo, architecture review, and
@@ -494,7 +494,7 @@ export default function Pricing() {
             </div>
             <a
               href="mailto:sales@igrisinertial.com"
-              className="shrink-0 inline-flex items-center justify-center rounded-xl border border-dashed border-black/[0.14] dark:border-white/[0.12] bg-white/80 dark:bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-medium text-gray-700 dark:text-[#f6f6f4] transition-opacity hover:opacity-80"
+              className="shrink-0 inline-flex items-center justify-center h-8 rounded-[6px] border border-[rgba(0,0,0,0.08)] bg-white px-3 text-[12px] font-medium text-[#171717] transition-colors hover:bg-[#fafafa] hover:border-[rgba(0,0,0,0.12)]"
               style={{ fontFamily: SANS }}
             >
               Request private preview
