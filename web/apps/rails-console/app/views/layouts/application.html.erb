@@ -20,9 +20,12 @@
       })();
     </script>
     <%= stylesheet_link_tag 'application' %>
-    <link rel="preconnect" href="https://rsms.me/">
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
-    <style>:root { font-family: 'Inter', sans-serif; }</style>
+    <%# Geist — Vercel's type family. Geist Sans for UI/prose, Geist Mono for
+        code, data, and tabular figures. %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+    <style>:root { font-family: 'Geist', sans-serif; }</style>
     <%# ldrs LineSpinner — same loader library the landing-page hero uses. %>
     <script type="module">
       import { lineSpinner } from 'https://cdn.jsdelivr.net/npm/ldrs@1.0.2/+esm';
