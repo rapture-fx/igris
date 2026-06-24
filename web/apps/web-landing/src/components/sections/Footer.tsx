@@ -6,7 +6,6 @@ import { useTheme } from 'next-themes'
 import { DOCS_LINKS, DOCS_ORIGIN } from '../../lib/docs-urls'
 import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections'
 import LandingSectionLink from '../LandingSectionLink'
-import ThemeToggleButton from '../ThemeToggleButton'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
@@ -112,7 +111,7 @@ function FooterNavLink({ link }: { link: FooterLink }) {
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 dark:bg-[#0e0e0c] text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200">
+    <footer className="bg-[#fafafa] text-[#171717] border-t border-[#ebebeb]">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="pt-10 md:pt-14 pb-16 md:pb-20">
           <div className="flex flex-col items-start gap-16 lg:gap-24 lg:flex-row lg:items-start lg:justify-between">
@@ -167,7 +166,6 @@ export default function Footer() {
           </p>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <ThemeToggleButton className="rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-200/80 hover:text-gray-900 dark:text-[#8a8a7a] dark:hover:bg-white/[0.08] dark:hover:text-[#f6f6f4]" />
             <nav
               className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
               style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
