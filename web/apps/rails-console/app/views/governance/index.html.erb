@@ -1,0 +1,67 @@
+<%#
+  Governance hub — presents the four governance surfaces as one workflow. Every
+  card links to the surface that already implements it (under the Runs lens); no
+  governance logic lives here. Recommendations and Policy simulation share the
+  Intelligence surface, so both open it.
+%>
+<style>
+  .ic-gov-intro { font-size: 12.5px; color: var(--ic-text-6); line-height: 1.6; margin: 16px 16px 6px; max-width: 720px; }
+  .ic-gov-grid { padding: 8px 16px 28px; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; max-width: 860px; }
+  .ic-gov-card {
+    display: flex; flex-direction: column; gap: 6px; padding: 16px;
+    border: 1px solid var(--ic-border-soft); border-radius: 12px;
+    background: var(--ic-overlay-bg); color: inherit; text-decoration: none;
+  }
+  .ic-gov-card:hover { border-color: var(--ic-border); }
+  .ic-gov-card__head { display: flex; align-items: center; gap: 9px; }
+  .ic-gov-card__icon { color: var(--ic-text-5); display: inline-flex; }
+  .ic-gov-card__title { font-size: 13.5px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-gov-card__text { font-size: 12px; color: var(--ic-text-6); line-height: 1.55; }
+  .ic-gov-card__cta { font-size: 11.5px; color: var(--ic-text-5); margin-top: 2px; }
+  @media (max-width: 700px) { .ic-gov-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="igris-console" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+  <div class="ic-topbar">
+    <div class="ic-topbar__group">
+      <span class="ic-topbar__title">Governance</span>
+      <%= project_chip %>
+    </div>
+    <div class="ic-topbar__group">
+      <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+    </div>
+  </div>
+
+  <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+  <div class="ic-body ic-scroll">
+    <p class="ic-gov-intro">
+      Governance is how you turn what Igris observed into reviewed change. Start with
+      what needs attention, check behavior against your bar, then propose and try a
+      policy change before it ships. Each surface below already runs under the Runs lens.
+    </p>
+
+    <% cards = [
+      { icon: 'shield-check', title: 'Recommendations', href: runs_path(view: 'intelligence'),
+        text: 'What needs attention right now, ranked from real execution signals. Each one says why you are seeing it and what to investigate.' },
+      { icon: 'circle-check', title: 'Evaluations', href: evaluations_path,
+        text: 'Check agent behavior against the assertions you define, on demand or over a window of runs.' },
+      { icon: 'file-text', title: 'Policy proposals', href: proposals_path,
+        text: 'Draft, review, and approve a policy change as governance — nothing here mutates active policy until approved.' },
+      { icon: 'layers', title: 'Policy simulation', href: runs_path(view: 'intelligence'),
+        text: 'Try a candidate rule against past runs to see what it would have allowed, blocked, or gated — before you propose it.' },
+    ] %>
+    <div class="ic-gov-grid">
+      <% cards.each do |card| %>
+        <%= link_to card[:href], class: 'ic-gov-card' do %>
+          <span class="ic-gov-card__head">
+            <span class="ic-gov-card__icon"><%= console_icon(card[:icon], size: 17, stroke: 1.7) %></span>
+            <span class="ic-gov-card__title"><%= card[:title] %></span>
+          </span>
+          <span class="ic-gov-card__text"><%= card[:text] %></span>
+          <span class="ic-gov-card__cta">Open <%= console_icon('arrow-right', size: 12, stroke: 1.8) %></span>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>
