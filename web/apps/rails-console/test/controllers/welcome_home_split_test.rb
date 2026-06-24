@@ -48,17 +48,17 @@ class WelcomeHomeSplitTest < ActionDispatch::IntegrationTest
     get '/home'
     assert_response :success
     assert_home_onboarding_page
-    assert_match 'install the runtime', response.body
-    assert_match 'create an agent', response.body
-    assert_match 'register an action', response.body
-    assert_match 'execute a run', response.body
-    assert_match 'review proof', response.body
+    assert_match 'Install the runtime', response.body
+    assert_match 'Connect your first agent', response.body
+    assert_match 'Create or install actions', response.body
+    assert_match 'Run and verify', response.body
+    assert_match 'proof', response.body
   end
 
   test 'home links to next steps and overview' do
     get '/home'
-    assert_match 'create an agent', response.body
-    assert_match 'register an action', response.body
+    assert_match 'Connect your first agent', response.body
+    assert_match 'Create or install actions', response.body
     assert_match 'Go to Overview', response.body
   end
 
