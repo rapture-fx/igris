@@ -1,14 +1,17 @@
 module ConsoleHelper
   # Lens detection mirrors web-console/components/console/IconRail.tsx#isActive.
   # Home is onboarding (/home); Overview is the everyday workspace (/overview).
+  # Order matters: first match wins. Connections owns the Runtimes detail page
+  # (Runtimes is the local-runtime connection), and Governance owns its hub.
   LENS_MATCHERS = {
-    home:     %w[/home],
-    overview: %w[/overview],
-    actions:  %w[/actions],
-    agents:   %w[/agents],
-    runs:     %w[/runs],
-    runtimes: %w[/runtimes],
-    settings: %w[/settings],
+    home:        %w[/home],
+    overview:    %w[/overview],
+    agents:      %w[/agents],
+    actions:     %w[/actions],
+    connections: %w[/connections /runtimes],
+    governance:  %w[/governance],
+    runs:        %w[/runs],
+    settings:    %w[/settings],
   }.freeze
 
   def active_lens
