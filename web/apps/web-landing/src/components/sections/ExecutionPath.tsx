@@ -201,7 +201,7 @@ export default function ExecutionPath() {
   return (
     <section
       id="action-endpoint"
-      className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+      className="bg-white text-[#171717]"
     >
       <EndpointStyles />
       <div className="pt-10 md:pt-14 pb-20 md:pb-32">
@@ -478,7 +478,7 @@ function EndpointStyles() {
         --p-bar: #f9f9fa;
         --p-border: rgba(0,0,0,0.09);
         --p-border-soft: rgba(0,0,0,0.06);
-        --p-text: #1b1912;
+        --p-text: #171717;
         --p-dim: #6e6b62;
         --p-faint: #8a8780;
         --p-gutter: #b3b0a8;
@@ -675,7 +675,7 @@ function EndpointStyles() {
         padding: 14px 16px;
         font-size: 12.5px;
         line-height: 1.6;
-        color: #1b1912;
+        color: #171717;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
@@ -714,7 +714,7 @@ function EndpointStyles() {
       }
       .ae-worker-copy-btn:hover,
       .ae-worker-copy-btn:focus-visible {
-        color: #1b1912;
+        color: #171717;
         outline: none;
       }
       html.dark .ae-worker-copy-btn { color: #8a8a82; }
