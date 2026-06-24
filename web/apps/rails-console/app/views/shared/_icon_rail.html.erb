@@ -31,23 +31,44 @@
     </div>
   </div>
 
-  <%# Navigation items %>
+  <%# Navigation items — ordered as the operator journey: Connect → Execute →
+      Verify. Home is first-run onboarding; Overview is the daily workspace;
+      Settings is utility. Improve (Intelligence, Evaluations, Proposals, Trust)
+      lives inside the Runs lens, not the rail. Group headers show only when the
+      rail is expanded; collapsed stays a clean icon rail. %>
   <div class="ic-rail__items">
-    <% rail_items = [
-      [:home,     home_path,     'Home',     'house'],
-      [:overview, overview_path, 'Overview', 'layout-dashboard'],
-      [:actions,  actions_path,  'Actions',  'list-checks'],
-      [:agents,   agents_path,   'Agents',   'users'],
-      [:runs,     runs_path,     'Runs',     'zap'],
-      [:runtimes, runtimes_path, 'Runtimes', 'box'],
-      [:settings, settings_path, 'Settings', 'settings'],
+    <% rail_sections = [
+      { items: [
+        [:home,     home_path,     'Home',     'house'],
+        [:overview, overview_path, 'Overview', 'layout-dashboard'],
+      ] },
+      { label: 'Set up', items: [
+        [:agents,      agents_path,      'Agents',      'users'],
+        [:actions,     actions_path,     'Actions',     'list-checks'],
+        [:connections, connections_path, 'Connections', 'link'],
+      ] },
+      { label: 'Operate', items: [
+        [:runs,       runs_path,       'Runs',       'zap'],
+        [:governance, governance_path, 'Governance', 'shield-check'],
+      ] },
+      { items: [
+        [:settings, settings_path, 'Settings', 'settings'],
+      ] },
     ] %>
-    <% rail_items.each do |id, path, label, icon| %>
-      <%= link_to path,
-          class: "ic-rail__btn #{'is-active' if active_lens?(id)}",
-          'aria-label': label do %>
-        <%= console_icon(icon, size: 18, stroke: 1.7) %>
-        <span class="ic-rail__label"><%= label %></span>
+    <% rail_sections.each_with_index do |section, i| %>
+      <% if i.positive? %>
+        <div class="ic-rail__section" aria-hidden="true">
+          <% if section[:label] %><span class="ic-rail__section-label"><%= section[:label] %></span><% end %>
+          <span class="ic-rail__section-rule"></span>
+        </div>
+      <% end %>
+      <% section[:items].each do |id, path, label, icon| %>
+        <%= link_to path,
+            class: "ic-rail__btn #{'is-active' if active_lens?(id)}",
+            'aria-label': label do %>
+          <%= console_icon(icon, size: 18, stroke: 1.7) %>
+          <span class="ic-rail__label"><%= label %></span>
+        <% end %>
       <% end %>
     <% end %>
   </div>
@@ -134,6 +155,21 @@
 </div>
 
 <style>
+  /* Rail group headers — Connect / Execute / Verify. Shown only when the rail
+     is expanded; collapsed stays a clean icon rail. Inlined here because
+     application.css is Propshaft-cached until a server restart. */
+  .ic-rail__section { display: none; }
+  .ic-rail--expanded .ic-rail__section {
+    display: flex; align-items: center; gap: 8px;
+    height: 24px; margin: 8px 12px 1px; padding: 0;
+  }
+  .ic-rail__section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--ic-text-7);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .ic-rail__section-rule { flex: 1; height: 1px; background: var(--ic-border-soft); }
+
   .ic-search-overlay {
     position: fixed; inset: 0; z-index: 9999;
     display: flex; align-items: flex-start; justify-content: center;
