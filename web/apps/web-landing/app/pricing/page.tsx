@@ -10,26 +10,26 @@ import ScrollReveal from '../../src/components/ui/ScrollReveal'
 
 export default function PricingPage() {
   return (
-    <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200 pt-14">
+    <div className="igris-grain min-h-screen bg-white text-[#171717] pt-14">
       <Header />
       <main>
         <ScrollReveal>
           <section className="pt-40 pb-10 md:pb-12">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 text-center">
               <h1
-                className="text-gray-700 dark:text-[#c8c8b8] max-w-lg mx-auto"
+                className="text-[#171717] max-w-lg mx-auto"
                 style={{
-                  fontFamily: 'var(--font-geist-pixel-square, Geist Pixel Square, monospace)',
-                  fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.6vw, 2rem)',
+                  fontFamily: 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                  fontWeight: 600,
+                  fontSize: 'clamp(1.6rem, 3vw, 2.5rem)',
                   lineHeight: 1.1,
-                  letterSpacing: '-0.01em',
+                  letterSpacing: '-0.03em',
                 }}
               >
                 Pricing
               </h1>
               <p
-                className="mt-5 mx-auto max-w-[52ch] text-gray-600 dark:text-[#a8a898]"
+                className="mt-5 mx-auto max-w-[52ch] text-[#4d4d4d]"
                 style={{
                   fontFamily: 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                   fontSize: 'clamp(1.05rem, 1.25vw, 1.2rem)',
