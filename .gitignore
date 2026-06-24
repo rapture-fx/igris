@@ -100,6 +100,12 @@ jspm_packages/
 .env.production.local
 .env.local
 .env.run-recover-prove-local
+# Catch-all: ignore every local env file regardless of suffix, but keep the
+# tracked placeholder template. Prior rules (*.env, *.env.local) did NOT match
+# .env.azure.local, which let real Azure/Neon credentials get committed
+# (see LAUNCH_GATE_REVIEW_2026-06-24.md). This closes that gap for the future.
+.env.*
+!.env.example
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
