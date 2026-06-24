@@ -72,9 +72,8 @@
       <% @runs.each do |r| %>
         <% tone = run_tone(r)
            attn = run_needs_attention?(r) %>
-        <div class="ic-run-row <%= 'ic-run-row--attn' if attn %>">
-          <%= link_to run_path(r[:id]), class: 'ic-run-row__open ic-runs-row',
-                'aria-label': "Open run #{r[:id]}" do %>
+        <%= link_to run_path(r[:id]), class: "ic-run-row__open ic-runs-row #{'ic-run-row--attn' if attn}",
+              'aria-label': "Open run #{r[:id]}" do %>
             <span class="ic-run-row__cell ic-run-row__cell--action">
               <span class="ic-run-row__title"><%= r[:action] %></span>
               <span class="ic-run-row__id mono"><%= r[:id] %></span>
@@ -109,7 +108,6 @@
             <span class="ic-run-row__cell mono ic-run-row__dur"><%= r[:duration_ms] ? "#{r[:duration_ms]}ms" : '—' %></span>
             <span class="ic-run-row__cell ic-run-row__when"><%= time_ago(r[:started_at]) %></span>
           <% end %>
-        </div>
       <% end %>
     <% end %>
   </div>
