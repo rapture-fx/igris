@@ -1,19 +1,29 @@
-<%# Home — onboarding entry point. Compact, action-oriented, no documentation prose. %>
-<%
-  api_label =
-    if @degraded_error then 'Degraded'
-    elsif demo_mode?   then 'Demo data'
-    else                    'Connected'
-    end
-%>
+<%# Home — setup-first. Answers "how do I start?" in order: install, connect an
+    agent, create actions, run and verify. Short operational copy, copyable
+    commands, and a peek at recent activity. Not a dashboard, not docs. The
+    everyday workspace lives on /overview. %>
+<style>
+  .ic-setup { max-width: 720px; margin: 0 auto; padding: 28px 16px 40px; width: 100%; }
+  .ic-setup__title { font-size: 22px; font-weight: 600; color: var(--ic-text-bright); letter-spacing: -0.01em; margin: 0; }
+  .ic-setup__value { font-size: 13px; color: var(--ic-text-5); line-height: 1.65; margin: 8px 0 0; max-width: 640px; }
+  .ic-steps { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
+  .ic-step { display: grid; grid-template-columns: 26px 1fr; column-gap: 14px; }
+  .ic-step__num { width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--ic-border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--ic-text-4); font-variant-numeric: tabular-nums; }
+  .ic-step__body { min-width: 0; }
+  .ic-step__title { font-size: 14px; font-weight: 600; color: var(--ic-text-bright); margin: 3px 0 0; }
+  .ic-step__text { font-size: 12px; color: var(--ic-text-6); line-height: 1.6; margin: 4px 0 0; }
+  .ic-step__links { margin: 9px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .ic-step__code { margin-top: 10px; }
+  .ic-home-recent { margin: 34px 0 0; }
+  .ic-home-recent__head { font-size: 12px; color: var(--ic-text-5); margin: 0 0 8px; display: flex; align-items: center; justify-content: space-between; }
+  .ic-home-recent__link { font-size: 11.5px; color: var(--ic-text-5); }
+</style>
 
 <div class="ic-topbar">
   <div class="ic-topbar__group">
     <span class="ic-topbar__title">Home</span>
     <%= project_chip %>
-    <% if demo_mode? %>
-      <span class="ic-status__pill is-warn">Demo data</span>
-    <% end %>
+    <% if demo_mode? %><span class="ic-status__pill is-warn">Demo data</span><% end %>
   </div>
   <div class="ic-topbar__group">
     <a href="https://igrisinertial.com/docs" target="_blank" rel="noopener" class="ic-btn">Read docs</a>
@@ -23,23 +33,101 @@
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
 
-<div class="ic-body" style="display: flex; align-items: flex-start; justify-content: center; padding: 180px 0 0;">
-  <main class="ic-home-onboard" style="width: auto; max-width: 600px; margin: 0; padding: 0;">
-
-    <header class="ic-home-onboard__hero">
-      <h1 class="ic-home-onboard__title">Install Igris</h1>
-      <p class="ic-home-onboard__sub">
-        Run <code style="font-family: var(--ic-mono); font-size: 0.9em; color: var(--ic-text-2); background: var(--ic-overlay-3); padding: 1px 5px; border-radius: 4px;">curl -fsSL https://igrisinertial.com/install | bash</code>
-        to install the runtime and connect your first agent.
+<div class="ic-body ic-scroll">
+  <div class="ic-setup">
+    <header>
+      <h1 class="ic-setup__title">Set up Igris</h1>
+      <p class="ic-setup__value">
+        Your agent calls Igris instead of calling tools directly. Igris applies
+        policy, routes execution, recovers from failures, and proves what happened.
       </p>
     </header>
 
-    <p class="ic-home-onboard__sub">
-      Next: <a href="<%= agents_path %>" class="ic-home-onboard__step-cta">create an agent</a>,
-      <a href="<%= new_action_path %>" class="ic-home-onboard__step-cta">register an action</a>,
-      <a href="<%= runs_path %>" class="ic-home-onboard__step-cta">execute a run</a>, and
-      <a href="<%= runs_path %>" class="ic-home-onboard__step-cta">review proof</a>.
-    </p>
+    <ol class="ic-steps">
+      <li class="ic-step">
+        <span class="ic-step__num">1</span>
+        <div class="ic-step__body">
+          <div class="ic-step__title">Install the runtime</div>
+          <p class="ic-step__text">Installs the Igris runtime on this machine.</p>
+          <div class="ic-step__code">
+            <%= render 'shared/code_snippet', language: 'bash',
+                  code: 'curl -fsSL https://igrisinertial.com/install | bash' %>
+          </div>
+        </div>
+      </li>
 
-  </main>
+      <li class="ic-step">
+        <span class="ic-step__num">2</span>
+        <div class="ic-step__body">
+          <div class="ic-step__title">Connect your first agent</div>
+          <p class="ic-step__text">
+            Start the runtime, then point your agent — Claude Code, Cursor, Codex,
+            LangGraph, CrewAI, or a custom agent — at Igris with an API key.
+          </p>
+          <div class="ic-step__code">
+            <%= render 'shared/code_snippet', language: 'bash', code: 'igris-runtime serve' %>
+          </div>
+          <div class="ic-step__links">
+            <%= link_to 'Create an API key', settings_path(section: 'agent_keys'), class: 'ic-btn' %>
+            <%= link_to 'Getting started checklist', agents_path(view: 'adoption'), class: 'ic-btn' %>
+          </div>
+        </div>
+      </li>
+
+      <li class="ic-step">
+        <span class="ic-step__num">3</span>
+        <div class="ic-step__body">
+          <div class="ic-step__title">Create or install actions</div>
+          <p class="ic-step__text">
+            Actions are what your agent is allowed to do through Igris. Write one,
+            or install a ready-made Action Pack.
+          </p>
+          <div class="ic-step__links">
+            <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+            <%= link_to 'Browse Action Packs', agents_path(view: 'packs'), class: 'ic-btn' %>
+          </div>
+        </div>
+      </li>
+
+      <li class="ic-step">
+        <span class="ic-step__num">4</span>
+        <div class="ic-step__body">
+          <div class="ic-step__title">Run and verify</div>
+          <p class="ic-step__text">
+            Every call your agent makes is recorded as a run with proof of what
+            actually happened.
+          </p>
+          <div class="ic-step__links">
+            <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+            <%= link_to 'See connections', connections_path, class: 'ic-btn' %>
+          </div>
+        </div>
+      </li>
+    </ol>
+
+    <% recent = (@recent_runs || []).first(5) %>
+    <% if recent.any? %>
+      <section class="ic-home-recent">
+        <div class="ic-home-recent__head">
+          <span>Recent activity</span>
+          <%= link_to 'All runs', runs_path, class: 'ic-home-recent__link' %>
+        </div>
+        <div class="ic-feed">
+          <% recent.each do |r|
+               st = r[:status].to_s
+               tone = if st.casecmp('Failed').zero? then 'is-bad'
+                      elsif st.casecmp('Running').zero? then 'is-warn'
+                      else 'is-ok' end %>
+            <%= link_to run_path(r[:id]), class: 'ic-feed-item' do %>
+              <span class="ic-feed-item__title">Action <strong><%= r[:action] %></strong></span>
+              <span class="ic-feed-item__badges">
+                <span class="ic-feed-cell"><span class="ic-feed-badge <%= tone %>"><%= r[:status].presence || 'Succeeded' %></span></span>
+              </span>
+              <span class="ic-feed-item__meta"><%= time_ago(r[:started_at]) %></span>
+            <% end %>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
 </div>
