@@ -26,10 +26,10 @@ const LINES = [
 
 const LINE_STYLE: React.CSSProperties = {
   fontFamily: SANS,
-  fontWeight: 400,
+  fontWeight: 600,
   fontSize: BASE_SIZE,
   lineHeight: 1.2,
-  letterSpacing: '-0.03em',
+  letterSpacing: '-0.04em',
 }
 
 function HoverLine({
@@ -80,7 +80,7 @@ function HoverLine({
         </p>
         <p ref={expandedRef} className="m-0" style={LINE_STYLE}>
           {base}
-          <span className="text-gray-500 dark:text-[#8a8a7a]" style={{ fontFamily: SANS }}>{cont}</span>
+          <span className="text-[#8f8f8f]" style={{ fontFamily: SANS }}>{cont}</span>
         </p>
       </div>
 
@@ -93,7 +93,7 @@ function HoverLine({
         <p className="relative m-0 text-gray-900 dark:text-[#f6f6f4]" style={LINE_STYLE}>
           <span>{base}</span>
           <span
-            className="text-gray-500 dark:text-[#8a8a7a]"
+            className="text-[#8f8f8f]"
             style={
               active
                 ? {
@@ -127,7 +127,7 @@ export default function Vision() {
   return (
     <section
       aria-labelledby="vision-heading"
-      className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+      className="bg-white text-[#171717]"
     >
       <div className="mx-auto flex min-h-[80vh] max-w-[800px] flex-col justify-center px-4 sm:px-6 lg:px-8 py-24 md:py-40 lg:py-48">
         <h2 id="vision-heading" className="sr-only">Vision</h2>
