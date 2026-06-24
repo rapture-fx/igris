@@ -76,6 +76,17 @@ Rails.application.routes.draw do
   post '/runs/trust-recommendations/state', to: 'trust_recommendations#update', as: :trust_recommendation_state
 
   resources :runs, only: %i[index show]
+
+  # Connections — read-only "where does work go" view derived from action
+  # targets + the runtime fleet (no new backend). Runtimes is the local-runtime
+  # connection's detail/management surface, reached from here and from Settings.
+  resources :connections, only: :index
+
+  # Governance — a hub that ties Recommendations, Evaluations, Policy proposals,
+  # and Policy simulation into one workflow. The cards link to the existing
+  # surfaces (under the Runs lens); this adds no new governance backend.
+  get '/governance', to: 'governance#index', as: :governance
+
   resources :runtimes, only: :index do
     collection do
       post :api_key, to: 'runtimes#create_key'
