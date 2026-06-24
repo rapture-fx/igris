@@ -1,0 +1,226 @@
+name: Deploy BetterAuth to Azure
+
+# Deploys the BetterAuth upstream (web/apps/better-auth-upstream) as the
+# `igris-auth` Azure Container App. This service serves ALL customer
+# /api/auth/* (signup, login, password reset, email verification). The Rails
+# console proxies to it via BETTER_AUTH_UPSTREAM_URL.
+#
+# It updates the image AND wires the runtime env as Container App secrets +
+# secretrefs (values come from GitHub Environment secrets/vars — never echoed,
+# never committed). Build the image first via build-container-images.yml
+# (igris-auth), then run this with the pinned digest.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "GitHub environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      auth_image_digest:
+        description: "Pinned auth image digest, e.g. ghcr.io/igris-inertial/system/igris-auth@sha256:<64 hex chars>"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-auth-azure-${{ inputs.target_environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy igris-auth to ${{ inputs.target_environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_environment }}
+    env:
+      TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+      AUTH_IMAGE_DIGEST: ${{ inputs.auth_image_digest }}
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_CONTAINERAPPS_ENV: ${{ vars.AZURE_CONTAINERAPPS_ENV }}
+      # Defaults to "igris-auth" if the repo var is unset.
+      AZURE_AUTH_APP: ${{ vars.AZURE_AUTH_APP }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      # Auth runtime config — secrets (sensitive) and vars (non-sensitive URLs).
+      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_FROM_EMAIL: ${{ vars.RESEND_FROM_EMAIL }}
+      BETTER_AUTH_BASE_URL: ${{ vars.BETTER_AUTH_BASE_URL }}
+      NEXT_PUBLIC_LANDING_URL: ${{ vars.NEXT_PUBLIC_LANDING_URL }}
+      IGRIS_REQUIRE_EMAIL_VERIFICATION: ${{ vars.IGRIS_REQUIRE_EMAIL_VERIFICATION }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+      GITHUB_OAUTH_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deployment input
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          case "${TARGET_ENVIRONMENT}" in
+            staging|production) ;;
+            *)
+              echo "target_environment must be staging or production." >&2
+              exit 1
+              ;;
+          esac
+
+          case "${AUTH_IMAGE_DIGEST}" in
+            ghcr.io/*@sha256:*) ;;
+            *)
+              echo "auth_image_digest must be a pinned GHCR digest like ghcr.io/...@sha256:<digest>." >&2
+              exit 1
+              ;;
+          esac
+
+          digest="${AUTH_IMAGE_DIGEST##*@sha256:}"
+          if [[ ! "${digest}" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo "auth_image_digest digest must be exactly 64 hexadecimal characters." >&2
+            exit 1
+          fi
+
+          : "${AZURE_CLIENT_ID:?AZURE_CLIENT_ID is required}"
+          : "${AZURE_TENANT_ID:?AZURE_TENANT_ID is required}"
+          : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
+          : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
+          : "${AZURE_CONTAINERAPPS_ENV:?AZURE_CONTAINERAPPS_ENV is required}"
+          # Required auth runtime config — fail loud rather than deploy a broken
+          # auth service that 503s every request.
+          : "${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET secret is required (must match Overture)}"
+          : "${DATABASE_URL:?DATABASE_URL secret is required (Neon)}"
+          : "${BETTER_AUTH_BASE_URL:?BETTER_AUTH_BASE_URL var is required (console origin)}"
+
+      - name: Resolve app name
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "AZURE_AUTH_APP=${AZURE_AUTH_APP:-igris-auth}" >> "${GITHUB_ENV}"
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure registry, secrets, env, and image
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          az extension add --name containerapp --upgrade --only-show-errors 1>/dev/null
+
+          if [ -n "${GHCR_USERNAME}" ] && [ -n "${GHCR_TOKEN}" ]; then
+            az containerapp registry set \
+              --name "${AZURE_AUTH_APP}" \
+              --resource-group "${AZURE_RESOURCE_GROUP}" \
+              --server ghcr.io \
+              --username "${GHCR_USERNAME}" \
+              --password "${GHCR_TOKEN}" \
+              --only-show-errors 1>/dev/null
+          fi
+
+          # Store sensitive values as Container App secrets (never as plain env).
+          secrets_args=(
+            "better-auth-secret=${BETTER_AUTH_SECRET}"
+            "database-url=${DATABASE_URL}"
+          )
+          [ -n "${RESEND_API_KEY}" ] && secrets_args+=("resend-api-key=${RESEND_API_KEY}")
+          [ -n "${GOOGLE_CLIENT_SECRET}" ] && secrets_args+=("google-client-secret=${GOOGLE_CLIENT_SECRET}")
+          [ -n "${GITHUB_OAUTH_CLIENT_SECRET}" ] && secrets_args+=("github-client-secret=${GITHUB_OAUTH_CLIENT_SECRET}")
+
+          az containerapp secret set \
+            --name "${AZURE_AUTH_APP}" \
+            --resource-group "${AZURE_RESOURCE_GROUP}" \
+            --secrets "${secrets_args[@]}" \
+            --only-show-errors 1>/dev/null
+
+          # Non-sensitive env as plain values; sensitive env via secretref.
+          env_args=(
+            "BETTER_AUTH_SECRET=secretref:better-auth-secret"
+            "DATABASE_URL=secretref:database-url"
+            "BETTER_AUTH_BASE_URL=${BETTER_AUTH_BASE_URL}"
+          )
+          [ -n "${NEXT_PUBLIC_LANDING_URL}" ] && env_args+=("NEXT_PUBLIC_LANDING_URL=${NEXT_PUBLIC_LANDING_URL}")
+          [ -n "${RESEND_FROM_EMAIL}" ] && env_args+=("RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}")
+          [ -n "${IGRIS_REQUIRE_EMAIL_VERIFICATION}" ] && env_args+=("IGRIS_REQUIRE_EMAIL_VERIFICATION=${IGRIS_REQUIRE_EMAIL_VERIFICATION}")
+          [ -n "${RESEND_API_KEY}" ] && env_args+=("RESEND_API_KEY=secretref:resend-api-key")
+          [ -n "${GOOGLE_CLIENT_ID}" ] && env_args+=("GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}")
+          [ -n "${GOOGLE_CLIENT_SECRET}" ] && env_args+=("GOOGLE_CLIENT_SECRET=secretref:google-client-secret")
+          [ -n "${GITHUB_OAUTH_CLIENT_ID}" ] && env_args+=("GITHUB_CLIENT_ID=${GITHUB_OAUTH_CLIENT_ID}")
+          [ -n "${GITHUB_OAUTH_CLIENT_SECRET}" ] && env_args+=("GITHUB_CLIENT_SECRET=secretref:github-client-secret")
+
+          az containerapp update \
+            --name "${AZURE_AUTH_APP}" \
+            --resource-group "${AZURE_RESOURCE_GROUP}" \
+            --image "${AUTH_IMAGE_DIGEST}" \
+            --set-env-vars "${env_args[@]}" \
+            --only-show-errors 1>/dev/null
+
+      - name: Resolve auth FQDN
+        id: endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          fqdn="$(
+            az containerapp show \
+              --name "${AZURE_AUTH_APP}" \
+              --resource-group "${AZURE_RESOURCE_GROUP}" \
+              --query properties.configuration.ingress.fqdn \
+              -o tsv
+          )"
+          if [ -z "${fqdn}" ]; then
+            echo "Azure Container App ingress FQDN was empty." >&2
+            exit 1
+          fi
+          echo "auth_base=https://${fqdn}" >> "${GITHUB_OUTPUT}"
+
+      - name: Smoke auth service
+        shell: bash
+        env:
+          AUTH_BASE: ${{ steps.endpoint.outputs.auth_base }}
+        run: |
+          set -euo pipefail
+          curl_retry() {
+            curl --silent --show-error --retry 18 --retry-all-errors --retry-delay 10 "$@"
+          }
+
+          # 1) Process is up: GET / answers 200.
+          code="$(curl_retry -o /dev/null -w '%{http_code}' "${AUTH_BASE}/")"
+          [ "${code}" = "200" ] || { echo "GET / returned ${code}, expected 200" >&2; exit 1; }
+
+          # 2) Handler is CONFIGURED (DB + secret wired): the BetterAuth
+          #    get-session endpoint must answer non-5xx. A 503 here means the
+          #    env is missing (auth_not_configured) — fail the deploy.
+          sess_code="$(curl_retry -o /dev/null -w '%{http_code}' "${AUTH_BASE}/api/auth/get-session")"
+          case "${sess_code}" in
+            5*) echo "get-session returned ${sess_code} — auth not configured (check DATABASE_URL/BETTER_AUTH_SECRET)" >&2; exit 1 ;;
+            *)  echo "get-session ${sess_code} — configured" ;;
+          esac
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "### BetterAuth deployment"
+            echo "Environment: \`${TARGET_ENVIRONMENT}\`"
+            echo "Container App: \`${AZURE_AUTH_APP}\`"
+            echo "Image: \`${AUTH_IMAGE_DIGEST}\`"
+            echo "Smoke: \`GET /\` (200) + \`/api/auth/get-session\` (non-5xx)"
+            echo ""
+            echo "Set on the Rails console: \`BETTER_AUTH_UPSTREAM_URL=https://<auth-fqdn>/api/auth\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
