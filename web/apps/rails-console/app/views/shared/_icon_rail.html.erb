@@ -27,7 +27,7 @@
     </button>
     <div class="ic-rail__search-input-wrap">
       <input type="search" class="ic-rail__search-input" placeholder="Search..." aria-label="Search" />
-      <kbd class="ic-rail__search-hint"><%= RUBY_PLATFORM =~ /darwin/ ? '⌘' : 'Ctrl+' %>F</kbd>
+      <kbd class="ic-rail__search-hint">⌘F</kbd>
     </div>
   </div>
 
@@ -259,13 +259,10 @@
     function closeSearch() {
       searchOverlay.classList.remove('is-open');
       overlayInput.value = '';
-      if (searchActiveEl && searchActiveEl.focus) {
-        setTimeout(function() { searchActiveEl.focus(); }, 50);
-      }
+      searchActiveEl = null;
     }
 
     if (searchBtn) searchBtn.addEventListener('click', openSearch);
-    if (searchInput) searchInput.addEventListener('focus', openSearch);
 
     if (overlayBackdrop) overlayBackdrop.addEventListener('click', closeSearch);
 
