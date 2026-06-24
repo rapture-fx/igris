@@ -168,7 +168,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
   return (
     <section
       id="faq"
-      className="bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+      className="bg-white text-[#171717]"
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="pt-24 md:pt-40 pb-10 md:pb-14">
@@ -197,18 +197,18 @@ export default function Faq({ large = false }: { large?: boolean }) {
                           aria-expanded={isOpen}
                         >
                           <span
-                            className="text-black dark:text-[#f6f6f4]"
+                            className="text-[#171717]"
                             style={{
                               fontSize: sectionTitleSize,
-                              fontWeight: 500,
+                              fontWeight: 600,
                               lineHeight: 1.3,
-                              letterSpacing: '-0.01em',
+                              letterSpacing: '-0.02em',
                             }}
                           >
                             {section.title}
                           </span>
                           <ChevronDown
-                            className={`flex-shrink-0 text-gray-500 dark:text-[#8a8a7a] transition-transform duration-200 ${
+                            className={`flex-shrink-0 text-[#8f8f8f] transition-transform duration-200 ${
                               isOpen ? 'rotate-180' : ''
                             }`}
                             size={chevronSize}
@@ -228,20 +228,20 @@ export default function Faq({ large = false }: { large?: boolean }) {
                                 className={entryIndex > 0 ? 'pt-5 border-t border-[var(--landing-surface-border)]' : ''}
                               >
                                 <p
-                                  className="text-black dark:text-[#f6f6f4] mb-2"
+                                  className="text-[#171717] mb-2"
                                   style={{
                                     fontFamily: SANS,
                                     fontSize: questionSize,
-                                    fontWeight: 500,
+                                    fontWeight: 600,
                                     lineHeight: 1.4,
-                                    letterSpacing: '-0.01em',
+                                    letterSpacing: '-0.02em',
                                   }}
                                 >
                                   {faq.question}
                                 </p>
                                 {faq.type === 'text' && (
                                   <p
-                                    className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
+                                    className="text-[#4d4d4d] leading-relaxed max-w-[62ch]"
                                     style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
                                   >
                                     {faq.answer}
@@ -250,7 +250,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
                                 {faq.type === 'code' && (
                                   <div className="space-y-3">
                                     <p
-                                      className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
+                                      className="text-[#4d4d4d] leading-relaxed max-w-[62ch]"
                                       style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
                                     >
                                       {faq.answerText}
@@ -270,7 +270,7 @@ export default function Faq({ large = false }: { large?: boolean }) {
                                       </div>
                                     </div>
                                     <p
-                                      className="text-gray-600 dark:text-[#a8a898] leading-relaxed max-w-[62ch]"
+                                      className="text-[#4d4d4d] leading-relaxed max-w-[62ch]"
                                       style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
                                     >
                                       {faq.answerFooter}
