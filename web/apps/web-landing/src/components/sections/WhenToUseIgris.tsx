@@ -113,7 +113,7 @@ export default function WhenToUseIgris() {
     <section
       id="when-to-use"
       aria-labelledby="when-to-use-heading"
-      className="overflow-x-hidden bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200"
+      className="overflow-x-hidden bg-white text-[#171717]"
     >
       <style>{`
         /* Two columns: cards + console preview, equal height */
@@ -240,8 +240,8 @@ export default function WhenToUseIgris() {
                       CARD_BASE +
                       ' cursor-pointer ' +
                       (isActive
-                        ? 'border-l-2 border-emerald-700/60 dark:border-emerald-400/60'
-                        : 'border-l-2 border-transparent hover:border-gray-200 dark:hover:border-white/[0.12]')
+                        ? 'border-l-2 border-[#006bff]'
+                        : 'border-l-2 border-transparent hover:border-[#ebebeb]')
                     }
                   >
                     <p
@@ -251,13 +251,13 @@ export default function WhenToUseIgris() {
                       {String(index + 1).padStart(2, '0')}
                     </p>
                     <h3
-                      className="mt-3 text-black dark:text-[#f6f6f4]"
+                      className="mt-3 text-[#171717]"
                       style={{
                         fontFamily: SANS,
                         fontSize: 'clamp(1.05rem, 1.2vw, 1.15rem)',
-                        fontWeight: 400,
+                        fontWeight: 600,
                         lineHeight: 1.35,
-                        letterSpacing: '-0.01em',
+                        letterSpacing: '-0.02em',
                       }}
                     >
                       {card.title}
@@ -283,13 +283,13 @@ export default function WhenToUseIgris() {
 
         <div className="mt-10 md:mt-14">
           <h2
-            className="text-black dark:text-[#f6f6f4]"
+            className="text-[#171717]"
             style={{
               fontFamily: SANS,
               fontSize: 'clamp(1.05rem, 1.3vw, 1.25rem)',
-              fontWeight: 400,
+              fontWeight: 600,
               lineHeight: 1.35,
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.02em',
             }}
           >
             Fits into your agent stack
