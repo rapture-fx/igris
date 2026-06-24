@@ -36,13 +36,13 @@ export function LandingPillarHeader({
     >
       <div className={hasAside ? 'min-w-0 shrink-0 md:max-w-[min(58%,600px)]' : ''}>
         <h2
-          className="text-black dark:text-[#f6f6f4]"
+          className="text-[#171717]"
           style={{
             fontFamily: SANS,
-            fontWeight: 400,
+            fontWeight: 600,
             fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
-            lineHeight: 1.1,
-            letterSpacing: '-0.03em',
+            lineHeight: 1.08,
+            letterSpacing: '-0.04em',
             maxWidth: hasAside ? undefined : '28ch',
           }}
         >
@@ -161,7 +161,7 @@ export default function LandingPillarSection({
     <section
       id={id}
       className={
-        'bg-white dark:bg-dark-bg text-gray-900 dark:text-[#f6f6f4] transition-colors duration-200 ' +
+        'bg-white text-[#171717] ' +
         className
       }
     >
