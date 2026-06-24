@@ -330,7 +330,7 @@ function RunsConsoleStyles() {
       .igris-console.igris-console--light {
         color-scheme: light;
         --ic-bg: #f9f9fa; --ic-bg-rail: #f9f9fa;
-        --ic-text: #1b1912; --ic-text-bright: #000000; --ic-text-2: #2a2820;
+        --ic-text: #171717; --ic-text-bright: #000000; --ic-text-2: #2a2820;
         --ic-text-3: #3a3830; --ic-text-4: #3a3830; --ic-text-5: #4a4740;
         --ic-text-6: #5a574e; --ic-text-7: #6e6b62; --ic-text-8: #84817a; --ic-text-9: #b0ada5;
         --ic-avatar-bg: #d8d5cc;
@@ -338,7 +338,7 @@ function RunsConsoleStyles() {
         --ic-overlay-1: rgba(0,0,0,0.025); --ic-overlay-2: rgba(0,0,0,0.03);
         --ic-overlay-3: rgba(0,0,0,0.035); --ic-overlay-4: rgba(0,0,0,0.05);
         --ic-overlay-5: rgba(0,0,0,0.07); --ic-overlay-bg: rgba(0,0,0,0.02);
-        --ic-rail-active: #1b1912; --ic-dot-border: #f9f9fa;
+        --ic-rail-active: #171717; --ic-dot-border: #f9f9fa;
         --ic-accent: #047857; --ic-emerald: #047857; --ic-amber: #b45309; --ic-rose: #be123c;
         --ic-mono: ${MONO};
       }
@@ -373,8 +373,10 @@ function RunsConsoleStyles() {
         border-radius: 6px; font-size: 11px; color: var(--ic-text-2);
         background: var(--ic-overlay-3); border: 1px solid var(--ic-border); cursor: pointer;
       }
-      .igris-console .ic-btn--accent { background: rgba(15,131,92,0.14); color: var(--ic-emerald); border-color: rgba(15,131,92,0.28); }
-      .igris-console--light .ic-btn--accent { background: rgba(4,120,87,0.12); color: #047857; border-color: rgba(4,120,87,0.25); }
+      .igris-console .ic-btn--accent { background: #171717; color: #ffffff; border-color: #171717; }
+      .igris-console--light .ic-btn--accent { background: #171717; color: #ffffff; border-color: #171717; }
+      .igris-console .ic-btn--accent:hover { background: #4d4d4d; border-color: #4d4d4d; }
+      .igris-console--light .ic-btn--accent:hover { background: #4d4d4d; border-color: #4d4d4d; }
 
       /* Filters + search */
       .igris-console .ic-filters {
