@@ -9,10 +9,14 @@
     <%= render 'agents/view_tabs', active: @view %>
     <div class="ic-runs-header__actions">
       <%= project_chip %>
-      <% if @view == 'packs' %>
+      <% case @view
+         when 'packs' %>
         <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
-      <% else %>
+      <% when 'adoption' %>
         <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+      <% else %>
+        <%= link_to 'Connect an agent', agents_path(view: 'adoption'), class: 'ic-btn ic-btn--accent' %>
+        <%= link_to 'Create action', new_action_path, class: 'ic-btn' %>
       <% end %>
     </div>
   </div>

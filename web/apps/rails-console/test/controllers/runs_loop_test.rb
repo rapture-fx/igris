@@ -159,34 +159,34 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'status filter narrows the list to failed runs' do
     get '/runs?status=failed'
     assert_response :success
-    assert_select '.ic-run-row', 8 # 7 Failed + 1 Error
+    assert_select '.ic-run-row__open', 8 # 7 Failed + 1 Error
     assert_select '.ic-run-row__id', /run_01HGJ5W0M3B/ # refund_charge failed
   end
 
   test 'route filter narrows the list to one routed-via target' do
     get '/runs', params: { route: 'Hosted API · Resend' }
     assert_response :success
-    assert_select '.ic-run-row', 6
+    assert_select '.ic-run-row__open', 6
     assert_select '.ic-run-row__title', text: 'send_email'
   end
 
   test 'an unknown status falls back to all runs' do
     get '/runs?status=bogus'
     assert_response :success
-    assert_select '.ic-run-row', 46 # every fixture run is shown
+    assert_select '.ic-run-row__open', 46 # every fixture run is shown
   end
 
   test 'search narrows the list by run id' do
     get '/runs?q=run_01HGJ5W0M3B'
     assert_response :success
-    assert_select '.ic-run-row', 1
+    assert_select '.ic-run-row__open', 1
     assert_select '.ic-run-row__id', /run_01HGJ5W0M3B/
   end
 
   test 'search narrows the list by action name' do
     get '/runs?q=refund_charge'
     assert_response :success
-    assert_select '.ic-run-row', minimum: 1
+    assert_select '.ic-run-row__open', minimum: 1
     assert_select '.ic-run-row__title', text: 'refund_charge'
     refute_match 'send_email', response.body         # non-matching actions excluded
   end

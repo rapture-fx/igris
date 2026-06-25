@@ -15,10 +15,10 @@ export const viewport = {
 export const metadata = {
   metadataBase: new URL('https://igris.inertial'),
   title: 'Action layer for AI agents.',
-  description: 'Deploy AI anywhere with a 16MB binary. BYOM (bring your own model). Works offline with governed execution, signed records, and fleet visibility that scales with your plan.',
+  description: 'Your agent calls Igris instead of calling tools directly. Igris checks policy, routes execution, recovers from failures, and proves what happened.',
   openGraph: {
     title: 'Action layer for AI agents.',
-    description: 'Secure AI execution for edge devices. 16MB binary, works offline, with governed execution and fleet visibility that scales with your plan.',
+    description: 'Your agent calls Igris instead of calling tools directly. Igris checks policy, routes execution, recovers from failures, and proves what happened.',
     url: 'https://igris.inertial',
     siteName: 'Igris Inertial',
     images: [{ url: '/foot2.png', width: 1200, height: 630, alt: 'Igris Inertial logo' }],
@@ -28,7 +28,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Action layer for AI agents.',
-    description: 'Secure AI execution for edge devices. 16MB binary, works offline, with governed execution and fleet visibility that scales with your plan.',
+    description: 'Your agent calls Igris instead of calling tools directly. Igris checks policy, routes execution, recovers from failures, and proves what happened.',
     images: ['/foot2.png']
   },
   icons: {

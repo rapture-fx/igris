@@ -1,18 +1,11 @@
 'use client';
 
 import Header from '../src/components/sections/Header'
-import Hero from '../src/components/sections/Hero-Simple'
 import Vision from '../src/components/sections/Vision'
-import ExecutionPath from '../src/components/sections/ExecutionPath'
-import Products from '../src/components/sections/Products'
-import WhenToUseIgris from '../src/components/sections/WhenToUseIgris'
-import ClosingPosition from '../src/components/sections/ClosingPosition'
-import Footer from '../src/components/sections/Footer'
 
 import UseCasesPopup from '../src/components/popups/UseCasesPopup'
 
 import { useProductPopup } from '../src/contexts/ProductPopupContext'
-import ScrollReveal from '../src/components/ui/ScrollReveal'
 import LandingScrollManager from '../src/components/LandingScrollManager'
 
 export default function HomePage() {
@@ -24,15 +17,9 @@ export default function HomePage() {
       <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200">
         <LandingScrollManager />
         <Header />
-        <main>
-          <Hero />
+        <main className="md:pl-[256px]">
           <Vision />
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ExecutionPath /></ScrollReveal></div></div>
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><Products /></ScrollReveal></div></div>
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><WhenToUseIgris /></ScrollReveal></div></div>
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8"><div><ScrollReveal delay={0.1}><ClosingPosition /></ScrollReveal></div></div>
         </main>
-        <Footer />
       </div>
 
       <UseCasesPopup

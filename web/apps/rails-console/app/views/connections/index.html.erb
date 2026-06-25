@@ -8,6 +8,12 @@
 %>
 <style>
   .ic-conn-note { font-size: 12px; color: var(--ic-text-6); line-height: 1.6; margin: 14px 16px 4px; max-width: 720px; }
+  .ic-conn-how { margin: 14px 16px 2px; max-width: 720px; border: 1px solid var(--ic-border-soft); border-radius: 12px; padding: 15px 16px; background: var(--ic-overlay-bg); }
+  .ic-conn-how__head { font-size: 12.5px; font-weight: 600; color: var(--ic-text-bright); }
+  .ic-conn-how__body { font-size: 12px; color: var(--ic-text-6); line-height: 1.6; margin: 6px 0 0; }
+  .ic-conn-how__kinds { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--ic-text-5); }
+  .ic-conn-how__kinds strong { color: var(--ic-text-3); font-weight: 600; }
+  .ic-conn-how__actions { margin-top: 13px; display: flex; flex-wrap: wrap; gap: 8px; }
   .ic-conn-list { padding: 8px 12px 24px; display: flex; flex-direction: column; gap: 8px; }
   .ic-conn-card {
     display: grid; grid-template-columns: minmax(0,1.6fr) minmax(0,1.4fr) 140px;
@@ -45,10 +51,31 @@
   <div class="ic-body ic-scroll">
     <p class="ic-conn-note">
       Where your actions send work. Each connection is a destination an action routes to:
-      a hosted API, a webhook, or your local runtime. Manage runtime keys under
-      <%= link_to 'Runtimes', runtimes_path %> and secrets under
-      <%= link_to 'Settings', settings_path(section: 'target_access') %>.
+      a hosted API, a webhook, or your local runtime.
     </p>
+
+    <%# How to connect a tool — Igris has no separate "integrations" step: a
+        connection is defined by an action's target, so connecting a tool means
+        creating an action that points at it. Spelled out so the page's function
+        is obvious. %>
+    <div class="ic-conn-how">
+      <div class="ic-conn-how__head">How to connect a tool</div>
+      <p class="ic-conn-how__body">
+        There is no separate integration step. You connect a tool by creating an
+        <%= link_to 'action', actions_path %> that targets it — the action's
+        target is the connection. Pick the target type when you create the action:
+      </p>
+      <ul class="ic-conn-how__kinds">
+        <li><strong>Hosted API</strong> — Igris calls a provider for you (Resend, Stripe, GitHub…). Add the provider's secret as a referenced secret.</li>
+        <li><strong>Webhook</strong> — Igris POSTs to a URL you own.</li>
+        <li><strong>Local runtime</strong> — Igris dispatches to <code>igris-runtime</code> on your machine for private files, internal APIs, or local databases.</li>
+      </ul>
+      <div class="ic-conn-how__actions">
+        <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
+        <%= link_to 'Connect a runtime', runtimes_path, class: 'ic-btn' %>
+        <%= link_to 'Manage secrets', settings_path(section: 'target_access'), class: 'ic-btn' %>
+      </div>
+    </div>
 
     <% if @connections.empty? %>
       <div class="ic-empty" style="padding: 48px 16px;">
