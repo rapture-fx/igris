@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { DOCS_LINKS } from '../../lib/docs-urls';
@@ -13,7 +13,7 @@ const NAV_FONT = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Se
 
 const NAV_ITEM_STYLE: React.CSSProperties = {
   fontFamily: NAV_FONT,
-  fontSize: '13px',
+  fontSize: '14px',
   letterSpacing: '0',
   fontWeight: 400,
 };
@@ -26,9 +26,9 @@ interface DropdownItem {
 }
 
 const productItems: DropdownItem[] = [
-  { label: 'Run', description: 'Turn agent decisions into controlled actions with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
-  { label: 'Recover', description: 'Resume from recorded progress. Committed actions never replay.', href: landingHash(LANDING_SECTIONS.productRecover) },
-  { label: 'Verify', description: 'Signed receipts and a chain you can check after the run.', href: landingHash(LANDING_SECTIONS.productProve) },
+  { label: 'Run', description: 'Every call goes through policy and routing with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
+  { label: 'Recover', description: 'Resume from checkpoints when providers rate-limit or workers fail.', href: landingHash(LANDING_SECTIONS.productRecover) },
+  { label: 'Prove', description: 'Signed receipts for every action. Inspect what ran and what recovered.', href: landingHash(LANDING_SECTIONS.productProve) },
 ];
 
 const docsItems: DropdownItem[] = [
@@ -39,6 +39,8 @@ const docsItems: DropdownItem[] = [
   { label: 'Architecture', description: 'How Igris governs execution across environments.', href: DOCS_LINKS.architecture, external: true },
 ];
 
+const SIDEBAR_WIDTH = 256;
+
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
@@ -47,24 +49,10 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const navRef = useRef<HTMLElement>(null);
-
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
-
-  // Close desktop dropdowns on outside click
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
-        setProductOpen(false);
-        setDocsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, []);
 
   const closeAll = () => {
     setMobileOpen(false);
@@ -72,137 +60,100 @@ export default function Header() {
     setDocsOpen(false);
   };
 
-  const DesktopDropdownPanel = (items: DropdownItem[]) => (
-    <div className="absolute left-0 top-full mt-2 w-48 rounded-[12px] bg-white border border-[#ebebeb] shadow-[0_1px_1px_rgba(0,0,0,0.02),0_4px_8px_-4px_rgba(0,0,0,0.04),0_16px_24px_-8px_rgba(0,0,0,0.06)] p-1.5 z-50">
-      {items.map((item) =>
-        item.external ? (
-          <a
-            key={item.label}
-            href={item.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={closeAll}
-            className="block rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
-            style={NAV_ITEM_STYLE}
-          >
-            {item.label}
-          </a>
-        ) : item.href.startsWith('/#') ? (
-          <LandingSectionLink
-            key={item.label}
-            href={item.href}
-            onClick={closeAll}
-            className="block rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
-            style={NAV_ITEM_STYLE}
-          >
-            {item.label}
-          </LandingSectionLink>
-        ) : (
-          <Link
-            key={item.label}
-            href={item.href}
-            prefetch={false}
-            onClick={closeAll}
-            className="block rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
-            style={NAV_ITEM_STYLE}
-          >
-            {item.label}
-          </Link>
-        ),
+  const logoSrc = mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png';
+
+  const sideLinkClass =
+    'block rounded-md px-3 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors';
+  const sideToggleClass =
+    'flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors';
+  const subLinkClass =
+    'block rounded-md px-3 py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-50 dark:hover:bg-white/[0.05] transition-colors';
+
+  const renderSubItem = (item: DropdownItem) =>
+    item.external ? (
+      <a
+        key={item.label}
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={closeAll}
+        className={subLinkClass}
+        style={{ fontFamily: NAV_FONT }}
+      >
+        {item.label}
+      </a>
+    ) : (
+      <LandingSectionLink
+        key={item.label}
+        href={item.href}
+        onClick={closeAll}
+        className={subLinkClass}
+        style={{ fontFamily: NAV_FONT }}
+      >
+        {item.label}
+      </LandingSectionLink>
+    );
+
+  const NavGroups = (
+    <>
+      {/* Product */}
+      <button type="button" onClick={() => setProductOpen((v) => !v)} className={sideToggleClass} style={NAV_ITEM_STYLE}>
+        <span>Product</span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {productOpen && (
+        <div className="mb-1 ml-3 flex flex-col border-l border-gray-200 dark:border-white/[0.12] pl-1">
+          {productItems.map(renderSubItem)}
+        </div>
       )}
-    </div>
+
+      {/* Docs */}
+      <button type="button" onClick={() => setDocsOpen((v) => !v)} className={sideToggleClass} style={NAV_ITEM_STYLE}>
+        <span>Docs</span>
+        <ChevronDown className={`h-4 w-4 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {docsOpen && (
+        <div className="mb-1 ml-3 flex flex-col border-l border-gray-200 dark:border-white/[0.12] pl-1">
+          {docsItems.map(renderSubItem)}
+        </div>
+      )}
+
+      {/* Pricing */}
+      <Link href="/pricing" prefetch={false} onClick={closeAll} className={sideLinkClass} style={NAV_ITEM_STYLE}>
+        Pricing
+      </Link>
+    </>
   );
 
   return (
     <>
-      {/* Top navigation bar — fixed, full width */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md pt-4">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+      {/* Desktop sidebar */}
+      <aside
+        className="hidden md:flex fixed inset-y-0 left-0 z-50 flex-col border-r border-[#ebebeb] dark:border-white/[0.08] bg-white dark:bg-[#110f0f] px-5 py-8"
+        style={{ width: SIDEBAR_WIDTH }}
+      >
+        <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center px-1">
+          <img src={logoSrc} alt="Igris Inertial" className="h-10 w-auto rounded-lg" />
+        </Link>
+
+        <nav className="mt-10 flex flex-col gap-0.5">{NavGroups}</nav>
+      </aside>
+
+      {/* Mobile top bar */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#110f0f]/80 backdrop-blur-md pt-4">
+        <div className="px-4 sm:px-6">
           <div className="flex h-14 items-center justify-between">
-
-            {/* Logo */}
             <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center">
-              <img
-                src={mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png'}
-                alt="Igris Inertial"
-                className="h-10 w-auto rounded-lg"
-              />
+              <img src={logoSrc} alt="Igris Inertial" className="h-10 w-auto rounded-lg" />
             </Link>
-
-            {/* Desktop nav */}
-            <nav ref={navRef} className="hidden md:flex items-center gap-1">
-              {/* Product */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }}
-                  className="flex items-center gap-1 rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
-                  style={NAV_ITEM_STYLE}
-                >
-                  <span>Product</span>
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {productOpen && DesktopDropdownPanel(productItems)}
-              </div>
-
-              {/* Docs */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }}
-                  className="flex items-center gap-1 rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
-                  style={NAV_ITEM_STYLE}
-                >
-                  <span>Docs</span>
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {docsOpen && DesktopDropdownPanel(docsItems)}
-              </div>
-
-              {/* Pricing */}
-              <Link
-                href="/pricing"
-                prefetch={false}
-                onClick={closeAll}
-                className="rounded-md px-4 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
-                style={NAV_ITEM_STYLE}
-              >
-                Pricing
-              </Link>
-
-              {/* Sign in */}
-              <Link
-                href="/auth?mode=signin"
-                prefetch={false}
-                onClick={closeAll}
-                className="ml-1 inline-flex h-8 items-center rounded-[6px] border border-[rgba(0,0,0,0.08)] bg-white px-3 text-[#171717] hover:bg-[#fafafa] hover:border-[rgba(0,0,0,0.12)] transition-colors"
-                style={NAV_ITEM_STYLE}
-              >
-                Sign in
-              </Link>
-
-              <Link
-                href="/auth?mode=signup"
-                prefetch={false}
-                onClick={closeAll}
-                className="inline-flex h-8 items-center rounded-[6px] px-3 bg-[#171717] text-white hover:bg-[#383838] transition-colors"
-                style={NAV_ITEM_STYLE}
-              >
-                Get API Key
-              </Link>
-            </nav>
-
-            <div className="flex items-center gap-2 md:hidden">
-              <button
-                type="button"
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className="text-gray-500 dark:text-[#c8c8b8]"
-                aria-label="Toggle menu"
-              >
-                {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </button>
-            </div>
-
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="text-gray-500 dark:text-[#c8c8b8]"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
         </div>
       </header>
@@ -210,90 +161,8 @@ export default function Header() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-40 pt-16 bg-white dark:bg-[#010203] overflow-y-auto">
-          <nav className="flex flex-col px-5 py-6">
-            <Link
-              href="/auth?mode=signin"
-              prefetch={false}
-              onClick={closeAll}
-              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-              style={NAV_ITEM_STYLE}
-            >
-              Sign in
-            </Link>
-
-            <Link
-              href="/pricing"
-              prefetch={false}
-              onClick={closeAll}
-              className="block w-full py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-              style={NAV_ITEM_STYLE}
-            >
-              Pricing
-            </Link>
-
-            {/* Product accordion */}
-            <button
-              type="button"
-              onClick={() => setProductOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-              style={NAV_ITEM_STYLE}
-            >
-              <span>Product</span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {productOpen && (
-              <div className="mb-2 pl-3 border-l border-gray-200 dark:border-white/[0.12]">
-                {productItems.map((item) => (
-                  <LandingSectionLink
-                    key={item.label}
-                    href={item.href}
-                    onClick={closeAll}
-                    className="block w-full py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
-                    style={{ fontFamily: NAV_FONT }}
-                  >
-                    {item.label}
-                  </LandingSectionLink>
-                ))}
-              </div>
-            )}
-
-            {/* Docs accordion */}
-            <button
-              type="button"
-              onClick={() => setDocsOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-black dark:text-[#f6f6f4] hover:opacity-70 transition-opacity"
-              style={NAV_ITEM_STYLE}
-            >
-              <span>Docs</span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {docsOpen && (
-              <div className="mb-2 pl-3 border-l border-gray-200 dark:border-white/[0.12]">
-                {docsItems.map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={closeAll}
-                    className="block w-full py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
-                    style={{ fontFamily: NAV_FONT }}
-                  >
-                    {item.label}
-                  </a>
-                ))}
-              </div>
-            )}
-
-            <Link
-              href="/auth?mode=signup"
-              prefetch={false}
-              onClick={closeAll}
-              className="mt-4 inline-flex items-center justify-center w-full rounded-[6px] px-4 py-2.5 bg-[#171717] text-white hover:bg-[#383838] transition-colors"
-              style={NAV_ITEM_STYLE}
-            >
-              Get API Key
-            </Link>
+          <nav className="flex flex-col px-5 py-6 gap-0.5">
+            {NavGroups}
           </nav>
         </div>
       )}
