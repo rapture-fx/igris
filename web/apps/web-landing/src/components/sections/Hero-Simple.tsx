@@ -27,6 +27,18 @@ export default function Hero() {
             >
               Action layer<br />for AI agents
             </h1>
+            <p
+              className="mt-6 text-[#6e6b62]"
+              style={{
+                fontFamily: SANS,
+                fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
+                lineHeight: 1.6,
+                maxWidth: '48ch',
+                letterSpacing: '-0.005em',
+              }}
+            >
+              Your agent calls Igris instead of calling tools directly. Igris applies policy, routes execution, recovers from failures, and proves what happened.
+            </p>
             <div className="mt-8 flex flex-wrap items-center justify-start gap-3">
               <a
                 href="/auth?mode=signup"
@@ -40,7 +52,7 @@ export default function Hero() {
                 className="inline-flex h-12 items-center justify-center rounded-[6px] border border-[rgba(0,0,0,0.08)] bg-white px-5 text-[16px] font-medium text-[#171717] transition-colors hover:bg-[#fafafa] hover:border-[rgba(0,0,0,0.12)]"
                 style={{ fontFamily: SANS }}
               >
-                Set Up an Agent
+                Read the docs
               </a>
             </div>
           </div>
