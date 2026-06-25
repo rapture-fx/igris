@@ -1954,17 +1954,17 @@ const SHOWCASE_PILLARS: Record<ShowcaseTab, { title: string; description: string
   run: {
     title: 'Run',
     description:
-      'Turn agent decisions into controlled actions with recorded progress, policy checks, and committed side effects.',
+      'Every call goes through policy and routing. Igris records every step — no blind execution, no silent failures.',
   },
   recover: {
     title: 'Recover',
     description:
-      'Resume from recorded progress when providers rate-limit, workers fail, or execution stalls mid-run.',
+      'When a call fails or a worker drops, Igris retries safely from checkpoints. Committed actions never replay.',
   },
   prove: {
     title: 'Prove',
     description:
-      'Signed receipts and verification state after the run — what ran, what recovered, and what was approved.',
+      'Signed receipts for every action. After the run, your team can inspect what ran, what recovered, and whether proof exists.',
   },
 }
 
