@@ -72,8 +72,8 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
     get '/home'
     assert_response :success
     assert_home_onboarding_page
-    assert_match 'install the runtime', response.body
-    assert_match 'create an agent', response.body
+    assert_match 'Install the runtime', response.body
+    assert_match 'Connect your first agent', response.body
   end
 
   test 'overview with existing actions shows the workspace, not onboarding' do

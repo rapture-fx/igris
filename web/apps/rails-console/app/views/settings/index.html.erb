@@ -2,15 +2,18 @@
     Access keys, Runtime keys, Tool & target access, Environment, Advanced.
     Team/billing/SSO live elsewhere. No secret values are ever echoed. %>
 <% section = (@section.presence || SettingsController.normalize_section(params[:section])) %>
+<%# Functional, customer-actionable sections lead; read-only host/diagnostic
+    sections are grouped at the end. Project stays first (the default section).
+    Slugs are unchanged so existing links and aliases keep resolving. %>
 <% sections = [
   ['project',            'Project',               'Name and identity for this project'],
-  ['api_endpoints',      'API endpoints',         'Base URLs for the Igris API and the console'],
-  ['agent_keys',         'Agent / app API keys',  'Keys your agent or app uses to call Igris'],
+  ['agent_keys',         'API keys',              'Create the keys your agent or app uses to call Igris'],
   ['runtime_keys',       'Runtime keys',          'Keys runtimes use to connect'],
   ['target_access',      'Tool & target access',  'How agents reach tools through Igris'],
+  ['api_endpoints',      'API endpoints',         'Base URLs for the Igris API and the console'],
   ['console_front_door', 'Console front door',    'HTTP Basic auth that protects this console'],
   ['environment',        'Environment',           'Runtime variables and connection state'],
-  ['advanced',           'Advanced',              'Audit log export and other rarely-used ops'],
+  ['advanced',           'Advanced',              'Appearance and rarely-used operations'],
 ] %>
 
 <div class="ic-topbar">

@@ -24,9 +24,50 @@
     .ic-agentcat-row { grid-template-columns: minmax(0, 1.7fr) 70px 92px 116px; }
     .ic-agentcat-row__cell--template, .ic-agentcat-row__cell--status, .ic-agentcat-row__cell--eval { display: none; }
   }
+  .ic-connect-steps { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .ic-connect-steps > li { display: grid; grid-template-columns: 22px 1fr; column-gap: 11px; align-items: start; }
+  .ic-connect-steps__n { width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--ic-border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--ic-text-4); }
+  .ic-connect-steps__t { font-size: 12.5px; color: var(--ic-text-3); line-height: 1.55; }
+  .ic-connect-steps__code { margin-top: 8px; }
+  .ic-connect-actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
 </style>
 
 <div class="ic-body ic-scroll ic-doc" style="padding: 18px 16px; max-width: 980px; width: 100%; margin: 0 auto;">
+  <%# How to connect an agent — always visible, so "how do I add another one?"
+      is answered on the catalog itself, not only in the empty state. %>
+  <div class="ic-evidence" style="margin-bottom: 14px;">
+    <div class="ic-evidence__head">Connect an agent</div>
+    <p class="ic-evidence__intro">
+      An agent — Claude Code, Cursor, Codex, LangGraph, CrewAI, or your own — calls
+      Igris instead of calling tools directly. It registers here automatically the
+      first time it identifies to the API. Two steps:
+    </p>
+    <ol class="ic-connect-steps">
+      <li>
+        <span class="ic-connect-steps__n">1</span>
+        <div class="ic-connect-steps__t">
+          <strong>Create an API key</strong> for the agent. The agent sends it as
+          its authorization header on every call to identify itself.
+          <div class="ic-connect-actions">
+            <%= link_to 'Create API key', settings_path(section: 'agent_keys'), class: 'ic-btn ic-btn--accent' %>
+          </div>
+        </div>
+      </li>
+      <li>
+        <span class="ic-connect-steps__n">2</span>
+        <div class="ic-connect-steps__t">
+          <strong>Point the agent at Igris</strong> and run it. Start the local
+          runtime too if the agent uses Local runtime actions.
+          <div class="ic-connect-steps__code"><%= code_snippet 'igris-runtime serve', language: 'bash' %></div>
+        </div>
+      </li>
+    </ol>
+    <div class="ic-connect-actions">
+      <%= link_to 'Getting started checklist', agents_path(view: 'adoption'), class: 'ic-btn' %>
+      <%= link_to 'Browse Action Packs', agents_path(view: 'packs'), class: 'ic-btn' %>
+    </div>
+  </div>
+
   <div class="ic-evidence" style="margin-bottom: 14px;">
     <div class="ic-evidence__head">Agent catalog</div>
     <p class="ic-evidence__intro">

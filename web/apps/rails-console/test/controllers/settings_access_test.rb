@@ -58,7 +58,7 @@ class SettingsAccessTest < ActionDispatch::IntegrationTest
   test 'settings has all eight access-center sections in the nav' do
     get '/settings'
     assert_response :success
-    ['Project', 'API endpoints', 'Agent / app API keys', 'Runtime keys',
+    ['Project', 'API endpoints', 'API keys', 'Runtime keys',
      'Tool &amp; target access', 'Console front door', 'Environment', 'Advanced'].each do |label|
       assert_match label, response.body, "nav missing #{label}"
     end

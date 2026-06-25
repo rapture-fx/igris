@@ -32,9 +32,40 @@
     <span class="ic-topbar__title">Overview</span>
     <%= project_chip %>
   </div>
+  <div class="ic-topbar__group">
+    <span class="ic-topbar__hint">Your live workspace — activity, attention, and status</span>
+  </div>
 </div>
 
 <%= render 'shared/flash', degraded_error: @degraded_error %>
+
+<%# Needs-attention banner — surfaces the same items as the Attention tab, but at
+    the top of the workspace so "what needs attention" is answered immediately
+    rather than only after switching tabs. Neutral styling; links to the fix. %>
+<% if has_actions && attention.any? %>
+  <style>
+    .ic-attn { margin: 14px 0 4px; border: 1px solid var(--ic-border); border-radius: 12px; overflow: hidden; }
+    .ic-attn__head { display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 12px; font-weight: 600; color: var(--ic-text-2); border-bottom: 1px solid var(--ic-border-soft); }
+    .ic-attn__head svg { color: var(--ic-amber); }
+    .ic-attn__item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; text-decoration: none; color: inherit; border-bottom: 1px solid var(--ic-border-soft); }
+    .ic-attn__item:last-child { border-bottom: 0; }
+    .ic-attn__item:hover { background: var(--ic-overlay-bg); }
+    .ic-attn__text { font-size: 12.5px; color: var(--ic-text-3); }
+    .ic-attn__cta { font-size: 11.5px; color: var(--ic-text-5); white-space: nowrap; }
+  </style>
+  <div class="ic-attn" role="region" aria-label="Needs attention">
+    <div class="ic-attn__head">
+      <%= console_icon('info', size: 15, stroke: 1.8) %>
+      <span><%= attention.size %> <%= attention.size == 1 ? 'item needs' : 'items need' %> attention</span>
+    </div>
+    <% attention.each do |a| %>
+      <%= link_to a[:href], class: 'ic-attn__item' do %>
+        <span class="ic-attn__text"><%= a[:text] %></span>
+        <span class="ic-attn__cta"><%= a[:cta] %> →</span>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
 
 <%# Operating model — the execution lifecycle Igris runs every action through.
     Operational orientation (not marketing); each stage links to the surface
@@ -61,7 +92,7 @@
   <div class="ic-workspace">
     <% if has_actions %>
       <div class="ic-opmodel">
-        <p class="ic-opmodel__head">How Igris runs your agents: every action moves through this lifecycle.</p>
+        <p class="ic-opmodel__head">A direct tool call just runs. Through Igris, every agent action also moves through this lifecycle — so you can recover, prove, and govern it.</p>
         <div class="ic-opmodel__grid" role="list" aria-label="Execution operating model">
           <% operating_model.each do |stage| %>
             <%= link_to stage[:href], class: 'ic-opmodel__stage', role: 'listitem' do %>
