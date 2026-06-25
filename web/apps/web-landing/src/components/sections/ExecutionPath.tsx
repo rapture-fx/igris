@@ -208,7 +208,7 @@ export default function ExecutionPath() {
         <div className="mb-12 md:mb-16">
           <LandingPillarHeader
             title="Actions"
-            description="One endpoint for every agent action. Create an action in Igris, then call it from your agent, app, workflow, or MCP client. Igris applies policy, routes the work, recovers from failures, and keeps proof behind the endpoint."
+            description="Register an action in Igris. Your agent, app, workflow, or MCP client calls it as one endpoint. Igris applies policy, routes execution, recovers from failures, and keeps proof behind the endpoint."
           />
         </div>
 
