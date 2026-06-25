@@ -10,29 +10,29 @@ const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 const cards = [
   {
     id: 'side-effects',
-    title: 'Change data',
-    body: 'Create invoices, update records, call APIs, or trigger workflows without giving agents direct access.',
+    title: 'Call real systems',
+    body: 'Create invoices, update records, call APIs, or trigger workflows through one controlled action layer.',
     fig: 'RUN · COMMITTED ACTIONS',
     snippet: 'actions' as RunDetailSnippetVariant,
   },
   {
     id: 'proof',
-    title: 'Prove it',
-    body: 'Keep a receipt for every action: what ran, what failed, what recovered, and what was approved.',
+    title: 'Prove every action',
+    body: 'Every call produces a signed receipt. Your team can inspect what ran, what failed, what recovered, and whether policy passed.',
     fig: 'RUN · RECEIPT TRAIL',
     snippet: 'proof' as RunDetailSnippetVariant,
   },
   {
     id: 'hybrid',
-    title: 'Run privately',
-    body: 'Use workers when actions need internal APIs, files, databases, local systems, or edge access.',
+    title: 'Run where you need',
+    body: 'Use Igris Cloud for hosted APIs. Add a worker when actions need internal APIs, databases, private files, or edge runtimes.',
     fig: 'RUN · ROUTED VIA',
     snippet: 'routing' as RunDetailSnippetVariant,
   },
   {
     id: 'boundaries',
-    title: 'Recover safely',
-    body: 'Resume from checkpoints when something fails instead of blindly starting over.',
+    title: 'Recover from failure',
+    body: 'Igris retries safely from checkpoints when providers rate-limit, workers fail, or execution stalls.',
     fig: 'RUN · POLICY & RECOVERY',
     snippet: 'policy' as RunDetailSnippetVariant,
   },
@@ -292,7 +292,7 @@ export default function WhenToUseIgris() {
               letterSpacing: '-0.02em',
             }}
           >
-            Fits into your agent stack
+            Works with any agent
           </h2>
           <p
             className="mt-3 max-w-[52ch] text-gray-600 dark:text-[#a8a898]"
@@ -303,14 +303,25 @@ export default function WhenToUseIgris() {
             }}
           >
             Use your agent framework for reasoning and planning. Use Igris for the final actions
-            that need policy, recovery, and receipts.
+            that need policy, recovery, and proof.
+          </p>
+          <p
+            className="mt-4 max-w-[52ch] text-gray-500 dark:text-[#8a8a7a]"
+            style={{
+              fontFamily: SANS,
+              fontSize: 'clamp(0.92rem, 1vw, 1rem)',
+              lineHeight: 1.6,
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Compatible with Claude Code, Cursor, Codex, LangGraph, CrewAI, and custom agents through CLI, API, or MCP.
           </p>
           <ol
             className="mt-5 flex flex-wrap items-center gap-2 lg:flex-nowrap lg:gap-3"
             style={{ fontFamily: MONO }}
             aria-label="Agent stack flow"
           >
-            {['Reasoning framework', 'Igris action', 'Receipt / proof'].map((step, i, arr) => (
+            {['Agent call', 'Igris action', 'Policy & routing', 'Recovery', 'Proof'].map((step, i, arr) => (
               <li key={step} className="flex items-center gap-2 lg:gap-3">
                 <span
                   className="whitespace-nowrap text-[12px] text-gray-500 dark:text-[#8a8a7a]"
