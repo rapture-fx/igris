@@ -1,8 +1,13 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Footer from './Footer'
+import { PRICING_TIERS, getTierBilling } from '../../lib/pricing'
+import type { BillingInterval } from '../../lib/pricing'
+import { BillingToggle, TierPriceDisplay } from './Pricing'
+import Faq from './Faq'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -41,8 +46,8 @@ type Block =
 
 const ARTICLE: Block[] = [
   { type: 'h2', text: 'Action layer' },
-  { type: 'lead', text: 'Igris lets AI agents act in real systems without giving them direct access to every tool, credential, workflow, or production endpoint. Instead of letting an agent call a system directly and hoping the result is safe, the agent sends the action through Igris first, where the request can be checked, routed, executed, recovered if something fails, and recorded with proof your team can inspect later.' },
-  { type: 'p', text: 'Igris does not control how an agent thinks or plans. It controls how the action happens once the agent is ready to do something real. That gives teams a clear boundary between agent reasoning and production execution, so agents can become useful without turning every tool call into an unmanaged risk.' },
+  { type: 'lead', text: 'Agents are already doing useful work. Igris makes that work safer to trust by routing important actions through one controlled path, where each request can be checked, executed, recovered if it fails, and recorded with proof your team can inspect later.' },
+  { type: 'p', text: 'Agents can still plan, decide, and request work in their own way. Igris starts when that request becomes an action, giving the team a place to check what is allowed, require approval when needed, handle failure, and keep a record of what happened.' },
 
   { type: 'section', text: 'Why direct calls are not enough' },
   { type: 'p', text: 'Direct calls are simple when an agent is only running a demo, but they become harder to trust once the action touches real systems. A direct request may complete successfully, but it rarely gives the team one consistent place to understand who requested the action, whether it was allowed, whether approval was needed, what happened when it failed, whether recovery was attempted, and what proof exists after the action finished.' },
@@ -142,6 +147,7 @@ function ArticleBlock({ block }: { block: Block }) {
 export default function Vision() {
   // ARTICLE[0] is the "Action layer" title, now rendered as the hero below.
   const bodyBlocks = ARTICLE.slice(1)
+  const [interval, setInterval] = useState<BillingInterval>('yearly')
 
   return (
     <section
@@ -149,10 +155,10 @@ export default function Vision() {
       className="bg-white text-[#171717]"
     >
       <h2 id="vision-heading" className="sr-only">Vision</h2>
-      <div className="mx-auto max-w-[960px] px-4 pt-24 pb-24 sm:px-6 lg:px-8 md:pt-36 md:pb-28">
-        <article>
+      <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-8 sm:px-6 lg:px-8 md:pt-36 md:pb-12 ">
+        <article className="mx-auto max-w-[820px]">
           <div className="max-w-[640px]">
-            <h3 className="mb-14 mt-3 text-black" style={TITLE_STYLE}>
+            <h3 className="mb-4 mt-3 text-black" style={TITLE_STYLE}>
               <HoverPhrase base={<>Action layer <span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span></>} cont={LINE_1_CONT} />
               <br />
               <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">To execute safely</span>} cont={LINE_2_CONT} />
@@ -160,32 +166,98 @@ export default function Vision() {
               <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proven by runs</span>} cont={LINE_3_CONT} />
             </h3>
 
-            <div className="flex flex-wrap items-center gap-4 mb-14">
-              <Link
-                href="/auth?mode=signup"
-                prefetch={false}
-                className="inline-flex h-12 items-center justify-center rounded-[20px] px-6 bg-[#171717] text-white text-[15px] hover:bg-[#383838] transition-colors"
-                style={{ fontFamily: SANS, fontWeight: 500 }}
-              >
-                Get API Key
-              </Link>
-              <Link
-                href="/auth?mode=signin"
-                prefetch={false}
-                className="inline-flex h-12 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
-                style={{ fontFamily: SANS, fontWeight: 500 }}
-              >
-                Setup an Agent
-              </Link>
+          </div>
+
+          {bodyBlocks.length > 0 && <ArticleBlock block={bodyBlocks[0]} />}
+
+          <div className="flex flex-wrap items-center gap-4 mb-12">
+            <Link
+              href="/auth?mode=signup"
+              prefetch={false}
+              className="inline-flex h-12 items-center justify-center rounded-[20px] px-6 bg-[#171717] text-white text-[15px] hover:bg-[#383838] transition-colors"
+              style={{ fontFamily: SANS, fontWeight: 500 }}
+            >
+              Get API Key
+            </Link>
+            <Link
+              href="/auth?mode=signin"
+              prefetch={false}
+              className="inline-flex h-12 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
+              style={{ fontFamily: SANS, fontWeight: 500 }}
+            >
+              Setup an Agent
+            </Link>
+          </div>
+
+          <img src="/pkrllgol.png" alt="" className="w-full mb-14 rounded-lg" />
+
+          {bodyBlocks.slice(1).map((block, index) => (
+            <ArticleBlock key={index + 1} block={block} />
+          ))}
+
+          <div className="mt-20 pt-12">
+            <h4
+              className="mb-5 mt-16 text-[#171717]"
+              style={{ fontFamily: SANS, fontWeight: 600, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.15, letterSpacing: '-0.03em' }}
+            >
+              Pricing
+            </h4>
+            <BillingToggle interval={interval} onChange={setInterval} />
+            <div className="flex flex-col md:flex-row border border-[#ebebeb] divide-y md:divide-y-0 md:divide-x divide-[#ebebeb]">
+              {PRICING_TIERS.map((tier) => {
+                const billing = getTierBilling(tier, interval)
+                return (
+                  <div key={tier.key} className="flex-1 flex flex-col p-6">
+                    <div>
+                      <h5
+                        className="text-[#171717]"
+                        style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.25rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+                      >
+                        {tier.name}
+                      </h5>
+                      <p
+                        className="mt-2 text-[#27272a]"
+                        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                      >
+                        {tier.description}
+                      </p>
+                      <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} />
+                      <ul className="mt-4 flex flex-col gap-y-2">
+                        {tier.features.map((feature) => (
+                          <li key={feature} className="flex items-start gap-2.5">
+                            <span className="mt-[0.45rem] h-1 w-1 shrink-0 rounded-full bg-[#d4d4d4]" />
+                            <span
+                              className="text-[#27272a]"
+                              style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                            >
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="mt-auto pt-5">
+                      <a
+                        href={billing.checkoutUrl}
+                        target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
+                        rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                        className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[8px] transition-colors bg-[#171717] text-white hover:bg-[#383838]"
+                        style={{ fontFamily: SANS }}
+                      >
+                        {billing.cta}
+                      </a>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
-          {bodyBlocks.map((block, index) => (
-            <ArticleBlock key={index} block={block} />
-          ))}
+          <div className="mt-20">
+            <Faq simple />
+          </div>
         </article>
       </div>
-
       <Footer />
     </section>
   )
