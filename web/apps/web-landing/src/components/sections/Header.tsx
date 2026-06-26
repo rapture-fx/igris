@@ -62,11 +62,11 @@ export default function Header() {
 
   const logoSrc = mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png';
 
-  const sideLinkClass =
-    'block rounded-md px-3 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors';
-  const sideToggleClass =
-    'flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-black dark:text-[#f6f6f4] hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors';
-  const subLinkClass =
+  const navLinkClass =
+    'text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
+  const navToggleClass =
+    'flex items-center gap-1 text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
+  const dropdownLinkClass =
     'block rounded-md px-3 py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-50 dark:hover:bg-white/[0.05] transition-colors';
 
   const renderSubItem = (item: DropdownItem) =>
@@ -77,7 +77,7 @@ export default function Header() {
         target="_blank"
         rel="noopener noreferrer"
         onClick={closeAll}
-        className={subLinkClass}
+        className={dropdownLinkClass}
         style={{ fontFamily: NAV_FONT }}
       >
         {item.label}
@@ -87,7 +87,7 @@ export default function Header() {
         key={item.label}
         href={item.href}
         onClick={closeAll}
-        className={subLinkClass}
+        className={dropdownLinkClass}
         style={{ fontFamily: NAV_FONT }}
       >
         {item.label}
@@ -97,47 +97,44 @@ export default function Header() {
   const NavGroups = (
     <>
       {/* Product */}
-      <button type="button" onClick={() => setProductOpen((v) => !v)} className={sideToggleClass} style={NAV_ITEM_STYLE}>
-        <span>Product</span>
-        <ChevronDown className={`h-4 w-4 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
-      </button>
-      {productOpen && (
-        <div className="mb-1 ml-3 flex flex-col border-l border-gray-200 dark:border-white/[0.12] pl-1">
-          {productItems.map(renderSubItem)}
-        </div>
-      )}
+      <div className="relative">
+        <button type="button" onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }} className={navToggleClass} style={NAV_ITEM_STYLE}>
+          <span>Product</span>
+          <ChevronDown className={`h-3 w-3 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {productOpen && (
+          <div className="absolute top-full left-0 mt-1 w-48 rounded-lg border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
+            {productItems.map(renderSubItem)}
+          </div>
+        )}
+      </div>
 
       {/* Docs */}
-      <button type="button" onClick={() => setDocsOpen((v) => !v)} className={sideToggleClass} style={NAV_ITEM_STYLE}>
-        <span>Docs</span>
-        <ChevronDown className={`h-4 w-4 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
-      </button>
-      {docsOpen && (
-        <div className="mb-1 ml-3 flex flex-col border-l border-gray-200 dark:border-white/[0.12] pl-1">
-          {docsItems.map(renderSubItem)}
-        </div>
-      )}
+      <div className="relative">
+        <button type="button" onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }} className={navToggleClass} style={NAV_ITEM_STYLE}>
+          <span>Docs</span>
+          <ChevronDown className={`h-3 w-3 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {docsOpen && (
+          <div className="absolute top-full left-0 mt-1 w-56 rounded-lg border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
+            {docsItems.map(renderSubItem)}
+          </div>
+        )}
+      </div>
 
-      {/* Pricing */}
-      <Link href="/pricing" prefetch={false} onClick={closeAll} className={sideLinkClass} style={NAV_ITEM_STYLE}>
-        Pricing
-      </Link>
     </>
   );
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside
-        className="hidden md:flex fixed inset-y-0 left-0 z-50 flex-col border-r border-[#ebebeb] dark:border-white/[0.08] bg-white dark:bg-[#110f0f] px-5 py-8"
-        style={{ width: SIDEBAR_WIDTH }}
-      >
-        <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center px-1">
-          <img src={logoSrc} alt="Igris Inertial" className="h-10 w-auto rounded-lg" />
+      {/* Desktop header */}
+      <header className="hidden md:flex items-center justify-between bg-white dark:bg-[#110f0f] px-6 py-4 sticky top-0 z-50">
+        <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center shrink-0">
+          <img src={logoSrc} alt="Igris Inertial" className="h-8 w-auto rounded-lg" />
         </Link>
 
-        <nav className="mt-10 flex flex-col gap-0.5">{NavGroups}</nav>
-      </aside>
+        <nav className="flex items-center gap-6">{NavGroups}</nav>
+      </header>
 
       {/* Mobile top bar */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#110f0f]/80 backdrop-blur-md pt-4">
