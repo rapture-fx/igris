@@ -153,13 +153,13 @@ const faqSections: FaqSection[] = [
   },
 ]
 
-export default function Faq({ large = false }: { large?: boolean }) {
+export default function Faq({ large = false, simple = false }: { large?: boolean; simple?: boolean }) {
   const [openSectionIndex, setOpenSectionIndex] = useState<number | null>(null)
 
-  const sectionTitleSize = large ? 'clamp(1rem, 1.2vw, 1.1rem)' : '0.95rem'
-  const questionSize = large ? '0.95rem' : '0.875rem'
-  const answerSize = large ? '0.95rem' : '0.875rem'
-  const chevronSize = large ? 16 : 14
+  const sectionTitleSize = large ? '1.0625rem' : simple ? '1.0625rem' : '0.95rem'
+  const questionSize = large ? '0.95rem' : simple ? '1rem' : '0.875rem'
+  const answerSize = large ? '0.95rem' : simple ? '1rem' : '0.875rem'
+  const chevronSize = large ? 16 : simple ? 16 : 14
 
   const toggleSection = (index: number) => {
     setOpenSectionIndex(openSectionIndex === index ? null : index)
@@ -170,20 +170,128 @@ export default function Faq({ large = false }: { large?: boolean }) {
       id="faq"
       className="bg-white text-[#171717]"
     >
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="pt-24 md:pt-40 pb-10 md:pb-14">
-          <LandingPillarHeader
-            title="Questions"
-            description="Common questions about getting started, pricing, execution, verification, and deployment."
-          />
+      <div className={simple ? '' : 'mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8'}>
+        <div className={simple ? '' : 'pt-24 md:pt-40 pb-10 md:pb-14'}>
+          {!simple && (
+            <LandingPillarHeader
+              title="Questions"
+              description="Common questions about getting started, pricing, execution, verification, and deployment."
+            />
+          )}
 
-          <div className="mt-10 md:mt-12">
-            <LandingSurfaceFrame>
-              <div className="landing-surface-panel overflow-hidden">
+          <div className={simple ? '' : 'mt-10 md:mt-12'}>
+            {simple ? (
+              <div className="divide-y divide-[#ebebeb]">
+                {faqSections.map((section, sectionIndex) => {
+                  const isOpen = openSectionIndex === sectionIndex
+                  const isLast = sectionIndex === faqSections.length - 1
+                  return (
+                    <div
+                      key={section.title}
+                      className={!isLast ? 'border-b border-[#ebebeb]' : ''}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(sectionIndex)}
+                        className="w-full text-left py-5 flex items-center justify-between gap-4 transition-colors"
+                        style={{ fontFamily: SANS }}
+                        aria-expanded={isOpen}
+                      >
+                        <span
+                          className="text-[#171717]"
+                          style={{
+                            fontSize: sectionTitleSize,
+                            fontWeight: 600,
+                            lineHeight: 1.3,
+                            letterSpacing: '-0.02em',
+                          }}
+                        >
+                          {section.title}
+                        </span>
+                        <ChevronDown
+                          className={`flex-shrink-0 text-[#8f8f8f] transition-transform duration-200 ${
+                            isOpen ? 'rotate-180' : ''
+                          }`}
+                          size={chevronSize}
+                          strokeWidth={1.5}
+                        />
+                      </button>
+
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ${
+                          isOpen ? 'max-h-[3000px]' : 'max-h-0'
+                        }`}
+                      >
+                        <div className="pt-2 pb-6 space-y-5 border-t border-[#ebebeb]">
+                          {section.entries.map((faq, entryIndex) => (
+                            <div
+                              key={faq.question}
+                              className={entryIndex > 0 ? 'pt-5 border-t border-[#ebebeb]' : ''}
+                            >
+                              <p
+                                className="text-[#171717] mb-2"
+                                style={{
+                                  fontFamily: SANS,
+                                  fontSize: questionSize,
+                                  fontWeight: 600,
+                                  lineHeight: 1.4,
+                                  letterSpacing: '-0.02em',
+                                }}
+                              >
+                                {faq.question}
+                              </p>
+                              {faq.type === 'text' && (
+                                <p
+                                  className="text-[#27272a]"
+                                  style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                >
+                                  {faq.answer}
+                                </p>
+                              )}
+                              {faq.type === 'code' && (
+                                <div className="space-y-3">
+                                  <p
+                                    className="text-[#27272a]"
+                                    style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                  >
+                                    {faq.answerText}
+                                  </p>
+                                  <div className="rounded-md border border-[#ebebeb] bg-black/[0.02] p-3 font-mono text-xs overflow-x-auto dark:bg-white/[0.02]">
+                                    <div className="mb-2">
+                                      <span className="text-gray-500 dark:text-[#8a8a7a]"># Old</span>
+                                      <div className="text-black dark:text-[#f6f6f4] mt-1 break-all">
+                                        {faq.codeExample?.old}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500 dark:text-[#8a8a7a]"># New</span>
+                                      <div className="text-black dark:text-[#f6f6f4] mt-1 break-all">
+                                        {faq.codeExample?.new}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <p
+                                    className="text-[#27272a]"
+                                    style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                  >
+                                    {faq.answerFooter}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <LandingSurfaceFrame>
+                <div className="landing-surface-panel overflow-hidden">
                   {faqSections.map((section, sectionIndex) => {
                     const isOpen = openSectionIndex === sectionIndex
                     const isLast = sectionIndex === faqSections.length - 1
-
                     return (
                       <div
                         key={section.title}
@@ -284,8 +392,9 @@ export default function Faq({ large = false }: { large?: boolean }) {
                       </div>
                     )
                   })}
-              </div>
-            </LandingSurfaceFrame>
+                </div>
+              </LandingSurfaceFrame>
+            )}
           </div>
         </div>
       </div>
