@@ -32,14 +32,14 @@ const TAB_TRANSITION = { duration: TAB_TRANSITION_DURATION, ease: MOTION_EASE };
 
 const PIXEL_PRICE_STYLE: React.CSSProperties = {
   fontFamily: PIXEL,
-  fontSize: 'clamp(1.35rem, 2vw, 1.65rem)',
+  fontSize: 'clamp(1.75rem, 2.8vw, 2.25rem)',
   lineHeight: 1.1,
   letterSpacing: '-0.01em',
 };
 
 const PIXEL_COMPARE_STYLE: React.CSSProperties = {
   fontFamily: PIXEL,
-  fontSize: 'clamp(1.1rem, 1.6vw, 1.35rem)',
+  fontSize: 'clamp(1.25rem, 1.8vw, 1.5rem)',
   lineHeight: 1.1,
   letterSpacing: '-0.01em',
 };
@@ -243,7 +243,7 @@ function AnimatedPriceValue({
   );
 }
 
-function TierPriceDisplay({
+export function TierPriceDisplay({
   billing,
   tierKey,
   interval,
@@ -288,7 +288,7 @@ function TierPriceDisplay({
               key={`${motionKey}-period`}
               layout="position"
               className="text-gray-500 dark:text-[#a8a898]"
-              style={{ fontFamily: SANS, fontSize: '0.875rem' }}
+              style={{ fontFamily: SANS, fontSize: '1rem' }}
               {...fade}
               transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
             >
@@ -303,8 +303,8 @@ function TierPriceDisplay({
           <motion.p
             key={`${motionKey}-detail`}
             layout="position"
-            className="mt-2 text-gray-500 dark:text-[#8a8a7a]"
-            style={{ fontFamily: SANS, fontSize: '0.8rem', lineHeight: 1.4 }}
+            className="mt-2 text-emerald-600 dark:text-emerald-400"
+            style={{ fontFamily: SANS, fontSize: '0.9375rem', lineHeight: 1.4 }}
             {...fade}
             transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
           >
@@ -316,7 +316,7 @@ function TierPriceDisplay({
   );
 }
 
-function BillingToggle({
+export function BillingToggle({
   interval,
   onChange,
 }: {
@@ -343,7 +343,7 @@ function BillingToggle({
               onClick={() => onChange(option)}
               aria-pressed={active}
               className={
-                'relative rounded-lg px-3.5 py-1.5 text-[11px] ' +
+                'relative rounded-lg px-4 py-2 text-[13px] ' +
                 (active
                   ? 'text-white'
                   : 'text-[#4d4d4d] hover:text-[#171717]')
