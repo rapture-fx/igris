@@ -12,8 +12,8 @@ const LINE_3_CONT = ' that record what happened, recover from failures, and leav
 
 const TITLE_STYLE: CSSProperties = {
   fontFamily: SANS,
-  fontWeight: 500,
-  fontSize: 'clamp(2.5rem, 6vw, 4rem)',
+  fontWeight: 400,
+  fontSize: 'clamp(2rem, 5vw, 3.2rem)',
   lineHeight: 1.12,
   letterSpacing: '-0.045em',
 }
@@ -109,7 +109,7 @@ function ArticleBlock({ block }: { block: Block }) {
       return (
         <p
           className="mb-8 text-[#171717]"
-          style={{ fontFamily: SANS, fontWeight: 500, fontSize: 'clamp(1.5rem, 2.8vw, 1.875rem)', lineHeight: 1.45, letterSpacing: '-0.02em' }}
+          style={{ fontFamily: SANS, fontWeight: 400, fontSize: 'clamp(1.5rem, 2.8vw, 1.875rem)', lineHeight: 1.45, letterSpacing: '-0.02em' }}
         >
           {block.text}
         </p>
@@ -117,7 +117,7 @@ function ArticleBlock({ block }: { block: Block }) {
     case 'p':
       return (
         <p
-          className="mb-6 text-[#52525b]"
+          className="mb-6 text-[#27272a]"
           style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
         >
           {block.text}
@@ -126,7 +126,7 @@ function ArticleBlock({ block }: { block: Block }) {
     case 'code':
       return (
         <p
-          className="mb-7 whitespace-pre-line text-[#52525b]"
+          className="mb-7 whitespace-pre-line text-[#27272a]"
           style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
         >
           {block.text}
@@ -149,33 +149,35 @@ export default function Vision() {
       className="bg-white text-[#171717]"
     >
       <h2 id="vision-heading" className="sr-only">Vision</h2>
-      <div className="mx-auto max-w-[820px] px-4 pt-24 pb-24 sm:px-6 lg:px-8 md:pt-36 md:pb-28">
+      <div className="mx-auto max-w-[960px] px-4 pt-24 pb-24 sm:px-6 lg:px-8 md:pt-36 md:pb-28">
         <article>
-          <h3 className="mb-14 mt-3 text-[#171717]" style={TITLE_STYLE}>
-            <HoverPhrase base={<>Action layer <span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span></>} cont={LINE_1_CONT} />
-            <br />
-            <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">To execute safely</span>} cont={LINE_2_CONT} />
-            {' and '}
-            <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proven by runs</span>} cont={LINE_3_CONT} />
-          </h3>
+          <div className="max-w-[640px]">
+            <h3 className="mb-14 mt-3 text-black" style={TITLE_STYLE}>
+              <HoverPhrase base={<>Action layer <span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span></>} cont={LINE_1_CONT} />
+              <br />
+              <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">To execute safely</span>} cont={LINE_2_CONT} />
+              {' and '}
+              <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proven by runs</span>} cont={LINE_3_CONT} />
+            </h3>
 
-          <div className="flex flex-wrap items-center gap-4 mb-14">
-            <Link
-              href="/auth?mode=signup"
-              prefetch={false}
-              className="inline-flex h-12 items-center justify-center rounded-[20px] px-6 bg-[#171717] text-white text-[15px] hover:bg-[#383838] transition-colors"
-              style={{ fontFamily: SANS, fontWeight: 500 }}
-            >
-              Get API Key
-            </Link>
-            <Link
-              href="/auth?mode=signin"
-              prefetch={false}
-              className="inline-flex h-12 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
-              style={{ fontFamily: SANS, fontWeight: 500 }}
-            >
-              Setup an Agent
-            </Link>
+            <div className="flex flex-wrap items-center gap-4 mb-14">
+              <Link
+                href="/auth?mode=signup"
+                prefetch={false}
+                className="inline-flex h-12 items-center justify-center rounded-[20px] px-6 bg-[#171717] text-white text-[15px] hover:bg-[#383838] transition-colors"
+                style={{ fontFamily: SANS, fontWeight: 500 }}
+              >
+                Get API Key
+              </Link>
+              <Link
+                href="/auth?mode=signin"
+                prefetch={false}
+                className="inline-flex h-12 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
+                style={{ fontFamily: SANS, fontWeight: 500 }}
+              >
+                Setup an Agent
+              </Link>
+            </div>
           </div>
 
           {bodyBlocks.map((block, index) => (
