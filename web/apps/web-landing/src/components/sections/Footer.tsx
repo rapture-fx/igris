@@ -112,7 +112,7 @@ function FooterNavLink({ link }: { link: FooterLink }) {
 export default function Footer() {
   return (
     <footer className="bg-[#fafafa] text-[#171717] border-t border-[#ebebeb]">
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="pt-10 md:pt-14 pb-16 md:pb-20">
           <div className="flex flex-col items-start gap-16 lg:gap-24 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-[280px] shrink-0">
