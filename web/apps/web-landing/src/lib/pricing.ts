@@ -92,13 +92,12 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     key: 'infinite',
     name: 'Infinite',
-    description: 'For private deployments, custom retention, and custom controls.',
+    description: 'For private deployments and custom controls.',
     features: [
       'Custom action volume',
       'Custom execution environments',
       'Everything in Horizon',
       'Private deployment options',
-      'Custom retention policy',
       'Advanced audit exports',
       'Dedicated onboarding',
       'Security review support',
