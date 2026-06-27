@@ -9,6 +9,8 @@ import { PRICING_TIERS, getTierBilling } from '../../lib/pricing'
 import type { BillingInterval } from '../../lib/pricing'
 import { BillingToggle, TierPriceDisplay } from './Pricing'
 import Faq from './Faq'
+import { ChevronDown, Workflow } from 'lucide-react'
+import { MermaidChart } from '../MermaidChart'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -67,6 +69,27 @@ type Block =
   | { type: 'code'; text: string }
   | { type: 'divider' }
   | { type: 'p-badges'; text: string }
+  | { type: 'how-it-works' }
+
+const HOW_IT_WORKS_CHART = `---
+config:
+  layout: elk
+  theme: forest
+  look: classic
+---
+flowchart LR
+    A["Agent request"] --> B["Policy"]
+    B --> C["Execution"]
+    C --> D["Proof"] & F["Recovery"]
+    D --> E["Review"]
+    F --> D
+
+     A
+     B
+     C
+     D
+     F
+     E`
 
 const ARTICLE: Block[] = [
   { type: 'h2', text: 'Action layer' },
@@ -76,6 +99,7 @@ const ARTICLE: Block[] = [
   { type: 'section', text: 'From request to review' },
   { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
   { type: 'p', text: 'Igris gives each action a controlled path from request to review. Agents request work, actions define what can be done, and Igris manages how the work runs. It checks whether the action is allowed, runs it through the right execution path, tracks the result, handles failure when possible, and keeps proof your team can inspect later.' },
+  { type: 'how-it-works' },
   { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint.' },
 
   { type: 'section', text: 'What Igris adds' },
@@ -87,6 +111,38 @@ const ARTICLE: Block[] = [
   { type: 'code', text: 'curl -fsSL https://igrisinertial.com/install | bash' },
   { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console. The first setup should be simple: connect the agent once, route actions through Igris, and use the console to understand what happened.' },
 ]
+
+function HowItWorksBlock() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="mb-8">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
+        style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        aria-expanded={open}
+      >
+        <Workflow size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
+        <span>How it works</span>
+        <ChevronDown
+          size={16}
+          strokeWidth={1.75}
+          className={`shrink-0 text-[#8f8f8f] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        <div className="pt-4">
+          {open && <MermaidChart chart={HOW_IT_WORKS_CHART} />}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function ArticleBlock({ block }: { block: Block }) {
   switch (block.type) {
@@ -121,7 +177,7 @@ function ArticleBlock({ block }: { block: Block }) {
       return (
         <h5
           className="mb-3 mt-12 text-[#171717]"
-          style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
         >
           {block.text}
         </h5>
@@ -179,6 +235,8 @@ function ArticleBlock({ block }: { block: Block }) {
     }
     case 'divider':
       return <hr className="my-14 border-0 border-t border-[#ececec]" />
+    case 'how-it-works':
+      return <HowItWorksBlock />
     default:
       return null
   }
