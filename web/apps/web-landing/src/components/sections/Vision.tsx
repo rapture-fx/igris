@@ -9,11 +9,12 @@ import { PRICING_TIERS, getTierBilling } from '../../lib/pricing'
 import type { BillingInterval } from '../../lib/pricing'
 import { BillingToggle, TierPriceDisplay } from './Pricing'
 import Faq from './Faq'
-import { ChevronDown, Workflow } from 'lucide-react'
+import { ChevronDown, Workflow, Copy } from 'lucide-react'
 import { MermaidChart } from '../MermaidChart'
 import VisionChangesPanel from './VisionChangesPanel'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
 
 const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled action layer.'
@@ -106,7 +107,7 @@ const ARTICLE: Block[] = [
   { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint.' },
 
   { type: 'section', text: 'What Igris adds' },
-  { type: 'p', text: 'Igris adds the control layer around agent actions. Before an action runs, Igris can check whether it is allowed, needs approval, or should stop. While it runs, Igris tracks the result and makes failure visible when something breaks. After it finishes, Igris keeps a record your team can review, so you are not relying only on the agent’s own explanation of what happened.' },
+  { type: 'p', text: 'Igris turns agent actions into controlled work your team can review. Before an action runs, Igris checks whether it is allowed, needs approval, or should stop. As the action runs, Igris tracks the result and makes failure visible. After it finishes, Igris keeps proof so your team can understand what happened without relying only on the agent’s explanation.' },
   { type: 'changes-panel' },
   { type: 'p', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
 
@@ -125,7 +126,7 @@ function HowItWorksBlock() {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
         aria-expanded={open}
       >
         <Workflow size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
@@ -143,6 +144,38 @@ function HowItWorksBlock() {
         <div className="pt-4">
           {open && <MermaidChart chart={HOW_IT_WORKS_CHART} />}
         </div>
+      </div>
+    </div>
+  )
+}
+
+function CodeBlockWithCopy({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="mb-7 border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
+      <div className="px-5 py-4 flex items-start justify-between gap-4">
+        <code
+          className="text-[#27272a] whitespace-pre shrink-0"
+          style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.65 }}
+        >
+          {text}
+        </code>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 text-[12px] text-[#8f8f8f] hover:text-[#171717] transition-colors shrink-0 mt-0.5"
+          style={{ fontFamily: SANS }}
+        >
+          <Copy size={14} strokeWidth={1.5} />
+          {copied ? 'Copied' : 'Copy'}
+        </button>
       </div>
     </div>
   )
@@ -181,7 +214,7 @@ function ArticleBlock({ block }: { block: Block }) {
       return (
         <h5
           className="mb-3 mt-12 text-[#171717]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
         >
           {block.text}
         </h5>
@@ -205,14 +238,7 @@ function ArticleBlock({ block }: { block: Block }) {
         </p>
       )
     case 'code':
-      return (
-        <p
-          className="mb-7 whitespace-pre-line text-[#27272a]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-        >
-          {block.text}
-        </p>
-      )
+      return <CodeBlockWithCopy text={block.text} />
     case 'p-badges': {
       const badgeWords = ['policy', 'recovery', 'proof', 'review']
       const regex = new RegExp(`(${badgeWords.join('|')})`, 'gi')
@@ -353,7 +379,9 @@ export default function Vision() {
           </div>
 
           <div className="mt-20">
-            <Faq simple />
+            <div className="border border-[#ebebeb] rounded-[10px] bg-white px-6 py-2">
+              <Faq simple />
+            </div>
           </div>
         </article>
       </div>
