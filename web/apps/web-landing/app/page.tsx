@@ -17,7 +17,7 @@ export default function HomePage() {
       <div className="igris-grain min-h-screen bg-white dark:bg-[#110f0f] transition-colors duration-200">
         <LandingScrollManager />
         <Header />
-        <main>
+        <main className="pt-16">
           <Vision />
         </main>
       </div>
