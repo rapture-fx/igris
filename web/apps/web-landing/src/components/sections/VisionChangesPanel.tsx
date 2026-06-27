@@ -6,94 +6,47 @@ import { ChevronDown, FileDiff } from 'lucide-react'
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
-type StepTone = 'ok' | 'bad'
-
 type ChangeStep = {
   index: number
-  tone: StepTone
   name: string
   detail: string
   latency?: string
   receipt?: string
   status?: string
+  isRecovered?: boolean
 }
 
-const SUCCESS_STATUSES = new Set(['allowed', 'routed', 'committed', 'verified'])
-const FAILURE_STATUSES = new Set(['429', 'failed', 'blocked', 'recovered'])
+const SUCCESS_STATUSES = new Set(['allowed', 'routed', 'committed', 'verified', 'resumed', 'recovered'])
 
-// Illustrates the control-layer story on the landing page: policy → route →
-// execute → visible failure/recovery → signed proof for review.
 const DEMO_STEPS: ChangeStep[] = [
-  {
-    index: 1,
-    tone: 'ok',
-    name: 'policy_eval',
-    detail: 'Idempotent, 3 retries, allowed',
-    latency: '4ms',
-    status: 'allowed',
-  },
-  {
-    index: 2,
-    tone: 'ok',
-    name: 'route_action',
-    detail: 'hosted_runtime, action_endpoint',
-    latency: '2ms',
-    status: 'routed',
-  },
-  {
-    index: 3,
-    tone: 'ok',
-    name: 'read_file',
-    detail: 'agent input, 0.6KB digest',
-    latency: '9ms',
-    receipt: 'r₀₁',
-    status: 'committed',
-  },
-  {
-    index: 4,
-    tone: 'ok',
-    name: 'http_call',
-    detail: 'POST /v1/actions/create_invoice/run, 200 OK',
-    latency: '186ms',
-    receipt: 'r₀₂',
-    status: 'committed',
-  },
-  {
-    index: 5,
-    tone: 'bad',
-    name: 'rate_limit',
-    detail: 'upstream 429, backoff 250ms, resumed',
-    latency: '250ms',
-    status: 'recovered',
-  },
-  {
-    index: 6,
-    tone: 'ok',
-    name: 'http_call',
-    detail: 'retry 1 of 3, 202 Accepted',
-    latency: '41ms',
-    receipt: 'r₀₃',
-    status: 'committed',
-  },
-  {
-    index: 7,
-    tone: 'ok',
-    name: 'receipt_sign',
-    detail: 'ed25519, ready for team review',
-    latency: '6ms',
-    receipt: 'r₀₄',
-    status: 'verified',
-  },
+  { index: 1, name: 'policy_check', detail: 'idempotent, 3 retries', latency: '4ms', status: 'allowed' },
+  { index: 2, name: 'approval_check', detail: 'approval not required', latency: '2ms', status: 'allowed' },
+  { index: 3, name: 'route_execution', detail: 'connected worker, action endpoint', latency: '2ms', status: 'routed' },
+  { index: 4, name: 'action_input', detail: '0.6KB digest', latency: '12ms', receipt: 'r₀₁', status: 'committed' },
+  { index: 5, name: 'action_call', detail: 'POST /v1/actions/create_invoice, 200 OK', latency: '38ms', receipt: 'r₀₂', status: 'committed' },
+  { index: 6, name: 'host_fault', detail: 'checkpoint preserved, resumed', latency: '31ms', status: 'recovered', isRecovered: true },
+  { index: 7, name: 'action_call', detail: 'retry 2 of 3, 202 Accepted', latency: '42ms', receipt: 'r₀₃', status: 'committed' },
+  { index: 8, name: 'write_result', detail: 'accounts_staged, r_7720', latency: '18ms', receipt: 'r₀₄', status: 'committed' },
+  { index: 9, name: 'rate_limit', detail: 'upstream 429, backoff 250ms, resumed', latency: '250ms', status: 'recovered', isRecovered: true },
+  { index: 10, name: 'action_call', detail: 'retry 1 of 3, 202 Accepted', latency: '29ms', receipt: 'r₀₅', status: 'committed' },
+  { index: 11, name: 'proof_recorded', detail: 'ed25519 chain, ready for team review', latency: '6ms', receipt: 'r₀₆', status: 'verified' },
+  { index: 12, name: 'receipt_verify', detail: 'receipt r₀₆ cross-checked', latency: '3ms', status: 'verified' },
+  { index: 13, name: 'receipt_publish', detail: 'chain anchored, team notified', latency: '5ms', receipt: 'r₀₇', status: 'verified' },
 ]
 
-function stepSign(tone: StepTone) {
-  return tone === 'ok' ? '+' : '−'
-}
+const recoveredCount = DEMO_STEPS.filter((s) => s.isRecovered).length
 
-function statusTone(status: string): 'ok' | 'bad' {
-  if (SUCCESS_STATUSES.has(status)) return 'ok'
-  if (FAILURE_STATUSES.has(status)) return 'bad'
-  return 'ok'
+const FAILURE_REGEX = /\b(429|failed)\b/g
+
+function highlightFailure(text: string) {
+  const parts = text.split(FAILURE_REGEX)
+  return parts.map((part, i) =>
+    part === '429' || part === 'failed' ? (
+      <span key={i} style={{ color: '#be123c' }}>{part}</span>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  )
 }
 
 function VisionChangesStyles() {
@@ -109,70 +62,58 @@ function VisionChangesStyles() {
         --vc-mono: ${MONO};
       }
       .vision-changes .ic-evidence__intro {
-        font-size: 12px;
-        color: var(--vc-text-6);
-        margin: 0 0 10px;
+        font-size: 1.125rem;
+        color: #27272a;
+        margin: 0 0 14px;
         max-width: 72ch;
-        line-height: 1.5;
+        line-height: 1.65;
       }
-      .vision-changes .ic-diff__stat {
-        margin-left: 6px;
-        font-family: var(--vc-mono);
-        font-size: 11.5px;
-        font-weight: 400;
-      }
-      .vision-changes .ic-diff__add { color: var(--vc-emerald); }
-      .vision-changes .ic-diff__del { color: var(--vc-rose); }
       .vision-changes .ic-diff__lines {
-        margin-top: 8px;
         font-family: var(--vc-mono);
-        font-size: 11.5px;
+        font-size: 1.125rem;
+        border: 1px solid #ebebeb;
+        border-radius: 10px;
+        padding: 8px 0;
+        background: #fff;
       }
       .vision-changes .ic-diff__line {
         display: grid;
-        grid-template-columns: 32px 14px minmax(0, 1fr) auto;
+        grid-template-columns: 28px 18px minmax(0, 1fr) auto;
         align-items: baseline;
-        column-gap: 10px;
-        padding: 2.5px 10px 2.5px 0;
+        column-gap: 8px;
+        padding: 4px 16px;
       }
-      .vision-changes .ic-diff__line--ok  { background: rgba(4, 120, 87, 0.07); }
-      .vision-changes .ic-diff__line--bad { background: rgba(190, 18, 60, 0.07); }
+      .vision-changes .ic-diff__line--committed { background: rgba(4, 120, 87, 0.05); }
+      .vision-changes .ic-diff__line--recovered { background: rgba(190, 18, 60, 0.04); }
       .vision-changes .ic-diff__num {
         text-align: right;
-        padding-right: 6px;
-        color: var(--vc-text-7);
-        background: var(--vc-overlay-bg);
-        align-self: stretch;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
+        color: #a1a1aa;
       }
-      .vision-changes .ic-diff__sign { text-align: center; color: var(--vc-text-7); }
-      .vision-changes .ic-diff__line--ok  .ic-diff__sign { color: var(--vc-emerald); }
-      .vision-changes .ic-diff__line--bad .ic-diff__sign { color: var(--vc-rose); }
+      .vision-changes .ic-diff__sign--ok { color: #047857; }
+      .vision-changes .ic-diff__sign--bad { color: #be123c; }
       .vision-changes .ic-diff__text {
-        color: var(--vc-text-2);
+        color: #3f3f46;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-      .vision-changes .ic-diff__dim { color: var(--vc-text-6); }
+      .vision-changes .ic-diff__dim { color: #71717a; }
       .vision-changes .ic-diff__meta {
         display: inline-flex;
         gap: 10px;
         align-items: baseline;
-        color: var(--vc-text-6);
-        font-size: 10.5px;
+        color: #71717a;
+        font-size: 1.125rem;
         white-space: nowrap;
       }
       .vision-changes .ic-stepev__status--ok { color: var(--vc-emerald); }
       .vision-changes .ic-stepev__status--bad { color: var(--vc-rose); }
       .vision-changes .mono { font-family: var(--vc-mono); }
       .vision-changes .ic-doc__note {
-        margin: 10px 0 0;
-        font-size: 11px;
-        color: var(--vc-text-6);
-        line-height: 1.5;
+        margin: 14px 0 0;
+        font-size: 1.125rem;
+        color: #71717a;
+        line-height: 1.65;
       }
       @media (max-width: 640px) {
         .vision-changes .ic-diff__meta { display: none; }
@@ -181,21 +122,47 @@ function VisionChangesStyles() {
   )
 }
 
+function statusTone(status: string): 'ok' | 'bad' {
+  if (SUCCESS_STATUSES.has(status)) return 'ok'
+  return 'bad'
+}
+
+function signTone(step: ChangeStep): null | 'ok' | 'bad' {
+  if (step.status === 'committed') return 'ok'
+  if (step.isRecovered) return 'bad'
+  return null
+}
+
+function rowClass(step: ChangeStep): string {
+  if (step.isRecovered) return 'ic-diff__line--recovered'
+  if (step.status === 'committed') return 'ic-diff__line--committed'
+  return ''
+}
+
 function ChangesDiff() {
   return (
-    <div className="vision-changes" aria-label="Example run changes">
+    <div className="vision-changes" aria-label="Example run record">
       <VisionChangesStyles />
       <div className="ic-evidence ic-diff">
         <p className="ic-evidence__intro">
-          Every action leaves a reviewable record of policy, execution, recovery, and proof.
+          See what was checked, what ran, what failed, what recovered, and what proof was kept.
         </p>
         <div className="ic-diff__lines">
-          {DEMO_STEPS.map((step) => (
-            <div key={step.index} className={`ic-diff__line ic-diff__line--${step.tone}`}>
+          {DEMO_STEPS.map((step) => {
+            const sign = signTone(step)
+            return (
+            <div key={step.index} className={`ic-diff__line ${rowClass(step)}`}>
               <span className="ic-diff__num">{String(step.index).padStart(2, '0')}</span>
-              <span className="ic-diff__sign">{stepSign(step.tone)}</span>
+              {sign ? (
+                <span className={`ic-diff__sign--${sign}`}>{sign === 'bad' ? '−' : '+'}</span>
+              ) : (
+                <span />
+              )}
               <span className="ic-diff__text">
-                {step.name} <span className="ic-diff__dim">{step.detail}</span>
+                {step.name}{' '}
+                <span className="ic-diff__dim">
+                  {step.isRecovered ? highlightFailure(step.detail) : step.detail}
+                </span>
               </span>
               <span className="ic-diff__meta">
                 {step.latency && <span>{step.latency}</span>}
@@ -205,7 +172,8 @@ function ChangesDiff() {
                 )}
               </span>
             </div>
-          ))}
+            )
+          })}
         </div>
         <p className="ic-doc__note">
           Raw content stays redacted. Digests and receipts preserve proof without exposing sensitive data.
@@ -217,8 +185,6 @@ function ChangesDiff() {
 
 export default function VisionChangesPanel() {
   const [open, setOpen] = useState(false)
-  const added = DEMO_STEPS.filter((s) => s.tone === 'ok').length
-  const removed = DEMO_STEPS.filter((s) => s.tone === 'bad').length
 
   return (
     <div className="mb-8">
@@ -226,14 +192,14 @@ export default function VisionChangesPanel() {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
         aria-expanded={open}
       >
         <FileDiff size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
-        <span>Changes</span>
-        <span className="ic-diff__stat" style={{ fontFamily: MONO, fontSize: '11.5px', fontWeight: 400 }}>
-          <span style={{ color: '#047857' }}>+{added}</span>{' '}
-          <span style={{ color: '#be123c' }}>−{removed}</span>
+        <span>Run record </span>
+        <span className="ic-diff__stat">
+          <span style={{ color: '#047857' }}>+{DEMO_STEPS.length}</span>{' '}
+          <span style={{ color: '#be123c' }}>−{recoveredCount}</span>
         </span>
         <ChevronDown
           size={16}
@@ -243,7 +209,7 @@ export default function VisionChangesPanel() {
         />
       </button>
       <div
-        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}`}
+        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
         <div className="pt-4">
           {open && <ChangesDiff />}
