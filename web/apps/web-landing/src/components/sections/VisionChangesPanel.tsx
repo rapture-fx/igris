@@ -6,7 +6,7 @@ import { ChevronDown, FileDiff } from 'lucide-react'
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
-type StepTone = 'ok' | 'bad' | 'warn' | 'muted'
+type StepTone = 'ok' | 'bad'
 
 type ChangeStep = {
   index: number
@@ -18,6 +18,9 @@ type ChangeStep = {
   status?: string
 }
 
+const SUCCESS_STATUSES = new Set(['allowed', 'routed', 'committed', 'verified'])
+const FAILURE_STATUSES = new Set(['429', 'failed', 'blocked', 'recovered'])
+
 // Illustrates the control-layer story on the landing page: policy → route →
 // execute → visible failure/recovery → signed proof for review.
 const DEMO_STEPS: ChangeStep[] = [
@@ -25,7 +28,7 @@ const DEMO_STEPS: ChangeStep[] = [
     index: 1,
     tone: 'ok',
     name: 'policy_eval',
-    detail: 'Idempotent · 3 retries · allowed',
+    detail: 'Idempotent, 3 retries, allowed',
     latency: '4ms',
     status: 'allowed',
   },
@@ -33,7 +36,7 @@ const DEMO_STEPS: ChangeStep[] = [
     index: 2,
     tone: 'ok',
     name: 'route_action',
-    detail: 'Hosted API · Stripe',
+    detail: 'hosted_runtime, action_endpoint',
     latency: '2ms',
     status: 'routed',
   },
@@ -41,7 +44,7 @@ const DEMO_STEPS: ChangeStep[] = [
     index: 3,
     tone: 'ok',
     name: 'read_file',
-    detail: 'agent input · 0.6KB digest',
+    detail: 'agent input, 0.6KB digest',
     latency: '9ms',
     receipt: 'r₀₁',
     status: 'committed',
@@ -50,16 +53,16 @@ const DEMO_STEPS: ChangeStep[] = [
     index: 4,
     tone: 'ok',
     name: 'http_call',
-    detail: 'POST /v1/actions/create_invoice/run · 200 OK',
+    detail: 'POST /v1/actions/create_invoice/run, 200 OK',
     latency: '186ms',
     receipt: 'r₀₂',
     status: 'committed',
   },
   {
     index: 5,
-    tone: 'warn',
+    tone: 'bad',
     name: 'rate_limit',
-    detail: 'upstream 429 · backoff 250ms · resumed',
+    detail: 'upstream 429, backoff 250ms, resumed',
     latency: '250ms',
     status: 'recovered',
   },
@@ -67,7 +70,7 @@ const DEMO_STEPS: ChangeStep[] = [
     index: 6,
     tone: 'ok',
     name: 'http_call',
-    detail: 'retry 1 of 3 · 202 Accepted',
+    detail: 'retry 1 of 3, 202 Accepted',
     latency: '41ms',
     receipt: 'r₀₃',
     status: 'committed',
@@ -76,7 +79,7 @@ const DEMO_STEPS: ChangeStep[] = [
     index: 7,
     tone: 'ok',
     name: 'receipt_sign',
-    detail: 'ed25519 · ready for team review',
+    detail: 'ed25519, ready for team review',
     latency: '6ms',
     receipt: 'r₀₄',
     status: 'verified',
@@ -84,9 +87,13 @@ const DEMO_STEPS: ChangeStep[] = [
 ]
 
 function stepSign(tone: StepTone) {
-  if (tone === 'ok') return '+'
-  if (tone === 'bad') return '−'
-  return ' '
+  return tone === 'ok' ? '+' : '−'
+}
+
+function statusTone(status: string): 'ok' | 'bad' {
+  if (SUCCESS_STATUSES.has(status)) return 'ok'
+  if (FAILURE_STATUSES.has(status)) return 'bad'
+  return 'ok'
 }
 
 function VisionChangesStyles() {
@@ -98,7 +105,6 @@ function VisionChangesStyles() {
         --vc-text-7: #a1a1aa;
         --vc-emerald: #047857;
         --vc-rose: #be123c;
-        --vc-amber: #b45309;
         --vc-overlay-bg: rgba(0, 0, 0, 0.02);
         --vc-mono: ${MONO};
       }
@@ -131,7 +137,6 @@ function VisionChangesStyles() {
       }
       .vision-changes .ic-diff__line--ok  { background: rgba(4, 120, 87, 0.07); }
       .vision-changes .ic-diff__line--bad { background: rgba(190, 18, 60, 0.07); }
-      .vision-changes .ic-diff__line--warn { background: rgba(180, 83, 9, 0.06); }
       .vision-changes .ic-diff__num {
         text-align: right;
         padding-right: 6px;
@@ -161,9 +166,7 @@ function VisionChangesStyles() {
         white-space: nowrap;
       }
       .vision-changes .ic-stepev__status--ok { color: var(--vc-emerald); }
-      .vision-changes .ic-stepev__status--warn { color: var(--vc-amber); }
       .vision-changes .ic-stepev__status--bad { color: var(--vc-rose); }
-      .vision-changes .ic-stepev__status--muted { color: var(--vc-text-6); }
       .vision-changes .mono { font-family: var(--vc-mono); }
       .vision-changes .ic-doc__note {
         margin: 10px 0 0;
@@ -184,7 +187,7 @@ function ChangesDiff() {
       <VisionChangesStyles />
       <div className="ic-evidence ic-diff">
         <p className="ic-evidence__intro">
-          Example of what your team sees after an agent action runs through Igris: policy checks, routed execution, visible failure and recovery, and signed proof to review later.
+          Every action leaves a reviewable record of policy, execution, recovery, and proof.
         </p>
         <div className="ic-diff__lines">
           {DEMO_STEPS.map((step) => (
@@ -198,13 +201,15 @@ function ChangesDiff() {
                 {step.latency && <span>{step.latency}</span>}
                 {step.receipt && <span className="mono">{step.receipt}</span>}
                 {step.status && (
-                  <span className={`ic-stepev__status--${step.tone}`}>{step.status}</span>
+                  <span className={`ic-stepev__status--${statusTone(step.status)}`}>{step.status}</span>
                 )}
               </span>
             </div>
           ))}
         </div>
-        <p className="ic-doc__note">Content is redacted in the console; digests and receipts stand in for raw agent data.</p>
+        <p className="ic-doc__note">
+          Raw content stays redacted. Digests and receipts preserve proof without exposing sensitive data.
+        </p>
       </div>
     </div>
   )
