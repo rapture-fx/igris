@@ -279,7 +279,7 @@ export default function Vision() {
                         href={billing.checkoutUrl}
                         target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
                         rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                        className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors bg-[#4d4d4d] text-white hover:bg-[#383838]"
+                        className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
                         style={{ fontFamily: SANS }}
                       >
                         {billing.cta}
