@@ -10,12 +10,12 @@ class SettingsNavigationTest < ActionDispatch::IntegrationTest
   # Canonical slug → a heading string that only appears when that section
   # actually renders (not just the nav label, which is present on every page).
   CANONICAL = {
-    'project'            => 'Project is the name for everything you own here',
+    'project'            => 'Organization is the customer-facing name for everything you own here',
     'api_endpoints'      => 'Where this console talks to the Igris API',
     'agent_keys'         => 'An agent or app calls an Igris action endpoint',
     'runtime_keys'       => 'A runtime key is used on a machine where',
     'target_access'      => 'The agent never gets direct tool access',
-    'console_front_door' => 'Console access is configured on the host',
+    'console_front_door' => 'Console security is configured on the host',
     'environment'        => 'The runtime variables that decide what mode',
     'advanced'           => 'Rarely-used operations',
   }.freeze
@@ -100,6 +100,16 @@ class SettingsNavigationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'Create API key', response.body            # real create form
     assert_match 'Authorization: Bearer', response.body     # still explains usage
+  end
+
+  test 'settings labels customer configuration before host diagnostics' do
+    get '/settings'
+    assert_response :success
+    assert_match 'Organization', response.body
+    assert_match 'Agent API keys', response.body
+    assert_match 'Runtime connection', response.body
+    assert_match 'Action targets', response.body
+    assert_match 'Connection status', response.body
   end
 
   # ── There is always something to do: theme + reset are real actions ──────
