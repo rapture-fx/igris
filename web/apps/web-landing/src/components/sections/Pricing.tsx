@@ -316,19 +316,29 @@ export function TierPriceDisplay({
   );
 }
 
+const BILLING_TOGGLE_ROUNDED = {
+  default: { shell: 'rounded-xl', btn: 'rounded-lg' },
+  pill: { shell: 'rounded-[20px]', btn: 'rounded-[16px]' },
+} as const;
+
 export function BillingToggle({
   interval,
   onChange,
+  rounded = 'default',
+  align = 'center',
 }: {
   interval: BillingInterval;
   onChange: (next: BillingInterval) => void;
+  rounded?: keyof typeof BILLING_TOGGLE_ROUNDED;
+  align?: 'center' | 'left';
 }) {
   const reducedMotion = useReducedMotion();
+  const r = BILLING_TOGGLE_ROUNDED[rounded];
 
   return (
-    <div className="mb-8 md:mb-10 flex justify-center">
+    <div className={`mb-8 md:mb-10 flex ${align === 'left' ? 'justify-start' : 'justify-center'}`}>
       <div
-        className="relative inline-flex items-center gap-1 rounded-xl border border-black/[0.08] dark:border-white/[0.1] bg-white/50 dark:bg-white/[0.02] p-1"
+        className={`relative inline-flex items-center gap-1 border border-black/[0.08] dark:border-white/[0.1] bg-white/50 dark:bg-white/[0.02] p-1 ${r.shell}`}
         role="group"
         aria-label="Billing interval"
       >
@@ -343,10 +353,10 @@ export function BillingToggle({
               onClick={() => onChange(option)}
               aria-pressed={active}
               className={
-                'relative rounded-lg px-4 py-2 text-[13px] ' +
+                `relative px-4 py-2 text-[13px] ${r.btn} ` +
                 (active
                   ? 'text-white'
-                  : 'text-[#4d4d4d] hover:text-[#171717]')
+                  : 'text-[#8f8f8f] hover:text-[#4d4d4d]')
               }
               style={{
                 fontFamily: SANS,
@@ -358,7 +368,7 @@ export function BillingToggle({
               {active && (
                 <motion.span
                   layoutId="billing-toggle-pill"
-                  className="absolute inset-0 rounded-lg bg-[#171717]"
+                  className={`absolute inset-0 bg-[#e8e8e8] dark:bg-white/[0.12] ${r.btn}`}
                   transition={{
                     duration: reducedMotion ? 0 : TAB_TRANSITION_DURATION,
                     ease: MOTION_EASE,
