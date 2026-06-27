@@ -41,7 +41,7 @@
       <%= render 'filter_dropdown', param: :route, selected: @route, placeholder: 'Route',
             options: @routes.map { |r| [r, r] } %>
     </div>
-    <div class="ic-runs-th ic-runs-th--proof"><span class="ic-runs-th__label">Proof</span></div>
+    <div class="ic-runs-th ic-runs-th--proof"><span class="ic-runs-th__label">Review</span></div>
     <div class="ic-runs-th ic-runs-th--dur"><span class="ic-runs-th__label">Duration</span></div>
     <div class="ic-runs-th">
       <%= render 'filter_dropdown', param: :range, selected: @range, placeholder: 'When',
@@ -61,7 +61,11 @@
       <% else %>
         <div class="ic-empty" style="padding: 48px 16px;">
           <div class="ic-empty__title">No runs yet</div>
-          <p class="ic-empty__sub">Runs appear when an agent or app calls an Igris action endpoint.</p>
+          <p class="ic-empty__sub">
+            Runs appear when an agent or app calls an Igris action endpoint.
+            Each run records who requested work, what policy decided, whether
+            execution failed or recovered, and what proof exists afterward.
+          </p>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <%= link_to 'Create action', new_action_path, class: 'ic-btn ic-btn--accent' %>
             <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
@@ -100,7 +104,10 @@
             </span>
             <span class="ic-run-row__cell"><%= route_chips(r[:routed_via]) %></span>
             <span class="ic-run-row__cell ic-run-row__proof">
-              <%= r[:proof] %>
+              <% if r[:policy].present? %>
+                <span class="ic-chip ic-chip--sm">policy <%= filter_label(r[:policy]) %></span>
+              <% end %>
+              <span><%= r[:proof] %></span>
               <% if r[:recovery].present? && r[:recovery] != 'Not needed' %>
                 <span class="ic-chip ic-chip--sm"><%= r[:recovery] %></span>
               <% end %>
