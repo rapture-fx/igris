@@ -36,19 +36,20 @@
 
   <div class="ic-body ic-scroll">
     <p class="ic-gov-intro">
-      Governance is how you turn what Igris observed into reviewed change. Start with
-      what needs attention, check behavior against your bar, then propose and try a
-      policy change before it ships. Each surface below already runs under the Runs lens.
+      Governance keeps the action path improving after runs exist. Review what
+      needs attention, improve behavior with evaluations, and govern policy
+      changes before they affect future requests. Each surface below already
+      runs under the Runs lens.
     </p>
 
     <% cards = [
-      { icon: 'shield-check', title: 'Recommendations', href: runs_path(view: 'intelligence'),
+      { icon: 'shield-check', title: 'Review recommendations', href: runs_path(view: 'intelligence'),
         text: 'What needs attention right now, ranked from real execution signals. Each one says why you are seeing it and what to investigate.' },
-      { icon: 'circle-check', title: 'Evaluations', href: evaluations_path,
+      { icon: 'circle-check', title: 'Improve with evaluations', href: evaluations_path,
         text: 'Check agent behavior against the assertions you define, on demand or over a window of runs.' },
-      { icon: 'file-text', title: 'Policy proposals', href: proposals_path,
+      { icon: 'file-text', title: 'Govern policy proposals', href: proposals_path,
         text: 'Draft, review, and approve a policy change as governance — nothing here mutates active policy until approved.' },
-      { icon: 'layers', title: 'Policy simulation', href: runs_path(view: 'intelligence'),
+      { icon: 'layers', title: 'Try policy simulation', href: runs_path(view: 'intelligence'),
         text: 'Try a candidate rule against past runs to see what it would have allowed, blocked, or gated — before you propose it.' },
     ] %>
     <div class="ic-gov-grid">
