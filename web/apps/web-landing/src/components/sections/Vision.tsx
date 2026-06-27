@@ -73,17 +73,14 @@ const ARTICLE: Block[] = [
   { type: 'lead', text: 'Agents are already doing useful work. Igris makes that work safer to trust by routing important actions through one controlled path, where each request can be checked, executed, recovered if it fails, and recorded with proof your team can inspect later.' },
   { type: 'p', text: 'Agents can still plan, decide, and request work in their own way. Igris starts when that request becomes an action, giving the team a place to check what is allowed, require approval when needed, handle failure, and keep a record of what happened.' },
 
-  { type: 'section', text: 'Why direct calls become hard to trust' },
-  { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what happened when it failed, what was recovered, and what record exists after the action finished.' },
-  { type: 'p', text: 'Igris gives those actions a controlled path from request to review. Instead of spreading responsibility across tool logs, scripts, credentials, and one-off integrations, Igris gives the team one place to check actions, run them, handle failure, and understand what happened afterward.' },
-
-  { type: 'section', text: 'How Igris works' },
-  { type: 'p', text: 'The Igris model has three simple parts. Agents request work, actions define what those agents are allowed to do, and execution paths decide where and how the work runs. An agent connects to Igris once, then asks Igris to run registered actions instead of calling every tool, workflow, credential, or endpoint directly.' },
-  { type: 'p', text: 'An action can represent any useful operation a team wants to make available to an agent, such as changing a record, creating a task, sending a request, calling a service, triggering a workflow, or running work in a private runtime. Igris keeps that action visible, so the team can understand what agents can do, how the work was handled, and what happened after the request was made.' },
+  { type: 'section', text: 'From request to review' },
+  { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
+  { type: 'p', text: 'Igris gives each action a controlled path from request to review. Agents request work, actions define what can be done, and Igris manages how the work runs. It checks whether the action is allowed, runs it through the right execution path, tracks the result, handles failure when possible, and keeps proof your team can inspect later.' },
+  { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint.' },
 
   { type: 'section', text: 'What Igris adds' },
-  { type: 'p-badges', text: 'Igris adds policy, recovery, proof, and review around agent actions. Policy decides whether an action can run, needs approval, or should be blocked. Recovery makes failure visible when services return errors, runtimes go offline, or requests break. Proof gives the team a record after the action runs, so they are not relying only on the agent’s own explanation.' },
-  { type: 'p', text: 'This matters when agents do more than answer questions. If an agent can trigger work, change data, call services, open tasks, or perform operational steps, the action needs a path the team can control, inspect, recover, and improve over time.' },
+  { type: 'p', text: 'Igris adds the control layer around agent actions. Before an action runs, Igris can check whether it is allowed, needs approval, or should stop. While it runs, Igris tracks the result and makes failure visible when something breaks. After it finishes, Igris keeps a record your team can review, so you are not relying only on the agent’s own explanation of what happened.' },
+  { type: 'p', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
 
   { type: 'section', text: 'Get started' },
   { type: 'p', text: 'Install Igris and connect your first agent.' },
