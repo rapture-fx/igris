@@ -52,12 +52,12 @@ export function MermaidChart({ chart, className = '' }: MermaidChartProps) {
       />
       {svg ? (
         <div
-          className={`overflow-x-auto rounded-lg border border-[#ebebeb] bg-[#fafafa] p-6 [&_svg]:mx-auto ${className}`}
+          className={`overflow-x-auto rounded-lg border border-[#ebebeb] bg-white p-6 [&_svg]:mx-auto ${className}`}
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (
         <div
-          className={`flex items-center justify-center rounded-lg border border-[#ebebeb] bg-[#fafafa] p-10 text-sm text-[#8f8f8f] ${className}`}
+          className={`flex items-center justify-center rounded-lg border border-[#ebebeb] bg-white p-10 text-sm text-[#8f8f8f] ${className}`}
         >
           Loading diagram…
         </div>
