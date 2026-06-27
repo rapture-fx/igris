@@ -9,7 +9,7 @@ import { PRICING_TIERS, getTierBilling } from '../../lib/pricing'
 import type { BillingInterval } from '../../lib/pricing'
 import { BillingToggle, TierPriceDisplay } from './Pricing'
 import Faq from './Faq'
-import { ChevronDown, Workflow, Copy } from 'lucide-react'
+import { ChevronDown, Workflow, Copy, Code } from 'lucide-react'
 import { MermaidChart } from '../MermaidChart'
 import VisionChangesPanel from './VisionChangesPanel'
 
@@ -70,7 +70,7 @@ type Block =
   | { type: 'lead'; text: string }
   | { type: 'p'; text: string }
   | { type: 'code'; text: string }
-  | { type: 'code-card'; code: string }
+  | { type: 'code-card'; label: string; code: string }
   | { type: 'divider' }
   | { type: 'p-badges'; text: string }
   | { type: 'p-code-inline'; text: string }
@@ -106,9 +106,8 @@ const ARTICLE: Block[] = [
   { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
   { type: 'p', text: 'Igris gives each action a controlled path from request to review. Agents request work, actions define what can be done, and Igris manages how the work runs. It checks whether the action is allowed, runs it through the right execution path, tracks the result, handles failure when possible, and keeps proof your team can inspect later.' },
   { type: 'how-it-works' },
-  { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint.' },
-  { type: 'code-card', code: 'await igris.actions.run(\n  "create_task",\n  {\n    title: "Review failed payment",\n    priority: "high",\n  }\n)' },
-  { type: 'p', text: 'The agent requests the action. Igris decides how it is allowed to run and keeps the record afterward.' },
+  { type: 'code-card', label: 'Agent call', code: 'await fetch("https://api.igris.dev/v1/actions/run", {\n  method: "POST",\n  headers: {\n    authorization: `Bearer ${IGRIS_API_KEY}`,\n    "content-type": "application/json",\n  },\n  body: JSON.stringify({\n    action: "create_task",\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n  }),\n});' },
+  { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint. Igris checks whether the action is allowed, runs it through the right path, and keeps the record afterward.' },
 
   { type: 'section', text: 'What Igris adds' },
   { type: 'p', text: 'Igris turns agent actions into controlled work your team can review. Before an action runs, Igris checks whether it is allowed, needs approval, or should stop. As the action runs, Igris tracks the result and makes failure visible. After it finishes, Igris keeps proof so your team can understand what happened without relying only on the agent’s explanation.' },
@@ -185,6 +184,168 @@ function CodeBlockWithCopy({ text }: { text: string }) {
   )
 }
 
+const KEYWORDS = new Set(['await', 'const', 'let', 'var', 'function', 'return', 'new', 'async', 'import', 'export', 'from', 'if', 'else', 'for', 'of', 'in', 'true', 'false', 'null', 'undefined', 'throw', 'try', 'catch', 'typeof', 'instanceof'])
+const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])
+
+type Token = { text: string; type: 'string' | 'number' | 'keyword' | 'method' | 'punctuation' | 'property' | 'template' | 'template-expr' | 'comment' | 'text' }
+
+function tokenize(code: string): Token[] {
+  const tokens: Token[] = []
+  let i = 0
+  while (i < code.length) {
+    const ch = code[i]
+
+    // Newline
+    if (ch === '\n') {
+      tokens.push({ text: '\n', type: 'text' })
+      i++
+      continue
+    }
+
+    // Whitespace
+    if (/^\s$/.test(ch)) {
+      let ws = ''
+      while (i < code.length && /^\s$/.test(code[i])) { ws += code[i]; i++ }
+      tokens.push({ text: ws, type: 'text' })
+      continue
+    }
+
+    // Single-line comment
+    if (ch === '/' && code[i + 1] === '/') {
+      let comment = ''
+      while (i < code.length && code[i] !== '\n') { comment += code[i]; i++ }
+      tokens.push({ text: comment, type: 'comment' })
+      continue
+    }
+
+    // Template literal
+    if (ch === '`') {
+      let tpl = '`'
+      i++
+      while (i < code.length) {
+        if (code[i] === '\\' && i + 1 < code.length) { tpl += code[i] + code[i + 1]; i += 2; continue }
+        if (code[i] === '`') { tpl += '`'; i++; break }
+        if (code[i] === '$' && code[i + 1] === '{') {
+          tokens.push({ text: tpl, type: 'template' })
+          tokens.push({ text: '${', type: 'template-expr' })
+          i += 2
+          tpl = ''
+          let depth = 1
+          let expr = ''
+          while (i < code.length && depth > 0) {
+            if (code[i] === '{') depth++
+            if (code[i] === '}') depth--
+            if (depth > 0) expr += code[i]
+            i++
+          }
+          // re-tokenize expression
+          const exprTokens = tokenize(expr)
+          tokens.push(...exprTokens)
+          tokens.push({ text: '}', type: 'template-expr' })
+          continue
+        }
+        tpl += code[i]; i++
+      }
+      if (tpl) tokens.push({ text: tpl, type: 'template' })
+      continue
+    }
+
+    // String (double or single quote)
+    if (ch === '"' || ch === "'") {
+      const quote = ch
+      let str = quote
+      i++
+      while (i < code.length) {
+        if (code[i] === '\\' && i + 1 < code.length) { str += code[i] + code[i + 1]; i += 2; continue }
+        if (code[i] === quote) { str += quote; i++; break }
+        str += code[i]; i++
+      }
+      tokens.push({ text: str, type: 'string' })
+      continue
+    }
+
+    // Number
+    if (/^\d$/.test(ch) || (ch === '-' && /^\d$/.test(code[i + 1]))) {
+      let num = ch
+      i++
+      while (i < code.length && /^[\d.]$/.test(code[i])) { num += code[i]; i++ }
+      tokens.push({ text: num, type: 'number' })
+      continue
+    }
+
+    // Word
+    if (/^\w$/.test(ch)) {
+      let word = ''
+      while (i < code.length && /^\w$/.test(code[i])) { word += code[i]; i++ }
+      if (KEYWORDS.has(word)) {
+        tokens.push({ text: word, type: 'keyword' })
+      } else if (HTTP_METHODS.has(word)) {
+        tokens.push({ text: word, type: 'method' })
+      } else {
+        // check if followed by `(` → function call
+        const after = i
+        let ws = ''
+        while (after + ws.length < code.length && /^\s$/.test(code[after + ws.length])) ws += ' '
+        if (code[after + ws.length] === '(') {
+          tokens.push({ text: word, type: 'method' })
+        } else {
+          tokens.push({ text: word, type: 'text' })
+        }
+      }
+      continue
+    }
+
+    // Punctuation / operators
+    if (/^[-{}[\]().,;:+/=!<>?&|*%^~]$/.test(ch)) {
+      // Check for two-char operators
+      let op = ch
+      if (i + 1 < code.length && /^[=<>!&|*/+\-]$/.test(code[i + 1])) {
+        const two = ch + code[i + 1]
+        if (/^(==|===|!=|!==|<=|>=|&&|\|\||=>|\+\+|--|\*\*|\/\/|\+\=|-\=|\*\=|\/\=|\%=|\&=|\|\=|\^=)$/.test(two)) {
+          op = two; i++
+        }
+      }
+      tokens.push({ text: op, type: 'punctuation' })
+      i++
+      continue
+    }
+
+    // Property access (text after `.`)
+    if (ch === '.' && /^\w$/.test(code[i + 1])) {
+      tokens.push({ text: '.', type: 'punctuation' })
+      i++
+      continue
+    }
+
+    tokens.push({ text: ch, type: 'text' })
+    i++
+  }
+  return tokens
+}
+
+function HighlightCode({ code }: { code: string }) {
+  const tokens = tokenize(code)
+  const colorMap: Record<Token['type'], string> = {
+    string: '#16a34a',
+    number: '#d97706',
+    keyword: '#6366f1',
+    method: '#0ea5e9',
+    punctuation: '#8f8f8f',
+    property: '#27272a',
+    template: '#16a34a',
+    'template-expr': '#f59e0b',
+    comment: '#a1a1aa',
+    text: '#27272a',
+  }
+  return (
+    <span>
+      {tokens.map((t, i) => (
+        <span key={i} style={{ color: colorMap[t.type] }}>{t.text}</span>
+      ))}
+    </span>
+  )
+}
+
 function ArticleBlock({ block }: { block: Block }) {
   switch (block.type) {
     case 'kicker':
@@ -245,14 +406,22 @@ function ArticleBlock({ block }: { block: Block }) {
       return <CodeBlockWithCopy text={block.text} />
     case 'code-card':
       return (
-        <div className="mb-7 border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
-          <div className="px-5 py-4">
-            <code
-              className="text-[#27272a] whitespace-pre"
-              style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.65 }}
-            >
-              {block.code}
-            </code>
+        <div className="mb-7">
+          <div className="inline-flex items-center gap-2 text-[#171717] mb-2"
+            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
+          >
+            <Code size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
+            <span>{block.label}</span>
+          </div>
+          <div className="border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
+            <div className="px-5 py-4">
+              <code
+                className="whitespace-pre"
+                style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.6 }}
+              >
+                <HighlightCode code={block.code} />
+              </code>
+            </div>
           </div>
         </div>
       )
