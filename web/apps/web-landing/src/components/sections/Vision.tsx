@@ -278,6 +278,16 @@ export default function Vision() {
   // ARTICLE[0] is the "Action layer" title, now rendered as the hero below.
   const bodyBlocks = ARTICLE.slice(1)
   const [interval, setInterval] = useState<BillingInterval>('yearly')
+  const [openTiers, setOpenTiers] = useState<Set<string>>(new Set())
+
+  const toggleTier = (key: string) => {
+    setOpenTiers((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   return (
     <section
@@ -319,7 +329,7 @@ export default function Vision() {
             </Link>
           </div>
 
-          <img src="/pkrllgol.png" alt="" className="w-full mb-14 rounded-lg" />
+          <img src="/pkrllgol.png" alt="" className="w-full mb-14 rounded-[10px]" />
 
           {bodyBlocks.slice(1).map((block, index) => (
             <ArticleBlock key={index + 1} block={block} />
@@ -333,12 +343,23 @@ export default function Vision() {
               Pricing
             </h4>
             <BillingToggle interval={interval} onChange={setInterval} rounded="pill" align="left" font="pixel" />
-            <div className="flex flex-col border border-[#ebebeb] divide-y divide-[#ebebeb]">
+            <p
+              className="mb-5 text-[#27272a]"
+              style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+            >
+              Open Source: self-host Igris for free. Use Igris Cloud when you want hosted infrastructure, managed retention, team access, and support.
+            </p>
+            <div className="flex flex-col border border-[#ebebeb] divide-y divide-[#ebebeb] rounded-[10px] overflow-hidden">
               {PRICING_TIERS.map((tier) => {
                 const billing = getTierBilling(tier, interval)
+                const isOpen = openTiers.has(tier.key)
                 return (
                   <div key={tier.key} className="flex flex-col p-6">
-                    <div className="flex items-baseline justify-between gap-6">
+                    <button
+                      type="button"
+                      onClick={() => toggleTier(tier.key)}
+                      className="flex items-baseline justify-between gap-6 w-full text-left"
+                    >
                       <h5
                         className="text-[#171717]"
                         style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
@@ -348,29 +369,33 @@ export default function Vision() {
                       <div className="shrink-0 text-right [&>div:first-child]:mt-0">
                         <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} />
                       </div>
-                    </div>
-                    <p
-                      className="mt-2 text-[#27272a]"
-                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-                    >
-                      {tier.description}
-                    </p>
-                    <p
-                      className="mt-4 text-[#27272a]"
-                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-                    >
-                      {tier.features.join(', ')}
-                    </p>
-                    <div className="pt-5">
-                      <a
-                        href={billing.checkoutUrl}
-                        target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
-                        rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                        className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
-                        style={{ fontFamily: PIXEL }}
-                      >
-                        {billing.cta}
-                      </a>
+                    </button>
+                    <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                      <div>
+                        <p
+                          className="mt-2 text-[#27272a]"
+                          style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                        >
+                          {tier.description}
+                        </p>
+                        <p
+                          className="mt-4 text-[#27272a]"
+                          style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                        >
+                          {tier.features.join(', ')}
+                        </p>
+                        <div className="pt-5">
+                          <a
+                            href={billing.checkoutUrl}
+                            target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
+                            rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                            className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
+                            style={{ fontFamily: PIXEL }}
+                          >
+                            {billing.cta}
+                          </a>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )
@@ -379,6 +404,12 @@ export default function Vision() {
           </div>
 
           <div className="mt-20">
+            <h4
+              className="mb-5 text-black"
+              style={{ ...TITLE_STYLE, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)' }}
+            >
+              Questions
+            </h4>
             <div className="border border-[#ebebeb] rounded-[10px] bg-white px-6 py-2">
               <Faq simple />
             </div>
