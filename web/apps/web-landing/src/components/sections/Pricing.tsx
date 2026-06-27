@@ -355,7 +355,7 @@ export function BillingToggle({
               className={
                 `relative px-4 py-2 text-[13px] ${r.btn} ` +
                 (active
-                  ? 'text-white'
+                  ? 'text-[#171717]'
                   : 'text-[#8f8f8f] hover:text-[#4d4d4d]')
               }
               style={{
