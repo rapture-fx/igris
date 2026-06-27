@@ -11,8 +11,10 @@ import { BillingToggle, TierPriceDisplay } from './Pricing'
 import Faq from './Faq'
 import { ChevronDown, Workflow } from 'lucide-react'
 import { MermaidChart } from '../MermaidChart'
+import VisionChangesPanel from './VisionChangesPanel'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
 
 const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled action layer.'
 const LINE_2_CONT = ' in Cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in.'
@@ -70,6 +72,7 @@ type Block =
   | { type: 'divider' }
   | { type: 'p-badges'; text: string }
   | { type: 'how-it-works' }
+  | { type: 'changes-panel' }
 
 const HOW_IT_WORKS_CHART = `---
 config:
@@ -104,6 +107,7 @@ const ARTICLE: Block[] = [
 
   { type: 'section', text: 'What Igris adds' },
   { type: 'p', text: 'Igris adds the control layer around agent actions. Before an action runs, Igris can check whether it is allowed, needs approval, or should stop. While it runs, Igris tracks the result and makes failure visible when something breaks. After it finishes, Igris keeps a record your team can review, so you are not relying only on the agent’s own explanation of what happened.' },
+  { type: 'changes-panel' },
   { type: 'p', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
 
   { type: 'section', text: 'Get started' },
@@ -121,7 +125,7 @@ function HowItWorksBlock() {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
-        style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.0625rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
         aria-expanded={open}
       >
         <Workflow size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
@@ -237,6 +241,8 @@ function ArticleBlock({ block }: { block: Block }) {
       return <hr className="my-14 border-0 border-t border-[#ececec]" />
     case 'how-it-works':
       return <HowItWorksBlock />
+    case 'changes-panel':
+      return <VisionChangesPanel />
     default:
       return null
   }
@@ -296,11 +302,11 @@ export default function Vision() {
           <div className="mt-20 pt-12">
             <h4
               className="mb-5 mt-16 text-[#171717]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
+          style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
             >
               Pricing
             </h4>
-            <BillingToggle interval={interval} onChange={setInterval} rounded="pill" align="left" />
+            <BillingToggle interval={interval} onChange={setInterval} rounded="pill" align="left" font="pixel" />
             <div className="flex flex-col border border-[#ebebeb] divide-y divide-[#ebebeb]">
               {PRICING_TIERS.map((tier) => {
                 const billing = getTierBilling(tier, interval)
@@ -309,7 +315,7 @@ export default function Vision() {
                     <div className="flex items-baseline justify-between gap-6">
                       <h5
                         className="text-[#171717]"
-                        style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.5rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+                        style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
                       >
                         {tier.name}
                       </h5>
@@ -319,13 +325,13 @@ export default function Vision() {
                     </div>
                     <p
                       className="mt-2 text-[#27272a]"
-                      style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
                     >
                       {tier.description}
                     </p>
                     <p
                       className="mt-4 text-[#27272a]"
-                      style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
                     >
                       {tier.features.join(', ')}
                     </p>
@@ -335,7 +341,7 @@ export default function Vision() {
                         target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
                         rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                         className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
-                        style={{ fontFamily: SANS }}
+                        style={{ fontFamily: PIXEL }}
                       >
                         {billing.cta}
                       </a>
