@@ -128,7 +128,7 @@ export default function Header() {
   return (
     <>
       {/* Desktop header */}
-      <header className="hidden md:flex items-center bg-white dark:bg-[#110f0f] px-6 py-4 sticky top-0 z-50">
+      <header className="hidden md:flex items-center bg-white dark:bg-[#110f0f] px-6 py-4 fixed top-0 left-0 right-0 z-50">
         <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center shrink-0">
           <img src={logoSrc} alt="Igris Inertial" className="h-8 w-auto rounded-lg" />
         </Link>
