@@ -58,18 +58,19 @@ class SettingsAccessTest < ActionDispatch::IntegrationTest
   test 'settings has all eight access-center sections in the nav' do
     get '/settings'
     assert_response :success
-    ['Project', 'API endpoints', 'API keys', 'Runtime keys',
-     'Tool &amp; target access', 'Console front door', 'Environment', 'Advanced'].each do |label|
+    ['Organization', 'API endpoints', 'Agent API keys', 'Runtime connection',
+     'Action targets', 'Security', 'Connection status', 'Advanced'].each do |label|
       assert_match label, response.body, "nav missing #{label}"
     end
   end
 
-  test 'console front door is its own section and never shows the password value' do
+  test 'security is its own section and never shows the password value' do
     prev = ENV['ADMIN_PASSWORD']
     ENV['ADMIN_PASSWORD'] = 'supersecret_admin_pw_xyz'
     get '/settings?section=frontdoor'
     assert_response :success
-    assert_match 'Console front door', response.body
+    assert_match 'Security', response.body
+    assert_match 'Console security is configured on the host', response.body
     refute_match 'supersecret_admin_pw_xyz', response.body
   ensure
     ENV['ADMIN_PASSWORD'] = prev
