@@ -7,10 +7,11 @@ class GovernanceTest < ActionDispatch::IntegrationTest
     get '/governance'
     assert_response :success
     assert_select '.ic-topbar__title', text: 'Governance'
-    assert_match 'Recommendations', response.body
-    assert_match 'Evaluations', response.body
-    assert_match 'Policy proposals', response.body
-    assert_match 'Policy simulation', response.body
+    assert_match 'Review recommendations', response.body
+    assert_match 'Improve with evaluations', response.body
+    assert_match 'Govern policy proposals', response.body
+    assert_match 'Try policy simulation', response.body
+    assert_match(/Review what\s+needs attention/, response.body)
   end
 
   test 'governance cards link to the existing surfaces' do
