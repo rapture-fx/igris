@@ -1,18 +1,18 @@
-<%# Settings — minimal, configuration-focused. Sections: API endpoints,
-    Access keys, Runtime keys, Tool & target access, Environment, Advanced.
-    Team/billing/SSO live elsewhere. No secret values are ever echoed. %>
+<%# Settings — minimal, configuration-focused. Customer-actionable sections
+    lead; host diagnostics stay explicit and read-only. Team/billing/SSO live
+    elsewhere. No secret values are ever echoed. %>
 <% section = (@section.presence || SettingsController.normalize_section(params[:section])) %>
 <%# Functional, customer-actionable sections lead; read-only host/diagnostic
     sections are grouped at the end. Project stays first (the default section).
     Slugs are unchanged so existing links and aliases keep resolving. %>
 <% sections = [
-  ['project',            'Project',               'Name and identity for this project'],
-  ['agent_keys',         'API keys',              'Create the keys your agent or app uses to call Igris'],
-  ['runtime_keys',       'Runtime keys',          'Keys runtimes use to connect'],
-  ['target_access',      'Tool & target access',  'How agents reach tools through Igris'],
-  ['api_endpoints',      'API endpoints',         'Base URLs for the Igris API and the console'],
-  ['console_front_door', 'Console front door',    'HTTP Basic auth that protects this console'],
-  ['environment',        'Environment',           'Runtime variables and connection state'],
+  ['project',            'Organization',          'Name and identity for this project'],
+  ['agent_keys',         'Agent API keys',        'Keys agents and apps use to request actions'],
+  ['runtime_keys',       'Runtime connection',    'Keys runtimes use to connect'],
+  ['target_access',      'Action targets',        'How actions reach tools through Igris'],
+  ['api_endpoints',      'API endpoints',         'Public action URL and console API state'],
+  ['console_front_door', 'Security',              'HTTP Basic auth that protects this console'],
+  ['environment',        'Connection status',     'Runtime variables and connection state'],
   ['advanced',           'Advanced',              'Appearance and rarely-used operations'],
 ] %>
 
@@ -44,9 +44,9 @@
       <div class="ic-settings__group">
         <div class="ic-settings__heading">Project</div>
         <p class="ic-settings__intro">
-          Project is the name for everything you own here — your actions, runs,
-          runtime keys, and evidence. There is no team, billing, or
-          multi-project switching on this page.
+          Organization is the customer-facing name for everything you own here:
+          agents, actions, runs, runtime keys, and evidence. There is no team,
+          billing, or multi-project switching on this page.
         </p>
 
         <%= form_with url: project_path, method: :patch, local: true do |f| %>
@@ -276,9 +276,9 @@
 
     <% elsif section == 'console_front_door' %>
       <div class="ic-settings__group">
-        <div class="ic-settings__heading">Console front door</div>
+        <div class="ic-settings__heading">Security</div>
         <p class="ic-settings__intro">
-          Console access is configured on the host. HTTP Basic credentials
+          Console security is configured on the host. HTTP Basic credentials
           protect this console — both fields must be set on the host for the
           door to lock. <code>/up</code> always bypasses Basic so liveness checks
           keep working. Neither value is shown here.
@@ -302,7 +302,7 @@
 
     <% elsif section == 'environment' %>
       <div class="ic-settings__group">
-        <div class="ic-settings__heading">Environment</div>
+        <div class="ic-settings__heading">Connection status</div>
         <p class="ic-settings__intro">
           The runtime variables that decide what mode this console is in.
           Values are read from the process env at boot; secret values are
