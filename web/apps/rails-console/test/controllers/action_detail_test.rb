@@ -79,6 +79,15 @@ class ActionDetailTest < ActionDispatch::IntegrationTest
     assert_match 'await fetch', response.body
   end
 
+  test 'actions index explains controlled execution capabilities' do
+    get actions_path
+    assert_response :success
+    assert_match 'Actions are controlled execution capabilities', response.body
+    assert_match 'target, policy', response.body
+    assert_select "a[href=?]", agents_path(view: 'adoption')
+    assert_select "a[href=?]", runs_path
+  end
+
   HOSTED_ACTION = {
     id: 'a-send', name: 'send_email', display_name: 'Send email',
     description: '', target_type: 'hosted_api', target_label: 'Hosted API',
