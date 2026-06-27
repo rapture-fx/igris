@@ -59,7 +59,7 @@ export const PRICING_TIERS: PricingTier[] = [
   {
     key: 'horizon',
     name: 'Horizon',
-    description: 'For teams running agent actions in production.',
+    description: 'For teams running important agent actions.',
     features: [
       '5 projects',
       '10 execution environments',
@@ -67,7 +67,7 @@ export const PRICING_TIERS: PricingTier[] = [
       'Everything in Seed',
       'Connected workers',
       'Recovery configuration',
-      'Tool and permission controls',
+      'Action and approval controls',
       'Team access',
       'Advanced event search',
       '60-day retention',
