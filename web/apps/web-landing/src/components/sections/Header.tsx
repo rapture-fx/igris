@@ -128,12 +128,12 @@ export default function Header() {
   return (
     <>
       {/* Desktop header */}
-      <header className="hidden md:flex items-center justify-between bg-white dark:bg-[#110f0f] px-6 py-4 sticky top-0 z-50">
+      <header className="hidden md:flex items-center bg-white dark:bg-[#110f0f] px-6 py-4 sticky top-0 z-50">
         <Link href="/" prefetch={false} onClick={closeAll} className="flex items-center shrink-0">
           <img src={logoSrc} alt="Igris Inertial" className="h-8 w-auto rounded-lg" />
         </Link>
 
-        <nav className="flex items-center gap-6">{NavGroups}</nav>
+        <nav className="flex items-center gap-6 ml-10">{NavGroups}</nav>
       </header>
 
       {/* Mobile top bar */}
