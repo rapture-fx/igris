@@ -78,7 +78,7 @@ function FooterLogo() {
 function FooterNavLink({ link }: { link: FooterLink }) {
   const className =
     'text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors'
-  const style = { fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.5 }
+  const style = { fontFamily: SANS, fontSize: '1rem', lineHeight: 1.6 }
 
   if (link.section) {
     return (
@@ -111,8 +111,9 @@ function FooterNavLink({ link }: { link: FooterLink }) {
 
 export default function Footer() {
   return (
-    <footer className="bg-[#fafafa] text-[#171717] border-t border-[#ebebeb]">
+    <footer className="bg-white text-[#171717] border-t border-[#ebebeb]">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[820px]">
         <div className="pt-10 md:pt-14 pb-16 md:pb-20">
           <div className="flex flex-col items-start gap-16 lg:gap-24 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-[280px] shrink-0">
@@ -121,20 +122,20 @@ export default function Footer() {
               </Link>
               <p
                 className="mt-4 text-gray-600 dark:text-[#a8a898]"
-                style={{ fontFamily: SANS, fontSize: '0.875rem', lineHeight: 1.6 }}
+                style={{ fontFamily: SANS, fontSize: '1rem', lineHeight: 1.6 }}
               >
                 Governed execution for agent actions, with recovery and proof built in.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10 flex-1 lg:max-w-3xl lg:ml-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10 flex-1 lg:max-w-3xl ml-auto">
               {columns.map((col) => (
                 <div key={col.heading} className="flex flex-col gap-3 min-w-0">
                   <p
                     className="text-gray-900 dark:text-[#f6f6f4]"
                     style={{
                       fontFamily: MONO,
-                      fontSize: '10px',
+                      fontSize: '12px',
                       letterSpacing: '0.18em',
                       fontWeight: 500,
                       textTransform: 'uppercase',
@@ -155,12 +156,10 @@ export default function Footer() {
           </div>
         </div>
 
-        <div style={{ borderTop: borderStyle }} />
-
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-y-4 py-12 md:py-14">
           <p
             className="text-gray-500 dark:text-[#8a8a7a]"
-            style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
+            style={{ fontFamily: MONO, fontSize: '13px', letterSpacing: '0.02em' }}
           >
             © 2026 Igris Inertial
           </p>
@@ -168,7 +167,7 @@ export default function Footer() {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <nav
               className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-500 dark:text-[#8a8a7a]"
-              style={{ fontFamily: MONO, fontSize: '11px', letterSpacing: '0.02em' }}
+              style={{ fontFamily: MONO, fontSize: '13px', letterSpacing: '0.02em' }}
               aria-label="Legal"
             >
             <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors">
@@ -200,6 +199,7 @@ export default function Footer() {
             </Link>
             </nav>
           </div>
+        </div>
         </div>
       </div>
     </footer>
