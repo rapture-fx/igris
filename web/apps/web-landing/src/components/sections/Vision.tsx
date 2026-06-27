@@ -184,23 +184,51 @@ function CodeBlockWithCopy({ text }: { text: string }) {
   )
 }
 
-const KEYWORDS = new Set(['await', 'const', 'let', 'var', 'function', 'return', 'new', 'async', 'import', 'export', 'from', 'if', 'else', 'for', 'of', 'in', 'true', 'false', 'null', 'undefined', 'throw', 'try', 'catch', 'typeof', 'instanceof'])
-const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'])
+const KEYWORDS = new Set([
+  'await', 'async', 'const', 'let', 'var', 'function', 'return', 'new',
+  'import', 'export', 'from', 'default', 'if', 'else', 'for', 'of', 'in',
+  'while', 'do', 'switch', 'case', 'break', 'continue',
+  'true', 'false', 'null', 'undefined', 'throw', 'try', 'catch', 'finally',
+  'typeof', 'instanceof', 'class', 'extends', 'super', 'this', 'yield',
+  'delete', 'void', 'with', 'debugger',
+])
 
-type Token = { text: string; type: 'string' | 'number' | 'keyword' | 'method' | 'punctuation' | 'property' | 'template' | 'template-expr' | 'comment' | 'text' }
+const GLOBALS = new Set([
+  'fetch', 'console', 'JSON', 'Promise', 'Math', 'Date', 'Array', 'Object',
+  'Map', 'Set', 'WeakMap', 'WeakSet', 'Reflect', 'Proxy', 'Symbol', 'Error',
+  'RegExp', 'String', 'Number', 'Boolean', 'BigInt', 'parseInt', 'parseFloat',
+  'isNaN', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval',
+  'structuredClone', 'crypto',
+])
+
+type TokenType =
+  | 'keyword' | 'global' | 'string' | 'template' | 'template-expr'
+  | 'number' | 'object-key' | 'method' | 'punctuation' | 'operator'
+  | 'comment' | 'text' | 'property'
+
+type Token = { text: string; type: TokenType }
+
+const COLORS: Record<TokenType, string> = {
+  keyword:       '#cf222e',
+  global:        '#8250df',
+  string:        '#0a3069',
+  template:      '#0a3069',
+  'template-expr':'#953800',
+  number:        '#0550ae',
+  'object-key':  '#0550ae',
+  method:        '#8250df',
+  punctuation:   '#636c76',
+  operator:      '#cf222e',
+  comment:       '#6e7781',
+  text:          '#24292f',
+  property:      '#0550ae',
+}
 
 function tokenize(code: string): Token[] {
   const tokens: Token[] = []
   let i = 0
   while (i < code.length) {
     const ch = code[i]
-
-    // Newline
-    if (ch === '\n') {
-      tokens.push({ text: '\n', type: 'text' })
-      i++
-      continue
-    }
 
     // Whitespace
     if (/^\s$/.test(ch)) {
@@ -212,36 +240,30 @@ function tokenize(code: string): Token[] {
 
     // Single-line comment
     if (ch === '/' && code[i + 1] === '/') {
-      let comment = ''
-      while (i < code.length && code[i] !== '\n') { comment += code[i]; i++ }
-      tokens.push({ text: comment, type: 'comment' })
+      let c = ''
+      while (i < code.length && code[i] !== '\n') { c += code[i]; i++ }
+      tokens.push({ text: c, type: 'comment' })
       continue
     }
 
     // Template literal
     if (ch === '`') {
-      let tpl = '`'
-      i++
+      let tpl = '`'; i++
       while (i < code.length) {
         if (code[i] === '\\' && i + 1 < code.length) { tpl += code[i] + code[i + 1]; i += 2; continue }
         if (code[i] === '`') { tpl += '`'; i++; break }
         if (code[i] === '$' && code[i + 1] === '{') {
-          tokens.push({ text: tpl, type: 'template' })
-          tokens.push({ text: '${', type: 'template-expr' })
-          i += 2
-          tpl = ''
-          let depth = 1
-          let expr = ''
+          if (tpl) tokens.push({ text: tpl, type: 'template' })
+          tokens.push({ text: '${', type: 'template-expr' }); i += 2
+          let depth = 1; let expr = ''
           while (i < code.length && depth > 0) {
             if (code[i] === '{') depth++
             if (code[i] === '}') depth--
-            if (depth > 0) expr += code[i]
-            i++
+            if (depth > 0) expr += code[i]; i++
           }
-          // re-tokenize expression
-          const exprTokens = tokenize(expr)
-          tokens.push(...exprTokens)
+          tokens.push(...tokenize(expr))
           tokens.push({ text: '}', type: 'template-expr' })
+          tpl = ''
           continue
         }
         tpl += code[i]; i++
@@ -252,24 +274,21 @@ function tokenize(code: string): Token[] {
 
     // String (double or single quote)
     if (ch === '"' || ch === "'") {
-      const quote = ch
-      let str = quote
-      i++
+      const q = ch; let s = q; i++
       while (i < code.length) {
-        if (code[i] === '\\' && i + 1 < code.length) { str += code[i] + code[i + 1]; i += 2; continue }
-        if (code[i] === quote) { str += quote; i++; break }
-        str += code[i]; i++
+        if (code[i] === '\\' && i + 1 < code.length) { s += code[i] + code[i + 1]; i += 2; continue }
+        if (code[i] === q) { s += q; i++; break }
+        s += code[i]; i++
       }
-      tokens.push({ text: str, type: 'string' })
+      tokens.push({ text: s, type: 'string' })
       continue
     }
 
     // Number
-    if (/^\d$/.test(ch) || (ch === '-' && /^\d$/.test(code[i + 1]))) {
-      let num = ch
-      i++
-      while (i < code.length && /^[\d.]$/.test(code[i])) { num += code[i]; i++ }
-      tokens.push({ text: num, type: 'number' })
+    if (/^[\d]$/.test(ch)) {
+      let n = ''
+      while (i < code.length && /^[\d.]$/.test(code[i])) { n += code[i]; i++ }
+      tokens.push({ text: n, type: 'number' })
       continue
     }
 
@@ -277,70 +296,64 @@ function tokenize(code: string): Token[] {
     if (/^\w$/.test(ch)) {
       let word = ''
       while (i < code.length && /^\w$/.test(code[i])) { word += code[i]; i++ }
+
+      // Look ahead for what follows
+      let j = i
+      while (j < code.length && /^\s$/.test(code[j])) j++
+      const next = code[j]
+
       if (KEYWORDS.has(word)) {
         tokens.push({ text: word, type: 'keyword' })
-      } else if (HTTP_METHODS.has(word)) {
-        tokens.push({ text: word, type: 'method' })
+      } else if (next === '(') {
+        tokens.push({ text: word, type: GLOBALS.has(word) ? 'global' : 'method' })
+      } else if (next === ':') {
+        tokens.push({ text: word, type: 'object-key' })
+      } else if (GLOBALS.has(word)) {
+        tokens.push({ text: word, type: 'global' })
       } else {
-        // check if followed by `(` → function call
-        const after = i
-        let ws = ''
-        while (after + ws.length < code.length && /^\s$/.test(code[after + ws.length])) ws += ' '
-        if (code[after + ws.length] === '(') {
-          tokens.push({ text: word, type: 'method' })
-        } else {
-          tokens.push({ text: word, type: 'text' })
-        }
+        tokens.push({ text: word, type: 'text' })
       }
       continue
     }
 
-    // Punctuation / operators
-    if (/^[-{}[\]().,;:+/=!<>?&|*%^~]$/.test(ch)) {
-      // Check for two-char operators
-      let op = ch
-      if (i + 1 < code.length && /^[=<>!&|*/+\-]$/.test(code[i + 1])) {
-        const two = ch + code[i + 1]
-        if (/^(==|===|!=|!==|<=|>=|&&|\|\||=>|\+\+|--|\*\*|\/\/|\+\=|-\=|\*\=|\/\=|\%=|\&=|\|\=|\^=)$/.test(two)) {
-          op = two; i++
-        }
+    // Two-char operators
+    if (i + 1 < code.length) {
+      const two = ch + code[i + 1]
+      if (/^(==|===|!=|!==|<=|>=|&&|\|\||=>|\+\+|--|\*\*|\+=|-=|\*=|%=|&=|\|=|\^=|<<|>>|\?\?)$/.test(two)) {
+        tokens.push({ text: two, type: 'operator' }); i += 2; continue
       }
-      tokens.push({ text: op, type: 'punctuation' })
-      i++
+    }
+
+    // Single-char operators
+    if (/^[=+\-*/%&|^~!<>?]$/.test(ch)) {
+      tokens.push({ text: ch, type: 'operator' }); i++; continue
+    }
+
+    // Property access (dot then word)
+    if (ch === '.') {
+      tokens.push({ text: '.', type: 'punctuation' }); i++
+      let word = ''
+      while (i < code.length && /^\w$/.test(code[i])) { word += code[i]; i++ }
+      if (word) tokens.push({ text: word, type: 'property' })
       continue
     }
 
-    // Property access (text after `.`)
-    if (ch === '.' && /^\w$/.test(code[i + 1])) {
-      tokens.push({ text: '.', type: 'punctuation' })
-      i++
-      continue
+    // Punctuation
+    if (/^[{}()\[\],;:]$/.test(ch)) {
+      tokens.push({ text: ch, type: 'punctuation' }); i++; continue
     }
 
-    tokens.push({ text: ch, type: 'text' })
-    i++
+    tokens.push({ text: ch, type: 'text' }); i++
   }
   return tokens
 }
 
 function HighlightCode({ code }: { code: string }) {
   const tokens = tokenize(code)
-  const colorMap: Record<Token['type'], string> = {
-    string: '#16a34a',
-    number: '#d97706',
-    keyword: '#6366f1',
-    method: '#0ea5e9',
-    punctuation: '#8f8f8f',
-    property: '#27272a',
-    template: '#16a34a',
-    'template-expr': '#f59e0b',
-    comment: '#a1a1aa',
-    text: '#27272a',
-  }
   return (
     <span>
       {tokens.map((t, i) => (
-        <span key={i} style={{ color: colorMap[t.type] }}>{t.text}</span>
+        <span key={i} style={{ color: COLORS[t.type] }}>{t.text}</span>
       ))}
     </span>
   )
