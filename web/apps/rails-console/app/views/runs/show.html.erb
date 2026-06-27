@@ -192,6 +192,7 @@
          proof_unavailable = proof_label.match?(/unavailable|pending/i)
          started_label = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%H:%M:%S UTC') : '—'
          duration_label = @run[:duration_ms].present? ? "#{@run[:duration_ms]}ms" : '—' %>
+      <% dash = ->(v) { v.to_s.strip.presence || '—' } %>
       <% guidance = run_guidance_state(@run) %>
 
       <%# No-JS toggle: the "Full inspector" trigger (left) swaps the right panel
@@ -208,8 +209,22 @@
             <p class="ic-doc__lead"><%= run_summary_html(@run) %></p>
           </div>
 
-          <% dash = ->(v) { v.to_s.strip.presence || '—' }
-             receipt_hash   = (@run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_hash' }&.dig(:value)
+          <div class="ic-evidence">
+            <div class="ic-evidence__head">Action path</div>
+            <p class="ic-evidence__intro">
+              This is the request-to-review record for the action. It shows the
+              control decision, where execution ran, whether recovery was needed,
+              and what proof exists after the run.
+            </p>
+            <div class="ic-def"><span class="ic-def__label">Requested action</span><div class="ic-def__value mono"><%= dash.call(@run[:action]) %></div></div>
+            <div class="ic-def"><span class="ic-def__label">Policy / approval</span><div class="ic-def__value"><%= dash.call(filter_label(@run[:policy])) %></div></div>
+            <div class="ic-def"><span class="ic-def__label">Execution path</span><div class="ic-def__value"><%= dash.call(filter_label(@run[:routed_via])) %></div></div>
+            <div class="ic-def"><span class="ic-def__label">Recovery</span><div class="ic-def__value"><%= dash.call(@run[:recovery]) %></div></div>
+            <div class="ic-def"><span class="ic-def__label">Proof</span><div class="ic-def__value"><%= status_text proof_label %></div></div>
+            <div class="ic-def"><span class="ic-def__label">Review status</span><div class="ic-def__value"><%= run_needs_attention?(@run) ? 'Needs review' : 'Ready to review' %></div></div>
+          </div>
+
+          <% receipt_hash   = (@run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_hash' }&.dig(:value)
              receipt_signed = (@run[:raw_evidence] || []).find { |e| e[:key].to_s == 'receipt_signed' }&.dig(:value) %>
           <div class="ic-evidence" id="evidence">
             <div class="ic-evidence__head">Execution detail</div>
