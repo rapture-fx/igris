@@ -264,7 +264,7 @@ export function TierPriceDisplay({
 
   return (
     <>
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+      <div className="mt-4 flex flex-wrap items-baseline justify-end gap-x-1.5 gap-y-1">
         <AnimatePresence mode="sync" initial={false}>
           {billing.comparePrice && (
             <motion.span
@@ -288,7 +288,7 @@ export function TierPriceDisplay({
               key={`${motionKey}-period`}
               layout="position"
               className="text-gray-500 dark:text-[#a8a898]"
-              style={{ fontFamily: SANS, fontSize: '1rem' }}
+              style={{ fontFamily: PIXEL, fontSize: '1rem' }}
               {...fade}
               transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
             >
@@ -303,8 +303,8 @@ export function TierPriceDisplay({
           <motion.p
             key={`${motionKey}-detail`}
             layout="position"
-            className="mt-2 text-emerald-600 dark:text-emerald-400"
-            style={{ fontFamily: SANS, fontSize: '0.9375rem', lineHeight: 1.4 }}
+            className="mt-2 text-right text-emerald-600 dark:text-emerald-400"
+              style={{ fontFamily: PIXEL, fontSize: '0.9375rem', lineHeight: 1.4 }}
             {...fade}
             transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
           >
@@ -326,11 +326,13 @@ export function BillingToggle({
   onChange,
   rounded = 'default',
   align = 'center',
+  font = 'sans',
 }: {
   interval: BillingInterval;
   onChange: (next: BillingInterval) => void;
   rounded?: keyof typeof BILLING_TOGGLE_ROUNDED;
   align?: 'center' | 'left';
+  font?: 'sans' | 'pixel';
 }) {
   const reducedMotion = useReducedMotion();
   const r = BILLING_TOGGLE_ROUNDED[rounded];
@@ -359,7 +361,7 @@ export function BillingToggle({
                   : 'text-[#8f8f8f] hover:text-[#4d4d4d]')
               }
               style={{
-                fontFamily: SANS,
+                fontFamily: font === 'pixel' ? PIXEL : SANS,
                 transition: reducedMotion
                   ? undefined
                   : `color ${TAB_TRANSITION_DURATION}s cubic-bezier(0.22, 1, 0.36, 1)`,
@@ -414,7 +416,7 @@ export default function Pricing() {
                       <h3
                         className="text-[#171717]"
                         style={{
-                          fontFamily: SANS,
+                fontFamily: PIXEL,
                           fontWeight: 600,
                           fontSize: 'clamp(1rem, 1.2vw, 1.1rem)',
                           lineHeight: 1.3,
