@@ -266,6 +266,20 @@ export function TierPriceDisplay({
     <>
       <div className="mt-4 flex flex-wrap items-baseline justify-end gap-x-1.5 gap-y-1">
         <AnimatePresence mode="sync" initial={false}>
+          {billing.detail && (
+            <motion.span
+              key={`${motionKey}-detail`}
+              layout="position"
+              className="text-emerald-600 dark:text-emerald-400"
+              style={{ fontFamily: PIXEL, fontSize: '0.9375rem', lineHeight: 1.4 }}
+              {...fade}
+              transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+            >
+              {billing.detail}
+            </motion.span>
+          )}
+        </AnimatePresence>
+        <AnimatePresence mode="sync" initial={false}>
           {billing.comparePrice && (
             <motion.span
               key={`${motionKey}-compare`}
@@ -297,21 +311,6 @@ export function TierPriceDisplay({
           )}
         </AnimatePresence>
       </div>
-
-      <AnimatePresence mode="sync" initial={false}>
-        {billing.detail && (
-          <motion.p
-            key={`${motionKey}-detail`}
-            layout="position"
-            className="mt-2 text-right text-emerald-600 dark:text-emerald-400"
-              style={{ fontFamily: PIXEL, fontSize: '0.9375rem', lineHeight: 1.4 }}
-            {...fade}
-            transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
-          >
-            {billing.detail}
-          </motion.p>
-        )}
-      </AnimatePresence>
     </>
   );
 }
@@ -370,7 +369,7 @@ export function BillingToggle({
               {active && (
                 <motion.span
                   layoutId="billing-toggle-pill"
-                  className={`absolute inset-0 bg-[#e8e8e8] dark:bg-white/[0.12] ${r.btn}`}
+                  className={`absolute inset-0 bg-[#f0f0f0] dark:bg-white/[0.12] ${r.btn}`}
                   transition={{
                     duration: reducedMotion ? 0 : TAB_TRANSITION_DURATION,
                     ease: MOTION_EASE,
