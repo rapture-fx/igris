@@ -1,6 +1,4 @@
 :root {
-  --font-geist-pixel-square: var(--font-geist-sans);
-
   /* ── Geist (Light) design tokens ──────────────────────────────── */
   --geist-background-100: #ffffff;
   --geist-background-200: #fafafa;
