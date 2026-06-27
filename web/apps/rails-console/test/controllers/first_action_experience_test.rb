@@ -74,6 +74,10 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
     assert_home_onboarding_page
     assert_match 'Install the runtime', response.body
     assert_match 'Connect your first agent', response.body
+    assert_match 'Register an action', response.body
+    assert_match 'Run the action', response.body
+    assert_match 'Review the result', response.body
+    assert_match 'controlled path from request to review', response.body
   end
 
   test 'overview with existing actions shows the workspace, not onboarding' do
@@ -213,6 +217,9 @@ class FirstActionExperienceTest < ActionDispatch::IntegrationTest
     get '/runs/run_01HGJ8K2Z9F'
     assert_response :success
     assert_match 'Run Inspector', response.body
+    assert_match 'Action path', response.body
+    assert_match 'request-to-review record', response.body
+    assert_match 'Policy / approval', response.body
     assert_match 'Execution detail', response.body
     assert_match 'Routed via', response.body
     assert_match 'Proof', response.body
