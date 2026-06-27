@@ -70,8 +70,10 @@ type Block =
   | { type: 'lead'; text: string }
   | { type: 'p'; text: string }
   | { type: 'code'; text: string }
+  | { type: 'code-card'; code: string }
   | { type: 'divider' }
   | { type: 'p-badges'; text: string }
+  | { type: 'p-code-inline'; text: string }
   | { type: 'how-it-works' }
   | { type: 'changes-panel' }
 
@@ -105,11 +107,13 @@ const ARTICLE: Block[] = [
   { type: 'p', text: 'Igris gives each action a controlled path from request to review. Agents request work, actions define what can be done, and Igris manages how the work runs. It checks whether the action is allowed, runs it through the right execution path, tracks the result, handles failure when possible, and keeps proof your team can inspect later.' },
   { type: 'how-it-works' },
   { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint.' },
+  { type: 'code-card', code: 'await igris.actions.run(\n  "create_task",\n  {\n    title: "Review failed payment",\n    priority: "high",\n  }\n)' },
+  { type: 'p', text: 'The agent requests the action. Igris decides how it is allowed to run and keeps the record afterward.' },
 
   { type: 'section', text: 'What Igris adds' },
   { type: 'p', text: 'Igris turns agent actions into controlled work your team can review. Before an action runs, Igris checks whether it is allowed, needs approval, or should stop. As the action runs, Igris tracks the result and makes failure visible. After it finishes, Igris keeps proof so your team can understand what happened without relying only on the agent’s explanation.' },
   { type: 'changes-panel' },
-  { type: 'p', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
+  { type: 'p-code-inline', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
 
   { type: 'section', text: 'Get started' },
   { type: 'p', text: 'Install Igris and connect your first agent.' },
@@ -239,6 +243,25 @@ function ArticleBlock({ block }: { block: Block }) {
       )
     case 'code':
       return <CodeBlockWithCopy text={block.text} />
+    case 'code-card':
+      return (
+        <div className="mb-7 border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
+          <div className="px-5 py-4">
+            <code
+              className="text-[#27272a] whitespace-pre"
+              style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.65 }}
+            >
+              {block.code}
+            </code>
+          </div>
+          <p
+            className="px-5 pb-4 text-[#71717a]"
+            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5 }}
+          >
+            {block.caption}
+          </p>
+        </div>
+      )
     case 'p-badges': {
       const badgeWords = ['policy', 'recovery', 'proof', 'review']
       const regex = new RegExp(`(${badgeWords.join('|')})`, 'gi')
@@ -263,6 +286,31 @@ function ArticleBlock({ block }: { block: Block }) {
         </p>
       )
     }
+    case 'p-code-inline': {
+      const codeWords = ['control', 'inspect', 'recover', 'improve']
+      const regex = new RegExp(`\\b(${codeWords.join('|')})\\b`, 'gi')
+      const parts = block.text.split(regex)
+      return (
+        <p
+          className="mb-6 text-[#27272a]"
+          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+        >
+          {parts.map((part, i) =>
+            codeWords.includes(part.toLowerCase()) ? (
+              <code
+                key={i}
+                className="rounded-[6px] bg-[#f0f0f0] px-1.5 py-0.5 text-[0.875em] font-normal text-[#171717]"
+                style={{ fontFamily: MONO }}
+              >
+                {part}
+              </code>
+            ) : (
+              <span key={i}>{part}</span>
+            )
+          )}
+        </p>
+      )
+    }
     case 'divider':
       return <hr className="my-14 border-0 border-t border-[#ececec]" />
     case 'how-it-works':
@@ -278,16 +326,6 @@ export default function Vision() {
   // ARTICLE[0] is the "Action layer" title, now rendered as the hero below.
   const bodyBlocks = ARTICLE.slice(1)
   const [interval, setInterval] = useState<BillingInterval>('yearly')
-  const [openTiers, setOpenTiers] = useState<Set<string>>(new Set())
-
-  const toggleTier = (key: string) => {
-    setOpenTiers((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
 
   return (
     <section
@@ -349,17 +387,12 @@ export default function Vision() {
             >
               Open Source: self-host Igris for free. Use Igris Cloud when you want hosted infrastructure, managed retention, team access, and support.
             </p>
-            <div className="flex flex-col border border-[#ebebeb] divide-y divide-[#ebebeb] rounded-[10px] overflow-hidden">
+            <div className="flex flex-col">
               {PRICING_TIERS.map((tier) => {
                 const billing = getTierBilling(tier, interval)
-                const isOpen = openTiers.has(tier.key)
                 return (
-                  <div key={tier.key} className="flex flex-col p-6">
-                    <button
-                      type="button"
-                      onClick={() => toggleTier(tier.key)}
-                      className="flex items-baseline justify-between gap-6 w-full text-left"
-                    >
+                  <div key={tier.key} className="flex flex-col py-6">
+                    <div className="flex items-baseline justify-between gap-6">
                       <h5
                         className="text-[#171717]"
                         style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
@@ -369,33 +402,29 @@ export default function Vision() {
                       <div className="shrink-0 text-right [&>div:first-child]:mt-0">
                         <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} />
                       </div>
-                    </button>
-                    <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                      <div>
-                        <p
-                          className="mt-2 text-[#27272a]"
-                          style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-                        >
-                          {tier.description}
-                        </p>
-                        <p
-                          className="mt-4 text-[#27272a]"
-                          style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-                        >
-                          {tier.features.join(', ')}
-                        </p>
-                        <div className="pt-5">
-                          <a
-                            href={billing.checkoutUrl}
-                            target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
-                            rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                            className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
-                            style={{ fontFamily: PIXEL }}
-                          >
-                            {billing.cta}
-                          </a>
-                        </div>
-                      </div>
+                    </div>
+                    <p
+                      className="mt-2 text-[#27272a]"
+                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                    >
+                      {tier.description}
+                    </p>
+                    <p
+                      className="mt-4 text-[#27272a]"
+                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                    >
+                      {tier.features.join(', ')}
+                    </p>
+                    <div className="pt-5">
+                      <a
+                        href={billing.checkoutUrl}
+                        target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
+                        rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                        className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
+                        style={{ fontFamily: PIXEL }}
+                      >
+                        {billing.cta}
+                      </a>
                     </div>
                   </div>
                 )
@@ -410,9 +439,7 @@ export default function Vision() {
             >
               Questions
             </h4>
-            <div className="border border-[#ebebeb] rounded-[10px] bg-white px-6 py-2">
-              <Faq simple />
-            </div>
+            <Faq simple />
           </div>
         </article>
       </div>
