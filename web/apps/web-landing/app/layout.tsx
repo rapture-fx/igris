@@ -3,8 +3,9 @@ import { Providers } from '../src/components/providers/Providers'
 import React from 'react'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
+import { GeistPixelSquare } from 'geist/font/pixel'
 
-const fontVariables = `${GeistSans.variable} ${GeistMono.variable}`
+const fontVariables = `${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable}`
 
 export const viewport = {
   width: 'device-width',
