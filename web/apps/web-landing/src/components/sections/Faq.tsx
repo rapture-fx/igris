@@ -156,10 +156,10 @@ const faqSections: FaqSection[] = [
 export default function Faq({ large = false, simple = false }: { large?: boolean; simple?: boolean }) {
   const [openSectionIndex, setOpenSectionIndex] = useState<number | null>(null)
 
-  const sectionTitleSize = large ? '1.0625rem' : simple ? '1.0625rem' : '0.95rem'
-  const questionSize = large ? '0.95rem' : simple ? '1rem' : '0.875rem'
-  const answerSize = large ? '0.95rem' : simple ? '1rem' : '0.875rem'
-  const chevronSize = large ? 16 : simple ? 16 : 14
+  const sectionTitleSize = large ? '1.5rem' : simple ? '1.5rem' : '0.95rem'
+  const questionSize = large ? '1.375rem' : simple ? '1.375rem' : '0.875rem'
+  const answerSize = large ? '1.375rem' : simple ? '1.375rem' : '0.875rem'
+  const chevronSize = large ? 20 : simple ? 20 : 14
 
   const toggleSection = (index: number) => {
     setOpenSectionIndex(openSectionIndex === index ? null : index)
@@ -181,19 +181,15 @@ export default function Faq({ large = false, simple = false }: { large?: boolean
 
           <div className={simple ? '' : 'mt-10 md:mt-12'}>
             {simple ? (
-              <div className="divide-y divide-[#ebebeb]">
+              <div>
                 {faqSections.map((section, sectionIndex) => {
                   const isOpen = openSectionIndex === sectionIndex
-                  const isLast = sectionIndex === faqSections.length - 1
                   return (
-                    <div
-                      key={section.title}
-                      className={!isLast ? 'border-b border-[#ebebeb]' : ''}
-                    >
+                    <div key={section.title}>
                       <button
                         type="button"
                         onClick={() => toggleSection(sectionIndex)}
-                        className="w-full text-left py-5 flex items-center justify-between gap-4 transition-colors"
+                        className="w-full text-left py-4 flex items-center justify-between gap-4 transition-colors"
                         style={{ fontFamily: SANS }}
                         aria-expanded={isOpen}
                       >
@@ -222,12 +218,9 @@ export default function Faq({ large = false, simple = false }: { large?: boolean
                           isOpen ? 'max-h-[3000px]' : 'max-h-0'
                         }`}
                       >
-                        <div className="pt-2 pb-6 space-y-5 border-t border-[#ebebeb]">
+                        <div className="pb-6 space-y-5">
                           {section.entries.map((faq, entryIndex) => (
-                            <div
-                              key={faq.question}
-                              className={entryIndex > 0 ? 'pt-5 border-t border-[#ebebeb]' : ''}
-                            >
+                            <div key={faq.question}>
                               <p
                                 className="text-[#171717] mb-2"
                                 style={{
@@ -243,7 +236,7 @@ export default function Faq({ large = false, simple = false }: { large?: boolean
                               {faq.type === 'text' && (
                                 <p
                                   className="text-[#27272a]"
-                                  style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.6 }}
+                                  style={{ fontFamily: SANS, fontSize: answerSize, lineHeight: 1.75 }}
                                 >
                                   {faq.answer}
                                 </p>
