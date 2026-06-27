@@ -1,9 +1,9 @@
 <%# Home — setup-first. Answers "how do I start?" in order: install, connect an
-    agent, create actions, run and verify. Short operational copy, copyable
+    agent, register actions, run and review. Short operational copy, copyable
     commands, and a peek at recent activity. Not a dashboard, not docs. The
     everyday workspace lives on /overview. %>
 <style>
-  .ic-setup { max-width: 720px; margin: 0 auto; padding: 28px 16px 40px; width: 100%; }
+  .ic-setup { max-width: 760px; margin: 0 auto; padding: 28px 16px 40px; width: 100%; }
   .ic-setup__title { font-size: 22px; font-weight: 600; color: var(--ic-text-bright); letter-spacing: -0.01em; margin: 0; }
   .ic-setup__value { font-size: 13px; color: var(--ic-text-5); line-height: 1.65; margin: 8px 0 0; max-width: 640px; }
   .ic-steps { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 22px; }
@@ -38,8 +38,9 @@
     <header>
       <h1 class="ic-setup__title">Set up Igris</h1>
       <p class="ic-setup__value">
-        Your agent calls Igris instead of calling tools directly. Igris applies
-        policy, routes execution, recovers from failures, and proves what happened.
+        Your agent requests work through Igris instead of calling tools directly.
+        Igris gives every action a controlled path from request to review:
+        policy, execution, recovery, proof, and a record of what happened.
       </p>
     </header>
 
@@ -76,10 +77,10 @@
       <li class="ic-step">
         <span class="ic-step__num">3</span>
         <div class="ic-step__body">
-          <div class="ic-step__title">Create or install actions</div>
+          <div class="ic-step__title">Register an action</div>
           <p class="ic-step__text">
-            Actions are what your agent is allowed to do through Igris. Write one,
-            or install a ready-made Action Pack.
+            Actions define what an agent is allowed to request, where that work
+            executes, and which policy controls it.
           </p>
           <div class="ic-step__links">
             <%= link_to 'New action', new_action_path, class: 'ic-btn ic-btn--accent' %>
@@ -91,14 +92,29 @@
       <li class="ic-step">
         <span class="ic-step__num">4</span>
         <div class="ic-step__body">
-          <div class="ic-step__title">Run and verify</div>
+          <div class="ic-step__title">Run the action</div>
           <p class="ic-step__text">
-            Every call your agent makes is recorded as a run with proof of what
-            actually happened.
+            Send a test request from the action page, then wire the endpoint into
+            your agent. Policy can allow, require approval, or block the request.
+          </p>
+          <div class="ic-step__links">
+            <%= link_to 'Open Actions', actions_path, class: 'ic-btn' %>
+            <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
+          </div>
+        </div>
+      </li>
+
+      <li class="ic-step">
+        <span class="ic-step__num">5</span>
+        <div class="ic-step__body">
+          <div class="ic-step__title">Review the result</div>
+          <p class="ic-step__text">
+            Runs show who requested the action, what policy decided, whether
+            execution failed or recovered, and what proof was recorded afterward.
           </p>
           <div class="ic-step__links">
             <%= link_to 'View runs', runs_path, class: 'ic-btn' %>
-            <%= link_to 'See connections', connections_path, class: 'ic-btn' %>
+            <%= link_to 'Review governance', governance_path, class: 'ic-btn' %>
           </div>
         </div>
       </li>
