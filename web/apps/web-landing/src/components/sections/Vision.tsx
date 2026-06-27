@@ -254,12 +254,6 @@ function ArticleBlock({ block }: { block: Block }) {
               {block.code}
             </code>
           </div>
-          <p
-            className="px-5 pb-4 text-[#71717a]"
-            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1rem', lineHeight: 1.5 }}
-          >
-            {block.caption}
-          </p>
         </div>
       )
     case 'p-badges': {
