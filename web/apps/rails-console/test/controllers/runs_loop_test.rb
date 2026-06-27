@@ -46,6 +46,8 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'Runs', response.body
     assert_match 'Search runs', response.body
+    assert_match 'Review', response.body
+    assert_match 'policy', response.body
     assert_match 'Running', response.body            # the in-flight fixture run
     assert_match 'Failed', response.body             # the failed fixture run
   end
@@ -209,6 +211,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_match 'No runs yet', response.body
       assert_match 'Runs appear when an agent or app calls an Igris action endpoint.', response.body
+      assert_match 'what policy decided', response.body
       assert_match 'Create action', response.body
     end
   end
@@ -315,7 +318,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'settings explains agents get an action endpoint, not direct tool access' do
     get '/settings?section=tools'
     assert_response :success
-    assert_match 'target access', response.body          # heading ("Tool &amp; target access")
+    assert_match 'Action targets', response.body
     assert_match 'never gets direct tool access', response.body
     assert_match 'Igris action endpoint', response.body
   end
@@ -323,7 +326,7 @@ class RunsLoopTest < ActionDispatch::IntegrationTest
   test 'settings uses runtime key wording, never runtime license' do
     get '/settings?section=runtime'
     assert_response :success
-    assert_match 'Runtime keys', response.body
+    assert_match 'Runtime connection', response.body
     refute_match(/[Ll]icense/, response.body)
   end
 end
