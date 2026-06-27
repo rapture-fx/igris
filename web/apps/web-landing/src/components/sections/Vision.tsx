@@ -171,7 +171,7 @@ function ArticleBlock({ block }: { block: Block }) {
     case 'section':
       return (
         <h4
-          className="mb-5 mt-16 text-black"
+          className="mb-5 mt-10 text-black"
           style={{ ...TITLE_STYLE, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)' }}
         >
           {block.text}
@@ -299,9 +299,9 @@ export default function Vision() {
             <ArticleBlock key={index + 1} block={block} />
           ))}
 
-          <div className="mt-20 pt-12">
+          <div className="mt-12 pt-8">
             <h4
-              className="mb-5 mt-16 text-[#171717]"
+              className="mb-5 mt-6 text-[#171717]"
           style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
             >
               Pricing
