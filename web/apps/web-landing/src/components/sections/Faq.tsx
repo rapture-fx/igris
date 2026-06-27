@@ -197,7 +197,7 @@ export default function Faq({ large = false, simple = false }: { large?: boolean
                           className="text-[#171717]"
                           style={{
                             fontSize: sectionTitleSize,
-                            fontWeight: 600,
+                            fontWeight: 400,
                             lineHeight: 1.3,
                             letterSpacing: '-0.02em',
                           }}
@@ -226,7 +226,7 @@ export default function Faq({ large = false, simple = false }: { large?: boolean
                                 style={{
                                   fontFamily: SANS,
                                   fontSize: questionSize,
-                                  fontWeight: 600,
+                                  fontWeight: 400,
                                   lineHeight: 1.4,
                                   letterSpacing: '-0.02em',
                                 }}
