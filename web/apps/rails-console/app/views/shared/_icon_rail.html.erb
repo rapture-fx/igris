@@ -31,11 +31,12 @@
     </div>
   </div>
 
-  <%# Navigation items — ordered as the operator journey: Connect → Execute →
-      Verify. Home is first-run onboarding; Overview is the daily workspace;
-      Settings is utility. Improve (Intelligence, Evaluations, Proposals, Trust)
-      lives inside the Runs lens, not the rail. Group headers show only when the
-      rail is expanded; collapsed stays a clean icon rail. %>
+  <%# Navigation items — ordered around the product story: set up who requests
+      work, define what can run, then review what happened. Home is first-run
+      onboarding; Overview is the daily workspace; Settings is utility. Improve
+      (Intelligence, Evaluations, Proposals, Trust) lives inside the Runs lens,
+      not the rail. Group headers show only when the rail is expanded; collapsed
+      stays a clean icon rail. %>
   <div class="ic-rail__items">
     <% rail_sections = [
       { items: [
@@ -47,7 +48,7 @@
         [:actions,     actions_path,     'Actions',     'list-checks'],
         [:connections, connections_path, 'Connections', 'link'],
       ] },
-      { label: 'Operate', items: [
+      { label: 'Review', items: [
         [:runs,       runs_path,       'Runs',       'zap'],
         [:governance, governance_path, 'Governance', 'shield-check'],
       ] },
