@@ -36,17 +36,27 @@ const DEMO_STEPS: ChangeStep[] = [
 
 const recoveredCount = DEMO_STEPS.filter((s) => s.isRecovered).length
 
-const FAILURE_REGEX = /\b(429|failed)\b/g
+const HIGHLIGHT_RULES: [RegExp, string][] = [
+  [/\b(200 OK)\b/g, '#047857'],
+  [/\b(202 Accepted)\b/g, '#2563eb'],
+  [/\b(resumed)\b/g, '#ca8a04'],
+  [/\b(429|failed)\b/g, '#be123c'],
+]
 
-function highlightFailure(text: string) {
-  const parts = text.split(FAILURE_REGEX)
-  return parts.map((part, i) =>
-    part === '429' || part === 'failed' ? (
-      <span key={i} style={{ color: '#be123c' }}>{part}</span>
-    ) : (
-      <span key={i}>{part}</span>
-    )
+function highlightText(text: string) {
+  const combined = new RegExp(
+    HIGHLIGHT_RULES.map(([re]) => re.source).join('|'),
+    'g'
   )
+  const parts = text.split(combined)
+  return parts.map((part, i) => {
+    for (const [re, color] of HIGHLIGHT_RULES) {
+      if (re.test(part)) {
+        return <span key={i} style={{ color }}>{part}</span>
+      }
+    }
+    return <span key={i}>{part}</span>
+  })
 }
 
 function VisionChangesStyles() {
@@ -83,8 +93,8 @@ function VisionChangesStyles() {
         column-gap: 8px;
         padding: 4px 16px;
       }
-      .vision-changes .ic-diff__line--committed { background: rgba(4, 120, 87, 0.05); }
-      .vision-changes .ic-diff__line--recovered { background: rgba(190, 18, 60, 0.04); }
+      .vision-changes .ic-diff__line--committed { background: #ecf5ed; }
+      .vision-changes .ic-diff__line--recovered { background: #f9ebeb; }
       .vision-changes .ic-diff__num {
         text-align: right;
         color: #a1a1aa;
@@ -161,7 +171,7 @@ function ChangesDiff() {
               <span className="ic-diff__text">
                 {step.name}{' '}
                 <span className="ic-diff__dim">
-                  {step.isRecovered ? highlightFailure(step.detail) : step.detail}
+                  {highlightText(step.detail)}
                 </span>
               </span>
               <span className="ic-diff__meta">
