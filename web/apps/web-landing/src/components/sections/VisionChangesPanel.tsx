@@ -37,10 +37,12 @@ const DEMO_STEPS: ChangeStep[] = [
 const recoveredCount = DEMO_STEPS.filter((s) => s.isRecovered).length
 
 const HIGHLIGHT_RULES: [RegExp, string][] = [
-  [/\b(200 OK)\b/g, '#047857'],
-  [/\b(202 Accepted)\b/g, '#2563eb'],
-  [/\b(resumed)\b/g, '#ca8a04'],
-  [/\b(429|failed)\b/g, '#be123c'],
+  [/\b(allowed|routed|committed|verified|recovered)\b/g, '#047857'],
+  [/\b(429|failed|blocked|denied)\b/g, '#be123c'],
+  [/\b(200 OK|202 Accepted)\b/g, '#2563eb'],
+  [/\b(POST|GET|PUT|PATCH|DELETE)\b/g, '#2563eb'],
+  [/\b(r_[\w₀₁₂₃₄₅₆₇₈₉]+)\b/g, '#2563eb'],
+  [/\b(retry|backoff|resumed|checkpoint)\b/g, '#d97706'],
 ]
 
 function highlightText(text: string) {
