@@ -9,13 +9,36 @@ import { PRICING_TIERS, getTierBilling } from '../../lib/pricing'
 import type { BillingInterval } from '../../lib/pricing'
 import { BillingToggle, TierPriceDisplay } from './Pricing'
 import Faq from './Faq'
-import { ChevronDown, Workflow, Copy, Code } from 'lucide-react'
+import { BookOpen, ChevronDown, Workflow, Copy, Code } from 'lucide-react'
 import { MermaidChart } from '../MermaidChart'
 import VisionChangesPanel from './VisionChangesPanel'
+import { DOCS_LINKS } from '../../lib/docs-urls'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
-const PIXEL = 'var(--font-geist-pixel-square), "Geist Pixel Square", ui-monospace, monospace'
+const CODING_AGENT_PROMPT = `You are helping me connect this project to Igris.
+
+Goal:
+Configure this repository so an AI agent can request one safe, registered action through Igris instead of calling tools or services directly.
+
+Steps:
+
+1. Inspect the project structure and identify where external actions, jobs, webhooks, or operational workflows are triggered.
+2. Read the Igris docs and use the currently supported integration path. Do not invent SDK methods or unsupported APIs.
+3. Register one safe example action, such as creating an internal task, sending a non-sensitive test notification, or running a harmless workflow.
+4. Route the action through Igris so the request can be checked, executed, tracked, and recorded.
+5. Add required environment variables using \`.env.example\` only. Do not commit real secrets.
+6. Add a small smoke test or local verification command that proves the action can be requested through Igris.
+7. Keep the change minimal and reversible. Do not refactor unrelated code.
+8. Report the files changed, setup steps, required environment variables, and any follow-up work.
+
+Safety rules:
+
+* Do not expose secrets.
+* Do not use production credentials.
+* Do not modify billing, customer data, or destructive workflows.
+* Do not bypass Igris policy, approval, or run-record behavior.
+* If the required Igris feature is not available yet, stop and explain what is missing instead of faking it.`
 
 const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled action layer.'
 const LINE_2_CONT = ' in Cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in.'
@@ -74,8 +97,10 @@ type Block =
   | { type: 'divider' }
   | { type: 'p-badges'; text: string }
   | { type: 'p-code-inline'; text: string }
+  | { type: 'p-with-resources'; text: string }
   | { type: 'how-it-works' }
   | { type: 'changes-panel' }
+  | { type: 'coding-agent-prompt' }
 
 const HOW_IT_WORKS_CHART = `---
 config:
@@ -112,12 +137,13 @@ const ARTICLE: Block[] = [
   { type: 'section', text: 'What Igris adds' },
   { type: 'p', text: 'Igris turns agent actions into controlled work your team can review. Before an action runs, Igris checks whether it is allowed, needs approval, or should stop. As the action runs, Igris tracks the result and makes failure visible. After it finishes, Igris keeps proof so your team can understand what happened without relying only on the agent’s explanation.' },
   { type: 'changes-panel' },
-  { type: 'p-code-inline', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
+  { type: 'p-with-resources', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
 
   { type: 'section', text: 'Get started' },
   { type: 'p', text: 'Install Igris and connect your first agent.' },
   { type: 'code', text: 'curl -fsSL https://igrisinertial.com/install | bash' },
   { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console. The first setup should be simple: connect the agent once, route actions through Igris, and use the console to understand what happened.' },
+  { type: 'coding-agent-prompt' },
 ]
 
 function HowItWorksBlock() {
@@ -168,7 +194,7 @@ function CodeCardBlock({ label, code }: { label: string; code: string }) {
       >
         <Code size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
         <span>{label}</span>
-        <span className="text-[#a1a1aa]" style={{ fontFamily: MONO, fontSize: '1rem' }}>
+        <span className="text-[#8f8f8f]" style={{ fontFamily: MONO, fontSize: '1.125rem' }}>
           {summary}
         </span>
         <ChevronDown
@@ -194,6 +220,46 @@ function CodeCardBlock({ label, code }: { label: string; code: string }) {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function CodingAgentPromptBlock() {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(CODING_AGENT_PROMPT)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      <h5
+        className="mb-3 mt-12 text-[#171717]"
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
+      >
+        Use your coding agent
+      </h5>
+      <p
+        className="mb-4 text-[#27272a]"
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+      >
+        Paste this into Codex, Claude Code, Cursor, or another coding agent to connect your project to Igris.{' '}
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 text-[#8f8f8f] hover:text-[#171717] transition-colors align-baseline"
+          style={{ fontFamily: SANS, fontWeight: 400 }}
+        >
+          <Copy size={14} strokeWidth={1.5} />
+          {copied ? 'Copied' : 'Copy setup prompt'}
+        </button>
+      </p>
     </div>
   )
 }
@@ -489,7 +555,8 @@ function ArticleBlock({ block }: { block: Block }) {
         </p>
       )
     }
-    case 'p-code-inline': {
+    case 'p-code-inline':
+    case 'p-with-resources': {
       const codeWords = ['control', 'inspect', 'recover', 'improve']
       const regex = new RegExp(`\\b(${codeWords.join('|')})\\b`, 'gi')
       const parts = block.text.split(regex)
@@ -511,6 +578,24 @@ function ArticleBlock({ block }: { block: Block }) {
               <span key={i}>{part}</span>
             )
           )}
+          {block.type === 'p-with-resources' && (
+            <>
+              {' '}
+              <Link
+                href={DOCS_LINKS.home}
+                className="text-[#8f8f8f] hover:text-[#171717] transition-colors"
+                style={{ fontFamily: SANS, fontWeight: 400 }}
+              >
+                <BookOpen
+                  size={16}
+                  strokeWidth={1.75}
+                  className="inline align-text-bottom mr-0.5"
+                  aria-hidden
+                />
+                Resources
+              </Link>
+            </>
+          )}
         </p>
       )
     }
@@ -520,6 +605,8 @@ function ArticleBlock({ block }: { block: Block }) {
       return <HowItWorksBlock />
     case 'changes-panel':
       return <VisionChangesPanel />
+    case 'coding-agent-prompt':
+      return <CodingAgentPromptBlock />
     default:
       return null
   }
@@ -529,6 +616,17 @@ export default function Vision() {
   // ARTICLE[0] is the "Action layer" title, now rendered as the hero below.
   const bodyBlocks = ARTICLE.slice(1)
   const [interval, setInterval] = useState<BillingInterval>('yearly')
+  const [promptCopied, setPromptCopied] = useState(false)
+
+  const copySetupPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(CODING_AGENT_PROMPT)
+      setPromptCopied(true)
+      setTimeout(() => setPromptCopied(false), 2000)
+    } catch {
+      setPromptCopied(false)
+    }
+  }
 
   return (
     <section
@@ -538,16 +636,13 @@ export default function Vision() {
       <h2 id="vision-heading" className="sr-only">Vision</h2>
       <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-8 sm:px-6 lg:px-8 md:pt-36 md:pb-12 ">
         <article className="mx-auto max-w-[820px]">
-          <div className="max-w-[640px]">
-            <h3 className="mb-4 mt-3 text-black" style={TITLE_STYLE}>
-              <HoverPhrase base={<>Action layer <span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span></>} cont={LINE_1_CONT} />
-              <br />
-              <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">To execute safely</span>} cont={LINE_2_CONT} />
-              {' and '}
-              <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proven by runs</span>} cont={LINE_3_CONT} />
-            </h3>
-
-          </div>
+          <h3 className="mb-4 mt-3 text-black" style={TITLE_STYLE}>
+            <HoverPhrase base={<>Action layer <span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span></>} cont={LINE_1_CONT} />
+            <br />
+            <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">To execute safely</span>} cont={LINE_2_CONT} />
+            {' and '}
+            <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proven by runs</span>} cont={LINE_3_CONT} />
+          </h3>
 
           {bodyBlocks.length > 0 && <ArticleBlock block={bodyBlocks[0]} />}
 
@@ -560,14 +655,15 @@ export default function Vision() {
             >
               Get API Key
             </Link>
-            <Link
-              href="/auth?mode=signin"
-              prefetch={false}
-              className="inline-flex h-12 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
+            <button
+              type="button"
+              onClick={copySetupPrompt}
+              className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
               style={{ fontFamily: SANS, fontWeight: 500 }}
             >
-              Setup an Agent
-            </Link>
+              <Copy size={15} strokeWidth={1.5} className="text-[#8f8f8f]" />
+              {promptCopied ? 'Copied' : 'Copy setup prompt'}
+            </button>
           </div>
 
           <img src="/pkrllgol.png" alt="" className="w-full mb-14 rounded-[10px]" />
@@ -578,12 +674,12 @@ export default function Vision() {
 
           <div className="mt-12 pt-8">
             <h4
-              className="mb-5 mt-6 text-[#171717]"
-          style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
+              className="mb-5 mt-6 text-black"
+              style={{ ...TITLE_STYLE, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)' }}
             >
               Pricing
             </h4>
-            <BillingToggle interval={interval} onChange={setInterval} rounded="pill" align="left" font="pixel" />
+            <BillingToggle interval={interval} onChange={setInterval} rounded="pill" align="left" showSavingsLabel={false} />
             <p
               className="mb-5 text-[#27272a]"
               style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
@@ -598,23 +694,23 @@ export default function Vision() {
                     <div className="flex items-baseline justify-between gap-6">
                       <h5
                         className="text-[#171717]"
-                        style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)', lineHeight: 1.12, letterSpacing: '-0.045em' }}
+                        style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.5rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
                       >
                         {tier.name}
                       </h5>
                       <div className="shrink-0 text-right [&>div:first-child]:mt-0">
-                        <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} />
+                        <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} variant="inline" hideDetail />
                       </div>
                     </div>
                     <p
                       className="mt-2 text-[#27272a]"
-                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                      style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
                     >
                       {tier.description}
                     </p>
                     <p
                       className="mt-4 text-[#27272a]"
-                      style={{ fontFamily: PIXEL, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+                      style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
                     >
                       {tier.features.join(', ')}
                     </p>
@@ -624,7 +720,7 @@ export default function Vision() {
                         target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
                         rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
                         className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
-                        style={{ fontFamily: PIXEL }}
+                        style={{ fontFamily: SANS }}
                       >
                         {billing.cta}
                       </a>
@@ -644,6 +740,7 @@ export default function Vision() {
             </h4>
             <Faq simple />
           </div>
+
         </article>
       </div>
       <Footer />
