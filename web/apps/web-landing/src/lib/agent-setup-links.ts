@@ -42,6 +42,15 @@ export function buildMcpConfigJson(): string {
   return JSON.stringify(config, null, 2)
 }
 
+/** OpenCode has no verified browser deeplink — start the CLI and paste the prompt manually. */
+export function buildOpencodeSetup(prompt: string = CODING_AGENT_PROMPT): string {
+  return `# From your project directory, start OpenCode and paste the setup prompt when the editor opens.
+opencode
+
+# Setup prompt:
+${prompt}`
+}
+
 /** Pi has no verified browser deeplink — start the CLI and paste the prompt manually. */
 export function buildPiSetup(prompt: string = CODING_AGENT_PROMPT): string {
   return `# From your project directory, start Pi and paste the setup prompt when the editor opens.
