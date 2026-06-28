@@ -11,6 +11,7 @@ import {
   buildCursorDeeplink,
   buildDroidSetup,
   buildMcpConfigJson,
+  buildOpencodeSetup,
   buildPiSetup,
 } from '../../lib/agent-setup-links'
 import { DOCS_LINKS } from '../../lib/docs-urls'
@@ -50,6 +51,7 @@ function useAgentConfigs(): AgentConfig[] {
   const cursorDeeplink = useMemo(() => buildCursorDeeplink(CODING_AGENT_PROMPT), [])
   const claudeDeeplink = useMemo(() => buildClaudeCodeDeeplink(CODING_AGENT_PROMPT), [])
   const codexCommand = useMemo(() => buildCodexCommand(CODING_AGENT_PROMPT), [])
+  const opencodeSetup = useMemo(() => buildOpencodeSetup(CODING_AGENT_PROMPT), [])
   const piSetup = useMemo(() => buildPiSetup(CODING_AGENT_PROMPT), [])
   const droidSetup = useMemo(() => buildDroidSetup(CODING_AGENT_PROMPT), [])
   const mcpConfig = useMemo(() => buildMcpConfigJson(), [])
@@ -115,6 +117,22 @@ function useAgentConfigs(): AgentConfig[] {
         ],
       },
       {
+        id: 'opencode',
+        name: 'OpenCode',
+        description:
+          'Copy OpenCode startup steps and the setup prompt. Start OpenCode in your project, paste the prompt, then review before sending.',
+        logo: '/logos/agents/opencode.svg',
+        getActions: () => [
+          { kind: 'copy', id: 'opencode-setup', label: 'Copy OpenCode setup', text: opencodeSetup },
+          {
+            kind: 'copy',
+            id: 'opencode-prompt',
+            label: 'Copy setup prompt',
+            text: CODING_AGENT_PROMPT,
+          },
+        ],
+      },
+      {
         id: 'pi',
         name: 'Pi',
         description:
@@ -165,7 +183,7 @@ function useAgentConfigs(): AgentConfig[] {
         ],
       },
     ],
-    [claudeDeeplink, codexCommand, cursorDeeplink, droidSetup, mcpConfig, piSetup],
+    [claudeDeeplink, codexCommand, cursorDeeplink, droidSetup, mcpConfig, opencodeSetup, piSetup],
   )
 }
 
