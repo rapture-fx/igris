@@ -21,4 +21,6 @@ export const DOCS_LINKS = {
   runtime: docsUrl('/docs/deploy-local-runtime'),
   useCases: docsUrl('/docs/hybrid-deployment-workflow'),
   platform: docsUrl('/docs/execution-model'),
+  firstAgentOnboarding: docsUrl('/docs/first-agent-onboarding'),
+  agentTemplates: docsUrl('/docs/agent-templates'),
 } as const;
