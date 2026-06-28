@@ -12,37 +12,16 @@ import Faq from './Faq'
 import { BookOpen, ChevronDown, Workflow, Copy, Code } from 'lucide-react'
 import { MermaidChart } from '../MermaidChart'
 import VisionChangesPanel from './VisionChangesPanel'
+import AgentSetupLogos from './AgentSetupLogos'
 import { DOCS_LINKS } from '../../lib/docs-urls'
+import { CODING_AGENT_PROMPT } from '../../lib/coding-agent-prompt'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
-const CODING_AGENT_PROMPT = `You are helping me connect this project to Igris.
 
-Goal:
-Configure this repository so an AI agent can request one safe, registered action through Igris instead of calling tools or services directly.
-
-Steps:
-
-1. Inspect the project structure and identify where external actions, jobs, webhooks, or operational workflows are triggered.
-2. Read the Igris docs and use the currently supported integration path. Do not invent SDK methods or unsupported APIs.
-3. Register one safe example action, such as creating an internal task, sending a non-sensitive test notification, or running a harmless workflow.
-4. Route the action through Igris so the request can be checked, executed, tracked, and recorded.
-5. Add required environment variables using \`.env.example\` only. Do not commit real secrets.
-6. Add a small smoke test or local verification command that proves the action can be requested through Igris.
-7. Keep the change minimal and reversible. Do not refactor unrelated code.
-8. Report the files changed, setup steps, required environment variables, and any follow-up work.
-
-Safety rules:
-
-* Do not expose secrets.
-* Do not use production credentials.
-* Do not modify billing, customer data, or destructive workflows.
-* Do not bypass Igris policy, approval, or run-record behavior.
-* If the required Igris feature is not available yet, stop and explain what is missing instead of faking it.`
-
-const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled action layer.'
-const LINE_2_CONT = ' in Cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in.'
-const LINE_3_CONT = ' that record what happened, recover from failures, and leave evidence your team can inspect.'
+const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled path'
+const LINE_2_CONT = ' across cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in'
+const LINE_3_CONT = ' that records what happened, recovers from failure, and leaves evidence your team can inspect'
 
 const TITLE_STYLE: CSSProperties = {
   fontFamily: SANS,
@@ -56,9 +35,18 @@ const VISION_CONT_EASE = [0.16, 1, 0.3, 1] as const
 const VISION_CONT_TRANSITION = { duration: 0.45, ease: VISION_CONT_EASE }
 
 // Continuation appears inline at full opacity (no blank gap), then eases into gray.
-function HoverPhrase({ base, cont }: { base: ReactNode; cont: string }) {
+function HoverPhrase({
+  base,
+  cont,
+  endPunct,
+}: {
+  base: ReactNode
+  cont: string
+  endPunct?: string
+}) {
   const [hovered, setHovered] = useState(false)
   const reduceMotion = useReducedMotion()
+  const displayCont = cont.replace(/[.,]+$/, '')
 
   return (
     <span
@@ -67,6 +55,7 @@ function HoverPhrase({ base, cont }: { base: ReactNode; cont: string }) {
       onMouseLeave={() => setHovered(false)}
     >
       <span>{base}</span>
+      {!hovered && endPunct}
       <AnimatePresence>
         {hovered && (
           <motion.span
@@ -77,7 +66,7 @@ function HoverPhrase({ base, cont }: { base: ReactNode; cont: string }) {
             transition={reduceMotion ? { duration: 0 } : VISION_CONT_TRANSITION}
             className="inline font-normal"
           >
-            {cont}
+            {displayCont}
           </motion.span>
         )}
       </AnimatePresence>
@@ -100,7 +89,7 @@ type Block =
   | { type: 'p-with-resources'; text: string }
   | { type: 'how-it-works' }
   | { type: 'changes-panel' }
-  | { type: 'coding-agent-prompt' }
+  | { type: 'agent-setup' }
 
 const HOW_IT_WORKS_CHART = `---
 config:
@@ -142,8 +131,8 @@ const ARTICLE: Block[] = [
   { type: 'section', text: 'Get started' },
   { type: 'p', text: 'Install Igris and connect your first agent.' },
   { type: 'code', text: 'curl -fsSL https://igrisinertial.com/install | bash' },
+  { type: 'agent-setup' },
   { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console. The first setup should be simple: connect the agent once, route actions through Igris, and use the console to understand what happened.' },
-  { type: 'coding-agent-prompt' },
 ]
 
 function HowItWorksBlock() {
@@ -220,46 +209,6 @@ function CodeCardBlock({ label, code }: { label: string; code: string }) {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function CodingAgentPromptBlock() {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(CODING_AGENT_PROMPT)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      setCopied(false)
-    }
-  }
-
-  return (
-    <div className="mb-8">
-      <h5
-        className="mb-3 mt-12 text-[#171717]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
-      >
-        Use your coding agent
-      </h5>
-      <p
-        className="mb-4 text-[#27272a]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-      >
-        Paste this into Codex, Claude Code, Cursor, or another coding agent to connect your project to Igris.{' '}
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 text-[#8f8f8f] hover:text-[#171717] transition-colors align-baseline"
-          style={{ fontFamily: SANS, fontWeight: 400 }}
-        >
-          <Copy size={14} strokeWidth={1.5} />
-          {copied ? 'Copied' : 'Copy setup prompt'}
-        </button>
-      </p>
     </div>
   )
 }
@@ -561,42 +510,36 @@ function ArticleBlock({ block }: { block: Block }) {
       const regex = new RegExp(`\\b(${codeWords.join('|')})\\b`, 'gi')
       const parts = block.text.split(regex)
       return (
-        <p
-          className="mb-6 text-[#27272a]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-        >
-          {parts.map((part, i) =>
-            codeWords.includes(part.toLowerCase()) ? (
-              <code
-                key={i}
-                className="rounded-[6px] bg-[#f0f0f0] px-1.5 py-0.5 text-[0.875em] font-normal text-[#171717]"
-                style={{ fontFamily: MONO }}
-              >
-                {part}
-              </code>
-            ) : (
-              <span key={i}>{part}</span>
-            )
-          )}
+        <>
+          <p
+            className="mb-3 text-[#27272a]"
+            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+          >
+            {parts.map((part, i) =>
+              codeWords.includes(part.toLowerCase()) ? (
+                <code
+                  key={i}
+                  className="rounded-[6px] bg-[#f0f0f0] px-1.5 py-0.5 text-[0.875em] font-normal text-[#171717]"
+                  style={{ fontFamily: MONO }}
+                >
+                  {part}
+                </code>
+              ) : (
+                <span key={i}>{part}</span>
+              )
+            )}
+          </p>
           {block.type === 'p-with-resources' && (
-            <>
-              {' '}
-              <Link
-                href={DOCS_LINKS.home}
-                className="text-[#8f8f8f] hover:text-[#171717] transition-colors"
-                style={{ fontFamily: SANS, fontWeight: 400 }}
-              >
-                <BookOpen
-                  size={16}
-                  strokeWidth={1.75}
-                  className="inline align-text-bottom mr-0.5"
-                  aria-hidden
-                />
-                Resources
-              </Link>
-            </>
+            <Link
+              href={DOCS_LINKS.home}
+              className="inline-flex items-center gap-1 mb-6 text-[#8f8f8f] hover:text-[#171717] transition-colors text-[0.9375rem]"
+              style={{ fontFamily: SANS, fontWeight: 400 }}
+            >
+              <BookOpen size={16} strokeWidth={1.75} />
+              Read the docs
+            </Link>
           )}
-        </p>
+        </>
       )
     }
     case 'divider':
@@ -605,8 +548,8 @@ function ArticleBlock({ block }: { block: Block }) {
       return <HowItWorksBlock />
     case 'changes-panel':
       return <VisionChangesPanel />
-    case 'coding-agent-prompt':
-      return <CodingAgentPromptBlock />
+    case 'agent-setup':
+      return <AgentSetupLogos />
     default:
       return null
   }
@@ -637,11 +580,22 @@ export default function Vision() {
       <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-8 sm:px-6 lg:px-8 md:pt-36 md:pb-12 ">
         <article className="mx-auto max-w-[820px]">
           <h3 className="mb-4 mt-3 text-black" style={TITLE_STYLE}>
-            <HoverPhrase base={<>Action layer <span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span></>} cont={LINE_1_CONT} />
+            Action layer{' '}
+            <HoverPhrase
+              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span>}
+              cont={LINE_1_CONT}
+            />
             <br />
-            <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">To execute safely</span>} cont={LINE_2_CONT} />
-            {' and '}
-            <HoverPhrase base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proven by runs</span>} cont={LINE_3_CONT} />
+            <HoverPhrase
+              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">Run actions safely</span>}
+              cont={LINE_2_CONT}
+            />
+            , with{' '}
+            <HoverPhrase
+              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proof from every run</span>}
+              cont={LINE_3_CONT}
+              endPunct="."
+            />
           </h3>
 
           {bodyBlocks.length > 0 && <ArticleBlock block={bodyBlocks[0]} />}
