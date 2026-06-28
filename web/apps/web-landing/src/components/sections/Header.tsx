@@ -134,6 +134,26 @@ export default function Header() {
         </Link>
 
         <nav className="flex items-center gap-6 ml-10">{NavGroups}</nav>
+        <div className="flex items-center gap-4 ml-auto">
+          <Link
+            href="/console"
+            prefetch={false}
+            onClick={closeAll}
+            className="text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
+            style={NAV_ITEM_STYLE}
+          >
+            Console
+          </Link>
+          <Link
+            href="/auth?mode=signup"
+            prefetch={false}
+            onClick={closeAll}
+            className="inline-flex h-9 items-center justify-center rounded-[20px] bg-[#171717] text-white px-5 text-[14px] hover:bg-[#383838] transition-colors"
+            style={{ fontFamily: NAV_FONT, fontWeight: 500 }}
+          >
+            Signup
+          </Link>
+        </div>
       </header>
 
       {/* Mobile top bar */}
