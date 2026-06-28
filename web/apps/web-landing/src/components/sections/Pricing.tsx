@@ -44,6 +44,21 @@ const PIXEL_COMPARE_STYLE: React.CSSProperties = {
   letterSpacing: '-0.01em',
 };
 
+const INLINE_PRICE_STYLE: React.CSSProperties = {
+  fontFamily: SANS,
+  fontSize: 'clamp(1.75rem, 2.8vw, 2.25rem)',
+  fontWeight: 500,
+  lineHeight: 1.1,
+  letterSpacing: '-0.01em',
+};
+
+const INLINE_COMPARE_STYLE: React.CSSProperties = {
+  fontFamily: SANS,
+  fontSize: 'clamp(1.25rem, 1.8vw, 1.5rem)',
+  lineHeight: 1.1,
+  letterSpacing: '-0.01em',
+};
+
 const PRICE_DIGIT_LINE = 1.1;
 
 function parsePriceAmount(price: string): number | null {
@@ -143,10 +158,12 @@ function RollingPriceValue({
   amount,
   fromAmount,
   animate,
+  priceStyle = PIXEL_PRICE_STYLE,
 }: {
   amount: number;
   fromAmount: number;
   animate: boolean;
+  priceStyle?: React.CSSProperties;
 }) {
   const reducedMotion = useReducedMotion();
   const formatted = formatPriceAmount(amount);
@@ -156,7 +173,7 @@ function RollingPriceValue({
     <motion.span
       layout="position"
       className="inline-flex items-baseline text-black dark:text-[#f6f6f4] tabular-nums"
-      style={PIXEL_PRICE_STYLE}
+      style={priceStyle}
       initial={reducedMotion ? false : { opacity: 0.9, y: 2 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
@@ -179,10 +196,12 @@ function AnimatedPriceValue({
   price,
   tierKey,
   interval,
+  priceStyle = PIXEL_PRICE_STYLE,
 }: {
   price: string;
   tierKey: PricingTierKey;
   interval: BillingInterval;
+  priceStyle?: React.CSSProperties;
 }) {
   const amount = parsePriceAmount(price);
   const [rollState, setRollState] = useState<{
@@ -224,7 +243,7 @@ function AnimatedPriceValue({
       <motion.span
         layout="position"
         className="text-black dark:text-[#f6f6f4] tabular-nums"
-        style={PIXEL_PRICE_STYLE}
+        style={priceStyle}
         initial={false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
@@ -239,6 +258,7 @@ function AnimatedPriceValue({
       amount={rollState.amount}
       fromAmount={rollState.fromAmount}
       animate={rollState.animate}
+      priceStyle={priceStyle}
     />
   );
 }
@@ -247,13 +267,18 @@ export function TierPriceDisplay({
   billing,
   tierKey,
   interval,
+  variant = 'default',
+  hideDetail = false,
 }: {
   billing: TierBillingOption;
   tierKey: PricingTierKey;
   interval: BillingInterval;
+  variant?: 'default' | 'inline';
+  hideDetail?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const motionKey = `${tierKey}-${interval}`;
+  const isInline = variant === 'inline';
   const fade = reducedMotion
     ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 } }
     : {
@@ -264,14 +289,14 @@ export function TierPriceDisplay({
 
   return (
     <>
-      <div className="mt-4 flex flex-wrap items-baseline justify-end gap-x-1.5 gap-y-1">
+      <div className={`flex flex-wrap items-baseline justify-end gap-x-1.5 gap-y-1 ${isInline ? '' : 'mt-4'}`}>
         <AnimatePresence mode="sync" initial={false}>
-          {billing.detail && (
+          {billing.detail && !hideDetail && (
             <motion.span
               key={`${motionKey}-detail`}
               layout="position"
               className="text-emerald-600 dark:text-emerald-400"
-              style={{ fontFamily: PIXEL, fontSize: '0.9375rem', lineHeight: 1.4 }}
+              style={{ fontFamily: isInline ? SANS : PIXEL, fontSize: '0.9375rem', lineHeight: 1.4 }}
               {...fade}
               transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
             >
@@ -285,7 +310,7 @@ export function TierPriceDisplay({
               key={`${motionKey}-compare`}
               layout="position"
               className="text-gray-400 dark:text-[#6a6a5c] line-through tabular-nums"
-              style={PIXEL_COMPARE_STYLE}
+              style={isInline ? INLINE_COMPARE_STYLE : PIXEL_COMPARE_STYLE}
               {...fade}
               transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
             >
@@ -294,7 +319,12 @@ export function TierPriceDisplay({
           )}
         </AnimatePresence>
 
-        <AnimatedPriceValue price={billing.price} tierKey={tierKey} interval={interval} />
+        <AnimatedPriceValue
+          price={billing.price}
+          tierKey={tierKey}
+          interval={interval}
+          priceStyle={isInline ? INLINE_PRICE_STYLE : PIXEL_PRICE_STYLE}
+        />
 
         <AnimatePresence mode="sync" initial={false}>
           {billing.period && (
@@ -302,7 +332,7 @@ export function TierPriceDisplay({
               key={`${motionKey}-period`}
               layout="position"
               className="text-gray-500 dark:text-[#a8a898]"
-              style={{ fontFamily: PIXEL, fontSize: '1rem' }}
+              style={{ fontFamily: isInline ? SANS : PIXEL, fontSize: isInline ? '1rem' : '1rem' }}
               {...fade}
               transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
             >
@@ -326,12 +356,14 @@ export function BillingToggle({
   rounded = 'default',
   align = 'center',
   font = 'sans',
+  showSavingsLabel = true,
 }: {
   interval: BillingInterval;
   onChange: (next: BillingInterval) => void;
   rounded?: keyof typeof BILLING_TOGGLE_ROUNDED;
   align?: 'center' | 'left';
   font?: 'sans' | 'pixel';
+  showSavingsLabel?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const r = BILLING_TOGGLE_ROUNDED[rounded];
@@ -345,7 +377,12 @@ export function BillingToggle({
       >
         {(['monthly', 'yearly'] as const).map((option) => {
           const active = interval === option;
-          const label = option === 'monthly' ? 'Monthly' : `Yearly · ${YEARLY_TOGGLE_LABEL}`;
+          const label =
+            option === 'monthly'
+              ? 'Monthly'
+              : showSavingsLabel
+                ? `Yearly · ${YEARLY_TOGGLE_LABEL}`
+                : 'Yearly';
 
           return (
             <button
