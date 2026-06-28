@@ -1,4 +1,4 @@
-const PROD_CONSOLE = 'https://console.igrisinertial.com';
+export const PROD_CONSOLE = 'https://console.igrisinertial.com';
 const LOCAL_CONSOLE = 'http://localhost:3100';
 
 /** Console origin for auth redirects and better-auth API calls. */
