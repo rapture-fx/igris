@@ -49,7 +49,7 @@ export const PRICING_TIERS: PricingTier[] = [
     },
     yearly: {
       price: '$15',
-      period: '/ mo',
+      period: '/ month',
       comparePrice: '$19',
       detail: 'Billed annually Save $48/year',
       checkoutUrl: 'https://buy.polar.sh/polar_cl_glOcj9vjtqWIDXsJi2TARGLGR5ZJ3TxmaWUSY3D5Jhl',
@@ -82,7 +82,7 @@ export const PRICING_TIERS: PricingTier[] = [
     },
     yearly: {
       price: '$119',
-      period: '/ mo',
+      period: '/ month',
       comparePrice: '$149',
       detail: 'Billed annually Save $360/year',
       checkoutUrl: 'https://buy.polar.sh/polar_cl_UrT1qy0jLSgEtyCYtuSJPQnLfcwoOnLyeucnQ2rnF5O',
