@@ -107,7 +107,7 @@ const ARTICLE: Block[] = [
   { type: 'p', text: 'Igris gives each action a controlled path from request to review. Agents request work, actions define what can be done, and Igris manages how the work runs. It checks whether the action is allowed, runs it through the right execution path, tracks the result, handles failure when possible, and keeps proof your team can inspect later.' },
   { type: 'how-it-works' },
   { type: 'code-card', label: 'Agent call', code: 'await fetch("https://api.igris.dev/v1/actions/run", {\n  method: "POST",\n  headers: {\n    authorization: `Bearer ${IGRIS_API_KEY}`,\n    "content-type": "application/json",\n  },\n  body: JSON.stringify({\n    action: "create_task",\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n  }),\n});' },
-  { type: 'p', text: 'This lets teams give agents useful capabilities without giving them direct access to every tool, credential, workflow, or endpoint. Igris checks whether the action is allowed, runs it through the right path, and keeps the record afterward.' },
+  { type: 'p', text: 'This gives agents useful capabilities without handing them direct access to every tool, credential, workflow, or endpoint.' },
 
   { type: 'section', text: 'What Igris adds' },
   { type: 'p', text: 'Igris turns agent actions into controlled work your team can review. Before an action runs, Igris checks whether it is allowed, needs approval, or should stop. As the action runs, Igris tracks the result and makes failure visible. After it finishes, Igris keeps proof so your team can understand what happened without relying only on the agent’s explanation.' },
@@ -146,6 +146,52 @@ function HowItWorksBlock() {
       >
         <div className="pt-4">
           {open && <MermaidChart chart={HOW_IT_WORKS_CHART} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CodeCardBlock({ label, code }: { label: string; code: string }) {
+  const [open, setOpen] = useState(false)
+
+  const summary = 'POST /v1/actions/run'
+
+  return (
+    <div className="mb-7">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
+        aria-expanded={open}
+      >
+        <Code size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
+        <span>{label}</span>
+        <span className="text-[#a1a1aa]" style={{ fontFamily: MONO, fontSize: '1rem' }}>
+          {summary}
+        </span>
+        <ChevronDown
+          size={16}
+          strokeWidth={1.75}
+          className={`shrink-0 text-[#8f8f8f] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
+      >
+        <div className="pt-4">
+          <div className="border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
+            <div className="px-5 py-4">
+              <code
+                className="whitespace-pre"
+                style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.6 }}
+              >
+                <HighlightCode code={code} />
+              </code>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -418,26 +464,7 @@ function ArticleBlock({ block }: { block: Block }) {
     case 'code':
       return <CodeBlockWithCopy text={block.text} />
     case 'code-card':
-      return (
-        <div className="mb-7">
-          <div className="inline-flex items-center gap-2 text-[#171717] mb-2"
-            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
-          >
-            <Code size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
-            <span>{block.label}</span>
-          </div>
-          <div className="border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
-            <div className="px-5 py-4">
-              <code
-                className="whitespace-pre"
-                style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.6 }}
-              >
-                <HighlightCode code={block.code} />
-              </code>
-            </div>
-          </div>
-        </div>
-      )
+      return <CodeCardBlock label={block.label} code={block.code} />
     case 'p-badges': {
       const badgeWords = ['policy', 'recovery', 'proof', 'review']
       const regex = new RegExp(`(${badgeWords.join('|')})`, 'gi')
