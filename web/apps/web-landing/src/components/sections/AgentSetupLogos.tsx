@@ -262,24 +262,34 @@ function AgentPopover({
       ref={popoverRef}
       role="dialog"
       aria-label={`${agent.name} setup`}
-      className="fixed z-50 w-[min(18rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-[#ececec] bg-white px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+      className="fixed z-50 w-[min(22rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-[#ececec] bg-white px-5 py-4 shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       style={{ left, top, fontFamily: SANS }}
     >
-      <p className="mb-1 text-[#171717] text-[0.9375rem] font-medium leading-snug">{agent.name}</p>
-      <p className="mb-3 text-[#8f8f8f] text-[0.8125rem] leading-relaxed">{agent.description}</p>
-      <ul className="flex flex-col gap-2" role="list">
+      <p
+        className="mb-1.5 text-[#171717] font-medium leading-snug"
+        style={{ fontSize: '1.25rem', lineHeight: 1.3 }}
+      >
+        {agent.name}
+      </p>
+      <p
+        className="mb-4 text-[#8f8f8f] leading-relaxed"
+        style={{ fontSize: '1.0625rem', lineHeight: 1.5 }}
+      >
+        {agent.description}
+      </p>
+      <ul className="flex flex-col gap-2.5" role="list">
         {actions.map((action) => (
           <li key={action.kind === 'copy' ? action.id : action.label}>
             {action.kind === 'link' ? (
               <a
                 href={action.href}
                 className={`${ACTION_BTN} underline decoration-[#d4d4d4] underline-offset-2 hover:decoration-[#a3a3a3]`}
-                style={{ fontSize: '0.875rem', lineHeight: 1.4 }}
+                style={{ fontSize: '1.0625rem', lineHeight: 1.45 }}
                 onClick={onClose}
               >
                 {action.label}
                 {action.external && (
-                  <ExternalLink size={12} strokeWidth={1.75} className="opacity-60" aria-hidden />
+                  <ExternalLink size={14} strokeWidth={1.75} className="opacity-60" aria-hidden />
                 )}
               </a>
             ) : (
@@ -287,9 +297,9 @@ function AgentPopover({
                 type="button"
                 onClick={() => onCopy(action.id, action.text)}
                 className={ACTION_BTN}
-                style={{ fontSize: '0.875rem', lineHeight: 1.4 }}
+                style={{ fontSize: '1.0625rem', lineHeight: 1.45 }}
               >
-                <Copy size={13} strokeWidth={1.75} className="shrink-0 opacity-60" aria-hidden />
+                <Copy size={15} strokeWidth={1.75} className="shrink-0 opacity-60" aria-hidden />
                 {copiedId === action.id ? 'Copied' : action.label}
               </button>
             )}
@@ -300,11 +310,11 @@ function AgentPopover({
         <Link
           href={DOCS_LINKS.firstAgentOnboarding}
           className={`mt-3 inline-flex items-center gap-1 ${ACTION_BTN} underline decoration-[#d4d4d4] underline-offset-2`}
-          style={{ fontSize: '0.8125rem', lineHeight: 1.4 }}
+          style={{ fontSize: '1rem', lineHeight: 1.45 }}
           onClick={onClose}
         >
           Onboarding docs
-          <ExternalLink size={11} strokeWidth={1.75} className="opacity-60" aria-hidden />
+          <ExternalLink size={13} strokeWidth={1.75} className="opacity-60" aria-hidden />
         </Link>
       )}
     </div>,
