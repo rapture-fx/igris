@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { DOCS_LINKS } from '../../lib/docs-urls';
+import { getConsoleUrl, PROD_CONSOLE } from '../../lib/console-url';
 import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections';
 import LandingSectionLink from '../LandingSectionLink';
 import { useTheme } from 'next-themes';
@@ -61,6 +62,7 @@ export default function Header() {
   };
 
   const logoSrc = mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png';
+  const consoleUrl = mounted ? getConsoleUrl() : (process.env.NEXT_PUBLIC_CONSOLE_URL || PROD_CONSOLE);
 
   const navLinkClass =
     'text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
@@ -135,15 +137,14 @@ export default function Header() {
 
         <nav className="flex items-center gap-6 ml-10">{NavGroups}</nav>
         <div className="flex items-center gap-4 ml-auto">
-          <Link
-            href="/console"
-            prefetch={false}
+          <a
+            href={consoleUrl}
             onClick={closeAll}
-            className="text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors"
-            style={NAV_ITEM_STYLE}
+            className="inline-flex h-9 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-5 text-[14px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
+            style={{ fontFamily: NAV_FONT, fontWeight: 500 }}
           >
             Console
-          </Link>
+          </a>
           <Link
             href="/auth?mode=signup"
             prefetch={false}
@@ -151,7 +152,7 @@ export default function Header() {
             className="inline-flex h-9 items-center justify-center rounded-[20px] bg-[#171717] text-white px-5 text-[14px] hover:bg-[#383838] transition-colors"
             style={{ fontFamily: NAV_FONT, fontWeight: 500 }}
           >
-            Signup
+            Sign Up
           </Link>
         </div>
       </header>
