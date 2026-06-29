@@ -60,6 +60,25 @@ pi
 ${prompt}`
 }
 
+/** T3 Code has no verified browser deeplink — start via npx and paste the prompt in the UI. */
+export function buildT3CodeSetup(prompt: string = CODING_AGENT_PROMPT): string {
+  return `# Requires Codex CLI installed and authenticated first (see t3.gg).
+# Start T3 Code, then paste the setup prompt in a new session.
+npx t3
+
+# Setup prompt:
+${prompt}`
+}
+
+/** Jean is a desktop app — no verified browser deeplink. */
+export function buildJeanSetup(prompt: string = CODING_AGENT_PROMPT): string {
+  return `# Open Jean in your project, start an agent session, then paste the setup prompt.
+# https://jean.build
+
+# Setup prompt:
+${prompt}`
+}
+
 /** Droid has no verified browser deeplink — start the CLI and paste the prompt manually. */
 export function buildDroidSetup(prompt: string = CODING_AGENT_PROMPT): string {
   return `# From your project directory, start Droid and paste the setup prompt when the editor opens.
