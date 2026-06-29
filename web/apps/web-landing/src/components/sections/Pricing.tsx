@@ -24,7 +24,8 @@ const CTA_CLASS =
   'inline-flex items-center justify-center h-8 px-3 text-[12px] font-medium rounded-[6px] transition-colors bg-[#171717] text-white hover:bg-[#383838]';
 
 const MOTION_EASE = [0.22, 1, 0.36, 1] as const;
-const PRICE_COUNT_DURATION = 1.4;
+const PRICE_ROLL_EASE = [0.45, 0.05, 0.25, 1] as const;
+const PRICE_COUNT_DURATION = 1.15;
 const PRICE_FADE_DURATION = 0.95;
 const TAB_TRANSITION_DURATION = 0.9;
 const MOTION_TRANSITION = { duration: PRICE_FADE_DURATION, ease: MOTION_EASE };
@@ -71,10 +72,10 @@ function formatPriceAmount(amount: number): string {
   return amount >= 1000 ? `$${amount.toLocaleString('en-US')}` : `$${amount}`;
 }
 
-function alignDigits(from: number, to: number) {
+function alignDigits(from: number, to: number, fixedWidth?: number) {
   const fromDigits = from.toString().split('');
   const toDigits = to.toString().split('');
-  const width = Math.max(fromDigits.length, toDigits.length);
+  const width = fixedWidth ?? Math.max(fromDigits.length, toDigits.length);
   const pad = (digits: string[]) => {
     const padding = width - digits.length;
     return [...Array(padding).fill(null), ...digits];
@@ -123,7 +124,7 @@ function RollingDigit({
       className="price-number-container"
       style={{
         height: `${PRICE_DIGIT_LINE}em`,
-        width: '0.62em',
+        width: '0.7em',
       }}
       aria-hidden
     >
@@ -133,7 +134,7 @@ function RollingDigit({
         animate={{ y: digitOffset(toDigit) }}
         transition={
           shouldAnimate
-            ? { duration: PRICE_COUNT_DURATION, ease: MOTION_EASE }
+            ? { duration: PRICE_COUNT_DURATION, ease: PRICE_ROLL_EASE }
             : { duration: 0 }
         }
       >
@@ -159,15 +160,47 @@ function RollingPriceValue({
   fromAmount,
   animate,
   priceStyle = PIXEL_PRICE_STYLE,
+  stableLayout = false,
+  fixedDigitWidth,
 }: {
   amount: number;
   fromAmount: number;
   animate: boolean;
   priceStyle?: React.CSSProperties;
+  stableLayout?: boolean;
+  fixedDigitWidth?: number;
 }) {
   const reducedMotion = useReducedMotion();
   const formatted = formatPriceAmount(amount);
-  const { from, to, width } = alignDigits(fromAmount, amount);
+  const { from, to, width } = alignDigits(fromAmount, amount, fixedDigitWidth);
+
+  const content = (
+    <>
+      <span className="shrink-0" aria-hidden>
+        $
+      </span>
+      {to.map((digitChar, index) => (
+        <RollingDigit
+          key={`slot-${width - index}`}
+          fromDigit={from[index] === null ? null : Number(from[index])}
+          toDigit={digitChar === null ? null : Number(digitChar)}
+          animate={animate}
+        />
+      ))}
+    </>
+  );
+
+  if (stableLayout) {
+    return (
+      <span
+        className="inline-flex items-baseline text-black dark:text-[#f6f6f4] tabular-nums"
+        style={priceStyle}
+        aria-label={formatted}
+      >
+        {content}
+      </span>
+    );
+  }
 
   return (
     <motion.span
@@ -179,15 +212,7 @@ function RollingPriceValue({
       transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
       aria-label={formatted}
     >
-      <span aria-hidden>$</span>
-      {to.map((digitChar, index) => (
-        <RollingDigit
-          key={`slot-${width - index}`}
-          fromDigit={from[index] === null ? null : Number(from[index])}
-          toDigit={digitChar === null ? null : Number(digitChar)}
-          animate={animate}
-        />
-      ))}
+      {content}
     </motion.span>
   );
 }
@@ -197,11 +222,15 @@ function AnimatedPriceValue({
   tierKey,
   interval,
   priceStyle = PIXEL_PRICE_STYLE,
+  stableLayout = false,
+  fixedDigitWidth,
 }: {
   price: string;
   tierKey: PricingTierKey;
   interval: BillingInterval;
   priceStyle?: React.CSSProperties;
+  stableLayout?: boolean;
+  fixedDigitWidth?: number;
 }) {
   const amount = parsePriceAmount(price);
   const [rollState, setRollState] = useState<{
@@ -239,6 +268,13 @@ function AnimatedPriceValue({
   }, [amount, interval, price, tierKey]);
 
   if (amount === null || rollState === null) {
+    if (stableLayout) {
+      return (
+        <span className="text-black dark:text-[#f6f6f4] tabular-nums" style={priceStyle}>
+          {price}
+        </span>
+      );
+    }
     return (
       <motion.span
         layout="position"
@@ -259,6 +295,8 @@ function AnimatedPriceValue({
       fromAmount={rollState.fromAmount}
       animate={rollState.animate}
       priceStyle={priceStyle}
+      stableLayout={stableLayout}
+      fixedDigitWidth={fixedDigitWidth}
     />
   );
 }
@@ -269,32 +307,45 @@ export function TierPriceDisplay({
   interval,
   variant = 'default',
   hideDetail = false,
+  stableLayout = false,
+  summary = false,
 }: {
   billing: TierBillingOption;
   tierKey: PricingTierKey;
   interval: BillingInterval;
   variant?: 'default' | 'inline';
   hideDetail?: boolean;
+  stableLayout?: boolean;
+  summary?: boolean;
 }) {
   const reducedMotion = useReducedMotion();
   const motionKey = `${tierKey}-${interval}`;
   const isInline = variant === 'inline';
+  const hideCompare = summary || hideDetail;
+  const hideBillingDetail = summary || hideDetail;
   const fade = reducedMotion
     ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 } }
-    : {
-        initial: { opacity: 0, y: 2 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -1 },
-      };
+    : stableLayout
+      ? { initial: false, animate: { opacity: 1 }, exit: { opacity: 1 } }
+      : {
+          initial: { opacity: 0, y: 2 },
+          animate: { opacity: 1, y: 0 },
+          exit: { opacity: 0, y: -1 },
+        };
+  const motionProps = stableLayout ? {} : { layout: 'position' as const };
 
   return (
     <>
-      <div className={`flex flex-wrap items-baseline justify-end gap-x-1.5 gap-y-1 ${isInline ? '' : 'mt-4'}`}>
+      <div
+        className={`flex flex-wrap items-baseline justify-end gap-x-1.5 gap-y-1 ${
+          isInline ? '' : 'mt-4'
+        } ${stableLayout || summary ? 'min-w-[10rem]' : ''}`}
+      >
         <AnimatePresence mode="sync" initial={false}>
-          {billing.detail && !hideDetail && (
+          {billing.detail && !hideBillingDetail && (
             <motion.span
               key={`${motionKey}-detail`}
-              layout="position"
+              {...motionProps}
               className="text-emerald-600 dark:text-emerald-400"
               style={{ fontFamily: isInline ? SANS : PIXEL, fontSize: '0.9375rem', lineHeight: 1.4 }}
               {...fade}
@@ -305,10 +356,10 @@ export function TierPriceDisplay({
           )}
         </AnimatePresence>
         <AnimatePresence mode="sync" initial={false}>
-          {billing.comparePrice && (
+          {billing.comparePrice && !hideCompare && (
             <motion.span
               key={`${motionKey}-compare`}
-              layout="position"
+              {...motionProps}
               className="text-gray-400 dark:text-[#6a6a5c] line-through tabular-nums"
               style={isInline ? INLINE_COMPARE_STYLE : PIXEL_COMPARE_STYLE}
               {...fade}
@@ -324,22 +375,33 @@ export function TierPriceDisplay({
           tierKey={tierKey}
           interval={interval}
           priceStyle={isInline ? INLINE_PRICE_STYLE : PIXEL_PRICE_STYLE}
+          stableLayout={stableLayout || summary}
+          fixedDigitWidth={summary ? 3 : undefined}
         />
 
-        <AnimatePresence mode="sync" initial={false}>
-          {billing.period && (
-            <motion.span
-              key={`${motionKey}-period`}
-              layout="position"
-              className="text-gray-500 dark:text-[#a8a898]"
-              style={{ fontFamily: isInline ? SANS : PIXEL, fontSize: isInline ? '1rem' : '1rem' }}
-              {...fade}
-              transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
-            >
-              {billing.period}
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {billing.period && (summary || stableLayout) ? (
+          <span
+            className="text-gray-500 dark:text-[#a8a898]"
+            style={{ fontFamily: isInline ? SANS : PIXEL, fontSize: '1rem' }}
+          >
+            {billing.period}
+          </span>
+        ) : (
+          <AnimatePresence mode="sync" initial={false}>
+            {billing.period && (
+              <motion.span
+                key={`${motionKey}-period`}
+                {...motionProps}
+                className="text-gray-500 dark:text-[#a8a898]"
+                style={{ fontFamily: isInline ? SANS : PIXEL, fontSize: isInline ? '1rem' : '1rem' }}
+                {...fade}
+                transition={{ ...MOTION_TRANSITION, layout: MOTION_TRANSITION }}
+              >
+                {billing.period}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </>
   );
@@ -357,6 +419,7 @@ export function BillingToggle({
   align = 'center',
   font = 'sans',
   showSavingsLabel = true,
+  layoutId = 'billing-toggle-pill',
 }: {
   interval: BillingInterval;
   onChange: (next: BillingInterval) => void;
@@ -364,6 +427,7 @@ export function BillingToggle({
   align?: 'center' | 'left';
   font?: 'sans' | 'pixel';
   showSavingsLabel?: boolean;
+  layoutId?: string;
 }) {
   const reducedMotion = useReducedMotion();
   const r = BILLING_TOGGLE_ROUNDED[rounded];
@@ -405,7 +469,7 @@ export function BillingToggle({
             >
               {active && (
                 <motion.span
-                  layoutId="billing-toggle-pill"
+                  layoutId={layoutId}
                   className={`absolute inset-0 bg-[#f0f0f0] dark:bg-white/[0.12] ${r.btn}`}
                   transition={{
                     duration: reducedMotion ? 0 : TAB_TRANSITION_DURATION,
