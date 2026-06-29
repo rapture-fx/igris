@@ -10,9 +10,11 @@ import {
   buildCodexCommand,
   buildCursorDeeplink,
   buildDroidSetup,
+  buildJeanSetup,
   buildMcpConfigJson,
   buildOpencodeSetup,
   buildPiSetup,
+  buildT3CodeSetup,
 } from '../../lib/agent-setup-links'
 import { DOCS_LINKS } from '../../lib/docs-urls'
 
@@ -52,8 +54,10 @@ function useAgentConfigs(): AgentConfig[] {
   const claudeDeeplink = useMemo(() => buildClaudeCodeDeeplink(CODING_AGENT_PROMPT), [])
   const codexCommand = useMemo(() => buildCodexCommand(CODING_AGENT_PROMPT), [])
   const opencodeSetup = useMemo(() => buildOpencodeSetup(CODING_AGENT_PROMPT), [])
+  const t3codeSetup = useMemo(() => buildT3CodeSetup(CODING_AGENT_PROMPT), [])
   const piSetup = useMemo(() => buildPiSetup(CODING_AGENT_PROMPT), [])
   const droidSetup = useMemo(() => buildDroidSetup(CODING_AGENT_PROMPT), [])
+  const jeanSetup = useMemo(() => buildJeanSetup(CODING_AGENT_PROMPT), [])
   const mcpConfig = useMemo(() => buildMcpConfigJson(), [])
 
   return useMemo(
@@ -117,6 +121,23 @@ function useAgentConfigs(): AgentConfig[] {
         ],
       },
       {
+        id: 't3code',
+        name: 'T3 Code',
+        description:
+          'Copy T3 Code startup steps and the setup prompt. Requires Codex CLI — start T3 Code locally, paste the prompt, then review before sending.',
+        logo: '/logos/agents/t3code.png',
+        imgSize: 'size-10',
+        getActions: () => [
+          { kind: 'copy', id: 't3code-setup', label: 'Copy T3 Code setup', text: t3codeSetup },
+          {
+            kind: 'copy',
+            id: 't3code-prompt',
+            label: 'Copy setup prompt',
+            text: CODING_AGENT_PROMPT,
+          },
+        ],
+      },
+      {
         id: 'opencode',
         name: 'OpenCode',
         description:
@@ -168,6 +189,23 @@ function useAgentConfigs(): AgentConfig[] {
         ],
       },
       {
+        id: 'jean',
+        name: 'Jean',
+        description:
+          'Copy Jean startup steps and the setup prompt. Open Jean in your project, start a session, paste the prompt, then review before sending.',
+        logo: '/logos/agents/jean.png',
+        imgSize: 'size-8',
+        getActions: () => [
+          { kind: 'copy', id: 'jean-setup', label: 'Copy Jean setup', text: jeanSetup },
+          {
+            kind: 'copy',
+            id: 'jean-prompt',
+            label: 'Copy setup prompt',
+            text: CODING_AGENT_PROMPT,
+          },
+        ],
+      },
+      {
         id: 'mcp',
         name: 'Any agent',
         description:
@@ -183,7 +221,7 @@ function useAgentConfigs(): AgentConfig[] {
         ],
       },
     ],
-    [claudeDeeplink, codexCommand, cursorDeeplink, droidSetup, mcpConfig, opencodeSetup, piSetup],
+    [claudeDeeplink, codexCommand, cursorDeeplink, droidSetup, jeanSetup, mcpConfig, opencodeSetup, piSetup, t3codeSetup],
   )
 }
 
@@ -364,7 +402,7 @@ export default function AgentSetupLogos() {
         className="mb-3 text-[#8f8f8f]"
         style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.5 }}
       >
-        Set up with your coding agent
+        Or Set up with
       </p>
       <div className="flex flex-wrap items-center gap-1">
         {agents.map((agent) => (
