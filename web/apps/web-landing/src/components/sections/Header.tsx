@@ -65,11 +65,13 @@ export default function Header() {
   const consoleUrl = mounted ? getConsoleUrl() : (process.env.NEXT_PUBLIC_CONSOLE_URL || PROD_CONSOLE);
 
   const navLinkClass =
-    'text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
+    'rounded-[8px] px-2.5 py-1.5 text-[14px] text-gray-600 dark:text-[#a8a898] hover:bg-[#f4f4f5] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
   const navToggleClass =
-    'flex items-center gap-1 text-[14px] text-gray-600 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
+    'flex items-center gap-1 rounded-[8px] px-2.5 py-1.5 text-[14px] text-gray-600 dark:text-[#a8a898] hover:bg-[#f4f4f5] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
+  const navToggleActiveClass =
+    'bg-[#f4f4f5] text-gray-900 dark:bg-white/[0.08] dark:text-[#f6f6f4]';
   const dropdownLinkClass =
-    'block rounded-md px-3 py-1.5 text-[13px] text-gray-500 dark:text-[#a8a898] hover:text-gray-900 dark:hover:text-[#f6f6f4] hover:bg-gray-50 dark:hover:bg-white/[0.05] transition-colors';
+    'block rounded-[8px] px-3 py-2 text-[13px] text-gray-500 dark:text-[#a8a898] hover:bg-[#f4f4f5] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
 
   const renderSubItem = (item: DropdownItem) =>
     item.external ? (
@@ -100,12 +102,17 @@ export default function Header() {
     <>
       {/* Product */}
       <div className="relative">
-        <button type="button" onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }} className={navToggleClass} style={NAV_ITEM_STYLE}>
+        <button
+          type="button"
+          onClick={() => { setProductOpen((v) => !v); setDocsOpen(false); }}
+          className={`${navToggleClass} ${productOpen ? navToggleActiveClass : ''}`}
+          style={NAV_ITEM_STYLE}
+        >
           <span>Product</span>
           <ChevronDown className={`h-3 w-3 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
         </button>
         {productOpen && (
-          <div className="absolute top-full left-0 mt-1 w-48 rounded-lg border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
+          <div className="absolute top-full left-0 mt-1.5 w-48 rounded-[10px] border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
             {productItems.map(renderSubItem)}
           </div>
         )}
@@ -113,12 +120,17 @@ export default function Header() {
 
       {/* Docs */}
       <div className="relative">
-        <button type="button" onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }} className={navToggleClass} style={NAV_ITEM_STYLE}>
+        <button
+          type="button"
+          onClick={() => { setDocsOpen((v) => !v); setProductOpen(false); }}
+          className={`${navToggleClass} ${docsOpen ? navToggleActiveClass : ''}`}
+          style={NAV_ITEM_STYLE}
+        >
           <span>Docs</span>
           <ChevronDown className={`h-3 w-3 transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
         </button>
         {docsOpen && (
-          <div className="absolute top-full left-0 mt-1 w-56 rounded-lg border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
+          <div className="absolute top-full left-0 mt-1.5 w-56 rounded-[10px] border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
             {docsItems.map(renderSubItem)}
           </div>
         )}
