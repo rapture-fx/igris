@@ -13,6 +13,7 @@ import { BookOpen, ChevronDown, Workflow, Copy, Code } from 'lucide-react'
 import { MermaidChart } from '../MermaidChart'
 import VisionChangesPanel from './VisionChangesPanel'
 import AgentSetupLogos from './AgentSetupLogos'
+import RunHistoryRail, { VISION_SECTION_IDS } from './RunHistoryRail'
 import { DOCS_LINKS } from '../../lib/docs-urls'
 import { CODING_AGENT_PROMPT } from '../../lib/coding-agent-prompt'
 
@@ -22,6 +23,9 @@ const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled path'
 const LINE_2_CONT = ' across cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in'
 const LINE_3_CONT = ' that records what happened, recovers from failure, and leaves evidence your team can inspect'
+
+const PRICING_VISION_SUBTEXT =
+  'Open Source: self-host Igris for free. Use Igris Cloud when you want hosted infrastructure, managed retention, team access, and support.'
 
 const TITLE_STYLE: CSSProperties = {
   fontFamily: SANS,
@@ -34,7 +38,7 @@ const TITLE_STYLE: CSSProperties = {
 const VISION_CONT_EASE = [0.16, 1, 0.3, 1] as const
 const VISION_CONT_TRANSITION = { duration: 0.45, ease: VISION_CONT_EASE }
 
-// Continuation appears inline at full opacity (no blank gap), then eases into gray.
+// Continuation appears inline in grey — no black flash on enter or exit.
 function HoverPhrase({
   base,
   cont,
@@ -60,11 +64,11 @@ function HoverPhrase({
         {hovered && (
           <motion.span
             key="cont"
-            initial={{ color: '#171717' }}
-            animate={{ color: '#8f8f8f' }}
-            exit={{ color: '#171717' }}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={reduceMotion ? { duration: 0 } : VISION_CONT_TRANSITION}
-            className="inline font-normal"
+            className="inline font-normal text-[#8f8f8f]"
           >
             {displayCont}
           </motion.span>
@@ -113,27 +117,165 @@ flowchart LR
 
 const ARTICLE: Block[] = [
   { type: 'h2', text: 'Action layer' },
-  { type: 'lead', text: 'Agents are already doing useful work. Igris makes that work safer to trust by routing important actions through one controlled path, where each request can be checked, executed, recovered if it fails, and recorded with proof your team can inspect later.' },
-  { type: 'p', text: 'Agents can still plan, decide, and request work in their own way. Igris starts when that request becomes an action, giving the team a place to check what is allowed, require approval when needed, handle failure, and keep a record of what happened.' },
+  { type: 'lead', text: 'Agents already do useful work. Igris makes it safer to trust.' },
+  { type: 'p', text: 'Agents can still plan, decide, and request work in their own way. Igris starts when that request becomes an action your team needs to govern.' },
 
   { type: 'section', text: 'From request to review' },
   { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
-  { type: 'p', text: 'Igris gives each action a controlled path from request to review. Agents request work, actions define what can be done, and Igris manages how the work runs. It checks whether the action is allowed, runs it through the right execution path, tracks the result, handles failure when possible, and keeps proof your team can inspect later.' },
+  { type: 'p', text: 'Igris gives each action the same path from request to review. The flow, example call, and run record below show what that looks like in practice.' },
   { type: 'how-it-works' },
   { type: 'code-card', label: 'Agent call', code: 'await fetch("https://api.igris.dev/v1/actions/run", {\n  method: "POST",\n  headers: {\n    authorization: `Bearer ${IGRIS_API_KEY}`,\n    "content-type": "application/json",\n  },\n  body: JSON.stringify({\n    action: "create_task",\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n  }),\n});' },
   { type: 'p', text: 'This gives agents useful capabilities without handing them direct access to every tool, credential, workflow, or endpoint.' },
 
   { type: 'section', text: 'What Igris adds' },
-  { type: 'p', text: 'Igris turns agent actions into controlled work your team can review. Before an action runs, Igris checks whether it is allowed, needs approval, or should stop. As the action runs, Igris tracks the result and makes failure visible. After it finishes, Igris keeps proof so your team can understand what happened without relying only on the agent’s explanation.' },
+  { type: 'p', text: 'Beyond routing, Igris leaves a run record your team can open later: who triggered the action, what changed, what failed, what recovered, and the signed receipt attached to the run.' },
   { type: 'changes-panel' },
-  { type: 'p-with-resources', text: 'This matters when agents can trigger work, change data, call services, open tasks, or perform operational steps. The more useful the agent becomes, the more important it is to have a path the team can control, inspect, recover, and improve over time.' },
+  { type: 'p-with-resources', text: 'That matters once agents can trigger work, change data, call services, open tasks, or perform operational steps your team depends on.' },
 
   { type: 'section', text: 'Get started' },
   { type: 'p', text: 'Install Igris and connect your first agent.' },
   { type: 'code', text: 'curl -fsSL https://igrisinertial.com/install | bash' },
   { type: 'agent-setup' },
-  { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console. The first setup should be simple: connect the agent once, route actions through Igris, and use the console to understand what happened.' },
+  { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console.' },
 ]
+
+const SECTION_TITLE_STYLE: CSSProperties = {
+  ...TITLE_STYLE,
+  fontSize: 'clamp(1.5rem, 3.4vw, 2rem)',
+}
+
+function formatTierFeatures(features: string[]): string {
+  if (features.length === 0) return ''
+  if (features.length === 1) return `${features[0]}.`
+  return `${features.slice(0, -1).join(', ')}, and ${features[features.length - 1]}.`
+}
+
+function PricingTierRow({
+  tier,
+  interval,
+  isLast,
+}: {
+  tier: (typeof PRICING_TIERS)[number]
+  interval: BillingInterval
+  isLast: boolean
+}) {
+  const billing = getTierBilling(tier, interval)
+
+  return (
+    <div className={isLast ? '' : 'pb-10 mb-10 border-b border-dashed border-[#d4d4d4]'}>
+      <div className="flex w-full items-baseline justify-between gap-8">
+        <span
+          className="text-[#171717]"
+          style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.5rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
+        >
+          {tier.name}
+        </span>
+        <div className="shrink-0">
+          <TierPriceDisplay
+            billing={billing}
+            tierKey={tier.key}
+            interval={interval}
+            variant="inline"
+            summary
+            stableLayout
+          />
+        </div>
+      </div>
+
+      <div className="pt-6">
+        <p
+          className="text-[#27272a]"
+          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+        >
+          {tier.description}
+        </p>
+        <p
+          className="mt-5 text-[#27272a]"
+          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+        >
+          {formatTierFeatures(tier.features)}
+        </p>
+        <div className="pt-7">
+          <a
+            href={billing.checkoutUrl}
+            target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
+            rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+            className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
+            style={{ fontFamily: SANS }}
+          >
+            {billing.cta}
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VisionPricingBlock({
+  interval,
+  onIntervalChange,
+}: {
+  interval: BillingInterval
+  onIntervalChange: (next: BillingInterval) => void
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div id="vision-pricing" className="mt-10 mb-8 scroll-mt-28">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="mb-2 flex w-full items-center gap-2 text-left text-black transition-colors hover:text-[#52525b] cursor-pointer"
+        style={SECTION_TITLE_STYLE}
+        aria-expanded={open}
+      >
+        <span>Pricing</span>
+        <ChevronDown
+          size={18}
+          strokeWidth={1.75}
+          className={`shrink-0 text-[#8f8f8f] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+      <p
+        className="mb-5 text-[#27272a]"
+        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
+      >
+        {PRICING_VISION_SUBTEXT}
+      </p>
+
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          {open ? (
+            <div>
+              <BillingToggle
+                interval={interval}
+                onChange={onIntervalChange}
+                rounded="pill"
+                align="left"
+                showSavingsLabel={false}
+                layoutId="billing-toggle-pill-vision"
+              />
+              <div className="flex flex-col pt-2">
+                {PRICING_TIERS.map((tier, index) => (
+                  <PricingTierRow
+                    key={tier.key}
+                    tier={tier}
+                    interval={interval}
+                    isLast={index === PRICING_TIERS.length - 1}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function HowItWorksBlock() {
   const [open, setOpen] = useState(false)
@@ -440,15 +582,18 @@ function ArticleBlock({ block }: { block: Block }) {
           {block.text}
         </h3>
       )
-    case 'section':
+    case 'section': {
+      const sectionId = VISION_SECTION_IDS[block.text]
       return (
         <h4
-          className="mb-5 mt-10 text-black"
-          style={{ ...TITLE_STYLE, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)' }}
+          id={sectionId}
+          className="mb-5 mt-10 scroll-mt-28 text-black"
+          style={SECTION_TITLE_STYLE}
         >
           {block.text}
         </h4>
       )
+    }
     case 'sub':
       return (
         <h5
@@ -532,11 +677,11 @@ function ArticleBlock({ block }: { block: Block }) {
           {block.type === 'p-with-resources' && (
             <Link
               href={DOCS_LINKS.home}
-              className="inline-flex items-center gap-1 mb-6 text-[#8f8f8f] hover:text-[#171717] transition-colors text-[0.9375rem]"
-              style={{ fontFamily: SANS, fontWeight: 400 }}
+              className="inline-flex items-center gap-2 mb-8 text-[#171717] transition-colors hover:text-[#52525b]"
+              style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
             >
-              <BookOpen size={16} strokeWidth={1.75} />
-              Read the docs
+              <BookOpen size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
+              <span>Read the docs</span>
             </Link>
           )}
         </>
@@ -558,7 +703,7 @@ function ArticleBlock({ block }: { block: Block }) {
 export default function Vision() {
   // ARTICLE[0] is the "Action layer" title, now rendered as the hero below.
   const bodyBlocks = ARTICLE.slice(1)
-  const [interval, setInterval] = useState<BillingInterval>('yearly')
+  const [interval, setBillingInterval] = useState<BillingInterval>('yearly')
   const [promptCopied, setPromptCopied] = useState(false)
 
   const copySetupPrompt = async () => {
@@ -577,9 +722,10 @@ export default function Vision() {
       className="bg-white text-[#171717]"
     >
       <h2 id="vision-heading" className="sr-only">Vision</h2>
-      <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-8 sm:px-6 lg:px-8 md:pt-36 md:pb-12 ">
-        <article className="mx-auto max-w-[820px]">
-          <h3 className="mb-4 mt-3 text-black" style={TITLE_STYLE}>
+      <RunHistoryRail />
+      <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-52 sm:px-6 lg:px-8 md:pt-36 md:pb-72">
+        <article className="mx-auto max-w-[920px]">
+          <h3 id="vision-hero" className="mb-4 mt-3 scroll-mt-28 text-black" style={TITLE_STYLE}>
             Action layer{' '}
             <HoverPhrase
               base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span>}
@@ -590,7 +736,9 @@ export default function Vision() {
               base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">Run actions safely</span>}
               cont={LINE_2_CONT}
             />
-            , with{' '}
+            ,{' '}
+            <br />
+            with{' '}
             <HoverPhrase
               base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proof from every run</span>}
               cont={LINE_3_CONT}
@@ -626,70 +774,10 @@ export default function Vision() {
             <ArticleBlock key={index + 1} block={block} />
           ))}
 
-          <div className="mt-12 pt-8">
-            <h4
-              className="mb-5 mt-6 text-black"
-              style={{ ...TITLE_STYLE, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)' }}
-            >
-              Pricing
-            </h4>
-            <BillingToggle interval={interval} onChange={setInterval} rounded="pill" align="left" showSavingsLabel={false} />
-            <p
-              className="mb-5 text-[#27272a]"
-              style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-            >
-              Open Source: self-host Igris for free. Use Igris Cloud when you want hosted infrastructure, managed retention, team access, and support.
-            </p>
-            <div className="flex flex-col">
-              {PRICING_TIERS.map((tier) => {
-                const billing = getTierBilling(tier, interval)
-                return (
-                  <div key={tier.key} className="flex flex-col py-6">
-                    <div className="flex items-baseline justify-between gap-6">
-                      <h5
-                        className="text-[#171717]"
-                        style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.5rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
-                      >
-                        {tier.name}
-                      </h5>
-                      <div className="shrink-0 text-right [&>div:first-child]:mt-0">
-                        <TierPriceDisplay billing={billing} tierKey={tier.key} interval={interval} variant="inline" hideDetail />
-                      </div>
-                    </div>
-                    <p
-                      className="mt-2 text-[#27272a]"
-                      style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-                    >
-                      {tier.description}
-                    </p>
-                    <p
-                      className="mt-4 text-[#27272a]"
-                      style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-                    >
-                      {tier.features.join(', ')}
-                    </p>
-                    <div className="pt-5">
-                      <a
-                        href={billing.checkoutUrl}
-                        target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
-                        rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-                        className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
-                        style={{ fontFamily: SANS }}
-                      >
-                        {billing.cta}
-                      </a>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+          <VisionPricingBlock interval={interval} onIntervalChange={setBillingInterval} />
 
-          <div className="mt-20">
-            <h4
-              className="mb-5 text-black"
-              style={{ ...TITLE_STYLE, fontSize: 'clamp(1.5rem, 3.4vw, 2rem)' }}
-            >
+          <div id="vision-questions" className="mt-20 mb-8 scroll-mt-28">
+            <h4 className="mb-5 text-black" style={SECTION_TITLE_STYLE}>
               Questions
             </h4>
             <Faq simple />
