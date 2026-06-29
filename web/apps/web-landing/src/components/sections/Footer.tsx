@@ -111,7 +111,7 @@ function FooterNavLink({ link }: { link: FooterLink }) {
 
 export default function Footer() {
   return (
-    <footer className="bg-white text-[#171717] border-t border-[#ebebeb]">
+    <footer id="vision-footer" className="mt-16 scroll-mt-28 md:mt-24 bg-white text-[#171717] border-t border-[#ebebeb]">
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[820px]">
         <div className="pt-10 md:pt-14 pb-16 md:pb-20">
