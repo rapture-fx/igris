@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import Link from 'next/link'
 import Footer from './Footer'
@@ -15,6 +15,7 @@ import VisionChangesPanel from './VisionChangesPanel'
 import AgentSetupLogos from './AgentSetupLogos'
 import RunHistoryRail, { VISION_SECTION_IDS } from './RunHistoryRail'
 import { DOCS_LINKS } from '../../lib/docs-urls'
+import { preloadMermaid } from '../../lib/mermaid-loader'
 import { CODING_AGENT_PROMPT } from '../../lib/coding-agent-prompt'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -36,7 +37,8 @@ const TITLE_STYLE: CSSProperties = {
 }
 
 const VISION_CONT_EASE = [0.16, 1, 0.3, 1] as const
-const VISION_CONT_TRANSITION = { duration: 0.45, ease: VISION_CONT_EASE }
+const VISION_CONT_ENTER = { duration: 0.45, ease: VISION_CONT_EASE }
+const VISION_CONT_EXIT = { duration: 0.14, ease: VISION_CONT_EASE }
 
 // Continuation appears inline in grey — no black flash on enter or exit.
 function HoverPhrase({
@@ -49,30 +51,39 @@ function HoverPhrase({
   endPunct?: string
 }) {
   const [hovered, setHovered] = useState(false)
+  const [contVisible, setContVisible] = useState(false)
   const reduceMotion = useReducedMotion()
   const displayCont = cont.replace(/[.,]+$/, '')
 
   return (
     <span
       className="cursor-default"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
     >
       <span>{base}</span>
-      {!hovered && endPunct}
-      <AnimatePresence>
-        {hovered && (
+      {endPunct && !contVisible ? endPunct : null}
+      <AnimatePresence
+        onExitComplete={() => setContVisible(false)}
+      >
+        {hovered ? (
           <motion.span
             key="cont"
             initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={reduceMotion ? { duration: 0 } : VISION_CONT_TRANSITION}
+            animate={{
+              opacity: 1,
+              transition: reduceMotion ? { duration: 0 } : VISION_CONT_ENTER,
+            }}
+            exit={{
+              opacity: 0,
+              transition: reduceMotion ? { duration: 0 } : VISION_CONT_EXIT,
+            }}
+            onAnimationStart={() => setContVisible(true)}
             className="inline font-normal text-[#8f8f8f]"
           >
             {displayCont}
           </motion.span>
-        )}
+        ) : null}
       </AnimatePresence>
     </span>
   )
@@ -95,25 +106,21 @@ type Block =
   | { type: 'changes-panel' }
   | { type: 'agent-setup' }
 
-const HOW_IT_WORKS_CHART = `---
-config:
-  layout: elk
-  theme: forest
-  look: classic
----
-flowchart LR
+const HOW_IT_WORKS_CHART = `flowchart LR
     A["Agent request"] --> B["Policy"]
     B --> C["Execution"]
-    C --> D["Proof"] & F["Recovery"]
+    C --> D["Proof"]
+    C --> F["Recovery"]
+    F -.->|resume| C
     D --> E["Review"]
-    F --> D
 
-     A
-     B
-     C
-     D
-     F
-     E`
+    classDef stage fill:#fafafa,stroke:#d4d4d4,color:#171717
+    classDef proof fill:#ecf5ed,stroke:#b8dfc4,color:#047857
+    classDef fault fill:#fdf4f4,stroke:#f0c4c4,color:#be123c
+
+    class A,B,C stage
+    class D,E proof
+    class F fault`
 
 const ARTICLE: Block[] = [
   { type: 'h2', text: 'Action layer' },
@@ -280,8 +287,12 @@ function VisionPricingBlock({
 function HowItWorksBlock() {
   const [open, setOpen] = useState(false)
 
+  useEffect(() => {
+    preloadMermaid()
+  }, [])
+
   return (
-    <div className="mb-8">
+    <figure className="mb-8" aria-label="How Igris works">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -298,14 +309,20 @@ function HowItWorksBlock() {
           aria-hidden
         />
       </button>
+
       <div
-        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'}`}
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
       >
-        <div className="pt-4">
-          {open && <MermaidChart chart={HOW_IT_WORKS_CHART} />}
+        <div className="min-h-0 overflow-hidden">
+          <div className="pt-4" aria-hidden={!open}>
+            <div className="overflow-hidden rounded-[12px] border border-[#ebebeb]">
+              <MermaidChart chart={HOW_IT_WORKS_CHART} variant="featured" animateIn={false} />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </figure>
   )
 }
 
@@ -705,6 +722,10 @@ export default function Vision() {
   const bodyBlocks = ARTICLE.slice(1)
   const [interval, setBillingInterval] = useState<BillingInterval>('yearly')
   const [promptCopied, setPromptCopied] = useState(false)
+
+  useEffect(() => {
+    preloadMermaid()
+  }, [])
 
   const copySetupPrompt = async () => {
     try {
