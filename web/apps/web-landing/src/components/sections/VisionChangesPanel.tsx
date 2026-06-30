@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown, FileDiff } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -35,6 +36,112 @@ const DEMO_STEPS: ChangeStep[] = [
 ]
 
 const recoveredCount = DEMO_STEPS.filter((s) => s.isRecovered).length
+const ADDED_COUNT = DEMO_STEPS.length
+
+const STAT_LINE_EM = 1.1
+const STAT_COUNT_DURATION = 0.95
+const STAT_COUNT_EASE = [0.45, 0.05, 0.25, 1] as const
+
+function statDigitOffset(digit: number) {
+  return `calc(${-digit} * ${STAT_LINE_EM}em)`
+}
+
+function alignStatDigits(from: number, to: number) {
+  const fromDigits = from.toString().split('')
+  const toDigits = to.toString().split('')
+  const width = Math.max(fromDigits.length, toDigits.length)
+  const pad = (digits: string[]) => {
+    const padding = width - digits.length
+    return [...Array(padding).fill('0'), ...digits]
+  }
+
+  return {
+    from: pad(fromDigits).map((digit) => Number(digit)),
+    to: pad(toDigits).map((digit) => Number(digit)),
+    width,
+  }
+}
+
+function CountingStatDigit({
+  fromDigit,
+  toDigit,
+  animate,
+  delay = 0,
+}: {
+  fromDigit: number
+  toDigit: number
+  animate: boolean
+  delay?: number
+}) {
+  const reducedMotion = useReducedMotion()
+  const shouldAnimate = animate && !reducedMotion
+
+  return (
+    <span
+      className="inline-block overflow-hidden align-baseline"
+      style={{ height: `${STAT_LINE_EM}em`, width: '0.55em' }}
+      aria-hidden
+    >
+      <motion.span
+        className="block"
+        style={{ fontFamily: MONO }}
+        initial={{ y: statDigitOffset(shouldAnimate ? fromDigit : toDigit) }}
+        animate={{ y: statDigitOffset(toDigit) }}
+        transition={
+          shouldAnimate
+            ? { duration: STAT_COUNT_DURATION, ease: STAT_COUNT_EASE, delay }
+            : { duration: 0 }
+        }
+      >
+        {Array.from({ length: 10 }, (_, digit) => (
+          <span
+            key={digit}
+            className="block w-full text-center tabular-nums"
+            style={{ height: `${STAT_LINE_EM}em`, lineHeight: `${STAT_LINE_EM}em` }}
+          >
+            {digit}
+          </span>
+        ))}
+      </motion.span>
+    </span>
+  )
+}
+
+function RunStatRoll({
+  value,
+  sign,
+  rollTick,
+}: {
+  value: number
+  sign: '+' | '−'
+  rollTick: number
+}) {
+  const reducedMotion = useReducedMotion()
+  const color = sign === '+' ? '#047857' : '#be123c'
+  const animate = rollTick > 0 && !reducedMotion
+  const { from, to, width } = alignStatDigits(0, value)
+
+  return (
+    <span
+      className="inline-flex items-baseline"
+      style={{ color, fontFamily: MONO }}
+      aria-label={`${sign}${value}`}
+    >
+      <span style={{ lineHeight: `${STAT_LINE_EM}em` }} aria-hidden>
+        {sign}
+      </span>
+      {to.map((toDigit, index) => (
+        <CountingStatDigit
+          key={`${sign}-${rollTick}-${width - index}`}
+          fromDigit={from[index]}
+          toDigit={toDigit}
+          animate={animate}
+          delay={(width - index - 1) * 0.12}
+        />
+      ))}
+    </span>
+  )
+}
 
 const HIGHLIGHT_RULES: [RegExp, string][] = [
   [/\b(allowed|routed|committed|verified|recovered)\b/g, '#047857'],
@@ -74,26 +181,26 @@ function VisionChangesStyles() {
         --vc-mono: ${MONO};
       }
       .vision-changes .ic-evidence__intro {
-        font-size: 1.125rem;
+        font-size: 1rem;
         color: #27272a;
         margin: 0 0 14px;
         max-width: 72ch;
-        line-height: 1.65;
+        line-height: 1.6;
       }
       .vision-changes .ic-diff__lines {
         font-family: var(--vc-mono);
-        font-size: 1.125rem;
+        font-size: 0.9375rem;
         border: 1px solid #ebebeb;
         border-radius: 10px;
-        padding: 8px 0;
+        padding: 16px 12px;
         background: #fff;
       }
       .vision-changes .ic-diff__line {
         display: grid;
-        grid-template-columns: 28px 18px minmax(0, 1fr) auto;
+        grid-template-columns: 24px 16px minmax(0, 1fr) auto;
         align-items: baseline;
         column-gap: 8px;
-        padding: 4px 16px;
+        padding: 5px 12px;
       }
       .vision-changes .ic-diff__line--committed { background: #ecf5ed; }
       .vision-changes .ic-diff__line--recovered { background: #f9ebeb; }
@@ -112,10 +219,10 @@ function VisionChangesStyles() {
       .vision-changes .ic-diff__dim { color: #71717a; }
       .vision-changes .ic-diff__meta {
         display: inline-flex;
-        gap: 10px;
+        gap: 8px;
         align-items: baseline;
         color: #71717a;
-        font-size: 1.125rem;
+        font-size: 0.9375rem;
         white-space: nowrap;
       }
       .vision-changes .ic-stepev__status--ok { color: var(--vc-emerald); }
@@ -123,9 +230,16 @@ function VisionChangesStyles() {
       .vision-changes .mono { font-family: var(--vc-mono); }
       .vision-changes .ic-doc__note {
         margin: 14px 0 0;
-        font-size: 1.125rem;
+        font-size: 0.875rem;
         color: #71717a;
-        line-height: 1.65;
+        line-height: 1.6;
+      }
+      .vision-changes .ic-diff__stat {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 0.9375rem;
+        line-height: 1.1;
       }
       @media (max-width: 640px) {
         .vision-changes .ic-diff__meta { display: none; }
@@ -197,21 +311,23 @@ function ChangesDiff() {
 
 export default function VisionChangesPanel() {
   const [open, setOpen] = useState(false)
+  const [statRollTick, setStatRollTick] = useState(0)
 
   return (
     <div className="mb-8">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
+        onMouseEnter={() => setStatRollTick((tick) => tick + 1)}
         className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
         style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
         aria-expanded={open}
       >
         <FileDiff size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
         <span>Run record </span>
-        <span className="ic-diff__stat">
-          <span style={{ color: '#047857' }}>+{DEMO_STEPS.length}</span>{' '}
-          <span style={{ color: '#be123c' }}>−{recoveredCount}</span>
+        <span className="ic-diff__stat" aria-hidden>
+          <RunStatRoll value={ADDED_COUNT} sign="+" rollTick={statRollTick} />
+          <RunStatRoll value={recoveredCount} sign="−" rollTick={statRollTick} />
         </span>
         <ChevronDown
           size={16}
