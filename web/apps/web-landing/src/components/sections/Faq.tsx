@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { BookOpen, ChevronDown } from 'lucide-react'
 import { CATEGORY_LABELS, FAQ_DATA, type FaqCategory, type FaqEntry } from '../../lib/faq'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -31,10 +31,17 @@ const THINKING_LABEL_STYLE = {
   lineHeight: 1.4,
 } as const
 
-function getThinkingDelayMs(answer: string): number {
-  const len = answer.length
-  const minLen = 100
-  const maxLen = 520
+const SOURCE_LINK_STYLE = {
+  fontFamily: SANS,
+  fontWeight: 400,
+  fontSize: '12px',
+  lineHeight: 1.4,
+} as const
+
+function getThinkingDelayMs(answer: string[]): number {
+  const len = answer.join('').length
+  const minLen = 200
+  const maxLen = 1400
   const t = Math.min(1, Math.max(0, (len - minLen) / (maxLen - minLen)))
   const seconds = Math.round((THINKING_MIN_MS + t * (THINKING_MAX_MS - THINKING_MIN_MS)) / 1000)
   return seconds * 1000
@@ -249,9 +256,31 @@ export default function Faq({ simple = false }: { simple?: boolean }) {
                     <p className="text-[#a1a1aa]" style={THINKING_LABEL_STYLE}>
                       {thoughtLabel}
                     </p>
-                    <p className="text-[#27272a]" style={CHAT_TEXT_STYLE}>
-                      {selected.answer}
-                    </p>
+                    <div className="space-y-3">
+                      {selected.answer.map((paragraph, index) => {
+                        const isLast = index === selected.answer.length - 1
+                        return (
+                          <p key={index} className="text-[#27272a]" style={CHAT_TEXT_STYLE}>
+                            {paragraph}
+                            {isLast ? (
+                              <>
+                                {' '}
+                                <a
+                                  href={selected.source.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 align-baseline text-[#a1a1aa] no-underline transition-colors hover:text-[#52525b]"
+                                  style={SOURCE_LINK_STYLE}
+                                >
+                                  <BookOpen size={11} strokeWidth={1.75} className="shrink-0" aria-hidden />
+                                  <span>{selected.source.label}</span>
+                                </a>
+                              </>
+                            ) : null}
+                          </p>
+                        )
+                      })}
+                    </div>
                   </div>
                 ) : null}
               </div>
