@@ -249,7 +249,12 @@ const AgentLogo = forwardRef<
           decoding="async"
         />
       ) : (
-        <Blocks size={22} strokeWidth={1.5} className="text-[#52525b]" aria-hidden />
+        <Blocks
+          size={agent.id === 'mcp' ? 28 : 22}
+          strokeWidth={1.5}
+          className="text-[#52525b]"
+          aria-hidden
+        />
       )}
     </button>
   )
