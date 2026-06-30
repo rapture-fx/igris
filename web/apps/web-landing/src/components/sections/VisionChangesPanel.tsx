@@ -1,11 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown, FileDiff } from 'lucide-react'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
+
+const VISION_EASE = [0.16, 1, 0.3, 1] as const
+const LOG_LINE_INTERVAL_MS = 82
+const LOG_REPLAY_START_MS = 140
 
 type ChangeStep = {
   index: number
@@ -190,10 +194,22 @@ function VisionChangesStyles() {
       .vision-changes .ic-diff__lines {
         font-family: var(--vc-mono);
         font-size: 0.9375rem;
+        line-height: 1.55;
         border: 1px solid #ebebeb;
         border-radius: 10px;
         padding: 16px 12px;
         background: #fff;
+        --vc-line-block: calc(0.9375rem * 1.55 + 10px);
+        height: calc(32px + ${DEMO_STEPS.length} * var(--vc-line-block));
+        overflow-x: hidden;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      .vision-changes .ic-diff__lines::-webkit-scrollbar {
+        display: none;
+      }
+      .vision-changes .ic-diff__lines--enter {
+        animation: vc-frame-in 360ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
       }
       .vision-changes .ic-diff__line {
         display: grid;
@@ -201,9 +217,26 @@ function VisionChangesStyles() {
         align-items: baseline;
         column-gap: 8px;
         padding: 5px 12px;
+        min-height: var(--vc-line-block);
       }
       .vision-changes .ic-diff__line--committed { background: #ecf5ed; }
       .vision-changes .ic-diff__line--recovered { background: #f9ebeb; }
+      .vision-changes .ic-diff__line--enter {
+        animation: vc-step-in 520ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+      }
+      .vision-changes .ic-diff__line--enter .ic-diff__meta > * {
+        animation: vc-meta-in 420ms cubic-bezier(0.16, 0.84, 0.44, 1) 160ms both;
+      }
+      .vision-changes .ic-diff__line--committed.ic-diff__line--enter {
+        animation:
+          vc-step-in 520ms cubic-bezier(0.16, 0.84, 0.44, 1) both,
+          vc-row-tint-ok 480ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+      }
+      .vision-changes .ic-diff__line--recovered.ic-diff__line--enter {
+        animation:
+          vc-step-in 520ms cubic-bezier(0.16, 0.84, 0.44, 1) both,
+          vc-row-tint-bad 480ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+      }
       .vision-changes .ic-diff__num {
         text-align: right;
         color: #a1a1aa;
@@ -234,6 +267,9 @@ function VisionChangesStyles() {
         color: #71717a;
         line-height: 1.6;
       }
+      .vision-changes .ic-evidence__intro--enter {
+        animation: vc-note-in 320ms cubic-bezier(0.16, 0.84, 0.44, 1) both;
+      }
       .vision-changes .ic-diff__stat {
         display: inline-flex;
         align-items: baseline;
@@ -241,8 +277,40 @@ function VisionChangesStyles() {
         font-size: 0.9375rem;
         line-height: 1.1;
       }
+      @keyframes vc-frame-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes vc-step-in {
+        from { opacity: 0; transform: translateY(3px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes vc-meta-in {
+        from { opacity: 0; transform: translateX(4px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      @keyframes vc-note-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes vc-row-tint-ok {
+        from { background-color: #f4faf5; }
+        to { background-color: #ecf5ed; }
+      }
+      @keyframes vc-row-tint-bad {
+        from { background-color: #fdf4f4; }
+        to { background-color: #f9ebeb; }
+      }
       @media (max-width: 640px) {
         .vision-changes .ic-diff__meta { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .vision-changes .ic-diff__lines--enter,
+        .vision-changes .ic-diff__line--enter,
+        .vision-changes .ic-diff__line--enter .ic-diff__meta > *,
+        .vision-changes .ic-evidence__intro--enter {
+          animation: none;
+        }
       }
     `}</style>
   )
@@ -265,39 +333,67 @@ function rowClass(step: ChangeStep): string {
   return ''
 }
 
-function ChangesDiff() {
+function ChangesDiff({ playKey }: { playKey: number }) {
+  const reducedMotion = useReducedMotion()
+  const [visibleCount, setVisibleCount] = useState(reducedMotion ? DEMO_STEPS.length : 0)
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setVisibleCount(DEMO_STEPS.length)
+      return
+    }
+
+    setVisibleCount(0)
+    const timers: ReturnType<typeof setTimeout>[] = []
+
+    DEMO_STEPS.forEach((_, index) => {
+      timers.push(
+        setTimeout(() => {
+          setVisibleCount(index + 1)
+        }, LOG_REPLAY_START_MS + index * LOG_LINE_INTERVAL_MS)
+      )
+    })
+
+    return () => timers.forEach(clearTimeout)
+  }, [playKey, reducedMotion])
+
+  const visibleSteps = DEMO_STEPS.slice(0, visibleCount)
+
   return (
     <div className="vision-changes" aria-label="Example run record">
       <VisionChangesStyles />
       <div className="ic-evidence ic-diff">
-        <p className="ic-evidence__intro">
+        <p className="ic-evidence__intro ic-evidence__intro--enter">
           See what was checked, what ran, what failed, what recovered, and what proof was kept.
         </p>
-        <div className="ic-diff__lines">
-          {DEMO_STEPS.map((step) => {
+        <div className="ic-diff__lines ic-diff__lines--enter">
+          {visibleSteps.map((step) => {
             const sign = signTone(step)
             return (
-            <div key={step.index} className={`ic-diff__line ${rowClass(step)}`}>
-              <span className="ic-diff__num">{String(step.index).padStart(2, '0')}</span>
-              {sign ? (
-                <span className={`ic-diff__sign--${sign}`}>{sign === 'bad' ? '−' : '+'}</span>
-              ) : (
-                <span />
-              )}
-              <span className="ic-diff__text">
-                {step.name}{' '}
-                <span className="ic-diff__dim">
-                  {highlightText(step.detail)}
-                </span>
-              </span>
-              <span className="ic-diff__meta">
-                {step.latency && <span>{step.latency}</span>}
-                {step.receipt && <span className="mono">{step.receipt}</span>}
-                {step.status && (
-                  <span className={`ic-stepev__status--${statusTone(step.status)}`}>{step.status}</span>
+              <div
+                key={`${playKey}-${step.index}`}
+                className={`ic-diff__line ic-diff__line--enter ${rowClass(step)}`}
+              >
+                <span className="ic-diff__num">{String(step.index).padStart(2, '0')}</span>
+                {sign ? (
+                  <span className={`ic-diff__sign--${sign}`}>{sign === 'bad' ? '−' : '+'}</span>
+                ) : (
+                  <span />
                 )}
-              </span>
-            </div>
+                <span className="ic-diff__text">
+                  {step.name}{' '}
+                  <span className="ic-diff__dim">
+                    {highlightText(step.detail)}
+                  </span>
+                </span>
+                <span className="ic-diff__meta">
+                  {step.latency && <span>{step.latency}</span>}
+                  {step.receipt && <span className="mono">{step.receipt}</span>}
+                  {step.status && (
+                    <span className={`ic-stepev__status--${statusTone(step.status)}`}>{step.status}</span>
+                  )}
+                </span>
+              </div>
             )
           })}
         </div>
@@ -312,6 +408,12 @@ function ChangesDiff() {
 export default function VisionChangesPanel() {
   const [open, setOpen] = useState(false)
   const [statRollTick, setStatRollTick] = useState(0)
+  const [playKey, setPlayKey] = useState(0)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    if (open) setPlayKey((key) => key + 1)
+  }, [open])
 
   return (
     <div className="mb-8">
@@ -336,13 +438,24 @@ export default function VisionChangesPanel() {
           aria-hidden
         />
       </button>
-      <div
-        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
-      >
-        <div className="pt-4">
-          {open && <ChangesDiff />}
-        </div>
-      </div>
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            key="run-record-panel"
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={reducedMotion ? undefined : { opacity: 0 }}
+            transition={
+              reducedMotion
+                ? { duration: 0 }
+                : { duration: 0.32, ease: VISION_EASE }
+            }
+            className="pt-4"
+          >
+            <ChangesDiff key={playKey} playKey={playKey} />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   )
 }
