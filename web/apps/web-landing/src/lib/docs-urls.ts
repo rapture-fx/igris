@@ -23,4 +23,10 @@ export const DOCS_LINKS = {
   platform: docsUrl('/docs/execution-model'),
   firstAgentOnboarding: docsUrl('/docs/first-agent-onboarding'),
   agentTemplates: docsUrl('/docs/agent-templates'),
+  pricingTiers: docsUrl('/docs/pricing-tiers'),
+  trialBilling: docsUrl('/docs/trial-billing'),
+  deployment: docsUrl('/docs/deployment'),
+  security: docsUrl('/docs/security'),
+  dataPrivacy: docsUrl('/docs/data-privacy'),
+  console: docsUrl('/docs/console'),
 } as const;
