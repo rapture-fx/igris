@@ -106,21 +106,53 @@ type Block =
   | { type: 'changes-panel' }
   | { type: 'agent-setup' }
 
-const HOW_IT_WORKS_CHART = `flowchart LR
-    A["Agent request"] --> B["Policy"]
-    B --> C["Execution"]
-    C --> D["Proof"]
-    C --> F["Recovery"]
-    F -.->|resume| C
-    D --> E["Review"]
+const HOW_IT_WORKS_CHART = `---
+config:
+  layout: elk
+  theme: base
+  look: classic
+---
+flowchart TB
+    subgraph request["Request"]
+        A["Agent request<br/><span style='font-size:11px;color:#71717a'>API · SDK · MCP</span>"]
+    end
 
-    classDef stage fill:#fafafa,stroke:#d4d4d4,color:#171717
-    classDef proof fill:#ecf5ed,stroke:#b8dfc4,color:#047857
-    classDef fault fill:#fdf4f4,stroke:#f0c4c4,color:#be123c
+    subgraph execute["Execute"]
+        B["Policy and limits<br/><span style='font-size:11px;color:#71717a'>Capability gates</span>"]
+        C["Run action<br/><span style='font-size:11px;color:#71717a'>Hosted or runtime path</span>"]
+        R["Recovery<br/><span style='font-size:11px;color:#be123c'>Retry · resume · escalate</span>"]
+        B --> C
+        C -.->|on fault| R
+        R -.->|resume| C
+    end
+
+    subgraph verify["Verify"]
+        D["Signed receipt<br/><span style='font-size:11px;color:#047857'>Metadata · hash · chain</span>"]
+        E["Team review<br/><span style='font-size:11px;color:#047857'>Console or API</span>"]
+        D --> E
+    end
+
+    A --> B
+    C --> D
+
+    style request fill:#fafafa,stroke:#ebebeb,stroke-width:1px,color:#8f8f8f
+    style execute fill:#fafafa,stroke:#ebebeb,stroke-width:1px,color:#8f8f8f
+    style verify fill:#fafafa,stroke:#ebebeb,stroke-width:1px,color:#8f8f8f
+
+    classDef stage fill:#ffffff,stroke:#d4d4d4,color:#171717,stroke-width:1px
+    classDef proof fill:#ecf5ed,stroke:#b8dfc4,color:#047857,stroke-width:1px
+    classDef fault fill:#fdf4f4,stroke:#f0c4c4,color:#be123c,stroke-width:1px
 
     class A,B,C stage
     class D,E proof
-    class F fault`
+    class R fault`
+
+const HOW_IT_WORKS_LEGEND = [
+  { label: 'Request', swatch: 'bg-[#fafafa] border-[#d4d4d4]' },
+  { label: 'Execute', swatch: 'bg-white border-[#d4d4d4]' },
+  { label: 'Proof', swatch: 'bg-[#ecf5ed] border-[#b8dfc4]' },
+  { label: 'Recovery', swatch: 'bg-[#fdf4f4] border-[#f0c4c4]' },
+] as const
 
 const ARTICLE: Block[] = [
   { type: 'h2', text: 'Action layer' },
@@ -131,7 +163,7 @@ const ARTICLE: Block[] = [
   { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
   { type: 'p', text: 'Igris gives each action the same path from request to review. The flow, example call, and run record below show what that looks like in practice.' },
   { type: 'how-it-works' },
-  { type: 'code-card', label: 'Agent call', code: 'await fetch("https://api.igris.dev/v1/actions/run", {\n  method: "POST",\n  headers: {\n    authorization: `Bearer ${IGRIS_API_KEY}`,\n    "content-type": "application/json",\n  },\n  body: JSON.stringify({\n    action: "create_task",\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n  }),\n});' },
+  { type: 'code-card', label: 'Agent call', code: 'await fetch("https://overture.igrisinertial.com/v1/actions/create_invoice/run", {\n  method: "POST",\n  headers: {\n    Authorization: `Bearer ${IGRIS_API_KEY}`,\n    "Content-Type": "application/json",\n  },\n  body: JSON.stringify({\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n    idempotency_key: "payment-review-2026-06",\n  }),\n});' },
   { type: 'p', text: 'This gives agents useful capabilities without handing them direct access to every tool, credential, workflow, or endpoint.' },
 
   { type: 'section', text: 'What Igris adds' },
@@ -316,8 +348,20 @@ function HowItWorksBlock() {
       >
         <div className="min-h-0 overflow-hidden">
           <div className="pt-4" aria-hidden={!open}>
-            <div className="overflow-hidden rounded-[12px] border border-[#ebebeb]">
+            <div className="overflow-hidden rounded-[12px] border border-[#ebebeb] bg-white">
               <MermaidChart chart={HOW_IT_WORKS_CHART} variant="featured" animateIn={false} />
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#ebebeb] px-5 py-3 sm:px-6">
+                {HOW_IT_WORKS_LEGEND.map((item) => (
+                  <span
+                    key={item.label}
+                    className="inline-flex items-center gap-2 text-[12px] text-[#52525b]"
+                    style={{ fontFamily: SANS }}
+                  >
+                    <span className={`size-2.5 shrink-0 rounded-[3px] border ${item.swatch}`} aria-hidden />
+                    {item.label}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -329,7 +373,7 @@ function HowItWorksBlock() {
 function CodeCardBlock({ label, code }: { label: string; code: string }) {
   const [open, setOpen] = useState(false)
 
-  const summary = 'POST /v1/actions/run'
+  const summary = 'POST /v1/actions/create_invoice/run'
 
   return (
     <div className="mb-7">
