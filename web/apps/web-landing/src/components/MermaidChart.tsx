@@ -33,8 +33,8 @@ function getMermaidConfig(variant: MermaidVariant) {
       theme: 'base',
       themeVariables: {
         fontFamily: SANS,
-        fontSize: '15px',
-        primaryColor: '#fafafa',
+        fontSize: '14px',
+        primaryColor: '#ffffff',
         primaryTextColor: '#171717',
         primaryBorderColor: '#d4d4d4',
         secondaryColor: '#ecf5ed',
@@ -48,15 +48,18 @@ function getMermaidConfig(variant: MermaidVariant) {
         mainBkg: '#ffffff',
         nodeBorder: '#d4d4d4',
         clusterBkg: '#fafafa',
-        titleColor: '#171717',
+        clusterBorder: '#ebebeb',
+        titleColor: '#8f8f8f',
         edgeLabelBackground: '#ffffff',
       },
       flowchart: {
         curve: 'basis',
-        padding: 36,
-        nodeSpacing: 72,
-        rankSpacing: 84,
+        padding: 20,
+        nodeSpacing: 44,
+        rankSpacing: 52,
         htmlLabels: true,
+        useMaxWidth: true,
+        wrappingWidth: 220,
       },
     }
   }
@@ -69,6 +72,18 @@ function getMermaidConfig(variant: MermaidVariant) {
   }
 }
 
+function polishFeaturedSvg(svg: string): string {
+  return svg
+    .replace(/<rect([^>]*class="[^"]*node[^"]*"[^>]*)>/g, (match, attrs) => {
+      if (/rx=/.test(attrs)) return match
+      return `<rect${attrs} rx="10" ry="10">`
+    })
+    .replace(/<rect([^>]*class="[^"]*cluster[^"]*"[^>]*)>/g, (match, attrs) => {
+      if (/rx=/.test(attrs)) return match
+      return `<rect${attrs} rx="12" ry="12">`
+    })
+}
+
 const VARIANT_STYLES: Record<MermaidVariant, { shell: string; loading: string; svg: string }> = {
   default: {
     shell: 'overflow-x-auto rounded-lg border border-[#ebebeb] bg-white p-6',
@@ -76,15 +91,25 @@ const VARIANT_STYLES: Record<MermaidVariant, { shell: string; loading: string; s
     svg: '[&_svg]:mx-auto',
   },
   featured: {
-    shell: 'min-h-[19rem] overflow-x-auto bg-white px-6 py-8 sm:px-10 sm:py-10',
-    loading: 'flex min-h-[19rem] items-center justify-center bg-white px-6 py-10 text-sm text-[#8f8f8f]',
+    shell: 'min-h-[22rem] overflow-x-auto bg-[#fcfcfc] px-4 py-6 sm:px-6 sm:py-8',
+    loading: 'flex min-h-[22rem] items-center justify-center bg-[#fcfcfc] px-4 py-8 text-sm text-[#8f8f8f]',
     svg: [
-      '[&_svg]:mx-auto [&_svg]:h-auto [&_svg]:w-full [&_svg]:max-w-full',
+      '[&_svg]:mx-auto [&_svg]:h-auto [&_svg]:w-full [&_svg]:max-w-[36rem]',
       '[&_svg_text]:fill-[#171717]',
       '[&_svg_.edgeLabel_text]:fill-[#52525b]',
+      '[&_svg_.edgeLabel_rect]:fill:#ffffff',
+      '[&_svg_.edgeLabel_rect]:stroke:#ebebeb',
+      '[&_svg_.cluster-label_text]:fill-[#8f8f8f]',
+      '[&_svg_.cluster-label_text]:font-size:11px',
+      '[&_svg_.cluster-label_text]:letter-spacing:0.08em',
+      '[&_svg_.cluster rect]:fill:#fafafa',
+      '[&_svg_.cluster rect]:stroke:#ebebeb',
       '[&_svg_path.flowchart-link]:stroke-[#c4c4c4]',
+      '[&_svg_path.flowchart-link]:stroke-width:1.5px',
       '[&_svg_path]:stroke-linecap-round',
       '[&_svg_marker_path]:fill-[#c4c4c4]',
+      '[&_svg_foreignObject_span]:font-family:var(--font-geist-sans),-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+      '[&_svg_foreignObject_span]:line-height:1.35',
     ].join(' '),
   },
 }
@@ -108,7 +133,9 @@ export function MermaidChart({
       mermaid.initialize(getMermaidConfig(variant))
     })
       .then((rendered) => {
-        if (!cancelled) setSvg(rendered)
+        if (!cancelled) {
+          setSvg(variant === 'featured' ? polishFeaturedSvg(rendered) : rendered)
+        }
       })
       .catch(console.error)
 
@@ -140,10 +167,11 @@ export function MermaidChart({
 
   return (
     <div className={`${styles.loading} ${className}`} aria-busy="true" aria-label="Loading diagram">
-      <div
-        className={`rounded-[8px] bg-[#f4f4f5] ${variant === 'featured' ? 'h-40 w-full max-w-2xl' : 'h-24 w-full max-w-md'}`}
-        aria-hidden
-      />
+      <div className="flex w-full max-w-md flex-col items-center gap-3 px-6" aria-hidden>
+        <div className="h-10 w-48 rounded-[10px] bg-[#f4f4f5]" />
+        <div className="h-24 w-full rounded-[10px] bg-[#f4f4f5]" />
+        <div className="h-10 w-40 rounded-[10px] bg-[#f4f4f5]" />
+      </div>
       <span className="sr-only">Loading diagram</span>
     </div>
   )
