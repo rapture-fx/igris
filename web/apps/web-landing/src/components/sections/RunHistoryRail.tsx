@@ -20,36 +20,20 @@ export const VISION_RAIL_ITEMS: RunRailItem[] = [
   { type: 'section', id: 'vision-hero', label: 'Hero' },
   EVENT,
   EVENT,
-  EVENT,
-  EVENT,
   { type: 'section', id: 'vision-request-review', label: 'From request to review' },
-  EVENT,
-  EVENT,
-  EVENT,
-  EVENT,
   EVENT,
   EVENT,
   EVENT,
   { type: 'section', id: 'vision-what-igris-adds', label: 'What Igris adds' },
   EVENT,
   EVENT,
-  EVENT,
-  EVENT,
-  EVENT,
   { type: 'section', id: 'vision-get-started', label: 'Get started' },
-  EVENT,
-  EVENT,
   EVENT,
   EVENT,
   { type: 'section', id: 'vision-pricing', label: 'Pricing' },
   EVENT,
   EVENT,
-  EVENT,
-  EVENT,
   { type: 'section', id: 'vision-questions', label: 'Ask about Igris' },
-  EVENT,
-  EVENT,
-  EVENT,
   EVENT,
   EVENT,
   { type: 'section', id: 'vision-footer', label: 'Footer' },
@@ -63,12 +47,14 @@ export const VISION_SECTION_IDS: Record<string, string> = {
 
 const SCROLL_OFFSET = 140
 
-const STANDBY_LINE = 'w-3.5 bg-[#d4d4d4]'
+const SECTION_LINE = 'w-3'
+const EVENT_LINE = 'w-2'
 
-function lineClass(active: boolean, hovered: boolean): string {
-  if (active) return 'w-10 bg-[#171717]'
-  if (hovered) return 'w-8 bg-[#52525b]'
-  return STANDBY_LINE
+function lineClass(active: boolean, hovered: boolean, isSection: boolean): string {
+  const size = isSection ? SECTION_LINE : EVENT_LINE
+  if (active) return `${size} bg-[#171717]`
+  if (hovered) return `${size} bg-[#52525b]`
+  return `${size} bg-[#d4d4d4]`
 }
 
 export default function RunHistoryRail({ items = VISION_RAIL_ITEMS }: { items?: RunRailItem[] }) {
@@ -111,7 +97,7 @@ export default function RunHistoryRail({ items = VISION_RAIL_ITEMS }: { items?: 
       aria-label="Page sections"
       className="pointer-events-none fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 lg:block xl:right-8"
     >
-      <ul className="pointer-events-auto flex flex-col items-end gap-[3px]">
+      <ul className="pointer-events-auto flex flex-col items-end gap-px">
         {items.map((item, index) => {
           const itemKey = item.type === 'section' ? item.id : `event-${index}`
           const isSection = item.type === 'section'
@@ -140,10 +126,10 @@ export default function RunHistoryRail({ items = VISION_RAIL_ITEMS }: { items?: 
                   onBlur={() => setHoveredKey(null)}
                   aria-label={item.label}
                   aria-current={active ? 'true' : undefined}
-                  className="flex h-3 w-10 cursor-pointer items-center justify-end rounded-sm outline-none transition-opacity hover:opacity-90 focus-visible:opacity-90"
+                  className="flex h-2 w-8 cursor-pointer items-center justify-end rounded-sm outline-none transition-opacity hover:opacity-90 focus-visible:opacity-90"
                 >
                   <span
-                    className={`block h-[2px] rounded-full transition-all duration-200 ${lineClass(active, hovered)}`}
+                    className={`block h-[1.5px] rounded-full transition-colors duration-200 ${lineClass(active, hovered, true)}`}
                   />
                 </button>
               ) : (
@@ -151,10 +137,10 @@ export default function RunHistoryRail({ items = VISION_RAIL_ITEMS }: { items?: 
                   role="presentation"
                   onMouseEnter={() => setHoveredKey(itemKey)}
                   onMouseLeave={() => setHoveredKey(null)}
-                  className="flex h-3 w-10 items-center justify-end"
+                  className="flex h-2 w-8 items-center justify-end"
                 >
                   <span
-                    className={`block h-[2px] rounded-full transition-all duration-200 ${lineClass(false, hovered)}`}
+                    className={`block h-px rounded-full transition-colors duration-200 ${lineClass(false, hovered, false)}`}
                   />
                 </div>
               )}
