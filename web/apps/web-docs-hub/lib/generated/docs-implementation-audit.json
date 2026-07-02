@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-01T17:02:33.381Z",
+  "generated_at": "2026-07-02T14:21:48.952Z",
   "summary": {
-    "total": 977,
+    "total": 975,
     "by_status": {
-      "implemented": 977
+      "implemented": 975
     }
   },
   "guide_summary": {
-    "total": 140,
+    "total": 138,
     "by_status": {
-      "implemented": 140
+      "implemented": 138
     }
   },
   "pages": [
@@ -1199,11 +1199,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "implemented": 11,
+      "implemented": 9,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 11
+      "total_route_claims": 9
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/upgrade-migration.mdx",
@@ -1449,11 +1449,11 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "implemented": 11,
+      "implemented": 9,
       "missing": 0,
       "wrong_surface": 0,
       "wrong_method": 0,
-      "total_route_claims": 11
+      "total_route_claims": 9
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/upgrade-migration.mdx",
@@ -3286,7 +3286,7 @@
       "method": "POST",
       "path": "/v1/execution/runs/:id/approve",
       "expected_surface": null,
-      "source": "- This is the durable action approval route. It approves an action run created through the Actions gateway. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/approve`, which belongs to the execution inspection surface — use the action route for runs started with `POST /v1/actions/:name/run` or MCP `call_action`.",
+      "source": "- This is the durable action approval route. It approves an action run created through the Actions gateway. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/approve`, which belongs to the execution inspection surface. Use the action route for runs started with `POST /v1/actions/:name/run` or MCP `call_action`.",
       "status": "implemented",
       "evidence": [
         {
@@ -3303,7 +3303,7 @@
       "method": "POST",
       "path": "/v1/actions/:name/run",
       "expected_surface": null,
-      "source": "- This is the durable action approval route. It approves an action run created through the Actions gateway. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/approve`, which belongs to the execution inspection surface — use the action route for runs started with `POST /v1/actions/:name/run` or MCP `call_action`.",
+      "source": "- This is the durable action approval route. It approves an action run created through the Actions gateway. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/approve`, which belongs to the execution inspection surface. Use the action route for runs started with `POST /v1/actions/:name/run` or MCP `call_action`.",
       "status": "implemented",
       "evidence": [
         {
@@ -19622,7 +19622,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/execution-receipts.mdx",
-      "line": 108,
+      "line": 107,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
@@ -20995,41 +20995,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 161,
-      "method": "POST",
-      "path": "/v1/execution/runs/exec-01HXYZ/approve",
-      "expected_surface": "cloud-api",
-      "source": "curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/approve \\",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/execution/runs/:id/approve",
-          "file": "igris-overture/api/routes_execution.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 165,
-      "method": "GET",
-      "path": "/v1/history/alerts",
-      "expected_surface": null,
-      "source": "Runs in the approval queue do not time out automatically — they remain PAUSED indefinitely until a decision is made. If you have an SLA on approval response time, monitor queue depth via `GET /v1/history/alerts` filtered by unacknowledged alerts.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "GET",
-          "path": "/v1/history/alerts",
-          "file": "igris-overture/api/routes_history.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 195,
+      "line": 204,
       "method": "GET",
       "path": "/v1/policies",
       "expected_surface": "cloud-api",
@@ -21046,7 +21012,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 199,
+      "line": 208,
       "method": "POST",
       "path": "/v1/policies/assign",
       "expected_surface": "cloud-api",
@@ -21063,7 +21029,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 221,
+      "line": 230,
       "method": "GET",
       "path": "/v1/routing/stats",
       "expected_surface": "cloud-api",
@@ -21086,7 +21052,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 225,
+      "line": 234,
       "method": "GET",
       "path": "/v1/routing/leaderboard",
       "expected_surface": "cloud-api",
@@ -21109,7 +21075,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 234,
+      "line": 243,
       "method": "POST",
       "path": "/v1/routing/strategy",
       "expected_surface": "cloud-api",
@@ -21126,7 +21092,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 243,
+      "line": 252,
       "method": "POST",
       "path": "/v1/routing/provider_weights",
       "expected_surface": "cloud-api",
@@ -21143,7 +21109,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 303,
+      "line": 312,
       "method": "GET",
       "path": "/v1/policies",
       "expected_surface": "cloud-api",
@@ -21160,7 +21126,7 @@
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/troubleshooting.mdx",
-      "line": 342,
+      "line": 351,
       "method": "POST",
       "path": "/proof/receipts/verify",
       "expected_surface": "cloud-api",
