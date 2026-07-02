@@ -473,7 +473,10 @@ func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 		ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
 		task.TaskID, task.TenantID, TaskStatusPending, defBytes,
 		task.IdempotencyKey, task.DeadlineAt,
-		nullUUID(task.RegisteredAgentID), nullString(task.RegisteredAgentName),
+		// registered_agent_name is NOT NULL DEFAULT '' (migration 062); an
+		// unattributed run stores '' rather than NULL so anonymous submissions
+		// do not violate the constraint.
+		nullUUID(task.RegisteredAgentID), task.RegisteredAgentName,
 	)
 	if err != nil {
 		return false, err

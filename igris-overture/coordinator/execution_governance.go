@@ -296,8 +296,36 @@ func taskHasIrreversibleAction(definition json.RawMessage) bool {
 
 func taskRequiresHumanApproval(definition json.RawMessage) bool {
 	lower := strings.ToLower(string(definition))
-	return strings.Contains(lower, `"approval"`) &&
-		(strings.Contains(lower, `"required":true`) || strings.Contains(lower, `"human_approval"`))
+	if strings.Contains(lower, `"approval"`) &&
+		(strings.Contains(lower, `"required":true`) || strings.Contains(lower, `"human_approval"`)) {
+		return true
+	}
+
+	// Actions gateway runs stamp `approval_required` into execution-graph node
+	// metadata (api.actionNodeMetadata). Detect that shape structurally: the
+	// substring heuristic above never matches `"approval_required":true`, and a
+	// human-gated registered action must pause rather than dispatch.
+	var payload struct {
+		Graph struct {
+			Nodes []struct {
+				Metadata map[string]json.RawMessage `json:"metadata"`
+			} `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(definition, &payload); err != nil {
+		return false
+	}
+	for _, node := range payload.Graph.Nodes {
+		raw, ok := node.Metadata["approval_required"]
+		if !ok {
+			continue
+		}
+		var required bool
+		if err := json.Unmarshal(raw, &required); err == nil && required {
+			return true
+		}
+	}
+	return false
 }
 
 type boundaryDefaults struct {
