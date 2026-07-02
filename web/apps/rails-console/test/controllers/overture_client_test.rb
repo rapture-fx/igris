@@ -58,6 +58,62 @@ class OvertureClientTest < ActiveSupport::TestCase
     end
   end
 
+  # ── Durable action approval gate ────────────────────────────────────────
+  # These must hit the durable-action routes, NOT the execution_lineage
+  # /v1/execution/runs/:id/approve path.
+
+  test 'approve_action_run posts to the durable action approve route' do
+    hit = false
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/runs/task_1/approve') do
+        hit = true
+        [202, { 'Content-Type' => 'application/json' }, { status: 'dispatched', decision: 'approved' }.to_json]
+      end
+    end
+    result = stub_client(stubs).approve_action_run('task_1')
+    assert hit, 'expected POST /v1/actions/runs/task_1/approve'
+    assert_equal 'dispatched', result['status']
+  end
+
+  test 'reject_action_run posts to the durable action reject route with the reason' do
+    seen_body = nil
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/runs/task_2/reject') do |env|
+        seen_body = env.body
+        [200, { 'Content-Type' => 'application/json' }, { status: 'failed', decision: 'rejected', dispatched: false }.to_json]
+      end
+    end
+    result = stub_client(stubs).reject_action_run('task_2', reason: 'policy violation')
+    assert_equal 'rejected', result['decision']
+    assert_includes seen_body.to_s, 'policy violation'
+  end
+
+  test 'reject_action_run omits the body when no reason is given' do
+    seen_body = :unset
+    stubs = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/runs/task_3/reject') do |env|
+        seen_body = env.body
+        [200, { 'Content-Type' => 'application/json' }, {}.to_json]
+      end
+    end
+    stub_client(stubs).reject_action_run('task_3', reason: nil)
+    # No JSON body is serialized when there is no reason (empty/nil body).
+    assert seen_body.blank?, "expected no request body, got #{seen_body.inspect}"
+    refute_includes seen_body.to_s, 'reason'
+  end
+
+  test 'approve_action_run maps 409 to Conflict and 503 to ServiceUnavailable' do
+    conflict = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/runs/task_4/approve') { [409, { 'Content-Type' => 'application/json' }, { error: 'not_awaiting_approval' }.to_json] }
+    end
+    assert_raises(Igris::OvertureClient::Conflict) { stub_client(conflict).approve_action_run('task_4') }
+
+    unavailable = Faraday::Adapter::Test::Stubs.new do |s|
+      s.post('/v1/actions/runs/task_5/approve') { [503, { 'Content-Type' => 'application/json' }, { error: 'runtime_unavailable' }.to_json] }
+    end
+    assert_raises(Igris::OvertureClient::ServiceUnavailable) { stub_client(unavailable).approve_action_run('task_5') }
+  end
+
   # ── Agent / app API keys ─────────────────────────────────────────────────
   test 'list_api_keys returns the keys array' do
     stubs = Faraday::Adapter::Test::Stubs.new do |s|

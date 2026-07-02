@@ -204,6 +204,12 @@
         <%# ══════════ LEFT — execution report ══════════════════════════════ %>
         <section class="ic-run-detail-report ic-doc ic-run-detail-scroll" aria-label="Execution report">
 
+          <%# Human approval gate — only for runs paused on approval_required.
+              Rendered first so an operator sees the decision they can take. %>
+          <% if @run[:approval_pending] %>
+            <%= render 'runs/approval_panel' %>
+          <% end %>
+
           <div class="ic-evidence ic-doc__summary">
             <div class="ic-evidence__head">Summary</div>
             <p class="ic-doc__lead"><%= run_summary_html(@run) %></p>

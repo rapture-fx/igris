@@ -95,6 +95,25 @@ module Igris
       request(:post, "/v1/actions/#{escape(name)}/run", body: body)
     end
 
+    # ── Durable action approval gate ─────────────────────────────────────
+    # These forward to the durable-action approval routes on the coordinator /
+    # task_records path. They are deliberately NOT the execution_lineage
+    # (/v1/execution/runs/:id/approve) route, which is a separate surface.
+
+    # POST /v1/actions/runs/:id/approve → 202 with the dispatched run response.
+    # Approving continues the controlled action path (dispatch → proof).
+    def approve_action_run(id)
+      request(:post, "/v1/actions/runs/#{escape(id)}/approve")
+    end
+
+    # POST /v1/actions/runs/:id/reject → 200 with the terminal run response.
+    # An optional free-text reason is forwarded when present. Rejecting stops
+    # the run; it is never dispatched.
+    def reject_action_run(id, reason: nil)
+      body = reason.to_s.strip.empty? ? nil : { reason: reason.to_s.strip }
+      request(:post, "/v1/actions/runs/#{escape(id)}/reject", body: body)
+    end
+
     # ── Tasks / Runs ─────────────────────────────────────────────────────
 
     # GET /v1/tasks/:id → full task response (lifecycle, recovery, proof, …)

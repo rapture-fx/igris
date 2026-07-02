@@ -96,11 +96,15 @@
                 <% end %>
               <% end %>
             </span>
+            <% awaiting_approval = r[:approval_pending] || r[:status].to_s == 'Awaiting approval' %>
             <span class="ic-run-row__cell">
               <span class="ic-run-row__dot ic-run-row__dot--<%= tone %> <%= 'ic-live-dot' if tone == 'running' %>"></span>
               <span class="ic-run-row__status ic-run-row__status--<%= tone %>">
-                <%= tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'Succeeded') %>
+                <%= awaiting_approval ? 'Awaiting approval' : (tone == 'running' ? 'Running' : (tone == 'failed' ? 'Failed' : 'Succeeded')) %>
               </span>
+              <% if awaiting_approval %>
+                <span class="ic-chip ic-chip--sm" style="margin-left:6px;">Needs approval</span>
+              <% end %>
             </span>
             <span class="ic-run-row__cell"><%= route_chips(r[:routed_via]) %></span>
             <span class="ic-run-row__cell ic-run-row__proof">
