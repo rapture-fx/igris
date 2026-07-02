@@ -46,6 +46,11 @@ class RunApprovalTest < ActionDispatch::IntegrationTest
       'status' => 'approval_required',
       'created_at' => 30.minutes.ago.iso8601,
       'failure_reason' => 'Human-gated policy — this action requires human approval before it can run.',
+      # Safe approval fields the backend now exposes on the task response.
+      'approval_reason' => 'Human-gated policy — this action requires human approval before it can run.',
+      'action_target_type' => 'webhook',
+      'policy_preset' => 'Human-gated',
+      'required_capabilities' => %w[network.api tools.http_request],
       'input_summary' => { 'action' => 'refund_charge' },
     }.merge(overrides)
   end
@@ -83,6 +88,12 @@ class RunApprovalTest < ActionDispatch::IntegrationTest
       assert_match 'Reject run', body
       assert_match 'Why approval is required', body
       assert_match 'requires human approval', body
+      # Safe approval fields from the new backend response are shown.
+      assert_match 'Requested capabilities', body
+      assert_match 'network.api', body
+      assert_match 'tools.http_request', body
+      assert_match 'webhook', body            # action_target_type
+      assert_match 'Human-gated', body        # policy_preset
       # Forms point at the durable action routes, not execution_lineage.
       assert_match %r{/runs/task_appr_1/approve}, body
       assert_match %r{/runs/task_appr_1/reject}, body
