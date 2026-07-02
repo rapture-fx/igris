@@ -498,6 +498,95 @@ func TestBuildTaskResponseRedactsHistoricalUnsafeTaskDefinitionInputs(t *testing
 	require.Contains(t, body, responseRedactionPolicyVersion)
 }
 
+// TestBuildTaskResponseExposesSafeApprovalFields proves the approval panel's
+// fields are present and safe for an approval_required run: name-only required
+// capabilities, a dedicated approval_reason (not just failure_reason), the
+// configured action_target_type, and the policy_preset — while any raw payload
+// in the definition is still redacted.
+func TestBuildTaskResponseExposesSafeApprovalFields(t *testing.T) {
+	t.Parallel()
+
+	const secret = "IGRIS_APPROVAL_SECRET_MUST_NOT_LEAK"
+	reason := "Human-gated policy — this action requires human approval before it can run."
+	target := "webhook"
+	task := &coordinator.TaskRecord{
+		TaskID:               uuid.New(),
+		Status:               coordinator.TaskStatusApprovalRequired,
+		FailureReason:        &reason,
+		ExecutedTarget:       &target,
+		RequiredCapabilities: []string{"network.api", "tools.http_request"},
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"required_capabilities":["network.api","tools.http_request"],
+			"graph":{"nodes":[{
+				"kind":"tool","node_id":"n0","tool_name":"http_request",
+				"metadata":{"target_type":"webhook","policy_preset":"Human-gated","action_name":"refund_charge"},
+				"args":{"method":"POST","url":"https://api.example.test/hook?token=` + secret + `","body":"` + secret + `"}
+			}]}
+		}`),
+		CreatedAt: time.Now().UTC(),
+	}
+
+	resp := buildTaskResponse(task)
+
+	require.Equal(t, []string{"network.api", "tools.http_request"}, resp["required_capabilities"])
+	require.Equal(t, reason, resp["approval_reason"])
+	require.Equal(t, "webhook", resp["action_target_type"])
+	require.Equal(t, "Human-gated", resp["policy_preset"])
+
+	// Nothing sensitive from the definition leaks.
+	body, err := json.Marshal(resp)
+	require.NoError(t, err)
+	require.NotContains(t, string(body), secret)
+	require.NotContains(t, string(body), "?token=")
+}
+
+// TestBuildTaskResponseApprovalReasonOnlyForApprovalRuns confirms approval_reason
+// is emitted only while awaiting approval — a terminal failed run keeps its
+// failure_reason but exposes no approval_reason.
+func TestBuildTaskResponseApprovalReasonOnlyForApprovalRuns(t *testing.T) {
+	t.Parallel()
+
+	reason := "target returned 500"
+	task := &coordinator.TaskRecord{
+		TaskID:        uuid.New(),
+		Status:        coordinator.TaskStatusFailed,
+		FailureReason: &reason,
+		CreatedAt:     time.Now().UTC(),
+	}
+
+	resp := buildTaskResponse(task)
+	require.Equal(t, reason, resp["failure_reason"])
+	_, hasApproval := resp["approval_reason"]
+	require.False(t, hasApproval, "approval_reason must not be set for a failed run")
+}
+
+// TestBuildTaskResponseOmitsUnsafeOrUnknownApprovalEnums proves the enum
+// validators drop anything that is not a known-safe target/preset, so arbitrary
+// stamped metadata can never leak through these fields. The legacy `api` alias
+// is canonicalized.
+func TestBuildTaskResponseNormalizesAndValidatesApprovalEnums(t *testing.T) {
+	t.Parallel()
+
+	legacy := "api"
+	task := &coordinator.TaskRecord{
+		TaskID:         uuid.New(),
+		Status:         coordinator.TaskStatusApprovalRequired,
+		ExecutedTarget: &legacy,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[{"kind":"tool","node_id":"n0","tool_name":"http_request",
+				"metadata":{"policy_preset":"Totally Made Up Preset"}}]}
+		}`),
+		CreatedAt: time.Now().UTC(),
+	}
+
+	resp := buildTaskResponse(task)
+	require.Equal(t, "hosted_api", resp["action_target_type"], "legacy api alias must canonicalize")
+	_, hasPreset := resp["policy_preset"]
+	require.False(t, hasPreset, "an unknown policy_preset must be omitted")
+}
+
 func TestBuildTaskResponseOmitsEmptyOptionalFields(t *testing.T) {
 	t.Parallel()
 
