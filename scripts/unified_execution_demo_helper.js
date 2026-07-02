@@ -5,10 +5,25 @@ const fs = require("fs");
 const http = require("http");
 const path = require("path");
 
-const nacl = require(path.resolve(
-  __dirname,
-  "../igris-javascript-sdk/node_modules/tweetnacl"
-));
+// Prefer the vendored copy so a fresh checkout can run the proof scripts
+// without installing the (gitignored) JS SDK workspace first. tweetnacl is
+// public-domain; see scripts/vendor/tweetnacl/LICENSE.
+const nacl = (() => {
+  const candidates = [
+    path.resolve(__dirname, "vendor/tweetnacl/nacl-fast.js"),
+    path.resolve(__dirname, "../igris-javascript-sdk/node_modules/tweetnacl"),
+  ];
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (_) {
+      // try the next candidate
+    }
+  }
+  throw new Error(
+    "tweetnacl is unavailable: expected scripts/vendor/tweetnacl/nacl-fast.js in the checkout"
+  );
+})();
 
 const RUNTIME_VERSION = "1.6.0";
 const DEVICE_ID = "dev_1234567890abcdef1234567890abcd";

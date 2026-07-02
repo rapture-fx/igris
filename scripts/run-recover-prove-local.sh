@@ -210,6 +210,17 @@ apply_local_migrations() {
     "051_execution_governance_recovery"
     "052_runtime_callback_envelopes"
     "053_tenant_local_proof_columns"
+    "014_tenant_api_keys"
+    "054_action_definitions"
+    "055_action_execution_targets"
+    "056_execution_input_refs"
+    "057_task_records_tenant_scoped_idempotency"
+    "058_execution_lineage_tenant_bound"
+    "059_execution_input_ref_audit_key_version"
+    "060_execution_context_tenant_bound"
+    "061_registered_agents"
+    "062_task_records_registered_agent"
+    "063_agent_evidence_memory"
   )
 
   local has_task_records
