@@ -1084,6 +1084,12 @@ module Igris
         executed_target: raw[:executed_target].to_s,
         runtime_id: raw[:runtime_id].to_s,
         failure_reason: safe_failure_text(raw.dig(:failure, :reason) || raw[:failure_reason]),
+        # Safe approval/run-detail fields the API now exposes. All are name-only
+        # enums or a policy reason — never raw payloads. Absent on older
+        # responses / fixtures, so every consumer must treat them as optional.
+        approval_reason: safe_failure_text(raw[:approval_reason]).presence,
+        action_target_type: raw[:action_target_type].to_s.strip.presence,
+        policy_preset: raw[:policy_preset].to_s.strip.presence,
         runtime_unavailable: runtime_unavailable,
         request_summary: safe_request_summary(raw),
         request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:input_summary, :input_digest_sha256) || raw.dig(:request, :digest)),
