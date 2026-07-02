@@ -364,6 +364,30 @@
       "notes": "Registered action gateway"
     },
     {
+      "method": "POST",
+      "path": "/v1/actions/runs/:id/approve",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned action definitions and idempotency",
+      "feature_flag": "",
+      "notes": "Registered action gateway"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/actions/runs/:id/reject",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned action definitions and idempotency",
+      "feature_flag": "",
+      "notes": "Registered action gateway"
+    },
+    {
       "method": "GET",
       "path": "/v1/agent-memory",
       "route_group": "agent_memory",
