@@ -108,6 +108,23 @@ Areas such as real-provider proof, local fallback, checkpoint recovery, fleet fa
 - Request -> Execute -> Verify: [web/apps/web-docs-hub/content/docs/request-execute-verify.mdx](./web/apps/web-docs-hub/content/docs/request-execute-verify.mdx)
 - Verification: [web/apps/web-docs-hub/content/docs/verification.mdx](./web/apps/web-docs-hub/content/docs/verification.mdx)
 
+## Run The Approval Loop Locally
+
+To prove the controlled action path end to end on your own machine (local
+Postgres, Overture, Runtime, starter Action Pack, MCP-triggered
+`demo.needs_approval`, human approve/reject, proof inspection):
+
+```bash
+make igris-local-up          # provision local Postgres, run migrations, doctor
+make approval-loop-smoke     # the full durable approval loop, with assertions
+```
+
+`make approval-loop-smoke-console` also boots the Rails console in real data
+mode and verifies the operator approval panel renders for a waiting run.
+The first run builds the Rust runtime, which takes a while; later runs reuse
+the binary. See [scripts/approval_loop_smoke.sh](./scripts/approval_loop_smoke.sh)
+for exactly what is asserted.
+
 ## Quick Install
 
 The public first-run path installs the Igris CLI into `~/.igris/bin`:
