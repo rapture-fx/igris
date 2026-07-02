@@ -8,6 +8,8 @@
     "delete-v1-actions-id",
     "post-v1-actions-run",
     "post-v1-actions-name-run",
-    "get-v1-actions-runs-id"
+    "get-v1-actions-runs-id",
+    "post-v1-actions-runs-id-approve",
+    "post-v1-actions-runs-id-reject"
   ]
 }

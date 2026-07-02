@@ -282,6 +282,79 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       { code: 404, title: 'Run not found', description: 'No run with that id exists in your tenant.' },
     ],
   },
+  'POST /v1/actions/runs/:id/approve': {
+    functionality:
+      'Approves an action run that is paused awaiting approval and continues the controlled action path by dispatching it for execution. A human-gated action returns `409 approval_required` when it is first run; this endpoint is how a reviewer releases that run. Approval is a real gate: the run is only dispatched after this call, tenant ownership is enforced, and a repeated or concurrent approve dispatches the run at most once.',
+    whenToUse:
+      'Use this endpoint (or the Approve control in the console) after a run comes back as `approval_required`. Approve when the pending action is within scope for the agent and consistent with your operational policy. Once approved, follow the run with `GET /v1/actions/runs/:id` as you would any other run.',
+    retryGuidance:
+      'Approve is safe to call again. If a runtime was briefly unavailable the run stays in `approval_required` and returns `503 runtime_unavailable`; approve again once a runtime reconnects. Once the run has been approved and dispatched, a second approve returns `409 not_awaiting_approval` instead of dispatching it twice.',
+    commonMistakes: [
+      'Approving a run that is not paused. Only runs in `approval_required` can be approved; anything else returns `409 not_awaiting_approval`.',
+      'Expecting a synchronous result. Approve dispatches the run and returns immediately with `status: dispatched`; inspect the run to follow it to completion and proof.',
+    ],
+    pathParams: [
+      { name: 'id', type: 'string', required: true, description: 'Run id returned when the action run was accepted with `approval_required`.' },
+    ],
+    requestExample: null,
+    responseExample: {
+      run_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      status: 'dispatched',
+      proof_status: 'pending',
+      decision: 'approved',
+      approved_by: 'usr_2f9a1c7b',
+    },
+    notes: [
+      'This is the durable action approval route. It approves an action run created through the Actions gateway. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/approve`, which belongs to the execution inspection surface. Use the action route for runs started with `POST /v1/actions/:name/run` or MCP `call_action`.',
+      'The approver recorded on the run is the authenticated principal from your credential; it cannot be set from the request body.',
+    ],
+    statusCodes: [
+      { code: 202, title: 'Approved and dispatched', description: 'The run was approved and handed to a runtime for execution.' },
+      { code: 400, title: 'Invalid run id', description: 'The run id was not a valid identifier.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+      { code: 404, title: 'Run not found', description: 'No run with that id exists in your tenant.' },
+      { code: 409, title: 'Not awaiting approval', description: 'The run is not paused for approval, or it has already been approved or rejected (`not_awaiting_approval`).' },
+      { code: 503, title: 'Runtime unavailable', description: 'No connected runtime is available to dispatch the approved run. The run stays paused; reconnect a runtime and approve again.' },
+    ],
+  },
+  'POST /v1/actions/runs/:id/reject': {
+    functionality:
+      'Rejects an action run that is paused awaiting approval. A rejected run is closed as a terminal outcome and is never dispatched, so the pending side effect does not happen. Tenant ownership is enforced, and the awaiting-approval precondition is checked atomically so a rejected run cannot later be approved into execution.',
+    whenToUse:
+      'Use this endpoint (or the Reject control in the console) when the pending action should not run: it is out of scope, targets the wrong resource, or violates policy. Record a short reason so the decision is clear in the run record.',
+    commonMistakes: [
+      'Rejecting a run that is not paused. Only runs in `approval_required` can be rejected; anything else returns `409 not_awaiting_approval`.',
+      'Expecting a rejected run to resume later. Rejection is terminal. To run the action again, submit a new run through the Actions gateway once the underlying issue is resolved.',
+    ],
+    pathParams: [
+      { name: 'id', type: 'string', required: true, description: 'Run id returned when the action run was accepted with `approval_required`.' },
+    ],
+    requestBodyFields: [
+      { name: 'reason', type: 'string', description: 'Optional short reason for the rejection, recorded on the run for review.' },
+    ],
+    requestExample: { reason: 'target account is out of scope for this agent' },
+    responseExample: {
+      run_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      task_id: '018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c',
+      status: 'failed',
+      proof_status: 'unavailable',
+      decision: 'rejected',
+      rejected_by: 'usr_2f9a1c7b',
+      dispatched: false,
+    },
+    notes: [
+      'This is the durable action rejection route, paired with `POST /v1/actions/runs/:id/approve`. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/reject` on the execution inspection surface.',
+      'A rejected run is recorded as terminal with the rejection decision and reason. The rejector is the authenticated principal from your credential.',
+    ],
+    statusCodes: [
+      { code: 200, title: 'Rejected', description: 'The run was rejected and closed. It was not dispatched.' },
+      { code: 400, title: 'Invalid run id', description: 'The run id was not a valid identifier, or the body could not be parsed.' },
+      { code: 401, title: 'Unauthorized', description: 'Credentials were missing, expired, or not accepted.' },
+      { code: 404, title: 'Run not found', description: 'No run with that id exists in your tenant.' },
+      { code: 409, title: 'Not awaiting approval', description: 'The run is not paused for approval, or it has already been approved or rejected (`not_awaiting_approval`).' },
+    ],
+  },
   'GET /v1/action-packs': {
     functionality:
       'Lists built-in Action Packs that Igris ships for onboarding. Each pack is a small manifest of registered actions — not a connector marketplace and not a raw task runner. Pack manifests contain no secrets; install only registers action definitions in your tenant.',
@@ -1172,8 +1245,14 @@ const endpointOverrides: Record<string, EndpointOverride> = {
       { code: 404, title: 'Not found', description: 'No task with this ID exists for the authenticated tenant.', example: prettyJson({ error: 'task not found' }) },
     ],
     notes: [
-      'Status values: `pending`, `dispatched`, `checkpointed`, `completed`, `failed`, `recovering`.',
+      'Status values: `pending`, `dispatched`, `checkpointed`, `completed`, `failed`, `recovering`, `approval_required`.',
       '`last_step` and `checkpoint_digest` are only present once the runtime has pushed at least one checkpoint.',
+      'Runs created through the Actions gateway also carry optional review fields when they are safely available. They help a person review a run, especially one waiting for approval, and are populated mainly for action-gateway runs; a raw task submission may omit some or all of them. Each is a safe, name-only value that never exposes payloads, request bodies, headers, file contents, secrets, capability scopes, or the run input.',
+      '`required_capabilities`: name-only list of the capabilities the run needs, such as `tools.http_request`. Capability names only, never scopes.',
+      '`approval_reason`: plain explanation of why the run is waiting for approval. Present while a run is in `approval_required`.',
+      '`action_target_type`: the configured execution surface for the action, such as `hosted_api`, `webhook`, `local_runtime`, or `mock_demo`, when safely available.',
+      '`policy_preset`: the policy preset governing the action, such as `Safe automation` or `Human-gated`, when safely available.',
+      'Example of an approval-required run: `{ "task_id": "018f4a2b-…", "status": "approval_required", "approval_reason": "action is human-gated and requires approval before dispatch", "required_capabilities": ["tools.http_request", "network.api"], "action_target_type": "webhook", "policy_preset": "Human-gated" }`.',
     ],
   },
   'GET /v1/tasks': {

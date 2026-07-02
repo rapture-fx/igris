@@ -44,6 +44,8 @@ Registered actions are the primary execution gateway. Define what work an agent 
 - [`POST /v1/actions/run`](/docs/api-reference/actions/post-v1-actions-run) — Runs a registered action by id or name. Raw, unregistered action definitions are not accepted.
 - [`POST /v1/actions/:name/run`](/docs/api-reference/actions/post-v1-actions-name-run) — Runs a registered action by name. This is the endpoint agents call in production.
 - [`GET /v1/actions/runs/:id`](/docs/api-reference/actions/get-v1-actions-runs-id) — Inspects one action run: status, proof state, and a redacted input summary.
+- [`POST /v1/actions/runs/:id/approve`](/docs/api-reference/actions/post-v1-actions-runs-id-approve) — Approves an action run that is paused awaiting approval and dispatches it for execution.
+- [`POST /v1/actions/runs/:id/reject`](/docs/api-reference/actions/post-v1-actions-runs-id-reject) — Rejects an action run that is paused awaiting approval. The run is closed and never dispatched.
 
 ## Platform Health
 

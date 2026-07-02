@@ -1,15 +1,15 @@
 # API Verification Report
 
-Generated: 2026-06-14T13:09:18.328Z
+Generated: 2026-07-02T14:21:15.170Z
 
 This report is evidence-based. It does not claim endpoint health beyond what is present in route registration, tests, and client references in this repository.
 
 ## Summary
 
-- Total documented endpoints: 111
-- Test-covered: 28
-- Client-referenced: 4
-- Implemented but unverified: 79
+- Total documented endpoints: 118
+- Test-covered: 34
+- Client-referenced: 11
+- Implemented but unverified: 73
 
 ## Endpoints
 
@@ -17,19 +17,26 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | --- | --- | --- | --- | --- |
 | test-covered | GET | `/v1/action-packs` | Action Packs | tests: 1 |
 | test-covered | POST | `/v1/action-packs/:name/install` | Action Packs | tests: 1 |
-| test-covered | GET | `/v1/actions` | Actions | tests: 4 |
-| test-covered | POST | `/v1/actions` | Actions | tests: 4 |
-| test-covered | GET | `/v1/actions/:id` | Actions | tests: 2 |
+| test-covered | GET | `/v1/agents` | Agents | tests: 1 |
+| test-covered | POST | `/v1/agents` | Agents | tests: 1 |
+| implemented-unverified | GET | `/v1/agents/:id` | Agents | none |
+| implemented-unverified | PATCH | `/v1/agents/:id` | Agents | none |
+| implemented-unverified | DELETE | `/v1/agents/:id` | Agents | none |
+| test-covered | GET | `/v1/actions` | Actions | tests: 4, clients: 1 |
+| test-covered | POST | `/v1/actions` | Actions | tests: 6, clients: 1 |
+| test-covered | GET | `/v1/actions/:id` | Actions | tests: 2, clients: 1 |
 | implemented-unverified | PATCH | `/v1/actions/:id` | Actions | none |
 | implemented-unverified | DELETE | `/v1/actions/:id` | Actions | none |
-| test-covered | POST | `/v1/actions/run` | Actions | tests: 3 |
+| test-covered | POST | `/v1/actions/run` | Actions | tests: 5, clients: 1 |
 | test-covered | POST | `/v1/actions/:name/run` | Actions | tests: 1 |
-| test-covered | GET | `/v1/actions/runs/:id` | Actions | tests: 1 |
-| test-covered | GET | `/v1/health` | Platform Health | tests: 3 |
-| test-covered | POST | `/v1/infer` | Inference & Integration | tests: 7 |
-| implemented-unverified | POST | `/v1/chat/completions` | Inference & Integration | none |
-| test-covered | GET | `/v1/models` | Inference & Integration | tests: 1 |
-| implemented-unverified | GET | `/v1/providers/stats` | Inference & Integration | none |
+| test-covered | GET | `/v1/actions/runs/:id` | Actions | tests: 1, clients: 1 |
+| test-covered | POST | `/v1/actions/runs/:id/approve` | Actions | tests: 1 |
+| test-covered | POST | `/v1/actions/runs/:id/reject` | Actions | tests: 1 |
+| test-covered | GET | `/v1/health` | Platform Health | tests: 5, clients: 5 |
+| test-covered | POST | `/v1/infer` | Inference & Integration | tests: 8, clients: 2 |
+| test-covered | POST | `/v1/chat/completions` | Inference & Integration | tests: 3, clients: 4 |
+| test-covered | GET | `/v1/models` | Inference & Integration | tests: 1, clients: 2 |
+| client-referenced | GET | `/v1/providers/stats` | Inference & Integration | clients: 2 |
 | test-covered | POST | `/v1/infer/multimodal` | Inference & Integration | tests: 1 |
 | test-covered | GET | `/v1/infer/multimodal/stats` | Inference & Integration | tests: 1 |
 | implemented-unverified | GET | `/v1/runtime/install` | Runtime Distribution & Fleet Coordination | none |
@@ -47,13 +54,13 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | test-covered | GET | `/v1/account/api-key` | Account, Trial, and Billing | tests: 1 |
 | implemented-unverified | POST | `/v1/account/api-key` | Account, Trial, and Billing | none |
 | test-covered | DELETE | `/v1/account/api-key` | Account, Trial, and Billing | tests: 1 |
-| implemented-unverified | GET | `/v1/vault/keys` | Vault, Policy, and Governance | none |
-| implemented-unverified | POST | `/v1/vault/keys` | Vault, Policy, and Governance | none |
-| implemented-unverified | GET | `/v1/vault/keys/:provider` | Vault, Policy, and Governance | none |
-| implemented-unverified | DELETE | `/v1/vault/keys/:provider` | Vault, Policy, and Governance | none |
-| implemented-unverified | POST | `/v1/vault/keys/:provider/rotate` | Vault, Policy, and Governance | none |
+| client-referenced | GET | `/v1/vault/keys` | Vault, Policy, and Governance | clients: 2 |
+| client-referenced | POST | `/v1/vault/keys` | Vault, Policy, and Governance | clients: 2 |
+| client-referenced | GET | `/v1/vault/keys/:provider` | Vault, Policy, and Governance | clients: 2 |
+| client-referenced | DELETE | `/v1/vault/keys/:provider` | Vault, Policy, and Governance | clients: 3 |
+| client-referenced | POST | `/v1/vault/keys/:provider/rotate` | Vault, Policy, and Governance | clients: 2 |
 | implemented-unverified | POST | `/v1/vault/keys/:provider/validate` | Vault, Policy, and Governance | none |
-| implemented-unverified | GET | `/v1/policy` | Vault, Policy, and Governance | none |
+| test-covered | GET | `/v1/policy` | Vault, Policy, and Governance | tests: 1 |
 | implemented-unverified | PUT | `/v1/policy` | Vault, Policy, and Governance | none |
 | implemented-unverified | GET | `/v1/policy/history` | Vault, Policy, and Governance | none |
 | implemented-unverified | GET | `/v1/history/events` | Execution, History, and Receipts | none |
@@ -80,10 +87,10 @@ This report is evidence-based. It does not claim endpoint health beyond what is 
 | implemented-unverified | GET | `/v1/bt/definitions/:id` | Behavior Trees | none |
 | implemented-unverified | POST | `/v1/bt/definitions` | Behavior Trees | none |
 | implemented-unverified | DELETE | `/v1/bt/definitions/:id` | Behavior Trees | none |
-| test-covered | POST | `/v1/tasks/submit` | Durable Tasks | tests: 2 |
-| test-covered | GET | `/v1/tasks/:id` | Durable Tasks | tests: 3 |
-| test-covered | GET | `/v1/tasks` | Durable Tasks | tests: 4 |
-| implemented-unverified | GET | `/v1/tasks/:id/steps` | Durable Tasks | none |
+| test-covered | POST | `/v1/tasks/submit` | Durable Tasks | tests: 2, clients: 1 |
+| test-covered | GET | `/v1/tasks/:id` | Durable Tasks | tests: 3, clients: 1 |
+| test-covered | GET | `/v1/tasks` | Durable Tasks | tests: 4, clients: 1 |
+| client-referenced | GET | `/v1/tasks/:id/steps` | Durable Tasks | clients: 1 |
 | test-covered | POST | `/v1/tasks/:id/cancel` | Durable Tasks | tests: 1 |
 | implemented-unverified | GET | `/v1/tasks/proof/readiness` | Durable Tasks | none |
 | implemented-unverified | POST | `/v1/tasks/:id/proof/verify` | Durable Tasks | none |
