@@ -1,6 +1,6 @@
 # API Contract Validation
 
-Generated: 2026-06-20T05:17:50.352Z
+Generated: 2026-07-01T17:06:09.330Z
 
 This report validates API reference request/response examples and compares documented request body fields against source request schemas when handlers expose a Go request struct or Rust JSON/OpenAPI schema.
 
@@ -21,6 +21,8 @@ This report validates API reference request/response examples and compares docum
 | `POST /v1/actions/run` | 7 | `actionRunRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
 | `POST /v1/actions/:name/run` | 4 | `actionRunByNameRequest (go, igris-overture/api/routes_actions.go)` | source-backed | not required | 0 | verified |
 | `GET /v1/actions/runs/:id` | 0 | not discovered | not-required | not required | 0 | verified |
+| `POST /v1/actions/runs/:id/approve` | 0 | not discovered | example-only: Action run approval is path-param driven and bodyless; the run id comes from the path, the approver comes from the credential, and the coordinator dispatches the approved run. | not required | 0 | verified |
+| `POST /v1/actions/runs/:id/reject` | 1 | not discovered | example-only: Action run rejection takes only an optional free-text reason; the run id comes from the path and the rejector comes from the credential, so the route is validated procedurally rather than through a reusable request struct. | not required | 0 | example-validated |
 | `GET /v1/health` | 0 | not discovered | not-required | not required | 0 | verified |
 | `POST /v1/infer` | 5 | `InferRequest (go, igris-overture/models/infer_request.go)` | source-backed | `igris-overture/models/infer_response.go` | 5 | verified |
 | `POST /v1/chat/completions` | 4 | `InferRequest (go, igris-overture/models/infer_request.go)` | source-backed | `igris-overture/models/infer_response.go` | 5 | verified |
