@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-20T05:17:43.625Z",
+  "generated_at": "2026-07-01T17:06:00.050Z",
   "pages": {
     "/docs/agent-lifecycle": "public",
     "/docs/agent-templates": "public",
@@ -18,6 +18,8 @@
     "/docs/api-reference/actions/patch-v1-actions-id": "public",
     "/docs/api-reference/actions/post-v1-actions-name-run": "public",
     "/docs/api-reference/actions/post-v1-actions-run": "public",
+    "/docs/api-reference/actions/post-v1-actions-runs-id-approve": "public",
+    "/docs/api-reference/actions/post-v1-actions-runs-id-reject": "public",
     "/docs/api-reference/actions/post-v1-actions": "public",
     "/docs/api-reference/agents/delete-v1-agents-id": "public",
     "/docs/api-reference/agents/get-v1-agents-id": "public",
