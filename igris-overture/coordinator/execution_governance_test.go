@@ -55,6 +55,54 @@ func TestEvaluateActionPolicyRequiresApprovalBeforeExecution(t *testing.T) {
 	}
 }
 
+func TestEvaluateActionPolicyRequiresApprovalForGatewayMetadata(t *testing.T) {
+	// The Actions gateway does not emit an `"approval":{"required":true}` block;
+	// it stamps `approval_required` into execution-graph node metadata
+	// (api.actionNodeMetadata). A human-gated registered action such as
+	// demo.needs_approval must pause on that shape.
+	definition := json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{"id":"action","metadata":{
+			"action":"demo.needs_approval",
+			"policy_preset":"Human-gated",
+			"approval_required":true,
+			"irreversible":false
+		}}]}
+	}`)
+
+	decision := evaluateActionPolicy(actionPolicyInput{
+		TenantID:       "tenant-1",
+		TaskID:         uuid.New(),
+		RuntimeID:      "runtime-1",
+		TaskDefinition: definition,
+	})
+
+	if decision.Decision != ActionDecisionApprovalRequired {
+		t.Fatalf("decision = %q, want approval_required for gateway approval_required metadata", decision.Decision)
+	}
+	if !decision.HumanGated {
+		t.Fatal("gateway approval_required metadata was not marked human gated")
+	}
+
+	notGated := json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{"id":"action","metadata":{
+			"action":"demo.echo",
+			"policy_preset":"Safe automation",
+			"approval_required":false
+		}}]}
+	}`)
+	open := evaluateActionPolicy(actionPolicyInput{
+		TenantID:       "tenant-1",
+		TaskID:         uuid.New(),
+		RuntimeID:      "runtime-1",
+		TaskDefinition: notGated,
+	})
+	if open.Decision != ActionDecisionAllowed {
+		t.Fatalf("decision = %q, want allowed when approval_required=false", open.Decision)
+	}
+}
+
 func TestEvaluateActionPolicyBlocksIrreversibleRecoveryReplay(t *testing.T) {
 	taskID := uuid.New()
 	definition := json.RawMessage(`{
