@@ -772,6 +772,22 @@ module Igris
       @client.run_action(name, input: input, metadata: metadata, idempotency_key: idempotency_key)
     end
 
+    # ── Durable action approval gate ──────────────────────────────────────
+    # Approve or reject an approval_required run on the durable coordinator
+    # path. Both raise OvertureClient errors on failure (404 not found, 409 not
+    # awaiting approval / already resolved, 503 no runtime for dispatch); the
+    # controller maps those to operator-safe flash messages. State of record
+    # always stays in Overture — the console never mutates run state locally.
+    def approve_run(id)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.approve_action_run(id)
+    end
+
+    def reject_run(id, reason: nil)
+      raise OvertureClient::Unavailable.new('overture not configured', code: 'unconfigured') unless real?
+      @client.reject_action_run(id, reason: reason)
+    end
+
     # ── Normalization ─────────────────────────────────────────────────────
 
     private
@@ -1029,6 +1045,14 @@ module Igris
         id:           (raw[:task_id] || raw[:id]).to_s,
         action:       extract_action_name(raw),
         status:       status_label_for(raw[:status]),
+        # True only while the run is paused on the durable human-approval gate.
+        # Derived from the raw backend status so the approval panel and the
+        # approve/reject controls key off the state of record, not a label.
+        approval_pending: raw[:status].to_s == 'approval_required',
+        # Capability names the run requested, when the API exposes them (safe
+        # identifiers, never secrets). Omitted/[] when absent — the current task
+        # GET does not carry them, so the panel degrades gracefully.
+        requested_capabilities: Array(raw[:required_capabilities]).map(&:to_s).reject(&:blank?),
         routed_via:   routed_via_for(raw[:executed_target], raw[:runtime_id]),
         executed_target: raw[:executed_target].to_s,
         runtime_id:   raw[:runtime_id].to_s,
@@ -1060,6 +1084,12 @@ module Igris
         executed_target: raw[:executed_target].to_s,
         runtime_id: raw[:runtime_id].to_s,
         failure_reason: safe_failure_text(raw.dig(:failure, :reason) || raw[:failure_reason]),
+        # Safe approval/run-detail fields the API now exposes. All are name-only
+        # enums or a policy reason — never raw payloads. Absent on older
+        # responses / fixtures, so every consumer must treat them as optional.
+        approval_reason: safe_failure_text(raw[:approval_reason]).presence,
+        action_target_type: raw[:action_target_type].to_s.strip.presence,
+        policy_preset: raw[:policy_preset].to_s.strip.presence,
         runtime_unavailable: runtime_unavailable,
         request_summary: safe_request_summary(raw),
         request_digest:  truncate_digest(raw[:input_digest] || raw.dig(:input_summary, :input_digest_sha256) || raw.dig(:request, :digest)),

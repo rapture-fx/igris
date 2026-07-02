@@ -170,7 +170,7 @@ module Igris
         { id: 'run_01HGJ3R6T7E', action: 'export_ledger',       status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof verified',   started_at: 52.minutes.ago,  duration_ms: 1_740, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # verified
         { id: 'rdm_09',          action: 'deploy_preview',      status: 'Failed',     routed_via: 'Hosted API · Vercel',         policy: 'Single-flight per branch', recovery: 'Not needed',           proof: 'Proof failed',     started_at: 54.minutes.ago,  duration_ms: 3_800 }, # failed
         { id: 'rdm_10',          action: 'run_audit',           status: 'Succeeded',  routed_via: 'Runtime · rt_prod_02',        policy: 'Single-flight',          recovery: 'Not needed',             proof: 'Proof verified',   started_at: 58.minutes.ago,  duration_ms: 2_100, executed_target: 'local_runtime', runtime_id: 'rt_prod_02' }, # verified
-        { id: 'rdm_11',          action: 'resolve_issue',      status: 'Awaiting approval', routed_via: 'Hosted API · Sentry',       policy: 'Human-gated',            recovery: 'Not needed',             proof: 'Pending',          started_at: (1.1 * 3600).seconds.ago, duration_ms: nil }, # waiting
+        { id: 'rdm_11',          action: 'resolve_issue',      status: 'Awaiting approval', routed_via: 'Hosted API · Sentry',       policy: 'Human-gated',            recovery: 'Not needed',             proof: 'Pending',          started_at: (1.1 * 3600).seconds.ago, duration_ms: nil, failure_reason: 'Human-gated policy — this action requires human approval before it can run.', approval_reason: 'Human-gated policy — this action requires human approval before it can run.', action_target_type: 'webhook', policy_preset: 'Human-gated', requested_capabilities: ['network.api', 'tools.http_request'] }, # waiting
         { id: 'rdm_12',          action: 'refund_charge',       status: 'Denied',     routed_via: 'Hosted API · Stripe',         policy: 'Manual approval',        recovery: 'Not needed',             proof: 'Proof unavailable',started_at: (1.4 * 3600).seconds.ago, duration_ms: nil }, # blocked
         { id: 'rdm_13',          action: 'export_ledger',       status: 'Succeeded',  routed_via: 'Runtime · rt_prod_01',        policy: 'Single-flight',          recovery: 'Compensated',            proof: 'Proof unavailable',started_at: (1.8 * 3600).seconds.ago, duration_ms: 2_870, executed_target: 'local_runtime', runtime_id: 'rt_prod_01' }, # recovered
         { id: 'run_01HGJ5W0M3B', action: 'refund_charge',       status: 'Failed',     routed_via: 'Hosted API · Stripe',         policy: 'Manual approval',        recovery: 'Awaiting review',        proof: 'Proof failed',     started_at: 2.hours.ago,     duration_ms: 4_120 }, # failed
@@ -247,6 +247,15 @@ module Igris
     def run_detail(id)
       base = find_run(id) or return nil
       base.merge(
+        # Mirror the real normalizer: an "Awaiting approval" demo run is
+        # approval-pending, so the approval panel renders offline too, including
+        # the safe approval fields the real API now exposes.
+        approval_pending: base[:status].to_s == 'Awaiting approval',
+        requested_capabilities: base[:requested_capabilities] || [],
+        failure_reason: base[:failure_reason],
+        approval_reason: base[:approval_reason] || base[:failure_reason],
+        action_target_type: base[:action_target_type],
+        policy_preset: base[:policy_preset] || base[:policy],
         steps: steps_for(base),
         story: [
           { title: 'Action received', tone: :ok,

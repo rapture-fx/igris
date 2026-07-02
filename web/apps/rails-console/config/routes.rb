@@ -75,7 +75,15 @@ Rails.application.routes.draw do
   # under the Runs > Intelligence surface; POST-only triage action.
   post '/runs/trust-recommendations/state', to: 'trust_recommendations#update', as: :trust_recommendation_state
 
-  resources :runs, only: %i[index show]
+  # Durable action approval gate. approval_required runs are approved or
+  # rejected here; the console forwards to the Go durable-action routes
+  # (POST /v1/actions/runs/:id/approve|reject) — NOT the execution_lineage path.
+  resources :runs, only: %i[index show] do
+    member do
+      post :approve
+      post :reject
+    end
+  end
 
   # Connections — read-only "where does work go" view derived from action
   # targets + the runtime fleet (no new backend). Runtimes is the local-runtime

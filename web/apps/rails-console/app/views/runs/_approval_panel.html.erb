@@ -1,0 +1,82 @@
+<%#
+  Durable action approval gate — shown only for runs paused on the human
+  approval step (status approval_required → "Awaiting approval"). It closes the
+  loop of Igris' core story: request → policy → approval → dispatch → proof.
+  Approving continues the controlled action path; rejecting stops it. Only safe,
+  already-redacted run metadata is shown — never raw inputs, payloads, secrets,
+  or encrypted input refs. Fields the API does not carry are omitted, not faked.
+
+  Double submission is prevented by disabling the controls the moment either
+  form is submitted (the backend compare-and-set is the real guard; this just
+  avoids an accidental double click before the redirect lands).
+%>
+<% val = ->(v) { v.to_s.strip.presence } %>
+<% requested_at = @run[:started_at].respond_to?(:strftime) ? @run[:started_at].utc.strftime('%Y-%m-%d %H:%M:%S UTC') : nil %>
+<% disable_js = "setTimeout(function(){this.querySelectorAll('button,textarea').forEach(function(e){e.disabled=true})}.bind(this),0);return true;" %>
+
+<div class="ic-evidence ic-approval" style="border:1px solid rgba(251,191,36,0.35); border-radius:8px; padding:16px; margin-bottom:16px; background:rgba(251,191,36,0.05);">
+  <div class="ic-evidence__head" style="display:flex; align-items:center; gap:8px;">
+    <%= chip 'Approval required', tone: :warn %>
+    <span>Human approval gate</span>
+  </div>
+
+  <p class="ic-evidence__intro">
+    This run is paused on its policy's human-approval step. Approving continues
+    the controlled path — Igris dispatches it to the runtime and records proof.
+    Rejecting stops it: the run is marked terminal and is never dispatched.
+  </p>
+
+  <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= val.call(@run[:action]) || '—' %></div></div>
+  <div class="ic-def"><span class="ic-def__label">Run ID</span><div class="ic-def__value mono"><%= val.call(@run[:id]) || '—' %> <%= copy_button @run[:id] if val.call(@run[:id]) %></div></div>
+
+  <%# Prefer the dedicated approval_reason field; fall back to failure_reason
+      for older responses / fixtures that don't carry it yet. %>
+  <% if (why = val.call(@run[:approval_reason]) || val.call(@run[:failure_reason])) %>
+    <div class="ic-def"><span class="ic-def__label">Why approval is required</span><div class="ic-def__value"><%= why %></div></div>
+  <% end %>
+
+  <%# Prefer the explicit policy_preset; fall back to the general policy label. %>
+  <% if (policy = val.call(@run[:policy_preset]) || val.call(@run[:policy])) %>
+    <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= filter_label(policy) %></div></div>
+  <% end %>
+
+  <%# Prefer the configured action_target_type (present even before dispatch);
+      fall back to executed_target once the run has been routed. %>
+  <% if (target = val.call(@run[:action_target_type]) || val.call(@run[:executed_target])) %>
+    <div class="ic-def"><span class="ic-def__label">Requested target</span><div class="ic-def__value mono"><%= target %></div></div>
+  <% end %>
+
+  <% if (rt = val.call(@run[:runtime_id])) %>
+    <div class="ic-def"><span class="ic-def__label">Runtime</span><div class="ic-def__value mono"><%= rt %></div></div>
+  <% end %>
+
+  <% caps = Array(@run[:requested_capabilities]).map(&:to_s).reject(&:blank?) %>
+  <% if caps.any? %>
+    <div class="ic-def"><span class="ic-def__label">Requested capabilities</span><div class="ic-def__value mono"><%= caps.join(', ') %></div></div>
+  <% end %>
+
+  <% if requested_at %>
+    <div class="ic-def"><span class="ic-def__label">Requested</span><div class="ic-def__value"><%= requested_at %> <span class="ic-def__hint"><%= time_ago(@run[:started_at]) %></span></div></div>
+  <% end %>
+
+  <% if (summary = val.call(@run[:request_summary])) %>
+    <div class="ic-def"><span class="ic-def__label">Request summary</span><div class="ic-def__value"><%= summary %></div></div>
+  <% end %>
+
+  <div class="ic-approval__acts" style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start; margin-top:14px;">
+    <%# Approve — no input needed, so a single POST button. %>
+    <%= button_to 'Approve and dispatch', approve_run_path(@run[:id]),
+          method: :post, class: 'ic-btn ic-btn--accent',
+          form: { onsubmit: disable_js, style: 'margin:0;' } %>
+
+    <%# Reject — optional operator reason, forwarded to the durable reject route. %>
+    <%= form_with url: reject_run_path(@run[:id]), method: :post, local: true,
+          html: { onsubmit: disable_js, style: 'display:flex; flex-direction:column; gap:6px; min-width:260px;' } do %>
+      <label for="ic-reject-reason" class="ic-def__label" style="margin:0;">Reject reason (optional)</label>
+      <textarea id="ic-reject-reason" name="reason" rows="2" maxlength="500"
+                placeholder="Why is this run being rejected?"
+                style="width:100%; background:var(--ig-surface,#0d0d0f); color:var(--ig-text-body); border:1px solid var(--ig-border,rgba(255,255,255,0.12)); border-radius:6px; padding:6px 8px; font-size:12px; resize:vertical;"></textarea>
+      <button type="submit" class="ic-btn" style="align-self:flex-start;">Reject run</button>
+    <% end %>
+  </div>
+</div>
