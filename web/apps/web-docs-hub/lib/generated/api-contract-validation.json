@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-20T05:17:50.348Z",
+  "generated_at": "2026-07-01T17:06:09.315Z",
   "endpoints": [
     {
       "endpoint": "GET /v1/action-packs",
@@ -135,6 +135,24 @@
       "response_fields": 0,
       "schema_policy": "not-required",
       "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/actions/runs/:id/approve",
+      "source_schema": null,
+      "request_fields": 0,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Action run approval is path-param driven and bodyless; the run id comes from the path, the approver comes from the credential, and the coordinator dispatches the approved run.",
+      "status": "verified"
+    },
+    {
+      "endpoint": "POST /v1/actions/runs/:id/reject",
+      "source_schema": null,
+      "request_fields": 1,
+      "response_contract": null,
+      "response_fields": 0,
+      "schema_policy": "example-only: Action run rejection takes only an optional free-text reason; the run id comes from the path and the rejector comes from the credential, so the route is validated procedurally rather than through a reusable request struct.",
+      "status": "example-validated"
     },
     {
       "endpoint": "GET /v1/health",
