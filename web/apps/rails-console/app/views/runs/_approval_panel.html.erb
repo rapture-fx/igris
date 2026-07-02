@@ -29,15 +29,20 @@
   <div class="ic-def"><span class="ic-def__label">Action</span><div class="ic-def__value mono"><%= val.call(@run[:action]) || '—' %></div></div>
   <div class="ic-def"><span class="ic-def__label">Run ID</span><div class="ic-def__value mono"><%= val.call(@run[:id]) || '—' %> <%= copy_button @run[:id] if val.call(@run[:id]) %></div></div>
 
-  <% if (why = val.call(@run[:failure_reason])) %>
+  <%# Prefer the dedicated approval_reason field; fall back to failure_reason
+      for older responses / fixtures that don't carry it yet. %>
+  <% if (why = val.call(@run[:approval_reason]) || val.call(@run[:failure_reason])) %>
     <div class="ic-def"><span class="ic-def__label">Why approval is required</span><div class="ic-def__value"><%= why %></div></div>
   <% end %>
 
-  <% if (policy = val.call(@run[:policy])) %>
+  <%# Prefer the explicit policy_preset; fall back to the general policy label. %>
+  <% if (policy = val.call(@run[:policy_preset]) || val.call(@run[:policy])) %>
     <div class="ic-def"><span class="ic-def__label">Policy</span><div class="ic-def__value"><%= filter_label(policy) %></div></div>
   <% end %>
 
-  <% if (target = val.call(@run[:executed_target])) %>
+  <%# Prefer the configured action_target_type (present even before dispatch);
+      fall back to executed_target once the run has been routed. %>
+  <% if (target = val.call(@run[:action_target_type]) || val.call(@run[:executed_target])) %>
     <div class="ic-def"><span class="ic-def__label">Requested target</span><div class="ic-def__value mono"><%= target %></div></div>
   <% end %>
 
