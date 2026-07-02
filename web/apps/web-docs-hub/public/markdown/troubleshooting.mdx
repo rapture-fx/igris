@@ -138,31 +138,40 @@ Replace `:provider` with the provider identifier (e.g., `openai`, `anthropic`, `
 
 ---
 
-## Execution Runs Stuck in PAUSED
+## Action Runs Waiting For Approval
 
-### Human review required
+### Run stays in approval_required
 
-**Symptoms:** One or more runs show status PAUSED in the console and do not progress. The run detail shows `pause_reason: human_review_required`.
+**Symptoms:** A run does not progress and reports `status: approval_required`. When it was
+first started, the run response was `409` with `error: approval_required`.
 
-**Cause:** The run reached a human-in-the-loop review trigger in your policy. It is waiting in the approval queue for a deliberate approve or reject decision.
+**Cause:** The action is human-gated, so Igris paused the run instead of dispatching it. It
+is waiting for a person to approve or reject it. This is expected behavior for human-gated
+actions, not a failure.
 
-**Fix:** Go to **Execution Runs** in the console and open the paused run. Review the prompt preview and agent context, then click **Approve** to continue or **Reject** (with a reason) to terminate.
-
-To find all runs awaiting approval via the API:
-
-```bash
-curl "https://overture.igrisinertial.com/v1/execution/runs?status=PAUSED" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-To approve a specific run:
+**Fix:** Open the run in the console run view and use the approval panel, or decide over the
+API. To approve and dispatch the run:
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/execution/runs/exec-01HXYZ/approve \
-  -H "Authorization: Bearer YOUR_API_KEY"
+curl -X POST \
+  https://overture.igrisinertial.com/v1/actions/runs/RUN_ID/approve \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
 ```
 
-Runs in the approval queue do not time out automatically — they remain PAUSED indefinitely until a decision is made. If you have an SLA on approval response time, monitor queue depth via `GET /v1/history/alerts` filtered by unacknowledged alerts.
+To reject and close the run without dispatching it:
+
+```bash
+curl -X POST \
+  https://overture.igrisinertial.com/v1/actions/runs/RUN_ID/reject \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "out of scope for this agent"}'
+```
+
+A waiting run does not time out on its own; it stays in `approval_required` until a decision
+is made. For actions that run on your own connected runtime, approve can return
+`503 runtime_unavailable` if no runtime is connected. The run stays paused, so reconnect a
+runtime and approve again. See [Approvals](/docs/approval-workflows) for the full flow.
 
 ---
 

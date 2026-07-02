@@ -1,0 +1,132 @@
+---
+title: "POST /v1/actions/runs/:id/approve"
+description: "Approves an action run that is paused awaiting approval and continues the controlled action path by dispatching it for execution. A human-gated action returns `409 approval_required` when it is first run; this endpoint is how a reviewer releases that run. Approval is a real gate: the run is only dispatched after this call, tenant ownership is enforced, and a repeated or concurrent approve dispatches the run at most once."
+audience: "public"
+---
+
+# POST /v1/actions/runs/:id/approve
+
+Approves an action run that is paused awaiting approval and continues the controlled action path by dispatching it for execution. A human-gated action returns `409 approval_required` when it is first run; this endpoint is how a reviewer releases that run. Approval is a real gate: the run is only dispatched after this call, tenant ownership is enforced, and a repeated or concurrent approve dispatches the run at most once.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/actions/runs/:id/approve</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint (or the Approve control in the console) after a run comes back as `approval_required`. Approve when the pending action is within scope for the agent and consistent with your operational policy. Once approved, follow the run with `GET /v1/actions/runs/:id` as you would any other run.
+
+## Integration Guidance
+
+Approve is safe to call again. If a runtime was briefly unavailable the run stays in `approval_required` and returns `503 runtime_unavailable`; approve again once a runtime reconnects. Once the run has been approved and dispatched, a second approve returns `409 not_awaiting_approval` instead of dispatching it twice.
+
+### Common Mistakes
+
+- Approving a run that is not paused. Only runs in `approval_required` can be approved; anything else returns `409 not_awaiting_approval`.
+- Expecting a synchronous result. Approve dispatches the run and returns immediately with `status: dispatched`; inspect the run to follow it to completion and proof.
+
+### Related Endpoints
+
+- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)
+- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)
+- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [First Agent Onboarding](/docs/first-agent-onboarding)
+
+## Path Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | Run id returned when the action run was accepted with `approval_required`. |
+
+## Notes
+
+- This is the durable action approval route. It approves an action run created through the Actions gateway. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/approve`, which belongs to the execution inspection surface. Use the action route for runs started with `POST /v1/actions/:name/run` or MCP `call_action`.
+- The approver recorded on the run is the authenticated principal from your credential; it cannot be set from the request body.
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/actions/runs/example-id/approve \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/actions/runs/example-id/approve', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+  },
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := http.NoBody
+
+req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/v1/actions/runs/example-id/approve", body)
+if err != nil {
+	log.Fatal(err)
+}
+
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "https://overture.igrisinertial.com/v1/actions/runs/example-id/approve")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "run_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "dispatched",
+  "proof_status": "pending",
+  "decision": "approved",
+  "approved_by": "usr_2f9a1c7b"
+}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 202 | Approved and dispatched | The run was approved and handed to a runtime for execution. |
+| 400 | Invalid run id | The run id was not a valid identifier. |
+| 401 | Unauthorized | Credentials were missing, expired, or not accepted. |
+| 404 | Run not found | No run with that id exists in your tenant. |
+| 409 | Not awaiting approval | The run is not paused for approval, or it has already been approved or rejected (`not_awaiting_approval`). |
+| 503 | Runtime unavailable | No connected runtime is available to dispatch the approved run. The run stays paused; reconnect a runtime and approve again. |
+

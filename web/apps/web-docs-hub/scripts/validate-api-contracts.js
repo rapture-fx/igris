@@ -77,6 +77,8 @@ const EXAMPLE_ONLY_SCHEMA_REASONS = {
   'POST /v1/tasks/:id/proof/verify': 'Task proof verification is path-param driven and reconciles persisted proof state; no JSON body is required.',
   'POST /v1/mcp': 'MCP transport carries JSON-RPC envelopes whose schema lives in the MCP method contract rather than a route-specific request struct.',
   'POST /v1/action-packs/:name/install': 'Action Pack install is bodyless; the pack name is taken from the path and tenant scope comes from the credential.',
+  'POST /v1/actions/runs/:id/approve': 'Action run approval is path-param driven and bodyless; the run id comes from the path, the approver comes from the credential, and the coordinator dispatches the approved run.',
+  'POST /v1/actions/runs/:id/reject': 'Action run rejection takes only an optional free-text reason; the run id comes from the path and the rejector comes from the credential, so the route is validated procedurally rather than through a reusable request struct.',
   'PATCH /v1/agents/:id': 'Agent registry PATCH first rejects tenant overrides and mixed registry/settings fields, then validates registry updates field-by-field or dispatches execution settings to PatchAgent.',
   'POST /v1/plan': 'Local planning is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
   'POST /v1/reflect': 'Local reflection is a runtime-local convenience route with handler validation and an example-backed JSON shape.',
