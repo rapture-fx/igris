@@ -520,7 +520,7 @@ func TestBuildTaskResponseExposesSafeApprovalFields(t *testing.T) {
 			"required_capabilities":["network.api","tools.http_request"],
 			"graph":{"nodes":[{
 				"kind":"tool","node_id":"n0","tool_name":"http_request",
-				"metadata":{"target_type":"webhook","policy_preset":"Human-gated","action_name":"refund_charge"},
+				"metadata":{"target_type":"webhook","policy_preset":"Human-gated","action_name":"refund_charge","request_summary":"apply 064_execution_evals.sql sha256 3471cf5d (auth Bearer leaked-token)"},
 				"args":{"method":"POST","url":"https://api.example.test/hook?token=` + secret + `","body":"` + secret + `"}
 			}]}
 		}`),
@@ -534,6 +534,13 @@ func TestBuildTaskResponseExposesSafeApprovalFields(t *testing.T) {
 	require.Equal(t, "webhook", resp["action_target_type"])
 	require.Equal(t, "Human-gated", resp["policy_preset"])
 	require.Equal(t, "refund_charge", resp["action_name"])
+
+	// The caller-provided approval summary is exposed for the reviewer, with
+	// inline auth material redacted on the way out.
+	summary, _ := resp["request_summary"].(string)
+	require.Contains(t, summary, "064_execution_evals.sql")
+	require.Contains(t, summary, "[redacted-auth]")
+	require.NotContains(t, summary, "Bearer leaked-token")
 
 	// Nothing sensitive from the definition leaks.
 	body, err := json.Marshal(resp)

@@ -203,6 +203,12 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 					"message": err.Error(),
 				})
 			}
+			if errors.Is(err, coordinator.ErrExecutionInputProtectionUnavailable) {
+				return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+					"error":   "input_protection_unavailable",
+					"message": "this task's input requires encrypted input protection, but the input-ref keyring is not configured or failed; set IGRIS_EXECUTION_INPUT_REF_KEYS and IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION",
+				})
+			}
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Tasks] Submit failed")
 			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 				"error":   "dispatch_failed",
@@ -1087,6 +1093,12 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 	// approving, not just its tool shape.
 	if name := safeActionNodeMetaString(task.TaskDefinition, "action_name"); validActionName(name) {
 		resp["action_name"] = name
+	}
+
+	// request_summary is the caller-provided approval one-liner, scrubbed at
+	// submit (actionNodeMetadata) and re-scrubbed here on the way out.
+	if summary := sanitizeActionRequestSummary(safeActionNodeMetaString(task.TaskDefinition, "request_summary")); summary != "" {
+		resp["request_summary"] = summary
 	}
 
 	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
