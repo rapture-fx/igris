@@ -1,5 +1,31 @@
 # Dogfood Report: Controlled Staging Migration (2026-07-03)
 
+> **Update — stabilization pass, later on 2026-07-03.** The open P1s below the
+> fold have been addressed; this header records the deltas, the original
+> report is preserved unedited underneath.
+>
+> - **"Completed while refused" is FIXED.** The runtime http tool now treats
+>   only 2xx as a successful action; any other status is a tool failure with a
+>   safe error (`http_status_<code>`, status, url host, response digest — no
+>   body). No configurable status-range mechanism existed, so 2xx-only is the
+>   rule, with no new abstraction. A refused apply now ends as a top-level
+>   `failed` run, still carries a **signed, hash-chained receipt (with
+>   `violation_occurred: true`) and verified proof**, and renders as *Failed*
+>   in the console. The dogfood smoke now FAILS if a refused action ever reads
+>   as completed again.
+> - **Submit-error masking is FIXED** for the input-protection case: a missing
+>   input-ref keyring now returns `input_protection_unavailable` (naming
+>   `IGRIS_EXECUTION_INPUT_REF_KEYS`) on the actions, MCP, and tasks routes
+>   instead of `runtime_unavailable`; a failed rehydration at approve returns
+>   `input_ref_unavailable` with the safe failure code instead of `db_error`.
+> - **Approval context is FIXED**: callers may pass
+>   `metadata.request_summary` (scrubbed at submit and on read: string-only,
+>   200-char cap, control chars stripped, inline auth redacted); it surfaces
+>   on `GET /v1/tasks/:id` and in the console approval panel, e.g.
+>   `apply 9900_….sql sha256 c97846be5f81 to local staging`. The gateway's
+>   sha-pinned plan remains the ground truth; the summary is advisory review
+>   context.
+
 Blunt answer first: **yes, Igris proved useful for this workflow — but only
 after two fixes made today.** Before them, the durable approval loop had never
 actually worked for any action with a realistic (sensitive) input; it had only

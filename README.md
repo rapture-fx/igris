@@ -149,7 +149,9 @@ node scripts/dogfood_staging_migration_gateway.js serve 18095 "$DATABASE_URL"
 # 2. record the plan (filename must live in igris-overture/database/migrations)
 curl -s -X POST localhost:18095/plan -d '{"filename":"064_execution_evals.sql"}'
 
-# 3. request the apply through Igris (MCP call_action or /v1/actions/:name/run)
+# 3. request the apply through Igris (MCP call_action or /v1/actions/:name/run),
+#    passing metadata.request_summary (e.g. "apply 064_execution_evals.sql
+#    sha256 3471cf5d") so the approver sees what the run intends
 #    -> the run pauses in approval_required
 # 4. review in the console (/runs/<id>) and the gateway (GET /plans), approve
 # 5. the runtime applies through the gateway exactly once; inspect the run,

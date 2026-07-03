@@ -82,9 +82,12 @@ The gateway enforces, independently of Igris:
 **What should the console show?**
 The run paused in `Approval required` with: action name, policy preset,
 "why approval is required", requested target type, requested capabilities,
-requested time; after approval: dispatch/completion timeline and receipt
-evidence (`receipt_hash`, `signature_present`). Approve/Reject controls with
-optional reject reason.
+requested time, and the caller's scrubbed `request_summary` (e.g.
+`apply 064_execution_evals.sql sha256 3471cf5d…`); after approval:
+dispatch/completion timeline and receipt evidence (`receipt_hash`,
+`signature_present`). A gateway-refused apply must present as **Failed** with
+a safe failure reason (`http_status_409` …), never as Succeeded.
+Approve/Reject controls with optional reject reason.
 
 **What must never be exposed?**
 - The staging DSN / any credentials (only the gateway holds it).
