@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -252,7 +253,11 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if err != nil {
 		return nil, err
 	}
-	if string(expectedAAD) != string(ref.AAD) {
+	// The aad column is jsonb, so the bytes read back are Postgres-normalized
+	// (key order, whitespace) and never byte-equal to the compact Go marshal
+	// used at encrypt time. Compare as JSON values; the AEAD decrypt below
+	// still authenticates against the recomputed canonical bytes.
+	if !jsonValuesEqual(expectedAAD, ref.AAD) {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
 			KeyVersion: ref.KeyVersion,
@@ -374,6 +379,16 @@ func nullUUIDString(id uuid.UUID) string {
 		return ""
 	}
 	return id.String()
+}
+
+// jsonValuesEqual reports whether two JSON documents encode the same value,
+// ignoring key order and whitespace. Non-JSON inputs are never equal.
+func jsonValuesEqual(a, b []byte) bool {
+	var av, bv interface{}
+	if json.Unmarshal(a, &av) != nil || json.Unmarshal(b, &bv) != nil {
+		return false
+	}
+	return reflect.DeepEqual(av, bv)
 }
 
 func safeInputRefFailureCode(err error) string {
