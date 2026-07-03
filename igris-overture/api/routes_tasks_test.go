@@ -533,12 +533,26 @@ func TestBuildTaskResponseExposesSafeApprovalFields(t *testing.T) {
 	require.Equal(t, reason, resp["approval_reason"])
 	require.Equal(t, "webhook", resp["action_target_type"])
 	require.Equal(t, "Human-gated", resp["policy_preset"])
+	require.Equal(t, "refund_charge", resp["action_name"])
 
 	// Nothing sensitive from the definition leaks.
 	body, err := json.Marshal(resp)
 	require.NoError(t, err)
 	require.NotContains(t, string(body), secret)
 	require.NotContains(t, string(body), "?token=")
+
+	// A metadata action_name that is not a valid action identifier (e.g. a
+	// smuggled payload) is dropped rather than echoed.
+	hostile := *task
+	hostile.TaskDefinition = json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{
+			"kind":"tool","node_id":"n0","tool_name":"http_request",
+			"metadata":{"action_name":"` + secret + ` with spaces!"}
+		}]}
+	}`)
+	hostileResp := buildTaskResponse(&hostile)
+	require.NotContains(t, hostileResp, "action_name")
 }
 
 // TestBuildTaskResponseApprovalReasonOnlyForApprovalRuns confirms approval_reason

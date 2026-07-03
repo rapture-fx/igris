@@ -1081,6 +1081,14 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 		resp["policy_preset"] = preset
 	}
 
+	// action_name is the registered action definition name the gateway stamped
+	// into node metadata — a pattern-validated identifier, never raw input. An
+	// approver reviewing a paused run needs to see WHICH action they are
+	// approving, not just its tool shape.
+	if name := safeActionNodeMetaString(task.TaskDefinition, "action_name"); validActionName(name) {
+		resp["action_name"] = name
+	}
+
 	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
 		resp["failure_details"] = failureDetails
 	}
