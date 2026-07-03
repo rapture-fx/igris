@@ -21,8 +21,9 @@
 #      applies the migration, the audit row flips to `applied`, and the
 #      migration's schema effect is present.
 #   8. Tamper guard: a migration edited after its plan was recorded is REFUSED
-#      at apply time (audit row `checksum_mismatch`, no schema effect), even
-#      though the run was approved.
+#      at apply time (audit row `checksum_mismatch`, no schema effect), and the
+#      approved-but-refused run ends in a top-level `failed` status with a safe
+#      failure reason — the smoke FAILS if a refused action reads as completed.
 #   9. Proof material is inspectable: task proof state + signed receipt list,
 #      and no DSN/credentials appear in any Igris response.
 #  10. Optionally (--with-console) the Rails console renders the approval
@@ -361,7 +362,7 @@ TRAVERSAL_STATUS=$(curl -sS -o "$TMP_DIR/plan-traversal.json" -w "%{http_code}" 
 INPUT_SENTINEL="dogfood-raw-input-$(node -e 'process.stdout.write(require("crypto").randomBytes(8).toString("hex"))')"
 
 mcp_call_action() {
-  # mcp_call_action <out-file> <label> <plan-id>
+  # mcp_call_action <out-file> <label> <plan-id> <request-summary>
   curl -sS "${KEY_ARGS[@]}" -H "Content-Type: application/json" \
     -d '{
       "jsonrpc": "2.0",
@@ -370,6 +371,7 @@ mcp_call_action() {
       "params": {
         "action_name": "dogfood.apply_staging_migration",
         "input": {"plan_id": "'"$3"'", "reason": "'"$INPUT_SENTINEL"'"},
+        "metadata": {"request_summary": "'"$4"'"},
         "idempotency_key": "dogfood-migration-'"$2"'-'"$RUN_SUFFIX"'"
       }
     }' \
@@ -385,18 +387,20 @@ extract_run_id() {
   ' "$1"
 }
 
+SUMMARY_A="apply $MIGRATION_A sha256 ${PLAN_A_SHA:0:12} to local staging"
+
 echo "[8/11] Requesting the apply through MCP; every run must pause for approval"
-mcp_call_action "$TMP_DIR/mcp-run-a.json" "a" "$PLAN_A"
+mcp_call_action "$TMP_DIR/mcp-run-a.json" "a" "$PLAN_A" "$SUMMARY_A"
 grep -q 'approval_required' "$TMP_DIR/mcp-run-a.json" \
   || fail "MCP call_action did not pause in approval_required" "$(cat "$TMP_DIR/mcp-run-a.json")"
 RUN_A=$(extract_run_id "$TMP_DIR/mcp-run-a.json")
 [[ -n "$RUN_A" ]] || fail "could not extract run id from MCP response" "$(cat "$TMP_DIR/mcp-run-a.json")"
 
-mcp_call_action "$TMP_DIR/mcp-run-b.json" "b" "$PLAN_A"
+mcp_call_action "$TMP_DIR/mcp-run-b.json" "b" "$PLAN_A" "$SUMMARY_A"
 RUN_B=$(extract_run_id "$TMP_DIR/mcp-run-b.json")
 [[ -n "$RUN_B" && "$RUN_B" != "$RUN_A" ]] || fail "second MCP run did not produce a distinct run id"
 
-mcp_call_action "$TMP_DIR/mcp-run-c.json" "c" "$PLAN_C"
+mcp_call_action "$TMP_DIR/mcp-run-c.json" "c" "$PLAN_C" "apply $MIGRATION_C (tamper check)"
 RUN_C=$(extract_run_id "$TMP_DIR/mcp-run-c.json")
 [[ -n "$RUN_C" ]] || fail "could not extract run id for the tamper run"
 
@@ -416,6 +420,8 @@ curl -sS "${COOKIE_ARGS[@]}" "$API_BASE/v1/tasks/$RUN_A" > "$TMP_DIR/task-a-wait
   || fail "action_target_type is not webhook on waiting run"
 [[ "$(json_field "$TMP_DIR/task-a-waiting.json" 'body.action_name')" == "dogfood.apply_staging_migration" ]] \
   || fail "action_name is missing on the waiting run (approver cannot see what they are approving)"
+[[ "$(json_field "$TMP_DIR/task-a-waiting.json" 'body.request_summary')" == "$SUMMARY_A" ]] \
+  || fail "request_summary is missing on the waiting run (approver cannot see which migration)"
 if grep -q "$INPUT_SENTINEL" "$TMP_DIR/task-a-waiting.json"; then
   fail "raw action input leaked into GET /v1/tasks/:id"
 fi
@@ -466,10 +472,10 @@ SMOKE_ROWS=$(psql "$DB_URL" -tAc "SELECT count(*) FROM $SMOKE_TABLE_A" | tr -d '
   || fail "migration A's schema effect is missing (expected 1 row in $SMOKE_TABLE_A, got '$SMOKE_ROWS')"
 
 # Tamper guard: edit migration C after its plan was recorded, then approve.
-# The gateway must refuse at apply time; nothing may be applied. NOTE the run
-# itself still reports "completed" (the runtime http tool treats any HTTP
-# response as tool success) — the gateway audit row and the receipt digest are
-# the source of truth for whether the migration ran. Tracked as a known P1.
+# The gateway must refuse at apply time (409 checksum_mismatch) and the run
+# MUST end in a top-level `failed` status — a refused action that reads as
+# "completed" is the product lying. This section fails the smoke if the
+# status lies.
 cat >> "$MIGRATIONS_DIR/$MIGRATION_C" <<SQL
 INSERT INTO $SMOKE_TABLE_C (note) VALUES ('tampered after plan');
 SQL
@@ -480,6 +486,23 @@ for _ in {1..60}; do
   [[ "$RUN_C_STATUS" == "completed" || "$RUN_C_STATUS" == "failed" ]] && break
   sleep 1
 done
+[[ "$RUN_C_STATUS" == "failed" ]] \
+  || fail "REFUSED action shows status '$RUN_C_STATUS' — a refused apply must be a failed run" "$(cat "$TMP_DIR/task-c-final.json")"
+RUN_C_REASON=$(json_field "$TMP_DIR/task-c-final.json" 'body.failure_reason')
+echo "$RUN_C_REASON" | grep -q 'http_status_409' \
+  || fail "refused run's failure_reason does not carry the safe gateway status" "$RUN_C_REASON"
+if grep -qE 'postgres(ql)?://' "$TMP_DIR/task-c-final.json"; then
+  fail "a database DSN leaked into the refused run's task detail"
+fi
+if grep -q "$INPUT_SENTINEL" "$TMP_DIR/task-c-final.json"; then
+  fail "raw action input leaked into the refused run's task detail"
+fi
+# The refusal is still PROVEN: the failed run carries a signed receipt.
+[[ -n "$(json_field "$TMP_DIR/task-c-final.json" 'body.receipt && body.receipt.receipt_hash')" ]] \
+  || fail "refused run has no receipt hash — failures must stay provable"
+[[ "$(json_field "$TMP_DIR/task-c-final.json" 'body.receipt && body.receipt.signature_present')" == "true" ]] \
+  || fail "refused run's receipt is not signed"
+
 PLAN_C_STATUS=$(psql "$DB_URL" -tAc "SELECT status FROM dogfood_migration_audit WHERE plan_id='$PLAN_C'" | tr -d '[:space:]')
 [[ "$PLAN_C_STATUS" == "checksum_mismatch" ]] \
   || fail "tampered plan C should be 'checksum_mismatch', got '$PLAN_C_STATUS'" "$(cat "$TMP_DIR/task-c-final.json")"
@@ -510,7 +533,8 @@ if [[ "$WITH_CONSOLE" == "true" ]]; then
     "$GATEWAY_BASE/plan" > "$TMP_DIR/plan-d.json" || true
   # Plan A content was already applied, so re-planning it is refused (409);
   # the console run just needs a waiting run, so reuse plan C's id.
-  mcp_call_action "$TMP_DIR/mcp-run-d.json" "d" "$PLAN_C"
+  SUMMARY_D="console review of $MIGRATION_C"
+  mcp_call_action "$TMP_DIR/mcp-run-d.json" "d" "$PLAN_C" "$SUMMARY_D"
   RUN_D=$(extract_run_id "$TMP_DIR/mcp-run-d.json")
   [[ -n "$RUN_D" ]] || fail "could not create console review run"
 
@@ -545,11 +569,27 @@ if [[ "$WITH_CONSOLE" == "true" ]]; then
     || fail "console approval panel is missing the approve control"
   grep -q 'Reject run' "$TMP_DIR/console-run-d.html" \
     || fail "console approval panel is missing the reject control"
+  grep -q "$SUMMARY_D" "$TMP_DIR/console-run-d.html" \
+    || fail "console approval panel does not show the request summary"
   if grep -q "$INPUT_SENTINEL" "$TMP_DIR/console-run-d.html"; then
     fail "raw action input leaked into the console run detail page"
   fi
   if grep -qE 'postgres(ql)?://' "$TMP_DIR/console-run-d.html"; then
     fail "a database DSN leaked into the console run detail page"
+  fi
+
+  # Console truth for the REFUSED run: the tampered run C must present as
+  # Failed, never as Succeeded, and must not leak input or DSN.
+  curl -sS -u "$CONSOLE_ADMIN_USER:$CONSOLE_ADMIN_PASSWORD" \
+    "http://127.0.0.1:$CONSOLE_PORT/runs/$RUN_C" > "$TMP_DIR/console-run-c.html"
+  grep -q 'ic-doc__stat--bad">Failed' "$TMP_DIR/console-run-c.html" \
+    || fail "console does not show the refused run as Failed"
+  if grep -q 'ic-doc__stat--ok">Succeeded' "$TMP_DIR/console-run-c.html"; then
+    fail "console shows the refused run as Succeeded — the status lies"
+  fi
+  if grep -q "$INPUT_SENTINEL" "$TMP_DIR/console-run-c.html" \
+     || grep -qE 'postgres(ql)?://' "$TMP_DIR/console-run-c.html"; then
+    fail "refused run's console page leaked raw input or a DSN"
   fi
 
   curl -sS "${COOKIE_ARGS[@]}" -H "Content-Type: application/json" \
@@ -566,7 +606,8 @@ echo "  action registered via API:        dogfood.apply_staging_migration ($ACTI
 echo "  plan A applied after approval:    $PLAN_A ($MIGRATION_A, sha256 ${PLAN_A_SHA:0:12}…)"
 echo "  run A approved and completed:     $RUN_A (proof_status=${PROOF_STATUS:-unknown})"
 echo "  run B rejected, never applied:    $RUN_B (plan stayed 'planned')"
-echo "  tampered plan C refused:          $PLAN_C (checksum_mismatch; run status=$RUN_C_STATUS)"
+echo "  tampered run C failed honestly:   $RUN_C (status=failed, checksum_mismatch, no schema effect)"
+echo "  approver context on waiting run:  action_name + request_summary"
 echo "  double-approve blocked:           409 not_awaiting_approval"
 echo "  path traversal refused:           400 at /plan"
 echo "  signed receipts listed:           $RECEIPT_COUNT"
