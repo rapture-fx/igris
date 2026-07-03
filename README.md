@@ -125,6 +125,41 @@ The first run builds the Rust runtime, which takes a while; later runs reuse
 the binary. See [scripts/approval_loop_smoke.sh](./scripts/approval_loop_smoke.sh)
 for exactly what is asserted.
 
+## Internal Dogfood: Controlled Staging Migration
+
+The first workflow we run through Igris for our own engineering work: applying
+a SQL migration to a **staging/local** database only after a recorded plan and
+an explicit human approval, with a signed receipt and a database-side audit
+trail. Contract and acceptance record:
+[DOGFOOD_STAGING_MIGRATION_2026-07-03.md](./DOGFOOD_STAGING_MIGRATION_2026-07-03.md).
+
+```bash
+make igris-local-up               # once: local Postgres + migrations
+make dogfood-migration-smoke      # scripted end-to-end proof (~30s warm)
+make dogfood-migration-smoke-console   # same, plus console approval panel
+```
+
+Operator flow for a real (local/staging) migration:
+
+```bash
+# 1. start the staging-only gateway — the ONLY process that holds the DSN;
+#    it refuses non-loopback databases and path-escaping filenames
+node scripts/dogfood_staging_migration_gateway.js serve 18095 "$DATABASE_URL"
+
+# 2. record the plan (filename must live in igris-overture/database/migrations)
+curl -s -X POST localhost:18095/plan -d '{"filename":"064_execution_evals.sql"}'
+
+# 3. request the apply through Igris (MCP call_action or /v1/actions/:name/run)
+#    -> the run pauses in approval_required
+# 4. review in the console (/runs/<id>) and the gateway (GET /plans), approve
+# 5. the runtime applies through the gateway exactly once; inspect the run,
+#    the signed receipt, and the dogfood_migration_audit row
+```
+
+The gateway enforces staging-only (loopback DSN), plan-checksum match at apply
+time, and at-most-once apply — independently of Igris policy. Overture, the
+runtime, and the console never see database credentials.
+
 ## Quick Install
 
 The public first-run path installs the Igris CLI into `~/.igris/bin`:

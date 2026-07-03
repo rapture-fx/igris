@@ -1,4 +1,4 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console
 
 product-promise:
 	./scripts/product_promise_acceptance.sh
@@ -40,6 +40,16 @@ approval-loop-smoke:
 # Same loop plus the Rails console approval panel render check (needs Ruby).
 approval-loop-smoke-console:
 	./scripts/approval_loop_smoke.sh --with-console
+
+# Internal dogfood workflow: controlled staging migration. Plan -> Human-gated
+# approval -> gateway apply -> audit row + signed receipt; tamper + reject +
+# double-approve guards included. See DOGFOOD_STAGING_MIGRATION_2026-07-03.md.
+# Run `make igris-local-up` first.
+dogfood-migration-smoke:
+	./scripts/dogfood_migration_approval_smoke.sh
+
+dogfood-migration-smoke-console:
+	./scripts/dogfood_migration_approval_smoke.sh --with-console
 
 web-console-check:
 	pnpm --filter @igris-inertial/web-console build
