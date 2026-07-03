@@ -2016,12 +2016,20 @@ module Igris
 
     def build_raw_evidence(raw)
       receipt = raw[:receipt] || raw['receipt']
+      receipt_hash =
+        if receipt.respond_to?(:[])
+          receipt['receipt_hash'] || receipt[:receipt_hash] || receipt['hash'] || receipt[:hash]
+        end
+      receipt_signed =
+        if receipt.respond_to?(:[])
+          receipt['signature_present'] || receipt[:signature_present] || receipt['signed'] || receipt[:signed]
+        end
       [
         { key: 'task_id',         value: raw[:task_id].to_s.presence || '—' },
         { key: 'executed_target', value: raw[:executed_target].to_s.presence || '—' },
         { key: 'runtime_id',      value: raw[:runtime_id].to_s.presence || '—' },
-        { key: 'receipt_hash',    value: (receipt && (receipt['hash'] || receipt[:hash])).to_s.presence || '—' },
-        { key: 'receipt_signed',  value: (receipt ? (receipt['signed'] || receipt[:signed]).to_s : '—') },
+        { key: 'receipt_hash',    value: receipt_hash.to_s.presence || '—' },
+        { key: 'receipt_signed',  value: receipt ? receipt_signed.to_s : '—' },
       ]
     end
 

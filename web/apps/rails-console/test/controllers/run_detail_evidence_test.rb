@@ -57,7 +57,7 @@ class RunDetailEvidenceTest < ActionDispatch::IntegrationTest
       'dispatched_at' => 2.minutes.ago.iso8601,
       'completed_at' => 1.minute.ago.iso8601,
       'proof' => { 'status' => 'verified', 'verified' => true, 'signature_digest' => 'abcd1234ef567890aaaa' },
-      'receipt' => { 'hash' => 'sha256:deadbeefcafe', 'signed' => true },
+      'receipt' => { 'receipt_hash' => 'sha256:deadbeefcafe', 'signature_present' => true },
       # ── Hostile fields: hostnames, IPs, tokens, env, callback bodies ──
       'target_url' => 'https://internal-db.corp.local:5432/path',
       'host' => '10.1.2.3',
