@@ -340,6 +340,12 @@ func submitActionRun(c *fiber.Ctx, db *sql.DB, tc *coordinator.TaskCoordinator, 
 				"message": err.Error(),
 			})
 		}
+		if errors.Is(err, coordinator.ErrExecutionInputProtectionUnavailable) {
+			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":   "input_protection_unavailable",
+				"message": "this action's input requires encrypted input protection, but the input-ref keyring is not configured or failed; set IGRIS_EXECUTION_INPUT_REF_KEYS and IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION",
+			})
+		}
 		log.Error().Err(err).Str("tenant_id", tenantID).Str("action", req.Action).Msg("[Actions] Run failed")
 		return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 			"error":   "runtime_unavailable",
@@ -485,6 +491,14 @@ func actionApprovalErrorResponse(c *fiber.Ctx, err error) error {
 		return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 			"error":   "runtime_unavailable",
 			"message": "no connected runtime is available to dispatch this approved run; reconnect a runtime and approve again",
+		})
+	case errors.Is(err, coordinator.ErrExecutionInputRefUnavailable):
+		// The run has been marked terminal failed by the coordinator; the
+		// message carries only the safe failure code (e.g. scope_mismatch,
+		// key_unavailable), never key material or plaintext.
+		return c.Status(http.StatusConflict).JSON(fiber.Map{
+			"error":   "input_ref_unavailable",
+			"message": err.Error() + "; the run was marked failed and was not dispatched",
 		})
 	default:
 		log.Error().Err(err).Msg("[Actions] approval decision failed")
@@ -1243,9 +1257,41 @@ func actionNodeMetadata(req actionRunRequest) map[string]interface{} {
 		switch key {
 		case "action_definition_id", "action_name", "target_type", "policy_preset", "replay_class", "approval_required", "irreversible":
 			metadata[key] = value
+		case "request_summary":
+			// Caller-provided, operator-facing one-liner ("apply
+			// 064_execution_evals.sql sha256 3471cf5d…") so an approver can see
+			// WHAT a paused run intends without exposing the raw input. It is
+			// advisory context — the execution target stays the source of
+			// truth — and is scrubbed before it is stored or echoed.
+			if summary := sanitizeActionRequestSummary(value); summary != "" {
+				metadata[key] = summary
+			}
 		}
 	}
 	return metadata
+}
+
+const maxActionRequestSummaryLength = 200
+
+// sanitizeActionRequestSummary bounds the caller-provided approval summary to
+// a single short plain-text line: control characters stripped, length capped,
+// inline auth material redacted. Anything that is not a string is dropped.
+func sanitizeActionRequestSummary(value interface{}) string {
+	s, ok := value.(string)
+	if !ok {
+		return ""
+	}
+	s = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, s)
+	s = strings.TrimSpace(s)
+	if len(s) > maxActionRequestSummaryLength {
+		s = s[:maxActionRequestSummaryLength]
+	}
+	return redactInlineAuth(s)
 }
 
 func actionNodeID(action string) string {

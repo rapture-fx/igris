@@ -88,7 +88,9 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 
 	protectedDefinition, err := protectTaskDefinitionInputs(normalizedDefinition, req.TenantID, taskID)
 	if err != nil {
-		return nil, err
+		// Sensitive input + no usable keyring (or an encryption failure) must
+		// not be mistaken for a runtime problem downstream.
+		return nil, fmt.Errorf("%w: %v", ErrExecutionInputProtectionUnavailable, err)
 	}
 	task := &TaskRecord{
 		TaskID:               taskID,
@@ -205,7 +207,9 @@ func (tc *TaskCoordinator) SubmitDemoSimulatedFailure(ctx context.Context, req *
 	}
 	protectedDefinition, err := protectTaskDefinitionInputs(normalizedDefinition, req.TenantID, taskID)
 	if err != nil {
-		return nil, err
+		// Sensitive input + no usable keyring (or an encryption failure) must
+		// not be mistaken for a runtime problem downstream.
+		return nil, fmt.Errorf("%w: %v", ErrExecutionInputProtectionUnavailable, err)
 	}
 	task := &TaskRecord{
 		TaskID:               taskID,

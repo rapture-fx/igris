@@ -21,6 +21,17 @@ var (
 	ErrExecutionInputRefRevoked  = errors.New("execution input ref revoked")
 	ErrExecutionInputRefExpired  = errors.New("execution input ref expired")
 	ErrExecutionInputRefScope    = errors.New("execution input ref scope mismatch")
+
+	// ErrExecutionInputRefUnavailable is the safe, type-checkable wrapper for
+	// any input-ref recovery failure (approve/redispatch rehydration). API
+	// handlers map it to a dedicated error code instead of a generic db_error.
+	ErrExecutionInputRefUnavailable = errors.New("encrypted input ref unavailable")
+
+	// ErrExecutionInputProtectionUnavailable is returned at submit when a task
+	// definition carries sensitive input but the input-ref keyring is not
+	// configured (IGRIS_EXECUTION_INPUT_REF_KEYS). Without a typed error this
+	// surfaced as a misleading runtime_unavailable.
+	ErrExecutionInputProtectionUnavailable = errors.New("execution input protection unavailable")
 )
 
 type ExecutionInputRef struct {
@@ -470,5 +481,5 @@ func safeInputRefError(err error) error {
 	if err == nil {
 		return nil
 	}
-	return fmt.Errorf("encrypted input ref unavailable: %s", safeInputRefFailureCode(err))
+	return fmt.Errorf("%w: %s", ErrExecutionInputRefUnavailable, safeInputRefFailureCode(err))
 }
