@@ -178,6 +178,22 @@ run_fast_gate() {
 }
 
 run_heavy_gate() {
+  # The Action Task recovery proofs submit an action_task whose http_call steps
+  # carry `headers` — a sensitive input key. At submit, Overture encrypts
+  # sensitive inputs with the execution input-ref keyring; with no key configured
+  # the submit fails closed (ErrExecutionInputProtectionUnavailable) and
+  # /v1/tasks/submit returns 503. Dev machines set this in .env; clean CI runners
+  # do not. Provision an ephemeral throwaway 32-byte AES key (base64) so the proof
+  # exercises the REAL encryption path — proof/test keying only, never production.
+  # Exported here (AFTER run_fast_gate) so the demo scripts and the Overture they
+  # start via bare `env` inherit it, without disturbing the coordinator go tests,
+  # which manage their own keyring env. Respect an operator-supplied key if set.
+  if [[ -z "${IGRIS_EXECUTION_INPUT_REF_KEYS:-}" && -z "${IGRIS_EXECUTION_INPUT_REF_KEY:-}" ]]; then
+    export IGRIS_EXECUTION_INPUT_REF_KEYS="v1:$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("base64"))')"
+    export IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION="v1"
+    echo "[heavy] generated ephemeral test execution input-ref keyring (version v1)"
+  fi
+
   echo "[heavy] Running cumulative clean-host recovery proof"
   "$SCRIPT_DIR/action_task_v1_cumulative_clean_host_recovery_proof_demo.sh"
 
