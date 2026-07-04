@@ -48,6 +48,48 @@ not the cause of any of these.
 - **Fix:** test-only — key rows now use the helper's signer identity, and the
   audit-row assertion checks the same identity.
 
+## Unmasked by the fixes above (found on the first PR #59 CI run)
+
+Fixing the first failure in each job let CI progress further than `main` ever
+had, exposing two more pre-existing failures. Both are repaired in this branch.
+
+### 5. Governance Postgres migrations — `TestTenantEmailAlignmentMigration_AddsAndBackfillsColumn`
+
+- **Symptom:** `sql: Scan error on column ... "tenant_email": converting NULL
+  to string is unsupported`. Never seen on `main` because the job died at the
+  robotics step (item 3) before this step ran.
+- **Cause:** migration `050_tenant_email_alignment.sql` guarded its backfill
+  with `information_schema.columns WHERE table_schema = 'public'`. The test
+  applies the migration inside an isolated per-test schema; on a clean CI
+  database there is no `public.tenants`, so the guard was false and the
+  backfill silently skipped. It passed on dev databases only because they
+  happen to have a `public.tenants`.
+- **Fix:** the guard now resolves `tenants` through the current search_path
+  (`pg_attribute` + `to_regclass('tenants')`), i.e. it inspects the same table
+  the migration's own `ALTER TABLE` just modified. In production, where
+  `tenants` is in `public`, this is equivalent — no behavior change, still
+  idempotent. Reproduced the NULL with the old guard and verified the fix on a
+  clean scratch database.
+
+### 6. Rust runtime workspace tests — `igris-server` containment integration
+
+- **Symptom:** both `containment_integration` tests fail on GitHub runners:
+  `worker execution should succeed: Cpu` and the timeout test not returning
+  `Err(ViolationKind::Time)`. Never seen on `main` because cargo's fail-fast
+  stopped at the fleet failure (item 1) before this test binary ran.
+- **Cause:** not load flakiness — deterministic. On Linux the supervisor fails
+  closed: `spawn_worker` errors (surfaced as `ViolationKind::Cpu`) when the
+  worker cannot be attached to a containment cgroup. GitHub-hosted runners do
+  not allow the unprivileged job user to create cgroups under
+  `/sys/fs/cgroup`, so both tests failed at spawn, before any containment
+  logic ran.
+- **Fix:** test-only. The tests now probe cgroup creatability once (via the
+  crate's existing `igris_safety::cgroup::CGroup` API) and skip with a printed
+  reason when the environment cannot create cgroups. They still run fully on
+  non-Linux dev hosts (cgroup attach is a documented no-op there) and on any
+  Linux with cgroup permissions (privileged/self-hosted runners). Supervisor
+  fail-closed behavior is untouched.
+
 ## External — requires a manual Cloudflare dashboard change
 
 ### 4. `Cloudflare Pages: igris-console`
@@ -76,7 +118,6 @@ not the cause of any of these.
   `cargo test --workspace --lib --bins --tests` — doc-tests are never executed
   in CI, so this does not affect the baseline. Pre-existing; worth a separate
   cleanup.
-- **`igris-server::containment_integration::supervisor_executes_runtime_worker_job`**
-  timed out once during a full parallel workspace run on a heavily loaded
-  machine, and passes consistently in isolation. Load-induced flake, green on
-  the CI runner; no change made.
+- ~~`igris-server::containment_integration` assumed to be a load-induced local
+  flake~~ — superseded: the CI failure was deterministic (cgroup permissions),
+  see item 6 above.
