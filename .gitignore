@@ -304,6 +304,11 @@ path.zsh.inc
 *.rmeta
 *.a
 Cargo.lock
+# The FFI crates baked into the igris-api image MUST have committed lockfiles:
+# the Docker build runs `cargo build --locked`, and floating resolution is what
+# broke the image build when backon 1.6.0 was published (2026-06/07).
+!rust-core/rust_kernel/Cargo.lock
+!rust-core/production_slo_enforcer/Cargo.lock
 # Build artifacts
 **/.next/
 **/node_modules/
