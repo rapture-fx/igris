@@ -477,6 +477,8 @@ func TestRuntimeFailedRecoveryDecisionBlocksIrreversibleReplay(t *testing.T) {
 		}`),
 	}
 
+	// No checkpoint is attached, so recovery cannot prove the irreversible
+	// database_write is still pending — it must be denied.
 	decision, gotRuntimeID, allowed, reason, shouldRecord := runtimeFailedRecoveryDecision(task, runtimeID)
 	require.True(t, shouldRecord)
 	require.Equal(t, runtimeID, gotRuntimeID)
@@ -484,7 +486,70 @@ func TestRuntimeFailedRecoveryDecisionBlocksIrreversibleReplay(t *testing.T) {
 	require.Equal(t, ReplayClassNonRetryable, decision.ReplayClass)
 	require.True(t, decision.Irreversible)
 	require.False(t, allowed)
-	require.Equal(t, "irreversible action cannot be automatically replayed during recovery", reason)
+	require.Equal(t, "irreversible action already committed or checkpoint cannot prove safe forward-resume", reason)
+}
+
+func TestRuntimeFailedRecoveryDecisionAllowsForwardResumeBeforeIrreversibleStep(t *testing.T) {
+	t.Parallel()
+
+	taskID := uuid.New()
+	runtimeID := "runtime-failed-fwd"
+	targetRuntimeID := "runtime-clean-host"
+	// read_file(0) -> http_call(1) -> read_file(2) -> http_call(3) -> db_write(4).
+	// The checkpoint committed through step 1, so the irreversible db_write at
+	// step 4 has not executed and forward-resume onto a clean host is safe.
+	task := &TaskRecord{
+		TaskID:    taskID,
+		TenantID:  "tenant-fwd-recovery",
+		Status:    TaskStatusDispatched,
+		RuntimeID: &runtimeID,
+		TaskDefinition: json.RawMessage(`{
+			"type":"execution_graph",
+			"graph":{"nodes":[
+				{"kind":"tool","tool_name":"filesystem","node_id":"read_file-0"},
+				{"kind":"tool","tool_name":"http_request","node_id":"http_call-1"},
+				{"kind":"tool","tool_name":"filesystem","node_id":"read_file-2"},
+				{"kind":"tool","tool_name":"http_request","node_id":"http_call-3"},
+				{"kind":"tool","tool_name":"database_write","node_id":"db_write-4"}
+			]}
+		}`),
+		LastCheckpoint: &CheckpointPayload{
+			TaskID: taskID,
+			ResumeToken: ResumeToken{
+				LastCommittedStep: 1,
+				CheckpointDigest:  "abc",
+				RuntimeID:         runtimeID,
+			},
+			WalEntries: []WalEntry{
+				{EntryID: uuid.New(), TaskID: taskID, StepIndex: 0, Status: "committed", InputDigest: "a", RuntimeID: runtimeID},
+				{EntryID: uuid.New(), TaskID: taskID, StepIndex: 1, Status: "committed", InputDigest: "b", RuntimeID: runtimeID},
+			},
+		},
+	}
+
+	decision, _, allowed, reason, shouldRecord := runtimeFailedRecoveryDecision(task, runtimeID)
+	require.True(t, shouldRecord)
+	require.Equal(t, ActionDecisionAllowed, decision.Decision)
+	require.True(t, decision.Irreversible, "task still contains an irreversible action")
+	require.Equal(t, CheckpointPortabilityCompatibleRuntime, decision.CheckpointPortability)
+	require.True(t, allowed, "forward-resume before the irreversible step must be allowed: %s", reason)
+
+	// Handing off to a different (clean-host) runtime is permitted precisely
+	// because the irreversible step is still pending.
+	handoffAllowed, handoffReason := RecoveryHandoffAllowed(task, task.LastCheckpoint, targetRuntimeID, decision)
+	require.True(t, handoffAllowed, "cross-runtime handoff should be allowed for pending irreversible work: %s", handoffReason)
+
+	// If the db_write had already committed (watermark past step 4), the same
+	// task must be denied so a committed side effect is never replayed.
+	task.LastCheckpoint.ResumeToken.LastCommittedStep = 4
+	task.LastCheckpoint.WalEntries = append(task.LastCheckpoint.WalEntries,
+		WalEntry{EntryID: uuid.New(), TaskID: taskID, StepIndex: 2, Status: "committed", InputDigest: "c", RuntimeID: runtimeID},
+		WalEntry{EntryID: uuid.New(), TaskID: taskID, StepIndex: 3, Status: "committed", InputDigest: "d", RuntimeID: runtimeID},
+		WalEntry{EntryID: uuid.New(), TaskID: taskID, StepIndex: 4, Status: "committed", InputDigest: "e", RuntimeID: runtimeID},
+	)
+	committedDecision, _, committedAllowed, _, _ := runtimeFailedRecoveryDecision(task, runtimeID)
+	require.Equal(t, ActionDecisionDenied, committedDecision.Decision)
+	require.False(t, committedAllowed, "committed irreversible step must never be replayed on another runtime")
 }
 
 func TestSelectRecoveryCheckpoint(t *testing.T) {
