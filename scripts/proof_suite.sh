@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Igris Inertial — Core Run / Recover / Verify proof suite.
 #

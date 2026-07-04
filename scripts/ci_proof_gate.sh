@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # CI proof gate for durable task recovery.
 #
@@ -11,7 +11,6 @@
 # scripts, including cumulative clean-host recovery.
 
 set -euo pipefail
-setopt TYPESET_SILENT
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 ROOT_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
