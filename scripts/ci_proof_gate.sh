@@ -79,6 +79,10 @@ SQL
 
   echo "[db] Applying existing durable-task proof migrations"
   local required_migrations=(
+    # runtime_instances must exist before the proof scripts register runtimes
+    # (POST /api/v1/runtime/register inserts into it); a fresh proof DB
+    # without it made registration 500 on clean CI runners.
+    "005_runtime_instances"
     "006_execution_lineage"
     "031_task_records"
     "032_task_record_artifacts"
