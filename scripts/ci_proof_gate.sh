@@ -105,14 +105,18 @@ SQL
     "047_execution_context"
     "048_verified_execution_schema_repair"
     "049_task_proof_verification_summary"
-    # task submission (CheckpointStore.CreateTask) INSERTs registered_agent_id/
-    # registered_agent_name and relies on ON CONFLICT (tenant_id, idempotency_key).
-    # 031 only has a GLOBAL idempotency unique index, so 057 supplies the composite
-    # tenant-scoped unique index the ON CONFLICT target needs, and 062 adds the
-    # registered_agent columns. Without them /v1/tasks/submit 503s ("dispatch_failed":
-    # column registered_agent_id ... does not exist) on a fresh proof DB. Both are
-    # ALTER/INDEX ... IF NOT EXISTS (057 also DROP INDEX IF EXISTS), so
-    # already-provisioned DBs are unaffected.
+    # task submission of an action_task with sensitive input (http_call headers)
+    # runs CheckpointStore.CreateTaskWithExecutionInputRefs — one transaction that
+    # writes task_records AND execution_input_refs/execution_input_ref_audit. On a
+    # fresh proof DB each missing piece 503s ("dispatch_failed") in turn:
+    #   056 — creates execution_input_refs + execution_input_ref_audit (the encrypted
+    #         sensitive-input rows the submit transaction stores)
+    #   057 — replaces 031's GLOBAL idempotency unique index with the composite
+    #         (tenant_id, idempotency_key) index the INSERT's ON CONFLICT target needs
+    #   062 — adds registered_agent_id/registered_agent_name columns
+    # All are CREATE/ALTER/INDEX ... IF NOT EXISTS (057 also DROP INDEX IF EXISTS),
+    # so already-provisioned DBs are unaffected.
+    "056_execution_input_refs"
     "057_task_records_tenant_scoped_idempotency"
     "062_task_records_registered_agent"
   )
