@@ -79,7 +79,18 @@ SQL
 
   echo "[db] Applying existing durable-task proof migrations"
   local required_migrations=(
+    # runtime_instances and its tenant-scoped columns must exist before the
+    # proof scripts register runtimes. POST /api/v1/runtime/register inserts
+    # (runtime_id, tenant_id, machine_id, hostname_cached, ip_address, status,
+    # last_heartbeat, ...): 005 creates the base table, 007 adds tenant_id and
+    # creates the tenants table the proof-tenant setup needs, 008 adds
+    # machine_id/hostname_cached/ip_address/last_heartbeat/status. Without all
+    # three a fresh proof DB made registration 500 on clean CI runners. All are
+    # CREATE/ALTER ... IF NOT EXISTS, so already-provisioned DBs are unaffected.
+    "005_runtime_instances"
     "006_execution_lineage"
+    "007_pricing_model_refactor"
+    "008_runtime_registry"
     "031_task_records"
     "032_task_record_artifacts"
     "033_task_proof_state"
