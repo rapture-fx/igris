@@ -112,6 +112,15 @@ jobs:
           go-version: "1.24.x"
           cache: true
 
+      # The proof scripts build Overture OFFLINE (GOPROXY=off GOSUMDB=off
+      # GOFLAGS=-mod=readonly) to keep the proof hermetic. That only works if
+      # the module cache is already complete — the restored actions cache is
+      # not guaranteed to be. Prime it here, while network is still allowed;
+      # `go mod download` verifies against the committed go.sum and can never
+      # modify go.mod/go.sum, so dependency drift still fails the gate.
+      - name: Prime Go module cache for offline proof builds
+        run: go mod download
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
