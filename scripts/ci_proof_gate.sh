@@ -105,6 +105,29 @@ SQL
     "047_execution_context"
     "048_verified_execution_schema_repair"
     "049_task_proof_verification_summary"
+    # task submission of an action_task with sensitive input (http_call headers)
+    # runs CheckpointStore.CreateTaskWithExecutionInputRefs — one transaction that
+    # writes task_records AND execution_input_refs/execution_input_ref_audit. On a
+    # fresh proof DB each missing piece 503s ("dispatch_failed") in turn:
+    #   056 — creates execution_input_refs + execution_input_ref_audit (the encrypted
+    #         sensitive-input rows the submit transaction stores)
+    #   057 — replaces 031's GLOBAL idempotency unique index with the composite
+    #         (tenant_id, idempotency_key) index the INSERT's ON CONFLICT target needs
+    #   062 — adds registered_agent_id/registered_agent_name columns
+    # All are CREATE/ALTER/INDEX ... IF NOT EXISTS (057 also DROP INDEX IF EXISTS),
+    # so already-provisioned DBs are unaffected.
+    #
+    # For an action_task the submit also persists an action policy decision
+    # (SaveActionPolicyDecision) before dispatch: 051 creates action_policy_decisions
+    # (+ the boundary/approval/verification tables the best-effort follow-ups touch).
+    # Without it submit 503s ("persist action policy decision: ... action_policy_decisions
+    # does not exist"). ai_task_permission_audit (SaveTaskPermissionEnvelope) and the
+    # MarkDispatched columns are already covered by 043 and 031. 051's FKs are all
+    # internal to itself (+ task_records, already present).
+    "051_execution_governance_recovery"
+    "056_execution_input_refs"
+    "057_task_records_tenant_scoped_idempotency"
+    "062_task_records_registered_agent"
   )
   local migration_file
   local migration_name
@@ -178,6 +201,22 @@ run_fast_gate() {
 }
 
 run_heavy_gate() {
+  # The Action Task recovery proofs submit an action_task whose http_call steps
+  # carry `headers` — a sensitive input key. At submit, Overture encrypts
+  # sensitive inputs with the execution input-ref keyring; with no key configured
+  # the submit fails closed (ErrExecutionInputProtectionUnavailable) and
+  # /v1/tasks/submit returns 503. Dev machines set this in .env; clean CI runners
+  # do not. Provision an ephemeral throwaway 32-byte AES key (base64) so the proof
+  # exercises the REAL encryption path — proof/test keying only, never production.
+  # Exported here (AFTER run_fast_gate) so the demo scripts and the Overture they
+  # start via bare `env` inherit it, without disturbing the coordinator go tests,
+  # which manage their own keyring env. Respect an operator-supplied key if set.
+  if [[ -z "${IGRIS_EXECUTION_INPUT_REF_KEYS:-}" && -z "${IGRIS_EXECUTION_INPUT_REF_KEY:-}" ]]; then
+    export IGRIS_EXECUTION_INPUT_REF_KEYS="v1:$(node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("base64"))')"
+    export IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION="v1"
+    echo "[heavy] generated ephemeral test execution input-ref keyring (version v1)"
+  fi
+
   echo "[heavy] Running cumulative clean-host recovery proof"
   "$SCRIPT_DIR/action_task_v1_cumulative_clean_host_recovery_proof_demo.sh"
 
