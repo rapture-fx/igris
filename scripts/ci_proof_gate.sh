@@ -125,6 +125,16 @@ SQL
     # MarkDispatched columns are already covered by 043 and 031. 051's FKs are all
     # internal to itself (+ task_records, already present).
     "051_execution_governance_recovery"
+    # After submit returns 202 the proof polls GET /v1/tasks/:id, whose task-detail
+    # SELECT reads task_records.executed_target/fallback_reason. Those columns are
+    # added by 055; without them the read 500s ("column executed_target does not
+    # exist"). 055 also ALTERs action_definitions (fallback_policy), so it requires
+    # that table — created by 054. Add both in order (054 -> 055). 054 is a
+    # standalone CREATE TABLE IF NOT EXISTS; 055 is ALTER/INDEX ... IF NOT EXISTS
+    # (its CHECK constraint is guarded by a pg_constraint existence probe), so
+    # already-provisioned DBs are unaffected.
+    "054_action_definitions"
+    "055_action_execution_targets"
     "056_execution_input_refs"
     "057_task_records_tenant_scoped_idempotency"
     "062_task_records_registered_agent"
