@@ -1,12 +1,42 @@
 use ed25519_dalek::SigningKey;
-use igris_safety::{Bounds, Supervisor, ViolationKind, ViolationRecord};
+use igris_safety::{cgroup::CGroup, Bounds, Supervisor, ViolationKind, ViolationRecord};
 
 fn test_signing_key(seed: u8) -> SigningKey {
     SigningKey::from_bytes(&[seed; 32])
 }
 
+/// On Linux the supervisor fails closed: if the worker cannot be attached to a
+/// containment cgroup, `execute` refuses to run the job at all. Shared CI
+/// runners (e.g. GitHub-hosted) deny cgroup creation to the unprivileged job
+/// user, so these tests cannot exercise containment there — probe once and
+/// skip with a visible reason rather than report a false containment failure.
+/// The tests still run everywhere cgroups are creatable (privileged Linux) and
+/// on non-Linux dev hosts, where cgroup attachment is a documented no-op.
+fn cgroup_containment_unavailable() -> Option<String> {
+    match CGroup::new(&Bounds::new(80, 5_000)) {
+        Ok(probe) => {
+            let _ = probe.destroy();
+            None
+        }
+        Err(reason) => Some(reason),
+    }
+}
+
+macro_rules! skip_unless_cgroup_capable {
+    () => {
+        if let Some(reason) = cgroup_containment_unavailable() {
+            eprintln!(
+                "SKIPPED: this environment cannot create containment cgroups \
+                 (supervisor fails closed without one): {reason}"
+            );
+            return;
+        }
+    };
+}
+
 #[tokio::test]
 async fn supervisor_executes_runtime_worker_job() {
+    skip_unless_cgroup_capable!();
     let worker_bin = env!("CARGO_BIN_EXE_igris-runtime");
     let log_path = std::env::temp_dir()
         .join(format!(
@@ -35,6 +65,7 @@ async fn supervisor_executes_runtime_worker_job() {
 
 #[tokio::test]
 async fn supervisor_times_out_worker_and_writes_signed_violation() {
+    skip_unless_cgroup_capable!();
     let worker_bin = env!("CARGO_BIN_EXE_igris-runtime");
     let log_path = std::env::temp_dir()
         .join(format!(
