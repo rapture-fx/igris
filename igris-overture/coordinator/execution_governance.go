@@ -296,8 +296,36 @@ func taskHasIrreversibleAction(definition json.RawMessage) bool {
 
 func taskRequiresHumanApproval(definition json.RawMessage) bool {
 	lower := strings.ToLower(string(definition))
-	return strings.Contains(lower, `"approval"`) &&
-		(strings.Contains(lower, `"required":true`) || strings.Contains(lower, `"human_approval"`))
+	if strings.Contains(lower, `"approval"`) &&
+		(strings.Contains(lower, `"required":true`) || strings.Contains(lower, `"human_approval"`)) {
+		return true
+	}
+
+	// Actions gateway runs stamp `approval_required` into execution-graph node
+	// metadata (api.actionNodeMetadata). Detect that shape structurally: the
+	// substring heuristic above never matches `"approval_required":true`, and a
+	// human-gated registered action must pause rather than dispatch.
+	var payload struct {
+		Graph struct {
+			Nodes []struct {
+				Metadata map[string]json.RawMessage `json:"metadata"`
+			} `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(definition, &payload); err != nil {
+		return false
+	}
+	for _, node := range payload.Graph.Nodes {
+		raw, ok := node.Metadata["approval_required"]
+		if !ok {
+			continue
+		}
+		var required bool
+		if err := json.Unmarshal(raw, &required); err == nil && required {
+			return true
+		}
+	}
+	return false
 }
 
 type boundaryDefaults struct {
@@ -407,6 +435,72 @@ func (s *CheckpointStore) MarkApprovalRequired(taskID uuid.UUID, reason string) 
 		TaskStatusApprovalRequired, reason, taskID, TaskStatusPending, TaskStatusRecovering,
 	)
 	return taskTransitionResult(result, err)
+}
+
+// MarkApprovedDispatched atomically transitions an approval_required task to
+// dispatched and binds it to the approving runtime. The WHERE clause pins the
+// current status to approval_required, so exactly one caller can win: a repeated
+// or concurrent approve affects zero rows and returns ErrTaskTransitionRejected,
+// which the coordinator surfaces as "not awaiting approval". This is the single
+// serialization point that prevents double dispatch. It is intentionally NOT
+// short-circuited under the mock driver so the compare-and-set result drives the
+// coordinator's behaviour in tests.
+func (s *CheckpointStore) MarkApprovedDispatched(taskID uuid.UUID, tenantID, runtimeID, runtimeEndpoint, approvedBy string) error {
+	if s == nil || s.db == nil {
+		return ErrTaskTransitionRejected
+	}
+	now := time.Now()
+	result, err := s.db.Exec(`
+		UPDATE task_records
+		SET status = $1, runtime_id = $2, runtime_endpoint = $3, dispatched_at = $4, failure_reason = NULL
+		WHERE task_id = $5 AND tenant_id = $6 AND status = $7`,
+		TaskStatusDispatched, runtimeID, runtimeEndpoint, now, taskID, tenantID, TaskStatusApprovalRequired,
+	)
+	return taskTransitionResult(result, err)
+}
+
+// MarkApprovalRejected atomically transitions an approval_required task to the
+// terminal failed state with a rejection reason. Like MarkApprovedDispatched it
+// pins the current status to approval_required, so a rejected task can never also
+// be dispatched (and a double reject is a no-op that returns
+// ErrTaskTransitionRejected).
+func (s *CheckpointStore) MarkApprovalRejected(taskID uuid.UUID, tenantID, reason string, details *TaskFailureDetails) error {
+	if s == nil || s.db == nil {
+		return ErrTaskTransitionRejected
+	}
+	var detailBytes json.RawMessage
+	if details != nil {
+		if encoded, err := json.Marshal(details); err == nil {
+			detailBytes = encoded
+		}
+	}
+	result, err := s.db.Exec(`
+		UPDATE task_records
+		SET status = $1, failure_reason = $2, failure_details = $3
+		WHERE task_id = $4 AND tenant_id = $5 AND status = $6`,
+		TaskStatusFailed, reason, nullRawJSON(detailBytes), taskID, tenantID, TaskStatusApprovalRequired,
+	)
+	return taskTransitionResult(result, err)
+}
+
+// ResolveApprovalRequest records the human decision on the approval_requests
+// audit row (who decided, when, and why). It is best-effort audit metadata — the
+// task_records transition is the source of truth — so it is mock-guarded and only
+// updates a still-pending request.
+func (s *CheckpointStore) ResolveApprovalRequest(taskID uuid.UUID, tenantID, status, decidedBy, reason string) error {
+	if s == nil || s.db == nil {
+		return nil
+	}
+	if isSQLMockDB(s.db) {
+		return nil
+	}
+	_, err := s.db.Exec(`
+		UPDATE approval_requests
+		SET status = $1, decided_by = NULLIF($2,''), decided_at = NOW(), decision_reason = NULLIF($3,'')
+		WHERE tenant_id = $4 AND task_id = $5 AND status = 'pending'`,
+		status, decidedBy, reason, tenantID, taskID,
+	)
+	return err
 }
 
 func (s *CheckpointStore) SetLatestPolicyDecision(taskID uuid.UUID, decision ActionPolicyDecision) error {

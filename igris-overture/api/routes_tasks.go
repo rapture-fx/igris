@@ -203,6 +203,12 @@ func handleTaskSubmit(tc *coordinator.TaskCoordinator) fiber.Handler {
 					"message": err.Error(),
 				})
 			}
+			if errors.Is(err, coordinator.ErrExecutionInputProtectionUnavailable) {
+				return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+					"error":   "input_protection_unavailable",
+					"message": "this task's input requires encrypted input protection, but the input-ref keyring is not configured or failed; set IGRIS_EXECUTION_INPUT_REF_KEYS and IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION",
+				})
+			}
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Tasks] Submit failed")
 			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 				"error":   "dispatch_failed",
@@ -1037,6 +1043,64 @@ func buildTaskResponse(task *coordinator.TaskRecord, sources ...actionEvidenceSo
 	if task.FailureReason != nil && *task.FailureReason != "" {
 		resp["failure_reason"] = *task.FailureReason
 	}
+
+	// ── Safe approval / run-detail fields for the console approval panel ──
+	// All of these are already-safe, name-only values derived from data the
+	// task record already carries. None expose raw inputs, payloads, secrets,
+	// paths, headers, or encrypted input refs.
+
+	// required_capabilities is the derived, name-only capability list (e.g.
+	// "tools.http_request", "network.api"). scanTaskRecord populates it from the
+	// stored definition; it is never a raw payload.
+	if len(task.RequiredCapabilities) > 0 {
+		resp["required_capabilities"] = task.RequiredCapabilities
+	}
+
+	// approval_reason is the human-gate / policy reason a run is paused on,
+	// surfaced separately from failure_reason so the console does not overload
+	// the failure field. For an approval_required run MarkApprovalRequired stores
+	// the policy reason in failure_reason, so it is the safe source here.
+	if task.Status == coordinator.TaskStatusApprovalRequired && task.FailureReason != nil && *task.FailureReason != "" {
+		resp["approval_reason"] = *task.FailureReason
+	}
+
+	// action_target_type is the configured execution surface (hosted_api,
+	// webhook, local_runtime, mock_demo, …). It is stamped onto the run at submit
+	// even before dispatch, so an approval-required run can show where it will
+	// run. Prefer the stamped executed_target; fall back to the target_type the
+	// gateway recorded in the execution-graph node metadata.
+	targetType := ""
+	if task.ExecutedTarget != nil {
+		targetType = strings.TrimSpace(*task.ExecutedTarget)
+	}
+	if targetType == "" {
+		targetType = safeActionNodeMetaString(task.TaskDefinition, "target_type")
+	}
+	targetType = canonicalActionTargetType(targetType)
+	if validActionTargetType(targetType) {
+		resp["action_target_type"] = targetType
+	}
+
+	// policy_preset is the configured, human-readable policy preset for the
+	// action (a safe enum label), stamped into node metadata by the gateway.
+	if preset := safeActionNodeMetaString(task.TaskDefinition, "policy_preset"); validPolicyPreset(preset) {
+		resp["policy_preset"] = preset
+	}
+
+	// action_name is the registered action definition name the gateway stamped
+	// into node metadata — a pattern-validated identifier, never raw input. An
+	// approver reviewing a paused run needs to see WHICH action they are
+	// approving, not just its tool shape.
+	if name := safeActionNodeMetaString(task.TaskDefinition, "action_name"); validActionName(name) {
+		resp["action_name"] = name
+	}
+
+	// request_summary is the caller-provided approval one-liner, scrubbed at
+	// submit (actionNodeMetadata) and re-scrubbed here on the way out.
+	if summary := sanitizeActionRequestSummary(safeActionNodeMetaString(task.TaskDefinition, "request_summary")); summary != "" {
+		resp["request_summary"] = summary
+	}
+
 	if failureDetails := buildTaskFailureDetailsResponse(task.FailureDetails); failureDetails != nil {
 		resp["failure_details"] = failureDetails
 	}
@@ -1879,6 +1943,42 @@ func extractTaskType(taskDefinition json.RawMessage) string {
 		return ""
 	}
 	return payload.Type
+}
+
+// safeActionNodeMetaString returns a single whitelisted string value that the
+// action gateway stamped into an execution-graph node's metadata (e.g.
+// target_type, policy_preset). It reads ONLY the named key as a string from node
+// metadata and returns "" for anything else, so no raw input, payload, or
+// arbitrary metadata can leak. Callers still validate the value against a known
+// enum before exposing it.
+func safeActionNodeMetaString(taskDefinition json.RawMessage, key string) string {
+	if len(taskDefinition) == 0 {
+		return ""
+	}
+	var payload struct {
+		Graph struct {
+			Nodes []struct {
+				Metadata map[string]json.RawMessage `json:"metadata"`
+			} `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(taskDefinition, &payload); err != nil {
+		return ""
+	}
+	for _, node := range payload.Graph.Nodes {
+		raw, ok := node.Metadata[key]
+		if !ok {
+			continue
+		}
+		var value string
+		if err := json.Unmarshal(raw, &value); err != nil {
+			continue
+		}
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			return trimmed
+		}
+	}
+	return ""
 }
 
 func extractGraphCheckpointViews(metadata json.RawMessage) (graphBlackboard json.RawMessage, graphNodes json.RawMessage, graphSlots json.RawMessage) {

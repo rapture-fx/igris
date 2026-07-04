@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
@@ -20,6 +21,17 @@ var (
 	ErrExecutionInputRefRevoked  = errors.New("execution input ref revoked")
 	ErrExecutionInputRefExpired  = errors.New("execution input ref expired")
 	ErrExecutionInputRefScope    = errors.New("execution input ref scope mismatch")
+
+	// ErrExecutionInputRefUnavailable is the safe, type-checkable wrapper for
+	// any input-ref recovery failure (approve/redispatch rehydration). API
+	// handlers map it to a dedicated error code instead of a generic db_error.
+	ErrExecutionInputRefUnavailable = errors.New("encrypted input ref unavailable")
+
+	// ErrExecutionInputProtectionUnavailable is returned at submit when a task
+	// definition carries sensitive input but the input-ref keyring is not
+	// configured (IGRIS_EXECUTION_INPUT_REF_KEYS). Without a typed error this
+	// surfaced as a misleading runtime_unavailable.
+	ErrExecutionInputProtectionUnavailable = errors.New("execution input protection unavailable")
 )
 
 type ExecutionInputRef struct {
@@ -102,7 +114,10 @@ func (s *CheckpointStore) CreateTaskWithExecutionInputRefs(ctx context.Context, 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
 		ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
 		task.TaskID, task.TenantID, TaskStatusPending, defBytes, task.IdempotencyKey, task.DeadlineAt,
-		nullUUID(task.RegisteredAgentID), nullString(task.RegisteredAgentName),
+		// registered_agent_name is NOT NULL DEFAULT '' (migration 062); an
+		// unattributed run stores '' rather than NULL so anonymous submissions
+		// do not violate the constraint.
+		nullUUID(task.RegisteredAgentID), task.RegisteredAgentName,
 	)
 	if err != nil {
 		return false, err
@@ -249,7 +264,11 @@ func (s *CheckpointStore) DecryptExecutionInputRef(ctx context.Context, tenantID
 	if err != nil {
 		return nil, err
 	}
-	if string(expectedAAD) != string(ref.AAD) {
+	// The aad column is jsonb, so the bytes read back are Postgres-normalized
+	// (key order, whitespace) and never byte-equal to the compact Go marshal
+	// used at encrypt time. Compare as JSON values; the AEAD decrypt below
+	// still authenticates against the recomputed canonical bytes.
+	if !jsonValuesEqual(expectedAAD, ref.AAD) {
 		_ = s.SaveExecutionInputRefAudit(ctx, ExecutionInputRefAuditEvent{
 			TenantID: tenantID, TaskID: taskID, InputRefID: refID, Purpose: purpose,
 			KeyVersion: ref.KeyVersion,
@@ -373,6 +392,16 @@ func nullUUIDString(id uuid.UUID) string {
 	return id.String()
 }
 
+// jsonValuesEqual reports whether two JSON documents encode the same value,
+// ignoring key order and whitespace. Non-JSON inputs are never equal.
+func jsonValuesEqual(a, b []byte) bool {
+	var av, bv interface{}
+	if json.Unmarshal(a, &av) != nil || json.Unmarshal(b, &bv) != nil {
+		return false
+	}
+	return reflect.DeepEqual(av, bv)
+}
+
 func safeInputRefFailureCode(err error) string {
 	switch {
 	case errors.Is(err, ErrExecutionInputRefNotFound):
@@ -452,5 +481,5 @@ func safeInputRefError(err error) error {
 	if err == nil {
 		return nil
 	}
-	return fmt.Errorf("encrypted input ref unavailable: %s", safeInputRefFailureCode(err))
+	return fmt.Errorf("%w: %s", ErrExecutionInputRefUnavailable, safeInputRefFailureCode(err))
 }

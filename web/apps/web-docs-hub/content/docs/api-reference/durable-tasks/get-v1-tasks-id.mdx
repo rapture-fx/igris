@@ -43,8 +43,14 @@ Safe to retry on transient 5xx or 429 responses. Poll at a reasonable interval r
 
 ## Notes
 
-- Status values: `pending`, `dispatched`, `checkpointed`, `completed`, `failed`, `recovering`.
+- Status values: `pending`, `dispatched`, `checkpointed`, `completed`, `failed`, `recovering`, `approval_required`.
 - `last_step` and `checkpoint_digest` are only present once the runtime has pushed at least one checkpoint.
+- Runs created through the Actions gateway also carry optional review fields when they are safely available. They help a person review a run, especially one waiting for approval, and are populated mainly for action-gateway runs; a raw task submission may omit some or all of them. Each is a safe, name-only value that never exposes payloads, request bodies, headers, file contents, secrets, capability scopes, or the run input.
+- `required_capabilities`: name-only list of the capabilities the run needs, such as `tools.http_request`. Capability names only, never scopes.
+- `approval_reason`: plain explanation of why the run is waiting for approval. Present while a run is in `approval_required`.
+- `action_target_type`: the configured execution surface for the action, such as `hosted_api`, `webhook`, `local_runtime`, or `mock_demo`, when safely available.
+- `policy_preset`: the policy preset governing the action, such as `Safe automation` or `Human-gated`, when safely available.
+- Example of an approval-required run: `{ "task_id": "018f4a2b-…", "status": "approval_required", "approval_reason": "action is human-gated and requires approval before dispatch", "required_capabilities": ["tools.http_request", "network.api"], "action_target_type": "webhook", "policy_preset": "Human-gated" }`.
 
 ## Code Examples
 

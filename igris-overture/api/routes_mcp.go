@@ -386,6 +386,11 @@ func (h *agentMcpHandler) submitActionThroughGateway(c *fiber.Ctx, tenantID stri
 		if errors.Is(err, coordinator.ErrInvalidTaskDefinition) {
 			return nil, http.StatusBadRequest, errValidation(err.Error())
 		}
+		if errors.Is(err, coordinator.ErrExecutionInputProtectionUnavailable) {
+			return nil, http.StatusServiceUnavailable, errBackend(
+				"input_protection_unavailable: this action's input requires encrypted input protection; set IGRIS_EXECUTION_INPUT_REF_KEYS and IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION",
+			)
+		}
 		return nil, http.StatusServiceUnavailable, errRuntimeUnavailable("no runtime was available to accept the action")
 	}
 	if runReq.executedTarget != "" {

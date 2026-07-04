@@ -146,6 +146,8 @@ func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordi
 	v1.Post("", handleActionCreate(db))
 	v1.Post("/run", handleActionRun(db, tc))
 	v1.Get("/runs/:id", handleActionGetRun(tc))
+	v1.Post("/runs/:id/approve", handleActionApproveRun(tc))
+	v1.Post("/runs/:id/reject", handleActionRejectRun(tc))
 	v1.Post("/:name/run", handleActionRunByName(db, tc))
 	v1.Get("/:id", handleActionGet(db))
 	v1.Patch("/:id", handleActionPatch(db))
@@ -338,6 +340,12 @@ func submitActionRun(c *fiber.Ctx, db *sql.DB, tc *coordinator.TaskCoordinator, 
 				"message": err.Error(),
 			})
 		}
+		if errors.Is(err, coordinator.ErrExecutionInputProtectionUnavailable) {
+			return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+				"error":   "input_protection_unavailable",
+				"message": "this action's input requires encrypted input protection, but the input-ref keyring is not configured or failed; set IGRIS_EXECUTION_INPUT_REF_KEYS and IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION",
+			})
+		}
 		log.Error().Err(err).Str("tenant_id", tenantID).Str("action", req.Action).Msg("[Actions] Run failed")
 		return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
 			"error":   "runtime_unavailable",
@@ -397,6 +405,104 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 			}
 		}
 		return c.JSON(buildActionRunResponse(task, nil))
+	}
+}
+
+// handleActionApproveRun approves an approval_required durable action run and
+// dispatches it through the coordinator/runtime path. Approval is a real two-way
+// gate: the coordinator enforces tenant ownership, the awaiting-approval
+// precondition, and an atomic claim that prevents a second approval from
+// dispatching the same run twice.
+func handleActionApproveRun(tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		taskID, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_run_id"})
+		}
+		approver := actionApproverIdentity(c, tenantID)
+		task, err := tc.ApproveTask(c.Context(), taskID, tenantID, approver)
+		if err != nil {
+			return actionApprovalErrorResponse(c, err)
+		}
+		resp := buildActionRunResponse(task, nil)
+		resp["decision"] = "approved"
+		resp["approved_by"] = approver
+		return c.Status(http.StatusAccepted).JSON(resp)
+	}
+}
+
+// handleActionRejectRun rejects an approval_required durable action run. A
+// rejected run is marked terminal and is never dispatched.
+func handleActionRejectRun(tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		taskID, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_run_id"})
+		}
+		var body struct {
+			Reason string `json:"reason"`
+		}
+		if len(c.Body()) > 0 {
+			if err := json.Unmarshal(c.Body(), &body); err != nil {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+			}
+		}
+		rejector := actionApproverIdentity(c, tenantID)
+		task, err := tc.RejectTask(c.Context(), taskID, tenantID, rejector, body.Reason)
+		if err != nil {
+			return actionApprovalErrorResponse(c, err)
+		}
+		resp := buildActionRunResponse(task, nil)
+		resp["decision"] = "rejected"
+		resp["rejected_by"] = rejector
+		resp["dispatched"] = false
+		return c.JSON(resp)
+	}
+}
+
+// actionApproverIdentity returns the authenticated principal recorded as the
+// approver/rejector. Under BetterAuth the tenant id is the user id.
+func actionApproverIdentity(c *fiber.Ctx, tenantID string) string {
+	if principal := strings.TrimSpace(middleware.GetClerkUserID(c)); principal != "" {
+		return principal
+	}
+	return tenantID
+}
+
+// actionApprovalErrorResponse maps coordinator approval errors to HTTP codes.
+func actionApprovalErrorResponse(c *fiber.Ctx, err error) error {
+	switch {
+	case err == sql.ErrNoRows:
+		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "run_not_found"})
+	case errors.Is(err, coordinator.ErrTaskNotAwaitingApproval):
+		return c.Status(http.StatusConflict).JSON(fiber.Map{
+			"error":   "not_awaiting_approval",
+			"message": "this run is not awaiting approval, or has already been approved or rejected",
+		})
+	case errors.Is(err, coordinator.ErrNoRuntimeForApproval):
+		return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+			"error":   "runtime_unavailable",
+			"message": "no connected runtime is available to dispatch this approved run; reconnect a runtime and approve again",
+		})
+	case errors.Is(err, coordinator.ErrExecutionInputRefUnavailable):
+		// The run has been marked terminal failed by the coordinator; the
+		// message carries only the safe failure code (e.g. scope_mismatch,
+		// key_unavailable), never key material or plaintext.
+		return c.Status(http.StatusConflict).JSON(fiber.Map{
+			"error":   "input_ref_unavailable",
+			"message": err.Error() + "; the run was marked failed and was not dispatched",
+		})
+	default:
+		log.Error().Err(err).Msg("[Actions] approval decision failed")
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 	}
 }
 
@@ -1151,9 +1257,41 @@ func actionNodeMetadata(req actionRunRequest) map[string]interface{} {
 		switch key {
 		case "action_definition_id", "action_name", "target_type", "policy_preset", "replay_class", "approval_required", "irreversible":
 			metadata[key] = value
+		case "request_summary":
+			// Caller-provided, operator-facing one-liner ("apply
+			// 064_execution_evals.sql sha256 3471cf5d…") so an approver can see
+			// WHAT a paused run intends without exposing the raw input. It is
+			// advisory context — the execution target stays the source of
+			// truth — and is scrubbed before it is stored or echoed.
+			if summary := sanitizeActionRequestSummary(value); summary != "" {
+				metadata[key] = summary
+			}
 		}
 	}
 	return metadata
+}
+
+const maxActionRequestSummaryLength = 200
+
+// sanitizeActionRequestSummary bounds the caller-provided approval summary to
+// a single short plain-text line: control characters stripped, length capped,
+// inline auth material redacted. Anything that is not a string is dropped.
+func sanitizeActionRequestSummary(value interface{}) string {
+	s, ok := value.(string)
+	if !ok {
+		return ""
+	}
+	s = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, s)
+	s = strings.TrimSpace(s)
+	if len(s) > maxActionRequestSummaryLength {
+		s = s[:maxActionRequestSummaryLength]
+	}
+	return redactInlineAuth(s)
 }
 
 func actionNodeID(action string) string {

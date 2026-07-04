@@ -124,6 +124,50 @@ class RunsController < ApplicationController
     @degraded_error = data_source.error
   end
 
+  # Approve an approval_required run. Forwards to the durable-action approve
+  # route (POST /v1/actions/runs/:id/approve), which atomically claims the run
+  # and dispatches it through the coordinator/runtime path. On return we redirect
+  # back to the run detail so the operator sees the new (dispatched) state, and
+  # the flash reports the outcome. Backend errors map to safe operator messages;
+  # the backend's compare-and-set is what actually prevents a double dispatch, so
+  # a second click after the first succeeds resolves to a calm 409 message.
+  def approve
+    return approval_demo_notice if data_source.fixtures?
+
+    result = data_source.approve_run(params[:id])
+    status = (result['status'] || result['run_id']).to_s
+    redirect_to run_path(params[:id]),
+                notice: "Run approved — continuing the controlled action path#{status.present? ? " (status=#{status})" : ''}. It is dispatching to the runtime now."
+  rescue Igris::OvertureClient::NotFound
+    redirect_to runs_path, alert: 'That run was not found.'
+  rescue Igris::OvertureClient::Conflict
+    redirect_to run_path(params[:id]),
+                alert: 'This run is not awaiting approval — it may already have been approved or rejected.'
+  rescue Igris::OvertureClient::ServiceUnavailable
+    redirect_to run_path(params[:id]),
+                alert: 'No runtime is connected to dispatch this approved run. Connect a runtime, then approve again.'
+  rescue Igris::OvertureClient::Error => e
+    redirect_to run_path(params[:id]), alert: safe_api_error_message(e, 'approve')
+  end
+
+  # Reject an approval_required run. Forwards to the durable-action reject route
+  # (POST /v1/actions/runs/:id/reject) with the optional operator reason. A
+  # rejected run is marked terminal and is never dispatched.
+  def reject
+    return approval_demo_notice if data_source.fixtures?
+
+    data_source.reject_run(params[:id], reason: params[:reason].to_s.strip.presence)
+    redirect_to run_path(params[:id]),
+                notice: 'Run rejected — it will not be dispatched. The decision is recorded on the run.'
+  rescue Igris::OvertureClient::NotFound
+    redirect_to runs_path, alert: 'That run was not found.'
+  rescue Igris::OvertureClient::Conflict
+    redirect_to run_path(params[:id]),
+                alert: 'This run is not awaiting approval — it may already have been approved or rejected.'
+  rescue Igris::OvertureClient::Error => e
+    redirect_to run_path(params[:id]), alert: safe_api_error_message(e, 'reject')
+  end
+
   # The investigation path for one finding: an ordered list of [label, href]
   # pairs that answer "where do I go next?" for this recommendation type. Every
   # href resolves to an existing console surface (action / agent / proposal /
@@ -159,6 +203,25 @@ class RunsController < ApplicationController
   end
 
   private
+
+  # In fixtures/demo mode no real API call is made; explain that plainly instead
+  # of pretending a run changed state.
+  def approval_demo_notice
+    redirect_to run_path(params[:id]),
+                notice: 'Demo mode — no real approval was sent. Set OVERTURE_API_BASE_URL to approve or reject real runs.'
+  end
+
+  # A safe flash message for an unexpected API error. Mirrors the degraded
+  # banner: it surfaces only the error class / HTTP status / machine code and
+  # never the raw upstream message, so nothing sensitive leaks into the flash.
+  def safe_api_error_message(err, verb)
+    detail = [
+      err.class.name.demodulize,
+      (err.status ? "HTTP #{err.status}" : nil),
+      err.code.presence,
+    ].compact.join(', ')
+    "Could not #{verb} this run (#{detail}). No change was made — try again in a moment."
+  end
 
   # Per-signal investigation steps for an action finding. `id` is the action
   # name (used both as the action route key and the runs-list `q` filter).

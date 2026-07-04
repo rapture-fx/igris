@@ -1,0 +1,157 @@
+---
+title: "POST /v1/actions/runs/:id/reject"
+description: "Rejects an action run that is paused awaiting approval. A rejected run is closed as a terminal outcome and is never dispatched, so the pending side effect does not happen. Tenant ownership is enforced, and the awaiting-approval precondition is checked atomically so a rejected run cannot later be approved into execution."
+audience: "public"
+---
+
+# POST /v1/actions/runs/:id/reject
+
+Rejects an action run that is paused awaiting approval. A rejected run is closed as a terminal outcome and is never dispatched, so the pending side effect does not happen. Tenant ownership is enforced, and the awaiting-approval precondition is checked atomically so a rejected run cannot later be approved into execution.
+
+<div className="api-meta not-prose"><div className="api-meta-group"><span className="api-meta-label">Method</span><span className="api-badge api-method-post">POST</span></div><div className="api-meta-group"><span className="api-meta-label">Path</span><span className="api-meta-value">/v1/actions/runs/:id/reject</span></div><div className="api-meta-group"><span className="api-meta-label">Base URL</span><span className="api-meta-value">https://overture.igrisinertial.com</span></div><div className="api-meta-group"><span className="api-meta-label">Auth</span><span className="api-meta-value">Session cookie or igris_ API key</span></div><div className="api-meta-group"><span className="api-meta-label">Surface</span><span className="api-badge api-surface-cloud-api">Cloud API</span></div><div className="api-meta-group"><span className="api-meta-label">Stability</span><span className="api-badge api-stability-stable">stable</span></div><div className="api-meta-group"><span className="api-meta-label">Support</span><span className="api-badge api-support-core">core</span></div><div className="api-meta-group"><span className="api-meta-label">Deployment</span><span className="api-badge api-deployment-cloud">cloud</span></div></div>
+
+## When To Use
+
+Use this endpoint (or the Reject control in the console) when the pending action should not run: it is out of scope, targets the wrong resource, or violates policy. Record a short reason so the decision is clear in the run record.
+
+## Integration Guidance
+
+Do not blindly retry write operations. Retry only on transient 5xx or 429 responses, and make sure the client is idempotent or otherwise safe to replay.
+
+### Common Mistakes
+
+- Rejecting a run that is not paused. Only runs in `approval_required` can be rejected; anything else returns `409 not_awaiting_approval`.
+- Expecting a rejected run to resume later. Rejection is terminal. To run the action again, submit a new run through the Actions gateway once the underlying issue is resolved.
+
+### Related Endpoints
+
+- [GET /v1/actions](/docs/api-reference/actions/get-v1-actions)
+- [POST /v1/actions](/docs/api-reference/actions/post-v1-actions)
+- [GET /v1/actions/:id](/docs/api-reference/actions/get-v1-actions-id)
+
+### Related Guides
+
+- [API Authentication](/docs/api-reference/authentication)
+- [API Errors](/docs/api-reference/errors)
+- [First Agent Onboarding](/docs/first-agent-onboarding)
+
+## Path Parameters
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | Run id returned when the action run was accepted with `approval_required`. |
+
+## Request Body
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `reason` | `string` | No | Optional short reason for the rejection, recorded on the run for review. |
+
+## Request Example
+
+```json
+{
+  "reason": "target account is out of scope for this agent"
+}
+```
+
+## Notes
+
+- This is the durable action rejection route, paired with `POST /v1/actions/runs/:id/approve`. It is distinct from the older execution-lineage route `POST /v1/execution/runs/:id/reject` on the execution inspection surface.
+- A rejected run is recorded as terminal with the rejection decision and reason. The rejector is the authenticated principal from your credential.
+
+## Code Examples
+
+### cURL
+
+```bash
+curl -X POST https://overture.igrisinertial.com/v1/actions/runs/example-id/reject \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "reason": "target account is out of scope for this agent"
+}'
+```
+
+### JavaScript
+
+```javascript
+const response = await fetch('https://overture.igrisinertial.com/v1/actions/runs/example-id/reject', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${process.env.IGRIS_API_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+  "reason": "target account is out of scope for this agent"
+}),
+});
+
+const data = await response.text();
+console.log(data);
+```
+
+### Go
+
+```go
+client := &http.Client{}
+body := strings.NewReader("{\n  \"reason\": \"target account is out of scope for this agent\"\n}")
+
+req, err := http.NewRequest("POST", "https://overture.igrisinertial.com/v1/actions/runs/example-id/reject", body)
+if err != nil {
+	log.Fatal(err)
+}
+req.Header.Set("Content-Type", "application/json")
+req.Header.Set("Authorization", "Bearer " + os.Getenv("IGRIS_API_KEY"))
+
+resp, err := client.Do(req)
+if err != nil {
+	log.Fatal(err)
+}
+defer resp.Body.Close()
+
+payload, _ := io.ReadAll(resp.Body)
+fmt.Println(string(payload))
+```
+
+### Rust
+
+```rust
+let client = reqwest::Client::new();
+let response = client
+        .request(reqwest::Method::POST, "https://overture.igrisinertial.com/v1/actions/runs/example-id/reject")
+        .header("Authorization", format!("Bearer {}", std::env::var("IGRIS_API_KEY")?))
+        .json(&serde_json::json!({
+  "reason": "target account is out of scope for this agent"
+}))
+        .send()
+        .await?;
+
+let payload = response.text().await?;
+println!("{}", payload);
+```
+
+## Sample Response
+
+```json
+{
+  "run_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "task_id": "018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c",
+  "status": "failed",
+  "proof_status": "unavailable",
+  "decision": "rejected",
+  "rejected_by": "usr_2f9a1c7b",
+  "dispatched": false
+}
+```
+
+## Status Codes
+
+| Code | Title | Description |
+|---|---|---|
+| 200 | Rejected | The run was rejected and closed. It was not dispatched. |
+| 400 | Invalid run id | The run id was not a valid identifier, or the body could not be parsed. |
+| 401 | Unauthorized | Credentials were missing, expired, or not accepted. |
+| 404 | Run not found | No run with that id exists in your tenant. |
+| 409 | Not awaiting approval | The run is not paused for approval, or it has already been approved or rejected (`not_awaiting_approval`). |
+

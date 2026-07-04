@@ -1,15 +1,16 @@
 {
-  "generated_at": "2026-06-14T13:09:18.316Z",
+  "generated_at": "2026-07-02T14:21:15.152Z",
   "summary": {
-    "total": 111,
+    "total": 118,
     "by_status": {
-      "test-covered": 28,
-      "implemented-unverified": 79,
-      "client-referenced": 4
+      "test-covered": 34,
+      "implemented-unverified": 73,
+      "client-referenced": 11
     },
     "by_section": {
       "Action Packs": 2,
-      "Actions": 8,
+      "Agents": 5,
+      "Actions": 10,
       "Platform Health": 1,
       "Inference & Integration": 6,
       "Runtime Distribution & Fleet Coordination": 10,
@@ -61,6 +62,90 @@
       }
     },
     {
+      "section": "Agents",
+      "method": "GET",
+      "path": "/v1/agents",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Lists registered agents for the authenticated tenant. Use include_archived=true to include archived agents.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_agent_registry_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Agents",
+      "method": "POST",
+      "path": "/v1/agents",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Registers a tenant-scoped agent identity for run attribution.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_agent_registry_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Agents",
+      "method": "GET",
+      "path": "/v1/agents/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Gets one registered agent by id.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Agents",
+      "method": "PATCH",
+      "path": "/v1/agents/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Updates registry fields (name, display_name, description, agent_type, template_name, version, metadata) or execution settings (shadow_mode, reflection_mode, council_mode, cognitive_advisor_enabled) — not both in one request.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Agents",
+      "method": "DELETE",
+      "path": "/v1/agents/:id",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Archives a registered agent.",
+      "status": "implemented-unverified",
+      "confidence": "low",
+      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "evidence": {
+        "test_files": [],
+        "client_files": []
+      }
+    },
+    {
       "section": "Actions",
       "method": "GET",
       "path": "/v1/actions",
@@ -78,7 +163,9 @@
           "igris-overture/api/routes_actions_list_columns_test.go",
           "igris-overture/api/routes_actions_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
       }
     },
     {
@@ -94,12 +181,16 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-javascript-sdk/tests/actions.test.ts",
           "igris-overture/api/product_promise_acceptance_test.go",
           "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_actions_approval_test.go",
           "igris-overture/api/routes_actions_list_columns_test.go",
           "igris-overture/api/routes_actions_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
       }
     },
     {
@@ -118,7 +209,9 @@
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_actions_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
       }
     },
     {
@@ -166,11 +259,15 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-javascript-sdk/tests/actions.test.ts",
           "igris-overture/api/product_promise_acceptance_test.go",
           "igris-overture/api/route_manifest_test.go",
+          "igris-overture/api/routes_actions_approval_test.go",
           "igris-overture/api/routes_actions_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
       }
     },
     {
@@ -206,6 +303,44 @@
         "test_files": [
           "igris-overture/api/route_manifest_test.go"
         ],
+        "client_files": [
+          "igris-javascript-sdk/src/actions.ts"
+        ]
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "POST",
+      "path": "/v1/actions/runs/:id/approve",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Approves an action run that is paused awaiting approval and dispatches it for execution.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_actions_approval_test.go"
+        ],
+        "client_files": []
+      }
+    },
+    {
+      "section": "Actions",
+      "method": "POST",
+      "path": "/v1/actions/runs/:id/reject",
+      "auth": "Session cookie or igris_ API key",
+      "surface": "Cloud API",
+      "stability": "stable",
+      "description": "Rejects an action run that is paused awaiting approval. The run is closed and never dispatched.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
+      "evidence": {
+        "test_files": [
+          "igris-overture/api/routes_actions_approval_test.go"
+        ],
         "client_files": []
       }
     },
@@ -222,11 +357,19 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-go-sdk/runtime_test.go",
           "igris-overture/internal/runtime_selector_test.go",
+          "igris-rust-sdk/tests/runtime_test.rs",
           "stability-tests/tests/load/extended_load_test.go",
           "stability-tests/tests/load/soak_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-go-sdk/runtime.go",
+          "igris-javascript-sdk/src/client.ts",
+          "igris-javascript-sdk/src/runtime.ts",
+          "igris-rust-sdk/src/client.rs",
+          "igris-rust-sdk/src/runtime.rs"
+        ]
       }
     },
     {
@@ -242,6 +385,7 @@
       "note": "At least one automated test references this route path and method.",
       "evidence": {
         "test_files": [
+          "igris-go-sdk/igris_test.go",
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/route_surface_test.go",
           "igris-overture/api/routes_execution_contract_test.go",
@@ -250,7 +394,10 @@
           "stability-tests/tests/load/soak_test.go",
           "stability-tests/tests/tier_gating_validation_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-rust-sdk/src/client.rs"
+        ]
       }
     },
     {
@@ -261,12 +408,21 @@
       "surface": "Cloud API",
       "stability": "experimental",
       "description": "OpenAI-compatible chat completions endpoint. Experimental; disabled by default.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
-        "client_files": []
+        "test_files": [
+          "igris-go-sdk/runtime_test.go",
+          "igris-javascript-sdk/tests/runtime.test.ts",
+          "igris-rust-sdk/tests/runtime_test.rs"
+        ],
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-javascript-sdk/src/runtime.ts",
+          "igris-rust-sdk/src/client.rs",
+          "igris-rust-sdk/src/runtime.rs"
+        ]
       }
     },
     {
@@ -284,7 +440,10 @@
         "test_files": [
           "igris-overture/api/route_surface_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-rust-sdk/src/client.rs"
+        ]
       }
     },
     {
@@ -295,12 +454,15 @@
       "surface": "Cloud API",
       "stability": "experimental",
       "description": "Provider latency, health, and routing statistics. Experimental; disabled by default.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/client.ts",
+          "igris-rust-sdk/src/client.rs"
+        ]
       }
     },
     {
@@ -611,12 +773,15 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Lists configured provider keys with masked values.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
       }
     },
     {
@@ -627,12 +792,15 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Stores a provider key using `{ provider, key_name, api_key }`.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
       }
     },
     {
@@ -643,12 +811,15 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Gets a single provider key record.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
       }
     },
     {
@@ -659,12 +830,16 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Deletes a provider key.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-go-sdk/vault.go",
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
       }
     },
     {
@@ -675,12 +850,15 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Rotates a provider key.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/vault.ts",
+          "igris-rust-sdk/src/vault.rs"
+        ]
       }
     },
     {
@@ -707,11 +885,13 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Returns tenant policy document.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "test-covered",
+      "confidence": "high",
+      "note": "At least one automated test references this route path and method.",
       "evidence": {
-        "test_files": [],
+        "test_files": [
+          "igris-overture/api/routes_policy_proposals_test.go"
+        ],
         "client_files": []
       }
     },
@@ -1155,7 +1335,9 @@
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {
@@ -1175,7 +1357,9 @@
           "igris-overture/api/route_manifest_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {
@@ -1196,7 +1380,9 @@
           "igris-overture/api/routes_mcp_test.go",
           "igris-overture/api/routes_tasks_test.go"
         ],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {
@@ -1207,12 +1393,14 @@
       "surface": "Cloud API",
       "stability": "stable",
       "description": "Lists execution-graph steps and graph slots for a durable task when available.",
-      "status": "implemented-unverified",
-      "confidence": "low",
-      "note": "Route is documented and registered in code, but no direct test or client exercise was found in this repository scan.",
+      "status": "client-referenced",
+      "confidence": "medium",
+      "note": "A client or transport layer references this route, but no direct automated test was found.",
       "evidence": {
         "test_files": [],
-        "client_files": []
+        "client_files": [
+          "igris-javascript-sdk/src/tasks.ts"
+        ]
       }
     },
     {

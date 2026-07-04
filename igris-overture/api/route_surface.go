@@ -118,9 +118,9 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "installs registered actions only; no raw task execution",
 	},
 	{
-		Method: "GET,POST,PATCH,DELETE", Path: "/v1/actions,/v1/actions/run,/v1/actions/runs/:id", RegistrationFile: "igris-overture/api/routes_actions.go",
+		Method: "GET,POST,PATCH,DELETE", Path: "/v1/actions,/v1/actions/run,/v1/actions/runs/:id,/v1/actions/runs/:id/approve,/v1/actions/runs/:id/reject", RegistrationFile: "igris-overture/api/routes_actions.go",
 		HandlerOrGroup: "registered actions", RegistrationFunction: "RegisterActionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "registered tenant-owned actions only",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "registered tenant-owned actions only; human approval is a real two-way gate that dispatches or terminally rejects the durable run",
 	},
 	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/agents,/v1/agents/:id", RegistrationFile: "igris-overture/api/routes_agent_registry.go",
