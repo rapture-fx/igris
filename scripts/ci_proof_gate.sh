@@ -116,6 +116,15 @@ SQL
     #   062 — adds registered_agent_id/registered_agent_name columns
     # All are CREATE/ALTER/INDEX ... IF NOT EXISTS (057 also DROP INDEX IF EXISTS),
     # so already-provisioned DBs are unaffected.
+    #
+    # For an action_task the submit also persists an action policy decision
+    # (SaveActionPolicyDecision) before dispatch: 051 creates action_policy_decisions
+    # (+ the boundary/approval/verification tables the best-effort follow-ups touch).
+    # Without it submit 503s ("persist action policy decision: ... action_policy_decisions
+    # does not exist"). ai_task_permission_audit (SaveTaskPermissionEnvelope) and the
+    # MarkDispatched columns are already covered by 043 and 031. 051's FKs are all
+    # internal to itself (+ task_records, already present).
+    "051_execution_governance_recovery"
     "056_execution_input_refs"
     "057_task_records_tenant_scoped_idempotency"
     "062_task_records_registered_agent"
