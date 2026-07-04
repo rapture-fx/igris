@@ -1,4 +1,4 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console
 
 product-promise:
 	./scripts/product_promise_acceptance.sh
@@ -50,6 +50,15 @@ dogfood-migration-smoke:
 
 dogfood-migration-smoke-console:
 	./scripts/dogfood_migration_approval_smoke.sh --with-console
+
+# Internal dogfood workflow: route local development actions through Igris.
+# run_tests is fixed and safe; push_branch/open_pr require approval and default
+# to dry-run. Run `make igris-local-up` first.
+dogfood-routed-dev-smoke:
+	./scripts/dogfood_routed_dev_smoke.sh
+
+dogfood-routed-dev-smoke-console:
+	./scripts/dogfood_routed_dev_smoke.sh --with-console
 
 web-console-check:
 	pnpm --filter @igris-inertial/web-console build
