@@ -29,6 +29,20 @@ if [[ -z "${DATABASE_URL:-}" && -z "${POSTGRES_URL:-}" && -f "$ROOT_DIR/.env" ]]
 fi
 DB_URL="${DATABASE_URL:-${POSTGRES_URL:-}}"
 
+# The proof scripts sign runtime artifacts with a LOCAL TEST key at
+# .igris/runtime-signing-key.ed25519 (a 32-byte hex seed). Dev machines have
+# one from earlier runs; clean CI runners do not, and the older proof scripts
+# assume it exists. Generate an ephemeral throwaway seed when missing — this
+# is proof/test infrastructure only, never production keying, and the path is
+# gitignored. (The newer dogfood smokes already self-provision the same way.)
+RUNTIME_KEY_FILE="$ROOT_DIR/.igris/runtime-signing-key.ed25519"
+if [[ ! -f "$RUNTIME_KEY_FILE" ]]; then
+  mkdir -p "$ROOT_DIR/.igris"
+  umask 077
+  node -e 'process.stdout.write(require("crypto").randomBytes(32).toString("hex") + "\n")' > "$RUNTIME_KEY_FILE"
+  echo "[proof-gate] generated ephemeral test signing key at .igris/runtime-signing-key.ed25519"
+fi
+
 require_cmd() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "missing required command: $1" >&2
