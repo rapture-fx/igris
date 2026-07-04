@@ -59,6 +59,10 @@ var safeResponseRedactionMetadataKeys = map[string]struct{}{
 	"safe_summary":              {},
 	"sensitive_fields_redacted": {},
 	"redaction_policy_version":  {},
+	// This action metadata field stores the name of an env var, not its value.
+	// The actual shared secret remains in process env and is encrypted as an
+	// outbound header before task persistence.
+	"local_auth_secret_env": {},
 }
 
 func sanitizeJSONRawMessage(raw json.RawMessage) json.RawMessage {
@@ -260,6 +264,9 @@ func sanitizeResponseHeaders(value interface{}) interface{} {
 	headers, ok := value.(map[string]interface{})
 	if !ok {
 		return inputRedactedMap("headers", sha256HexString(valueToString(value)), len(valueToString(value)))
+	}
+	if redacted, _ := headers["input_redacted"].(bool); redacted {
+		return sanitizeResponseValue(headers)
 	}
 	out := map[string]interface{}{
 		"input_redacted":            true,

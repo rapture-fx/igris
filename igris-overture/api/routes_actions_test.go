@@ -154,6 +154,134 @@ func TestBuildActionRunRequestFromDefinitionWebhook(t *testing.T) {
 	require.Equal(t, true, req.Metadata["irreversible"])
 }
 
+func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthHeader(t *testing.T) {
+	t.Setenv("IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET", "test-local-shared-secret")
+
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-local-webhook",
+		Name:         "repo.run_tests",
+		TargetType:   "webhook",
+		TargetURL:    "http://127.0.0.1:18096/repo/run-tests",
+		Method:       "POST",
+		PolicyPreset: "Safe automation",
+		ReplayClass:  "read_only",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Dogfood-Secret",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET",
+		},
+	}, actionRunByNameRequest{Input: map[string]interface{}{"action": "repo.run_tests"}})
+	require.NoError(t, err)
+	headers := req.Input["headers"].(map[string]interface{})
+	require.Equal(t, "test-local-shared-secret", headers["X-Igris-Dogfood-Secret"])
+
+	taskReq, err := buildActionTaskSubmitRequest(req, "tenant-actions")
+	require.NoError(t, err)
+	var graphDef map[string]interface{}
+	require.NoError(t, json.Unmarshal(taskReq.TaskDefinition, &graphDef))
+	node := graphDef["graph"].(map[string]interface{})["nodes"].([]interface{})[0].(map[string]interface{})
+	args := node["args"].(map[string]interface{})
+	require.Equal(t, "http://127.0.0.1:18096/repo/run-tests", args["url"])
+	require.Equal(t, "POST", args["method"])
+	require.Contains(t, args, "headers", "local auth must be passed to the runtime request, then encrypted by input refs before persistence")
+}
+
+func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthRequiresLoopback(t *testing.T) {
+	t.Setenv("IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET", "test-local-shared-secret")
+
+	_, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-local-webhook",
+		Name:         "repo.push_branch",
+		TargetType:   "webhook",
+		TargetURL:    "https://example.com/repo/push-branch",
+		Method:       "POST",
+		PolicyPreset: "Human-gated",
+		ReplayClass:  "non_retryable",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Dogfood-Secret",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET",
+		},
+	}, actionRunByNameRequest{Input: map[string]interface{}{"action": "repo.push_branch"}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "loopback")
+}
+
+func TestBuildActionRunRequestFromDefinitionLocalAuthRequiresWebhookTarget(t *testing.T) {
+	t.Setenv("IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET", "test-local-shared-secret")
+
+	_, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-local-hosted-api",
+		Name:         "repo.run_tests",
+		TargetType:   "hosted_api",
+		TargetURL:    "http://127.0.0.1:18096/repo/run-tests",
+		Method:       "POST",
+		PolicyPreset: "Safe automation",
+		ReplayClass:  "read_only",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Dogfood-Secret",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET",
+		},
+	}, actionRunByNameRequest{Input: map[string]interface{}{"action": "repo.run_tests"}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "webhook targets")
+}
+
+func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthRequiresSecretEnv(t *testing.T) {
+	_, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-local-webhook",
+		Name:         "repo.open_pr",
+		TargetType:   "webhook",
+		TargetURL:    "http://localhost:18096/repo/open-pr",
+		Method:       "POST",
+		PolicyPreset: "Human-gated",
+		ReplayClass:  "non_retryable",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Dogfood-Secret",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_TEST_MISSING_DOGFOOD_WEBHOOK_SECRET",
+		},
+	}, actionRunByNameRequest{Input: map[string]interface{}{"action": "repo.open_pr"}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "not configured")
+}
+
+func TestNormalizeActionDefinitionPreservesLocalAuthSecretEnvName(t *testing.T) {
+	t.Parallel()
+
+	def, err := normalizeActionDefinitionRequest(actionDefinitionRequest{
+		Name:         "repo.run_tests",
+		TargetType:   "webhook",
+		TargetURL:    "http://127.0.0.1:18096/repo/run-tests",
+		PolicyPreset: "Safe automation",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Dogfood-Secret",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_DOGFOOD_DEV_GATEWAY_SECRET",
+		},
+	}, nil)
+	require.NoError(t, err)
+	require.Equal(t, "IGRIS_DOGFOOD_DEV_GATEWAY_SECRET", def.TargetMetadata[localWebhookAuthSecretEnvMetadata])
+}
+
+func TestSanitizeResponseHeadersHandlesAlreadyRedactedEnvelope(t *testing.T) {
+	t.Parallel()
+
+	require.NotPanics(t, func() {
+		out := sanitizeResponseHeaders(map[string]interface{}{
+			"input_redacted":           true,
+			"redaction_policy_version": responseRedactionPolicyVersion,
+			"sensitive_fields_redacted": []interface{}{
+				"sensitive_header",
+			},
+			"X-Igris-Dogfood-Secret": map[string]interface{}{
+				"input_redacted":      true,
+				"safe_summary":        "sensitive_header",
+				"input_digest_sha256": "digest",
+			},
+		})
+		raw, err := json.Marshal(out)
+		require.NoError(t, err)
+		require.NotContains(t, string(raw), "test-local-shared-secret")
+	})
+}
+
 func TestNormalizeActionDefinitionAcceptsHostedAPI(t *testing.T) {
 	t.Parallel()
 
