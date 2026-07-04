@@ -92,13 +92,37 @@ TARGET_PID=""
 RUNTIME_PID=""
 OVERTURE_PID=""
 
+# On failure, print bounded tails of the service logs so CI runs are
+# diagnosable (the runner's $TMP_DIR is gone after the job). Output is capped
+# per file and passed through a redaction filter for credential-shaped values
+# — these services only ever hold throwaway local proof material, but belt
+# and braces. Success prints nothing; the exit code is always preserved.
+dump_service_logs_on_failure() {
+  echo "==== proof failure: service log tails (last 120 lines each) ====" >&2
+  local f
+  for f in "$LOG_DIR"/*.log; do
+    [[ -f "$f" ]] || continue
+    echo "---- ${f##*/} ----" >&2
+    tail -n 120 "$f" | sed -E \
+      -e 's#(postgres(ql)?://[^:/@ ]+):[^@ ]*@#\1:***@#g' \
+      -e 's#(authorization["=: ]+).*#\1***#Ig' \
+      -e 's#("?[A-Za-z0-9_-]*(api[-_]key|password|secret|token)[A-Za-z0-9_-]*"?[=: ]+"?)[^",}[:space:]]+#\1***#Ig' >&2
+  done
+  echo "==== end service log tails ====" >&2
+}
+
 cleanup() {
+  local status=$?
   for pid in "$OVERTURE_PID" "$RUNTIME_PID" "$TARGET_PID" "$MOCK_PID"; do
     if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
       kill "$pid" >/dev/null 2>&1 || true
       wait "$pid" >/dev/null 2>&1 || true
     fi
   done
+  if [[ $status -ne 0 ]]; then
+    dump_service_logs_on_failure
+  fi
+  return $status
 }
 trap cleanup EXIT
 
