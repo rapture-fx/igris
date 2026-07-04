@@ -45,6 +45,27 @@ Use it to inspect:
 
 This is the console surface that maps most directly to the Verify stage of the product model.
 
+### Reviewing A Run That Needs Approval
+
+When an agent runs a human-gated action, the run pauses in `approval_required` and waits
+for a person to decide. The console run view is where an operator handles that decision.
+The flow is:
+
+1. Open the run that is waiting for approval.
+2. Review the approval panel on the run.
+3. Read the safe metadata shown for the decision: the approval reason, the required
+   capability names, the policy preset, the action target type, and a request summary
+   when one is available. This metadata is name-only and redacted. It does not show
+   payloads, request bodies, headers, secrets, or the run input.
+4. Approve the run to continue it. Approval dispatches the run for execution.
+5. Reject the run to stop it. A rejected run is never dispatched. Add a short reason when
+   the reject control offers one.
+6. Review the updated run state. Approved runs move on to execution and proof; rejected
+   runs are closed.
+
+The same decision is available over the API. See [Approvals](/docs/approval-workflows)
+for the request and response shapes and for how approval fits the controlled action path.
+
 ## Proof, Receipts, And Violations
 
 The proof-oriented areas of the console help operators inspect:

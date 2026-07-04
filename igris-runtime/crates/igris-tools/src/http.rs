@@ -1,5 +1,8 @@
 /// HTTP tool provider for making web requests
-use crate::{allowlisted_http_headers, safe_content_output, safe_error_message, Tool, ToolResult};
+use crate::{
+    allowlisted_http_headers, safe_content_output, safe_error_message, Tool, ToolResult,
+    REDACTION_POLICY_VERSION,
+};
 use anyhow::Result;
 use serde_json::json;
 use std::time::Instant;
@@ -172,6 +175,35 @@ impl Tool for HttpTool {
                 let execution_time = start.elapsed().as_millis() as u64;
                 let response_digest = crate::sha256_hex(body.as_bytes());
                 let content_bytes = body.len();
+
+                // A response the target actively refused is a FAILED action,
+                // not a successful one: only 2xx counts as success. The error
+                // carries the status code, host, and a digest of the (never
+                // stored) response body — enough to correlate with the
+                // target's own audit trail without leaking its content.
+                if !status.is_success() {
+                    return Ok(ToolResult::failure(
+                        "http_request".to_string(),
+                        json!({
+                            "error_code": format!("http_status_{}", status.as_u16()),
+                            "message": format!(
+                                "target returned HTTP {}; the requested action was not accepted",
+                                status.as_u16()
+                            ),
+                            "status_code": status.as_u16(),
+                            "url_host": extract_url_host(url).unwrap_or_default(),
+                            "response_digest": response_digest,
+                            "response_bytes": content_bytes,
+                            "redaction_policy_version": REDACTION_POLICY_VERSION,
+                        })
+                        .to_string(),
+                        execution_time,
+                    )
+                    .with_metadata("status_code".to_string(), status.as_u16().to_string())
+                    .with_metadata("content_redacted".to_string(), "true".to_string())
+                    .with_metadata("response_digest".to_string(), response_digest));
+                }
+
                 let output = safe_content_output(
                     "http.request",
                     "http_request",
@@ -264,6 +296,70 @@ mod tests {
         });
 
         assert!(tool.validate_args(&invalid_args).await.is_err());
+    }
+
+    /// Serve exactly one canned HTTP response on a random local port.
+    fn serve_once(status_line: &'static str, body: &'static str) -> u16 {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        std::thread::spawn(move || {
+            if let Ok((mut stream, _)) = listener.accept() {
+                let mut buf = [0u8; 4096];
+                let _ = stream.read(&mut buf);
+                let response = format!(
+                    "HTTP/1.1 {status_line}\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
+                    body.len()
+                );
+                let _ = stream.write_all(response.as_bytes());
+            }
+        });
+        port
+    }
+
+    #[tokio::test]
+    async fn non_2xx_response_is_a_failed_action_with_safe_error() {
+        let refusal_marker = "GATEWAY_REFUSAL_DETAIL_MUST_NOT_LEAK";
+        let port = serve_once(
+            "409 Conflict",
+            "{\"error\":\"checksum_mismatch GATEWAY_REFUSAL_DETAIL_MUST_NOT_LEAK\"}",
+        );
+        let tool = HttpTool::new(vec!["127.0.0.1".to_string()]);
+        let result = tool
+            .execute(json!({
+                "method": "POST",
+                "url": format!("http://127.0.0.1:{port}/apply-migration"),
+                "body": "{\"plan_id\":\"x\"}"
+            }))
+            .await
+            .unwrap();
+
+        assert!(!result.success, "a 409 must not be a successful action");
+        let error = result.error.unwrap_or_default();
+        assert!(error.contains("http_status_409"), "error was: {error}");
+        assert!(error.contains("\"status_code\":409"));
+        assert!(error.contains("\"url_host\":\"127.0.0.1\""));
+        assert!(error.contains("response_digest"));
+        assert!(
+            !error.contains(refusal_marker),
+            "response body leaked into the failure error: {error}"
+        );
+        assert_eq!(result.metadata.get("status_code").map(String::as_str), Some("409"));
+    }
+
+    #[tokio::test]
+    async fn twoxx_response_is_still_a_successful_action() {
+        let port = serve_once("200 OK", "{\"applied\":true}");
+        let tool = HttpTool::new(vec!["127.0.0.1".to_string()]);
+        let result = tool
+            .execute(json!({
+                "method": "POST",
+                "url": format!("http://127.0.0.1:{port}/apply-migration"),
+            }))
+            .await
+            .unwrap();
+        assert!(result.success);
+        assert_eq!(result.metadata.get("status_code").map(String::as_str), Some("200"));
     }
 
     #[test]

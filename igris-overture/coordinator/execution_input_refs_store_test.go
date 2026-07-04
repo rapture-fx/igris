@@ -125,6 +125,63 @@ func TestDecryptExecutionInputRefAuditsRecoveryWithoutSensitiveMaterial(t *testi
 	require.Equal(t, 0, auditQueued.remainingExecs())
 }
 
+// The aad column is jsonb: Postgres rewrites the stored document (key order,
+// whitespace), so the bytes read back are never byte-equal to the compact
+// encrypt-time marshal. Decrypt must still succeed against a normalized AAD —
+// this is what approval-dispatch rehydration sees on every real database.
+func TestDecryptExecutionInputRefAcceptsJSONBNormalizedAAD(t *testing.T) {
+	clearExecutionInputRefEnv(t)
+	t.Setenv(executionInputRefKeyEnv, base64.StdEncoding.EncodeToString([]byte("44444444444444444444444444444444")))
+	t.Setenv(executionInputRefKeyVersionEnv, "test:jsonb-aad")
+
+	tenantID := "tenant-input-ref-jsonb-aad"
+	taskID := uuid.New()
+	protected, err := protectTaskDefinitionInputs(json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{
+			"kind":"tool",
+			"node_id":"gated-webhook",
+			"tool_name":"http_request",
+			"args":{"method":"POST","url":"https://gateway.example.test/apply","body":"`+encryptedInputSecretMarker+`"}
+		}]}
+	}`), tenantID, taskID)
+	require.NoError(t, err)
+	ref := protected.Refs[0]
+
+	// Simulate the jsonb roundtrip: same JSON value, different bytes.
+	var aadValue map[string]interface{}
+	require.NoError(t, json.Unmarshal(ref.AAD, &aadValue))
+	normalized, err := json.MarshalIndent(aadValue, "", "  ")
+	require.NoError(t, err)
+	require.NotEqual(t, string(ref.AAD), string(normalized))
+	roundtripped := ref
+	roundtripped.AAD = normalized
+
+	db, queued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{columns: executionInputRefQueryColumns(), values: executionInputRefQueryValues(roundtripped, nil, nil)}},
+	)
+	plaintext, err := NewCheckpointStore(db).DecryptExecutionInputRef(
+		context.Background(), tenantID, taskID, ref.ID, ref.Purpose, "approved action dispatch",
+	)
+	require.NoError(t, err)
+	require.Equal(t, encryptedInputSecretMarker, string(plaintext))
+	require.Equal(t, 0, queued.remainingQueries())
+
+	// A structurally different AAD (wrong task scope) must still fail closed.
+	foreign := ref
+	foreignAAD, err := executionInputAssociatedData(tenantID, uuid.New(), ref.ID, ref.Purpose, ref.KeyVersion)
+	require.NoError(t, err)
+	foreign.AAD = foreignAAD
+	foreignDB, foreignQueued := newQueuedCheckpointDB(t,
+		[]queuedQueryExpectation{{columns: executionInputRefQueryColumns(), values: executionInputRefQueryValues(foreign, nil, nil)}},
+	)
+	_, err = NewCheckpointStore(foreignDB).DecryptExecutionInputRef(
+		context.Background(), tenantID, taskID, ref.ID, ref.Purpose, "approved action dispatch",
+	)
+	require.ErrorIs(t, err, ErrExecutionInputRefScope)
+	require.Equal(t, 0, foreignQueued.remainingQueries())
+}
+
 func TestExpiredOrRevokedInputRefsFailClosedAndAudit(t *testing.T) {
 	clearExecutionInputRefEnv(t)
 	t.Setenv(executionInputRefKeyEnv, base64.StdEncoding.EncodeToString([]byte("33333333333333333333333333333333")))
