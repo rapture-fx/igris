@@ -301,8 +301,13 @@ project anymore.
 - **Hetzner / self-hosted infra.** Retired. Production is Azure Container
   Apps (Go API + Rails console) with Cloudflare for docs/landing and Neon
   Postgres. The legacy `deploy-vps.yml` Hetzner auto-deploy was disabled on
-  2026-06-09 (now `workflow_dispatch` manual-rollback only) and the Hetzner
-  box is pending manual decommission.
+  2026-06-09 and the workflow was REMOVED on 2026-07-04: it had a YAML parse
+  error (the Telegram notify step's multi-line string dedented out of its
+  `run: |` block), so it posted a failed run on every push to main and would
+  not have executed as a manual rollback either. If legacy Hetzner rollback
+  is ever genuinely needed, recover the file from git history
+  (`git show 39639a7f1:.github/workflows/deploy-vps.yml`) and fix that
+  indentation first. The Hetzner box is pending manual decommission.
 - **Multi-tenant end-user auth in the console.** Single-tenant MVP
   uses HTTP Basic + one service-principal key. Multi-tenant (Clerk /
   BetterAuth) comes later.
