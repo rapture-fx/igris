@@ -37,12 +37,19 @@ ALTER TABLE tenants
 
 DO $$
 BEGIN
+    -- Resolve `tenants` through the current search_path (to_regclass) instead
+    -- of assuming table_schema = 'public', so the guard inspects the same
+    -- table the ALTER TABLE above just modified. In production `tenants`
+    -- lives in `public` and this is equivalent; in schema-isolated test
+    -- databases the old hardcoded check missed the table and skipped the
+    -- backfill entirely.
     IF EXISTS (
         SELECT 1
-        FROM information_schema.columns
-        WHERE table_schema = 'public'
-          AND table_name = 'tenants'
-          AND column_name = 'email'
+        FROM pg_attribute
+        WHERE attrelid = to_regclass('tenants')
+          AND attname = 'email'
+          AND attnum > 0
+          AND NOT attisdropped
     ) THEN
         UPDATE tenants
             SET tenant_email = email
