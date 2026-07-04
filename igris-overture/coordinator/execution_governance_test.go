@@ -146,6 +146,69 @@ func TestEvaluateActionPolicyBlocksIrreversibleRecoveryReplay(t *testing.T) {
 	}
 }
 
+func TestEvaluateActionPolicyAllowsForwardResumeBeforeIrreversibleStep(t *testing.T) {
+	taskID := uuid.New()
+	// db_write is step 4; the checkpoint committed only through step 1.
+	definition := json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[
+			{"kind":"tool","tool_name":"filesystem","node_id":"read_file-0"},
+			{"kind":"tool","tool_name":"http_request","node_id":"http_call-1"},
+			{"kind":"tool","tool_name":"filesystem","node_id":"read_file-2"},
+			{"kind":"tool","tool_name":"http_request","node_id":"http_call-3"},
+			{"kind":"tool","tool_name":"database_write","node_id":"db_write-4"}
+		]}
+	}`)
+	checkpoint := &CheckpointPayload{
+		TaskID:      taskID,
+		ResumeToken: ResumeToken{LastCommittedStep: 1, CheckpointDigest: "abc", RuntimeID: "runtime-1"},
+		WalEntries: []WalEntry{
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 0, Status: "committed", InputDigest: "a", RuntimeID: "runtime-1"},
+			{EntryID: uuid.New(), TaskID: taskID, StepIndex: 1, Status: "committed", InputDigest: "b", RuntimeID: "runtime-1"},
+		},
+	}
+
+	decision := evaluateActionPolicy(actionPolicyInput{
+		TenantID:        "tenant-1",
+		TaskID:          taskID,
+		RuntimeID:       "runtime-2",
+		TaskDefinition:  definition,
+		Checkpoint:      checkpoint,
+		RecoveryAttempt: true,
+	})
+
+	if decision.Decision != ActionDecisionAllowed {
+		t.Fatalf("decision = %q, want allowed (irreversible step still pending)", decision.Decision)
+	}
+	if !decision.Irreversible {
+		t.Fatal("task with database_write should still be marked irreversible")
+	}
+	if decision.CheckpointPortability != CheckpointPortabilityCompatibleRuntime {
+		t.Fatalf("portability = %q, want compatible_runtime for safe forward-resume", decision.CheckpointPortability)
+	}
+}
+
+func TestEvaluateActionPolicyDeniesIrreversibleRecoveryWithoutCheckpoint(t *testing.T) {
+	taskID := uuid.New()
+	definition := json.RawMessage(`{
+		"type":"execution_graph",
+		"graph":{"nodes":[{"kind":"tool","tool_name":"database_write","node_id":"db_write-0"}]}
+	}`)
+
+	decision := evaluateActionPolicy(actionPolicyInput{
+		TenantID:        "tenant-1",
+		TaskID:          taskID,
+		RuntimeID:       "runtime-2",
+		TaskDefinition:  definition,
+		Checkpoint:      nil,
+		RecoveryAttempt: true,
+	})
+
+	if decision.Decision != ActionDecisionDenied {
+		t.Fatalf("decision = %q, want denied when checkpoint cannot prove the irreversible step is pending", decision.Decision)
+	}
+}
+
 func TestRecoveryHandoffBlocksSameRuntimeOnlyMigration(t *testing.T) {
 	taskID := uuid.New()
 	checkpoint := &CheckpointPayload{

@@ -209,10 +209,19 @@ func evaluateActionPolicy(input actionPolicyInput) ActionPolicyDecision {
 	reason := "allowed by built-in execution governance"
 	portability := CheckpointPortabilityCompatibleRuntime
 
+	// A recovery may safely resume forward only when the checkpoint proves every
+	// irreversible step is still pending. In that case the pre-irreversible
+	// checkpoint is portable to a compatible runtime; otherwise irreversible work
+	// pins the task to its original runtime.
+	forwardResumeSafe := input.RecoveryAttempt &&
+		recoveryForwardResumeSafe(input.TaskID, input.TaskDefinition, input.Checkpoint)
 	if irreversible {
 		replayClass = ReplayClassNonRetryable
 		risk = "high"
 		portability = CheckpointPortabilitySameRuntime
+		if forwardResumeSafe {
+			portability = CheckpointPortabilityCompatibleRuntime
+		}
 	}
 	if humanGated {
 		risk = "medium"
@@ -223,9 +232,13 @@ func evaluateActionPolicy(input actionPolicyInput) ActionPolicyDecision {
 		decision = ActionDecisionDenied
 		reason = "recovery checkpoint is missing or invalid"
 	}
-	if input.RecoveryAttempt && irreversible {
+	// Irreversible actions may be recovered only when the checkpoint proves the
+	// irreversible step has not executed yet (forward-resume). If it has committed,
+	// may have committed, or the checkpoint cannot prove safety, recovery is denied
+	// so a committed side effect is never replayed on another runtime.
+	if input.RecoveryAttempt && irreversible && !forwardResumeSafe {
 		decision = ActionDecisionDenied
-		reason = "irreversible action cannot be automatically replayed during recovery"
+		reason = "irreversible action already committed or checkpoint cannot prove safe forward-resume"
 	}
 
 	boundary := defaultExecutionBoundary(input.TaskDefinition, input.RequiredCaps)
@@ -286,12 +299,70 @@ func classifyTaskAction(definition json.RawMessage) (string, string) {
 }
 
 func taskHasIrreversibleAction(definition json.RawMessage) bool {
-	lower := strings.ToLower(string(definition))
+	return containsIrreversibleActionToken(strings.ToLower(string(definition)))
+}
+
+// containsIrreversibleActionToken reports whether a lower-cased JSON fragment
+// names an action whose side effect cannot be undone. Used both at the whole-task
+// level and per graph node so the two never disagree about what is irreversible.
+func containsIrreversibleActionToken(lower string) bool {
 	return strings.Contains(lower, `"irreversible":true`) ||
 		strings.Contains(lower, `"db_write"`) ||
 		strings.Contains(lower, `"database_write"`) ||
 		strings.Contains(lower, `"publish_velocity"`) ||
 		strings.Contains(lower, `"navigate_to_pose"`)
+}
+
+// irreversibleStepIndexes returns the 0-based execution-graph node indexes whose
+// action is irreversible, in order. The index matches the WalEntry/step_index
+// space, so it can be compared against a checkpoint's last_committed_step.
+func irreversibleStepIndexes(definition json.RawMessage) []int {
+	var payload struct {
+		Graph struct {
+			Nodes []json.RawMessage `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(definition, &payload); err != nil {
+		return nil
+	}
+	indexes := make([]int, 0, len(payload.Graph.Nodes))
+	for i, node := range payload.Graph.Nodes {
+		if containsIrreversibleActionToken(strings.ToLower(string(node))) {
+			indexes = append(indexes, i)
+		}
+	}
+	return indexes
+}
+
+// recoveryForwardResumeSafe reports whether an automatic recovery can resume this
+// task from its checkpoint WITHOUT any risk of replaying an irreversible side
+// effect. It is deliberately conservative: it allows resume only when it can
+// positively prove the checkpoint precedes every irreversible step. A task with
+// no irreversible action is always safe. Any of the following deny it: a missing
+// or unusable checkpoint; an irreversible definition whose steps cannot be
+// located in the graph (ambiguous); or an irreversible step whose index is at or
+// before the checkpoint's last_committed_step (already committed, or committed at
+// the watermark — either way replaying it would double the side effect).
+func recoveryForwardResumeSafe(taskID uuid.UUID, definition json.RawMessage, cp *CheckpointPayload) bool {
+	if !taskHasIrreversibleAction(definition) {
+		return true
+	}
+	if cp == nil || !TaskRecoveryCheckpointUsable(taskID, cp) {
+		return false
+	}
+	indexes := irreversibleStepIndexes(definition)
+	if len(indexes) == 0 {
+		// The definition contains an irreversible action but we cannot locate the
+		// step in the graph — we cannot prove it is still pending, so deny.
+		return false
+	}
+	lastCommitted := int(cp.ResumeToken.LastCommittedStep)
+	for _, idx := range indexes {
+		if idx <= lastCommitted {
+			return false
+		}
+	}
+	return true
 }
 
 func taskRequiresHumanApproval(definition json.RawMessage) bool {
@@ -1261,8 +1332,12 @@ func RecoveryHandoffAllowed(task *TaskRecord, checkpoint *CheckpointPayload, tar
 	if decision.Decision != ActionDecisionAllowed {
 		return false, decision.PolicyReason
 	}
-	if decision.ReplayClass == ReplayClassNonRetryable || decision.Irreversible {
-		return false, "non-replayable or irreversible action requires manual recovery"
+	// Re-verify the irreversible-safety invariant at the actual redispatch point:
+	// an irreversible task may hand off only when its checkpoint proves every
+	// irreversible step is still pending (forward-resume). This never replays a
+	// committed side effect, and denies when the checkpoint cannot prove safety.
+	if decision.Irreversible && !recoveryForwardResumeSafe(task.TaskID, task.TaskDefinition, checkpoint) {
+		return false, "irreversible action already committed or checkpoint cannot prove safe forward-resume"
 	}
 	if checkpoint == nil {
 		return true, "no checkpoint; first safe redispatch"
