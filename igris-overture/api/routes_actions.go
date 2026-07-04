@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -133,6 +134,13 @@ type actionRunByNameRequest struct {
 }
 
 var actionNamePattern = regexp.MustCompile(`^[a-z][a-z0-9_.]{1,63}$`)
+var localWebhookAuthHeaderPattern = regexp.MustCompile(`^[A-Za-z0-9-]{1,64}$`)
+var localWebhookSecretEnvPattern = regexp.MustCompile(`^IGRIS_[A-Z0-9_]{1,96}$`)
+
+const (
+	localWebhookAuthHeaderNameMetadata = "local_auth_header_name"
+	localWebhookAuthSecretEnvMetadata  = "local_auth_secret_env"
+)
 
 // RegisterActionRoutes wires the product-facing action gateway. These routes
 // adapt customer action calls onto the same durable task path used by /v1/tasks.
@@ -768,6 +776,10 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 		if strings.TrimSpace(def.TargetURL) == "" {
 			return actionRunRequest{}, fmt.Errorf("target URL is not configured")
 		}
+		headers, err := localWebhookAuthHeaders(def)
+		if err != nil {
+			return actionRunRequest{}, err
+		}
 		runReq.executedTarget = targetType
 		body := req.Input
 		if body == nil {
@@ -778,6 +790,9 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 			"url":    def.TargetURL,
 			"method": def.Method,
 			"body":   body,
+		}
+		if len(headers) > 0 {
+			runReq.Input["headers"] = headers
 		}
 	case actionTargetLocalRuntime:
 		// local_runtime actions execute on a tenant-owned runtime. The action's
@@ -806,6 +821,53 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 	// (and the console) can render "Routed via …" without re-deriving it.
 	runReq.Metadata["target_type"] = targetType
 	return runReq, nil
+}
+
+func localWebhookAuthHeaders(def actionDefinition) (map[string]interface{}, error) {
+	headerName := strings.TrimSpace(stringFromMap(def.TargetMetadata, localWebhookAuthHeaderNameMetadata))
+	secretEnv := strings.TrimSpace(stringFromMap(def.TargetMetadata, localWebhookAuthSecretEnvMetadata))
+	if headerName == "" && secretEnv == "" {
+		return nil, nil
+	}
+	if canonicalActionTargetType(def.TargetType) != actionTargetWebhook {
+		return nil, fmt.Errorf("local webhook auth is only allowed for webhook targets")
+	}
+	if headerName == "" || secretEnv == "" {
+		return nil, fmt.Errorf("local webhook auth requires both %s and %s", localWebhookAuthHeaderNameMetadata, localWebhookAuthSecretEnvMetadata)
+	}
+	if !localWebhookAuthHeaderPattern.MatchString(headerName) || strings.EqualFold(headerName, "authorization") || strings.EqualFold(headerName, "cookie") {
+		return nil, fmt.Errorf("local webhook auth header name is not allowed")
+	}
+	if !localWebhookSecretEnvPattern.MatchString(secretEnv) {
+		return nil, fmt.Errorf("local webhook auth secret env name is not allowed")
+	}
+	if !isLoopbackHTTPURL(def.TargetURL) {
+		return nil, fmt.Errorf("local webhook auth is only allowed for loopback http targets")
+	}
+	secret, ok := os.LookupEnv(secretEnv)
+	if !ok || strings.TrimSpace(secret) == "" {
+		return nil, fmt.Errorf("local webhook auth secret env is not configured")
+	}
+	if strings.ContainsAny(secret, "\r\n") {
+		return nil, fmt.Errorf("local webhook auth secret contains invalid characters")
+	}
+	return map[string]interface{}{headerName: secret}, nil
+}
+
+func isLoopbackHTTPURL(raw string) bool {
+	parsed, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return false
+	}
+	if parsed.Scheme != "http" {
+		return false
+	}
+	switch strings.ToLower(parsed.Hostname()) {
+	case "127.0.0.1", "localhost", "::1":
+		return true
+	default:
+		return false
+	}
 }
 
 func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage, error) {
