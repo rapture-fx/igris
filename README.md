@@ -162,6 +162,32 @@ The gateway enforces staging-only (loopback DSN), plan-checksum match at apply
 time, and at-most-once apply — independently of Igris policy. Overture, the
 runtime, and the console never see database credentials.
 
+## Internal Dogfood: Igris-Routed Development
+
+The second dogfood loop routes risky development actions through Igris itself:
+`repo.run_tests` (auto-approved fixed command), `repo.push_branch` and
+`repo.open_pr` (human-approved, dry-run by default; real PR creation is
+intentionally disabled).
+
+- Operator guide (start here):
+  [DOGFOOD_ROUTED_DEV_OPERATOR_GUIDE.md](./DOGFOOD_ROUTED_DEV_OPERATOR_GUIDE.md)
+- Normative contract:
+  [DOGFOOD_IGRIS_ROUTED_DEVELOPMENT.md](./DOGFOOD_IGRIS_ROUTED_DEVELOPMENT.md)
+
+```bash
+make igris-local-up               # once: local Postgres + migrations
+# run from a NON-main branch — the gateway refuses main/master
+make dogfood-routed-dev-smoke
+IGRIS_SMOKE_CONSOLE_PORT=3101 make dogfood-routed-dev-smoke-console
+```
+
+## Staging readiness
+
+Staging is the current milestone. Before any staging or production
+deployment, the credential rotation in
+[SECURITY_ROTATION_2026-07-04.md](./SECURITY_ROTATION_2026-07-04.md) must be
+completed and attested.
+
 ## Quick Install
 
 The public first-run path installs the Igris CLI into `~/.igris/bin`:
