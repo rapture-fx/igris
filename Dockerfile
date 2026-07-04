@@ -2,7 +2,10 @@
 # Multi-stage build: Rust libs → Go binary → minimal runtime
 
 # Stage 1: Build Rust FFI libraries
-FROM rust:1.82-alpine AS rust-builder
+# Toolchain must be able to parse the manifests of every crate in the
+# committed Cargo.lock files (e.g. backon 1.6.0 broke rust:1.82). Keep this
+# pin >= the cargo version that generated those lockfiles.
+FROM rust:1.90-alpine AS rust-builder
 
 RUN apk add --no-cache pkgconfig openssl-dev musl-dev
 
@@ -11,12 +14,14 @@ WORKDIR /build
 # Copy Rust kernel source
 COPY rust-core/rust_kernel /build/rust_kernel
 WORKDIR /build/rust_kernel
-RUN cargo build --release
+# --locked: dependency resolution is committed (Cargo.lock); the image build
+# must never float to newly published crate versions.
+RUN cargo build --release --locked
 
 # Copy SLO enforcer source
 COPY rust-core/production_slo_enforcer /build/slo_enforcer
 WORKDIR /build/slo_enforcer
-RUN cargo build --release
+RUN cargo build --release --locked
 
 # Stage 2: Build Go application (with CGO for Rust FFI)
 FROM golang:1.24-alpine AS go-builder
