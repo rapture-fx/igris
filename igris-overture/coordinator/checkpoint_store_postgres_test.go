@@ -115,7 +115,10 @@ func TestRoboticsReceiptReplayWithPostgresMigrations(t *testing.T) {
 		"governed_action_hash": "action-hash-replay-pg",
 		"routing_decision":     "ros2:publish_zero_velocity",
 	})
-	receipt := signedRuntimeArtifactJSON(t, privateKey, map[string]any{
+	// Receipts are signed over the runtime's fixed-field canonical form
+	// (see internal.canonicalReceiptBytes), not the whole-JSON form used
+	// for envelopes — signedRuntimeArtifactJSON would fail verification.
+	receipt := signedReceiptJSON(t, privateKey, map[string]any{
 		"execution_id":       "exec-replay-pg",
 		"receipt_hash":       "receipt-hash-replay-pg",
 		"violation_occurred": false,
@@ -180,13 +183,25 @@ func TestAIToolReplayPostgres043(t *testing.T) {
 	_, err = db.Exec(`SET search_path TO ` + schema + `, public`)
 	require.NoError(t, err)
 
+	// The artifact-persistence path reads task_records through the full
+	// TaskRecord scan (GetTask column list), so every migration that adds a
+	// scanned column must be applied here: 034 canceled_at, 035
+	// failure_details, 049 proof verification summary, 055 execution
+	// targets, 062 registered agent.
 	for _, name := range []string{
 		"005_runtime_instances.sql",
 		"006_execution_lineage.sql",
 		"031_task_records.sql",
 		"032_task_record_artifacts.sql",
 		"033_task_proof_state.sql",
+		"034_task_cancellation.sql",
+		"035_task_failure_details.sql",
 		"043_ai_capability_governance_audit.sql",
+		"047_execution_context.sql",
+		"049_task_proof_verification_summary.sql",
+		"054_action_definitions.sql",
+		"055_action_execution_targets.sql",
+		"062_task_records_registered_agent.sql",
 	} {
 		sqlBytes, err := os.ReadFile(filepath.Join("..", "database", "migrations", name))
 		require.NoError(t, err)
@@ -266,9 +281,10 @@ func TestAIToolReplayPostgres043(t *testing.T) {
 		"request_hash":         "args-hash-pg",
 		"response_hash":        "result-hash-pg",
 	})
-	runtimeReceipt := signedRuntimeArtifactJSON(t, privateKey, map[string]any{
+	// signedReceiptJSON signs the canonical receipt form and computes the
+	// canonical "hash" field itself, as the real runtime does.
+	runtimeReceipt := signedReceiptJSON(t, privateKey, map[string]any{
 		"execution_id":       "exec-tool-pg",
-		"hash":               "receipt-hash-tool-pg",
 		"tool_calls":         float64(1),
 		"violation_occurred": false,
 	})
@@ -283,7 +299,7 @@ func TestAIToolReplayPostgres043(t *testing.T) {
 	require.Len(t, receipts, 1)
 	require.Equal(t, envelope.EnvelopeID, receipts[0].EnvelopeID)
 	require.Equal(t, "tools.github.issues.write", receipts[0].Capability)
-	require.Equal(t, "receipt-hash-tool-pg", receipts[0].ReceiptHash)
+	require.Equal(t, mustJSONFieldString(t, runtimeReceipt, "hash"), receipts[0].ReceiptHash)
 
 	replays, err := store.ReplayAIToolAudit(tenantID, AIToolAuditReceiptFilter{
 		TaskID:     &taskID,
@@ -314,9 +330,8 @@ func TestAIToolReplayPostgres043(t *testing.T) {
 		"request_hash":         "args-hash-revoked-pg",
 		"response_hash":        "result-hash-revoked-pg",
 	})
-	revokedRuntimeReceipt := signedRuntimeArtifactJSON(t, privateKey, map[string]any{
+	revokedRuntimeReceipt := signedReceiptJSON(t, privateKey, map[string]any{
 		"execution_id":       "exec-tool-revoked-pg",
-		"hash":               "receipt-hash-tool-revoked-pg",
 		"tool_calls":         float64(1),
 		"violation_occurred": false,
 	})
