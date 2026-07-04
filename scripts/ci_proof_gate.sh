@@ -105,6 +105,16 @@ SQL
     "047_execution_context"
     "048_verified_execution_schema_repair"
     "049_task_proof_verification_summary"
+    # task submission (CheckpointStore.CreateTask) INSERTs registered_agent_id/
+    # registered_agent_name and relies on ON CONFLICT (tenant_id, idempotency_key).
+    # 031 only has a GLOBAL idempotency unique index, so 057 supplies the composite
+    # tenant-scoped unique index the ON CONFLICT target needs, and 062 adds the
+    # registered_agent columns. Without them /v1/tasks/submit 503s ("dispatch_failed":
+    # column registered_agent_id ... does not exist) on a fresh proof DB. Both are
+    # ALTER/INDEX ... IF NOT EXISTS (057 also DROP INDEX IF EXISTS), so
+    # already-provisioned DBs are unaffected.
+    "057_task_records_tenant_scoped_idempotency"
+    "062_task_records_registered_agent"
   )
   local migration_file
   local migration_name
