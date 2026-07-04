@@ -91,6 +91,11 @@ SQL
     "006_execution_lineage"
     "007_pricing_model_refactor"
     "008_runtime_registry"
+    # BetterAuth session-based auth tables (user/session/account/verification).
+    # After registration passes, the proof performs a session lookup that hits
+    # `relation "session" does not exist` on a fresh proof DB. 015 creates them;
+    # all CREATE TABLE ... IF NOT EXISTS, so already-provisioned DBs are unaffected.
+    "015_better_auth"
     "031_task_records"
     "032_task_record_artifacts"
     "033_task_proof_state"
