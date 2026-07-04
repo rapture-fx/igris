@@ -74,7 +74,10 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 			($1, 'policy-key-old', $2, $3, 'revoked', $1, NOW(), NOW()),
 			($1, 'policy-key-active', $2, $4, 'active', $1, NOW(), NOW())`,
 		"tenant-real-pg",
-		"tenant-real-pg@example.test",
+		// Must match the signer header set by signedRoboticsPolicyRouteRequest;
+		// the handler 403s (policy_signer_identity_mismatch) when the header and
+		// the key row disagree.
+		"policy-admin@example.test",
 		hex.EncodeToString(revokedPublicKey),
 		hex.EncodeToString(activePublicKey),
 	)
@@ -129,7 +132,7 @@ func TestRoboticsPolicyActivationWithPostgresMigrations(t *testing.T) {
 		  AND command_nonce IS NOT NULL
 		  AND command_hash IS NOT NULL
 		  AND command_signature IS NOT NULL`,
-		"tenant-real-pg", "robotics-policy.pg", "tenant-real-pg@example.test",
+		"tenant-real-pg", "robotics-policy.pg", "policy-admin@example.test",
 	).Scan(&activationAuditRows)
 	require.NoError(t, err)
 	require.Equal(t, 1, activationAuditRows)

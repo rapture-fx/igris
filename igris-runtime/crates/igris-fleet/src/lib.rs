@@ -548,6 +548,34 @@ impl FleetAgent {
 
         let uptime = SystemTime::now().duration_since(self.start_time)?.as_secs();
 
+        // Mock mode: deterministic telemetry, no local Prometheus scrape. Every
+        // other network-touching path in this agent branches on mock_mode; this
+        // one must too, or environments without a runtime on :8080 (CI) collect
+        // empty metrics.
+        if self.config.mock_mode {
+            let mut metrics = HashMap::new();
+            metrics.insert("requests_total".to_string(), 1234.0);
+            metrics.insert("latency_p99_ms".to_string(), 45.2);
+            metrics.insert("error_rate".to_string(), 0.01);
+
+            return Ok(TelemetryData {
+                agent_id: self.config.agent_id.clone(),
+                timestamp: SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)?
+                    .as_secs(),
+                metrics,
+                logs: vec![],
+                status: AgentStatus {
+                    health: "healthy".to_string(),
+                    uptime_secs: uptime,
+                    cpu_usage_percent: 35.5,
+                    memory_usage_mb: 512,
+                    active_tasks: 3,
+                },
+                signature: None,
+            });
+        }
+
         // Fetch REAL Prometheus metrics
         let metrics = fetch_prometheus_metrics("http://localhost:8080")
             .await

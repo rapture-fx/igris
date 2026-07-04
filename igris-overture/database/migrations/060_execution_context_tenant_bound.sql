@@ -18,12 +18,12 @@
 
 DO $$
 BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-          AND table_name = 'execution_context'
-    ) THEN
+    -- Resolve execution_context through the current search_path
+    -- (to_regclass) instead of assuming table_schema = 'public', so the
+    -- guard matches the same table the statements below operate on. In
+    -- production execution_context lives in public and this is equivalent;
+    -- schema-isolated test databases were skipped by the old check.
+    IF to_regclass('execution_context') IS NOT NULL THEN
         -- Backfill from the direct task_id foreign key when it proves exactly
         -- one tenant for the execution context row.
         UPDATE execution_context ec
@@ -82,12 +82,7 @@ DO $$
 DECLARE
     remaining BIGINT;
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-          AND table_name = 'execution_context'
-    ) THEN
+    IF to_regclass('execution_context') IS NULL THEN
         RETURN;
     END IF;
 
