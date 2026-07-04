@@ -76,9 +76,9 @@ func TestExecutionLineageTenantIsolationPostgres(t *testing.T) {
 		taskID := uuid.New()
 		_, err := db.Exec(`
 			INSERT INTO task_records
-				(task_id, tenant_id, status, task_definition, proof_execution_id, proof_expected_hash, created_at)
-			VALUES ($1, $2, 'completed', '{}'::jsonb, $3, $4, NOW())`,
-			taskID, tenantID, executionID, expectedHash)
+				(task_id, tenant_id, status, task_definition, idempotency_key, proof_execution_id, proof_expected_hash, created_at)
+			VALUES ($1, $2, 'completed', '{}'::jsonb, $3, $4, $5, NOW())`,
+			taskID, tenantID, "idem-"+taskID.String(), executionID, expectedHash)
 		require.NoError(t, err)
 		return taskID
 	}

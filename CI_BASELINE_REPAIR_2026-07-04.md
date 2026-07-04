@@ -90,6 +90,48 @@ had, exposing two more pre-existing failures. Both are repaired in this branch.
   Linux with cgroup permissions (privileged/self-hosted runners). Supervisor
   fail-closed behavior is untouched.
 
+### 7. Governance Postgres migrations — coordinator replay tests (unmasked by item 5's fix)
+
+Once the API-key auth step passed, the job reached the next step for the first
+time: `TestRoboticsReceiptReplayWithPostgresMigrations` and
+`TestAIToolReplayPostgres043` failed. Two independent fixture bugs, both
+test-only:
+
+- **Wrong signing helper for receipts:** both tests signed execution receipts
+  with `signedRuntimeArtifactJSON`, which signs the whole-JSON canonical form
+  used for *envelopes*. Receipts are verified against the runtime's
+  fixed-field canonical form (`internal.canonicalReceiptBytes`, mirroring
+  `receipt.rs`), so verification failed with `runtime_signature_invalid`. The
+  passing mock-driver unit twin already used the correct `signedReceiptJSON`
+  helper; the Postgres tests now do too.
+- **Stale migration list:** `TestAIToolReplayPostgres043` applied migrations
+  only up to 043, but the artifact-persistence path reads `task_records`
+  through the full `GetTask` column list, which now includes columns from 034
+  (canceled_at), 035 (failure_details), 049 (proof verification summary),
+  054/055 (action execution targets), 062 (registered agent), plus the
+  execution_context table from 047. The migration list now includes them.
+
+### 8. Tenant isolation Postgres tests (unmasked by item 7's fix)
+
+The job's final step had two more latent failures:
+
+- **`TestExecutionLineageTenantIsolationPostgres`** inserted `task_records`
+  rows without `idempotency_key`, which migration 031 has always declared
+  `NOT NULL` — the fixture could never have passed against real Postgres.
+  Fixed by giving each inserted task a unique idempotency key.
+- **`TestExecutionContextTenantBoundMigrationPostgres`** failed because
+  migration `060_execution_context_tenant_bound.sql` has the same bug class
+  as item 5: both of its existence guards were hardcoded to
+  `information_schema.tables WHERE table_schema = 'public'`, so in a
+  schema-isolated database the tenant backfill and constraint application
+  were silently skipped. Both guards now use `to_regclass('execution_context')`,
+  which resolves through the search_path. In production, where the table is
+  in `public` (060 was applied to prod 2026-06-23), this is equivalent — the
+  migration remains forward-only and safe to re-run.
+
+After these fixes the entire four-step `backend-postgres.yml` job sequence was
+run locally against a freshly created empty database and every step passed.
+
 ## External — requires a manual Cloudflare dashboard change
 
 ### 4. `Cloudflare Pages: igris-console`
