@@ -329,8 +329,8 @@ function commandVerifyActionEvidence(taskPath, stepsPath, runPath, receiptsPath,
       fail(`action_evidence ${a} has no target_summary`);
     }
   }
-  if (!/^\//.test(evidenceByAction.read_file.target_summary)) {
-    fail(`action_evidence read_file target_summary is not a controlled path: ${evidenceByAction.read_file.target_summary}`);
+  if (!/^file:[0-9a-f]{64}$/.test(evidenceByAction.read_file.target_summary)) {
+    fail(`action_evidence read_file target_summary is not a redacted file digest: ${evidenceByAction.read_file.target_summary}`);
   }
   if (!/^[A-Z]+\s+https?:\/\//.test(evidenceByAction.http_call.target_summary)) {
     fail(`action_evidence http_call target_summary is not "METHOD URL": ${evidenceByAction.http_call.target_summary}`);
