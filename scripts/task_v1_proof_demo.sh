@@ -232,7 +232,7 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
 
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     PORT=8081 \
     DATABASE_URL="$DB_URL" \
     POSTGRES_URL="$DB_URL" \
@@ -292,7 +292,7 @@ echo "    runtime_id: $RUNTIME_ID (peer id pinned)"
 
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     RUNTIME_MOCK_KEY=dummy \
     IGRIS_ALLOW_INSECURE_DEV_MODE=true \
     IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
