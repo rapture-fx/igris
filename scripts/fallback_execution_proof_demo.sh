@@ -119,8 +119,13 @@ else
 fi
 
 echo "[3/7] Building Overture binary"
-GOCACHE="$TMP_DIR/go-cache" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
-  go build -o "$TMP_DIR/igris-overture" ./cmd/igris-overture
+OVERTURE_BIN="${IGRIS_PROOF_OVERTURE_BIN:-$TMP_DIR/igris-overture}"
+if [[ -x "$OVERTURE_BIN" ]]; then
+  echo "    Reusing existing Overture binary"
+else
+  GOCACHE="${IGRIS_PROOF_GOCACHE:-$TMP_DIR/go-cache}" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
+    go build -o "$OVERTURE_BIN" ./cmd/igris-overture
+fi
 
 # Start ONLY the fallback mock (port 18090). Port 19090 intentionally left dead.
 echo "[4/7] Starting fallback mock provider on port 18090 (primary port 19090 left dead)"
@@ -142,7 +147,7 @@ RUNTIME_SECRET=$(node -e 'const fs=require("fs"); const m=JSON.parse(fs.readFile
 echo "[5/7] Starting Runtime (two providers configured)"
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     RUNTIME_MOCK_KEY=dummy \
     IGRIS_ALLOW_INSECURE_DEV_MODE=true \
     IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
@@ -205,10 +210,11 @@ fi
 echo "[6/7] Starting Overture"
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     PORT=8081 \
     PROVIDER_MODE=mock \
     ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
+    IGRIS_ENABLE_EXPERIMENTAL_MODEL_ROUTES=true \
     ENABLE_MULTI_TENANCY="$([[ "$DB_PROOF_ENABLED" == "true" ]] && echo true || echo false)" \
     REQUIRE_AUTH_FOR_INFERENCE="$([[ "$DB_PROOF_ENABLED" == "true" ]] && echo true || echo false)" \
     ALLOW_INSECURE_DEFAULTS=true \
@@ -220,14 +226,14 @@ echo "[6/7] Starting Overture"
     IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
     IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
     IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
-    "$TMP_DIR/igris-overture"
+    "$OVERTURE_BIN"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
 wait_for_http "http://127.0.0.1:8081/healthz" "overture"
 
 echo "[7/7] Submitting inference request through Overture → Runtime"
 curl -sS \
-  ${AUTH_ARGS:+"${AUTH_ARGS[@]}"} \
+  ${AUTH_ARGS:+${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"}} \
   -H "Content-Type: application/json" \
   -d '{"model":"mock-model","messages":[{"role":"user","content":"hello fallback proof"}],"stream":false}' \
   "http://127.0.0.1:8081/v1/infer" > "$TMP_DIR/overture-response.json"
@@ -263,21 +269,21 @@ if [[ "$DB_PROOF_ENABLED" == "true" ]]; then
   EXECUTION_ID=$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(r.execution_receipt.execution_id);' "$TMP_DIR/overture-response.json")
   VERIFY_REQUEST_JSON=$(node "$HELPER" build-verify-request "$TMP_DIR/overture-response.json")
 
-  curl -sS ${AUTH_ARGS:+"${AUTH_ARGS[@]}"} \
+  curl -sS ${AUTH_ARGS:+${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"}} \
     "http://127.0.0.1:8081/v1/execution/runs?limit=20&sort=timestamp_utc:desc" > "$TMP_DIR/runs.json"
 
   for _ in {1..40}; do
-    if curl -fsS ${AUTH_ARGS:+"${AUTH_ARGS[@]}"} \
+    if curl -fsS ${AUTH_ARGS:+${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"}} \
       "http://127.0.0.1:8081/v1/execution/runs/$EXECUTION_ID" > "$TMP_DIR/run-detail.json"; then
       break
     fi
     sleep 0.25
   done
 
-  curl -sS ${AUTH_ARGS:+"${AUTH_ARGS[@]}"} \
+  curl -sS ${AUTH_ARGS:+${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"}} \
     "http://127.0.0.1:8081/proof/receipts?limit=50&sort=timestamp:desc" > "$TMP_DIR/proof-receipts.json"
 
-  curl -sS ${AUTH_ARGS:+"${AUTH_ARGS[@]}"} \
+  curl -sS ${AUTH_ARGS:+${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"}} \
     -H "Content-Type: application/json" \
     -d "$VERIFY_REQUEST_JSON" \
     "http://127.0.0.1:8081/proof/receipts/verify" > "$TMP_DIR/proof-verify.json"
