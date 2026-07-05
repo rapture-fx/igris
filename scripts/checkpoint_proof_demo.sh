@@ -220,8 +220,13 @@ else
 fi
 
 echo "[3/10] Building Overture binary"
-GOCACHE="$TMP_DIR/go-cache" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
-  go build -o "$TMP_DIR/igris-overture" ./cmd/igris-overture
+OVERTURE_BIN="${IGRIS_PROOF_OVERTURE_BIN:-$TMP_DIR/igris-overture}"
+if [[ -x "$OVERTURE_BIN" ]]; then
+  echo "    Reusing existing Overture binary"
+else
+  GOCACHE="${IGRIS_PROOF_GOCACHE:-$TMP_DIR/go-cache}" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
+    go build -o "$OVERTURE_BIN" ./cmd/igris-overture
+fi
 
 echo "[4/10] Seeding temporary tenant, session, and API key"
 psql "$DB_URL" <<SQL >/dev/null
@@ -272,7 +277,7 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
     IGRIS_RUNTIME_CALLBACK_BASE_URL="http://127.0.0.1:8081" \
     IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME="Cookie" \
     IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE="better-auth.session_token=$PROOF_SESSION_TOKEN" \
-    "$TMP_DIR/igris-overture"
+    "$OVERTURE_BIN"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
 wait_for_http "http://127.0.0.1:8081/healthz" "overture"

@@ -119,8 +119,13 @@ else
 fi
 
 echo "[3/7] Building Overture binary"
-GOCACHE="$TMP_DIR/go-cache" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
-  go build -o "$TMP_DIR/igris-overture" ./cmd/igris-overture
+OVERTURE_BIN="${IGRIS_PROOF_OVERTURE_BIN:-$TMP_DIR/igris-overture}"
+if [[ -x "$OVERTURE_BIN" ]]; then
+  echo "    Reusing existing Overture binary"
+else
+  GOCACHE="${IGRIS_PROOF_GOCACHE:-$TMP_DIR/go-cache}" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
+    go build -o "$OVERTURE_BIN" ./cmd/igris-overture
+fi
 
 # Start ONLY the fallback mock (port 18090). Port 19090 intentionally left dead.
 echo "[4/7] Starting fallback mock provider on port 18090 (primary port 19090 left dead)"
@@ -221,7 +226,7 @@ echo "[6/7] Starting Overture"
     IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
     IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
     IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
-    "$TMP_DIR/igris-overture"
+    "$OVERTURE_BIN"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
 wait_for_http "http://127.0.0.1:8081/healthz" "overture"
