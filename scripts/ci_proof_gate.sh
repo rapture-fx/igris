@@ -137,6 +137,19 @@ SQL
     "055_action_execution_targets"
     "056_execution_input_refs"
     "057_task_records_tenant_scoped_idempotency"
+    # Once a resumable action_task runs, the runtime posts a signed checkpoint to
+    # POST /v1/tasks/:id/checkpoint. validateRuntimeCallback verifies the signed
+    # envelope and then calls reserveRuntimeCallbackNonce, which INSERTs into
+    # runtime_callback_nonces for replay protection. On a fresh proof DB that
+    # table is absent, so the INSERT errors, the callback fails closed with the
+    # default 403 status ("runtime callback replay store failed: ... relation
+    # \"runtime_callback_nonces\" does not exist"), and the coordinator then marks
+    # the runtime failed and reports "no runtime available for recovery". 052
+    # creates runtime_callback_nonces (a standalone CREATE TABLE ... IF NOT EXISTS
+    # with no external FKs), so already-provisioned DBs are unaffected. This does
+    # not weaken callback auth: signature/identity/timestamp/replay checks all
+    # still run — it only provisions the replay-protection table they require.
+    "052_runtime_callback_envelopes"
     "062_task_records_registered_agent"
   )
   local migration_file
@@ -186,6 +199,9 @@ preflight_durable_task_schema() {
   require_relation "wal_checkpoints"
   require_relation "execution_context"
   require_relation "execution_lineage"
+  # Signed runtime checkpoint callbacks reserve a replay nonce here; without the
+  # table the callback fails closed (403) and recovery reports no runtime.
+  require_relation "runtime_callback_nonces"
 
   require_column "task_records" "last_checkpoint"
   require_column "task_records" "proof_verified"

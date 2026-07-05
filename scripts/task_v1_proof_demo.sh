@@ -44,6 +44,16 @@ RUNTIME_PID=""
 OVERTURE_PID=""
 
 cleanup() {
+  local exit_code=$?
+  if [[ "$exit_code" -ne 0 ]]; then
+    echo "==== task_v1 proof failure (exit $exit_code): service log tails ====" >&2
+    for log in overture runtime mock-provider; do
+      if [[ -f "$LOG_DIR/$log.log" ]]; then
+        echo "---- $log.log (last 40 lines) ----" >&2
+        tail -n 40 "$LOG_DIR/$log.log" >&2 || true
+      fi
+    done
+  fi
   for pid in "$OVERTURE_PID" "$RUNTIME_PID" "$MOCK_PID"; do
     if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
       kill "$pid" >/dev/null 2>&1 || true
@@ -208,32 +218,15 @@ INSERT INTO session (id, "expiresAt", token, "createdAt", "updatedAt", "ipAddres
 VALUES ('$PROOF_SESSION_ID',NOW()+INTERVAL '2 hours','$PROOF_SESSION_TOKEN',NOW(),NOW(),'127.0.0.1','task-v1-proof-demo','$PROOF_USER_ID')
 ON CONFLICT (id) DO UPDATE SET "expiresAt"=EXCLUDED."expiresAt", token=EXCLUDED.token, "updatedAt"=NOW(), "userAgent"=EXCLUDED."userAgent", "userId"=EXCLUDED."userId";
 
-INSERT INTO tenants (id, tenant_id, tenant_name, email, status, tier, api_key_hash, api_key_prefix, runtime_limit, created_at, updated_at)
-VALUES ('$PROOF_TENANT_UUID'::uuid,'$PROOF_TENANT_ID','Task V1 Proof Demo','$PROOF_USER_EMAIL','active','seed','$PROOF_API_KEY_HASH','$PROOF_API_KEY_PREFIX',3,NOW(),NOW())
-ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, email=EXCLUDED.email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, updated_at=NOW();
+INSERT INTO tenants (tenant_id, tenant_name, tenant_email, status, tier, api_key_hash, api_key_prefix, runtime_limit, created_at, updated_at)
+VALUES ('$PROOF_TENANT_ID','Task V1 Proof Demo','$PROOF_USER_EMAIL','active','seed','$PROOF_API_KEY_HASH','$PROOF_API_KEY_PREFIX',3,NOW(),NOW())
+ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, tenant_email=EXCLUDED.tenant_email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, updated_at=NOW();
 SQL
 
-echo "[5/9] Starting mock provider, Runtime, and Overture"
+echo "[5/9] Starting mock provider and Overture"
 node "$HELPER" serve-mock-provider 18090 > "$LOG_DIR/mock-provider.log" 2>&1 &
 MOCK_PID=$!
 wait_for_http "http://127.0.0.1:18090/health" "mock provider"
-
-(
-  cd "$ROOT_DIR"
-  env \
-    RUNTIME_MOCK_KEY=dummy \
-    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
-    IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
-    IGRIS_DEVICE_ID="$DEVICE_ID" \
-    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
-    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
-    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
-    IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
-    RUST_LOG="warn" \
-    "$RUNTIME_BIN" serve
-) > "$LOG_DIR/runtime.log" 2>&1 &
-RUNTIME_PID=$!
-wait_for_http "http://127.0.0.1:8080/v1/health" "runtime"
 
 RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/runtime-signing-key.ed25519")
 
@@ -241,6 +234,9 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
   cd "$ROOT_DIR"
   env \
     PORT=8081 \
+    DATABASE_URL="$DB_URL" \
+    POSTGRES_URL="$DB_URL" \
+    ENABLE_PERSISTENCE=true \
     PROVIDER_MODE=mock \
     ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
     ENABLE_MULTI_TENANCY=true \
@@ -254,6 +250,9 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
     IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
     IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
     IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
+    IGRIS_RUNTIME_CALLBACK_BASE_URL="http://127.0.0.1:8081" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME="Cookie" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE="better-auth.session_token=$PROOF_SESSION_TOKEN" \
     "$TMP_DIR/igris-overture"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
@@ -273,6 +272,40 @@ curl -sS -f \
   -H "Content-Type: application/json" \
   -d @"$TMP_DIR/runtime-register.json" \
   "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-register-response.json"
+
+RUNTIME_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-register-response.json")
+if [[ -z "$RUNTIME_ID" ]]; then
+  echo "runtime registration did not return a runtime_id" >&2
+  cat "$TMP_DIR/runtime-register-response.json" >&2
+  exit 1
+fi
+
+# Pin the runtime peer id to the registered runtime_id so governed_runtime_id
+# matches the task's assigned runtime. Without this the runtime signs its
+# checkpoint/complete callbacks as the default peer id "igris-local" and Overture
+# rejects them (403: runtime callback identity does not match assigned task
+# runtime), which then trips spurious recovery. Register + pin must happen before
+# the runtime boots so it starts with the correct peer id.
+node -e 'const fs=require("fs");const [p,id]=process.argv.slice(1);const c=JSON.parse(fs.readFileSync(p,"utf8"));c.mcp=Object.assign({},c.mcp||{},{peer_id:id});fs.writeFileSync(p,JSON.stringify(c,null,2));' \
+  "$TMP_DIR/runtime-config.json5" "$RUNTIME_ID"
+echo "    runtime_id: $RUNTIME_ID (peer id pinned)"
+
+(
+  cd "$ROOT_DIR"
+  env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
+    IGRIS_DEVICE_ID="$DEVICE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
+    RUST_LOG="warn" \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime.log" 2>&1 &
+RUNTIME_PID=$!
+wait_for_http "http://127.0.0.1:8080/v1/health" "runtime"
 
 curl -sS -f \
   "${AUTH_ARGS[@]}" \
