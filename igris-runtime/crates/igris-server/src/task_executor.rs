@@ -910,7 +910,7 @@ pub async fn handle_task_submit(
             .into_response();
     }
 
-    let runtime_id = state.swarm_peer_id.clone();
+    let runtime_id = runtime_execution_id(&state);
     let wal = Arc::new(WalLog::new(
         state.storage.clone(),
         req.task_id,
@@ -2010,7 +2010,7 @@ pub async fn handle_task_stream(
             .into_response();
     };
 
-    let runtime_id = state.swarm_peer_id.clone();
+    let runtime_id = runtime_execution_id(&state);
     let wal = Arc::new(WalLog::new(
         state.storage.clone(),
         req.task_id,
@@ -2063,7 +2063,7 @@ pub async fn handle_task_wal(
     State(state): State<AppState>,
     Path(task_id): Path<Uuid>,
 ) -> impl IntoResponse {
-    let wal = WalLog::new(state.storage.clone(), task_id, state.swarm_peer_id.clone());
+    let wal = WalLog::new(state.storage.clone(), task_id, runtime_execution_id(&state));
 
     match wal.read_from_step(0) {
         Ok(entries) => (
@@ -2307,6 +2307,10 @@ fn build_checkpoint(
         wal_entries,
         metadata,
     })
+}
+
+pub(crate) fn runtime_execution_id(state: &AppState) -> String {
+    crate::governed_runtime_id(state).to_string()
 }
 
 fn should_checkpoint_after_steps(
@@ -3829,7 +3833,7 @@ async fn execute_agent_step_stream(
         wal,
         req.task_id,
         step.step_index,
-        state.swarm_peer_id.clone(),
+        runtime_execution_id(&state),
         vec![committed_entry],
         checkpoint_metadata,
     )
