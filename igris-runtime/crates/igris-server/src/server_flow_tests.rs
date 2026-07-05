@@ -5,7 +5,7 @@ mod tests {
         body::Body,
         http::{Request, StatusCode},
         response::sse::{Event, KeepAlive, Sse},
-        routing::post,
+        routing::{get, post},
         Json, Router,
     };
     use base64::Engine;
@@ -239,6 +239,62 @@ mod tests {
                 post(task_executor::handle_task_cancel),
             )
             .with_state(state)
+    }
+
+    #[test]
+    fn runtime_execution_id_prefers_overture_runtime_id() {
+        let mut state = build_runtime_only_state();
+        state.swarm_peer_id = "peer-local".to_string();
+        state.overture_runtime_id = Some("runtime-overture".to_string());
+        assert_eq!(
+            task_executor::runtime_execution_id(&state),
+            "runtime-overture"
+        );
+
+        state.overture_runtime_id = None;
+        assert_eq!(task_executor::runtime_execution_id(&state), "peer-local");
+    }
+
+    #[tokio::test]
+    async fn runtime_task_wal_reads_governed_runtime_wal() {
+        let mut state = build_runtime_only_state();
+        state.swarm_peer_id = "peer-local".to_string();
+        state.overture_runtime_id = Some("runtime-overture".to_string());
+        let task_id = uuid::Uuid::new_v4();
+        let wal = WalLog::new(
+            state.storage.clone(),
+            task_id,
+            task_executor::runtime_execution_id(&state),
+        );
+        wal.write_intent(
+            0,
+            StepType::Inference {
+                provider: "mock".to_string(),
+                model: "mock-model".to_string(),
+            },
+            [0x11u8; 32],
+        )
+        .unwrap();
+
+        let app = Router::new()
+            .route(
+                "/v1/runtime/task/:task_id/wal",
+                get(task_executor::handle_task_wal),
+            )
+            .with_state(state);
+        let req = Request::builder()
+            .method("GET")
+            .uri(format!("/v1/runtime/task/{task_id}/wal"))
+            .body(Body::empty())
+            .unwrap();
+        let resp = app.oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let bytes = axum::body::to_bytes(resp.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let payload: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        assert_eq!(payload["count"], 1);
+        assert_eq!(payload["entries"][0]["runtime_id"], "runtime-overture");
     }
 
     fn hex_digest(bytes: &[u8; 32]) -> String {
