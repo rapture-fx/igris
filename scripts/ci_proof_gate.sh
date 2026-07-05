@@ -226,6 +226,76 @@ run_fast_gate() {
     go test ./igris-overture/api ./igris-overture/coordinator ./cmd/igris-overture/handlers ./igris-overture/internal -count=1 -timeout=180s
 }
 
+# Honest cgroup-containment capability probe for the Tier A / Tier B split.
+#
+# The runtime's igris-safety supervisor fails CLOSED on Linux when it cannot
+# attach the worker to a CPU cgroup (agent-inference execution refuses to run
+# uncontained). GitHub-hosted runners deny cgroup creation to the unprivileged
+# job user, so the agent-inference proofs there report a (correct) containment
+# violation. This probe detects that environment so the gate can SKIP those
+# proofs with a visible UNSUPPORTED reason instead of reporting a false failure
+# — and, crucially, never reports skipped containment as passed.
+#
+# On non-Linux hosts cgroup attach is a documented no-op, so the proofs can run.
+containment_unsupported_reason() {
+  if [[ "$(uname -s)" == "Linux" ]]; then
+    echo "cannot create a cgroup under /sys/fs/cgroup — no cgroup-v2 delegation (typical of GitHub-hosted runners)"
+  else
+    echo "non-Linux host (cgroup attach is a documented no-op)"
+  fi
+}
+
+containment_capable() {
+  # Explicit override to exercise the Tier A skip path in testing.
+  [[ "${IGRIS_FORCE_CONTAINMENT_UNSUPPORTED:-}" == "1" ]] && return 1
+  # Non-Linux: supervisor cgroup attach is a no-op; agent proofs run fine.
+  [[ "$(uname -s)" != "Linux" ]] && return 0
+  # Linux: only claim capable if a cgroup can actually be created (cgroup v2, then v1 cpu).
+  local probe="igris_containment_probe.$$"
+  if mkdir "/sys/fs/cgroup/$probe" 2>/dev/null; then
+    rmdir "/sys/fs/cgroup/$probe" 2>/dev/null || true
+    return 0
+  fi
+  if mkdir "/sys/fs/cgroup/cpu/$probe" 2>/dev/null; then
+    rmdir "/sys/fs/cgroup/cpu/$probe" 2>/dev/null || true
+    return 0
+  fi
+  return 1
+}
+
+# Run the containment-dependent core proof suite, or honestly skip it as
+# UNSUPPORTED when this runner cannot enforce containment. Tier B sets
+# IGRIS_REQUIRE_CONTAINMENT=1 so an incapable runner FAILS RED rather than
+# silently skipping (a Tier B runner that cannot contain is a real defect).
+run_core_proof_suite_containment_aware() {
+  if containment_capable; then
+    echo "[heavy] containment enforcement available — running core proof suite (agent-inference execution proofs)"
+    "$SCRIPT_DIR/proof_suite.sh"
+    return
+  fi
+
+  local reason
+  reason="$(containment_unsupported_reason)"
+
+  if [[ "${IGRIS_REQUIRE_CONTAINMENT:-}" == "1" ]]; then
+    echo "ERROR: IGRIS_REQUIRE_CONTAINMENT=1 but containment is unavailable ($reason)." >&2
+    echo "This runner is designated containment-capable (Tier B) yet cannot create a cgroup — failing red." >&2
+    exit 1
+  fi
+
+  echo "::warning title=Containment execution proofs UNSUPPORTED on this runner::cgroup containment cannot be established ($reason). The core proof suite (agent-inference execution under the containment supervisor) was NOT exercised and is NOT marked passed. Prove it on a containment-capable runner (Tier B)."
+  echo "[heavy] CONTAINMENT-DEPENDENT PROOFS: UNSUPPORTED / SKIPPED on this runner ($reason)."
+  echo "[heavy] These are NOT passed here — they are proven on a containment-capable Tier B runner."
+  {
+    echo "### ⚠️ Containment execution proofs: UNSUPPORTED on this runner"
+    echo ""
+    echo "cgroup containment could not be established: _${reason}_."
+    echo ""
+    echo "The core proof suite (\`proof_suite.sh\`) was **skipped — not passed**. The"
+    echo "containment guarantee is proven on a containment-capable runner (Tier B)."
+  } >> "${GITHUB_STEP_SUMMARY:-/dev/null}" 2>/dev/null || true
+}
+
 run_heavy_gate() {
   # The Action Task recovery proofs submit an action_task whose http_call steps
   # carry `headers` — a sensitive input key. At submit, Overture encrypts
@@ -256,7 +326,7 @@ run_heavy_gate() {
   "$SCRIPT_DIR/action_task_v1_proof_demo.sh"
 
   echo "[heavy] Running core proof suite"
-  "$SCRIPT_DIR/proof_suite.sh"
+  run_core_proof_suite_containment_aware
 }
 
 require_cmd psql
