@@ -19,6 +19,24 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+ROOT_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+
+# Build the Overture binary ONCE for the whole suite and share it (plus a
+# persistent Go build cache) across all sub-proofs. Each proof otherwise rebuilds
+# Overture from a cold cache (~60s x4) and leaves a ~400MB copy in its temp dir,
+# which both slows the suite and fills the disk. Sub-proofs honor these env vars
+# and reuse the prebuilt binary; run standalone they still build their own.
+export IGRIS_PROOF_GOCACHE="${IGRIS_PROOF_GOCACHE:-$ROOT_DIR/.proof-cache/go}"
+export IGRIS_PROOF_OVERTURE_BIN="${IGRIS_PROOF_OVERTURE_BIN:-$ROOT_DIR/.proof-cache/igris-overture}"
+mkdir -p "$IGRIS_PROOF_GOCACHE" "$(dirname "$IGRIS_PROOF_OVERTURE_BIN")"
+echo "[suite] Building Overture once for the suite (shared by all proofs)..."
+rm -f "$IGRIS_PROOF_OVERTURE_BIN"   # force one fresh build per suite invocation
+(
+  cd "$ROOT_DIR"
+  GOCACHE="$IGRIS_PROOF_GOCACHE" GOPROXY=off GOSUMDB=off GOFLAGS="-mod=readonly -buildvcs=false" \
+    go build -o "$IGRIS_PROOF_OVERTURE_BIN" ./cmd/igris-overture
+)
+echo "[suite] Overture prebuilt: $IGRIS_PROOF_OVERTURE_BIN"
 
 run_step() {
   local label="$1"
