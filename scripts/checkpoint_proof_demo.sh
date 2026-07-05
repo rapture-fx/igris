@@ -234,9 +234,9 @@ INSERT INTO session (id, "expiresAt", token, "createdAt", "updatedAt", "ipAddres
 VALUES ('$PROOF_SESSION_ID',NOW()+INTERVAL '2 hours','$PROOF_SESSION_TOKEN',NOW(),NOW(),'127.0.0.1','checkpoint-proof-demo','$PROOF_USER_ID')
 ON CONFLICT (id) DO UPDATE SET "expiresAt"=EXCLUDED."expiresAt", token=EXCLUDED.token, "updatedAt"=NOW(), "userAgent"=EXCLUDED."userAgent", "userId"=EXCLUDED."userId";
 
-INSERT INTO tenants (id, tenant_id, tenant_name, email, status, tier, api_key_hash, api_key_prefix, runtime_limit, created_at, updated_at)
-VALUES ('$PROOF_TENANT_UUID'::uuid,'$PROOF_TENANT_ID','Checkpoint Proof Demo','$PROOF_USER_EMAIL','active','seed','$PROOF_API_KEY_HASH','$PROOF_API_KEY_PREFIX',3,NOW(),NOW())
-ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, email=EXCLUDED.email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, updated_at=NOW();
+INSERT INTO tenants (tenant_id, tenant_name, tenant_email, status, tier, api_key_hash, api_key_prefix, runtime_limit, created_at, updated_at)
+VALUES ('$PROOF_TENANT_ID','Checkpoint Proof Demo','$PROOF_USER_EMAIL','active','seed','$PROOF_API_KEY_HASH','$PROOF_API_KEY_PREFIX',3,NOW(),NOW())
+ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, tenant_email=EXCLUDED.tenant_email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, updated_at=NOW();
 SQL
 
 echo "[5/10] Starting mock provider, Runtime 1, and Overture"
@@ -267,6 +267,9 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
   cd "$ROOT_DIR"
   env \
     PORT=8081 \
+    DATABASE_URL="$DB_URL" \
+    POSTGRES_URL="$DB_URL" \
+    ENABLE_PERSISTENCE=true \
     PROVIDER_MODE=mock \
     ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
     ENABLE_MULTI_TENANCY=true \
@@ -280,6 +283,9 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
     IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
     IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
     IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
+    IGRIS_RUNTIME_CALLBACK_BASE_URL="http://127.0.0.1:8081" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME="Cookie" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE="better-auth.session_token=$PROOF_SESSION_TOKEN" \
     "$TMP_DIR/igris-overture"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
