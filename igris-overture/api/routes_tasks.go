@@ -2078,7 +2078,7 @@ func buildActionEvidence(task *coordinator.TaskRecord, sources ...actionEvidence
 			nodeID:     node.NodeID,
 			actionType: actionType,
 			toolName:   node.ToolName,
-			target:     summarizeActionTarget(actionType, node.Args),
+			target:     actionTargetSummary(actionType, node.Args),
 		})
 	}
 	if len(compiled) == 0 {
@@ -2177,29 +2177,57 @@ func actionEvidenceNodesFromCheckpoints(checkpoints []*coordinator.CheckpointPay
 	return nodes
 }
 
-// summarizeActionTarget returns a short, human-readable description of *what* an
-// action targeted, derived from the compiled tool args. It deliberately reads
-// only safe fields: the controlled file path, the HTTP method + URL, and the DB
-// table name — never the file contents, request body, or record payload.
-func summarizeActionTarget(actionType string, args json.RawMessage) string {
+// actionTargetSummary returns a short description of *what* an action targeted,
+// derived from the compiled tool args. It deliberately reads only safe fields:
+// file path digests / controlled file paths, HTTP method + URL, and DB table
+// name - never file contents, request/response bodies, headers, or records.
+func actionTargetSummary(actionType string, args json.RawMessage) string {
 	if len(args) == 0 {
 		return ""
 	}
-	var a struct {
-		Path   string `json:"path"`
-		Method string `json:"method"`
-		URL    string `json:"url"`
-		Table  string `json:"table"`
-	}
-	if err := json.Unmarshal(args, &a); err != nil {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(args, &raw); err != nil {
 		return ""
 	}
+
+	stringField := func(key string) string {
+		if v, ok := raw[key].(string); ok {
+			return strings.TrimSpace(v)
+		}
+		return ""
+	}
+	protectedFieldDigest := func(key string) string {
+		obj, ok := raw[key].(map[string]interface{})
+		if !ok {
+			return ""
+		}
+		for _, digestKey := range []string{"safe_path_digest", "input_digest_sha256", "content_digest_sha256"} {
+			if v := strings.TrimSpace(valueToString(obj[digestKey])); v != "" && v != "null" {
+				return v
+			}
+		}
+		if v := strings.TrimSpace(valueToString(obj["encrypted_input_ref_id"])); v != "" && v != "null" {
+			return "input-ref:" + v
+		}
+		return ""
+	}
+
 	switch actionType {
 	case "read_file":
-		return strings.TrimSpace(a.Path)
+		if path := stringField("path"); path != "" {
+			return path
+		}
+		if digest := protectedFieldDigest("path"); digest != "" {
+			return "redacted-path:" + digest
+		}
 	case "http_call":
-		method := strings.ToUpper(strings.TrimSpace(a.Method))
-		url := strings.TrimSpace(a.URL)
+		method := strings.ToUpper(stringField("method"))
+		url := stringField("url")
+		if url == "" {
+			if digest := protectedFieldDigest("url"); digest != "" {
+				url = "redacted-url:" + digest
+			}
+		}
 		switch {
 		case method != "" && url != "":
 			return method + " " + url
@@ -2209,7 +2237,7 @@ func summarizeActionTarget(actionType string, args json.RawMessage) string {
 			return ""
 		}
 	case "db_write":
-		if t := strings.TrimSpace(a.Table); t != "" {
+		if t := stringField("table"); t != "" {
 			return "table " + t
 		}
 	}

@@ -4292,6 +4292,46 @@ func TestBuildTaskResponseIncludesActionEvidence(t *testing.T) {
 	require.NotContains(t, string(serialized), `"headers"`)
 }
 
+func TestBuildTaskResponseActionEvidenceUsesProtectedPathDigest(t *testing.T) {
+	t.Parallel()
+
+	task := &coordinator.TaskRecord{
+		TaskID: uuid.New(),
+		Status: coordinator.TaskStatusCompleted,
+		TaskDefinition: json.RawMessage(`{
+			"type": "execution_graph",
+			"graph": {
+				"nodes": [
+					{"kind":"tool","node_id":"read_file-0","tool_name":"filesystem","args":{
+						"operation":"read",
+						"path":{
+							"input_redacted":true,
+							"encrypted_input_ref":true,
+							"encrypted_input_ref_id":"11111111-1111-1111-1111-111111111111",
+							"purpose":"private_path",
+							"input_digest_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+							"safe_summary":"private path redacted; encrypted input ref available for authorized recovery"
+						}
+					}}
+				]
+			}
+		}`),
+	}
+
+	resp := buildTaskResponse(task)
+	evidence, ok := resp["action_evidence"].([]fiber.Map)
+	require.True(t, ok, "action_evidence should be present")
+	require.Len(t, evidence, 1)
+	require.Equal(t, "read_file", evidence[0]["action_type"])
+	require.Contains(t, evidence[0]["target_summary"], "file:")
+
+	serialized, err := json.Marshal(evidence)
+	require.NoError(t, err)
+	require.NotContains(t, string(serialized), "11111111-1111-1111-1111-111111111111")
+	require.NotContains(t, string(serialized), "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+	require.NotContains(t, string(serialized), "private_path")
+}
+
 func TestBuildTaskResponseRedactsHistoricalCheckpointMetadata(t *testing.T) {
 	t.Parallel()
 
