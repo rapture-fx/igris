@@ -78,6 +78,31 @@ Two compounding harness bugs:
   `kill`/`wait`/cleanup now terminate it. Applied to all four proofs so teardown
   is reliable between sequential suite steps.
 
+## Heavy proof CI status (workflow_dispatch, run 28739140975)
+
+The heavy gate now **reaches the core proof suite** — it clears all four
+Action Task V1 recovery proofs (the layer that blocked the earlier heavy-proof
+work) and enters `proof_suite.sh`. It then aborts at **step 1/4,
+`task_v1_proof_demo.sh`**, on a runtime-side `containment violation: cpu after
+30000ms` (step 1), with `wall_time_ms:6` and `cpu_time_ms:0`.
+
+This is a **pre-existing, environment-specific failure, not caused by this
+branch**: today's `main` nightly (run 28738844165) aborts at the exact same
+line with the identical violation. A mock step that ran 6 ms wall / 0 ms CPU
+cannot have exceeded a 30 s CPU limit — the containment Supervisor's CPU
+enforcement misfires on GitHub-hosted runners, which deny cgroup control to the
+unprivileged job (documented in
+`igris-runtime/crates/igris-server/tests/containment_integration.rs`: "Shared CI
+runners (e.g. GitHub-hosted) deny cgroup creation"). It is the next concrete
+layer to peel and is **out of scope** for this unified/fallback/checkpoint
+refresh (and touches security-critical containment code — not to be relaxed
+speculatively).
+
+Consequence: the three fixes here are validated **locally** (full 4-proof suite
+green) but cannot yet be exercised on CI past this task_v1 containment layer.
+Because `task_v1` is step 1/4, the suite never reaches the unified/fallback/
+checkpoint steps on the GitHub runner.
+
 ## Non-negotiables (honored)
 - Runtime callback auth is **unchanged**. Signature/identity/tenant/timestamp/
   replay checks stay; unauthorized and wrong-runtime callbacks stay denied
