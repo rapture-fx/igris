@@ -324,7 +324,7 @@ wait_for_http "http://127.0.0.1:8081/healthz" "overture"
 
 echo "[7/7] Submitting request through Overture"
 curl -sS \
-  "${AUTH_ARGS[@]}" \
+  ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
   -H "Content-Type: application/json" \
   -d "{\"model\":\"$EXPECTED_PROVIDER_MODEL\",\"messages\":[{\"role\":\"user\",\"content\":\"hello unified product\"}],\"stream\":false}" \
   "http://127.0.0.1:8081/v1/infer" > "$TMP_DIR/overture-response.json"
@@ -345,12 +345,12 @@ if [[ "$DB_PROOF_ENABLED" == "true" ]]; then
   VERIFY_REQUEST_JSON=$(node "$HELPER" build-verify-request "$TMP_DIR/overture-response.json")
 
   curl -sS \
-    "${AUTH_ARGS[@]}" \
+    ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
     "http://127.0.0.1:8081/v1/execution/runs?limit=20&sort=timestamp_utc:desc" > "$TMP_DIR/runs.json"
 
   for _ in {1..40}; do
     if curl -fsS \
-      "${AUTH_ARGS[@]}" \
+      ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
       "http://127.0.0.1:8081/v1/execution/runs/$EXECUTION_ID" > "$TMP_DIR/run-detail.json"; then
       break
     fi
@@ -358,11 +358,11 @@ if [[ "$DB_PROOF_ENABLED" == "true" ]]; then
   done
 
   curl -sS \
-    "${AUTH_ARGS[@]}" \
+    ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
     "http://127.0.0.1:8081/proof/receipts?limit=50&sort=timestamp:desc" > "$TMP_DIR/proof-receipts.json"
 
   curl -sS \
-    "${AUTH_ARGS[@]}" \
+    ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
     -H "Content-Type: application/json" \
     -d "$VERIFY_REQUEST_JSON" \
     "http://127.0.0.1:8081/proof/receipts/verify" > "$TMP_DIR/proof-verify.json"
