@@ -142,7 +142,7 @@ RUNTIME_SECRET=$(node -e 'const fs=require("fs"); const m=JSON.parse(fs.readFile
 echo "[5/7] Starting Runtime (two providers configured)"
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     RUNTIME_MOCK_KEY=dummy \
     IGRIS_ALLOW_INSECURE_DEV_MODE=true \
     IGRIS_CONFIG="$TMP_DIR/runtime-config.json5" \
@@ -205,10 +205,11 @@ fi
 echo "[6/7] Starting Overture"
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     PORT=8081 \
     PROVIDER_MODE=mock \
     ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
+    IGRIS_ENABLE_EXPERIMENTAL_MODEL_ROUTES=true \
     ENABLE_MULTI_TENANCY="$([[ "$DB_PROOF_ENABLED" == "true" ]] && echo true || echo false)" \
     REQUIRE_AUTH_FOR_INFERENCE="$([[ "$DB_PROOF_ENABLED" == "true" ]] && echo true || echo false)" \
     ALLOW_INSECURE_DEFAULTS=true \

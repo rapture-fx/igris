@@ -208,8 +208,7 @@ NODE
 
 echo "    task_id: $TASK_ID"
 echo "    tenant_id: $PROOF_TENANT_ID"
-echo "    runtime 1 peer_id: $RUNTIME_1_PEER_ID"
-echo "    runtime 2 peer_id: $RUNTIME_2_PEER_ID"
+echo "    runtime callback identity: pinned to the registered runtime_id at boot"
 echo "    recovery mode: same-host shared WAL store + Overture redispatch"
 
 echo "[2/10] Building Runtime binary"
@@ -239,33 +238,20 @@ VALUES ('$PROOF_TENANT_ID','Checkpoint Proof Demo','$PROOF_USER_EMAIL','active',
 ON CONFLICT (tenant_id) DO UPDATE SET tenant_name=EXCLUDED.tenant_name, tenant_email=EXCLUDED.tenant_email, status='active', tier='seed', api_key_hash=EXCLUDED.api_key_hash, api_key_prefix=EXCLUDED.api_key_prefix, runtime_limit=3, updated_at=NOW();
 SQL
 
-echo "[5/10] Starting mock provider, Runtime 1, and Overture"
+echo "[5/10] Starting mock provider and Overture"
 node "$HELPER" serve-mock-provider 18090 > "$LOG_DIR/mock-provider.log" 2>&1 &
 MOCK_PID=$!
 wait_for_http "http://127.0.0.1:18090/health" "mock provider"
 
-(
-  cd "$ROOT_DIR"
-  env \
-    RUNTIME_MOCK_KEY=dummy \
-    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
-    IGRIS_CONFIG="$RUNTIME_1_CONFIG" \
-    IGRIS_DEVICE_ID="$RUNTIME_1_MACHINE_ID" \
-    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
-    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
-    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
-    IGRIS_RECEIPT_LOG="$TMP_DIR/runtime-1-receipts.jsonl" \
-    RUST_LOG="warn" \
-    "$RUNTIME_BIN" serve
-) > "$LOG_DIR/runtime-1.log" 2>&1 &
-RUNTIME_PID=$!
-wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 1"
-
+# The runtime signing public key is derived from the local signing seed file and
+# does not require the Runtime process to be running. Overture needs it at boot
+# for the runtime callback signature check, and registration advertises it, so
+# compute it up front — the runtimes are now registered before they boot.
 RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/runtime-signing-key.ed25519")
 
 (
   cd "$ROOT_DIR"
-  env \
+  exec env \
     PORT=8081 \
     DATABASE_URL="$DB_URL" \
     POSTGRES_URL="$DB_URL" \
@@ -291,7 +277,7 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
 OVERTURE_PID=$!
 wait_for_http "http://127.0.0.1:8081/healthz" "overture"
 
-echo "[6/10] Registering Runtime 1 and submitting the durable task through Overture"
+echo "[6/10] Registering Runtime 1, pinning its callback identity, and submitting the durable task"
 node "$HELPER" runtime-register-request \
   "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
   "$RUNTIME_1_MACHINE_ID" \
@@ -307,6 +293,37 @@ curl -sS -f \
   "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-1-register-response.json"
 
 RUNTIME_1_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id)' "$TMP_DIR/runtime-1-register-response.json")
+if [[ -z "$RUNTIME_1_REGISTRY_ID" ]]; then
+  echo "runtime 1 registration did not return a runtime_id" >&2
+  cat "$TMP_DIR/runtime-1-register-response.json" >&2
+  exit 1
+fi
+
+# Pin Runtime 1's mcp.peer_id to the runtime_id Overture assigned at registration.
+# The runtime stamps this identity into every signed checkpoint/complete callback
+# envelope (envelope.runtime_id), and Overture's validateRuntimeCallback requires
+# it to equal the task's assigned runtime_id. Register + pin before boot so the
+# runtime starts already presenting the registered identity (same fix as task_v1).
+node -e 'const fs=require("fs");const [p,id]=process.argv.slice(1);const c=JSON.parse(fs.readFileSync(p,"utf8"));c.mcp=Object.assign({},c.mcp||{},{peer_id:id});fs.writeFileSync(p,JSON.stringify(c,null,2));' \
+  "$RUNTIME_1_CONFIG" "$RUNTIME_1_REGISTRY_ID"
+echo "    runtime 1 registry_id: $RUNTIME_1_REGISTRY_ID (peer id pinned)"
+
+(
+  cd "$ROOT_DIR"
+  exec env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$RUNTIME_1_CONFIG" \
+    IGRIS_DEVICE_ID="$RUNTIME_1_MACHINE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/runtime-1-receipts.jsonl" \
+    RUST_LOG="warn" \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime-1.log" 2>&1 &
+RUNTIME_PID=$!
+wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 1"
 
 curl -sS -f \
   "${AUTH_ARGS[@]}" \
@@ -356,29 +373,18 @@ WHERE task_id = '$TASK_ID'::uuid;" "$TMP_DIR/db-wal-checkpoints-after-checkpoint
 
 echo "    Checkpoint persisted for task $TASK_ID"
 
-echo "[7/10] Interrupting Runtime 1, starting Runtime 2 on the same WAL store, and triggering coordinator recovery"
+echo "[7/10] Interrupting Runtime 1, registering + pinning Runtime 2, and triggering coordinator recovery"
 kill "$RUNTIME_PID" >/dev/null 2>&1 || true
 wait "$RUNTIME_PID" >/dev/null 2>&1 || true
 RUNTIME_PID=""
 sleep 1
 
-(
-  cd "$ROOT_DIR"
-  env \
-    RUNTIME_MOCK_KEY=dummy \
-    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
-    IGRIS_CONFIG="$RUNTIME_2_CONFIG" \
-    IGRIS_DEVICE_ID="$RUNTIME_2_DEVICE_ID" \
-    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
-    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
-    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
-    IGRIS_RECEIPT_LOG="$TMP_DIR/runtime-2-receipts.jsonl" \
-    RUST_LOG="warn" \
-    "$RUNTIME_BIN" serve
-) > "$LOG_DIR/runtime-2.log" 2>&1 &
-RUNTIME_PID=$!
-wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 2"
-
+# Register Runtime 2 first so we know the runtime_id Overture will assign it, then
+# pin Runtime 2's mcp.peer_id to that id before boot. On recovery the coordinator
+# redispatches the task with task.runtime_id = Runtime 2's registered id; Runtime 2
+# must sign its resume checkpoint/complete callbacks with that same identity, or
+# validateRuntimeCallback rejects them (403) and recovery stalls with a stale
+# runtime. This is the recovery counterpart of the Runtime 1 pin above.
 node "$HELPER" runtime-register-request \
   "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
   "$RUNTIME_2_MACHINE_ID" \
@@ -394,6 +400,32 @@ curl -sS -f \
   "http://127.0.0.1:8081/api/v1/runtime/register" > "$TMP_DIR/runtime-2-register-response.json"
 
 RUNTIME_2_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id)' "$TMP_DIR/runtime-2-register-response.json")
+if [[ -z "$RUNTIME_2_REGISTRY_ID" ]]; then
+  echo "runtime 2 registration did not return a runtime_id" >&2
+  cat "$TMP_DIR/runtime-2-register-response.json" >&2
+  exit 1
+fi
+
+node -e 'const fs=require("fs");const [p,id]=process.argv.slice(1);const c=JSON.parse(fs.readFileSync(p,"utf8"));c.mcp=Object.assign({},c.mcp||{},{peer_id:id});fs.writeFileSync(p,JSON.stringify(c,null,2));' \
+  "$RUNTIME_2_CONFIG" "$RUNTIME_2_REGISTRY_ID"
+echo "    runtime 2 registry_id: $RUNTIME_2_REGISTRY_ID (peer id pinned)"
+
+(
+  cd "$ROOT_DIR"
+  exec env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$RUNTIME_2_CONFIG" \
+    IGRIS_DEVICE_ID="$RUNTIME_2_DEVICE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/runtime-2-receipts.jsonl" \
+    RUST_LOG="warn" \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime-2.log" 2>&1 &
+RUNTIME_PID=$!
+wait_for_http "http://127.0.0.1:8080/v1/health" "runtime 2"
 
 psql "$DB_URL" -X -q <<SQL >/dev/null
 UPDATE runtime_instances
@@ -501,8 +533,7 @@ node - <<'NODE' \
   "$TMP_DIR/db-task-after-recovery.json" \
   "$TMP_DIR/db-wal-checkpoints-after-checkpoint.json" \
   "$TMP_DIR/db-wal-checkpoints-after-recovery.json" \
-  "$RUNTIME_1_PEER_ID" \
-  "$RUNTIME_2_PEER_ID" \
+  "$RUNTIME_1_REGISTRY_ID" \
   "$RUNTIME_2_REGISTRY_ID"
 const fs = require("fs");
 const [
@@ -514,10 +545,13 @@ const [
   dbFinalPath,
   dbCheckpointWalPath,
   dbFinalWalPath,
-  runtime1PeerId,
-  runtime2PeerId,
-  runtime2RegistryId,
+  runtime1Id,
+  runtime2Id,
 ] = process.argv.slice(2);
+// runtime1Id / runtime2Id are the runtime_ids Overture assigned each runtime at
+// registration. Because each runtime pins its mcp.peer_id to that id, the id is
+// what appears in the signed checkpoint resume tokens and per-step runtime_id.
+const runtime2RegistryId = runtime2Id;
 
 function read(path) {
   const raw = fs.readFileSync(path, "utf8").trim();
@@ -549,11 +583,11 @@ if (String(dbCheckpoint.last_committed_step) !== "0") {
 if (dbFinal.runtime_id !== runtime2RegistryId) {
   fail(`expected final task runtime_id=${runtime2RegistryId}, got ${dbFinal.runtime_id}`);
 }
-if (dbCheckpoint.checkpoint_runtime_id !== runtime1PeerId) {
-  fail(`expected checkpoint runtime_id=${runtime1PeerId}, got ${dbCheckpoint.checkpoint_runtime_id}`);
+if (dbCheckpoint.checkpoint_runtime_id !== runtime1Id) {
+  fail(`expected checkpoint runtime_id=${runtime1Id}, got ${dbCheckpoint.checkpoint_runtime_id}`);
 }
-if (dbFinal.checkpoint_runtime_id !== runtime2PeerId) {
-  fail(`expected final checkpoint runtime_id=${runtime2PeerId}, got ${dbFinal.checkpoint_runtime_id}`);
+if (dbFinal.checkpoint_runtime_id !== runtime2Id) {
+  fail(`expected final checkpoint runtime_id=${runtime2Id}, got ${dbFinal.checkpoint_runtime_id}`);
 }
 if (!dbFinal.execution_envelope_present || !dbFinal.execution_receipt_present) {
   fail("expected final execution artifacts to be persisted on task_records");
@@ -569,11 +603,11 @@ const stepRuntimeIds = finalSteps.steps.map((step) => String(step.runtime_id || 
 if (JSON.stringify(stepIndices) !== JSON.stringify([0, 1, 2, 3, 4, 5, 6, 7])) {
   fail(`unexpected step indices after recovery: ${JSON.stringify(stepIndices)}`);
 }
-if (stepRuntimeIds[0] !== runtime1PeerId) {
-  fail(`expected checkpointed steps to use runtime_id=${runtime1PeerId}, got ${JSON.stringify(stepRuntimeIds)}`);
+if (stepRuntimeIds[0] !== runtime1Id) {
+  fail(`expected checkpointed steps to use runtime_id=${runtime1Id}, got ${JSON.stringify(stepRuntimeIds)}`);
 }
-if (!stepRuntimeIds.slice(1).every((value) => value === runtime2PeerId)) {
-  fail(`expected recovered steps to use runtime_id=${runtime2PeerId}, got ${JSON.stringify(stepRuntimeIds)}`);
+if (!stepRuntimeIds.slice(1).every((value) => value === runtime2Id)) {
+  fail(`expected recovered steps to use runtime_id=${runtime2Id}, got ${JSON.stringify(stepRuntimeIds)}`);
 }
 if ((dbCheckpointWal && dbCheckpointWal.count) !== 1) {
   fail(`expected 1 wal_checkpoints row after checkpoint, got ${dbCheckpointWal && dbCheckpointWal.count}`);
