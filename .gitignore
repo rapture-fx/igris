@@ -343,3 +343,7 @@ igris-overture-windows.exe
 .neon_preprod_env
 .neon_prod_env
 .neon_launch_branch_env
+
+# Cloudflare Wrangler local dev/emulator state (Miniflare D1/KV) — machine-local, not source
+.wrangler/
+**/.wrangler/
