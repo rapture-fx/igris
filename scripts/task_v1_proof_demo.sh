@@ -44,6 +44,16 @@ RUNTIME_PID=""
 OVERTURE_PID=""
 
 cleanup() {
+  local exit_code=$?
+  if [[ "$exit_code" -ne 0 ]]; then
+    echo "==== task_v1 proof failure (exit $exit_code): service log tails ====" >&2
+    for log in overture runtime mock-provider; do
+      if [[ -f "$LOG_DIR/$log.log" ]]; then
+        echo "---- $log.log (last 40 lines) ----" >&2
+        tail -n 40 "$LOG_DIR/$log.log" >&2 || true
+      fi
+    done
+  fi
   for pid in "$OVERTURE_PID" "$RUNTIME_PID" "$MOCK_PID"; do
     if [[ -n "$pid" ]] && kill -0 "$pid" >/dev/null 2>&1; then
       kill "$pid" >/dev/null 2>&1 || true
@@ -241,6 +251,9 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
   cd "$ROOT_DIR"
   env \
     PORT=8081 \
+    DATABASE_URL="$DB_URL" \
+    POSTGRES_URL="$DB_URL" \
+    ENABLE_PERSISTENCE=true \
     PROVIDER_MODE=mock \
     ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
     ENABLE_MULTI_TENANCY=true \
@@ -254,6 +267,9 @@ RUNTIME_PUBLIC_KEY_HEX=$(node "$HELPER" runtime-public-key "$ROOT_DIR/.igris/run
     IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
     IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
     IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
+    IGRIS_RUNTIME_CALLBACK_BASE_URL="http://127.0.0.1:8081" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME="Cookie" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE="better-auth.session_token=$PROOF_SESSION_TOKEN" \
     "$TMP_DIR/igris-overture"
 ) > "$LOG_DIR/overture.log" 2>&1 &
 OVERTURE_PID=$!
