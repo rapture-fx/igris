@@ -80,6 +80,50 @@ separators, `ensure_ascii=false`, UTF-8) of every field above **except**
 `contract_hash` itself. This makes the hash server-recomputable from the
 contract body — Connected mode uses that as the request fingerprint (§16).
 
+## 4a. `code_fingerprint` stability decision [decided 2026-07-10]
+
+Implementation (implemented, `sdk/python/src/igris/contracts.py`):
+`code_fingerprint = SHA-256(textwrap.dedent(inspect.getsource(func)))`, or
+`null` when source is unavailable — a missing source never invents a
+fingerprint and never fails contract generation.
+
+Empirical findings (probe run on this branch, macOS, CPython 3.11 only —
+cross-version stability is NOT claimed):
+
+- **Location-independent**: identical file content under the same module name
+  at two different absolute paths produced identical `code_fingerprint` AND
+  identical `contract_hash`. Since wheels ship the same `.py` bytes as the
+  source tree, checkout-vs-wheel of unmodified content falls in this
+  equivalence class. (A literal built-wheel import comparison was not run;
+  the two-location same-content probe is the evidence.)
+- **Line-ending independent**: CRLF and LF sources hash identically
+  (`inspect.getsource` reads with universal newlines).
+- **Decorator text is included**: `inspect.getsource` returns decorator lines,
+  so changing `@igris.guard(...)` arguments — or any adjacent decorator —
+  changes the fingerprint.
+- **Formatting-sensitive**: comment, whitespace, and docstring changes change
+  the fingerprint.
+- Unavailable source (builtins, pyc-only, frozen, REPL) → `null`; the
+  contract still hashes deterministically.
+
+Decision for v1: `code_fingerprint` **remains inside `contract_hash`** and is
+therefore identity-bearing. This matches the shipped SDK; redefining
+`contract_hash` now would be a silent protocol change and is forbidden
+without a new schema version coordinated with the SDK owners (Agent B).
+Consequence, stated honestly: the failure direction is **over-versioning** —
+a formatting-only edit creates a new immutable contract version whose
+semantic fields are unchanged. It never under-versions and never loses
+history. Connected policy must therefore compare *semantic fields* between
+versions (the `security_sensitive_change` computation already does this) and
+must not treat "new version" alone as a semantic change.
+
+Required future SDK contract revision (v2, not this task): split
+`semantic_contract_hash` (action name, risk, approval mode, execution mode,
+parameter descriptors) from an optional `implementation_fingerprint`; an
+implementation-fingerprint change must not imply a semantic contract change
+unless the versioned protocol explicitly says so. No compatibility guarantee
+is claimed for cross-Python-version or source-transforming installs in v1.
+
 ## 5. Contract versioning [design]
 
 - A **contract version** is the immutable pair
@@ -116,25 +160,74 @@ contract body — Connected mode uses that as the request fingerprint (§16).
   `origin` divergence rather than duplicating the name (unique index forbids
   duplication anyway).
 
-## 7–9. Provenance
+## 7–9. Execution provenance and evidence lifecycle [design — CORRECTED 2026-07-10]
 
-Provenance is an explicit, immutable classification assigned by the backend at
-write time. It is never inferred from payload shape, and **never** from the
-mere existence of a receipt-like document.
+Earlier drafts of this ADR modeled `embedded | connected | managed` as three
+provenance values. That was wrong: **Connected is a product and
+evidence-participation mode, not an execution provenance.** Connecting an
+Embedded action does not change who executed it. The corrected model uses two
+separate, non-overloaded fields.
 
-| Provenance | Meaning | Assigned when |
-| --- | --- | --- |
-| `embedded` | Locally observed by the SDK. The claim is "a holder of this SDK key recorded this"; Igris did not control execution. | [design] Evidence arrives via the future evidence-ingestion API, verified against a tenant-registered SDK key. |
-| `connected` | Locally observed AND centrally stored/verified: an `embedded` event batch whose signatures and chain the backend has verified against the registered key. | [design] Server-side verification succeeds; `connected` is a strengthened `embedded`, not a different origin. |
-| `managed` | Execution occurred through an authenticated Igris runtime: signed runtime callback envelope, tenant+runtime-scoped key lookup, nonce anti-replay, body digest. | [implemented] Existing callback path (`runtime_callback_signature.go`; verified by `TestRuntimeCallbackPublicKeyLookupIsTenantScoped`). |
+### `execution_provenance` — who executed (exactly two values)
+
+| Value | Meaning |
+| --- | --- |
+| `embedded` | The consequential function executed in the caller's local process or environment. Igris guarded and observed the execution but did not independently control the runtime. |
+| `managed` | The consequential action executed through an authenticated Igris-controlled runtime and managed dispatch path. |
+
+Assignment authority and security rules:
+
+- `execution_provenance` is explicit and **immutable** (write-once).
+- `managed` may only be assigned through the authenticated managed-runtime
+  path: signed runtime callback envelope, tenant+runtime-scoped key lookup,
+  nonce anti-replay, body digest ([implemented]
+  `runtime_callback_signature.go`; verified by
+  `TestRuntimeCallbackPublicKeyLookupIsTenantScoped`).
+- `managed` is **never** inferred from uploaded event shape, signatures,
+  metadata, client claims, or receipt-like fields. A client-submitted
+  evidence endpoint must not accept `managed` as an assignable value — it is
+  not a request field at all on that path.
+- Connected synchronization/verification never changes `execution_provenance`
+  from `embedded` to anything else.
+
+### `evidence_state` — where the evidence is in its lifecycle
+
+| Value | Meaning |
+| --- | --- |
+| `local_only` | Evidence exists only in the local Embedded journal. (Implicit for all Embedded evidence today; never stored centrally by definition.) |
+| `received` | The central service durably received the submitted evidence; verification not yet complete. |
+| `verified` | The central service verified the evidence against the registered signing identity and a supported schema. |
+| `rejected` | Validation, signature, schema, chain, ownership, or policy checks failed. |
+
+Associated fields on centrally stored evidence: `received_at`, `verified_at`,
+`verification_key_id`, `verification_error_code`.
 
 Rules:
-- The provenance field is write-once. Reclassification is forbidden; a new
-  record must be written instead (and would itself need a truthful basis).
-- Managed provenance requires the authenticated runtime callback path. A
-  receipt-shaped JSONB blob in a request body is not managed evidence.
-- Read APIs must carry provenance through to operators verbatim; UI language
-  for `embedded`/`connected` evidence must say "locally observed".
+- `evidence_state` never implies `execution_provenance`; they are orthogonal.
+- `rejected` evidence is never promoted to `managed` provenance (or any
+  other provenance — provenance is write-once and set before verification).
+- `verified` evidence does not prove the external side effect occurred
+  correctly; it proves signature, chain, and schema integrity relative to the
+  registered key.
+
+### Canonical examples (required reading for implementers)
+
+```json
+{"execution_provenance": "embedded", "evidence_state": "verified"}
+```
+The function executed locally; its signed evidence was later received and
+verified by the Igris service. This is the normal "Connected Embedded
+action" — note there is no `connected` provenance value.
+
+```json
+{"execution_provenance": "managed", "evidence_state": "verified"}
+```
+The action executed through an authenticated Igris runtime and its runtime
+evidence was verified.
+
+Read APIs must carry both fields through to operators verbatim; UI language
+for `embedded` execution must say "locally observed", regardless of
+`evidence_state`.
 
 ## 10. Decision and outcome event semantics [implemented]
 
@@ -176,6 +269,29 @@ compact separators; SHA-256 over canonical bytes as the record hash; Ed25519
 signature over the raw 32-byte SHA-256 digest, base64-encoded; append-only
 hash-chained JSONL. A future Connected verifier reuses one verification core
 for both, parameterized by schema.
+
+### Canonicalization is defined in exact UTF-8 bytes [protocol rule]
+
+The canonical representation is the exact byte sequence, **not** decoded-JSON
+equivalence. Two encoders "agreeing on the JSON value" is not conformance;
+producing identical bytes is. Requirements for any non-Python implementation:
+
+- keys sorted lexicographically; separators `,` and `:` with no whitespace;
+- UTF-8 with non-ASCII emitted raw (Python `ensure_ascii=false`);
+- `<`, `>`, `&` emitted raw — Go's `encoding/json` HTML-escapes these by
+  default and MUST use `Encoder.SetEscapeHTML(false)`;
+- JSON `null` (genesis `previous_event_hash`), booleans, and numeric literals
+  reproduced exactly (Go: decode with `UseNumber` so integers do not become
+  floats);
+- string escapes per RFC 8259 minimal form (`\"`, `\\`, `\n`, ...).
+
+**[implemented]** `conformance/contractv1/canonical_conformance_test.go` (Go,
+test-only, no production code) proves this today against the fixtures: it
+reproduces the Python canonical bytes byte-for-byte, recomputes all five
+event hashes, verifies all five Ed25519 signatures and the chain, recomputes
+`contract_hash`, and includes a negative control proving Go's default
+HTML-escaping encoder CANNOT pass. Fixtures deliberately contain Unicode,
+`<`, `>`, `&`, quotes, backslash, and a newline control character.
 
 ## 13. Intentional schema differences [implemented]
 
@@ -292,9 +408,10 @@ quiet contract weakening (mitigated: security-sensitive deltas are flagged,
    decision before PyPI release (rename legacy import, deprecate, or gate).
 2. SDK key registration UX (explicit `igris connect` device flow vs API-key
    env var) and key rotation semantics.
-3. Whether `connected` provenance is stored as a distinct value or as
-   `embedded` + `verified_at` (this ADR specifies a distinct value; the data
-   doc records the alternative).
+3. ~~Whether `connected` is a distinct provenance value~~ — RESOLVED
+   2026-07-10: it is not. `execution_provenance` ∈ {`embedded`, `managed`};
+   central receipt/verification is tracked separately as `evidence_state`
+   (§7–9).
 4. Team approval mapping (local `ApprovalProvider` → durable backend
    approvals) — explicitly out of slice 1.
 5. Managed adapter: how `execution_mode: managed` contracts compile into

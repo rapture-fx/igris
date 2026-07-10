@@ -37,11 +37,30 @@ and zero risk to execution paths.
 Go canonical-JSON note: Go's `encoding/json` marshals maps with sorted keys
 and does not escape non-ASCII by default, but it HTML-escapes `<`, `>`, `&`
 unless the encoder sets `SetEscapeHTML(false)`. The fingerprint recomputation
-MUST use an encoder with HTML escaping disabled and compact output to match
-Python's `ensure_ascii=false` + compact separators. **This exact pitfall is
-what the conformance fixtures exist to catch** — a unit test must reproduce
-`testdata/igris-contract-v1/expected.json`'s `contract_hash` from
-`action_contract.json`.
+MUST use an encoder with HTML escaping disabled, compact output, and
+`UseNumber` decoding to match Python's `ensure_ascii=false` + compact
+separators. Conformance is defined by **exact UTF-8 bytes**, not decoded-JSON
+equality.
+
+**Already proven on this branch**: `conformance/contractv1/
+canonical_conformance_test.go` (test-only package, no production code)
+reproduces the Python canonical fixture bytes byte-for-byte, recomputes all
+five event hashes and the `contract_hash`, verifies all five Ed25519
+signatures and the chain, and includes a negative control asserting Go's
+default HTML-escaping encoder cannot pass. The slice implementation MUST
+reuse the exact encoding rules pinned by that test (share or extract the
+helper; do not re-derive), and the test must keep passing.
+
+Implementation prerequisite — `code_fingerprint` stability (ADR §4a): the
+fingerprint is inside `contract_hash` in v1 and is formatting- and
+decorator-text-sensitive, so formatting-only edits create new contract
+versions (over-versioning; history is never lost). Server-side policy in this
+slice must compare **semantic fields** across versions (the
+`security_sensitive_change` computation) and must not alert on "new version"
+alone. Cross-Python-version fingerprint stability is not claimed; a v2
+semantic-hash/implementation-fingerprint split is a documented future SDK
+protocol revision — do not build slice-1 behavior that assumes fingerprint
+equality across environments.
 
 ## SDK interfaces to be added later (NOT in this slice, NOT in this repo-area now)
 
@@ -77,10 +96,13 @@ patterns, mirroring `routes_actions_test.go`):
    the same name (404 on lookup; both can own `customer.refund`).
 9. Manual-action name collision → version attaches, `origin_divergence: true`.
 10. Unknown `schema_version` → 422. Oversized body → 413.
-11. **Conformance fixture test**: recompute `contract_hash` from
-    `testdata/igris-contract-v1/action_contract.json` in Go and match
-    `expected.json`; sync the fixture contract end-to-end through the
-    handler.
+11. **Conformance fixture interoperability (mandatory acceptance test)**:
+    `go test ./conformance/contractv1/` stays green, AND the slice's
+    production canonicalization path is exercised against the same fixtures:
+    byte-for-byte canonical output vs `canonical/*.canonical.json`, SHA-256
+    vs `expected.json`, Ed25519 verification with `verify_key.pem`, and an
+    end-to-end sync of `action_contract.json` through the real handler.
+    Decoded-JSON equality without byte equality is a FAILURE.
 12. Route manifest and route-surface tests updated and passing (proves
     intentional route exposure).
 

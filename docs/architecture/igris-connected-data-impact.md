@@ -31,7 +31,9 @@ soft-delete); no contract fingerprint, no version history, no origin marker.
   callback envelope audit (052), lineage tenant-bound (058).
 - Everything is **task-bound**: a receipt exists only as an attribute of a
   durable dispatched task, produced via the authenticated runtime callback
-  path. Provenance is implicit ("it's on a task ⇒ it came from a runtime").
+  path. Execution provenance is implicit ("it's on a task ⇒ it came from a
+  runtime") — i.e. `task_records` receipts are the `managed` side of the
+  structural separation.
 
 ### Idempotency — `task_records` (057)
 
@@ -59,8 +61,11 @@ and the reason the Connected API defines its own idempotency binding).
   on `task_records` (or as `ExecutionReceipt` rows) would make locally
   observed evidence indistinguishable from runtime-verified evidence — the
   exact misclassification the provenance model forbids.
-- Embedded/Connected evidence therefore needs its own table(s) with an
-  explicit, write-once `provenance` column.
+- SDK evidence therefore needs its own table(s) carrying two explicit
+  fields: write-once `execution_provenance` (structurally restricted to
+  `embedded` on this path) and `evidence_state` (lifecycle:
+  received/verified/rejected). Central verification changes the lifecycle
+  state, never the execution provenance.
 
 ## 3. Likely schema additions (exact, but NOT created here)
 
@@ -142,12 +147,17 @@ CREATE TABLE sdk_evidence_batches (
     id UUID PRIMARY KEY,
     tenant_id TEXT NOT NULL,
     key_id TEXT NOT NULL,
-    status TEXT NOT NULL,                 -- accepted | verified | rejected
+    -- Evidence LIFECYCLE, not execution provenance:
+    evidence_state TEXT NOT NULL
+        CHECK (evidence_state IN ('received', 'verified', 'rejected')),
     content_hash TEXT NOT NULL,           -- batch idempotency fingerprint
     events_accepted INT NOT NULL,
     events_verified INT NOT NULL DEFAULT 0,
+    received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    verified_at TIMESTAMPTZ,
+    verification_key_id TEXT,
+    verification_error_code TEXT,
     issues JSONB NOT NULL DEFAULT '[]'::jsonb,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (tenant_id, key_id, content_hash)
 );
 
@@ -160,7 +170,14 @@ CREATE TABLE sdk_evidence_events (
     event_type TEXT NOT NULL,             -- decision | outcome
     action_name TEXT NOT NULL,
     contract_hash TEXT NOT NULL,
-    provenance TEXT NOT NULL,             -- 'embedded' | 'connected'; NEVER 'managed'
+    -- Execution provenance: who executed. This table stores locally observed
+    -- execution ONLY; the CHECK admits exactly one value, so 'managed' (or
+    -- any future value) is structurally impossible to insert here. Managed
+    -- evidence lives on task_records via the authenticated runtime-callback
+    -- path — a different table, which is itself the second structural
+    -- separation. Write-once: no UPDATE path in the store.
+    execution_provenance TEXT NOT NULL DEFAULT 'embedded'
+        CHECK (execution_provenance = 'embedded'),
     previous_event_hash TEXT,
     timestamp_utc TIMESTAMPTZ NOT NULL,
     PRIMARY KEY (tenant_id, key_id, event_hash)
@@ -169,8 +186,13 @@ CREATE INDEX sdk_evidence_events_action_idx
     ON sdk_evidence_events (tenant_id, action_name, timestamp_utc DESC);
 ```
 
-A `CHECK (provenance IN ('embedded','connected'))` constraint is the cheap,
-structural way to make `managed` provenance impossible on this path.
+Two orthogonal fields, per the corrected ADR (§7–9): `execution_provenance`
+(embedded | managed — and only `embedded` can exist in SDK evidence tables)
+answers *who executed*; `evidence_state` (received | verified | rejected;
+`local_only` exists only as the absence of a central record) answers *where
+the evidence is in its lifecycle*. Verification success updates
+`evidence_state`, never `execution_provenance`. `rejected` rows keep their
+`embedded` provenance and are never promoted.
 
 ## 4. Required vs optional vs no-migration
 
