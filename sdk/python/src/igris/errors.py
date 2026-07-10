@@ -87,8 +87,30 @@ class JournalError(IgrisError):
 
 
 class EvidencePersistenceError(IgrisError):
-    """The guarded function ALREADY EXECUTED but outcome evidence could not be
-    persisted.
+    """Base class for evidence persistence failures.
+
+    Not every evidence persistence error means the guarded function ran. Use
+    :class:`ExecutionCompletedEvidenceError` for the explicit post-execution
+    case. This base class is retained as the stable public name for callers
+    that already catch post-execution evidence errors.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        function_outcome: str | None = None,
+        result: object = None,
+    ) -> None:
+        super().__init__(message)
+        if function_outcome is not None:
+            self.executed = True
+            self.function_outcome = function_outcome
+            self.result = result
+
+
+class ExecutionCompletedEvidenceError(EvidencePersistenceError):
+    """The guarded function ALREADY EXECUTED but outcome evidence is incomplete.
 
     This error is deliberately distinct from every pre-execution failure: it
     must never be read as "the action did not run". The external side effect
@@ -96,9 +118,17 @@ class EvidencePersistenceError(IgrisError):
     the guarded function.
 
     Attributes:
-        executed: Always ``True``; the guarded function was invoked.
-        function_outcome: ``"succeeded"`` or ``"failed"`` — what the guarded
-            function did before evidence persistence failed.
+        execution_occurred: Always ``True``; the guarded function was invoked.
+        executed: Compatibility alias for ``execution_occurred``.
+        execution_state: ``"completed"`` when the function returned normally,
+            or ``"failed"`` when it raised.
+        evidence_state: Always ``"incomplete"``.
+        retry_safe: Always ``False``. Automatic retry is unsafe because the
+            action may have already produced an external side effect.
+        action_id: Stable action identifier when available.
+        decision_event_id: Event id of the persisted decision when available.
+        function_outcome: Existing structured outcome string:
+            ``"succeeded"`` or ``"failed"``.
         result: The guarded function's return value when it succeeded, so a
             caller that chooses to handle this error can still recover the
             result. Not included in ``str(error)``.
@@ -108,11 +138,19 @@ class EvidencePersistenceError(IgrisError):
         self,
         message: str,
         *,
+        action_id: str | None,
+        decision_event_id: str | None,
         function_outcome: str,
         result: object = None,
     ) -> None:
         super().__init__(message)
+        self.execution_occurred = True
         self.executed = True
+        self.execution_state = "completed" if function_outcome == "succeeded" else "failed"
+        self.evidence_state = "incomplete"
+        self.retry_safe = False
+        self.action_id = action_id
+        self.decision_event_id = decision_event_id
         self.function_outcome = function_outcome
         self.result = result
 
