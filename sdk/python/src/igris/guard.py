@@ -20,7 +20,8 @@ Execution flow for every call to a guarded function:
 9. Return the original result, or re-raise the original exception.
 
 Post-execution evidence failure is reported as
-:class:`~igris.errors.EvidencePersistenceError` — a distinct error that means
+:class:`~igris.errors.ExecutionCompletedEvidenceError` (a subclass of
+:class:`~igris.errors.EvidencePersistenceError`) — a distinct error that means
 "the function ALREADY ran, but outcome evidence could not be persisted". The
 function is never retried.
 
@@ -53,7 +54,7 @@ from .errors import (
     ApprovalError,
     CanonicalizationError,
     ContractError,
-    EvidencePersistenceError,
+    ExecutionCompletedEvidenceError,
     IgrisError,
 )
 from .identity import LocalSigningIdentity, SigningIdentity, default_journal_path
@@ -346,15 +347,25 @@ def _record_outcome_or_raise(
     except Exception as journal_exc:
         message = (
             f"action {contract.action_name!r} EXECUTED (function outcome: {status}) "
-            "but the outcome event could not be persisted; the external side effect "
-            f"may have occurred. Evidence failure: {type_name(journal_exc)}. "
+            "but the outcome event could not be persisted, so outcome evidence is "
+            "INCOMPLETE. The external side effect may have occurred. Automatic retry "
+            f"is UNSAFE. Evidence failure: {type_name(journal_exc)}. "
             "Igris did not retry the function."
         )
         if exception is not None:
             # Preserve the original function failure as the cause.
-            raise EvidencePersistenceError(message, function_outcome=status) from exception
-        raise EvidencePersistenceError(
-            message, function_outcome=status, result=result
+            raise ExecutionCompletedEvidenceError(
+                message,
+                action_id=contract.action_id,
+                decision_event_id=decision_event["event_id"],
+                function_outcome=status,
+            ) from exception
+        raise ExecutionCompletedEvidenceError(
+            message,
+            action_id=contract.action_id,
+            decision_event_id=decision_event["event_id"],
+            function_outcome=status,
+            result=result,
         ) from journal_exc
 
 
