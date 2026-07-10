@@ -205,9 +205,21 @@ head, returned in the error body as `expected_head`).
 
 - The server treats the payload as hostile: it recomputes every `event_hash`,
   verifies every signature against the registered key, and validates schema
-  version and event-type fields. It stores events with provenance
-  **`embedded`**, upgraded to **`connected`** on successful verification.
-  Provenance is write-once; nothing on this path can ever produce `managed`.
+  version and event-type fields.
+- **Execution provenance**: every record written by this endpoint gets
+  `execution_provenance = "embedded"`, unconditionally and write-once. There
+  is **no request field for provenance** — a client cannot claim `managed`,
+  and nothing on this path can ever produce it; `managed` is assignable only
+  by the authenticated runtime-callback path. Verification success does NOT
+  change execution provenance (Connected is a participation mode, not an
+  execution mechanism).
+- **Evidence lifecycle** (`evidence_state`, separate from provenance):
+  `received` on durable acceptance (`received_at` set) →
+  `verified` (`verified_at`, `verification_key_id` set) or
+  `rejected` (`verification_error_code` set). Transitions are
+  `received → verified` and `received → rejected` only; `rejected` evidence
+  is never re-promoted in place (resubmit a corrected batch instead) and is
+  never associated with `managed` provenance.
 - Acceptance is asynchronous: `202` with a `batch_id`; verification status is
   read via §4. Re-submission of a byte-identical batch is idempotent
   (`200`, same `batch_id`). Overlapping/duplicate events (same
@@ -216,7 +228,7 @@ head, returned in the error body as `expected_head`).
 ### Response `202`
 
 ```json
-{"batch_id": "b_01J...", "events_accepted": 5, "status": "accepted"}
+{"batch_id": "b_01J...", "events_accepted": 5, "evidence_state": "received"}
 ```
 
 ### Errors
@@ -241,10 +253,14 @@ Tenant-scoped. Response `200`:
 ```json
 {
   "batch_id": "b_01J...",
-  "status": "accepted" | "verified" | "rejected",
+  "evidence_state": "received" | "verified" | "rejected",
+  "execution_provenance": "embedded",
   "events_accepted": 5,
   "events_verified": 5,
-  "provenance": "connected",
+  "received_at": "2026-07-10T15:04:05Z",
+  "verified_at": "2026-07-10T15:04:06Z",
+  "verification_key_id": "ed25519:5b3f9c2a17d4e8f0",
+  "verification_error_code": null,
   "issues": [
     {"index": 2, "code": "bad_signature", "message": "..."}
   ],
@@ -252,11 +268,16 @@ Tenant-scoped. Response `200`:
 }
 ```
 
-`status=verified` ⇒ every event's hash, signature, and linkage checked against
-the registered key (issue codes reuse the SDK verifier vocabulary:
-`malformed_json`, `unknown_schema`, `missing_fields`, `chain_break`,
+`execution_provenance` is always `"embedded"` on this read — it reports who
+executed, and this endpoint only ever stores locally observed evidence.
+`evidence_state=verified` ⇒ every event's hash, signature, and linkage
+checked against the registered key. `evidence_state=rejected` ⇒
+`verification_error_code` holds the dominant failure and `issues` the
+per-event detail; codes reuse the SDK verifier vocabulary
+(`malformed_json`, `unknown_schema`, `missing_fields`, `chain_break`,
 `hash_mismatch`, `unknown_key`, `bad_signature`). `404 batch_not_found`
-otherwise.
+otherwise. (`local_only` never appears here: evidence that was never
+submitted has no central record to read.)
 
 ---
 

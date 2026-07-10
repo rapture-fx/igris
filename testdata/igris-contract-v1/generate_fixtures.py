@@ -63,12 +63,18 @@ def main() -> int:
 
     provider = ScriptedProvider(["allowed", "denied", "allowed"])
 
+    # The memo deliberately covers every canonicalization-interop risk class:
+    # Unicode, HTML-escape-risk characters (< > &), double quotes, backslash,
+    # and a newline control character. Go's encoding/json HTML-escapes < > &
+    # by default; these bytes force a byte-exact (not decoded-equal) match.
+    INTEROP_MEMO = 'café ☕ 日本語 <b>&amp;</b> "quoted" back\\slash line1\nline2'
+
     @igris.guard(
         action="fixtures.customer.refund",
         risk="critical",
         approval="required",
         redact=["card_number"],
-        metadata={"suite": "igris-contract-v1", "note": "ünïcode ✓ 日本語"},
+        metadata={"suite": "igris-contract-v1", "note": "ünïcode ✓ 日本語 <tag> & \"q\""},
         approval_provider=provider,
     )
     def refund_customer(customer_id: str, amount: int, api_key: str, card_number: str, memo: str):
@@ -76,8 +82,9 @@ def main() -> int:
             raise RuntimeError(f"upstream rejected key {api_key} for mémo {memo}")
         return {"refunded": amount, "memo": memo}
 
-    # 1. Approved decision + succeeded outcome (Unicode + redacted inputs).
-    refund_customer("cus_ünïcode_001", 2500, FAKE_SECRET, "4111-1111-1111-1111", "café ☕ refund")
+    # 1. Approved decision + succeeded outcome (Unicode + interop chars +
+    #    redacted inputs).
+    refund_customer("cus_ünïcode_001", 2500, FAKE_SECRET, "4111-1111-1111-1111", INTEROP_MEMO)
     # 2. Denied decision (no outcome may follow a denial).
     try:
         refund_customer("cus_denied_002", 1, FAKE_SECRET, "4111-1111-1111-1111", "denied path")
@@ -98,7 +105,21 @@ def main() -> int:
     assert FAKE_SECRET.encode() not in raw, "fixture secret leaked into journal"
     assert b"4111-1111-1111-1111" not in raw, "caller-declared redaction leaked"
 
+    # Canonicalization-interop coverage assertions. The characters that Go's
+    # encoding/json HTML-escapes by default (< > &) and non-ASCII text MUST
+    # appear UNESCAPED in the journal bytes (ensure_ascii=false, no HTML
+    # escaping) — a Go implementation emitting < etc. cannot match these
+    # bytes. Quote/backslash/newline coverage is asserted on the decoded
+    # summary (their JSON escaping is layered when the summary string is
+    # embedded in the event object).
+    assert "café ☕ 日本語".encode() in raw, "unicode coverage missing"
+    assert b"<b>&amp;</b>" in raw, "html-escape-risk coverage (< > &) missing"
+
     events = [json.loads(line) for line in raw.decode("utf-8").splitlines() if line.strip()]
+    summary = events[0]["redacted_input_summary"]
+    assert '\\"quoted\\"' in summary, "quoted-text coverage missing"
+    assert "back\\\\slash" in summary, "backslash coverage missing"
+    assert "\\n" in summary, "newline control-character coverage missing"
     assert [e["event_type"] for e in events] == [
         "decision",
         "outcome",
