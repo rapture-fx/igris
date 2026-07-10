@@ -1,0 +1,43 @@
+{
+  "action_name": "fixtures.customer.refund",
+  "approval_mode": "required",
+  "code_fingerprint": "151f7a559c4c0aff32420053dd280ee8da8eb9a33f17277f906f62645f626c76",
+  "contract_hash": "123a1daf6d1e61235d42ea141f1311e6d72bd106c3bd5fac9b3fb8f2a8ab0339",
+  "execution_mode": "embedded",
+  "module": "__main__",
+  "parameter_descriptors": [
+    {
+      "annotation": "str",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "customer_id"
+    },
+    {
+      "annotation": "int",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "amount"
+    },
+    {
+      "annotation": "str",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "api_key"
+    },
+    {
+      "annotation": "str",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "card_number"
+    },
+    {
+      "annotation": "str",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "memo"
+    }
+  ],
+  "qualified_name": "main.<locals>.refund_customer",
+  "risk": "critical",
+  "schema_version": "1"
+}
