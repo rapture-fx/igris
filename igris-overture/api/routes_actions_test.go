@@ -154,6 +154,58 @@ func TestBuildActionRunRequestFromDefinitionWebhook(t *testing.T) {
 	require.Equal(t, true, req.Metadata["irreversible"])
 }
 
+func TestBuildActionRunRequestFromDefinitionOverridesReservedCallerMetadata(t *testing.T) {
+	t.Parallel()
+
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:               "action-authoritative",
+		Name:             "send_invoice",
+		TargetType:       "webhook",
+		TargetURL:        "https://example.test/invoice",
+		Method:           "POST",
+		PolicyPreset:     "Human-gated",
+		ReplayClass:      "non_retryable",
+		ApprovalRequired: true,
+		Irreversible:     true,
+	}, actionRunByNameRequest{
+		Input: map[string]interface{}{"amount": 4200},
+		Metadata: map[string]interface{}{
+			"action_definition_id": "caller-action-id",
+			"action_name":          "caller.action",
+			"target_type":          "mock_demo",
+			"policy_preset":        "Safe automation",
+			"replay_class":         "retryable",
+			"approval_required":    false,
+			"irreversible":         false,
+			"request_summary":      "send invoice",
+		},
+	})
+	require.NoError(t, err)
+
+	require.Equal(t, "action-authoritative", req.Metadata["action_definition_id"])
+	require.Equal(t, "send_invoice", req.Metadata["action_name"])
+	require.Equal(t, "webhook", req.Metadata["target_type"])
+	require.Equal(t, "Human-gated", req.Metadata["policy_preset"])
+	require.Equal(t, "non_retryable", req.Metadata["replay_class"])
+	require.Equal(t, true, req.Metadata["approval_required"])
+	require.Equal(t, true, req.Metadata["irreversible"])
+	require.Equal(t, "send invoice", req.Metadata["request_summary"])
+
+	taskReq, err := buildActionTaskSubmitRequest(req, "tenant-authoritative")
+	require.NoError(t, err)
+	var graphDef map[string]interface{}
+	require.NoError(t, json.Unmarshal(taskReq.TaskDefinition, &graphDef))
+	node := graphDef["graph"].(map[string]interface{})["nodes"].([]interface{})[0].(map[string]interface{})
+	metadata := node["metadata"].(map[string]interface{})
+	require.Equal(t, "action-authoritative", metadata["action_definition_id"])
+	require.Equal(t, "send_invoice", metadata["action_name"])
+	require.Equal(t, "webhook", metadata["target_type"])
+	require.Equal(t, "Human-gated", metadata["policy_preset"])
+	require.Equal(t, "non_retryable", metadata["replay_class"])
+	require.Equal(t, true, metadata["approval_required"])
+	require.Equal(t, true, metadata["irreversible"])
+}
+
 func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthHeader(t *testing.T) {
 	t.Setenv("IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET", "test-local-shared-secret")
 
