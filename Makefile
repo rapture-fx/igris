@@ -1,4 +1,4 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console sdk-python-test
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console sdk-python-test sdk-python-release-check
 
 product-promise:
 	./scripts/product_promise_acceptance.sh
@@ -84,3 +84,6 @@ test-proof-tamper:
 
 sdk-python-test:
 	cd sdk/python && uv sync --dev && uv run pytest && uv run ruff check . && uv run ruff format --check .
+
+sdk-python-release-check:
+	cd sdk/python && uv sync --dev && uv run pytest && uv run ruff check . && uv run ruff format --check . && uv build
