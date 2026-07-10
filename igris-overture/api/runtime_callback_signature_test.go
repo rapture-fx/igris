@@ -53,3 +53,29 @@ func TestRuntimeCallbackNonceReplayStillBlocksBeforeCleanup(t *testing.T) {
 	require.EqualError(t, err, "runtime callback replay detected")
 	require.Equal(t, 0, queued.remainingExecs())
 }
+
+func TestRuntimeCallbackPublicKeyLookupIsTenantScoped(t *testing.T) {
+	t.Parallel()
+
+	var capturedQuery string
+	var capturedArgs []driver.NamedValue
+	db, queued := newQueuedRouteDB(t, []queuedRouteQueryExpectation{{
+		columns: []string{"public_key_ed25519"},
+		rows:    [][]driver.Value{{strings.Repeat("a", 64)}},
+		checkArgs: func(query string, args []driver.NamedValue) {
+			capturedQuery = query
+			capturedArgs = args
+		},
+	}})
+
+	key, err := runtimeCallbackPublicKey(coordinator.NewCheckpointStore(db), "tenant-callback", "runtime-callback")
+	require.NoError(t, err)
+	require.Equal(t, strings.Repeat("a", 64), key)
+	require.Equal(t, 0, queued.remainingQueries())
+
+	normalized := strings.Join(strings.Fields(capturedQuery), " ")
+	require.Contains(t, normalized, "WHERE tenant_id = $1 AND runtime_id::text = $2")
+	require.Len(t, capturedArgs, 2)
+	require.Equal(t, "tenant-callback", capturedArgs[0].Value)
+	require.Equal(t, "runtime-callback", capturedArgs[1].Value)
+}
