@@ -26,6 +26,9 @@ configure, register, or deploy.
 
 ## Installation
 
+Internal release note: public PyPI publication is blocked until the legacy
+`igris-inertial` distribution migration is resolved. See `RELEASE.md`.
+
 ```bash
 pip install igris
 # or
@@ -117,11 +120,44 @@ the guarded function does not run.
 
 There is one failure mode that is deliberately different. If the function has
 **already executed** and the *outcome* event cannot be written, Igris raises
-`EvidencePersistenceError`. This error means: *execution happened (the side
-effect may exist), but outcome evidence could not be persisted.* Igris never
-retries the function. The error carries `function_outcome`
-(`"succeeded"`/`"failed"`) and, on success, the function's `result`; when the
-function itself failed, the original exception is attached as `__cause__`.
+`ExecutionCompletedEvidenceError` (a subclass of `EvidencePersistenceError`).
+This error means: *execution happened (the side effect may exist), but outcome
+evidence could not be persisted.* Igris never retries the function.
+
+Machine-readable fields:
+
+| Field | Meaning |
+| --- | --- |
+| `execution_occurred` | Always `True` for `ExecutionCompletedEvidenceError`. |
+| `execution_state` | `"completed"` if the function returned, `"failed"` if it raised. |
+| `evidence_state` | Always `"incomplete"`. |
+| `retry_safe` | Always `False`; automatic retry may duplicate a side effect. |
+| `action_id` | Stable action invocation identifier when available. |
+| `decision_event_id` | The persisted decision event id when available. |
+| `function_outcome` | Existing structured outcome string: `"succeeded"` or `"failed"`. |
+| `result` | Original result only when the function returned successfully. Not included in the error string. |
+
+Example handling:
+
+```python
+try:
+    result = refund_customer("cus_1234", 500)
+except igris.ExecutionCompletedEvidenceError as exc:
+    assert exc.execution_occurred is True
+    assert exc.evidence_state == "incomplete"
+    assert exc.retry_safe is False
+    # Do not call refund_customer again automatically.
+    # Send to operator review or reconcile the external payment state.
+    result = exc.result
+```
+
+If the guarded function itself failed and outcome evidence also could not be
+persisted, `execution_state == "failed"` and the original function exception is
+available as `__cause__`.
+
+Agent/tooling warning: when `execution_occurred=True` and `retry_safe=False`,
+an agent or job runner **must not invoke the action again automatically**. The
+safe next action is operator review or external-state reconciliation.
 
 A decision event with no following outcome event means the process was
 interrupted or died during execution (e.g. `KeyboardInterrupt`).
