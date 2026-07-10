@@ -1,0 +1,39 @@
+{
+  "contract_hash": "123a1daf6d1e61235d42ea141f1311e6d72bd106c3bd5fac9b3fb8f2a8ab0339",
+  "event_hashes": [
+    {
+      "event_hash": "6859672121e220853d146790bc5ff6bcb64e7e1a2c007890ced7d2c7e3b48260",
+      "event_id": "74c0759f-c1fe-4eb6-8603-4f257ae0315f",
+      "event_type": "decision"
+    },
+    {
+      "event_hash": "cd1c5b14704d4b58674fcc37cbb52895e75152e969974241ff7c696bf738a702",
+      "event_id": "33d6cc9b-e732-42d2-a41c-b51e985247c4",
+      "event_type": "outcome"
+    },
+    {
+      "event_hash": "4f20594453a41b77f40db2effc9f562650b4c2b22443cd8d0c69f47855e0aa78",
+      "event_id": "c448cf77-2301-4cea-8e35-120889a322f4",
+      "event_type": "decision"
+    },
+    {
+      "event_hash": "23b6a90b4fe4ba244ccf6688f8ff20c636972580720399da7739a4ce15db6605",
+      "event_id": "d57045f5-88f5-44b0-8377-ffc65e208451",
+      "event_type": "decision"
+    },
+    {
+      "event_hash": "8fcd938cae8edbbcdacdea397c60623484c12b65748d427328241e9dc73909c4",
+      "event_id": "3435adfa-e439-46bd-aecb-40a020ddb8aa",
+      "event_type": "outcome"
+    }
+  ],
+  "hash_rule": "event_hash = SHA-256 hex of canonical JSON of the event without event_hash and signature (sorted keys, compact separators, ensure_ascii=false, UTF-8)",
+  "key_id": "ed25519:73c037a6bb2c52d3",
+  "public_key_fingerprint_sha256": "73c037a6bb2c52d3b2781dee4076d21ea21e578510a6644c60bb52c1ca97bf86",
+  "schema_version": "1",
+  "signature_rule": "signature = base64(Ed25519.sign(raw 32-byte SHA-256 digest of the canonical unsigned payload))",
+  "verifier_result_at_generation": {
+    "events_verified": 5,
+    "valid": true
+  }
+}
