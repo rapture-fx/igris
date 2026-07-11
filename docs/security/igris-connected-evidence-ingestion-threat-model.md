@@ -1,323 +1,219 @@
-# Threat Model — Connected Embedded Evidence Ingestion (PROSPECTIVE)
+# Threat Model — Connected Embedded Evidence Ingestion
 
-**Status:** **PROSPECTIVE / PRE-IMPLEMENTATION GATE**  
-**FINAL RELEASE REVIEW PENDING AGENT C FINAL COMMIT**
+**Status:** **EVIDENCE-BASED RELEASE REVIEW (COMPLETED)**  
+**Prior prospective commit:** `d45c457ff40867a62a3a19babe8dbc7b5ee1547f`  
+**This review supersedes the prospective pass.**
 
 | Field | Value |
 | --- | --- |
-| **Base (stable)** | `feature/igris-connected-contract-sync` @ `2998a12bf8165e129c122b9e619870a4c754d527` |
-| **Reviewed Agent C evidence commit** | *None yet — implementation unfinished; no final commit* |
+| **Base (stable)** | `2998a12bf8165e129c122b9e619870a4c754d527` |
+| **Reviewed commit (Agent C final)** | `b30767da1f96569b25a479414c1d5ed6ef10320e` |
+| **Exact diff** | `2998a12bf..b30767da1` (23 files, +4370 / −9) |
 | **Review branch** | `feature/igris-connected-evidence-security-gate` |
 | **Review date** | 2026-07-11 |
-| **Decision** | **Not issued** — see release gate §0 |
+| **Decision** | See release gate: **CONDITIONAL GO** |
 
-This document is an **implementation-independent but testable** threat model for
-the second Connected slice: explicit upload of Embedded SDK journal evidence for
-central storage and cryptographic verification. It is derived from:
+**Scope:** Explicit upload of Embedded SDK journal evidence for central cryptographic verification and tenant-scoped storage. This is **Embedded centrally verified evidence**, not Managed execution.
 
-1. Stable shipped base `2998a12bf` (contract sync + production canonicalizer + BetterAuth transport patterns).
-2. Authoritative design: `docs/architecture/igris-connected-api-v1.md` §3–4, `igris-connected-data-impact.md` (evidence tables), `igris-progressive-contract-v1.md` §7–11 / §12–15.
-3. Implemented Embedded protocol: `sdk/python` journal/identity/verification, `testdata/igris-contract-v1`, `conformance/contractv1`.
-
-**It does not invent code facts about Agent C’s unfinished implementation.**  
-Any observation of dirty worktrees or untracked provisional files is labeled
-**provisional** and is **not** shipped behavior.
-
-Ownership:
-
-- **Agent C** owns `feature/igris-connected-evidence-ingestion` (in progress; paused mid-session).
-- **Agent D** owns only the separate legacy `igris-python-sdk` repository (out of scope here).
-- This security-gate branch changes **only** the two evidence security documents under `docs/security/`.
+**Ownership:** Agent C implements evidence ingestion. Agent D owns only the separate legacy `igris-python-sdk` repository (out of scope). Agents G/H integration/alpha branches were not modified.
 
 ---
 
-## 0. Non-goals of this review pass
+## 1. Assets (confirmed)
 
-- No final GO / CONDITIONAL GO / NO-GO.
-- No verification of Agent C handlers, migrations, or SDK CLI beyond what is already on `2998a12bf`.
-- No reading of uncommitted Agent C sources as authority (filenames may be noted as provisional only).
-- No production credentials, migration apply, deploy, or implementation of fixes/tests.
-
----
-
-## 1. Assets
-
-| Asset | Sensitivity | Design location / authority |
-| --- | --- | --- |
-| Tenant identity | Critical | BetterAuth → auth context only (`GetClerkUserID`); never body |
-| Tenant API keys (`igris_…`) | Critical | Existing BetterAuth hash lookup; Bearer transport |
-| SDK Ed25519 **private** key | Critical | `IGRIS_HOME/signing_key.pem` only — must never leave host / never appear on wire |
-| SDK Ed25519 **public** key + `key_id` | High | Registered centrally per `(tenant_id, key_id)`; design table `sdk_verification_keys` |
-| Journal events (decision/outcome v1) | High | Local `journal.jsonl`; upload as `journal_segment.events` |
-| Event hashes + signatures | High | Protocol: SHA-256(canonical unsigned) + Ed25519 over digest |
-| Hash chain head per `(tenant, key_id)` | High | Server-stored continuity anchor; `first_previous_event_hash` |
-| Batch records + `content_hash` | Medium–High | `sdk_evidence_batches`; idempotency fingerprint |
-| Per-event stored JSON | High | `sdk_evidence_events`; may contain redacted summaries — must not contain raw secrets |
-| `execution_provenance` write-once value | Critical integrity | Must be structural `embedded` on this path only |
-| `evidence_state` lifecycle | High | `received` → `verified` \| `rejected` only |
-| Managed task receipts / `task_records` | Critical (adjacent) | **Must not** receive SDK journal blobs |
-| Route surface / rate limits | Medium | Manifest + ≤20 batches/min/tenant (design) |
-
----
-
-## 2. Actors
-
-| Actor | Goals |
+| Asset | Location at `b30767da1` |
 | --- | --- |
-| Legitimate developer | Register public key; explicitly upload verified local journals |
-| Malicious tenant principal | Flood storage/CPU; confuse operators; claim stronger provenance |
-| Cross-tenant attacker | Read/write other tenants’ evidence or keys |
-| Compromised SDK host | Produce “valid” signatures over false events (inherent Embedded limit) |
-| Network attacker | Steal API key; MITM; redirect/downgrade |
-| Hostile configured endpoint | SSRF-like / credential capture if env compromised |
-| DB privileged insider | Mutate “immutable” evidence rows |
-| Future Managed path operator | Must not collide with Embedded evidence semantics |
+| Tenant identity | BetterAuth → `GetClerkUserID`; never body |
+| Tenant API keys | Bearer/`X-API-Key`; hashed lookup |
+| SDK private key | `IGRIS_HOME/signing_key.pem` only — never on wire |
+| SDK public key + fingerprint | `sdk_signing_keys` (PEM + `fingerprint_sha256`) |
+| Journal events | Client local; server `sdk_evidence_events` (verified only) |
+| Batch identity `content_hash` | SHA-256 of actual submitted canonical event bytes + key_id |
+| Chain head per `(tenant, key_id)` | Verified batches + partial unique chain-slot index |
+| `execution_provenance` | CHECK `= 'embedded'` on batches and events |
+| `evidence_state` | `verified` \| `rejected` (sync path; no persistent `received` polling) |
+| Managed task stores | **Not written** by this path |
 
 ---
 
-## 3. Attacker capabilities (assumed)
-
-1. Arbitrary HTTP JSON to public API with valid or invalid tenant credentials.
-2. Possession of one tenant API key ⇒ coarse full-tenant authority (inherited from contract-sync residual R2).
-3. Ability to craft events with arbitrary hashes/signatures/fields/order.
-4. Ability to register or attempt to register public keys (subject to design of key registration endpoint — **UNVERIFIED** until implemented).
-5. Concurrent uploads with same/different idempotency keys and content hashes.
-6. Local control of SDK env (`IGRIS_API_URL`, `IGRIS_API_KEY`, `IGRIS_HOME`) if host compromised.
-7. No ability to forge Ed25519 without private key — unless private key stolen (compromised-host model).
-
----
-
-## 4. Trust boundaries
+## 2. Trust boundaries (implemented)
 
 ```
-[ IGRIS_HOME: private key + journal.jsonl ]
-        |  private key NEVER crosses this boundary
-        |  optional: igris evidence-upload CLI (explicit; not @igris.guard)
-        |  local verify_journal BEFORE upload (required control)
+[ IGRIS_HOME private key + journal ]
+        |  igris evidence sync ONLY (explicit CLI)
+        |  local verify_journal BEFORE network
+        |  public PEM + events only; redirects refused
         v
-[ HTTPS + Bearer API key ]  ---- T1 transport
+[ HTTPS + Bearer ] ---- T1
         v
-[ BetterAuth + rate limit + evidence routes ]
-        |  tenant_id from auth only
-        |  key_id → public key lookup tenant-scoped
-        |  recompute hashes; verify signatures; chain rules
-        |  stamp execution_provenance=embedded write-once
-        |  evidence_state lifecycle only
+[ BetterAuth + 20/min rate limit + RegisterEvidenceRoutes ]
+        |  tenant from auth; key_id bound to server-derived fingerprint
+        |  recompute hashes; Ed25519; chain; transitions
+        |  stamp embedded; state verified|rejected synchronously
         v
-[ PostgreSQL: sdk_verification_keys, sdk_evidence_batches,
-  sdk_evidence_events ]  ---- T2 data plane
+[ sdk_signing_keys | sdk_evidence_batches | sdk_evidence_events
+  | evidence_ingest_idempotency ] ---- T2
         |
-        +-- MUST NOT write task_records / Managed receipt stores
-        +-- MUST NOT call TaskCoordinator / dispatch
+        +-- NO task_records / Managed receipts / TaskCoordinator
 
-[ Authenticated runtime callback path ]  ---- T3 separate
-        |  only path that may establish execution_provenance=managed
-        v
-[ task_records / runtime receipts ]
+[ Runtime callback path ] ---- T3 (unchanged; sole managed provenance)
 ```
 
 ---
 
-## 5. Required product / security invariants
+## 3. Entry points (verified registered)
 
-These are **release requirements**. Implementation status for the evidence slice is **UNVERIFIED** until Agent C’s final commit is reviewed.
+| Entry | File | Auth / limit |
+| --- | --- | --- |
+| `POST /v1/evidence/batches` | `routes_evidence.go` | BetterAuth; 20/min |
+| `GET /v1/evidence/batches/:id` | `routes_evidence.go` | BetterAuth; 20/min |
+| Implicit first-use public key registration | on **verified** batch only | Tenant-scoped PK |
+| `igris evidence sync` / `status` | `evidence_sync.py`, `cli.py` | Explicit only |
+| `@igris.guard` | **no import** of evidence_sync | Zero evidence network |
 
-| ID | Invariant |
-| --- | --- |
-| I1 | Evidence upload is **explicit** (CLI or explicit client call). `@igris.guard` performs **no** automatic evidence network I/O. |
-| I2 | Unset Connected config preserves **zero-network** Embedded behavior (contract sync already dual-env; evidence must not phone home). |
-| I3 | Local journal verification (hash + signature + chain) occurs **before** upload on the client path. |
-| I4 | Private key never leaves `IGRIS_HOME`; never in request body, headers (except unrelated API key), logs, or errors. |
-| I5 | Tenant identity derived **only** from authenticated server context. |
-| I6 | All client-ingested evidence is structurally `execution_provenance=embedded`; **no** request field may set provenance. |
-| I7 | Only authenticated runtime-callback paths can establish `managed` provenance (existing product path; unchanged by this slice). |
-| I8 | Central verification updates **only** `evidence_state` (+ verification metadata), never `execution_provenance`. |
-| I9 | `evidence_state=verified` proves integrity + chain continuity vs registered key — **not** truthful timestamps, uncompromised hosts, exactly-once execution, containment, human identity, or external side-effect correctness. |
-| I10 | Evidence upload grants **no** execution permission. |
-| I11 | Server recomputes every `event_hash` and verifies every Ed25519 signature; client-supplied integrity fields are untrusted. |
-| I12 | Chain continuity: ordered events; internal links; `first_previous_event_hash` matches server chain head for `(tenant, key_id)` (or null genesis). |
-| I13 | Rejected batches retain `embedded` provenance; never re-promoted in place to verified-as-managed. |
-| I14 | SDK evidence tables are isolated from Managed task stores (no write path into `task_records` / execution receipts for this API). |
-| I15 | Cross-tenant isolation on keys, batches, events, and GET by id (404 equivalence). |
+Wiring: `cmd/igris-overture/main.go` `RegisterEvidenceRoutes`; manifest `/v1/evidence/*`.
 
 ---
 
-## 6. Entry points (design)
+## 4. Required invariants — final classification
 
-| Entry | Auth | Design source | Impl status |
+| ID | Invariant | Classification | Evidence |
 | --- | --- | --- | --- |
-| `POST /v1/evidence/batches` | BetterAuth | API v1 §3 | **UNVERIFIED** |
-| `GET /v1/evidence/batches/:id` | BetterAuth | API v1 §4 | **UNVERIFIED** |
-| Signing-key registration (tenant-scoped public key) | BetterAuth | API v1 §3 prerequisite; data-impact `sdk_verification_keys` | **UNVERIFIED** (endpoint shape TBD in implementation) |
-| Explicit evidence-sync / upload CLI | Local + API | Product requirement for explicit upload | **UNVERIFIED** |
-| `@igris.guard` | N/A | Must **not** add evidence network | Must remain zero auto-upload (**regression gate**) |
-| Contract sync paths | Existing | Must remain non-evidence | Shipped at base |
+| I1 | Explicit upload only; guard does not import/call evidence sync | **VERIFIED** | `test_guard_module_does_not_reference_evidence_sync`; source audit `guard.py` |
+| I2 | Embedded zero-network by default | **VERIFIED** | `test_no_network.py`; guard construction no evidence client |
+| I3 | Local journal verification before network | **VERIFIED** | `TestLocalValidationBeforeNetwork`; `sync_journal` order |
+| I4 | Journals never rewritten | **VERIFIED** | `test_journal_is_never_modified_by_sync`; e2e byte-identity |
+| I5 | Private key never leaves IGRIS_HOME | **VERIFIED** | Client reads only `verify_key.pem`; private PEM refused server-side |
+| I6 | Only public keys accepted/stored | **VERIFIED** | `parseSDKPublicKey` PUBLIC KEY PEM only; lifecycle asserts no PRIVATE |
+| I7 | Private-key PEM rejected | **VERIFIED** | `TestEvidenceSubmitValidationRejections/private key PEM is refused` |
+| I8 | `key_id` server-derived/verified | **VERIFIED** | `derivedKeyID != submission.KeyID` → 422 |
+| I9 | Tenant only from auth | **VERIFIED** | `TestEvidenceTenantComesFromAuthContext`; body tenant rejected |
+| I10 | Body `tenant_id` / `execution_provenance` rejected (top + events) | **VERIFIED** | `TestEvidenceSubmitBodyTenantAndProvenanceFieldsRejected` |
+| I11 | Structural `execution_provenance=embedded` | **VERIFIED** | CHECK constraints; app never binds provenance; Postgres managed-impossible test |
+| I12 | No `task_records` / Managed store writes | **VERIFIED** | `TestEvidenceSourceNeverTouchesManagedReceiptStorage` |
+| I13 | Managed provenance only via runtime callbacks | **VERIFIED** (by isolation + pre-existing runtime path) | Separate tables; CHECK forbids managed |
+| I14 | Verification changes evidence_state only | **VERIFIED** | Sync path sets verified/rejected; provenance constant |
+| I15 | No overclaim of timestamps/hosts/exactly-once/side effects | **VERIFIED** (docs + comments + API dual fields) | Slice doc + verifier package comment |
+| I16 | Upload grants no execution | **VERIFIED** | No dispatch; route notes; response has no grant |
+| I17 | Migration 068 not auto-applied | **VERIFIED** | Header NOTE; disposable-schema tests only |
 
 ---
 
-## 7. Data flows (design)
+## 5. Cryptographic & chain controls
 
-### 7.1 Key registration (prerequisite)
-
-Developer publishes **public** PEM + derived `key_id` → server stores under `(tenant_id, key_id)`.  
-First-use registration, rotation, and revocation semantics beyond `status` column are **design gaps** to gate carefully (see abuse A-key-*).
-
-### 7.2 Batch upload
-
-1. Client runs local `verify_journal` (or equivalent) → fail closed if invalid.
-2. Client POSTs `key_id` + `journal_segment{first_previous_event_hash, events[]}` (+ optional Idempotency-Key).
-3. Server: auth → rate limit → size/count limits → resolve key → content_hash → chain head check → durable accept (`received`) → async or sync verification → `verified` or `rejected` with issues.
-4. Events stored verbatim JSONB with forced `execution_provenance=embedded`.
-
-### 7.3 Status read
-
-Tenant-scoped GET; returns lifecycle + always `execution_provenance: embedded`; issues vocabulary aligned with SDK verifier codes.
-
-### 7.4 What must never flow
-
-Private keys; unredacted secrets / raw function arguments; absolute host paths beyond what events already omit; environment dumps; Managed receipt blobs; client-claimed `managed` provenance.
-
----
-
-## 8. Protocol facts (implemented today — authority for verification design)
-
-These are **verified at base `2998a12bf`** as Embedded protocol, not as server ingestion.
-
-| Topic | Rule | Location |
+| Control | Classification | Paths / tests |
 | --- | --- | --- |
-| Canonical JSON | Sorted keys, compact, `ensure_ascii=false`, no HTML-escape of `<>&` | `sdk/python/src/igris/canonical.py`; Go `internal/canonicaljson` |
-| Event hash | SHA-256 hex of canonical unsigned payload (exclude `event_hash`, `signature`) | `journal.py` / fixtures |
-| Signature | Ed25519 over **raw digest bytes**, base64 | `identity.py` |
-| `key_id` | `ed25519:` + first 16 hex of SHA-256(raw 32-byte pubkey) | `identity.py` |
-| Chain | `previous_event_hash` null genesis; else prior `event_hash` | `verification.py` |
-| Event types | `decision`, `outcome` only | `verification.py` |
-| Schema | `schema_version == "1"` | fixtures + verifier |
-| Denial semantics | Denied decision is terminal — no outcome | ADR §10; fixtures |
-| Tail truncation | Not detectable from journal alone | `verification.py` docstring — central chain head mitigates for Connected |
-| Fixtures | `testdata/igris-contract-v1/journal.jsonl` + `verify_key.pem` + canonical bytes | Conformance green at base |
-
-Server ingestion **must** match these byte-level rules or verification will split-brain.
-
----
-
-## 9. Abuse cases (testable)
-
-Severity / likelihood assume design controls if correctly implemented. **All server controls UNVERIFIED** until final commit.
-
-| ID | Abuse | Sev | Lik | Required control |
-| --- | --- | --- | --- | --- |
-| A1 | Forged `event_hash` | Crit | Med | Server recompute; reject → `hash_mismatch` / batch rejected |
-| A2 | Invalid Ed25519 signature | Crit | Med | Verify with registered pubkey; `bad_signature` |
-| A3 | Malicious public key registration (oversized PEM, non-Ed25519, path injection in PEM text) | High | Med | Strict PEM parse; 32-byte Ed25519 only; size cap; no private key material accepted |
-| A4 | Cross-tenant key reuse / IDOR on `key_id` | Crit | Med | Lookup `(tenant_id, key_id)` only; never global key_id |
-| A5 | Key substitution after events signed under old key | High | Med | Events bound to `key_id`; batch key must match event key_ids; rotation design deferred carefully |
-| A6 | `key_id` fingerprint collision (16-hex prefix) | Med | Low | Document birthday bound; optional full fingerprint storage; collision → reject dual active keys |
-| A7 | First-use key registration races | Med | Med | Unique PK `(tenant, key_id)`; no silent replace of different PEM |
-| A8 | Missing rotation/revocation | Med | High (gap) | `status` column exists in design; **revocation + grace** deferred — document residual |
-| A9 | Journal truncation (tail delete) | High | Med | Server chain head; client must not “verify truncated as complete history” for central truth |
-| A10 | Chain gaps / reorder / middle delete | High | Med | Linkage checks + stored-hash chain follow policy like SDK |
-| A11 | Chain forks (two children of same head) | High | Med | Reject or deterministic conflict; one head per `(tenant, key_id)` |
-| A12 | Duplicate events same hash | Med | Med | PK `(tenant, key_id, event_hash)` store once |
-| A13 | Conflicting continuation after accepted head | High | Med | `409 chain_head_mismatch` + `expected_head` |
-| A14 | Wrong null genesis when head exists | High | Med | Same as A13 |
-| A15 | Outcome without decision / denied then outcome | High | Med | Semantic validation in verifier path (beyond bare chain) — **must specify** |
-| A16 | Malformed JSONL / non-object events | Med | Med | Reject or batch `rejected` with `malformed_json` |
-| A17 | Schema downgrade / unknown schema | High | Med | `unknown_schema` |
-| A18 | Unsupported event types | High | Med | Allowlist decision/outcome |
-| A19 | Python/Go canonicalization mismatch | Crit | Med | Shared rules + fixture e2e |
-| A20 | Unicode / HTML-escape bugs | High | Med | specialchars + journal Unicode fixtures |
-| A21 | Numeric representation traps | Med | Low | UseNumber / no float re-render of hashes |
-| A22 | Oversized events / >500 events / >1 MiB | Med | High | Hard limits 413/422 |
-| A23 | Deep nesting / parser bombs | Med | Med | Depth limits; no unbounded recursion |
-| A24 | Compression bombs if gzip added later | High | Low | Disallow or limit decompression ratio |
-| A25 | Request-body logging of events | High | Med | No raw body logs; scrub API keys |
-| A26 | API-key leakage | High | Med | Bearer only; errors scrubbed (carry contract-sync patterns) |
-| A27 | Private-key transmission | Crit | Low | Client never reads private key for upload; server rejects PKCS8 private PEM |
-| A28 | Raw arguments / unredacted secrets in events | Crit | Med | Rely on SDK redaction; server may detect obvious patterns optionally; tests on fixtures |
-| A29 | Absolute path / env leakage in events | Med | Med | Field allowlists; strip unknown fields or reject |
-| A30 | Client claims `execution_provenance=managed` | Crit | Med | No field; ignore/reject if present; CHECK constraint `= embedded` |
-| A31 | Upload receipt-shaped blobs into Managed stores | Crit | Med | Separate tables only; no task_records writes |
-| A32 | “Verified” misread as side-effect proof | High | High (UX) | API copy + operator docs; dual fields always returned |
-| A33 | Untrusted client timestamps | Med | High | Store but do not trust for authz; server `received_at` authority for receipt time |
-| A34 | Compromised-host false history | High | Med | **Inherent residual** of Embedded provenance — document only |
-| A35 | Illegal evidence_state transitions | High | Med | Only received→verified/rejected |
-| A36 | Rejected-batch retention abuse / privacy | Med | Med | Retention policy; still tenant-scoped |
-| A37 | Batch flooding / storage exhaustion | High | High | 20/min rate; quotas (deferred hardening) |
-| A38 | Invalid-signature CPU DoS | High | High | Rate limit; cap events; early reject unknown key; consider async verify with admission control |
-| A39 | Tenant-wide rate limit exhaustion | Med | High | Inherited R7 pattern |
-| A40 | Process-local rate limit multi-instance bypass | Med | Med | Inherited R6 |
-| A41 | Idempotency replay / conflict | Med | Med | content_hash bind; sequential 409; concurrent TOCTOU inherited R3 |
-| A42 | Concurrent duplicate upload | Med | Med | UNIQUE content_hash + event PK |
-| A43 | Non-atomic batch vs events (orphan gaps) | High | Med | Single transaction for durable accept |
-| A44 | Evidence row UPDATE/DELETE | High | Low (needs DB) | App append-only + DB privileges (inherited R1 class) |
-| A45 | Cross-tenant GET disclosure | Crit | Med | Tenant filter; 404 |
-| A46 | Identifier enumeration | Low–Med | Med | Opaque UUIDs; 404 |
-| A47 | Error leakage (PEM, key material, paths) | Med | Med | Bounded error codes |
-| A48 | Signing-key metadata overexposure | Med | Med | List only key_id/status/created_at — not confuse with private |
-| A49 | Redirect / HTTPS downgrade on client | High | Low | Inherited R4 |
-| A50 | Localhost HTTP exceptions abuse | Med | Low | Same allowlist discipline as contract sync |
-| A51 | Hostile configured endpoints | Med | Low | Inherited R5 |
-| A52 | Retry storms | Med | Med | Timeouts + 20/min + retry_safe guidance |
-| A53 | Automatic upload from guard | Crit | Med | Explicit-only; regression tests |
-| A54 | Unsafe post-execution auto-retry of side effects after evidence upload failure | High | Med | Upload failures must not imply function retry; `retry_safe` semantics for **upload** only |
+| Python↔Go canonical bytes | **VERIFIED** | `internal/canonicaljson`; `conformance/contractv1`; fixture journal verifies |
+| SHA-256 event-hash recompute | **VERIFIED** | `evidence_verify.go`; tamper tests |
+| Ed25519 over **recomputed** digest | **VERIFIED** | `ed25519.Verify(pub, digest[:], rawSig)` |
+| Null genesis + ordered linkage | **VERIFIED** | verify + lifecycle continuation |
+| Cross-batch decision references | **VERIFIED** | `getStoredDecision` + outcome rules |
+| Gap / fork rejection | **VERIFIED** | Postgres lifecycle gap 409; chain-slot unique index; fork path |
+| Decision-before-outcome / denied terminal / one outcome | **VERIFIED** | `TestEvidenceVerifyTamperAndTransitionRejections` |
+| Duplicate consistency | **VERIFIED** | Event PK ON CONFLICT DO NOTHING; natural content hash |
+| Actual-submitted-byte batch identity | **VERIFIED** | `evidenceContentHash`; mirrors Python `batch_content_hash` |
+| Unicode / specialchars | **VERIFIED** | Fixture journal through verify + e2e |
+| Rejected batch: no events, no key reg, bounded issues | **VERIFIED** | Postgres tampered test; max 20 issues `{index,code}` |
 
 ---
 
-## 10. Inherited residuals from contract-sync (prerequisites)
+## 6. AuthZ, keys, limits, DoS
 
-| ID | Residual (from contract-sync gate) | Classification for evidence slice |
+| Control | Classification | Evidence |
 | --- | --- | --- |
-| CS-R3 | Concurrent Idempotency-Key TOCTOU | **Production-enablement blocker** if evidence reuses same pattern without fix; else **deferred hardening** if sequential-only accepted |
-| CS-R4 | urllib redirect / no anti-downgrade policy | **Production-enablement blocker** for any new HTTPS client path that carries Bearer tokens |
-| CS-R1 | App-only immutability (no DB REVOKE/triggers) | **Deferred hardening** for evidence tables (same class); elevate if multi-role DB |
-| CS-R2 | Coarse tenant API keys / no fine 403 | **Deferred hardening** (document operational key hygiene) |
-| CS-R6 | Process-local rate limiter | **Production-enablement blocker** for multi-instance API |
-| CS-R7 / storage | No storage quotas | **Deferred hardening** — evidence volume is the growth risk |
-
-Evidence design **must not regress** contract-sync verified properties (tenant isolation, no body tenant, zero-network default, non-execution of `embedded_sdk`).
-
----
-
-## 11. Key rotation and Managed controls (deferred)
-
-| Deferred control | Notes |
-| --- | --- |
-| Key rotation with overlapping validity | Not specified in API v1; do not invent; first-use + status only in design |
-| Revocation propagation / grace for in-flight batches | Design `status` column only |
-| Managed provenance assignment | Existing runtime callback only — out of this slice |
-| Central checkpoint for tail truncation proofs beyond chain head | Partial mitigation only |
-| Evidence → policy enforcement | Out of scope |
-| Console UX language “locally observed” | Product follow-up |
-
----
-
-## 12. Provisional observation (non-authoritative)
-
-As of this review pass, worktree `feature/igris-connected-evidence-ingestion` was at base `2998a12bf` with **untracked** provisional paths only (names observed, contents **not** treated as shipped):
-
-- `igris-overture/api/routes_evidence.go`
-- `igris-overture/api/evidence_store.go`
-- `igris-overture/api/evidence_verify.go`
-- `igris-overture/database/migrations/068_sdk_evidence_ingestion.sql`
-
-**No intermediate Agent C commits** beyond `2998a12bf` were present.  
-**Provisional risk:** incomplete mid-implementation surface may lack tests, route-manifest updates, CLI explicitness, or transaction atomicity — all **UNVERIFIED**.
+| Cross-tenant GET 404 | **VERIFIED** | Postgres lifecycle + e2e |
+| Cross-tenant key isolation (same pubkey → independent rows) | **VERIFIED** | Lifecycle tenant-b independent batch |
+| Same key_id different fingerprint → 409 | **VERIFIED** | Handler conflict; in-tx re-read race |
+| Malformed / oversized PEM | **VERIFIED** | 4096 cap; parse failures |
+| Body 1 MiB / 500 events / 64 KiB event / depth 64 | **VERIFIED** | `TestEvidenceSubmitOversizedInputsRejected` |
+| Separate evidence rate limit 20/min | **VERIFIED** (wired) | `NewRateLimiter(20, time.Minute)` on `/v1/evidence` |
+| Process-local multi-instance rate limit | **PARTIALLY VERIFIED** | Same middleware class as contract-sync (CS-R6) |
+| Invalid-signature CPU work | **PARTIALLY VERIFIED** | Bounded by rate limit + event cap + early key parse; no separate async queue |
+| Storage flooding / quotas | **DEFERRED** | Rate limit only; no per-tenant storage quota |
+| Idempotency sequential 409 | **VERIFIED** | Postgres idempotency test |
+| Idempotency concurrent TOCTOU | **PARTIALLY VERIFIED** | Same post-commit insert pattern as contract-sync (CS-R3) |
+| 10-way concurrent identical submit | **VERIFIED** | `TestEvidenceIngestPostgresConcurrentIdenticalSubmissions` → 1 batch |
+| Chain-head race / content replay | **VERIFIED** | Handler re-reads content on mismatch; chain-slot 23505 |
+| Transaction atomicity | **VERIFIED** | Single tx for key+batch+events; rejected path batch-only |
+| App UPDATE/DELETE absence | **VERIFIED** | Source guard tests |
+| DB REVOKE UPDATE/DELETE | **FAILED as DB control** / **DEFERRED hardening** | CHECK yes; no REVOKE/triggers (CS-R1 class) |
+| Direct-SQL managed CHECK rejection | **VERIFIED** | `TestEvidenceIngestPostgresManagedProvenanceStructurallyImpossible` |
+| Malformed batch ID → 404 no DB | **VERIFIED** | `TestEvidenceBatchGetMalformedIDIndistinguishableFromAbsent` |
+| Error redaction | **VERIFIED** (SDK) | Scrubbed auth errors; token not in messages |
+| Evidence client no-redirect | **VERIFIED** | `_RefuseRedirects`; `test_redirect_is_refused` |
+| Contract client redirect policy | **PARTIALLY VERIFIED** / inherited residual | Still default `urlopen` in `connected.py` |
+| HTTPS + localhost exceptions | **VERIFIED** | Shared `load_connected_config` |
+| Timeout / retry_safe / one resync | **VERIFIED** | 10s; typed errors; `test_resync_is_bounded_to_one_attempt` |
+| No background threads | **VERIFIED** | Explicit CLI only; guard tests |
+| Wheel/sdist CLI | **PARTIALLY VERIFIED** | CLI tests + entrypoint present; full wheel inspect not re-run this pass |
+| Journal byte-identical after success/replay/fail/tamper | **VERIFIED** | Unit + e2e |
 
 ---
 
-## 13. Review hygiene
+## 7. Agent C design deviations — classification
 
-- Agent C branches not modified, stashed, reset, committed, rebased, or merged into.
-- Agent D / legacy `igris-python-sdk` not touched.
-- `sdk/python`, igris-overture production code, migrations, testdata, conformance, architecture docs on this branch: **not modified**.
-- Only security docs under `docs/security/` for evidence ingestion may change on `feature/igris-connected-evidence-security-gate`.
-- Second-pass review will re-open this model against Agent C’s **final commit** and reclassify every control.
+| Deviation | Classification | Rationale |
+| --- | --- | --- |
+| Synchronous verification (no durable `received` polling) | **Acceptable** | Stronger fail-closed UX; `202` still used for new batches; state is terminal verified/rejected |
+| Implicit first-use public-key registration | **Acceptable (conditional ops)** | Public-only; fingerprint bind; conflict on mismatch; **rotation/revocation still deferred** |
+| Actual-canonical-byte batch identity (not claimed-hash) | **Acceptable — security-positive** | Tampered rejected batch cannot block honest resubmit |
+| One journal per signing identity | **Acceptable residual** | Documented limitation; fork/index enforces single stream |
+| Chain-head continuation + expected_head resync | **Acceptable** | Bounded one resync client-side |
+| `202` for new verified **or** rejected | **Acceptable** | Rejected is itself evidence metadata; no event store pollution |
+| Response additions (`created`, `key_fingerprint_sha256`, chain fields) | **Acceptable** | Additive; same-tenant |
+| No stored events for rejected batches | **Acceptable — security-positive** | Bounds storage and secret surface |
 
 ---
 
-## 14. Status banner (required)
+## 8. Inherited residuals (severity after evidence)
 
-```
-FINAL RELEASE REVIEW PENDING AGENT C FINAL COMMIT
-No GO / CONDITIONAL GO / NO-GO is issued in this prospective pass.
-```
+| Residual | Severity change | Final class |
+| --- | --- | --- |
+| CS-R1 DB immutability without REVOKE | Unchanged; evidence also app-append-only (+ CHECK provenance) | Deferred hardening; alpha accept |
+| CS-R3 Idempotency concurrent TOCTOU | Unchanged pattern on evidence path | Production-enablement if concurrent conflicting keys expected |
+| CS-R4 Redirect handling | **Improved for evidence** (`_RefuseRedirects`); **contract client still open** | Evidence: verified; contract: residual |
+| CS-R2 Coarse API keys | Unchanged | Deferred / operational |
+| CS-R6 Process-local rate limit | Unchanged; evidence has **separate** 20/min bucket | Prod multi-instance blocker class |
+| CS-R7 Tenant-wide shared budget | Unchanged (by design) | Accept for alpha |
+| Storage quotas / idempotency TTL | Volume risk higher for evidence than contracts | Deferred + monitoring |
+| Key rotation/revocation | New deferred surface (implicit first-use) | Deferred |
+
+---
+
+## 9. Abuse-case residual risks (accepted for alpha)
+
+1. Compromised host signs false events under registered key (Embedded honesty bound).  
+2. Client timestamps untrusted (stored as reported; server `received_at`/`verified_at` for receipt time).  
+3. `verified` ≠ side-effect / containment / human identity / exactly-once.  
+4. One stream per `(tenant, key_id)` — multi-journal same key diverges by design.  
+5. Coarse tenant API key can upload any evidence for tenant.  
+6. Rejected-batch metadata retained (bounded codes only).  
+
+---
+
+## 10. Test execution (this review)
+
+Read-only against Agent C worktree at `b30767da1`. Disposable Postgres created and **dropped**. No production credentials; migration 068 applied only inside test disposable schemas.
+
+| Suite | Command | Result |
+| --- | --- | --- |
+| Canonicalizer | `go test ./igris-overture/internal/canonicaljson/ -count=1` | **ok** |
+| Conformance | `go test ./conformance/contractv1/ -count=1` | **ok** |
+| Evidence API unit | `go test ./igris-overture/api/ -count=1 -run 'Evidence\|RegisterEvidence'` | **ok** |
+| Route manifest/surface | `go test ./igris-overture/api/ -count=1 -run 'RouteManifest\|RouteSurface'` | **ok** |
+| Python focused | `uv run pytest tests/test_evidence_sync.py tests/test_cli.py tests/test_no_network.py tests/test_guard.py tests/test_connected.py -q` | **109 passed** |
+| Disposable PG + e2e | `TestEvidenceIngestPostgres*` + `TestEvidenceIngestionEndToEndPythonSDK` | **6/6 PASS** (e2e ~71s) |
+
+---
+
+## 11. Review hygiene
+
+- Agent C branch: read-only (no merge/rebase/commit/stash/reset).  
+- Agents G/H worktrees, legacy SDK, production systems: **untouched**.  
+- This branch changes **only** the two evidence security documents.  
+
+---
+
+## 12. Scope statement
+
+Connected evidence ingestion at `b30767da1` implements **explicit, tenant-scoped, server-verified Embedded journal storage**. It does **not** implement Managed execution, remote approval, policy, runtime dispatch, containment, automatic guard upload, or private-key transmission.
