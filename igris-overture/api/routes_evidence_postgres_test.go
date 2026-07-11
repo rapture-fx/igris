@@ -36,10 +36,15 @@ type evidencePostgresHarness struct {
 func openEvidencePostgres(t *testing.T) *evidencePostgresHarness {
 	t.Helper()
 	db := openContractPostgres(t) // disposable schema; applies 054 + 067
-	ddl, err := os.ReadFile(filepath.Join("..", "database", "migrations", "068_sdk_evidence_ingestion.sql"))
-	require.NoError(t, err)
-	_, err = db.Exec(string(ddl))
-	require.NoError(t, err, "apply 068_sdk_evidence_ingestion.sql")
+	for _, migration := range []string{
+		"068_sdk_evidence_ingestion.sql",
+		"069_connected_immutable_records.sql",
+	} {
+		ddl, err := os.ReadFile(filepath.Join("..", "database", "migrations", migration))
+		require.NoError(t, err)
+		_, err = db.Exec(string(ddl))
+		require.NoError(t, err, "apply %s", migration)
+	}
 	return &evidencePostgresHarness{db: db}
 }
 
