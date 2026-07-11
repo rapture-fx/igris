@@ -238,18 +238,52 @@ func getContractSyncIdempotencyRecord(ctx context.Context, q contractQuerier, te
 	return &rec, nil
 }
 
-// insertContractSyncIdempotencyRecord snapshots a successful response for
-// replay. A concurrent duplicate insert is harmless: both requests carry the
-// same fingerprint (they passed the same conflict check) and natural content
-// idempotency already made their responses equivalent.
-func insertContractSyncIdempotencyRecord(ctx context.Context, q contractQuerier, tenantID, actionName, key, fingerprint string, status int, body []byte) error {
-	_, err := q.ExecContext(ctx, `
+// claimContractSyncIdempotencyRecord atomically claims a tenant/operation/
+// action/key slot inside the caller's transaction. A conflicting INSERT
+// blocks on PostgreSQL's unique index until the winning transaction commits;
+// the loser then re-reads the durable fingerprint and response in a new
+// statement snapshot. The placeholder is never externally visible because
+// claim, contract persistence, response completion, and commit share one
+// transaction.
+func claimContractSyncIdempotencyRecord(ctx context.Context, q contractQuerier, tenantID, actionName, key, fingerprint string) (bool, error) {
+	var claimedFingerprint string
+	err := q.QueryRowContext(ctx, `
 		INSERT INTO contract_sync_idempotency (
 			tenant_id, operation, action_name, idempotency_key,
 			request_fingerprint, response_status, response_body
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		VALUES ($1, $2, $3, $4, $5, 0, '{}'::jsonb)
 		ON CONFLICT (tenant_id, operation, action_name, idempotency_key) DO NOTHING
+		RETURNING request_fingerprint
+	`, tenantID, contractSyncOperation, actionName, key, fingerprint).Scan(&claimedFingerprint)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// completeContractSyncIdempotencyRecord stores the response snapshot for a
+// claim made by this transaction. The fingerprint predicate prevents an
+// unexpected row from ever being overwritten.
+func completeContractSyncIdempotencyRecord(ctx context.Context, q contractQuerier, tenantID, actionName, key, fingerprint string, status int, body []byte) error {
+	result, err := q.ExecContext(ctx, `
+		UPDATE contract_sync_idempotency
+		SET response_status = $6, response_body = $7
+		WHERE tenant_id = $1 AND operation = $2 AND action_name = $3
+		  AND idempotency_key = $4 AND request_fingerprint = $5
 	`, tenantID, contractSyncOperation, actionName, key, fingerprint, status, body)
-	return err
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows != 1 {
+		return sql.ErrNoRows
+	}
+	return nil
 }

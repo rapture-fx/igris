@@ -182,8 +182,8 @@ func TestContractSyncTenantComesFromAuthContext(t *testing.T) {
 	db, drv := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
 			{columns: []string{"id", "origin"}, rows: [][]driver.Value{{"action-uuid", "sdk_sync"}}, checkArgs: assertTenant},
-			{columns: contractVersionCols, rows: nil, checkArgs: assertTenant},                                             // version lookup: absent
-			{columns: contractVersionCols, rows: nil, checkArgs: assertTenant},                                             // latest prior: absent
+			{columns: contractVersionCols, rows: nil, checkArgs: assertTenant},                                                  // version lookup: absent
+			{columns: contractVersionCols, rows: nil, checkArgs: assertTenant},                                                  // latest prior: absent
 			{columns: []string{"id", "created_at"}, rows: [][]driver.Value{{"version-uuid", created}}, checkArgs: assertTenant}, // insert returning
 		},
 		queuedRouteExecExpectation{rowsAffected: 1, check: assertTenant},
@@ -455,8 +455,8 @@ func TestContractSyncConcurrentDuplicateResolvesToSingleVersion(t *testing.T) {
 	db, drv := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
 			{columns: []string{"id", "origin"}, rows: [][]driver.Value{{"action-uuid", "sdk_sync"}}},
-			{columns: contractVersionCols, rows: nil}, // not visible yet
-			{columns: contractVersionCols, rows: nil}, // no prior
+			{columns: contractVersionCols, rows: nil},          // not visible yet
+			{columns: contractVersionCols, rows: nil},          // no prior
 			{columns: []string{"id", "created_at"}, rows: nil}, // conflict: RETURNING empty
 			{columns: contractVersionCols, rows: [][]driver.Value{contractVersionRow(hash, created, "critical", "required")}},
 		},
@@ -509,6 +509,7 @@ func TestContractSyncIdempotencyKeyReplaysSameFingerprint(t *testing.T) {
 
 	db, drv := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
+			{columns: []string{"request_fingerprint"}, rows: nil}, // claim lost; re-read winner
 			{
 				columns: []string{"request_fingerprint", "response_status", "response_body"},
 				rows:    [][]driver.Value{{hash, int64(201), stored}},
@@ -535,6 +536,7 @@ func TestContractSyncIdempotencyKeyConflictOnDifferentFingerprint(t *testing.T) 
 
 	db, drv := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
+			{columns: []string{"request_fingerprint"}, rows: nil}, // claim lost; re-read winner
 			{
 				columns: []string{"request_fingerprint", "response_status", "response_body"},
 				rows:    [][]driver.Value{{strings.Repeat("c", 64), int64(201), []byte(`{}`)}},
@@ -558,7 +560,7 @@ func TestContractSyncIdempotencyKeyRecordsResponseSnapshot(t *testing.T) {
 
 	db, drv := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
-			{columns: []string{"request_fingerprint", "response_status", "response_body"}, rows: nil}, // no record yet
+			{columns: []string{"request_fingerprint"}, rows: [][]driver.Value{{hash}}}, // claim won
 			{columns: []string{"id", "origin"}, rows: [][]driver.Value{{"action-uuid", "sdk_sync"}}},
 			{columns: contractVersionCols, rows: nil},
 			{columns: contractVersionCols, rows: nil},
@@ -567,6 +569,7 @@ func TestContractSyncIdempotencyKeyRecordsResponseSnapshot(t *testing.T) {
 		queuedRouteExecExpectation{rowsAffected: 1}, // logical action insert
 		queuedRouteExecExpectation{rowsAffected: 1, check: func(query string, args []driver.NamedValue) {
 			require.Contains(t, query, "contract_sync_idempotency")
+			require.Contains(t, query, "UPDATE")
 			require.Equal(t, "tenant-a", args[0].Value)
 			require.Equal(t, "new-key", args[3].Value)
 			require.Equal(t, hash, args[4].Value, "the stored fingerprint must be the server recomputation")
@@ -589,10 +592,10 @@ func TestContractSyncIdempotencyKeyIsTenantScoped(t *testing.T) {
 	db, _ := newQueuedRouteDB(t,
 		[]queuedRouteQueryExpectation{
 			{
-				columns: []string{"request_fingerprint", "response_status", "response_body"},
-				rows:    nil, // tenant-b has no record for this key
+				columns: []string{"request_fingerprint"},
+				rows:    [][]driver.Value{{contract["contract_hash"].(string)}}, // tenant-b wins its isolated claim
 				checkArgs: func(query string, args []driver.NamedValue) {
-					require.Equal(t, "tenant-b", args[0].Value, "idempotency lookup must be scoped to the caller's tenant")
+					require.Equal(t, "tenant-b", args[0].Value, "idempotency claim must be scoped to the caller's tenant")
 				},
 			},
 			{columns: []string{"id", "origin"}, rows: [][]driver.Value{{"action-uuid-b", "sdk_sync"}}},
@@ -744,21 +747,21 @@ func TestRegisterContractRoutesExposesOnlyContractEndpoints(t *testing.T) {
 // Immutability discipline (source-level guard)
 // ---------------------------------------------------------------------------
 
-func TestContractPersistenceSourceHasNoUpdateOrDelete(t *testing.T) {
+func TestContractVersionPersistenceSourceHasNoUpdateOrDelete(t *testing.T) {
 	t.Parallel()
-	// action_contract_versions is append-only and contract_sync_idempotency
-	// is insert-only. This guard fails if anyone adds a mutating statement.
-	pattern := regexp.MustCompile(`(?i)\b(UPDATE|DELETE)\b`)
+	// Contract versions remain append-only. The separate idempotency replay
+	// table intentionally receives one in-transaction UPDATE that completes a
+	// newly claimed response snapshot before commit.
+	patterns := []*regexp.Regexp{
+		regexp.MustCompile(`(?i)\bUPDATE\s+action_contract_versions\b`),
+		regexp.MustCompile(`(?i)\bDELETE\s+FROM\s+action_contract_versions\b`),
+	}
 	for _, file := range []string{"contract_store.go", "routes_contracts.go"} {
 		source, err := os.ReadFile(file)
 		require.NoError(t, err)
-		for i, line := range strings.Split(string(source), "\n") {
-			trimmed := strings.TrimSpace(line)
-			if strings.HasPrefix(trimmed, "//") {
-				continue
-			}
-			require.False(t, pattern.MatchString(trimmed),
-				"%s:%d contains a mutating SQL keyword: %s", file, i+1, trimmed)
+		for _, pattern := range patterns {
+			require.False(t, pattern.Match(source),
+				"%s contains a contract-version mutation: %s", file, pattern)
 		}
 	}
 }

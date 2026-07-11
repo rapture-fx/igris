@@ -271,6 +271,145 @@ func TestContractSyncPostgresIdempotencyKey(t *testing.T) {
 	require.Empty(t, header.Get("Idempotency-Replayed"))
 }
 
+func TestContractSyncPostgresConcurrentIdenticalIdempotencyKey(t *testing.T) {
+	db := openContractPostgres(t)
+	db.SetMaxOpenConns(4)
+	app := contractTestApp(db, "tenant-pg-idem-identical")
+	contract := buildTestContract(t, func(c map[string]any) {
+		c["action_name"] = "tests.idem.concurrent.identical"
+	})
+	body := syncBody(t, contract)
+	headers := map[string]string{"Idempotency-Key": "concurrent-identical"}
+
+	type result struct {
+		status   int
+		body     map[string]any
+		replayed string
+	}
+	results := make([]result, 2)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := range results {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+			status, response, responseHeaders := postContractSyncRaw(t, app, body, headers)
+			results[i] = result{status: status, body: response, replayed: responseHeaders.Get("Idempotency-Replayed")}
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+
+	replayed := 0
+	versionIDs := map[any]bool{}
+	for _, result := range results {
+		require.Equal(t, http.StatusCreated, result.status, "both callers receive the original result")
+		if result.replayed == "true" {
+			replayed++
+		}
+		versionIDs[result.body["version"].(map[string]any)["id"]] = true
+	}
+	require.Equal(t, 1, replayed)
+	require.Len(t, versionIDs, 1)
+
+	var versionRows, idempotencyRows int
+	require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM action_contract_versions WHERE tenant_id = 'tenant-pg-idem-identical'`).Scan(&versionRows))
+	require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM contract_sync_idempotency WHERE tenant_id = 'tenant-pg-idem-identical'`).Scan(&idempotencyRows))
+	require.Equal(t, 1, versionRows)
+	require.Equal(t, 1, idempotencyRows)
+}
+
+func TestContractSyncPostgresConcurrentConflictingIdempotencyKey(t *testing.T) {
+	db := openContractPostgres(t)
+	db.SetMaxOpenConns(4)
+	app := contractTestApp(db, "tenant-pg-idem-conflict")
+	first := buildTestContract(t, func(c map[string]any) {
+		c["action_name"] = "tests.idem.concurrent.conflict"
+		c["risk"] = "high"
+	})
+	second := buildTestContract(t, func(c map[string]any) {
+		c["action_name"] = "tests.idem.concurrent.conflict"
+		c["risk"] = "low"
+	})
+	bodies := [][]byte{syncBody(t, first), syncBody(t, second)}
+	headers := map[string]string{"Idempotency-Key": "concurrent-conflict"}
+
+	type result struct {
+		status int
+		body   map[string]any
+	}
+	results := make([]result, 2)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := range results {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+			status, response, _ := postContractSyncRaw(t, app, bodies[i], headers)
+			results[i] = result{status: status, body: response}
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+
+	var winnerHash string
+	successes, conflicts := 0, 0
+	for _, result := range results {
+		switch result.status {
+		case http.StatusCreated:
+			successes++
+			winnerHash = result.body["version"].(map[string]any)["contract_hash"].(string)
+		case http.StatusConflict:
+			conflicts++
+			require.Equal(t, "idempotency_key_conflict", result.body["error"])
+		default:
+			t.Fatalf("unexpected concurrent result: status=%d body=%v", result.status, result.body)
+		}
+	}
+	require.Equal(t, 1, successes)
+	require.Equal(t, 1, conflicts)
+
+	var storedFingerprint string
+	var storedBody []byte
+	require.NoError(t, db.QueryRow(`
+		SELECT request_fingerprint, response_body
+		FROM contract_sync_idempotency
+		WHERE tenant_id = 'tenant-pg-idem-conflict' AND idempotency_key = 'concurrent-conflict'
+	`).Scan(&storedFingerprint, &storedBody))
+	require.Equal(t, winnerHash, storedFingerprint, "the losing request cannot overwrite the winner fingerprint")
+	var storedResponse map[string]any
+	require.NoError(t, json.Unmarshal(storedBody, &storedResponse))
+	require.Equal(t, winnerHash, storedResponse["version"].(map[string]any)["contract_hash"])
+
+	var versionRows int
+	require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM action_contract_versions WHERE tenant_id = 'tenant-pg-idem-conflict'`).Scan(&versionRows))
+	require.Equal(t, 1, versionRows, "the losing conflict request cannot persist its contract")
+}
+
+func TestContractSyncPostgresIdempotencyRollbackLeavesNoPartialState(t *testing.T) {
+	db := openContractPostgres(t)
+	app := contractTestApp(db, "tenant-pg-idem-rollback")
+	_, err := db.Exec(`DROP TABLE action_contract_versions`)
+	require.NoError(t, err)
+
+	contract := buildTestContract(t, func(c map[string]any) {
+		c["action_name"] = "tests.idem.rollback"
+	})
+	status, body, _ := postContractSyncRaw(t, app, syncBody(t, contract), map[string]string{
+		"Idempotency-Key": "rollback-key",
+	})
+	require.Equal(t, http.StatusInternalServerError, status)
+	require.Equal(t, "db_error", body["error"])
+
+	var idempotencyRows, actionRows int
+	require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM contract_sync_idempotency WHERE tenant_id = 'tenant-pg-idem-rollback'`).Scan(&idempotencyRows))
+	require.NoError(t, db.QueryRow(`SELECT COUNT(*) FROM action_definitions WHERE tenant_id = 'tenant-pg-idem-rollback'`).Scan(&actionRows))
+	require.Zero(t, idempotencyRows, "the claim must roll back with the failed operation")
+	require.Zero(t, actionRows, "the logical action insert must roll back with the failed operation")
+}
+
 // TestContractSyncPostgresManualActionPreserved proves an existing manually
 // registered action keeps its configuration when an SDK sync attaches to it.
 func TestContractSyncPostgresManualActionPreserved(t *testing.T) {
