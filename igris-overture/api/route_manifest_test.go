@@ -87,6 +87,8 @@ func TestCoreRoutesPresentInDefaultManifest(t *testing.T) {
 		"POST /v1/contracts/sync",
 		"GET /v1/contracts/actions/:name",
 		"GET /v1/contracts/actions/:name/versions/:contract_hash",
+		"POST /v1/evidence/batches",
+		"GET /v1/evidence/batches/:id",
 		"POST /v1/tasks/submit",
 		"GET /v1/tasks",
 		"GET /v1/tasks/:id",
@@ -203,6 +205,7 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterActionRoutes(app, db, taskCoordinator)
 	RegisterAgentMcpRoutes(app, db, taskCoordinator)
 	RegisterContractRoutes(app, db)
+	RegisterEvidenceRoutes(app, db)
 
 	return app
 }
