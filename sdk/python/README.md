@@ -141,13 +141,65 @@ What Connected mode does in this release, precisely:
   Partial configuration (one variable without the other) fails the same way.
 * **What it does NOT do:** synchronization records a declaration; it grants no
   permission to execute anything, and this release includes **no** remote
-  policy evaluation, no remote or team approval, no evidence upload, and no
-  Managed execution. Your function still executes locally, in your process.
+  policy evaluation, no remote or team approval, no automatic evidence
+  upload, and no Managed execution. Your function still executes locally, in
+  your process.
 * HTTPS is required (`http://` is accepted only for `localhost` development
   endpoints). Requests use a bounded timeout and a stable, content-derived
   `Idempotency-Key`, so retries of the same contract sync are replayed by the
   backend rather than re-registered. Credentials never appear in errors,
   logs, or journals.
+
+## Connected mode: evidence sync (explicit command)
+
+Local evidence leaves your machine **only** when you explicitly run:
+
+```bash
+igris evidence sync              # default journal under $IGRIS_HOME
+igris evidence sync path/to/journal.jsonl --public-key path/to/verify_key.pem
+igris evidence status BATCH_ID   # check a previously uploaded batch
+```
+
+Guarded execution never triggers an upload — there is no post-execution
+network call and no background thread; `@igris.guard` behavior is unchanged.
+The command requires the same explicit `IGRIS_API_URL` + `IGRIS_API_KEY`
+configuration (incomplete configuration fails clearly; nothing is uploaded).
+
+What `igris evidence sync` does, precisely:
+
+* **Local verification first.** The journal is verified with the same
+  primitives as `igris verify` before any network activity. A journal that
+  fails locally (malformed line, broken chain, hash or signature mismatch)
+  is never uploaded and is **never rewritten or repaired**.
+* **What is sent:** the signed decision/outcome events of the selected
+  journal verbatim, your PUBLIC verification key (`verify_key.pem`), your
+  `key_id`, and chain-linkage metadata. **Never sent:** the private signing
+  key, the API credential (Authorization header only), values removed by
+  redaction (they are not in the journal to begin with), environment
+  variables, local file paths, function source, or any other journal.
+* **What the server does:** re-computes every event hash from canonical
+  bytes, verifies every Ed25519 signature, checks chain linkage and
+  decision/outcome transitions, and stores accepted evidence tenant-scoped
+  with `execution_provenance=embedded` — always. Central verification proves
+  cryptographic integrity and chain continuity of locally observed
+  execution; it does **not** make the execution Managed, does not prove the
+  external side effect was correct, and grants no execution permission.
+* **The key is an SDK signing identity**, not proof of a named person,
+  device, or secure hardware; it registers with your tenant on first
+  verified use (rotation/revocation deferred).
+* **Idempotent.** Re-running the command is safe: identical evidence replays
+  the existing batch, and a journal that grew since the last sync uploads
+  only the new events (the server reports its stored chain head and the CLI
+  resumes after it). Exit code 0 means uploaded, safely replayed, or already
+  up to date; anything else is a typed, nonzero failure
+  (`EvidenceSyncConfigurationError`, `EvidenceSyncAuthenticationError`,
+  `EvidenceSyncValidationError`, `EvidenceSyncConflictError`,
+  `EvidenceSyncTransportError`, `EvidenceSyncServerError`).
+* HTTPS required (same localhost development exception); bounded timeouts;
+  redirects are refused; no hidden requests and no unbounded retries.
+* One journal per signing identity: evidence streams are identified by your
+  key, so a second journal signed by the same key cannot sync as a separate
+  stream (the CLI reports divergence instead of guessing).
 
 ## Scope of this release (Embedded)
 
@@ -156,8 +208,9 @@ What Connected mode does in this release, precisely:
   misbehave.
 * **No network access by default.** No telemetry, no update checks, no hidden
   phone-home. Network activity exists only under explicit Connected
-  configuration, and then only to synchronize ActionContracts as described
-  above.
+  configuration: contract synchronization on guarded calls as described
+  above, and evidence upload only via the explicit `igris evidence sync`
+  command.
 * Unsupported argument types (arbitrary objects, `self`, clients) are recorded
   as a deterministic type marker such as
   `<igris:unsupported:myapp.PaymentClient>` — never `repr()` output, never
