@@ -21,6 +21,7 @@ package api
 //     same key with a different fingerprint is an explicit 409 conflict.
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -168,28 +169,28 @@ func handleContractSync(db *sql.DB) fiber.Handler {
 			return c.Status(verr.status).JSON(fiber.Map{"error": verr.code, "detail": verr.detail})
 		}
 
-		// Idempotency-Key evaluation happens only after the fingerprint is
-		// recomputed server-side, so a stored record can never be matched (or
-		// conflicted) against a client-claimed hash.
 		if idempotencyKey != "" {
-			record, err := getContractSyncIdempotencyRecord(c.Context(), db, tenantID, contract.ActionName, idempotencyKey)
-			if err != nil && err != sql.ErrNoRows {
+			status, responseBody, replayed, conflict, err := performIdempotentContractSync(
+				c.Context(), db, tenantID, contract, idempotencyKey,
+			)
+			if err != nil {
+				log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Contracts] idempotent sync failed")
 				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 			}
-			if record != nil {
-				if record.RequestFingerprint != contract.RecomputedHash {
-					return c.Status(http.StatusConflict).JSON(fiber.Map{
-						"error":  "idempotency_key_conflict",
-						"detail": "this Idempotency-Key was already used with a different contract fingerprint; use a new key",
-					})
-				}
-				c.Set("Idempotency-Replayed", "true")
-				c.Set("Content-Type", "application/json")
-				return c.Status(record.ResponseStatus).Send(record.ResponseBody)
+			if conflict {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{
+					"error":  "idempotency_key_conflict",
+					"detail": "this Idempotency-Key was already used with a different contract fingerprint; use a new key",
+				})
 			}
+			if replayed {
+				c.Set("Idempotency-Replayed", "true")
+			}
+			c.Set("Content-Type", "application/json")
+			return c.Status(status).Send(responseBody)
 		}
 
-		status, response, err := performContractSync(c, db, tenantID, contract)
+		status, response, err := performContractSync(c.Context(), db, tenantID, contract)
 		if err != nil {
 			log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Contracts] sync failed")
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
@@ -199,12 +200,6 @@ func handleContractSync(db *sql.DB) fiber.Handler {
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
-		if idempotencyKey != "" {
-			if err := insertContractSyncIdempotencyRecord(c.Context(), db, tenantID, contract.ActionName, idempotencyKey, contract.RecomputedHash, status, responseBody); err != nil {
-				log.Error().Err(err).Str("tenant_id", tenantID).Msg("[Contracts] idempotency record insert failed")
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
-			}
-		}
 		c.Set("Content-Type", "application/json")
 		return c.Status(status).Send(responseBody)
 	}
@@ -213,14 +208,24 @@ func handleContractSync(db *sql.DB) fiber.Handler {
 // performContractSync runs the transactional core: resolve or create the
 // tenant-owned logical action, then resolve or append the immutable contract
 // version. Returns the HTTP status (201 created / 200 existing) and body.
-func performContractSync(c *fiber.Ctx, db *sql.DB, tenantID string, contract *validatedContract) (int, fiber.Map, error) {
-	ctx := c.Context()
+func performContractSync(ctx context.Context, db *sql.DB, tenantID string, contract *validatedContract) (int, fiber.Map, error) {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, nil, err
 	}
 	defer func() { _ = tx.Rollback() }()
 
+	status, response, err := performContractSyncInTx(ctx, tx, tenantID, contract)
+	if err != nil {
+		return 0, nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, nil, err
+	}
+	return status, response, nil
+}
+
+func performContractSyncInTx(ctx context.Context, tx *sql.Tx, tenantID string, contract *validatedContract) (int, fiber.Map, error) {
 	actionID, origin, err := ensureContractLogicalAction(ctx, tx, tenantID, contract.ActionName)
 	if err != nil {
 		return 0, nil, err
@@ -267,10 +272,6 @@ func performContractSync(c *fiber.Ctx, db *sql.DB, tenantID string, contract *va
 		return 0, nil, err
 	}
 
-	if err := tx.Commit(); err != nil {
-		return 0, nil, err
-	}
-
 	status := http.StatusOK
 	if created {
 		status = http.StatusCreated
@@ -301,6 +302,53 @@ func performContractSync(c *fiber.Ctx, db *sql.DB, tenantID string, contract *va
 			"note":                 "synchronization records a declaration; it authorizes nothing",
 		},
 	}, nil
+}
+
+func performIdempotentContractSync(ctx context.Context, db *sql.DB, tenantID string, contract *validatedContract, key string) (int, []byte, bool, bool, error) {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, nil, false, false, err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	claimed, err := claimContractSyncIdempotencyRecord(
+		ctx, tx, tenantID, contract.ActionName, key, contract.RecomputedHash,
+	)
+	if err != nil {
+		return 0, nil, false, false, err
+	}
+	if !claimed {
+		record, err := getContractSyncIdempotencyRecord(ctx, tx, tenantID, contract.ActionName, key)
+		if err != nil {
+			return 0, nil, false, false, err
+		}
+		if record.RequestFingerprint != contract.RecomputedHash {
+			return 0, nil, false, true, nil
+		}
+		if err := tx.Commit(); err != nil {
+			return 0, nil, false, false, err
+		}
+		return record.ResponseStatus, record.ResponseBody, true, false, nil
+	}
+
+	status, response, err := performContractSyncInTx(ctx, tx, tenantID, contract)
+	if err != nil {
+		return 0, nil, false, false, err
+	}
+	responseBody, err := json.Marshal(response)
+	if err != nil {
+		return 0, nil, false, false, err
+	}
+	if err := completeContractSyncIdempotencyRecord(
+		ctx, tx, tenantID, contract.ActionName, key,
+		contract.RecomputedHash, status, responseBody,
+	); err != nil {
+		return 0, nil, false, false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, nil, false, false, err
+	}
+	return status, responseBody, false, false, nil
 }
 
 // validateContractV1 strictly validates the submitted ActionContract v1 and
