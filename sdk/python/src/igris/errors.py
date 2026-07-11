@@ -155,5 +155,80 @@ class ExecutionCompletedEvidenceError(EvidencePersistenceError):
         self.result = result
 
 
+class ConnectedConfigurationError(IgrisError):
+    """Connected mode configuration is incomplete or invalid.
+
+    Raised BEFORE anything else happens on a guarded call: the consequential
+    function did NOT execute, no approval was requested, and no event was
+    recorded. Partial configuration (endpoint without credential, or
+    credential without endpoint) never silently falls back to Embedded-only
+    behavior — fix or remove the configuration.
+
+    Attributes:
+        execution_occurred: Always ``False``.
+        retry_safe: Always ``False`` — retrying without fixing the
+            configuration cannot succeed.
+    """
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.execution_occurred = False
+        self.retry_safe = False
+
+
+class ContractSyncError(IgrisError):
+    """Contract synchronization with the Connected endpoint failed.
+
+    Synchronization runs before local approval and before execution, so this
+    error ALWAYS means the consequential function did NOT execute. While
+    Connected mode is explicitly enabled, a sync failure prevents execution —
+    there is no silent downgrade to Embedded-only execution.
+
+    This is deliberately distinct from
+    :class:`ExecutionCompletedEvidenceError`, which is a post-execution
+    condition and is never raised by synchronization.
+
+    Attributes:
+        execution_occurred: Always ``False``.
+        retry_safe: ``True`` when retrying the identical request is safe
+            (timeouts, transport failures, 429, 5xx — sync is a content-keyed
+            registration, so a retry cannot double-create), ``False`` when the
+            request or credentials must change first, ``None`` when unknown.
+        status_code: HTTP status returned by the endpoint, when one exists.
+        error_code: The endpoint's snake_case error code, when one exists.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        error_code: str | None = None,
+        retry_safe: bool | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.execution_occurred = False
+        self.status_code = status_code
+        self.error_code = error_code
+        self.retry_safe = retry_safe
+
+
+class ContractSyncConflictError(ContractSyncError):
+    """The Idempotency-Key was already used with a different contract.
+
+    The endpoint refused the request (409 idempotency_key_conflict) because
+    the same key was bound to a different request fingerprint. The
+    consequential function did NOT execute. Not retry-safe with the same key.
+    """
+
+    def __init__(self, message: str, *, status_code: int | None = 409) -> None:
+        super().__init__(
+            message,
+            status_code=status_code,
+            error_code="idempotency_key_conflict",
+            retry_safe=False,
+        )
+
+
 class VerificationError(IgrisError):
     """A journal failed verification (corruption, tampering, bad signature)."""

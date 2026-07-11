@@ -33,6 +33,7 @@ igris = "igris.cli:main"
 dev = [
     "pytest>=8.0",
     "ruff>=0.8",
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 [tool.hatch.build.targets.wheel]
