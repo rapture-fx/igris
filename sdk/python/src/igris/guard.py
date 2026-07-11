@@ -8,6 +8,14 @@ Execution flow for every call to a guarded function:
 1. Bind call arguments to parameter names (``inspect.signature``), applying
    defaults. A ``TypeError`` from binding propagates unchanged: the call was
    malformed and nothing has executed or been recorded.
+1a. If Connected mode is explicitly configured (``IGRIS_API_URL`` +
+   ``IGRIS_API_KEY``, or an injected sync client), synchronize the
+   ActionContract to the Igris endpoint once per contract version per
+   process — before approval and before execution. Only the contract is
+   sent (never arguments, events, journals, or keys). A sync failure is a
+   typed pre-execution error: the function does not run, and Connected mode
+   never silently falls back to Embedded-only execution. With no Connected
+   configuration this step performs no work and no network activity occurs.
 2. Redact sensitive values, then canonicalize ONLY the redacted structure.
 3. Compute the input hash over the redacted canonical representation.
 4. Load the local signing identity (fail closed if unusable).
@@ -48,6 +56,7 @@ from .approval import (
     TerminalApprovalProvider,
 )
 from .canonical import canonical_json_bytes, sha256_hex, to_canonical, type_name
+from .connected import ContractSyncClient, ensure_contract_synced, resolve_connected_client
 from .contracts import ActionContract, build_contract
 from .errors import (
     ActionDenied,
@@ -100,6 +109,7 @@ def guard(
     metadata: dict[str, Any] | None = ...,
     approval_provider: ApprovalProvider | None = ...,
     identity: SigningIdentity | None = ...,
+    sync_client: ContractSyncClient | None = ...,
 ) -> Callable[[F], F]: ...
 
 
@@ -114,6 +124,7 @@ def guard(
     metadata: dict[str, Any] | None = None,
     approval_provider: ApprovalProvider | None = None,
     identity: SigningIdentity | None = None,
+    sync_client: ContractSyncClient | None = None,
 ):
     """Guard a consequential synchronous function.
 
@@ -131,6 +142,10 @@ def guard(
         approval_provider: Advanced/testing hook: an injectable
             ``ApprovalProvider``. Defaults to the interactive terminal prompt.
         identity: Advanced/testing hook: an injectable ``SigningIdentity``.
+        sync_client: Advanced/testing hook: an injectable
+            ``ContractSyncClient``. When omitted, Connected synchronization is
+            driven purely by explicit ``IGRIS_API_URL``/``IGRIS_API_KEY``
+            configuration and is otherwise disabled (zero network).
     """
 
     def decorate(target: F) -> F:
@@ -148,6 +163,17 @@ def guard(
             # malformed; propagate it unchanged (nothing ran, nothing recorded).
             bound = signature.bind(*args, **kwargs)
             bound.apply_defaults()
+
+            # 1a. Connected contract synchronization (explicit opt-in only).
+            # Happens before redaction, identity, approval, and execution.
+            # Raises typed pre-execution errors: on any failure the function
+            # has NOT run and nothing has been recorded. Without Connected
+            # configuration this resolves to None and no network I/O exists.
+            active_sync_client = (
+                sync_client if sync_client is not None else resolve_connected_client()
+            )
+            if active_sync_client is not None:
+                ensure_contract_synced(contract, active_sync_client)
 
             # 2-3. Redact, canonicalize the redacted structure only, hash.
             redacted = redact_arguments(dict(bound.arguments), sensitive)
