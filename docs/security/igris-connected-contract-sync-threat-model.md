@@ -266,6 +266,6 @@ Connected contract synchronization in commit `2998a12bf`:
 ## 14. Review hygiene
 
 - Agent C branch `feature/igris-connected-contract-sync` was inspected read-only (no merge, rebase, cherry-pick, commit, or code edit).
-- Agent D worktree `feature/igris-connected-evidence-ingestion` was not modified.
+- The separate worktree on `feature/igris-connected-evidence-ingestion` (Agent C’s later evidence-ingestion track — **not** Agent D) was not modified. Agent D owns only the separate legacy `igris-python-sdk` repository, which was also untouched.
 - Production systems were not contacted; migration 067 was not applied to any shared database.
 - This review branch may change **only** the two security documents under `docs/security/`.

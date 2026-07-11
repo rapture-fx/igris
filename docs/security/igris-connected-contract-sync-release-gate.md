@@ -29,7 +29,7 @@ This slice **does not** implement evidence ingestion, remote approval, policy, M
 | C1 | Merge does **not** auto-apply migration `067`; production apply remains manual runbook | **Met** in shipped tree (file comment + data-impact docs) |
 | C2 | Residual risks R1–R10 in threat model are **explicitly accepted** for this contract-only slice | Required of merge approver |
 | C3 | No claim that Connected mode includes evidence, Managed execution, or fine-grained API-key scopes | Met in architecture docs; avoid RELEASE.md “no network” overclaim on later SDK packaging docs |
-| C4 | Agent C / D production code paths are not rewritten by this security review | Met — review edits docs only on security-gate branch |
+| C4 | Agent C production code paths are not rewritten by this security review; Agent D’s legacy `igris-python-sdk` repo is out of scope and untouched | Met — review edits docs only on security-gate branch |
 | C5 | Pre-production enablement re-runs Postgres + e2e gates on the target environment after 067 apply | Operational — not a code blocker |
 
 If C1–C2 are rejected → treat as **NO-GO** until resolved.
@@ -225,7 +225,7 @@ Connected contract synchronization at `2998a12bf`:
 1. BetterAuth and API-key hashing behavior outside the diff remain as inspected in `session_auth.go` / existing API-key tests.  
 2. Disposable local Postgres used for tests is not a production cluster.  
 3. MCP and REST action run paths both call `buildActionRunRequestFromDefinition` (verified by code inspection).  
-4. Agent D’s untracked local files (if any) are out of scope and were not modified.  
+4. Agent C’s later evidence-ingestion worktree (`feature/igris-connected-evidence-ingestion`) was out of scope for the contract-sync gate and was not modified; Agent D works only in the separate legacy `igris-python-sdk` repository (also untouched).  
 5. Reviewer did not change `sdk/python`, `igris-overture` production code, migrations, testdata, conformance, or legacy SDK repos.
 
 ---
@@ -234,8 +234,9 @@ Connected contract synchronization at `2998a12bf`:
 
 | Subject | Confirmation |
 | --- | --- |
-| Agent C branch | Untouched (read-only review at `2998a12bf`) |
-| Agent D worktree | Untouched |
+| Agent C contract-sync branch | Untouched (read-only review at `2998a12bf`) |
+| Agent C evidence-ingestion worktree | Untouched (separate later track; not Agent D) |
+| Agent D (legacy `igris-python-sdk` only) | Untouched |
 | Production systems | Untouched; no prod credentials; migration not applied |
 | This branch edits | Only `docs/security/igris-connected-contract-sync-threat-model.md` and `docs/security/igris-connected-contract-sync-release-gate.md` |
 
