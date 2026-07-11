@@ -128,6 +128,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "declaration channel only: server recomputes contract hashes, versions are append-only, and synchronization grants no execution permission",
 	},
 	{
+		Method: "GET,POST", Path: "/v1/evidence/batches,/v1/evidence/batches/:id", RegistrationFile: "igris-overture/api/routes_evidence.go",
+		HandlerOrGroup: "embedded evidence ingestion", RegistrationFunction: "RegisterEvidenceRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "evidence channel only: server recomputes event hashes and verifies signatures/chain, storage is append-only with execution_provenance structurally fixed to embedded, and ingestion grants no execution permission",
+	},
+	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/agents,/v1/agents/:id", RegistrationFile: "igris-overture/api/routes_agent_registry.go",
 		HandlerOrGroup: "agent registry", RegistrationFunction: "RegisterAgentRegistryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped agent identity and attribution only; PATCH dispatches registry vs execution settings",

@@ -580,6 +580,30 @@
       "notes": "Connected contract synchronization and lookup; declaration only, grants no execution permission"
     },
     {
+      "method": "POST",
+      "path": "/v1/evidence/batches",
+      "route_group": "evidence",
+      "handler_or_registration_source_if_available": "RegisterEvidenceRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-scoped SDK signing keys, evidence batches, and events",
+      "feature_flag": "",
+      "notes": "Embedded SDK evidence ingestion and status; server re-verifies hashes/signatures/chain, stores execution_provenance=embedded only, and grants no execution permission"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/evidence/batches/:id",
+      "route_group": "evidence",
+      "handler_or_registration_source_if_available": "RegisterEvidenceRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-scoped SDK signing keys, evidence batches, and events",
+      "feature_flag": "",
+      "notes": "Embedded SDK evidence ingestion and status; server re-verifies hashes/signatures/chain, stores execution_provenance=embedded only, and grants no execution permission"
+    },
+    {
       "method": "GET",
       "path": "/v1/execution-evals",
       "route_group": "execution_evals",

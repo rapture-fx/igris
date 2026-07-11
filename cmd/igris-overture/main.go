@@ -770,9 +770,11 @@ func main() {
 		api.RegisterActionRoutes(app, dbInstance, taskCoordinator)
 		api.RegisterAgentMcpRoutes(app, dbInstance, taskCoordinator)
 		api.RegisterContractRoutes(app, dbInstance)
+		api.RegisterEvidenceRoutes(app, dbInstance)
 		log.Println("[Tasks] ✅ Durable task endpoints registered (/v1/tasks)")
 		log.Println("[Actions] ✅ Action gateway endpoints registered (/v1/actions/run, /v1/actions/runs/:id)")
 		log.Println("[Contracts] ✅ Connected contract sync endpoints registered (/v1/contracts/sync; declaration only, grants no execution)")
+		log.Println("[Evidence] ✅ Embedded evidence ingestion endpoints registered (/v1/evidence/batches; embedded provenance only, grants no execution)")
 		if triggerAvailable, err := taskCoordinator.Store().HasTaskProofSyncTrigger(); err != nil {
 			log.Printf("[Tasks] ⚠️  Could not determine proof sync mode at startup: %v", err)
 		} else if triggerAvailable {
