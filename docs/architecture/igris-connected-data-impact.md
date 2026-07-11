@@ -6,8 +6,19 @@ implemented as `igris-overture/database/migrations/067_action_contract_versions.
 anywhere — normal manual runbook applies). Differences from §3 as written:
 `action_definitions.latest_contract_hash` was NOT added (it was optional and
 no list view needs it yet); the optional `contract_sync_idempotency` table
-WAS included because the Idempotency-Key header shipped in slice 1. The
-evidence tables in §3 remain design-only and uncreated.
+WAS included because the Idempotency-Key header shipped in slice 1.
+
+The evidence tables ("required later" in §3) are now implemented as
+`068_sdk_evidence_ingestion.sql` (created on branch
+`feature/igris-connected-evidence-ingestion`, **NOT applied** anywhere).
+Differences from §3 as written: the key table is named `sdk_signing_keys`
+(not `sdk_verification_keys`), has no `status` column (rotation/revocation
+deferred), and adds a server-computed `fingerprint_sha256`; batches gain
+`first_previous_event_hash`/`chain_head` and a partial unique index on the
+verified chain slot per (tenant, key) for structural fork prevention;
+events gain an `event_id` column; and an `evidence_ingest_idempotency`
+table (same shape as the contract one, keyed by `key_id`) backs the
+explicit Idempotency-Key header.
 
 Original analysis follows. Migration numbering at time of the analysis:
 latest committed was `066_trust_recommendation_states.sql`; 067 was

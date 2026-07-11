@@ -8,8 +8,33 @@ inventory; storage per migration `067_action_contract_versions.sql`, created
 and not applied). Implementation notes and deviations:
 `igris-connected-first-slice.md`.
 
-**§3 (evidence ingestion) and §4 (evidence status) remain DESIGN ONLY.**
-Those endpoints do not exist, are not registered, and accept nothing.
+**§3 (evidence ingestion) and §4 (evidence status) are IMPLEMENTED** on
+branch `feature/igris-connected-evidence-ingestion`
+(`igris-overture/api/routes_evidence.go` + `evidence_verify.go` +
+`evidence_store.go`, registered via `RegisterEvidenceRoutes`, present in the
+route manifest and route-surface inventory; storage per migration
+`068_sdk_evidence_ingestion.sql`, created and **not applied**). Implemented
+deviations from the design text below (implementation notes:
+`igris-connected-evidence-slice.md`):
+
+- **Verification is synchronous**, not asynchronous: `POST` verifies in the
+  request and responds `202` with the final `evidence_state`
+  (`verified`/`rejected`); a byte-identical resubmission replays with `200`.
+  `received` never persists as a final state (the enum still allows it).
+- **No pre-registration step / no `404 unknown_key_id`**: the request carries
+  `public_key_pem`, and the key registers implicitly (tenant-scoped) on the
+  first VERIFIED batch. `key_id` must match the server-derived identity of
+  the submitted key; a same-`key_id` different-key submission is
+  `409 signing_key_conflict`.
+- **Batch identity commits to the actual submitted canonical event bytes**,
+  not the claimed `event_hash` manifest, so a rejected tampered batch can
+  never block later ingestion of the honest journal.
+- Responses additionally include `created` (new vs replayed),
+  `key_fingerprint_sha256`, and `first_previous_event_hash`; `issues`
+  entries carry `{index, code}` only (no free-text `message`, no payloads).
+- Additional verification beyond the SDK verifier: `invalid_field`,
+  `invalid_timestamp`, `invalid_transition` (denial terminal, one outcome
+  per decision), `unknown_decision_reference` (cross-batch lookup included).
 
 Implemented behavior notes for §1 (see the endpoint's tests for the
 authority): the optional `Idempotency-Key` header IS implemented, bound to
