@@ -123,6 +123,11 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "registered tenant-owned actions only; human approval is a real two-way gate that dispatches or terminally rejects the durable run",
 	},
 	{
+		Method: "GET,POST", Path: "/v1/contracts/sync,/v1/contracts/actions/:name,/v1/contracts/actions/:name/versions/:contract_hash", RegistrationFile: "igris-overture/api/routes_contracts.go",
+		HandlerOrGroup: "connected contract sync", RegistrationFunction: "RegisterContractRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "declaration channel only: server recomputes contract hashes, versions are append-only, and synchronization grants no execution permission",
+	},
+	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/agents,/v1/agents/:id", RegistrationFile: "igris-overture/api/routes_agent_registry.go",
 		HandlerOrGroup: "agent registry", RegistrationFunction: "RegisterAgentRegistryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped agent identity and attribution only; PATCH dispatches registry vs execution settings",
