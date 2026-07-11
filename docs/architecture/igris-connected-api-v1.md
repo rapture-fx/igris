@@ -1,10 +1,24 @@
-# Igris Connected API v1 — Specification (DESIGN ONLY)
+# Igris Connected API v1 — Specification
 
-Status: implementation-ready design. **None of these endpoints exist.** They
-are not registered in the Fiber app, not present in
-`igris-overture/api/testdata/route_manifest.default.json`, and must be added
-to the route manifest and route-surface classification intentionally when
-implemented.
+Status (updated 2026-07-11): **§1 (contract synchronization) and §2 (contract
+lookup) are IMPLEMENTED** on branch `feature/igris-connected-contract-sync`
+(`igris-overture/api/routes_contracts.go`, registered via
+`RegisterContractRoutes`, present in the route manifest and route-surface
+inventory; storage per migration `067_action_contract_versions.sql`, created
+and not applied). Implementation notes and deviations:
+`igris-connected-first-slice.md`.
+
+**§3 (evidence ingestion) and §4 (evidence status) remain DESIGN ONLY.**
+Those endpoints do not exist, are not registered, and accept nothing.
+
+Implemented behavior notes for §1 (see the endpoint's tests for the
+authority): the optional `Idempotency-Key` header IS implemented, bound to
+`(tenant, operation, action_name)` with the server-recomputed fingerprint;
+strict field validation rejects unknown contract fields and unknown
+top-level request fields (including any caller-supplied `tenant_id`);
+responses additionally include `action.id` and `version.id` (UUIDs) alongside
+the documented fields; auto-created logical actions carry
+`target_type=embedded_sdk`, which the action gateway refuses to execute.
 
 Conventions inherited from the existing API (verified in
 `igris-overture/api/routes_actions.go`, `route_manifest.go`):
@@ -288,9 +302,9 @@ submitted has no central record to read.)
   `RegisterEvidenceRoutes`; entries added to `route_manifest.go` and
   `testdata/route_manifest.default.json`; classified in
   `route_surface_test.go` as core public product API.
-- Rate limits: sync ≤ 60/min/tenant; evidence ≤ 20 batches/min/tenant
-  (initial values; enforce with the repository's existing limiter pattern).
-- Nothing in this document is registered, reachable, or implemented today.
-  Slice 1 implements **only** §1 and §2 (see
+- Rate limits: sync ≤ 60/min/tenant (implemented with
+  `middleware.NewRateLimiter` on the `/v1/contracts` group); evidence ≤ 20
+  batches/min/tenant (initial value, design only).
+- Slice 1 implements **only** §1 and §2 (see
   `igris-connected-first-slice.md`); §3 and §4 are specified now so slice 1's
-  storage decisions don't paint them into a corner.
+  storage decisions don't paint them into a corner, and remain unregistered.

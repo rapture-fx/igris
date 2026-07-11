@@ -1,6 +1,9 @@
 # Connected First Slice — Automatic ActionContract Synchronization Only
 
-Status: implementation plan. Nothing in this document is implemented.
+Status: **IMPLEMENTED** (2026-07-11, branch
+`feature/igris-connected-contract-sync`). This document was the plan; the
+section "Implementation status and deviations" at the end records what
+actually shipped and where it deviates.
 
 ## Scope fence
 
@@ -142,3 +145,59 @@ client lands and needs response replay.
 4. No route exists outside the updated manifest; no endpoint accepts a
    body-supplied tenant; no endpoint grants execution permission.
 5. No SDK file modified; no evidence/approval/dispatch code paths touched.
+
+## Implementation status and deviations (2026-07-11)
+
+Everything in the scope fence shipped: `POST /v1/contracts/sync`, both
+lookups, migration `067_action_contract_versions.sql` (created, **not
+applied** — normal manual runbook), `igris-overture/api/contract_store.go`
+(INSERT/SELECT only), route manifest + route-surface classification, and the
+conformance-pinned production canonicalizer in
+`igris-overture/internal/canonicaljson` (the `conformance/contractv1`
+reference suite is unchanged and green). No evidence, approval, policy, or
+dispatch path was touched.
+
+Deviations from this plan, all deliberate:
+
+1. **The guard DOES sync automatically under explicit Connected
+   configuration.** This plan (and ADR §15/§17) described sync as a separate
+   user-invoked CLI flow that never blocks execution. Product decision for
+   the shipped slice: when a developer explicitly sets `IGRIS_API_URL` +
+   `IGRIS_API_KEY` (both required; partial config is a clear pre-execution
+   error), `@igris.guard` synchronizes the contract before the first guarded
+   execution of each contract version per process, and a sync failure
+   **prevents execution** — explicitly enabled Connected mode never silently
+   degrades to unconnected execution. With no configuration the SDK remains
+   byte-for-byte zero-network Embedded (socket-guard tests enforce this).
+   `igris connect` / `igris sync` CLI subcommands were NOT built.
+2. **The `Idempotency-Key` header shipped in slice 1** (this plan recommended
+   deferring it), together with the `contract_sync_idempotency` table, because
+   the SDK client shipped in the same slice and derives a stable
+   content-based key. Same key + same fingerprint replays; same key +
+   different fingerprint returns `409 idempotency_key_conflict`.
+3. **Env var names** are `IGRIS_API_URL` / `IGRIS_API_KEY` (as §"SDK
+   interfaces" here specified), not the `IGRIS_ENDPOINT`/`IGRIS_TOKEN`
+   working names used in some earlier discussion.
+4. **Auto-created logical actions get `target_type = 'embedded_sdk'`**, a
+   value outside the executable target vocabulary; the action gateway's
+   dispatch builder refuses it (`unsupported target type`), so registration
+   structurally cannot grant execution. The plan left the exact non-executable
+   representation open.
+5. **Responses include `action.id` and `version.id`** in addition to the
+   spec'd fields (additive).
+6. Store placement: `igris-overture/api/contract_store.go` (not
+   `coordinator/`), since the API layer is its only consumer.
+
+Test coverage as shipped: all 12 planned test groups exist, including
+byte-level fixture interop through the real handler for BOTH Python-generated
+contracts (`action_contract.json` and the new special-chars fixture
+`action_contract_specialchars.json`), real-Postgres suites (disposable schema
+built from the real migration files) for the concurrency race, immutability
+re-read, cross-tenant isolation, idempotency replay/conflict, and
+manual-action preservation, plus a cross-language end-to-end test
+(`contract_sync_e2e_test.go`) driving the real Python SDK subprocess through
+real BetterAuth into real Postgres.
+
+Still deferred (unchanged): evidence ingestion/status (§3–4 of the API spec),
+key registration, remote approval, remote policy, console UI, Managed
+adapters, and the `igris` vs `igris-inertial` PyPI namespace collision.

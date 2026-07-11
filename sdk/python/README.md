@@ -7,7 +7,9 @@ Codex, Cursor, scripts, anything), keep your code, keep your workflow. Before
 the function runs, Igris records a signed decision event; after it runs, a
 signed outcome event. The journal is hash-chained and verifiable offline.
 
-No account. No backend. No registration step. No network calls.
+No account. No backend. No registration step. No network calls by default
+(an explicit opt-in Connected mode can synchronize action declarations —
+never inputs or evidence — see below).
 
 ```python
 import igris
@@ -86,6 +88,8 @@ verification with a non-zero exit code.
 | Variable | Effect |
 | --- | --- |
 | `IGRIS_HOME` | Overrides `~/.igris` (keys and default journal location). |
+| `IGRIS_API_URL` | Optional. Igris endpoint for **Connected mode** (see below). No effect alone — both Connected variables must be set. |
+| `IGRIS_API_KEY` | Optional. Tenant-scoped API key for Connected mode. |
 
 `@igris.guard` parameters:
 
@@ -97,15 +101,63 @@ verification with a non-zero exit code.
 | `journal` | `$IGRIS_HOME/journal.jsonl` | Journal path override, or a custom `JournalStore`. |
 | `redact` | `None` | Extra parameter names to redact (case-insensitive). |
 | `metadata` | `None` | Small JSON-safe dict recorded on decision events (same redaction rules). |
-| `approval_provider` | terminal prompt | Advanced: injectable `ApprovalProvider` (used by tests; the seam future Connected mode uses). |
+| `approval_provider` | terminal prompt | Advanced: injectable `ApprovalProvider` (used by tests; the seam future Connected capabilities use). |
 | `identity` | local key | Advanced: injectable `SigningIdentity`. |
+| `sync_client` | `None` | Advanced/testing: injectable `ContractSyncClient` for Connected contract synchronization. |
+
+## Connected mode: contract synchronization (explicit opt-in)
+
+By default this package makes **no network call of any kind** — no telemetry,
+no update checks, no sync. Connected mode exists only when you explicitly
+configure BOTH variables:
+
+```bash
+export IGRIS_API_URL="https://your-igris-endpoint"
+export IGRIS_API_KEY="igris_..."        # tenant-scoped API key
+```
+
+With Connected mode enabled, the same `@igris.guard` declaration — unchanged —
+automatically synchronizes its **ActionContract** to the Igris backend before
+the *first* guarded execution of each contract version in the process (before
+local approval and before your function runs). Your code declaration stays the
+registration: no console step, no manual re-registration.
+
+What Connected mode does in this release, precisely:
+
+* **What is sent:** the ActionContract v1 only — action name, module,
+  qualified name, risk, approval mode, execution mode, parameter *descriptors*
+  (names/kinds/annotations, never values), code fingerprint, and contract
+  hash — plus the SDK name and version. **Function arguments, decision and
+  outcome events, journals, and signing keys are never sent.** No evidence is
+  uploaded.
+* **When:** synchronization happens before execution. On success, the call
+  continues through the normal Embedded flow: local approval, local execution,
+  local signed evidence — all unchanged.
+* **On failure:** while Connected mode is explicitly enabled, a
+  synchronization failure **prevents execution**. You get a typed
+  pre-execution error (`ConnectedConfigurationError`, `ContractSyncError`, or
+  `ContractSyncConflictError`), each with `execution_occurred=False` and a
+  `retry_safe` hint. There is no silent fallback to unconnected execution.
+  Partial configuration (one variable without the other) fails the same way.
+* **What it does NOT do:** synchronization records a declaration; it grants no
+  permission to execute anything, and this release includes **no** remote
+  policy evaluation, no remote or team approval, no evidence upload, and no
+  Managed execution. Your function still executes locally, in your process.
+* HTTPS is required (`http://` is accepted only for `localhost` development
+  endpoints). Requests use a bounded timeout and a stable, content-derived
+  `Idempotency-Key`, so retries of the same contract sync are replayed by the
+  backend rather than re-registered. Credentials never appear in errors,
+  logs, or journals.
 
 ## Scope of this release (Embedded)
 
 * **Synchronous functions only.** Decorating an `async def` (or a generator)
   raises `UnsupportedFunctionError` at decoration time — it will not silently
   misbehave.
-* **No network access, ever.** No telemetry, no update checks, no sync.
+* **No network access by default.** No telemetry, no update checks, no hidden
+  phone-home. Network activity exists only under explicit Connected
+  configuration, and then only to synchronize ActionContracts as described
+  above.
 * Unsupported argument types (arbitrary objects, `self`, clients) are recorded
   as a deterministic type marker such as
   `<igris:unsupported:myapp.PaymentClient>` — never `repr()` output, never
@@ -191,12 +243,14 @@ What it does **not** give you:
 
 There is one Igris product and one action contract, with progressively
 stronger assurance levels: **Embedded** (this package — local guard, local
-approval, signed local evidence), **Connected** (opt-in shared policies, team
-approvals, central evidence), and **Managed** (execution through the Igris
-runtime with containment, anti-replay, checkpoints, and supported recovery).
-Only Embedded exists in this package today; nothing here phones home or
-requires the others. See `docs/architecture/embedded-igris-sdk.md` in the
-repository for the mapping.
+approval, signed local evidence), **Connected** (explicit opt-in
+synchronization with the Igris backend — today: automatic ActionContract
+registration; later: shared policies, team approvals, central evidence), and
+**Managed** (execution through the Igris runtime with containment,
+anti-replay, checkpoints, and supported recovery). This package implements
+Embedded fully and the first Connected capability (contract synchronization);
+nothing here phones home or requires the others. See
+`docs/architecture/embedded-igris-sdk.md` in the repository for the mapping.
 
 ## Development
 

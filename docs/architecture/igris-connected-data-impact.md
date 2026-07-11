@@ -1,11 +1,17 @@
-# Igris Connected — Database Impact Analysis (NO MIGRATION CREATED)
+# Igris Connected — Database Impact Analysis
 
-Status: analysis only. This branch creates and applies **no** migration. The
-DDL sketches below are illustrations for the future migration author, not
-migration files. Migration numbering at time of writing: latest committed is
-`066_trust_recommendation_states.sql`; note memory/records indicate 064–066
-were applied to prod 2026-06-23 — the future author must re-verify the next
-free number and prod state.
+Status (updated 2026-07-11): the slice-1 portion of this analysis is now
+implemented as `igris-overture/database/migrations/067_action_contract_versions.sql`
+(created on branch `feature/igris-connected-contract-sync`, **NOT applied**
+anywhere — normal manual runbook applies). Differences from §3 as written:
+`action_definitions.latest_contract_hash` was NOT added (it was optional and
+no list view needs it yet); the optional `contract_sync_idempotency` table
+WAS included because the Idempotency-Key header shipped in slice 1. The
+evidence tables in §3 remain design-only and uncreated.
+
+Original analysis follows. Migration numbering at time of the analysis:
+latest committed was `066_trust_recommendation_states.sql`; 067 was
+re-verified as the next free number at implementation time.
 
 ## 1. Current schema, as verified on this branch
 
