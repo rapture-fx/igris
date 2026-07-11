@@ -65,6 +65,13 @@ _SYNC_CACHE: set[tuple[str, str, str]] = set()
 _SYNC_CACHE_LOCK = threading.Lock()
 
 
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Refuse every redirect so credentials stay bound to the configured origin."""
+
+    def redirect_request(self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str):
+        return None
+
+
 @dataclasses.dataclass(frozen=True)
 class ConnectedConfig:
     """Explicit Connected configuration. The token never appears in repr."""
@@ -178,7 +185,8 @@ class HttpContractSyncClient:
     Bounded timeout, https-by-default (enforced at configuration time), and
     strictly bounded error surfaces: credentials never appear in exceptions.
     ``opener`` is an injectable ``callable(request, timeout) -> response``
-    used by tests; the default is ``urllib.request.urlopen``.
+    used by tests. The default opener explicitly refuses every redirect;
+    urllib's process-global opener is never used because it follows redirects.
     """
 
     def __init__(
@@ -190,7 +198,7 @@ class HttpContractSyncClient:
     ) -> None:
         self._config = config
         self._timeout = timeout
-        self._opener = opener
+        self._opener = opener or urllib.request.build_opener(_NoRedirectHandler()).open
         self.cache_scope = config.endpoint
 
     def sync_contract(self, contract: ActionContract) -> ContractSyncResult:
@@ -213,8 +221,7 @@ class HttpContractSyncClient:
         )
         action = contract.action_name
         try:
-            opener = self._opener or urllib.request.urlopen
-            response = opener(request, timeout=self._timeout)
+            response = self._opener(request, timeout=self._timeout)
         except urllib.error.HTTPError as exc:
             raise self._error_for_status(action, exc) from None
         except TimeoutError as exc:
@@ -235,6 +242,8 @@ class HttpContractSyncClient:
 
         status = getattr(response, "status", None) or response.getcode()
         raw = response.read()
+        if 300 <= status < 400:
+            raise self._redirect_error(action, status)
         if status not in (200, 201):
             raise ContractSyncError(
                 _sync_failed(action, f"unexpected response status {status}"),
@@ -258,6 +267,8 @@ class HttpContractSyncClient:
 
     def _error_for_status(self, action: str, exc: urllib.error.HTTPError) -> ContractSyncError:
         status = exc.code
+        if 300 <= status < 400:
+            return self._redirect_error(action, status)
         error_code, detail = _parse_error_body(exc)
         if status == 409 and error_code == "idempotency_key_conflict":
             return ContractSyncConflictError(
@@ -296,6 +307,18 @@ class HttpContractSyncClient:
             status_code=status,
             error_code=error_code,
             retry_safe=retry_safe,
+        )
+
+    def _redirect_error(self, action: str, status: int) -> ContractSyncError:
+        return ContractSyncError(
+            _sync_failed(
+                action,
+                f"the endpoint returned HTTP {status}; redirects are refused so the "
+                "Authorization credential cannot cross origins or downgrade transport",
+            ),
+            status_code=status,
+            error_code="redirect_refused",
+            retry_safe=False,
         )
 
 

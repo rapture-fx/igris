@@ -339,9 +339,18 @@ class TestGuardSyncFailures:
             }
             return FakeHTTPResponse(201, body)
 
+        class FakeOpener:
+            open = staticmethod(fake_urlopen)
+
+        handlers = []
+
+        def fake_build_opener(*args):
+            handlers.extend(args)
+            return FakeOpener()
+
         monkeypatch.setenv("IGRIS_API_URL", "https://igris.example")
         monkeypatch.setenv("IGRIS_API_KEY", TOKEN)
-        monkeypatch.setattr(connected.urllib.request, "urlopen", fake_urlopen)
+        monkeypatch.setattr(connected.urllib.request, "build_opener", fake_build_opener)
 
         @igris.guard(action="tests.connected.env", approval_provider=StaticProvider("allowed"))
         def act():
@@ -354,6 +363,8 @@ class TestGuardSyncFailures:
         assert set(captured["body"]) == {"contract", "client"}
         assert captured["body"]["client"]["sdk"] == "igris-python"
         assert captured["timeout"] == connected.DEFAULT_TIMEOUT_SECONDS
+        assert len(handlers) == 1
+        assert isinstance(handlers[0], connected._NoRedirectHandler)
 
 
 # ---------------------------------------------------------------------------
@@ -400,6 +411,59 @@ class TestHttpContractSyncClient:
         contract = sample_contract()
         assert derive_idempotency_key(contract) == derive_idempotency_key(contract)
         assert len(derive_idempotency_key(contract)) <= 128
+
+    @pytest.mark.parametrize("status", [301, 302, 303, 307, 308])
+    def test_redirect_status_is_typed_and_never_followed(self, status):
+        calls = []
+
+        def opener(request, timeout=None):
+            calls.append(request)
+            return FakeHTTPResponse(status, {})
+
+        with pytest.raises(igris.ContractSyncError) as excinfo:
+            make_client(opener).sync_contract(sample_contract())
+        error = excinfo.value
+        assert len(calls) == 1
+        assert calls[0].full_url == "https://igris.example/v1/contracts/sync"
+        assert error.status_code == status
+        assert error.error_code == "redirect_refused"
+        assert error.execution_occurred is False
+        assert error.retry_safe is False
+        assert TOKEN not in str(error)
+
+    @pytest.mark.parametrize(
+        "target",
+        [
+            "http://igris.example/downgrade",
+            "https://other.example/cross-origin",
+        ],
+    )
+    def test_redirect_handler_creates_no_target_request_or_authorization(self, target):
+        handler = connected._NoRedirectHandler()
+        original = urllib.request.Request(
+            "https://igris.example/v1/contracts/sync",
+            headers={"Authorization": "Bearer " + TOKEN},
+        )
+        redirected = handler.redirect_request(original, None, 302, "Found", {}, target)
+        assert redirected is None
+
+    def test_redirect_failure_prevents_execution_and_journal_write(self, igris_home):
+        client = make_client(lambda request, timeout=None: FakeHTTPResponse(302, {}))
+        calls = []
+
+        @igris.guard(
+            action="tests.connected.redirect",
+            approval_provider=StaticProvider("allowed"),
+            sync_client=client,
+        )
+        def act():
+            calls.append(1)
+
+        with pytest.raises(igris.ContractSyncError) as excinfo:
+            act()
+        assert excinfo.value.error_code == "redirect_refused"
+        assert calls == []
+        assert read_events(igris_home) == []
 
     def test_authentication_failure(self):
         def opener(request, timeout=None):
