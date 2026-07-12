@@ -14,9 +14,12 @@ infrastructure:
 
 ## Prerequisites
 
-- Local PostgreSQL 14+ (this work was validated on 14.18)
+- Local PostgreSQL 14+ (validated on **14.18** and **16.14**)
 - Admin DSN able to `CREATE DATABASE` / `CREATE ROLE`
 - Repository checkout with Go 1.24 toolchain
+- For PostgreSQL 16 specifically, the server must provide the `uuid-ossp`
+  extension (standard on Homebrew/Docker Postgres images; required by the
+  actions-first baseline)
 
 ## Command
 

@@ -120,13 +120,39 @@ Private alpha Connected staging assumes a single PostgreSQL primary. There is
 no multi-primary, logical-decoding fan-out, or distributed rate-limit store in
 this foundation.
 
+## PostgreSQL version evidence
+
+| Environment | Result |
+| --- | --- |
+| Local PostgreSQL **14.18** (prior staging foundation branch) | Bootstrap, roles, Connected store paths, preflight, disposable smoke **passed** |
+| Local PostgreSQL **16.14** (disposable localhost instance; this branch) | Bootstrap, roles, runtime-role paths, contract/evidence suites, coordinator disposable-schema harness, private-alpha cross-slice E2E, preflight, disposable smoke **passed** |
+| Hosted GitHub Actions `postgres:16` | Wired in secure `private-alpha-ci.yml` `go-postgres` job; **not claimed passed until Actions runs** |
+
+Pre-role catalog hash on both 14.18 and 16.14:
+
+```text
+034f5f75d2c926baecc67840cf6054309463bbf145c3691e5673c00ab8a36cf4
+```
+
+That matches the pinned bootstrap `ExpectedV069SchemaSHA256`. No version-specific
+hash update was required. Post-role ACL-sensitive hashes differ by design and
+are accepted via the staging preflight supported equivalent path.
+
+Local PG16 validation helper (disposable instance or admin DSN):
+
+```bash
+# Prefer IGRIS_PG16_PREFIX pointing at a PostgreSQL 16 install, or set
+# IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN to a disposable local PG16 admin URL.
+./scripts/connected/pg16_local_validate.sh
+```
+
 ## Remaining production blockers
 
 This branch does **not** claim production deployment readiness. Remaining
 blockers include (non-exhaustive):
 
-- Agent F independent bootstrap security verdict (merge gate)
-- Hosted PostgreSQL 16 CI proof for this branch’s full role suite
+- Agent F independent bootstrap / staging-delta security verdict (merge gate)
+- Hosted GitHub Actions execution of the newly wired PostgreSQL 16 suites
 - Cloud provisioning (Azure/Neon) out of scope here
 - Distributed rate limiting, tenant storage quotas
 - Key rotation and fine-grained API-key scopes
