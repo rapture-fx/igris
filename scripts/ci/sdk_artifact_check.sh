@@ -107,9 +107,43 @@ def probe(value: int):
 assert probe(21) == 42
 print("guard execution OK")
 PY
+  "${clean_env[@]}" "$py" - <<'PY'
+import igris
+
+def existing_tool(value: int, access_token: str):
+    return value + 1
+
+wrapped = igris.wrap_tool(
+    existing_tool, action="ci.artifact.wrap", risk="low", approval="never", redact=["value"]
+)
+assert wrapped(1, access_token="synthetic") == 2
+
+def other_tool(flag: bool):
+    return flag
+
+tools = igris.wrap_tools(
+    [other_tool],
+    configuration={"other_tool": {"action": "ci.artifact.wraps", "approval": "never"}},
+)
+assert tools[0](True) is True
+
+missing = [name for name in igris.__all__ if not hasattr(igris, name)]
+assert not missing, f"__all__ names missing from package: {missing}"
+assert issubclass(igris.ToolWrapError, igris.ContractError)
+print(f"wrap_tool/wrap_tools OK; all {len(igris.__all__)} __all__ exports present")
+PY
   "${clean_env[@]}" "$igris" key-info
   "${clean_env[@]}" "$igris" verify "$home/journal.jsonl" --public-key "$home/verify_key.pem"
-  "${clean_env[@]}" "$igris" evidence sync --help >/dev/null
+  # The guard probe retains an ordinary argument, so inspect must classify
+  # the journal as needing acknowledgement (documented exit code 3).
+  local inspect_rc=0
+  "${clean_env[@]}" "$igris" evidence inspect || inspect_rc=$?
+  if [[ "$inspect_rc" -ne 3 ]]; then
+    echo "FAIL: evidence inspect expected exit 3 (acknowledgement required), got $inspect_rc"
+    exit 1
+  fi
+  "${clean_env[@]}" "$igris" evidence sync --help | grep -q -- "--allow-unredacted" \
+    || { echo "FAIL: evidence sync --help does not document --allow-unredacted"; exit 1; }
   "${clean_env[@]}" "$igris" evidence status --help >/dev/null
   "$py" -m pip check
   echo "  smoke OK: $(basename "$artifact")"
