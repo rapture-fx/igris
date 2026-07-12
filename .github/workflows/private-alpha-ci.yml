@@ -1,0 +1,297 @@
+# Private-alpha release verification: reproducible on every pull request.
+#
+# Security model:
+#   - `pull_request` only (NEVER pull_request_target): fork PRs get a
+#     read-only token and no repository secrets.
+#   - Explicit least-privilege permissions (contents: read) on the workflow.
+#   - Third-party actions pinned to immutable commit SHAs.
+#   - Checkout never persists credentials.
+#   - No PR-controlled metadata (titles, branch names, bodies) is ever
+#     interpolated into shell commands; the only matrix/env interpolations
+#     are workflow-defined constants.
+#   - No deployment, publication, or shared-database access. The only
+#     database is the job-scoped ephemeral Postgres service container, and
+#     migrations 067-069 are applied by the tests exclusively inside
+#     disposable schemas of that container.
+name: Private Alpha CI
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/private-alpha-ci.yml"
+      - "scripts/ci/**"
+      - "scripts/private-alpha/**"
+      - "examples/private-alpha/**"
+      - "sdk/python/**"
+      - "cmd/igris-overture/**"
+      - "igris-overture/**"
+      - "conformance/**"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+  merge_group:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - ".github/workflows/private-alpha-ci.yml"
+      - "scripts/ci/**"
+      - "scripts/private-alpha/**"
+      - "examples/private-alpha/**"
+      - "sdk/python/**"
+      - "cmd/igris-overture/**"
+      - "igris-overture/**"
+      - "conformance/**"
+      - "go.mod"
+      - "go.sum"
+      - "Makefile"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-alpha-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  migration-guard:
+    name: Migrations 067-069 stay manual-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Run migration auto-apply guard
+        run: ./scripts/ci/check_manual_migrations.sh
+
+  python-matrix:
+    name: SDK suite py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    defaults:
+      run:
+        working-directory: sdk/python
+
+    env:
+      # Explicitly override sdk/python/.python-version (pinned to 3.11) so
+      # every matrix entry runs the interpreter it claims to run.
+      UV_PYTHON: ${{ matrix.python-version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+          cache-suffix: py${{ matrix.python-version }}
+
+      - name: Install test environment
+        run: uv sync --dev
+
+      - name: Assert active interpreter matches matrix entry
+        run: |
+          uv run --no-sync python -c "
+          import os, sys
+          expected = tuple(int(p) for p in os.environ['UV_PYTHON'].split('.'))
+          actual = sys.version_info[:2]
+          assert actual == expected, f'matrix claims {expected} but venv runs {actual}: {sys.version}'
+          print('interpreter OK:', sys.version.split()[0])
+          "
+
+      - name: Run tests
+        run: uv run --no-sync pytest
+
+      - name: Ruff lint
+        run: uv run --no-sync ruff check .
+
+      - name: Ruff format check
+        run: uv run --no-sync ruff format --check .
+
+  go-suites:
+    name: Go build, focused vet, release-critical suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Build all packages
+        run: go build ./...
+
+      - name: Vet release-critical packages
+        run: |
+          go vet ./igris-overture/api ./igris-overture/coordinator \
+            ./igris-overture/internal/canonicaljson ./conformance/contractv1 \
+            ./cmd/igris-overture
+
+      - name: Vet repository-wide (informational, pre-existing defects reported not suppressed)
+        continue-on-error: true
+        run: go vet ./...
+
+      - name: Canonical JSON + ActionContract conformance
+        run: go test ./conformance/contractv1 ./igris-overture/internal/canonicaljson -count=1 -timeout=120s
+
+      - name: Complete API suite (includes route manifest + route surface)
+        run: go test ./igris-overture/api -count=1 -timeout=900s
+
+      - name: Coordinator suite
+        run: go test ./igris-overture/coordinator -count=1 -timeout=600s
+
+  go-postgres:
+    name: Contract + evidence disposable-Postgres suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: igris_private_alpha_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d igris_private_alpha_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Ephemeral job-scoped service container; not a real credential. The
+      # tests apply migrations 054/067/068/069 only inside disposable schemas
+      # of this database.
+      IGRIS_OVERTURE_POSTGRES_TEST_DSN: postgres://postgres:postgres@localhost:5432/igris_private_alpha_test?sslmode=disable
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Set up Python (E2E drives the real SDK)
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv (E2E drives the real SDK)
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+
+      - name: Contract + evidence lifecycle, concurrency, idempotency, immutability
+        run: |
+          set -o pipefail
+          go test ./igris-overture/api \
+            -run 'TestContractSyncPostgres.*|TestEvidenceIngestPostgres.*|TestConnectedImmutableRecordsPostgres' \
+            -count=1 -timeout=600s -v 2>&1 | tee pg-suite.log
+          if grep -q "no tests to run" pg-suite.log; then
+            echo "FAIL: Postgres suite regex matched no tests"; exit 1
+          fi
+
+      - name: Redirect refusal + cross-slice E2E (real Python SDK subprocess)
+        run: |
+          set -o pipefail
+          go test ./igris-overture/api \
+            -run 'TestContractSyncEndToEndPythonSDK|TestEvidenceIngestionEndToEndPythonSDK|TestPrivateAlphaCrossSliceEndToEnd|TestContractSyncRedirectsAreNeverFollowedEndToEnd' \
+            -count=1 -timeout=900s -v 2>&1 | tee e2e-suite.log
+          if grep -q "no tests to run" e2e-suite.log; then
+            echo "FAIL: E2E suite regex matched no tests"; exit 1
+          fi
+
+  sdk-artifacts:
+    name: Reproducible wheel + sdist
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+
+      - name: Double-build, compare hashes, inspect, clean-install, manifest
+        run: ./scripts/ci/sdk_artifact_check.sh artifact-out
+
+      - name: Upload artifacts + manifest (private CI artifact, never published)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: private-alpha-sdk-artifacts
+          path: |
+            artifact-out/build-a/igris-*.whl
+            artifact-out/build-a/igris-*.tar.gz
+            artifact-out/artifact-manifest.json
+          if-no-files-found: error
+          retention-days: 14
+
+  alpha-harness:
+    name: Embedded private-alpha harness
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+
+      - name: Run harness and assert five-event breakdown (Embedded only)
+        run: ./scripts/ci/run_alpha_harness.sh
