@@ -35,7 +35,7 @@ wheel supplied with your alpha kit, or build one from source:
 
 ```bash
 # From the wheel supplied with your private-alpha kit:
-pip install ./igris-0.1.0-py3-none-any.whl
+pip install ./igris-0.1.0a1-py3-none-any.whl
 
 # Or build the wheel yourself from a checkout of this repository:
 uv build sdk/python && pip install sdk/python/dist/igris-*.whl

@@ -16,7 +16,7 @@ Embedded Igris requires no account, no backend, and makes no network calls.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.1.0a1"
 
 from .approval import (
     ApprovalDecision,
