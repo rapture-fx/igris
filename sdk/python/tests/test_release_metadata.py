@@ -17,6 +17,12 @@ def load_pyproject() -> dict:
 
 
 class TestPackageMetadata:
+    def test_alpha2_prerelease_version_is_consistent(self):
+        import igris
+
+        assert load_pyproject()["project"]["version"] == "0.1.0a2"
+        assert igris.__version__ == "0.1.0a2"
+
     def test_distribution_metadata_stays_embedded_and_minimal(self):
         project = load_pyproject()["project"]
 

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "igris"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Igris is a drop-in action layer for consequential AI-agent actions."
 readme = "README.md"
 license = { text = "MIT" }

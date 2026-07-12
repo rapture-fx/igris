@@ -1,11 +1,11 @@
 # Release Gate — Existing Tool Wrapper (`igris.wrap_tool`)
 
-**Review type:** Final read-only security / API-compatibility / evidence-integrity gate  
-**Date:** 2026-07-12  
-**Reviewed tip:** `666ddb8e67db6de2baf4872a67782feb607332bb` (`feature/igris-existing-tool-wrapper`)  
-**Exact base:** `a60e399e35c032cb174b2b2e7a5719464e8bc31a`  
-**Diff:** `a60e399e35..666ddb8e6` — 10 files, SDK-only  
-**Reviewer role:** Principal Python SDK, async-runtime, API-compatibility, evidence-integrity, application-security  
+**Review type:** Final read-only security / API-compatibility / evidence-integrity gate
+**Date:** 2026-07-12
+**Reviewed tip:** `666ddb8e67db6de2baf4872a67782feb607332bb` (`feature/igris-existing-tool-wrapper`)
+**Exact base:** `a60e399e35c032cb174b2b2e7a5719464e8bc31a`
+**Diff:** `a60e399e35..666ddb8e6` — 10 files, SDK-only
+**Reviewer role:** Principal Python SDK, async-runtime, API-compatibility, evidence-integrity, application-security
 
 ## Recommendation
 
@@ -138,9 +138,9 @@ No production contact; no package publish.
 
 ### Required release notes
 
-1. New APIs: `igris.wrap_tool`, `igris.wrap_tools`, `ToolWrapError`.  
-2. Async supported on wrap path only; decorator still rejects async.  
-3. Contracts are semantically equivalent; `contract_hash` may differ by callable identity.  
+1. New APIs: `igris.wrap_tool`, `igris.wrap_tools`, `ToolWrapError`.
+2. Async supported on wrap path only; decorator still rejects async.
+3. Contracts are semantically equivalent; `contract_hash` may differ by callable identity.
 4. Original callables are never mutated; already-guarded tools cannot be double-wrapped.
 
 ---

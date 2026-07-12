@@ -5,6 +5,11 @@ command stricter. There is **no evidence protocol, canonical-bytes, signature,
 chain, batch-identity, or backend API change**: journals written by alpha.1
 verify and sync byte-identically under alpha.2.
 
+The alpha.2 package version is **`0.1.0a2`** (PEP 440 prerelease;
+`igris --version` reports `igris 0.1.0a2`). Alpha.1 artifacts carried
+`0.1.0`, which PEP 440 orders *after* `0.1.0a2` — install by explicit
+artifact during the private alpha rather than relying on resolver ordering.
+
 ## What changed
 
 | Area | alpha.1 | alpha.2 |

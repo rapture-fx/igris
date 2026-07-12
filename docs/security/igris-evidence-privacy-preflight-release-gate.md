@@ -1,11 +1,11 @@
 # Release Gate — Evidence Privacy Preflight (`fa2e8da61`)
 
-**Review type:** Final read-only security / privacy / compatibility / release gate  
-**Date:** 2026-07-12  
-**Reviewed tip:** `fa2e8da61a353d9b1eecb9dbd055a3098ee4b8fe` (`feature/igris-evidence-privacy-preflight`)  
-**Base:** `c71bd8e609bbb2568ebf8280e48e0d6eae9b5d96` (private-alpha integration freeze)  
-**Exact diff:** `c71bd8e60..fa2e8da61` — **13 files**, SDK-only (`sdk/python/**`)  
-**Review branch:** `feature/igris-connected-evidence-security-gate` (docs only)  
+**Review type:** Final read-only security / privacy / compatibility / release gate
+**Date:** 2026-07-12
+**Reviewed tip:** `fa2e8da61a353d9b1eecb9dbd055a3098ee4b8fe` (`feature/igris-evidence-privacy-preflight`)
+**Base:** `c71bd8e609bbb2568ebf8280e48e0d6eae9b5d96` (private-alpha integration freeze)
+**Exact diff:** `c71bd8e60..fa2e8da61` — **13 files**, SDK-only (`sdk/python/**`)
+**Review branch:** `feature/igris-connected-evidence-security-gate` (docs only)
 
 ## Recommendation
 
@@ -26,7 +26,7 @@ Accepted residuals and non-blocking notes are listed in §7–§8.
 | `f6da47cc4` | Privacy documentation |
 | `fa2e8da61` | Suppress untrusted sync error details / path leakage in errors |
 
-**Changed files (13):**  
+**Changed files (13):**
 `evidence_privacy.py` (new), `evidence_sync.py`, `verification.py`, `errors.py`, `cli.py`, `__init__.py`, `README.md`, `docs/evidence-privacy.md`, `pyproject.toml`, `test_evidence_privacy.py` (new), `test_evidence_sync.py`, `test_cli.py`, `test_release_metadata.py`.
 
 **Not changed:** backend, migrations, contract sync, guard automatic network behavior, legacy SDK, production.
@@ -73,7 +73,7 @@ Accepted residuals and non-blocking notes are listed in §7–§8.
 
 ## 4. Test execution (this review)
 
-Implementation worktree read-only:  
+Implementation worktree read-only:
 `/Users/wira/Desktop/system-worktrees/igris-evidence-privacy-preflight` @ `fa2e8da61`.
 
 | Suite | Result |
@@ -123,9 +123,9 @@ CLI flag only; not env-backed; does not rewrite journals; only disables the loca
 
 Commit `fa2e8da61` removes:
 
-- HTTP response `detail` from validation/conflict messages  
-- Stringified transport `reason` (keeps exception type name only)  
-- Absolute journal/key paths from some local failure messages  
+- HTTP response `detail` from validation/conflict messages
+- Stringified transport `reason` (keeps exception type name only)
+- Absolute journal/key paths from some local failure messages
 
 **Assessment:** Material reduction in leakage of untrusted server text and filesystem layout. Status codes and snake_case `error_code` remain. For private alpha this is **acceptable**. Operators needing remote detail should use server logs / status API, not client exception strings. **Not** a merge blocker.
 
@@ -157,19 +157,19 @@ Commit `fa2e8da61` removes:
 
 ### Production-hardening items
 
-1. Streaming/chunked privacy analysis for multi-MB journals.  
-2. Optional metrics for preflight refuse rates (without values).  
+1. Streaming/chunked privacy analysis for multi-MB journals.
+2. Optional metrics for preflight refuse rates (without values).
 3. Consider aligning contract-sync error scrubbing with the same detail policy for consistency.
 
 ---
 
 ## 8. Accepted privacy residuals (explicit)
 
-1. Evidence v1 is **not anonymous**; redaction is value-marker based, not identity-erasing.  
-2. Action/parameter names and counts are intentionally visible to operators.  
-3. Hashes, type names, sanitized exception text, and timestamps remain in journals and may upload when policy allows or is acknowledged.  
-4. Built-in secret name redaction is incomplete for business fields unless listed in `redact=[...]`.  
-5. `--allow-unredacted` is a deliberate disclosure valve; abuse is operational, not a crypto bypass.  
+1. Evidence v1 is **not anonymous**; redaction is value-marker based, not identity-erasing.
+2. Action/parameter names and counts are intentionally visible to operators.
+3. Hashes, type names, sanitized exception text, and timestamps remain in journals and may upload when policy allows or is acknowledged.
+4. Built-in secret name redaction is incomplete for business fields unless listed in `redact=[...]`.
+5. `--allow-unredacted` is a deliberate disclosure valve; abuse is operational, not a crypto bypass.
 6. Local verification proves integrity vs selected public key, not host trustworthiness.
 
 ---
@@ -178,9 +178,9 @@ Commit `fa2e8da61` removes:
 
 **GO** means:
 
-1. Implementation branch `fa2e8da61` may merge into the private-alpha line (e.g. onto `c71bd8e60` / release branch) as alpha.2 privacy follow-up.  
-2. No further code remediations required by this review before merge.  
-3. Release notes should mention default preflight refusal + exit code 3 + inspect command.  
+1. Implementation branch `fa2e8da61` may merge into the private-alpha line (e.g. onto `c71bd8e60` / release branch) as alpha.2 privacy follow-up.
+2. No further code remediations required by this review before merge.
+3. Release notes should mention default preflight refusal + exit code 3 + inspect command.
 4. Does **not** authorize public PyPI publication or Managed-provenance claims.
 
 ---
