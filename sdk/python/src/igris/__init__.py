@@ -49,12 +49,14 @@ from .errors import (
     IgrisError,
     JournalError,
     SigningError,
+    ToolWrapError,
     UnsupportedFunctionError,
     VerificationError,
 )
 from .evidence_privacy import EvidencePrivacyReport, PrivacyClassification, inspect_journal
 from .guard import guard
 from .verification import VerificationResult, verify_journal
+from .wrap_tool import wrap_tool, wrap_tools
 
 __all__ = [
     "ActionContract",
@@ -87,6 +89,7 @@ __all__ = [
     "PrivacyClassification",
     "SigningError",
     "TerminalApprovalProvider",
+    "ToolWrapError",
     "UnsupportedFunctionError",
     "VerificationError",
     "VerificationResult",
@@ -94,4 +97,6 @@ __all__ = [
     "guard",
     "inspect_journal",
     "verify_journal",
+    "wrap_tool",
+    "wrap_tools",
 ]
