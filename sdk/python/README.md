@@ -28,13 +28,28 @@ configure, register, or deploy.
 
 ## Installation
 
-Internal release note: public PyPI publication is blocked until the legacy
-`igris-inertial` distribution migration is resolved. See `RELEASE.md`.
+**Private alpha:** `igris` is not yet published to PyPI (public publication is
+blocked until the legacy `igris-inertial` distribution migration is resolved —
+see `RELEASE.md`), so `pip install igris` does not work yet. Install from the
+wheel supplied with your alpha kit, or build one from source:
 
 ```bash
-pip install igris
-# or
-uv add igris
+# From the wheel supplied with your private-alpha kit:
+pip install ./igris-0.1.0-py3-none-any.whl
+
+# Or build the wheel yourself from a checkout of this repository:
+uv build sdk/python && pip install sdk/python/dist/igris-*.whl
+
+# Or install straight from the Git source tree:
+pip install ./sdk/python
+```
+
+After public publication (post-alpha, not available today) the standard
+commands will be:
+
+```bash
+pip install igris   # post-publication only
+uv add igris        # post-publication only
 ```
 
 Requires Python 3.10+. The only runtime dependency is `cryptography`.
