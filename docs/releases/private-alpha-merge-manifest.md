@@ -1,8 +1,9 @@
-# Private-Alpha Merge Manifest — `release/igris-private-alpha-v0.1.0-alpha.1`
+# Private-Alpha Merge Manifest — `release/igris-private-alpha-v0.1.0-alpha.1-final`
 
-**Date:** 2026-07-12
+**Date:** 2026-07-12 (finalized same day; supersedes the `a60e399e3`-era
+artifact record below)
 **Prepared by:** Release integration (principal release engineer)
-**Purpose:** Auditable record of exactly what the private-alpha release candidate
+**Purpose:** Auditable record of exactly what the private-alpha release
 contains, how it was assembled, and what was validated. This manifest adds no
 product behavior.
 
@@ -10,11 +11,13 @@ product behavior.
 
 | Field | Value |
 | --- | --- |
-| Release branch | `release/igris-private-alpha-v0.1.0-alpha.1` |
-| Release base (exact) | `c71bd8e609bbb2568ebf8280e48e0d6eae9b5d96` — tip of `feature/igris-private-alpha-integration` (Agent G integration freeze) |
-| Upstream base (merge-base with `origin/main`) | `c10cf9087c076f9fdc6185c585f865f1d4fe3007` |
-| Commits added by this release branch | `9d3a7d6ac` (cherry-pick of Agent F final review `e6a8aa6ca`), `eae0c06b6` (defect dispositions), plus the commit introducing this manifest |
-| Final release tip | The commit that introduces this manifest — the last commit on `release/igris-private-alpha-v0.1.0-alpha.1`; its exact SHA is recorded in the release report and must head the integration PR |
+| Final release branch | `release/igris-private-alpha-v0.1.0-alpha.1-final` |
+| Approved release candidate | `a60e399e35c032cb174b2b2e7a5719464e8bc31a` — tip of `release/igris-private-alpha-v0.1.0-alpha.1` (validated RC; ancestor of this branch) |
+| CI branch base (exact) | `40825a90028fc25752cd40934c0c14b9ab07af93` — tip of `feature/igris-private-alpha-ci`, verified to descend directly from the RC; adds `f94513a02` (reproducible artifact verification), `e68d9bcf0` (secure private-alpha PR pipeline), `40825a900` (truthful installation guidance, PA-002) |
+| Release base (RC's own base) | `c71bd8e609bbb2568ebf8280e48e0d6eae9b5d96` — tip of `feature/igris-private-alpha-integration` (Agent G integration freeze) |
+| Upstream base (merge-base with local `main`) | `abf27d2da8d7ee15f3a07e5fbd8571430ab4fe0d` (merge-base with `origin/main`: `c10cf9087c076f9fdc6185c585f865f1d4fe3007`) |
+| Finalization commits on this branch | `7e928346f05b9990787cc42aa868f48678d74255` (close PA-002), the commit refreshing this manifest, and the commit adding `docs/releases/private-alpha-pr-description.md` — all documentation-only |
+| Final release tip | The last commit on `release/igris-private-alpha-v0.1.0-alpha.1-final` (adds the PR description package); its exact SHA is recorded in the release report and must head the alpha.1 integration PR. No commit after `40825a900` touches `sdk/python`, product code, or migrations. |
 
 No history was squashed, rebased, or rewritten. All imported commits below are
 ancestors of the release tip with their original SHAs.
@@ -127,24 +130,51 @@ During release validation these migrations were applied **only inside
 disposable local PostgreSQL databases/schemas created for the test run and
 dropped afterward** (per Agent F condition 2: never auto-applied by merge).
 
-## 5. Release artifacts (built from the final tip)
+## 5. Release artifacts (built from the final alpha.1 tip)
 
-Built with `uv build` (hatchling backend) from `sdk/python` at the release tip.
-The build is deterministic: repeated builds of the same tree produce
-byte-identical artifacts, and the release-branch documentation commits do not
-touch `sdk/python`, so these hashes are those of artifacts built from the final
-exact commit (re-verified by rebuilding at the final tip after this manifest
-was committed).
+Built with `uv build` (hatchling backend) from `sdk/python`. **These hashes
+supersede the `a60e399e3`-era values** (wheel
+`f2475542bf3f1e2f4446c41c91cadf23a05caf427987f10a594f284a5fbac747`, sdist
+`b250a712403569e6dcf5c003d6023df1333b610eea76534dafecb75a81effb6f`): commit
+`40825a900` rewrote `sdk/python/README.md`, whose content is embedded in the
+wheel `METADATA` and the sdist, so the artifact bytes changed. No commit after
+`40825a900` touches `sdk/python`, so artifacts built at `7e928346f` are those
+of the final exact tip (re-verified by rebuilding at the final tip after the
+last documentation commit).
 
-| Artifact | SHA-256 |
-| --- | --- |
-| `igris-0.1.0-py3-none-any.whl` | `f2475542bf3f1e2f4446c41c91cadf23a05caf427987f10a594f284a5fbac747` |
-| `igris-0.1.0.tar.gz` (sdist) | `b250a712403569e6dcf5c003d6023df1333b610eea76534dafecb75a81effb6f` |
+| Artifact | Size (bytes) | SHA-256 |
+| --- | --- | --- |
+| `igris-0.1.0-py3-none-any.whl` | 47,799 | `47b73b5a131ddc47a570cc7782f0d4e6a4e96823106dd026c3f251ed50519d05` |
+| `igris-0.1.0.tar.gz` (sdist) | 39,448 | `3fbbe7013607079729c5ae8aedc851662cf5fb9b6413d05bb9e3777e9a99d3c3` |
 
-Artifacts were inspected (file listing) and clean-installed into separate fresh
-virtual environments (wheel and sdist independently) with import, CLI, and
-`pip check` smoke validation. **No artifact was published. No Git tag was
-created.**
+Determinism evidence: `scripts/ci/sdk_artifact_check.sh` built wheel + sdist
+twice into isolated directories with byte-identical SHA-256, and a third
+independent build via `make sdk-python-release-check` (sdist → wheel path)
+produced the same hashes. Contents were inspected (`py.typed` + `LICENSE`
+packaged; no tests, signing keys, or journals), and the wheel and sdist were
+each installed into separate clean virtual environments with import, guard
+execution, `key-info`, `verify`, `evidence sync --help`,
+`evidence status --help`, and `pip check` smokes. **No artifact was
+published. No Git tag was created.**
+
+### Validation commands and CI surface (final tip)
+
+- Local pipeline: `make private-alpha-ci` → `scripts/ci/private_alpha_ci.sh
+  all` (stages: migrations, python 3.10–3.13 matrix with per-run interpreter
+  assertion, go, disposable postgres, artifacts, harness) — all stages passed
+  locally at `7e928346f`.
+- Additional local runs: `make sdk-python-release-check`; repository-wide
+  `go vet ./...` (report-only, see §7); migration-guard negative test
+  (temporary offending script → guard fails as designed);
+  `scripts/ci/run_alpha_harness.sh` (exactly 5 journal events: 2 allowed
+  decisions, 1 denied decision, 1 succeeded outcome, 1 failed outcome,
+  offline-verified).
+- CI workflow file: `.github/workflows/private-alpha-ci.yml` (jobs:
+  `migration-guard`, `python-matrix`, `go-suites`, `go-postgres`,
+  `sdk-artifacts`, `alpha-harness`; documented in
+  `docs/ci/private-alpha-ci.md`). Validated locally (YAML parse, job
+  inventory, all actions SHA-pinned). **GitHub-hosted CI has not executed
+  against this branch** — the branch was not pushed at preparation time.
 
 ## 6. Accepted private-alpha residuals
 
@@ -159,9 +189,11 @@ Per the final Agent F delta review (CONDITIONAL GO, condition 1):
 5. Evidence idempotency is not yet concurrent-atomic (the contract path is).
 6. Compromised-host Embedded honesty bound; `verified` ≠ side-effect proof.
 7. One evidence stream per `(tenant, key_id)`.
-8. PA-002 remains partially open: README installation commands still show
-   `pip install igris` although publication is blocked (see
-   `docs/alpha/private-alpha-defects.md`).
+8. ~~PA-002 remains partially open~~ — **RESOLVED** on this branch: commit
+   `40825a900` rewrote the README installation section around the supplied
+   wheel / local build / Git-source paths and labels `pip install igris` /
+   `uv add igris` as post-publication only; disposition closed at
+   `7e928346f` (see `docs/alpha/private-alpha-defects.md`).
 
 ## 7. Production-enablement blockers (not private-alpha blockers)
 
