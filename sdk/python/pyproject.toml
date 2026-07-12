@@ -42,6 +42,7 @@ packages = ["src/igris"]
 [tool.hatch.build.targets.sdist]
 include = [
     "src/igris",
+    "docs/evidence-privacy.md",
     "README.md",
     "LICENSE",
 ]
