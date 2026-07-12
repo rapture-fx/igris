@@ -29,7 +29,7 @@ is blocked by an unrelated legacy package that uses the same import name.
 If the Igris team supplied a wheel, install its exact path:
 
 ```bash
-python -m pip install /path/to/igris-0.1.0-py3-none-any.whl
+python -m pip install /path/to/igris-0.1.0a1-py3-none-any.whl
 ```
 
 Otherwise build the wheel from this checkout (the build step downloads build
@@ -38,11 +38,11 @@ dependencies if they are not already cached):
 ```bash
 python -m pip install build
 python -m build --wheel --outdir /tmp/igris-private-alpha-dist sdk/python
-python -m pip install /tmp/igris-private-alpha-dist/igris-0.1.0-py3-none-any.whl
+python -m pip install /tmp/igris-private-alpha-dist/igris-0.1.0a1-py3-none-any.whl
 python -c "import igris; print(igris.__version__)"
 ```
 
-Expected version pattern: `0.1.0`.
+Expected version pattern: `0.1.0a1`.
 
 ## 3. Understand the one-guard change
 
