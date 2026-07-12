@@ -29,6 +29,16 @@ class UnsupportedFunctionError(ContractError):
     """
 
 
+class ToolWrapError(ContractError):
+    """``wrap_tool`` or ``wrap_tools`` could not wrap the callable safely.
+
+    Raised when a callable is already guarded, is not callable, is an
+    unsupported callable category (generator, async generator), or when
+    a collection helper receives duplicate action names or missing
+    configuration.
+    """
+
+
 class CanonicalizationError(IgrisError):
     """A value could not be converted to the canonical evidence representation.
 
