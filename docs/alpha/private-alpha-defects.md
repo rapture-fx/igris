@@ -36,22 +36,23 @@
 
 ## PA-002: Shipped SDK documentation contradicts Connected capabilities
 
-- Status: **PARTIALLY RESOLVED at `c71bd8e60`** (2026-07-12)
-- Resolution (RELEASE.md portion): `sdk/python/RELEASE.md` now accurately
-  documents explicit opt-in Connected mode (automatic ActionContract
-  synchronization before first execution when both `IGRIS_API_URL` and
-  `IGRIS_API_KEY` are set, explicit CLI-only `igris evidence sync`, redirect
-  refusal) and states that public PyPI publication remains blocked pending the
-  legacy `igris-inertial` namespace migration. The original contradiction in
-  the release notes no longer exists.
-- Remaining condition (README portion): the `sdk/python/README.md`
-  "Installation" section still presents `pip install igris` / `uv add igris`
-  as the installation commands. An internal release note directly above them
-  states that public publication is blocked, but the commands themselves do
-  not work for private-alpha participants, who install only a supplied or
-  locally built wheel. PA-002 stays open on this single condition: replace or
-  annotate the README install commands with the wheel-based alpha install path
-  (or close when public publication makes the commands real).
+- Status: **RESOLVED at `40825a90028fc25752cd40934c0c14b9ab07af93`** (2026-07-12)
+- Resolution (RELEASE.md portion, resolved at `c71bd8e60`):
+  `sdk/python/RELEASE.md` accurately documents explicit opt-in Connected mode
+  (automatic ActionContract synchronization before first execution when both
+  `IGRIS_API_URL` and `IGRIS_API_KEY` are set, explicit CLI-only
+  `igris evidence sync`, redirect refusal) and states that public PyPI
+  publication remains blocked pending the legacy `igris-inertial` namespace
+  migration. The original contradiction in the release notes no longer exists.
+- Resolution (README portion, resolved at `40825a900`, "docs(sdk): correct
+  private-alpha installation guidance (PA-002)"): the `sdk/python/README.md`
+  "Installation" section now leads with the private-alpha installation paths
+  that actually work today — the wheel supplied with the alpha kit, a locally
+  built wheel (`uv build sdk/python`), or a direct Git-source install
+  (`pip install ./sdk/python`) — and explicitly labels `pip install igris` /
+  `uv add igris` as post-publication-only commands that are "not available
+  today". No installation command shown to a private-alpha participant is
+  non-functional or unlabelled.
   The reproduction below is preserved as recorded against `b30767da1`.
 - Severity: Medium
 - Proposed owner: Agent G (release documentation)
