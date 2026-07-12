@@ -16,8 +16,8 @@ product behavior.
 | CI branch base (exact) | `40825a90028fc25752cd40934c0c14b9ab07af93` — tip of `feature/igris-private-alpha-ci`, verified to descend directly from the RC; adds `f94513a02` (reproducible artifact verification), `e68d9bcf0` (secure private-alpha PR pipeline), `40825a900` (truthful installation guidance, PA-002) |
 | Release base (RC's own base) | `c71bd8e609bbb2568ebf8280e48e0d6eae9b5d96` — tip of `feature/igris-private-alpha-integration` (Agent G integration freeze) |
 | Upstream base (merge-base with local `main`) | `abf27d2da8d7ee15f3a07e5fbd8571430ab4fe0d` (merge-base with `origin/main`: `c10cf9087c076f9fdc6185c585f865f1d4fe3007`) |
-| Finalization commits on this branch | `7e928346f05b9990787cc42aa868f48678d74255` (close PA-002), the commit refreshing this manifest, and the commit adding `docs/releases/private-alpha-pr-description.md` — all documentation-only |
-| Final release tip | The last commit on `release/igris-private-alpha-v0.1.0-alpha.1-final` (adds the PR description package); its exact SHA is recorded in the release report and must head the alpha.1 integration PR. No commit after `40825a900` touches `sdk/python`, product code, or migrations. |
+| Finalization commits on this branch | `7e928346f05b9990787cc42aa868f48678d74255` (close PA-002), `c9eafa6f0` (manifest refresh), `816ece984` (PR description package), `fe528f1b0` (package identity → `0.1.0a1`), and the commit refreshing this manifest for the `0.1.0a1` identity |
+| Final release tip | The last commit on `release/igris-private-alpha-v0.1.0-alpha.1-final` (refreshes this manifest and the PR description for `0.1.0a1`); its exact SHA is recorded in the release report and must head the alpha.1 integration PR. The only commit after `40825a900` touching `sdk/python` is `fe528f1b0`, which changes the version identity (`pyproject.toml` version, `igris.__version__`, README artifact name) and nothing else — no product code, cryptography, API behavior, or migration changes anywhere after the RC. |
 
 No history was squashed, rebased, or rewritten. All imported commits below are
 ancestors of the release tip with their original SHAs.
@@ -130,27 +130,35 @@ During release validation these migrations were applied **only inside
 disposable local PostgreSQL databases/schemas created for the test run and
 dropped afterward** (per Agent F condition 2: never auto-applied by merge).
 
-## 5. Release artifacts (built from the final alpha.1 tip)
+## 5. Release artifacts (built from the final alpha.1 tip, version `0.1.0a1`)
 
-Built with `uv build` (hatchling backend) from `sdk/python`. **These hashes
-supersede the `a60e399e3`-era values** (wheel
-`f2475542bf3f1e2f4446c41c91cadf23a05caf427987f10a594f284a5fbac747`, sdist
-`b250a712403569e6dcf5c003d6023df1333b610eea76534dafecb75a81effb6f`): commit
-`40825a900` rewrote `sdk/python/README.md`, whose content is embedded in the
-wheel `METADATA` and the sdist, so the artifact bytes changed. No commit after
-`40825a900` touches `sdk/python`, so artifacts built at `7e928346f` are those
-of the final exact tip (re-verified by rebuilding at the final tip after the
-last documentation commit).
+Built with `uv build` (hatchling backend) from `sdk/python`. The alpha.1
+package identity is the PEP 440 prerelease **`0.1.0a1`** (commit
+`fe528f1b0`). **These hashes supersede all earlier values** because release
+metadata changed twice after the RC:
+
+- `a60e399e3`-era `0.1.0` artifacts (wheel `f2475542bf…ac747`, sdist
+  `b250a712…ffb6f`) — superseded when `40825a900` rewrote the README embedded
+  in wheel `METADATA`/sdist;
+- interim `0.1.0` artifacts at `7e928346f` (wheel
+  `47b73b5a131ddc47a570cc7782f0d4e6a4e96823106dd026c3f251ed50519d05`, sdist
+  `3fbbe7013607079729c5ae8aedc851662cf5fb9b6413d05bb9e3777e9a99d3c3`) —
+  superseded when `fe528f1b0` set the `0.1.0a1` prerelease identity.
+
+No commit after `fe528f1b0` touches `sdk/python`, so artifacts built at
+`fe528f1b0` are those of the final exact tip.
 
 | Artifact | Size (bytes) | SHA-256 |
 | --- | --- | --- |
-| `igris-0.1.0-py3-none-any.whl` | 47,799 | `47b73b5a131ddc47a570cc7782f0d4e6a4e96823106dd026c3f251ed50519d05` |
-| `igris-0.1.0.tar.gz` (sdist) | 39,448 | `3fbbe7013607079729c5ae8aedc851662cf5fb9b6413d05bb9e3777e9a99d3c3` |
+| `igris-0.1.0a1-py3-none-any.whl` | 47,828 | `48cb74a8cf8c3d21bee28a2b3f2d438ed5043da75cf3e63b729dbfabc3c74ee1` |
+| `igris-0.1.0a1.tar.gz` (sdist) | 39,454 | `5cc7a59f41b7b7ece871cf3a9933a35e01219ce7665380a73473ac0181d56798` |
 
-Determinism evidence: `scripts/ci/sdk_artifact_check.sh` built wheel + sdist
-twice into isolated directories with byte-identical SHA-256, and a third
-independent build via `make sdk-python-release-check` (sdist → wheel path)
-produced the same hashes. Contents were inspected (`py.typed` + `LICENSE`
+Determinism evidence (re-established at the `0.1.0a1` identity):
+`scripts/ci/sdk_artifact_check.sh` built wheel + sdist twice into isolated
+directories with byte-identical SHA-256, and a third independent build via
+`make sdk-python-release-check` (sdist → wheel path) produced the same
+hashes. Clean-environment installs report `igris.__version__ == "0.1.0a1"`
+and `igris --version` prints `igris 0.1.0a1`. Contents were inspected (`py.typed` + `LICENSE`
 packaged; no tests, signing keys, or journals), and the wheel and sdist were
 each installed into separate clean virtual environments with import, guard
 execution, `key-info`, `verify`, `evidence sync --help`,
@@ -162,7 +170,8 @@ published. No Git tag was created.**
 - Local pipeline: `make private-alpha-ci` → `scripts/ci/private_alpha_ci.sh
   all` (stages: migrations, python 3.10–3.13 matrix with per-run interpreter
   assertion, go, disposable postgres, artifacts, harness) — all stages passed
-  locally at `7e928346f`.
+  locally at `7e928346f` (version `0.1.0`) and again in full at `fe528f1b0`
+  (version `0.1.0a1`).
 - Additional local runs: `make sdk-python-release-check`; repository-wide
   `go vet ./...` (report-only, see §7); migration-guard negative test
   (temporary offending script → guard fails as designed);

@@ -2,6 +2,8 @@
 
 **Head branch:** `release/igris-private-alpha-v0.1.0-alpha.1-final`
 **Base:** `main`
+**Package identity:** `igris 0.1.0a1` (PEP 440 prerelease; artifacts
+`igris-0.1.0a1-py3-none-any.whl` / `igris-0.1.0a1.tar.gz`)
 **Release type:** private alpha (invited evaluators only). **This is not a
 public or production release.** No package is published, no environment is
 deployed, and no migration is applied by this PR.
@@ -74,6 +76,10 @@ a hash-chained, offline-verifiable local journal.
   `scripts/ci/check_manual_migrations.sh`).
 - `40825a900` — truthful private-alpha installation guidance in
   `sdk/python/README.md` (resolves the remaining PA-002 condition).
+- `fe528f1b0` — package identity set to the PEP 440 prerelease **`0.1.0a1`**
+  (pyproject version, `igris.__version__`, artifact-name references; CLI
+  `--version` and the Connected `client.sdk_version` field derive from
+  `__version__` — no behavior change, no dynamic versioning).
 - PA-002 closed in `docs/alpha/private-alpha-defects.md`; final artifact
   manifest refresh; this PR package.
 
@@ -82,6 +88,8 @@ a hash-chained, offline-verifiable local journal.
 - **Python matrix (real interpreters, version-asserted per run):** full SDK
   suite — 179 passed on CPython 3.10.19, 3.11.6, 3.12.12, and 3.13.3; Ruff
   lint and format clean on each; `make sdk-python-release-check` passes.
+  Clean installs verify `igris.__version__ == "0.1.0a1"` and
+  `igris --version` → `igris 0.1.0a1`.
 - **Go:** `go build ./...` clean; focused `go vet` clean on release-critical
   packages (`igris-overture/api`, `coordinator`, `internal/canonicaljson`,
   `conformance/contractv1`, `cmd/igris-overture`); canonical-JSON +
@@ -154,10 +162,12 @@ rotation; billing; deployment or publication of any kind.
   machine, troubleshooting, scorecard, defects).
 - Verify locally with `make private-alpha-ci` (requires uv, Go, and local
   PostgreSQL; creates and drops its own disposable database).
-- No feature code changed after the approved RC — the six commits on top of
-  `a60e399e3` (three CI commits, PA-002 closure, manifest refresh, this PR
-  package) touch CI scripts/workflow and documentation only; treat any diff
-  outside those areas as a review flag.
+- No feature code changed after the approved RC — the commits on top of
+  `a60e399e3` (three CI commits, PA-002 closure, manifest refreshes, this PR
+  package, and the `0.1.0a1` version-identity commit) touch CI
+  scripts/workflow, documentation, and the package version string only; the
+  sole `sdk/python` change after `40825a900` is the version identity
+  (`fe528f1b0`). Treat any diff outside those areas as a review flag.
 
 ## Rollback considerations
 
