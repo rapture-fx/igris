@@ -162,7 +162,7 @@ class TestEvidenceSyncConfiguration:
     def test_no_configuration_fails_clearly(self, igris_home):
         write_journal(igris_home)
         with pytest.raises(EvidenceSyncConfigurationError) as exc_info:
-            sync_journal()
+            sync_journal(allow_unredacted=True)
         assert "IGRIS_API_URL" in str(exc_info.value)
         assert "IGRIS_API_KEY" in str(exc_info.value)
 
@@ -171,14 +171,14 @@ class TestEvidenceSyncConfiguration:
         write_journal(igris_home)
         monkeypatch.setenv(present, ENDPOINT if present == "IGRIS_API_URL" else TOKEN)
         with pytest.raises(EvidenceSyncConfigurationError):
-            sync_journal()
+            sync_journal(allow_unredacted=True)
 
     def test_http_endpoint_refused_except_localhost(self, igris_home, monkeypatch):
         write_journal(igris_home)
         monkeypatch.setenv("IGRIS_API_URL", "http://evil.example.test")
         monkeypatch.setenv("IGRIS_API_KEY", TOKEN)
         with pytest.raises(EvidenceSyncConfigurationError) as exc_info:
-            sync_journal()
+            sync_journal(allow_unredacted=True)
         assert "https" in str(exc_info.value)
 
     def test_config_failure_happens_before_local_files_matter(self):
@@ -247,7 +247,7 @@ class TestLocalValidationBeforeNetwork:
         journal = default_journal_path()
         journal.write_bytes(b"")
         opener = RecordingOpener()
-        report = sync_journal(client=make_client(opener))
+        report = sync_journal(client=make_client(opener), allow_unredacted=True)
         assert report.up_to_date
         assert report.events_total == 0
         assert opener.requests == []
@@ -265,7 +265,7 @@ class TestUploadContents:
         opener = RecordingOpener(
             verified_response(events=len(raw_events), chain_head=raw_events[-1]["event_hash"])
         )
-        report = sync_journal(client=make_client(opener))
+        report = sync_journal(client=make_client(opener), allow_unredacted=True)
 
         assert len(opener.requests) == 1
         request = opener.requests[0]
@@ -308,7 +308,7 @@ class TestUploadContents:
             verified_response("b-1", 4, chain_head=raw_events[3]["event_hash"]),
             verified_response("b-2", 2, chain_head=raw_events[5]["event_hash"]),
         )
-        report = sync_journal(client=make_client(opener))
+        report = sync_journal(client=make_client(opener), allow_unredacted=True)
         assert [batch.batch_id for batch in report.batches] == ["b-1", "b-2"]
         assert report.events_uploaded == 6
 
@@ -329,7 +329,7 @@ class TestEndpointFailures:
     def _sync(self, igris_home, *outcomes):
         write_journal(igris_home)
         opener = RecordingOpener(*outcomes)
-        return sync_journal(client=make_client(opener))
+        return sync_journal(client=make_client(opener), allow_unredacted=True)
 
     def test_authentication_failure_is_typed_and_scrubbed(self, igris_home):
         with pytest.raises(EvidenceSyncAuthenticationError) as exc_info:
@@ -392,7 +392,7 @@ class TestEndpointFailures:
         write_journal(igris_home)
         opener = RecordingOpener(urllib.error.URLError("no route"))
         with pytest.raises(EvidenceSyncTransportError):
-            sync_journal(client=make_client(opener))
+            sync_journal(client=make_client(opener), allow_unredacted=True)
         assert len(opener.requests) == 1
 
 
@@ -410,7 +410,7 @@ class TestChainHeadResync:
             make_http_error(409, {"error": "chain_head_mismatch", "expected_head": head}),
             verified_response("b-cont", 4, chain_head=raw_events[-1]["event_hash"]),
         )
-        report = sync_journal(client=make_client(opener))
+        report = sync_journal(client=make_client(opener), allow_unredacted=True)
         assert report.events_uploaded == 4
         assert not report.up_to_date
 
@@ -425,7 +425,7 @@ class TestChainHeadResync:
         opener = RecordingOpener(
             make_http_error(409, {"error": "chain_head_mismatch", "expected_head": head}),
         )
-        report = sync_journal(client=make_client(opener))
+        report = sync_journal(client=make_client(opener), allow_unredacted=True)
         assert report.up_to_date
         assert report.events_uploaded == 0
 
@@ -436,7 +436,7 @@ class TestChainHeadResync:
             make_http_error(409, {"error": "chain_head_mismatch", "expected_head": unknown_head}),
         )
         with pytest.raises(EvidenceSyncConflictError) as exc_info:
-            sync_journal(client=make_client(opener))
+            sync_journal(client=make_client(opener), allow_unredacted=True)
         assert "diverged" in str(exc_info.value)
 
     def test_resync_is_bounded_to_one_attempt(self, igris_home):
@@ -448,7 +448,7 @@ class TestChainHeadResync:
             make_http_error(409, {"error": "chain_head_mismatch", "expected_head": head}),
         )
         with pytest.raises(EvidenceSyncConflictError):
-            sync_journal(client=make_client(opener))
+            sync_journal(client=make_client(opener), allow_unredacted=True)
         assert len(opener.requests) == 2, "exactly one resync; never an unbounded loop"
 
 
