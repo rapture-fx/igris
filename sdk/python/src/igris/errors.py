@@ -305,6 +305,27 @@ class EvidenceSyncValidationError(EvidenceSyncError):
         super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
 
 
+class EvidencePrivacyInspectionError(IgrisError):
+    """A local evidence privacy inspection could not be completed safely."""
+
+    execution_occurred = False
+    retry_safe = False
+    error_code = "evidence_privacy_inspection_failed"
+
+
+class EvidencePrivacyPreflightError(EvidenceSyncError):
+    """Evidence sync needs a per-invocation privacy acknowledgement."""
+
+    execution_occurred = False
+
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            message,
+            error_code="evidence_privacy_acknowledgement_required",
+            retry_safe=True,
+        )
+
+
 class EvidenceSyncConflictError(EvidenceSyncError):
     """The endpoint reported a conflict.
 
