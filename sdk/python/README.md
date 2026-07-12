@@ -26,6 +26,20 @@ def refund_customer(customer_id: str, amount: int):
 The code declaration **is** the action registration. There is nothing else to
 configure, register, or deploy.
 
+Can't edit the function source? Wrap an existing callable instead:
+
+```python
+existing_tool = igris.wrap_tool(
+    existing_tool,
+    action="payments.refund",
+    risk="critical",
+    redact=["customer_id"],
+)
+```
+
+See [Wrapping existing tools](docs/wrapping-existing-tools.md) for
+`wrap_tool`, `wrap_tools`, async support, and collection handling.
+
 ## Installation
 
 **Private alpha:** `igris` is not yet published to PyPI (public publication is

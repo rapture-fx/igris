@@ -44,6 +44,7 @@ class TestPackageMetadata:
         assert sdist["include"] == [
             "src/igris",
             "docs/evidence-privacy.md",
+            "docs/wrapping-existing-tools.md",
             "README.md",
             "LICENSE",
         ]
