@@ -282,7 +282,7 @@ def _default_open(request: urllib.request.Request, timeout: float) -> Any:
 
 def _error_for_status(exc: urllib.error.HTTPError) -> EvidenceSyncError:
     status = exc.code
-    error_code, detail = _parse_error_body(exc)
+    error_code, _detail = _parse_error_body(exc)
     if 300 <= status < 400:
         return EvidenceSyncTransportError(
             f"evidence sync failed: the endpoint attempted a redirect (HTTP {status}); "
@@ -301,8 +301,7 @@ def _error_for_status(exc: urllib.error.HTTPError) -> EvidenceSyncError:
             raise _ChainHeadMismatch(expected)
         reason = error_code or "conflict"
         return EvidenceSyncConflictError(
-            f"evidence sync failed: the endpoint reported {reason}"
-            + (f" ({detail})" if detail else ""),
+            f"evidence sync failed: the endpoint reported {reason}",
             error_code=error_code,
         )
     if status == 429 or status >= 500:
@@ -315,8 +314,6 @@ def _error_for_status(exc: urllib.error.HTTPError) -> EvidenceSyncError:
     reason = f"the endpoint rejected the request (HTTP {status}"
     if error_code:
         reason += f", {error_code}"
-    if detail:
-        reason += f": {detail}"
     reason += ")"
     return EvidenceSyncValidationError(
         "evidence sync failed: " + reason,
@@ -362,9 +359,7 @@ def _scrubbed_reason(exc: urllib.error.URLError) -> str:
     reason = getattr(exc, "reason", None)
     if isinstance(reason, BaseException):
         return type(reason).__name__
-    if reason is None:
-        return type(exc).__name__
-    return str(reason)[:_MAX_ERROR_DETAIL_CHARS]
+    return type(exc).__name__
 
 
 def sync_journal(
