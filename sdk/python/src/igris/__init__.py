@@ -35,6 +35,8 @@ from .errors import (
     ContractSyncConflictError,
     ContractSyncError,
     EvidencePersistenceError,
+    EvidencePrivacyInspectionError,
+    EvidencePrivacyPreflightError,
     EvidenceSyncAuthenticationError,
     EvidenceSyncConfigurationError,
     EvidenceSyncConflictError,
@@ -50,6 +52,7 @@ from .errors import (
     UnsupportedFunctionError,
     VerificationError,
 )
+from .evidence_privacy import EvidencePrivacyReport, PrivacyClassification, inspect_journal
 from .guard import guard
 from .verification import VerificationResult, verify_journal
 
@@ -67,6 +70,9 @@ __all__ = [
     "ContractSyncConflictError",
     "ContractSyncError",
     "EvidencePersistenceError",
+    "EvidencePrivacyInspectionError",
+    "EvidencePrivacyPreflightError",
+    "EvidencePrivacyReport",
     "EvidenceSyncAuthenticationError",
     "EvidenceSyncConfigurationError",
     "EvidenceSyncConflictError",
@@ -78,6 +84,7 @@ __all__ = [
     "IdentityError",
     "IgrisError",
     "JournalError",
+    "PrivacyClassification",
     "SigningError",
     "TerminalApprovalProvider",
     "UnsupportedFunctionError",
@@ -85,5 +92,6 @@ __all__ = [
     "VerificationResult",
     "__version__",
     "guard",
+    "inspect_journal",
     "verify_journal",
 ]
