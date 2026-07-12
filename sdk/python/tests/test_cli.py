@@ -120,7 +120,7 @@ class TestEvidenceSyncCommand:
     def test_missing_configuration_exits_two(self, populated, igris_home, monkeypatch, capsys):
         monkeypatch.delenv("IGRIS_API_URL", raising=False)
         monkeypatch.delenv("IGRIS_API_KEY", raising=False)
-        assert main(["evidence", "sync", str(populated)]) == 2
+        assert main(["evidence", "sync", str(populated), "--allow-unredacted"]) == 2
         err = capsys.readouterr().err
         assert "IGRIS_API_URL" in err
         assert "IGRIS_API_KEY" in err
@@ -129,7 +129,14 @@ class TestEvidenceSyncCommand:
         env = dict(os.environ, IGRIS_HOME=str(igris_home), IGRIS_API_KEY="igris_k")
         env.pop("IGRIS_API_URL", None)
         proc = subprocess.run(
-            [sys.executable, "-m", "igris.cli", "evidence", "sync"],
+            [
+                sys.executable,
+                "-m",
+                "igris.cli",
+                "evidence",
+                "sync",
+                "--allow-unredacted",
+            ],
             capture_output=True,
             text=True,
             env=env,
@@ -190,7 +197,7 @@ class TestEvidenceSyncCommand:
             return _Response()
 
         monkeypatch.setattr(evidence_sync_module, "_default_open", fake_open)
-        assert main(["evidence", "sync", str(populated)]) == 0
+        assert main(["evidence", "sync", str(populated), "--allow-unredacted"]) == 0
         out = capsys.readouterr().out
         assert "OK: local verification passed" in out
         assert "b-cli-1" in out
@@ -216,7 +223,7 @@ class TestEvidenceSyncCommand:
             )
 
         monkeypatch.setattr(evidence_sync_module, "_default_open", fake_open)
-        assert main(["evidence", "sync", str(populated)]) == 1
+        assert main(["evidence", "sync", str(populated), "--allow-unredacted"]) == 1
         err = capsys.readouterr().err
         assert "authentication was rejected" in err
         assert "igris_cli_token_not_real" not in err
