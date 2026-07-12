@@ -41,7 +41,12 @@ class TestPackageMetadata:
     def test_artifact_include_policy_keeps_distribution_small(self):
         sdist = load_pyproject()["tool"]["hatch"]["build"]["targets"]["sdist"]
 
-        assert sdist["include"] == ["src/igris", "README.md", "LICENSE"]
+        assert sdist["include"] == [
+            "src/igris",
+            "docs/evidence-privacy.md",
+            "README.md",
+            "LICENSE",
+        ]
         assert (PROJECT_ROOT / "LICENSE").is_file()
         assert "tests" not in sdist["include"]
         assert "examples" not in sdist["include"]

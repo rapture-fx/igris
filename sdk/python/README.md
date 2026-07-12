@@ -7,9 +7,9 @@ Codex, Cursor, scripts, anything), keep your code, keep your workflow. Before
 the function runs, Igris records a signed decision event; after it runs, a
 signed outcome event. The journal is hash-chained and verifiable offline.
 
-No account. No backend. No registration step. No network calls by default
-(an explicit opt-in Connected mode can synchronize action declarations —
-never inputs or evidence — see below).
+No account. No backend. No registration step. No network calls by default.
+Connected contract synchronization and evidence upload are separate, explicit
+capabilities described below; evidence upload is never automatic.
 
 ```python
 import igris
@@ -170,6 +170,7 @@ What Connected mode does in this release, precisely:
 Local evidence leaves your machine **only** when you explicitly run:
 
 ```bash
+igris evidence inspect           # local verification and privacy report; no network
 igris evidence sync              # default journal under $IGRIS_HOME
 igris evidence sync path/to/journal.jsonl --public-key path/to/verify_key.pem
 igris evidence status BATCH_ID   # check a previously uploaded batch
@@ -186,6 +187,13 @@ What `igris evidence sync` does, precisely:
   primitives as `igris verify` before any network activity. A journal that
   fails locally (malformed line, broken chain, hash or signature mismatch)
   is never uploaded and is **never rewritten or repaired**.
+* **Local privacy preflight.** Before an HTTP request is created, Igris
+  classifies every decision as `fully_redacted`, `partially_redacted`,
+  `no_arguments`, or `unknown`. Retained ordinary argument values and unknown
+  shapes refuse sync by default. Run `igris evidence inspect` to see counts and
+  potentially retained parameter names without printing their values.
+  `--allow-unredacted` deliberately permits only the current sync invocation;
+  it is not persisted and has no environment-variable equivalent.
 * **What is sent:** the signed decision/outcome events of the selected
   journal verbatim, your PUBLIC verification key (`verify_key.pem`), your
   `key_id`, and chain-linkage metadata. **Never sent:** the private signing
@@ -215,6 +223,15 @@ What `igris evidence sync` does, precisely:
 * One journal per signing identity: evidence streams are identified by your
   key, so a second journal signed by the same key cannot sync as a separate
   stream (the CLI reports divergence instead of guessing).
+
+Default name-based redaction covers secret-like names, not every business
+field. Explicitly add business parameters with `redact=[...]`, use synthetic
+data for private-alpha evaluation, and inspect before upload. Redaction does
+not guarantee anonymity: action and parameter names, metadata, timestamps,
+type names, error summaries, and hashes can still disclose information. Hashes
+can permit guessing of low-entropy values. See
+[`docs/evidence-privacy.md`](docs/evidence-privacy.md) for classification rules,
+exit codes, examples, and limitations.
 
 ## Scope of this release (Embedded)
 
