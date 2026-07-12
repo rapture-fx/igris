@@ -340,13 +340,19 @@ class TestEndpointFailures:
         assert TOKEN not in repr(exc_info.value)
 
     def test_validation_rejection_is_typed(self, igris_home):
+        retained_value = "business-value-must-not-be-reflected"
         with pytest.raises(EvidenceSyncValidationError) as exc_info:
             self._sync(
                 igris_home,
-                make_http_error(422, {"error": "validation_failed", "detail": "bad key"}),
+                make_http_error(
+                    422,
+                    {"error": "validation_failed", "detail": retained_value},
+                ),
             )
         assert exc_info.value.error_code == "validation_failed"
         assert exc_info.value.retry_safe is False
+        assert retained_value not in str(exc_info.value)
+        assert retained_value not in repr(exc_info.value)
 
     def test_idempotency_conflict_is_typed(self, igris_home):
         with pytest.raises(EvidenceSyncConflictError) as exc_info:
@@ -394,6 +400,13 @@ class TestEndpointFailures:
         with pytest.raises(EvidenceSyncTransportError):
             sync_journal(client=make_client(opener), allow_unredacted=True)
         assert len(opener.requests) == 1
+
+    def test_transport_reason_text_is_not_reflected(self, igris_home):
+        retained_value = "business-value-in-transport-reason"
+        with pytest.raises(EvidenceSyncTransportError) as exc_info:
+            self._sync(igris_home, urllib.error.URLError(retained_value))
+        assert retained_value not in str(exc_info.value)
+        assert retained_value not in repr(exc_info.value)
 
 
 # ---------------------------------------------------------------------------
