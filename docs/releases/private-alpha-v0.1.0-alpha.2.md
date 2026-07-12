@@ -1,10 +1,15 @@
-# Igris private-alpha v0.1.0-alpha.2 — release note (candidate)
+# Igris private-alpha v0.1.0-alpha.2 — release note
 
 Status date: 2026-07-12
-Branch: `release/igris-private-alpha-v0.1.0-alpha.2-candidate`
-Base: `feature/igris-private-alpha-ci` tip
-`40825a90028fc25752cd40934c0c14b9ab07af93` (descends from alpha.1 RC
+Branch: `release/igris-private-alpha-v0.1.0-alpha.2-final`
+Base: `release/igris-private-alpha-v0.1.0-alpha.1-final` tip
+`816ece9842497a9f3abd2730d63fb20b7fc1d770` (which contains the CI baseline
+`40825a90028fc25752cd40934c0c14b9ab07af93` and alpha.1 RC
 `a60e399e35c032cb174b2b2e7a5719464e8bc31a`).
+Package version: **`0.1.0a2`** (PEP 440 prerelease). Note: alpha.1 artifacts
+carried final-form `0.1.0`, so version comparators order `0.1.0a2` *before*
+`0.1.0`; within the private alpha, installs are by explicit artifact, not
+resolver ordering.
 
 ## Scope
 
@@ -86,21 +91,22 @@ Details and migration steps: `sdk/python/docs/alpha-2-migration.md`,
   in-process recording client with synthetic data only. The frozen alpha.1
   example and harness are unchanged.
 
-### Known integration finding (merge precondition)
+### Backend E2E alignment (resolved on this branch)
 
-The backend-owned end-to-end test
-`igris-overture/api/evidence_ingestion_e2e_test.go`
-(`TestEvidenceIngestionEndToEndPythonSDK`) encodes alpha.1 ordering: its
-fixture journal retains ordinary refund arguments, and it expects a missing
-`IGRIS_API_KEY` configuration error. Under alpha.2 the privacy preflight
-correctly refuses **before** configuration is read, so the private-alpha CI
-`postgres` stage fails on this one assertion (the other three end-to-end
-suites — contract sync, cross-slice evidence upload, redirect refusal — pass
-against the real backend, confirming HTTP formats are unchanged). Backend
-files are out of scope for this integration branch; before or alongside
-merge, that test needs a follow-up in backend scope: pass
-`--allow-unredacted` to its sync invocations (or redact the fixture
-arguments) and update the step-2 assertion to the preflight refusal.
+The candidate branch had one known integration finding: the backend-owned
+`TestEvidenceIngestionEndToEndPythonSDK` fixture retained ordinary refund
+arguments and asserted the alpha.1 missing-`IGRIS_API_KEY` error, which the
+stricter alpha.2 preflight now intercepts. This final branch resolves it
+**without weakening privacy**: the main fixture redacts every business
+argument (so the full lifecycle — missing-key error, explicit sync,
+idempotent replay, incremental continuation, tamper rejection, tenant
+isolation — runs unchanged), and the retained-argument behaviors moved to
+dedicated tests in `igris-overture/api/evidence_privacy_e2e_test.go`:
+a partially redacted journal refuses sync with exit code 3 before
+configuration validation or any network connection, and
+`--allow-unredacted` acknowledges exactly one invocation against the real
+HTTP + BetterAuth + Postgres stack. No E2E path acquired a blanket
+`--allow-unredacted`.
 
 ## Artifact hashes (deterministic, built twice)
 
