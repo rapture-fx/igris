@@ -19,8 +19,9 @@ top of the secure alpha.1 CI baseline:
 2. **Existing-tool wrapping** (`feature/igris-existing-tool-wrapper`, tip
    `666ddb8e67db6de2baf4872a67782feb607332bb`) — `igris.wrap_tool` and
    `igris.wrap_tools` for callables that cannot be edited, including
-   `async def` functions. Independent security review: **pending Agent F**;
-   this candidate is blocked for final merge until that verdict.
+   `async def` functions. Independent security review: **GO** (commit
+   `b8a2e0a56`, included) — no merge blockers; accepted residuals are
+   documented below and in the migration guide.
 
 ## Compatibility
 
@@ -64,6 +65,8 @@ Details and migration steps: `sdk/python/docs/alpha-2-migration.md`,
   disclose information.
 - `@igris.guard` still rejects `async def` (use `wrap_tool`); generator and
   async-generator callables are rejected by both paths.
+- Original callables are never mutated by wrapping, and already-guarded or
+  already-wrapped callables cannot be wrapped again (`ToolWrapError`).
 - Switching an action between decorator and wrapper declaration styles
   changes its `contract_hash` (function identity differs) and registers a
   new Connected contract version on first sync.
@@ -91,6 +94,7 @@ build-twice determinism check.
 ## Publication status
 
 Not published. The `igris` / `igris-inertial` PyPI namespace collision
-documented in `sdk/python/RELEASE.md` still blocks any public release, and
-this candidate must not be merged or tagged until the Agent F wrapper review
-returns GO or an accepted CONDITIONAL GO.
+documented in `sdk/python/RELEASE.md` still blocks any public release. Both
+independent security reviews (privacy: `392750d01`; wrapper: `b8a2e0a56`)
+returned GO, so the candidate is unblocked for final merge review; merging
+and tagging remain explicit operator decisions.
