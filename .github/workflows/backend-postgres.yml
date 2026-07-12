@@ -8,7 +8,10 @@ on:
       - ".github/workflows/backend-postgres.yml"
       - "cmd/igris-overture/**"
       - "cmd/igris-db-bootstrap/**"
+      - "cmd/igris-db-roles/**"
+      - "cmd/igris-db-staging-preflight/**"
       - "igris-overture/**"
+      - "scripts/connected/**"
       - "go.mod"
       - "go.sum"
   merge_group:
@@ -21,7 +24,10 @@ on:
       - ".github/workflows/backend-postgres.yml"
       - "cmd/igris-overture/**"
       - "cmd/igris-db-bootstrap/**"
+      - "cmd/igris-db-roles/**"
+      - "cmd/igris-db-staging-preflight/**"
       - "igris-overture/**"
+      - "scripts/connected/**"
       - "go.mod"
       - "go.sum"
 
@@ -64,12 +70,37 @@ jobs:
       - name: Run deterministic greenfield bootstrap tests
         env:
           IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
-        run: go test ./igris-overture/database/bootstrap -count=1 -timeout=180s
+        run: go test ./igris-overture/database/bootstrap -count=1 -timeout=300s
 
       - name: Run least-privilege role boundary tests
         env:
           IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         run: go test ./igris-overture/database/roles -count=1 -timeout=300s
+
+      - name: Run Connected runtime-role store paths
+        env:
+          IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+        run: go test ./igris-overture/api -run 'TestConnectedPathsUnderRuntimeRolePostgres' -count=1 -timeout=300s
+
+      - name: Run staging preflight on disposable PostgreSQL 16 database
+        env:
+          IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+        run: |
+          set -euo pipefail
+          DB="igris_backend_preflight_${RANDOM}"
+          cleanup() {
+            psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -c "DROP DATABASE IF EXISTS ${DB};" >/dev/null 2>&1 || true
+            for role in igris_app_runtime igris_read_only_operator igris_backup_restore igris_migration_owner; do
+              psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -c "DROP OWNED BY ${role} CASCADE;" >/dev/null 2>&1 || true
+              psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -c "DROP ROLE IF EXISTS ${role};" >/dev/null 2>&1 || true
+            done
+          }
+          trap cleanup EXIT
+          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB};"
+          TARGET_DSN="postgres://postgres:postgres@localhost:5432/${DB}?sslmode=disable"
+          go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$TARGET_DSN"
+          go run ./cmd/igris-db-roles --mode=apply --database-url="$TARGET_DSN"
+          go run ./cmd/igris-db-staging-preflight --database-url="$TARGET_DSN"
 
       - name: Run mandatory API-key auth Postgres migration tests
         run: go test ./igris-overture/api -run 'TestTenantEmailAlignmentMigration|TestBetterAuth_RealPostgres' -count=1 -timeout=120s
