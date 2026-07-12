@@ -1,17 +1,23 @@
 # Embedded Igris SDK Release Notes
 
-Status date: 2026-07-10
+Status date: 2026-07-12
 
 ## Internal release status
 
-The `igris` Python package is intended for internal dogfooding as an Embedded
-SDK only. It locally guards synchronous Python functions, records a signed
-decision event before execution, records a signed outcome event after execution,
-and verifies the local JSONL journal offline.
+The `igris` Python package is the private-alpha adoption surface. With no
+Connected configuration it operates in Embedded mode only: it locally guards
+synchronous Python functions, records signed decision and outcome events, and
+verifies the hash-chained JSONL journal offline with zero network activity.
 
-This package does not provide Connected mode, Managed execution, backend
-synchronization, remote approval, telemetry, containment, recovery, or
-exactly-once execution.
+Connected mode is explicit and opt-in. When both `IGRIS_API_URL` and
+`IGRIS_API_KEY` are configured, a guarded action synchronizes its ActionContract
+before local execution. Evidence upload remains a separate explicit
+`igris evidence sync` command. Redirects are refused, synchronization failure
+prevents execution, and there is no silent downgrade to Embedded-only behavior.
+
+This package does not provide Managed execution, remote approval, central
+policy, automatic evidence upload, a durable background outbox, telemetry,
+containment, recovery, or exactly-once execution/networking.
 
 ## Public release blockers
 
@@ -67,10 +73,10 @@ Declared package range: Python `>=3.10`.
 
 | Version | Local result on this branch | CI expectation |
 | --- | --- | --- |
-| 3.10 | Not available locally | Covered by `.github/workflows/sdk-python.yml` |
-| 3.11 | Full SDK suite and packaging checks run locally | Covered by `.github/workflows/sdk-python.yml` |
-| 3.12 | Not available locally | Covered by `.github/workflows/sdk-python.yml` |
-| 3.13 | Full SDK suite run locally | Covered by `.github/workflows/sdk-python.yml` |
+| 3.10.19 | 179 SDK tests passed locally | Covered by `.github/workflows/sdk-python.yml` |
+| 3.11.6 | 179 SDK tests plus lint, format, wheel, and sdist checks passed locally | Covered by `.github/workflows/sdk-python.yml` |
+| 3.12.12 | 179 SDK tests passed locally | Covered by `.github/workflows/sdk-python.yml` |
+| 3.13.3 | 179 SDK tests passed locally | Covered by `.github/workflows/sdk-python.yml` |
 
 Do not claim a public release supports a Python version until the CI matrix has
 run successfully for that version.
@@ -102,9 +108,14 @@ Artifact checks:
 
 ## Security and privacy checklist
 
-- No network behavior.
+- Unconfigured Embedded mode performs no network activity.
+- Connected network activity occurs only with explicit complete configuration;
+  contract sync runs before execution and evidence sync is CLI-only.
+- Contract sync refuses every redirect so Authorization is never forwarded or
+  transport-downgraded.
 - No telemetry.
-- No backend credentials.
+- Backend credentials are read from the environment and sent only as the
+  Authorization header; they are never journaled or stored as evidence.
 - No production systems.
 - Approval remains fail-closed.
 - Decision evidence remains persisted before execution.
@@ -115,18 +126,24 @@ Artifact checks:
 - Private key material is stored locally and never printed by `igris key-info`.
 - Error strings must not include guarded function result values or secret input
   values.
+- Evidence v1 stores a bounded redacted input summary. Built-in sensitive names
+  and caller-declared `redact=[...]` values are removed, but ordinary argument
+  values remain in the signed journal and are uploaded by explicit evidence
+  sync. Applications requiring no argument values in Connected storage must
+  explicitly redact every business parameter; changing this default is an
+  evidence-format decision deferred beyond stabilization.
 
 ## Pre-release checklist
 
-- [ ] Run the full SDK CI matrix for Python 3.10, 3.11, 3.12, and 3.13.
-- [ ] Inspect wheel contents.
-- [ ] Inspect sdist contents.
-- [ ] Install wheel in a clean environment.
-- [ ] Install sdist in a clean environment.
-- [ ] Run `igris key-info` in the clean environment.
-- [ ] Run a guarded example with an injected approval provider.
-- [ ] Run `igris verify` on the generated journal.
-- [ ] Confirm no generated signing identities or journals are included in
+- [x] Run the full local SDK matrix for Python 3.10, 3.11, 3.12, and 3.13.
+- [x] Inspect wheel contents.
+- [x] Inspect sdist contents.
+- [x] Install wheel in a clean environment.
+- [x] Install sdist in a clean environment.
+- [x] Run `igris key-info` in both clean environments.
+- [x] Run a guarded example in both clean environments.
+- [x] Run `igris verify` on each generated journal.
+- [x] Confirm no generated signing identities or journals are included in
       artifacts.
 - [ ] Confirm namespace-collision migration plan is approved before any public
       PyPI publication.
