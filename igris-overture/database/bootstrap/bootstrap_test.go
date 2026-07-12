@@ -145,6 +145,44 @@ func TestPostgresBootstrapLifecycle(t *testing.T) {
 		require.NoError(t, manifestErr)
 		require.Zero(t, count)
 	})
+
+	t.Run("concurrent bootstrap advisory locking", func(t *testing.T) {
+		db := openDisposableDatabase(t, adminDSN)
+		ctx := testContext(t)
+
+		// Hold the same advisory xact lock the bootstrap path uses, then start
+		// apply in another session. The second session must block until release
+		// and still produce a correct v069 state (no double-apply corruption).
+		lockConn, err := db.Conn(ctx)
+		require.NoError(t, err)
+		defer lockConn.Close()
+		tx, err := lockConn.BeginTx(ctx, nil)
+		require.NoError(t, err)
+		_, err = tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(438774918066)`)
+		require.NoError(t, err)
+
+		started := make(chan struct{})
+		done := make(chan error, 1)
+		go func() {
+			close(started)
+			_, applyErr := runner.Run(ctx, db, ModeApply, io.Discard)
+			done <- applyErr
+		}()
+		<-started
+		// Give the apply goroutine time to block on the advisory lock.
+		time.Sleep(250 * time.Millisecond)
+		select {
+		case err := <-done:
+			t.Fatalf("bootstrap returned before lock release: %v", err)
+		default:
+		}
+		require.NoError(t, tx.Commit())
+		require.NoError(t, <-done)
+
+		plan, err := runner.Run(ctx, db, ModePreflight, io.Discard)
+		require.NoError(t, err)
+		require.Equal(t, PathCurrent, plan.Path)
+	})
 }
 
 func openDisposableDatabase(t *testing.T, adminDSN string) *sql.DB {

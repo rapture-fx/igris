@@ -47,7 +47,10 @@ type DB struct {
 
 // NewConfig creates a database configuration from environment variables
 // Environment variables:
-//   - DATABASE_URL or POSTGRES_URL: PostgreSQL connection string
+//   - DATABASE_URL_RUNTIME (preferred), then DATABASE_URL or POSTGRES_URL:
+//     PostgreSQL connection string for the application role. The runtime path
+//     NEVER falls back to DATABASE_URL_MIGRATION.
+//   - DATABASE_URL_MIGRATION: reserved for bootstrap/role tooling only; ignored here.
 //   - ENABLE_PERSISTENCE: Enable database persistence (default: false for backward compatibility)
 //   - DB_MAX_OPEN_CONNS: Maximum open connections (default: 25)
 //   - DB_MAX_IDLE_CONNS: Maximum idle connections (default: 5)
@@ -55,11 +58,21 @@ type DB struct {
 //   - DB_CONN_MAX_IDLE_TIME: Connection max idle time in minutes (default: 5)
 //   - DB_FAIL_FAST: Fail on database connection error (default: false)
 //   - DB_ENABLE_QUERY_LOGGING: Enable query logging (default: false)
+//   - DB_RUNTIME_PRIVILEGE_DIAGNOSTIC: when "true", log a fail-closed privilege
+//     diagnostic after connect (never prints credentials; never repairs drift)
 func NewConfig() *Config {
-	// Try DATABASE_URL first, then POSTGRES_URL for compatibility
-	databaseURL := os.Getenv("DATABASE_URL")
+	// Prefer an explicit runtime URL. Never fall back to migration-owner credentials.
+	databaseURL := os.Getenv("DATABASE_URL_RUNTIME")
+	if databaseURL == "" {
+		databaseURL = os.Getenv("DATABASE_URL")
+	}
 	if databaseURL == "" {
 		databaseURL = os.Getenv("POSTGRES_URL")
+	}
+	// Guard against accidental wiring of the migration URL into runtime.
+	if migrationURL := os.Getenv("DATABASE_URL_MIGRATION"); migrationURL != "" && databaseURL == migrationURL {
+		log.Println("[Database] ERROR: DATABASE_URL_RUNTIME/DATABASE_URL matches DATABASE_URL_MIGRATION; refusing to use migration-owner credentials for the application runtime")
+		databaseURL = ""
 	}
 
 	// Default to disabled for backward compatibility
@@ -73,9 +86,9 @@ func NewConfig() *Config {
 	// P0-5 FIX: Increase connection pool limits for high concurrency (50k RPS)
 	config := &Config{
 		DatabaseURL:        databaseURL,
-		MaxOpenConns:       getEnvInt("DB_MAX_OPEN_CONNS", 500),         // P0-5: Was 25, now 500
-		MaxIdleConns:       getEnvInt("DB_MAX_IDLE_CONNS", 100),         // P0-5: Was 5, now 100
-		ConnMaxLifetime:    time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME", 5)) * time.Minute,  // P0-5: Was 15min, now 5min
+		MaxOpenConns:       getEnvInt("DB_MAX_OPEN_CONNS", 500),                                 // P0-5: Was 25, now 500
+		MaxIdleConns:       getEnvInt("DB_MAX_IDLE_CONNS", 100),                                 // P0-5: Was 5, now 100
+		ConnMaxLifetime:    time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME", 5)) * time.Minute,   // P0-5: Was 15min, now 5min
 		ConnMaxIdleTime:    time.Duration(getEnvInt("DB_CONN_MAX_IDLE_TIME", 30)) * time.Second, // P0-5: Was 5min, now 30sec
 		EnablePersistence:  enablePersistence,
 		FailFastOnError:    getEnvBool("DB_FAIL_FAST", false),
@@ -151,7 +164,25 @@ func Connect(config *Config) (*DB, error) {
 	log.Printf("[Database] Connected successfully (max_open=%d, max_idle=%d)\n",
 		config.MaxOpenConns, config.MaxIdleConns)
 
+	// Optional startup privilege diagnostic. Never repairs drift; never logs secrets.
+	if getEnvBool("DB_RUNTIME_PRIVILEGE_DIAGNOSTIC", false) || getEnvBool("DB_FAIL_FAST", false) {
+		if err := db.logRuntimePrivilegeDiagnostic(); err != nil {
+			if config.FailFastOnError {
+				sqlDB.Close()
+				return nil, err
+			}
+			log.Printf("[Database] Warning: privilege diagnostic failed: %v\n", err)
+		}
+	}
+
 	return db, nil
+}
+
+// logRuntimePrivilegeDiagnostic emits a credential-safe privilege report.
+// When DB_FAIL_FAST is set, unsafe configurations fail closed. Drift is never
+// repaired at startup.
+func (db *DB) logRuntimePrivilegeDiagnostic() error {
+	return runRuntimePrivilegeDiagnostic(db.DB, db.config.FailFastOnError, db.logger)
 }
 
 // IsEnabled returns whether database persistence is enabled and connected
