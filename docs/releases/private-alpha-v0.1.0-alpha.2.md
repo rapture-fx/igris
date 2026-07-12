@@ -86,6 +86,22 @@ Details and migration steps: `sdk/python/docs/alpha-2-migration.md`,
   in-process recording client with synthetic data only. The frozen alpha.1
   example and harness are unchanged.
 
+### Known integration finding (merge precondition)
+
+The backend-owned end-to-end test
+`igris-overture/api/evidence_ingestion_e2e_test.go`
+(`TestEvidenceIngestionEndToEndPythonSDK`) encodes alpha.1 ordering: its
+fixture journal retains ordinary refund arguments, and it expects a missing
+`IGRIS_API_KEY` configuration error. Under alpha.2 the privacy preflight
+correctly refuses **before** configuration is read, so the private-alpha CI
+`postgres` stage fails on this one assertion (the other three end-to-end
+suites — contract sync, cross-slice evidence upload, redirect refusal — pass
+against the real backend, confirming HTTP formats are unchanged). Backend
+files are out of scope for this integration branch; before or alongside
+merge, that test needs a follow-up in backend scope: pass
+`--allow-unredacted` to its sync invocations (or redact the fixture
+arguments) and update the step-2 assertion to the preflight refusal.
+
 ## Artifact hashes (deterministic, built twice)
 
 Recorded in `docs/releases/private-alpha-2-artifact-hashes.md` alongside the
