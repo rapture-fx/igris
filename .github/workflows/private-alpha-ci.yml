@@ -231,7 +231,7 @@ jobs:
         run: |
           set -o pipefail
           go test ./igris-overture/api \
-            -run 'TestContractSyncEndToEndPythonSDK|TestEvidenceIngestionEndToEndPythonSDK|TestPrivateAlphaCrossSliceEndToEnd|TestContractSyncRedirectsAreNeverFollowedEndToEnd' \
+            -run 'TestContractSyncEndToEndPythonSDK|TestEvidenceIngestionEndToEndPythonSDK|TestPrivateAlphaCrossSliceEndToEnd|TestContractSyncRedirectsAreNeverFollowedEndToEnd|TestEvidenceSyncPrivacyPreflightPrecedesConfigAndNetwork|TestEvidenceSyncAllowUnredactedIsInvocationOnly' \
             -count=1 -timeout=900s -v 2>&1 | tee e2e-suite.log
           if grep -q "no tests to run" e2e-suite.log; then
             echo "FAIL: E2E suite regex matched no tests"; exit 1
