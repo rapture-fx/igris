@@ -3,13 +3,13 @@
 Status date: 2026-07-12
 Branch: `release/igris-private-alpha-v0.1.0-alpha.2-final`
 Base: `release/igris-private-alpha-v0.1.0-alpha.1-final` tip
-`816ece9842497a9f3abd2730d63fb20b7fc1d770` (which contains the CI baseline
-`40825a90028fc25752cd40934c0c14b9ab07af93` and alpha.1 RC
+`f9fced56595b3e050f1c25ac7728c08f738ace9f` (which contains the pinned
+alpha.1 base `816ece9842497a9f3abd2730d63fb20b7fc1d770`, the CI baseline
+`40825a90028fc25752cd40934c0c14b9ab07af93`, and alpha.1 RC
 `a60e399e35c032cb174b2b2e7a5719464e8bc31a`).
-Package version: **`0.1.0a2`** (PEP 440 prerelease). Note: alpha.1 artifacts
-carried final-form `0.1.0`, so version comparators order `0.1.0a2` *before*
-`0.1.0`; within the private alpha, installs are by explicit artifact, not
-resolver ordering.
+Package version: **`0.1.0a2`** (PEP 440 prerelease). Alpha.1 shipped as
+`0.1.0a1`, so comparators order the two releases naturally
+(`0.1.0a1 < 0.1.0a2`).
 
 ## Scope
 
