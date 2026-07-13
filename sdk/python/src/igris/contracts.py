@@ -117,26 +117,19 @@ def _code_fingerprint(func: Callable[..., Any]) -> str | None:
     return sha256_hex(textwrap.dedent(source).encode("utf-8"))
 
 
-def build_contract(
+def _build_contract_unchecked(
     func: Callable[..., Any],
     *,
     action: str | None,
     risk: str,
     approval: str,
 ) -> ActionContract:
-    """Build the deterministic action contract for a guarded function."""
-    if inspect.iscoroutinefunction(func):
-        raise UnsupportedFunctionError(
-            f"@igris.guard does not support async functions in this version; "
-            f"{getattr(func, '__qualname__', func)!r} is a coroutine function. "
-            "Guard a synchronous wrapper instead."
-        )
-    if inspect.isasyncgenfunction(func) or inspect.isgeneratorfunction(func):
-        raise UnsupportedFunctionError(
-            f"@igris.guard does not support generator functions; "
-            f"{getattr(func, '__qualname__', func)!r} yields instead of returning. "
-            "Guarding a generator would record an outcome before any work runs."
-        )
+    """Build the contract without async/generator rejection.
+
+    ``wrap_tool`` validates callable categories itself and then calls this
+    function so async callables can receive a valid evidence v1 contract
+    without changing ``@igris.guard``'s decoration-time rejection.
+    """
     if risk not in RISK_LEVELS:
         raise ContractError(f"invalid risk {risk!r}: expected one of {RISK_LEVELS}")
     if approval not in APPROVAL_MODES:
@@ -176,3 +169,26 @@ def build_contract(
         code_fingerprint=fingerprint,
         contract_hash=contract_hash,
     )
+
+
+def build_contract(
+    func: Callable[..., Any],
+    *,
+    action: str | None,
+    risk: str,
+    approval: str,
+) -> ActionContract:
+    """Build the deterministic action contract for a guarded function."""
+    if inspect.iscoroutinefunction(func):
+        raise UnsupportedFunctionError(
+            f"@igris.guard does not support async functions in this version; "
+            f"{getattr(func, '__qualname__', func)!r} is a coroutine function. "
+            "Guard a synchronous wrapper instead."
+        )
+    if inspect.isasyncgenfunction(func) or inspect.isgeneratorfunction(func):
+        raise UnsupportedFunctionError(
+            f"@igris.guard does not support generator functions; "
+            f"{getattr(func, '__qualname__', func)!r} yields instead of returning. "
+            "Guarding a generator would record an outcome before any work runs."
+        )
+    return _build_contract_unchecked(func, action=action, risk=risk, approval=approval)

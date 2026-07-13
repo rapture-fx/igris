@@ -56,6 +56,7 @@ from .connected import (
 )
 from .errors import (
     ConnectedConfigurationError,
+    EvidencePrivacyPreflightError,
     EvidenceSyncAuthenticationError,
     EvidenceSyncConfigurationError,
     EvidenceSyncConflictError,
@@ -65,6 +66,7 @@ from .errors import (
     EvidenceSyncValidationError,
     IdentityError,
 )
+from .evidence_privacy import inspect_verified_snapshot
 from .identity import (
     PUBLIC_KEY_FILENAME,
     default_journal_path,
@@ -72,7 +74,7 @@ from .identity import (
     key_id_for,
     load_public_key,
 )
-from .verification import verify_journal
+from .verification import load_journal_snapshot
 
 BATCHES_PATH = "/v1/evidence/batches"
 MAX_EVENTS_PER_BATCH = 500
@@ -280,7 +282,7 @@ def _default_open(request: urllib.request.Request, timeout: float) -> Any:
 
 def _error_for_status(exc: urllib.error.HTTPError) -> EvidenceSyncError:
     status = exc.code
-    error_code, detail = _parse_error_body(exc)
+    error_code, _detail = _parse_error_body(exc)
     if 300 <= status < 400:
         return EvidenceSyncTransportError(
             f"evidence sync failed: the endpoint attempted a redirect (HTTP {status}); "
@@ -299,8 +301,7 @@ def _error_for_status(exc: urllib.error.HTTPError) -> EvidenceSyncError:
             raise _ChainHeadMismatch(expected)
         reason = error_code or "conflict"
         return EvidenceSyncConflictError(
-            f"evidence sync failed: the endpoint reported {reason}"
-            + (f" ({detail})" if detail else ""),
+            f"evidence sync failed: the endpoint reported {reason}",
             error_code=error_code,
         )
     if status == 429 or status >= 500:
@@ -313,8 +314,6 @@ def _error_for_status(exc: urllib.error.HTTPError) -> EvidenceSyncError:
     reason = f"the endpoint rejected the request (HTTP {status}"
     if error_code:
         reason += f", {error_code}"
-    if detail:
-        reason += f": {detail}"
     reason += ")"
     return EvidenceSyncValidationError(
         "evidence sync failed: " + reason,
@@ -360,9 +359,7 @@ def _scrubbed_reason(exc: urllib.error.URLError) -> str:
     reason = getattr(exc, "reason", None)
     if isinstance(reason, BaseException):
         return type(reason).__name__
-    if reason is None:
-        return type(exc).__name__
-    return str(reason)[:_MAX_ERROR_DETAIL_CHARS]
+    return type(exc).__name__
 
 
 def sync_journal(
@@ -370,6 +367,7 @@ def sync_journal(
     *,
     public_key_path: Path | None = None,
     client: HttpEvidenceSyncClient | None = None,
+    allow_unredacted: bool = False,
 ) -> EvidenceSyncReport:
     """Explicitly verify the selected journal locally, then upload it.
 
@@ -382,19 +380,21 @@ def sync_journal(
 
     if not journal.exists():
         raise EvidenceSyncValidationError(
-            f"evidence sync cannot run: journal not found: {journal}. Nothing was uploaded."
+            "evidence sync cannot run: journal not found. Nothing was uploaded."
         )
     try:
         public_key = load_public_key(key_path)
         public_key_pem = key_path.read_text(encoding="utf-8")
     except (IdentityError, OSError) as exc:
         raise EvidenceSyncValidationError(
-            f"evidence sync cannot run: {exc}. Nothing was uploaded."
+            "evidence sync cannot run: the public verification key is unavailable or invalid "
+            f"({type(exc).__name__}). Nothing was uploaded."
         ) from None
     key_id = key_id_for(public_key)
 
     # Local verification with the same primitives `igris verify` uses.
-    result = verify_journal(journal, public_key)
+    snapshot = load_journal_snapshot(journal, public_key)
+    result = snapshot.verification
     if not result.valid:
         summary = "; ".join(
             f"line {issue.line_number}: {issue.code}"
@@ -408,13 +408,26 @@ def sync_journal(
             "for details."
         )
 
-    events = read_journal_events(journal)
+    events = list(snapshot.events)
     if not events:
         return EvidenceSyncReport(
             key_id=key_id, events_total=0, events_uploaded=0, batches=(), up_to_date=True
         )
 
-    active_client = client or HttpEvidenceSyncClient(load_evidence_sync_config())
+    privacy = inspect_verified_snapshot(snapshot)
+    if not privacy.safe_for_upload and not allow_unredacted:
+        flagged = privacy.classifications.partially_redacted
+        unknown = privacy.classifications.unknown
+        raise EvidencePrivacyPreflightError(
+            "evidence sync refused by local privacy preflight: "
+            f"{flagged} invocation(s) retain ordinary argument values and "
+            f"{unknown} invocation(s) have unknown classification. Nothing was uploaded. "
+            "Redact every business argument, inspect with `igris evidence inspect`, or "
+            "acknowledge this upload only with `--allow-unredacted`."
+        )
+
+    config = load_evidence_sync_config() if client is None else None
+    active_client = client or HttpEvidenceSyncClient(config)
 
     remaining = events
     resynced = False

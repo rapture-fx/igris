@@ -93,7 +93,7 @@ stage_postgres() {
     'TestContractSyncPostgres.*|TestEvidenceIngestPostgres.*|TestConnectedImmutableRecordsPostgres' \
     -timeout=600s
   go_test_matching ./igris-overture/api \
-    'TestContractSyncEndToEndPythonSDK|TestEvidenceIngestionEndToEndPythonSDK|TestPrivateAlphaCrossSliceEndToEnd|TestContractSyncRedirectsAreNeverFollowedEndToEnd' \
+    'TestContractSyncEndToEndPythonSDK|TestEvidenceIngestionEndToEndPythonSDK|TestPrivateAlphaCrossSliceEndToEnd|TestContractSyncRedirectsAreNeverFollowedEndToEnd|TestEvidenceSyncPrivacyPreflightPrecedesConfigAndNetwork|TestEvidenceSyncAllowUnredactedIsInvocationOnly' \
     -timeout=900s
 
   dropdb -h "$host" -p "$port" -U "$user" --if-exists "$db"
