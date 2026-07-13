@@ -29,6 +29,16 @@ class UnsupportedFunctionError(ContractError):
     """
 
 
+class ToolWrapError(ContractError):
+    """``wrap_tool`` or ``wrap_tools`` could not wrap the callable safely.
+
+    Raised when a callable is already guarded, is not callable, is an
+    unsupported callable category (generator, async generator), or when
+    a collection helper receives duplicate action names or missing
+    configuration.
+    """
+
+
 class CanonicalizationError(IgrisError):
     """A value could not be converted to the canonical evidence representation.
 
@@ -303,6 +313,27 @@ class EvidenceSyncValidationError(EvidenceSyncError):
         self, message: str, *, status_code: int | None = None, error_code: str | None = None
     ) -> None:
         super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class EvidencePrivacyInspectionError(IgrisError):
+    """A local evidence privacy inspection could not be completed safely."""
+
+    execution_occurred = False
+    retry_safe = False
+    error_code = "evidence_privacy_inspection_failed"
+
+
+class EvidencePrivacyPreflightError(EvidenceSyncError):
+    """Evidence sync needs a per-invocation privacy acknowledgement."""
+
+    execution_occurred = False
+
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            message,
+            error_code="evidence_privacy_acknowledgement_required",
+            retry_safe=True,
+        )
 
 
 class EvidenceSyncConflictError(EvidenceSyncError):

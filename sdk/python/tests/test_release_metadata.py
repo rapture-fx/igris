@@ -17,6 +17,12 @@ def load_pyproject() -> dict:
 
 
 class TestPackageMetadata:
+    def test_alpha2_prerelease_version_is_consistent(self):
+        import igris
+
+        assert load_pyproject()["project"]["version"] == "0.1.0a2"
+        assert igris.__version__ == "0.1.0a2"
+
     def test_distribution_metadata_stays_embedded_and_minimal(self):
         project = load_pyproject()["project"]
 
@@ -41,7 +47,13 @@ class TestPackageMetadata:
     def test_artifact_include_policy_keeps_distribution_small(self):
         sdist = load_pyproject()["tool"]["hatch"]["build"]["targets"]["sdist"]
 
-        assert sdist["include"] == ["src/igris", "README.md", "LICENSE"]
+        assert sdist["include"] == [
+            "src/igris",
+            "docs/evidence-privacy.md",
+            "docs/wrapping-existing-tools.md",
+            "README.md",
+            "LICENSE",
+        ]
         assert (PROJECT_ROOT / "LICENSE").is_file()
         assert "tests" not in sdist["include"]
         assert "examples" not in sdist["include"]

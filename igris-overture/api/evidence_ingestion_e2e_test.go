@@ -56,7 +56,16 @@ class DenyProvider:
         return ApprovalDecision("denied", "e2e")
 
 
-@igris.guard(action="e2e.evidence.refund", risk="critical", approval_provider=AllowProvider())
+# Every business argument is redacted so the journal is fully_redacted and
+# the alpha.2 privacy preflight lets an ordinary explicit sync proceed. The
+# retained-argument refusal and --allow-unredacted acknowledgement paths are
+# proven separately in evidence_privacy_e2e_test.go.
+@igris.guard(
+    action="e2e.evidence.refund",
+    risk="critical",
+    approval_provider=AllowProvider(),
+    redact=["customer_id", "amount", "memo"],
+)
 def refund(customer_id: str, amount: int, api_key: str, memo: str):
     if amount == 13:
         raise ValueError("unlucky amount")
@@ -188,7 +197,9 @@ func TestEvidenceIngestionEndToEndPythonSDK(t *testing.T) {
 		"IGRIS_API_KEY=" + apiKeyA,
 	}
 
-	// 2. Sync with incomplete configuration fails clearly (exit != 0).
+	// 2. Sync with incomplete configuration fails clearly (exit != 0). The
+	// journal is fully redacted, so the alpha.2 privacy preflight passes and
+	// configuration validation is actually reached.
 	partialOutput := runPythonExpectFailure(
 		[]string{"IGRIS_HOME=" + igrisHome, "IGRIS_API_URL=" + baseURL},
 		"run", "igris", "evidence", "sync",

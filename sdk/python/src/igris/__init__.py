@@ -16,7 +16,7 @@ Embedded Igris requires no account, no backend, and makes no network calls.
 
 from __future__ import annotations
 
-__version__ = "0.1.0a1"
+__version__ = "0.1.0a2"
 
 from .approval import (
     ApprovalDecision,
@@ -35,6 +35,8 @@ from .errors import (
     ContractSyncConflictError,
     ContractSyncError,
     EvidencePersistenceError,
+    EvidencePrivacyInspectionError,
+    EvidencePrivacyPreflightError,
     EvidenceSyncAuthenticationError,
     EvidenceSyncConfigurationError,
     EvidenceSyncConflictError,
@@ -47,11 +49,14 @@ from .errors import (
     IgrisError,
     JournalError,
     SigningError,
+    ToolWrapError,
     UnsupportedFunctionError,
     VerificationError,
 )
+from .evidence_privacy import EvidencePrivacyReport, PrivacyClassification, inspect_journal
 from .guard import guard
 from .verification import VerificationResult, verify_journal
+from .wrap_tool import wrap_tool, wrap_tools
 
 __all__ = [
     "ActionContract",
@@ -67,6 +72,9 @@ __all__ = [
     "ContractSyncConflictError",
     "ContractSyncError",
     "EvidencePersistenceError",
+    "EvidencePrivacyInspectionError",
+    "EvidencePrivacyPreflightError",
+    "EvidencePrivacyReport",
     "EvidenceSyncAuthenticationError",
     "EvidenceSyncConfigurationError",
     "EvidenceSyncConflictError",
@@ -78,12 +86,17 @@ __all__ = [
     "IdentityError",
     "IgrisError",
     "JournalError",
+    "PrivacyClassification",
     "SigningError",
     "TerminalApprovalProvider",
+    "ToolWrapError",
     "UnsupportedFunctionError",
     "VerificationError",
     "VerificationResult",
     "__version__",
     "guard",
+    "inspect_journal",
     "verify_journal",
+    "wrap_tool",
+    "wrap_tools",
 ]

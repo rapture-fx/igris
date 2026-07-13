@@ -23,6 +23,7 @@ from __future__ import annotations
 import dataclasses
 import json
 from pathlib import Path
+from typing import Any
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
@@ -71,22 +72,47 @@ class VerificationResult:
     issues: tuple[VerificationIssue, ...]
 
 
+@dataclasses.dataclass(frozen=True)
+class JournalSnapshot:
+    """One immutable read of a journal and its local verification result."""
+
+    verification: VerificationResult
+    events: tuple[dict[str, Any], ...]
+
+
 def verify_journal(path: Path, public_key: Ed25519PublicKey) -> VerificationResult:
     """Verify every event and the hash chain of the journal at *path*."""
+    return load_journal_snapshot(path, public_key).verification
+
+
+def load_journal_snapshot(path: Path, public_key: Ed25519PublicKey) -> JournalSnapshot:
+    """Read, parse, and verify a journal once for local consumers.
+
+    Privacy inspection and evidence sync use the returned events so signed
+    content cannot change between verification and subsequent local handling.
+    """
     issues: list[VerificationIssue] = []
 
     try:
         raw = path.read_bytes()
     except OSError as exc:
-        return VerificationResult(
-            valid=False,
-            events_verified=0,
-            issues=(VerificationIssue(0, "unreadable", f"cannot read journal: {exc}"),),
+        return JournalSnapshot(
+            verification=VerificationResult(
+                valid=False,
+                events_verified=0,
+                issues=(
+                    VerificationIssue(
+                        0, "unreadable", f"cannot read journal ({type(exc).__name__})"
+                    ),
+                ),
+            ),
+            events=(),
         )
 
     expected_key_id = key_id_for(public_key)
     previous_hash: str | None = None
     events_verified = 0
+    events: list[dict[str, Any]] = []
 
     lines = raw.split(b"\n")
     line_number = 0
@@ -103,14 +129,19 @@ def verify_journal(path: Path, public_key: Ed25519PublicKey) -> VerificationResu
                 VerificationIssue(line_number, "malformed_json", f"line is not valid JSON: {exc}")
             )
             # The chain cannot be followed past an unparseable line.
-            return VerificationResult(False, events_verified, tuple(issues))
+            return JournalSnapshot(
+                VerificationResult(False, events_verified, tuple(issues)), tuple(events)
+            )
 
         if not isinstance(event, dict):
             issues.append(
                 VerificationIssue(line_number, "malformed_event", "line is not a JSON object")
             )
-            return VerificationResult(False, events_verified, tuple(issues))
+            return JournalSnapshot(
+                VerificationResult(False, events_verified, tuple(issues)), tuple(events)
+            )
 
+        events.append(event)
         event_issues = _verify_event(event, line_number, previous_hash, public_key, expected_key_id)
         issues.extend(event_issues)
         if not event_issues:
@@ -123,8 +154,11 @@ def verify_journal(path: Path, public_key: Ed25519PublicKey) -> VerificationResu
         stored_hash = event.get("event_hash")
         previous_hash = stored_hash if isinstance(stored_hash, str) else None
 
-    return VerificationResult(
-        valid=not issues, events_verified=events_verified, issues=tuple(issues)
+    return JournalSnapshot(
+        verification=VerificationResult(
+            valid=not issues, events_verified=events_verified, issues=tuple(issues)
+        ),
+        events=tuple(events),
     )
 
 
