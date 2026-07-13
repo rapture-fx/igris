@@ -180,6 +180,8 @@ func TestRouteRegistrationSourceGuard(t *testing.T) {
 		"RegisterMultimodalRoutes":            "experimental_non_core",
 		"RegisterTaskRoutes":                  "core_public_product_api",
 		"RegisterActionRoutes":                "core_public_product_api",
+		"RegisterContractRoutes":              "core_public_product_api",
+		"RegisterEvidenceRoutes":              "core_public_product_api",
 		"RegisterActionPackRoutes":            "core_public_product_api",
 		"RegisterAgentRegistryRoutes":         "core_public_product_api",
 		"RegisterAgentMemoryRoutes":           "core_public_product_api",

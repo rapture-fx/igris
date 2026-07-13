@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "igris"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Igris is a drop-in action layer for consequential AI-agent actions."
 readme = "README.md"
 license = { text = "MIT" }
@@ -33,6 +33,7 @@ igris = "igris.cli:main"
 dev = [
     "pytest>=8.0",
     "ruff>=0.8",
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 [tool.hatch.build.targets.wheel]

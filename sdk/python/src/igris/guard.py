@@ -8,6 +8,14 @@ Execution flow for every call to a guarded function:
 1. Bind call arguments to parameter names (``inspect.signature``), applying
    defaults. A ``TypeError`` from binding propagates unchanged: the call was
    malformed and nothing has executed or been recorded.
+1a. If Connected mode is explicitly configured (``IGRIS_API_URL`` +
+   ``IGRIS_API_KEY``, or an injected sync client), synchronize the
+   ActionContract to the Igris endpoint once per contract version per
+   process — before approval and before execution. Only the contract is
+   sent (never arguments, events, journals, or keys). A sync failure is a
+   typed pre-execution error: the function does not run, and Connected mode
+   never silently falls back to Embedded-only execution. With no Connected
+   configuration this step performs no work and no network activity occurs.
 2. Redact sensitive values, then canonicalize ONLY the redacted structure.
 3. Compute the input hash over the redacted canonical representation.
 4. Load the local signing identity (fail closed if unusable).
@@ -20,7 +28,8 @@ Execution flow for every call to a guarded function:
 9. Return the original result, or re-raise the original exception.
 
 Post-execution evidence failure is reported as
-:class:`~igris.errors.EvidencePersistenceError` — a distinct error that means
+:class:`~igris.errors.ExecutionCompletedEvidenceError` (a subclass of
+:class:`~igris.errors.EvidencePersistenceError`) — a distinct error that means
 "the function ALREADY ran, but outcome evidence could not be persisted". The
 function is never retried.
 
@@ -47,13 +56,14 @@ from .approval import (
     TerminalApprovalProvider,
 )
 from .canonical import canonical_json_bytes, sha256_hex, to_canonical, type_name
+from .connected import ContractSyncClient, ensure_contract_synced, resolve_connected_client
 from .contracts import ActionContract, build_contract
 from .errors import (
     ActionDenied,
     ApprovalError,
     CanonicalizationError,
     ContractError,
-    EvidencePersistenceError,
+    ExecutionCompletedEvidenceError,
     IgrisError,
 )
 from .identity import LocalSigningIdentity, SigningIdentity, default_journal_path
@@ -99,6 +109,7 @@ def guard(
     metadata: dict[str, Any] | None = ...,
     approval_provider: ApprovalProvider | None = ...,
     identity: SigningIdentity | None = ...,
+    sync_client: ContractSyncClient | None = ...,
 ) -> Callable[[F], F]: ...
 
 
@@ -113,6 +124,7 @@ def guard(
     metadata: dict[str, Any] | None = None,
     approval_provider: ApprovalProvider | None = None,
     identity: SigningIdentity | None = None,
+    sync_client: ContractSyncClient | None = None,
 ):
     """Guard a consequential synchronous function.
 
@@ -130,6 +142,10 @@ def guard(
         approval_provider: Advanced/testing hook: an injectable
             ``ApprovalProvider``. Defaults to the interactive terminal prompt.
         identity: Advanced/testing hook: an injectable ``SigningIdentity``.
+        sync_client: Advanced/testing hook: an injectable
+            ``ContractSyncClient``. When omitted, Connected synchronization is
+            driven purely by explicit ``IGRIS_API_URL``/``IGRIS_API_KEY``
+            configuration and is otherwise disabled (zero network).
     """
 
     def decorate(target: F) -> F:
@@ -147,6 +163,17 @@ def guard(
             # malformed; propagate it unchanged (nothing ran, nothing recorded).
             bound = signature.bind(*args, **kwargs)
             bound.apply_defaults()
+
+            # 1a. Connected contract synchronization (explicit opt-in only).
+            # Happens before redaction, identity, approval, and execution.
+            # Raises typed pre-execution errors: on any failure the function
+            # has NOT run and nothing has been recorded. Without Connected
+            # configuration this resolves to None and no network I/O exists.
+            active_sync_client = (
+                sync_client if sync_client is not None else resolve_connected_client()
+            )
+            if active_sync_client is not None:
+                ensure_contract_synced(contract, active_sync_client)
 
             # 2-3. Redact, canonicalize the redacted structure only, hash.
             redacted = redact_arguments(dict(bound.arguments), sensitive)
@@ -346,15 +373,25 @@ def _record_outcome_or_raise(
     except Exception as journal_exc:
         message = (
             f"action {contract.action_name!r} EXECUTED (function outcome: {status}) "
-            "but the outcome event could not be persisted; the external side effect "
-            f"may have occurred. Evidence failure: {type_name(journal_exc)}. "
+            "but the outcome event could not be persisted, so outcome evidence is "
+            "INCOMPLETE. The external side effect may have occurred. Automatic retry "
+            f"is UNSAFE. Evidence failure: {type_name(journal_exc)}. "
             "Igris did not retry the function."
         )
         if exception is not None:
             # Preserve the original function failure as the cause.
-            raise EvidencePersistenceError(message, function_outcome=status) from exception
-        raise EvidencePersistenceError(
-            message, function_outcome=status, result=result
+            raise ExecutionCompletedEvidenceError(
+                message,
+                action_id=contract.action_id,
+                decision_event_id=decision_event["event_id"],
+                function_outcome=status,
+            ) from exception
+        raise ExecutionCompletedEvidenceError(
+            message,
+            action_id=contract.action_id,
+            decision_event_id=decision_event["event_id"],
+            function_outcome=status,
+            result=result,
         ) from journal_exc
 
 

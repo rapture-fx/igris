@@ -272,6 +272,30 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Path: "/v1/contracts/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "contracts",
+			RegistrationSource:     "RegisterContractRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-owned logical actions and immutable contract versions",
+			Notes:                  "Connected contract synchronization and lookup; declaration only, grants no execution permission",
+		},
+	},
+	{
+		Path: "/v1/evidence/*",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "evidence",
+			RegistrationSource:     "RegisterEvidenceRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth tenant credential",
+			TenantScopeExpectation: "tenant-scoped SDK signing keys, evidence batches, and events",
+			Notes:                  "Embedded SDK evidence ingestion and status; server re-verifies hashes/signatures/chain, stores execution_provenance=embedded only, and grants no execution permission",
+		},
+	},
+	{
 		Path: "/v1/tasks/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "tasks",
