@@ -1,0 +1,139 @@
+name: Python SDK
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/sdk-python.yml"
+      - "sdk/python/**"
+      - "Makefile"
+  merge_group:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - ".github/workflows/sdk-python.yml"
+      - "sdk/python/**"
+      - "Makefile"
+
+jobs:
+  sdk-tests:
+    name: SDK tests py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+
+    defaults:
+      run:
+        working-directory: sdk/python
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+
+      - name: Install test environment
+        run: uv sync --dev
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Run ruff
+        run: uv run ruff check .
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+  sdk-artifacts:
+    name: SDK artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: sdk/python
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+
+      - name: Build wheel and sdist
+        run: uv build
+
+      - name: Inspect artifact contents
+        run: |
+          python - <<'PY'
+          import tarfile
+          import zipfile
+          from pathlib import Path
+
+          dist = Path("dist")
+          wheels = sorted(dist.glob("igris-*.whl"))
+          sdists = sorted(dist.glob("igris-*.tar.gz"))
+          assert len(wheels) == 1, wheels
+          assert len(sdists) == 1, sdists
+
+          with zipfile.ZipFile(wheels[0]) as wheel:
+              wheel_names = set(wheel.namelist())
+          assert "igris/py.typed" in wheel_names
+          assert any(name.endswith(".dist-info/licenses/LICENSE") for name in wheel_names)
+          assert not any(name.startswith("tests/") for name in wheel_names)
+          assert not any("signing_key" in name or "journal.jsonl" in name for name in wheel_names)
+
+          with tarfile.open(sdists[0]) as sdist:
+              sdist_names = set(sdist.getnames())
+          assert any(name.endswith("/src/igris/py.typed") for name in sdist_names)
+          assert any(name.endswith("/LICENSE") for name in sdist_names)
+          assert not any("/tests/" in name for name in sdist_names)
+          assert not any("signing_key" in name or "journal.jsonl" in name for name in sdist_names)
+          PY
+
+      - name: Install wheel in clean environment
+        run: |
+          uv venv .venv-wheel
+          . .venv-wheel/bin/activate
+          uv pip install dist/*.whl
+          python -c "import igris; from igris import guard; print(igris.__version__, guard.__name__)"
+          IGRIS_HOME="$PWD/.igris-wheel" igris key-info
+
+      - name: Install sdist in clean environment
+        run: |
+          uv venv .venv-sdist
+          . .venv-sdist/bin/activate
+          uv pip install dist/*.tar.gz
+          python -c "import igris; from igris import guard; print(igris.__version__, guard.__name__)"
+
+      - name: Run injected-approval example and verify journal
+        run: |
+          . .venv-wheel/bin/activate
+          export IGRIS_HOME="$PWD/.igris-example"
+          python examples/custom_approval_provider.py
+          igris verify "$IGRIS_HOME/journal.jsonl"

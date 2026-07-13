@@ -114,3 +114,148 @@ class TestSecretsNeverInJournal:
             call_api(secret, 10)
         raw = (igris_home / "journal.jsonl").read_bytes()
         assert secret.encode() not in raw
+
+
+class TestEvidenceSyncCommand:
+    def test_missing_configuration_exits_two(self, populated, igris_home, monkeypatch, capsys):
+        monkeypatch.delenv("IGRIS_API_URL", raising=False)
+        monkeypatch.delenv("IGRIS_API_KEY", raising=False)
+        assert main(["evidence", "sync", str(populated)]) == 2
+        err = capsys.readouterr().err
+        assert "IGRIS_API_URL" in err
+        assert "IGRIS_API_KEY" in err
+
+    def test_partial_configuration_exits_two_subprocess(self, populated, igris_home):
+        env = dict(os.environ, IGRIS_HOME=str(igris_home), IGRIS_API_KEY="igris_k")
+        env.pop("IGRIS_API_URL", None)
+        proc = subprocess.run(
+            [sys.executable, "-m", "igris.cli", "evidence", "sync"],
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=60,
+        )
+        assert proc.returncode == 2
+        assert "igris_k" not in proc.stderr, "credentials must never appear in CLI output"
+
+    def test_invalid_journal_exits_one_before_network(
+        self, populated, igris_home, monkeypatch, capsys
+    ):
+        monkeypatch.setenv("IGRIS_API_URL", "https://igris.test")
+        monkeypatch.setenv("IGRIS_API_KEY", "igris_cli_token_not_real")
+        text = populated.read_text(encoding="utf-8")
+        populated.write_text(text.replace('"decision":"allowed"', '"decision":"denied "'), "utf-8")
+
+        from igris import evidence_sync as evidence_sync_module
+
+        def _no_network(request, timeout=None):
+            raise AssertionError("local validation failure must never reach the network")
+
+        monkeypatch.setattr(evidence_sync_module, "_default_open", _no_network)
+        assert main(["evidence", "sync", str(populated)]) == 1
+        err = capsys.readouterr().err
+        assert "LOCAL verification" in err
+        assert "igris_cli_token_not_real" not in err
+
+    def test_successful_sync_exits_zero(self, populated, igris_home, monkeypatch, capsys):
+        monkeypatch.setenv("IGRIS_API_URL", "https://igris.test")
+        monkeypatch.setenv("IGRIS_API_KEY", "igris_cli_token_not_real")
+
+        from igris import evidence_sync as evidence_sync_module
+
+        events = [json.loads(line) for line in populated.read_text("utf-8").strip().splitlines()]
+
+        class _Response:
+            status = 202
+
+            def read(self):
+                return json.dumps(
+                    {
+                        "batch_id": "b-cli-1",
+                        "evidence_state": "verified",
+                        "execution_provenance": "embedded",
+                        "events_verified": len(events),
+                        "created": True,
+                        "chain_head": events[-1]["event_hash"],
+                    }
+                ).encode("utf-8")
+
+            def getcode(self):
+                return self.status
+
+        calls = []
+
+        def fake_open(request, timeout=None):
+            calls.append(request)
+            return _Response()
+
+        monkeypatch.setattr(evidence_sync_module, "_default_open", fake_open)
+        assert main(["evidence", "sync", str(populated)]) == 0
+        out = capsys.readouterr().out
+        assert "OK: local verification passed" in out
+        assert "b-cli-1" in out
+        assert "embedded" in out
+        assert len(calls) == 1
+
+    def test_auth_failure_exits_one(self, populated, igris_home, monkeypatch, capsys):
+        monkeypatch.setenv("IGRIS_API_URL", "https://igris.test")
+        monkeypatch.setenv("IGRIS_API_KEY", "igris_cli_token_not_real")
+
+        import io as io_module
+        import urllib.error
+
+        from igris import evidence_sync as evidence_sync_module
+
+        def fake_open(request, timeout=None):
+            raise urllib.error.HTTPError(
+                url=request.full_url,
+                code=401,
+                msg="unauthorized",
+                hdrs=None,
+                fp=io_module.BytesIO(b'{"error":"unauthenticated"}'),
+            )
+
+        monkeypatch.setattr(evidence_sync_module, "_default_open", fake_open)
+        assert main(["evidence", "sync", str(populated)]) == 1
+        err = capsys.readouterr().err
+        assert "authentication was rejected" in err
+        assert "igris_cli_token_not_real" not in err
+
+    def test_evidence_help_available_in_subprocess(self, igris_home):
+        proc = run_cli(["evidence", "--help"], igris_home)
+        assert proc.returncode == 0
+        assert "sync" in proc.stdout
+        assert "status" in proc.stdout
+
+
+class TestEvidenceStatusCommand:
+    def test_status_prints_fields(self, igris_home, monkeypatch, capsys):
+        monkeypatch.setenv("IGRIS_API_URL", "https://igris.test")
+        monkeypatch.setenv("IGRIS_API_KEY", "igris_cli_token_not_real")
+
+        from igris import evidence_sync as evidence_sync_module
+
+        class _Response:
+            status = 200
+
+            def read(self):
+                return json.dumps(
+                    {
+                        "batch_id": "b-cli-2",
+                        "evidence_state": "verified",
+                        "execution_provenance": "embedded",
+                        "events_accepted": 5,
+                        "events_verified": 5,
+                    }
+                ).encode("utf-8")
+
+            def getcode(self):
+                return self.status
+
+        monkeypatch.setattr(
+            evidence_sync_module, "_default_open", lambda r, timeout=None: _Response()
+        )
+        assert main(["evidence", "status", "b-cli-2"]) == 0
+        out = capsys.readouterr().out
+        assert "evidence_state: verified" in out
+        assert "execution_provenance: embedded" in out

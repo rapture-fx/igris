@@ -6,6 +6,13 @@ Commands:
   Exit code 0 only when the journal is fully valid.
 * ``igris key-info`` — print the local public key identity. Never prints
   private-key material.
+* ``igris evidence sync [JOURNAL_PATH]`` — EXPLICITLY verify the local
+  journal and upload it to the configured Connected endpoint. Requires
+  ``IGRIS_API_URL`` and ``IGRIS_API_KEY``. Exit code 0 only for a successful
+  (or safely replayed / already up-to-date) upload. Guarded execution never
+  triggers this.
+* ``igris evidence status BATCH_ID`` — fetch a previously uploaded batch's
+  tenant-scoped verification status.
 """
 
 from __future__ import annotations
@@ -15,7 +22,12 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .errors import IdentityError
+from .errors import (
+    EvidenceSyncConfigurationError,
+    EvidenceSyncError,
+    IdentityError,
+)
+from .evidence_sync import get_batch_status, sync_journal
 from .identity import (
     PUBLIC_KEY_FILENAME,
     LocalSigningIdentity,
@@ -53,12 +65,40 @@ def main(argv: list[str] | None = None) -> int:
 
     subparsers.add_parser("key-info", help="print the local signing identity (public parts only)")
 
+    evidence_parser = subparsers.add_parser(
+        "evidence", help="explicit Connected evidence commands (never automatic)"
+    )
+    evidence_subparsers = evidence_parser.add_subparsers(dest="evidence_command", required=True)
+    sync_parser = evidence_subparsers.add_parser(
+        "sync",
+        help="verify the local journal, then upload it to the configured Igris endpoint",
+    )
+    sync_parser.add_argument(
+        "journal",
+        nargs="?",
+        default=None,
+        help=f"journal path (default: {Path('~') / '.igris' / 'journal.jsonl'} or $IGRIS_HOME)",
+    )
+    sync_parser.add_argument(
+        "--public-key",
+        default=None,
+        help=f"public key PEM path (default: {PUBLIC_KEY_FILENAME} in the Igris home)",
+    )
+    status_parser = evidence_subparsers.add_parser(
+        "status", help="fetch a previously uploaded batch's verification status"
+    )
+    status_parser.add_argument("batch_id", help="batch id returned by `igris evidence sync`")
+
     args = parser.parse_args(argv)
 
     if args.command == "verify":
         return _cmd_verify(args)
     if args.command == "key-info":
         return _cmd_key_info()
+    if args.command == "evidence":
+        if args.evidence_command == "sync":
+            return _cmd_evidence_sync(args)
+        return _cmd_evidence_status(args)
     parser.error(f"unknown command {args.command!r}")
     return EXIT_USAGE  # unreachable; parser.error exits
 
@@ -91,6 +131,63 @@ def _cmd_verify(args: argparse.Namespace) -> int:
         file=sys.stderr,
     )
     return EXIT_INVALID
+
+
+def _cmd_evidence_sync(args: argparse.Namespace) -> int:
+    journal_path = Path(args.journal) if args.journal else None
+    key_path = Path(args.public_key) if args.public_key else None
+
+    try:
+        report = sync_journal(journal_path, public_key_path=key_path)
+    except EvidenceSyncConfigurationError as exc:
+        print(f"igris evidence sync: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except EvidenceSyncError as exc:
+        print(f"igris evidence sync: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+
+    print(f"OK: local verification passed ({report.events_total} event(s), key {report.key_id})")
+    if report.events_total == 0:
+        print("nothing to sync: the journal has no events")
+        return EXIT_OK
+    if report.up_to_date:
+        print("already up to date: the endpoint holds all local evidence")
+        return EXIT_OK
+    print(
+        f"synced {report.events_uploaded} event(s) in {len(report.batches)} batch(es); "
+        "execution_provenance stays embedded"
+    )
+    for batch in report.batches:
+        replay = "" if batch.created else " (replayed)"
+        events = f"{batch.events_verified} event(s)"
+        print(f"  batch {batch.batch_id}: {batch.evidence_state}, {events}{replay}")
+    return EXIT_OK
+
+
+def _cmd_evidence_status(args: argparse.Namespace) -> int:
+    try:
+        status = get_batch_status(args.batch_id)
+    except EvidenceSyncConfigurationError as exc:
+        print(f"igris evidence status: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except EvidenceSyncError as exc:
+        print(f"igris evidence status: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+
+    for field in (
+        "batch_id",
+        "evidence_state",
+        "execution_provenance",
+        "events_accepted",
+        "events_verified",
+        "verification_key_id",
+        "received_at",
+        "verified_at",
+        "verification_error_code",
+        "chain_head",
+    ):
+        print(f"{field}: {status.get(field)}")
+    return EXIT_OK
 
 
 def _cmd_key_info() -> int:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import json
 import sys
 
 import pytest
@@ -14,6 +15,7 @@ from igris.errors import (
     ApprovalError,
     ApprovalUnavailableError,
     EvidencePersistenceError,
+    ExecutionCompletedEvidenceError,
     IdentityError,
     JournalError,
     UnsupportedFunctionError,
@@ -221,6 +223,7 @@ class TestFailClosed:
         with pytest.raises(JournalError):
             f()
         assert calls == []
+        assert read_events(igris_home) == []
 
     def test_canonicalization_failure_prevents_execution(self, igris_home, allow_provider):
         calls = []
@@ -305,14 +308,24 @@ class TestOutcomeSemantics:
             calls.append(1)
             return "done"
 
-        with pytest.raises(EvidencePersistenceError) as excinfo:
+        with pytest.raises(ExecutionCompletedEvidenceError) as excinfo:
             f()
         assert calls == [1], "function must execute exactly once, never retried"
         err = excinfo.value
+        assert isinstance(err, EvidencePersistenceError)
+        assert err.execution_occurred is True
         assert err.executed is True
+        assert err.execution_state == "completed"
+        assert err.evidence_state == "incomplete"
+        assert err.retry_safe is False
+        assert err.action_id
+        decision = json.loads(journal.path.read_text(encoding="utf-8").splitlines()[0])
+        assert err.decision_event_id == decision["event_id"]
         assert err.function_outcome == "succeeded"
         assert err.result == "done"
         assert "EXECUTED" in str(err)
+        assert "INCOMPLETE" in str(err)
+        assert "Automatic retry is UNSAFE" in str(err)
         assert "did not retry" in str(err)
 
     def test_outcome_write_failure_after_function_exception(
@@ -324,10 +337,38 @@ class TestOutcomeSemantics:
         def f():
             raise ValueError("original failure")
 
-        with pytest.raises(EvidencePersistenceError) as excinfo:
+        with pytest.raises(ExecutionCompletedEvidenceError) as excinfo:
             f()
-        assert excinfo.value.function_outcome == "failed"
-        assert isinstance(excinfo.value.__cause__, ValueError)
+        err = excinfo.value
+        assert err.execution_occurred is True
+        assert err.execution_state == "failed"
+        assert err.evidence_state == "incomplete"
+        assert err.retry_safe is False
+        assert err.function_outcome == "failed"
+        assert err.result is None
+        decision = json.loads(journal.path.read_text(encoding="utf-8").splitlines()[0])
+        assert err.decision_event_id == decision["event_id"]
+        assert isinstance(err.__cause__, ValueError)
+
+    def test_outcome_write_failure_message_does_not_expose_result_or_secrets(
+        self, igris_home, allow_provider, tmp_path
+    ):
+        journal = _OutcomeFailsJournal(tmp_path / "journal.jsonl")
+        secret = "sk-live-POST-EXECUTION-SECRET"
+
+        @igris.guard(approval_provider=allow_provider, journal=journal)
+        def f(api_key: str):
+            return {"ok": True, "api_key": api_key}
+
+        with pytest.raises(ExecutionCompletedEvidenceError) as excinfo:
+            f(secret)
+        err = excinfo.value
+        assert err.result == {"ok": True, "api_key": secret}
+        assert secret not in str(err)
+        assert secret not in repr(err)
+
+    def test_post_execution_error_is_publicly_importable(self):
+        assert igris.ExecutionCompletedEvidenceError is ExecutionCompletedEvidenceError
 
 
 class TestMetadata:

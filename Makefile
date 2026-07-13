@@ -1,4 +1,4 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console sdk-python-test
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console sdk-python-test sdk-python-release-check private-alpha-ci private-alpha-ci-migrations private-alpha-ci-python private-alpha-ci-go private-alpha-ci-postgres private-alpha-ci-artifacts private-alpha-ci-harness
 
 product-promise:
 	./scripts/product_promise_acceptance.sh
@@ -84,3 +84,30 @@ test-proof-tamper:
 
 sdk-python-test:
 	cd sdk/python && uv sync --dev && uv run pytest && uv run ruff check . && uv run ruff format --check .
+
+sdk-python-release-check:
+	cd sdk/python && uv sync --dev && uv run pytest && uv run ruff check . && uv run ruff format --check . && uv build
+
+# Local mirror of .github/workflows/private-alpha-ci.yml (docs/ci/private-alpha-ci.md).
+# Stages: migrations, python (3.10-3.13 matrix), go, postgres (disposable DB),
+# artifacts (reproducible wheel/sdist), harness (Embedded private alpha).
+private-alpha-ci:
+	./scripts/ci/private_alpha_ci.sh all
+
+private-alpha-ci-migrations:
+	./scripts/ci/private_alpha_ci.sh migrations
+
+private-alpha-ci-python:
+	./scripts/ci/private_alpha_ci.sh python
+
+private-alpha-ci-go:
+	./scripts/ci/private_alpha_ci.sh go
+
+private-alpha-ci-postgres:
+	./scripts/ci/private_alpha_ci.sh postgres
+
+private-alpha-ci-artifacts:
+	./scripts/ci/private_alpha_ci.sh artifacts
+
+private-alpha-ci-harness:
+	./scripts/ci/private_alpha_ci.sh harness
