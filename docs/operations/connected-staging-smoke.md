@@ -14,23 +14,36 @@ infrastructure:
 
 ## Prerequisites
 
-- Local PostgreSQL 14+ (validated on **14.18** and **16.14**)
-- Admin DSN able to `CREATE DATABASE` / `CREATE ROLE`
+- An explicitly selected PostgreSQL 16 installation for a full disposable smoke
+- An admin DSN only for non-destructive preflight
 - Repository checkout with Go 1.24 toolchain
 - For PostgreSQL 16 specifically, the server must provide the `uuid-ossp`
   extension (standard on Homebrew/Docker Postgres images; required by the
   actions-first baseline)
 
-## Command
+## External target: non-destructive preflight only
 
 ```bash
 export IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN='postgres://USER@localhost:5432/postgres?sslmode=disable'
 make database-staging-smoke
-# or:
-./scripts/connected/staging_smoke.sh
 ```
 
-The script refuses DSN strings that look like shared/cloud/production hosts.
+This mode does not create or drop databases or roles. An external DSN is never
+accepted by the release helper for destructive validation; host deny lists are
+not treated as proof that a database is disposable.
+
+## Helper-created target: full disposable smoke
+
+```bash
+IGRIS_PG16_PREFIX=/path/to/verified/postgresql-16 \
+  ./scripts/connected/pg16_local_validate.sh
+```
+
+The helper starts its own socket-only cluster, creates a run-specific identity
+marker, generates randomized database and role names, and passes the verified
+identity to `staging_smoke.sh`. Direct disposable mode is intentionally not an
+operator interface: it refuses work without matching run ID, server data
+directory, socket, port, marker row, and generated role namespace.
 
 ## What it does **not** do
 
@@ -45,13 +58,17 @@ The script refuses DSN strings that look like shared/cloud/production hosts.
 result=connected_staging_smoke_ok
 ```
 
-Nonzero exit on any failure. Disposable database and smoke roles are dropped in
-an `EXIT` trap.
+Nonzero exit on any failed stage, including E2E and cleanup. The final marker is
+not printed on failure. The disposable database and generated roles are removed
+only after positive cluster identity is reverified. If PostgreSQL cannot be
+proven stopped, the helper retains PGDATA, exits nonzero, and reports the private
+run-state directory instead of deleting potentially live state.
 
 ## Offline journal note
 
 The full Embedded SDK offline journal verify + HTTP evidence upload path is
 covered by the private-alpha Go/Python E2E suites. This smoke focuses on the
 database role boundary for Connected storage using synthetic, fully redacted
-rows. Combine with `scripts/ci/private_alpha_ci.sh` harness stages when
-exercising the HTTP API against a local runtime credential.
+rows. Its runtime behavior uses `SET ROLE` on an administrator-authenticated
+connection; it does not prove a dedicated runtime LOGIN or certificate path.
+That remains an explicit private-alpha limitation.

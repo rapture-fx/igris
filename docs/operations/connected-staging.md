@@ -76,8 +76,13 @@ make database-staging-preflight
 Verifies:
 
 - Schema history includes v066 + 067 + 068 + 069 with pinned checksums
-- Catalog hash equals bootstrap v069 digest **or** the supported post-role
-  ACL-adjusted equivalent (ledger + ownership + grants)
+- The pre-role catalog hash equals the pinned bootstrap v069 digest
+- A separate post-role structural manifest still covers columns, defaults,
+  constraints, indexes, triggers, policies, functions, views, types, sequences,
+  relation kinds, and RLS flags; expected ownership and ACL changes cannot mask
+  structural drift
+- Ownership and grants match the least-privilege role model independently of
+  the structural manifest
 - Migration-069 immutability triggers are enabled
 - Runtime role does not own immutable tables
 - Runtime cannot `UPDATE`/`DELETE` immutable rows or mutate schema history
@@ -85,13 +90,16 @@ Verifies:
 - RLS remains active on baseline tenant-scoped tables
 - Nonzero exit on any mismatch
 
-## Staging smoke procedure
+## Staging preflight and disposable smoke
 
 ```bash
 IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN='postgres://…@localhost/postgres' \
   make database-staging-smoke
 ```
 
+An externally supplied admin DSN runs **non-destructive preflight only**. The
+full create/apply/smoke/drop path is available only through the PG16 validation
+helper, which creates a socket-only cluster and a run-specific identity marker.
 See `docs/operations/connected-staging-smoke.md`.
 
 ## Failure and rollback behavior
@@ -135,16 +143,24 @@ Pre-role catalog hash on both 14.18 and 16.14:
 ```
 
 That matches the pinned bootstrap `ExpectedV069SchemaSHA256`. No version-specific
-hash update was required. Post-role ACL-sensitive hashes differ by design and
-are accepted via the staging preflight supported equivalent path.
+hash update was required. After role provisioning, preflight retains a separate
+ACL-invariant structural manifest and validates ownership/grants separately.
 
-Local PG16 validation helper (disposable instance or admin DSN):
+Local PG16 validation helper (helper-created disposable cluster only):
 
 ```bash
-# Prefer IGRIS_PG16_PREFIX pointing at a PostgreSQL 16 install, or set
-# IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN to a disposable local PG16 admin URL.
+# Required: an explicitly selected PostgreSQL 16 installation prefix.
+IGRIS_PG16_PREFIX=/path/to/verified/postgresql-16 \
 ./scripts/connected/pg16_local_validate.sh
 ```
+
+The helper refuses external admin DSNs. It verifies `initdb`, `pg_ctl`,
+`postgres`, and `psql`, creates private run-scoped state, starts a socket-only
+cluster, and binds destructive work to a marker containing the run ID, data
+directory, socket directory, and port. Every validation stage is fatal. Cleanup
+stops and verifies the exact postmaster before deleting state; if shutdown
+cannot be proven, the helper exits nonzero and reports a bounded retained state
+directory for manual remediation.
 
 ## Remaining production blockers
 
