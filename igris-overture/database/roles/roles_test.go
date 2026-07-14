@@ -344,5 +344,71 @@ func TestPrintPlanOmitsSecrets(t *testing.T) {
 	require.Contains(t, b.String(), "role_mode=preflight")
 }
 
+func TestStagingPreflightRejectsStructuralDrift(t *testing.T) {
+	adminDSN := os.Getenv("IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN")
+	if adminDSN == "" {
+		t.Skip("set IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN to run structural drift tests")
+	}
+
+	suffix := randomHex(t, 4)
+	names := Names{
+		MigrationOwner:   "igris_mig_" + suffix,
+		AppRuntime:       "igris_rt_" + suffix,
+		ReadOnlyOperator: "igris_ro_" + suffix,
+		BackupRestore:    "igris_bk_" + suffix,
+	}
+	t.Cleanup(func() {
+		admin, err := sql.Open("postgres", adminDSN)
+		if err != nil {
+			return
+		}
+		defer admin.Close()
+		for _, role := range []string{names.AppRuntime, names.ReadOnlyOperator, names.BackupRestore, names.MigrationOwner} {
+			_, _ = admin.Exec(`DROP OWNED BY ` + pq.QuoteIdentifier(role) + ` CASCADE`)
+			_, _ = admin.Exec(`DROP ROLE IF EXISTS ` + pq.QuoteIdentifier(role))
+		}
+	})
+
+	db := openDisposableDatabase(t, adminDSN)
+	ctx := testContext(t)
+	bootstrapRunner, err := bootstrap.NewRunner()
+	require.NoError(t, err)
+	_, err = bootstrapRunner.Run(ctx, db, bootstrap.ModeApply, io.Discard)
+	require.NoError(t, err)
+	roleRunner, err := NewRunner(names)
+	require.NoError(t, err)
+	_, err = roleRunner.Run(ctx, db, ModeApply, io.Discard)
+	require.NoError(t, err)
+	_, err = StagingPreflight(ctx, db, names, io.Discard)
+	require.NoError(t, err)
+
+	cases := []struct {
+		name   string
+		apply  string
+		revert string
+	}{
+		{"extra column", `ALTER TABLE public.tenants ADD COLUMN clock1a_extra text`, `ALTER TABLE public.tenants DROP COLUMN clock1a_extra`},
+		{"extra index", `CREATE INDEX clock1a_extra_index ON public.tenants (tenant_name)`, `DROP INDEX public.clock1a_extra_index`},
+		{"extra trigger", `CREATE TRIGGER clock1a_extra_trigger BEFORE UPDATE ON public.tenants FOR EACH ROW EXECUTE FUNCTION public.update_fleet_updated_at()`, `DROP TRIGGER clock1a_extra_trigger ON public.tenants`},
+		{"extra policy", `CREATE POLICY clock1a_extra_policy ON public.licenses FOR SELECT USING (true)`, `DROP POLICY clock1a_extra_policy ON public.licenses`},
+		{"extra function", `CREATE FUNCTION public.clock1a_extra_function() RETURNS integer LANGUAGE sql AS $$ SELECT 1 $$`, `DROP FUNCTION public.clock1a_extra_function()`},
+		{"extra view", `CREATE VIEW public.clock1a_extra_view AS SELECT tenant_id FROM public.tenants`, `DROP VIEW public.clock1a_extra_view`},
+		{"altered default", `ALTER TABLE public.tenants ALTER COLUMN tenant_name SET DEFAULT 'clock1a'`, `ALTER TABLE public.tenants ALTER COLUMN tenant_name SET DEFAULT ''::text`},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := db.ExecContext(ctx, tc.apply)
+			require.NoError(t, err)
+			_, err = StagingPreflight(ctx, db, names, io.Discard)
+			require.ErrorContains(t, err, "structural catalog hash mismatch")
+			_, err = db.ExecContext(ctx, tc.revert)
+			require.NoError(t, err)
+			_, err = StagingPreflight(ctx, db, names, io.Discard)
+			require.NoError(t, err)
+		})
+	}
+}
+
 // Ensure fmt import used when building without tests optimized away.
 var _ = fmt.Sprintf

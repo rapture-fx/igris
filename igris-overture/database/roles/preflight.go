@@ -15,6 +15,7 @@ import (
 // StagingPreflightResult captures Connected staging readiness checks.
 type StagingPreflightResult struct {
 	SchemaHash           string
+	StructuralHash       string
 	HistoryVersions      []string
 	TriggersEnabled      map[string]bool
 	RuntimeRole          string
@@ -32,11 +33,10 @@ type StagingPreflightResult struct {
 // triggers, and runtime privilege boundaries. It fails closed on any mismatch.
 // adminDB must be able to SET ROLE to the runtime role for privilege probes.
 //
-// Catalog hash notes: bootstrap.ExpectedV069SchemaSHA256 is the post-bootstrap
-// pre-role ACL state. Role provisioning intentionally rewrites relacl and
-// function ACLs, so after roles are applied the supported equivalent check is:
-// complete ledger with pinned artifact checksums + ownership/grant model +
-// enabled immutability triggers. The raw ACL-sensitive hash is still reported.
+// Catalog hash notes: bootstrap.ExpectedV069SchemaSHA256 pins the post-bootstrap
+// pre-role ACL state. Role provisioning intentionally rewrites ACLs and
+// function settings, so staging also pins a separate post-role structural
+// manifest that excludes ownership/grants but retains schema objects.
 func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.Writer) (StagingPreflightResult, error) {
 	names = names.Normalized()
 	res := StagingPreflightResult{
@@ -49,6 +49,14 @@ func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.
 		return res, err
 	}
 	res.SchemaHash = hash
+	structuralHash, err := computeStructuralHash(ctx, adminDB)
+	if err != nil {
+		return res, err
+	}
+	res.StructuralHash = structuralHash
+	if structuralHash != ExpectedV069PostRoleStructureSHA256 {
+		res.Issues = append(res.Issues, fmt.Sprintf("structural catalog hash mismatch: got %s want %s", structuralHash, ExpectedV069PostRoleStructureSHA256))
+	}
 
 	// History must record baseline + 067/068/069 with pinned checksums.
 	type histRow struct {
@@ -77,9 +85,9 @@ func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.
 		return res, err
 	}
 
-	// Bootstrap preflight validates ledger checksums and structural path.
-	// After role provisioning, ACL-sensitive catalog hash differs from the
-	// pinned bootstrap v069 digest — that is the supported equivalent path.
+	// Bootstrap preflight validates ledger checksums and the pre-role hash. A
+	// raw hash mismatch is acceptable only when the independently pinned
+	// post-role structural manifest still matches exactly.
 	br, err := bootstrap.NewRunner()
 	if err != nil {
 		return res, err
@@ -90,7 +98,7 @@ func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.
 			res.Issues = append(res.Issues, fmt.Sprintf("bootstrap preflight: %v", bootErr))
 		} else if hash == bootstrap.ExpectedV069SchemaSHA256 {
 			res.Issues = append(res.Issues, fmt.Sprintf("bootstrap preflight: %v", bootErr))
-		} else {
+		} else if structuralHash == ExpectedV069PostRoleStructureSHA256 {
 			fmt.Fprintf(out, "catalog_hash_note=acl_sensitive_hash_differs_after_role_provision expected_bootstrap_v069=%s\n", bootstrap.ExpectedV069SchemaSHA256)
 		}
 	} else if bootPlan.Path != bootstrap.PathCurrent {
@@ -295,6 +303,14 @@ func probeRuntimePrivileges(ctx context.Context, adminDB *sql.DB, names Names, r
 }
 
 func computeSchemaHash(ctx context.Context, db *sql.DB) (string, error) {
+	return computeManifestHash(ctx, db, bootstrap.SchemaManifestSQL)
+}
+
+func computeStructuralHash(ctx context.Context, db *sql.DB) (string, error) {
+	return computeManifestHash(ctx, db, schemaStructureManifestSQL)
+}
+
+func computeManifestHash(ctx context.Context, db *sql.DB, query string) (string, error) {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	if err != nil {
 		return "", err
@@ -303,7 +319,7 @@ func computeSchemaHash(ctx context.Context, db *sql.DB) (string, error) {
 	if _, err := tx.ExecContext(ctx, `SET LOCAL search_path = public, pg_catalog`); err != nil {
 		return "", err
 	}
-	rows, err := tx.QueryContext(ctx, bootstrap.SchemaManifestSQL)
+	rows, err := tx.QueryContext(ctx, query)
 	if err != nil {
 		return "", fmt.Errorf("query schema manifest: %w", err)
 	}
@@ -325,6 +341,7 @@ func computeSchemaHash(ctx context.Context, db *sql.DB) (string, error) {
 
 func writeStagingPreflight(out io.Writer, res StagingPreflightResult) {
 	fmt.Fprintf(out, "schema_manifest_sha256=%s\n", res.SchemaHash)
+	fmt.Fprintf(out, "structural_manifest_sha256=%s\n", res.StructuralHash)
 	fmt.Fprintf(out, "history_versions=%s\n", strings.Join(res.HistoryVersions, ","))
 	for name, ok := range res.TriggersEnabled {
 		fmt.Fprintf(out, "trigger_enabled %s=%v\n", name, ok)
