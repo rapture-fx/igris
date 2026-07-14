@@ -3,6 +3,13 @@
 Status: **Draft**
 Goal: enforce interoperability without shared implementation code
 
+**Current:** Alpha.2 has Python-generated ActionContract/Evidence fixtures and
+two Go byte-verification suites, but no language-neutral manifest, deterministic
+fixture generator, common result schema, or declared conformance levels.
+
+**Draft proposal:** The levels, vector families, runner contract, and governance
+below define the target conformance program. They do not alter current fixtures.
+
 ## Conformance levels
 
 Conformance is capability-scoped; no implementation is simply “Igris

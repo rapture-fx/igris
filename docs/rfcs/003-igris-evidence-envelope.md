@@ -143,7 +143,7 @@ For schema `1`, canonical bytes are UTF-8 JSON with:
 Canonical evidence bytes are computed from the already constructed unsigned
 payload. Python uses `canonical_json_bytes` in
 `sdk/python/src/igris/canonical.py`; Go uses
-`igris-overture/internal/canonicaljson.Encode`. Exact bytes are in
+`igris-overture/internal/canonicaljson/canonicaljson.go::Encode`. Exact bytes are in
 `testdata/igris-contract-v1/canonical/` and checked by both Go conformance
 suites.
 

@@ -38,7 +38,8 @@ Objects are conceptual unless a schema defines their serialized fields.
 `parameter_descriptors`, nullable `code_fingerprint`, and `contract_hash`.
 `sdk/python/src/igris/contracts.py::_build_contract_unchecked` is the emitter;
 `testdata/igris-contract-v1/action_contract.json` is the fixture. The Go route
-recomputes its hash in `igris-overture/internal/canonicaljson.ContractHash`.
+recomputes its hash in
+`igris-overture/internal/canonicaljson/canonicaljson.go::ContractHash`.
 
 **Draft invariant:** A contract describes requirements and inspectable shape;
 it does not grant execution permission and does not represent an invocation.

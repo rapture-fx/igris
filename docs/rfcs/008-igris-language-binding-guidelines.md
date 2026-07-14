@@ -3,6 +3,13 @@
 Status: **Draft**
 Scope: idiomatic independent bindings over shared protocol invariants
 
+**Current:** Python 0.1.0a2 is the only SDK implementing this Action/Evidence
+surface. Go independently canonicalizes and verifies the artifacts but is not a
+full Action SDK.
+
+**Draft invariant:** Future bindings are idiomatic independent implementations
+whose interoperability is judged by protocol semantics and conformance vectors.
+
 ## Protocol invariants
 
 Every binding claiming a relevant conformance level MUST preserve:
