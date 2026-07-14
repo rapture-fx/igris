@@ -77,10 +77,12 @@ Verifies:
 
 - Schema history includes v066 + 067 + 068 + 069 with pinned checksums
 - The pre-role catalog hash equals the pinned bootstrap v069 digest
-- A separate post-role structural manifest still covers columns, defaults,
-  constraints, indexes, triggers, policies, functions, views, types, sequences,
-  relation kinds, and RLS flags; expected ownership and ACL changes cannot mask
-  structural drift
+- A PostgreSQL 16 canonical-v2 post-role manifest uses explicit `text`
+  structured rows and length-framed hashing for columns/defaults, constraints,
+  indexes, triggers, policies, functions, views/rules, types, sequences,
+  migration-ledger structure, relation options/partitioning, and RLS flags
+- Migration-069 immutability triggers are in exact origin mode (`tgenabled=O`),
+  not disabled, replica-only, or always mode
 - Ownership and grants match the least-privilege role model independently of
   the structural manifest
 - Migration-069 immutability triggers are enabled
@@ -142,9 +144,11 @@ Pre-role catalog hash on both 14.18 and 16.14:
 034f5f75d2c926baecc67840cf6054309463bbf145c3691e5673c00ab8a36cf4
 ```
 
-That matches the pinned bootstrap `ExpectedV069SchemaSHA256`. No version-specific
-hash update was required. After role provisioning, preflight retains a separate
-ACL-invariant structural manifest and validates ownership/grants separately.
+That matches the pinned bootstrap `ExpectedV069SchemaSHA256`. No pre-role hash
+update was required. After role provisioning, preflight uses a PostgreSQL
+16-specific canonical structural manifest and validates ownership/grants in a
+separate role-model layer. A new PostgreSQL major version requires review of all
+`pg_get_*` rendering and a newly validated post-role structural hash.
 
 Local PG16 validation helper (helper-created disposable cluster only):
 
