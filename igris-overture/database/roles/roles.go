@@ -587,6 +587,44 @@ func (r *Runner) inspect(ctx context.Context, db *sql.DB) (Plan, error) {
 		}
 	}
 
+	// Ownership is intentionally excluded from the structural hash because the
+	// migration-owner name is run-specific. Verify the complete public relation
+	// and function ownership boundary here instead.
+	var wrongRelationOwners int
+	if err := db.QueryRowContext(ctx, `
+		SELECT count(*)
+		FROM pg_class c
+		JOIN pg_namespace n ON n.oid = c.relnamespace
+		JOIN pg_roles owner_role ON owner_role.oid = c.relowner
+		WHERE n.nspname = 'public'
+		  AND c.relkind IN ('r', 'p', 'S', 'v', 'm', 'c')
+		  AND owner_role.rolname <> $1`, r.Names.MigrationOwner).Scan(&wrongRelationOwners); err != nil {
+		return plan, fmt.Errorf("inspect public relation owners: %w", err)
+	}
+	if wrongRelationOwners > 0 {
+		plan.Issues = append(plan.Issues, fmt.Sprintf("%d public relations are not owned by migration owner %s", wrongRelationOwners, r.Names.MigrationOwner))
+	}
+
+	var wrongFunctionOwners int
+	if err := db.QueryRowContext(ctx, `
+		SELECT count(*)
+		FROM pg_proc p
+		JOIN pg_namespace n ON n.oid = p.pronamespace
+		JOIN pg_roles owner_role ON owner_role.oid = p.proowner
+		WHERE n.nspname = 'public'
+		  AND owner_role.rolname <> $1
+		  AND NOT EXISTS (
+		    SELECT 1 FROM pg_depend d
+		    WHERE d.classid = 'pg_proc'::regclass
+		      AND d.objid = p.oid
+		      AND d.deptype = 'e'
+		  )`, r.Names.MigrationOwner).Scan(&wrongFunctionOwners); err != nil {
+		return plan, fmt.Errorf("inspect public function owners: %w", err)
+	}
+	if wrongFunctionOwners > 0 {
+		plan.Issues = append(plan.Issues, fmt.Sprintf("%d public functions are not owned by migration owner %s", wrongFunctionOwners, r.Names.MigrationOwner))
+	}
+
 	// Runtime must not own any public relation or function.
 	var runtimeOwned int
 	if plan.RolesPresent[r.Names.AppRuntime] {
@@ -715,9 +753,10 @@ func (r *Runner) inspect(ctx context.Context, db *sql.DB) (Plan, error) {
 		if err != nil {
 			continue
 		}
-		// O = origin / enabled; D = disabled
-		if enabled.String == "D" {
-			plan.Issues = append(plan.Issues, fmt.Sprintf("immutability trigger %s is disabled", pair[1]))
+		// Only O is the expected normal-session enforcement mode. D disables the
+		// trigger, R limits it to replica sessions, and A changes its contract.
+		if enabled.String != "O" {
+			plan.Issues = append(plan.Issues, fmt.Sprintf("immutability trigger %s enable mode is %s, want O (origin)", pair[1], enabled.String))
 		}
 	}
 

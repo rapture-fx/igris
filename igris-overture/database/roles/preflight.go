@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"database/sql"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -148,10 +149,10 @@ func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.
 			res.TriggersEnabled[pair[1]] = false
 			continue
 		}
-		ok := enabled != "D"
+		ok := enabled == "O"
 		res.TriggersEnabled[pair[1]] = ok
 		if !ok {
-			res.Issues = append(res.Issues, fmt.Sprintf("trigger %s is disabled", pair[1]))
+			res.Issues = append(res.Issues, fmt.Sprintf("trigger %s enable mode is %s, want O (origin)", pair[1], enabled))
 		}
 	}
 
@@ -307,7 +308,118 @@ func computeSchemaHash(ctx context.Context, db *sql.DB) (string, error) {
 }
 
 func computeStructuralHash(ctx context.Context, db *sql.DB) (string, error) {
-	return computeManifestHash(ctx, db, schemaStructureManifestSQL)
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{ReadOnly: true})
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx, `SET LOCAL search_path = public, pg_catalog`); err != nil {
+		return "", err
+	}
+	rows, err := tx.QueryContext(ctx, schemaStructureManifestSQL)
+	if err != nil {
+		return "", fmt.Errorf("query structural manifest: %w", err)
+	}
+	defer rows.Close()
+
+	h := sha256.New()
+	if _, err := io.WriteString(h, structuralManifestFormatV2); err != nil {
+		return "", err
+	}
+	for rows.Next() {
+		var row structuralManifestRow
+		if err := rows.Scan(
+			&row.ObjectType,
+			&row.SchemaName,
+			&row.ObjectIdentity,
+			&row.AttributeName,
+			&row.AttributeValue,
+		); err != nil {
+			return "", err
+		}
+		if err := writeStructuralManifestRow(h, row); err != nil {
+			return "", err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+const structuralManifestFormatV2 = "igris-postgresql-structural-manifest-v2\x00"
+
+var structuralManifestFieldLabels = [...]string{
+	"object_type",
+	"schema_name",
+	"object_identity",
+	"attribute_name",
+	"attribute_value",
+}
+
+type structuralManifestRow struct {
+	ObjectType     string
+	SchemaName     string
+	ObjectIdentity string
+	AttributeName  string
+	AttributeValue sql.NullString
+}
+
+func writeStructuralManifestRow(w io.Writer, row structuralManifestRow) error {
+	if _, err := w.Write([]byte{0x1e}); err != nil {
+		return err
+	}
+	fields := [...]sql.NullString{
+		{String: row.ObjectType, Valid: true},
+		{String: row.SchemaName, Valid: true},
+		{String: row.ObjectIdentity, Valid: true},
+		{String: row.AttributeName, Valid: true},
+		row.AttributeValue,
+	}
+	for i := range fields {
+		if err := writeStructuralManifestField(w, structuralManifestFieldLabels[i], fields[i]); err != nil {
+			return err
+		}
+	}
+	_, err := w.Write([]byte{0x1f})
+	return err
+}
+
+func writeStructuralManifestField(w io.Writer, label string, value sql.NullString) error {
+	if err := writeLengthPrefixedText(w, label); err != nil {
+		return err
+	}
+	if !value.Valid {
+		_, err := w.Write([]byte{0})
+		return err
+	}
+	if _, err := w.Write([]byte{1}); err != nil {
+		return err
+	}
+	return writeLengthPrefixedText(w, value.String)
+}
+
+func writeLengthPrefixedText(w io.Writer, value string) error {
+	var size [8]byte
+	binary.BigEndian.PutUint64(size[:], uint64(len(value)))
+	if _, err := w.Write(size[:]); err != nil {
+		return err
+	}
+	_, err := io.WriteString(w, value)
+	return err
+}
+
+func hashStructuralManifestRows(rows []structuralManifestRow) (string, error) {
+	h := sha256.New()
+	if _, err := io.WriteString(h, structuralManifestFormatV2); err != nil {
+		return "", err
+	}
+	for _, row := range rows {
+		if err := writeStructuralManifestRow(h, row); err != nil {
+			return "", err
+		}
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func computeManifestHash(ctx context.Context, db *sql.DB, query string) (string, error) {

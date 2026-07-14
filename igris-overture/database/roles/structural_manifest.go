@@ -2,10 +2,10 @@ package roles
 
 import _ "embed"
 
-// ExpectedV069PostRoleStructureSHA256 pins the ACL/ownership-invariant
+// ExpectedV069PostRoleStructureSHA256 pins the PostgreSQL 16 canonical v2
 // structure produced by the v069 bootstrap followed by role provisioning.
-// It is deliberately separate from bootstrap.ExpectedV069SchemaSHA256.
-const ExpectedV069PostRoleStructureSHA256 = "4e852bad6ef9041c3b720fb683f83cc23cf5e7f9fd0f65bd1a344da63fc2b118"
+// Owners and ACLs remain in the separate role-model verification layer.
+const ExpectedV069PostRoleStructureSHA256 = "d166fffa05546550ebb8fb3d613ea96ef977c4376461c9cb5a10d0359a9946a0"
 
 //go:embed schema_structure_manifest.sql
 var schemaStructureManifestSQL string
