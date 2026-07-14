@@ -254,23 +254,53 @@ jobs:
       - name: Staging preflight against disposable PostgreSQL 16 database
         run: |
           set -euo pipefail
-          DB="igris_staging_preflight_ci_${RANDOM}"
+          RUN_SUFFIX="$(openssl rand -hex 6)"
+          DB="igris_staging_preflight_ci_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_MIGRATION_OWNER="igris_mig_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_APP_RUNTIME="igris_rt_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_READ_ONLY_OPERATOR="igris_ro_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_BACKUP_RESTORE="igris_bk_${RUN_SUFFIX}"
+          DB_CREATED=0
+          ROLES_CREATED=0
           cleanup() {
-            psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${DB}' AND pid <> pg_backend_pid();" >/dev/null 2>&1 || true
-            psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB};" >/dev/null 2>&1 || true
-            for role in igris_app_runtime igris_read_only_operator igris_backup_restore igris_migration_owner; do
-              psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -c "DROP OWNED BY ${role} CASCADE;" >/dev/null 2>&1 || true
-              psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -c "DROP ROLE IF EXISTS ${role};" >/dev/null 2>&1 || true
-            done
+            primary_status=$?
+            trap - EXIT
+            set +e
+            cleanup_status=0
+            if [[ "$DB_CREATED" -eq 1 ]]; then
+              psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -v db_name="$DB" <<'SQL' >/dev/null || cleanup_status=70
+          SELECT pg_terminate_backend(pid)
+          FROM pg_stat_activity
+          WHERE datname = :'db_name' AND pid <> pg_backend_pid();
+          DROP DATABASE IF EXISTS :"db_name";
+          SQL
+            fi
+            if [[ "$ROLES_CREATED" -eq 1 ]]; then
+              for role in "$IGRIS_DB_ROLE_APP_RUNTIME" "$IGRIS_DB_ROLE_READ_ONLY_OPERATOR" "$IGRIS_DB_ROLE_BACKUP_RESTORE" "$IGRIS_DB_ROLE_MIGRATION_OWNER"; do
+                psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -v role_name="$role" <<'SQL' >/dev/null || cleanup_status=70
+          SELECT format('DROP OWNED BY %I CASCADE', :'role_name')
+          WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role_name')
+          \gexec
+          SELECT format('DROP ROLE %I', :'role_name')
+          WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role_name')
+          \gexec
+          SQL
+              done
+            fi
+            if [[ "$cleanup_status" -ne 0 ]]; then
+              echo "cleanup failed status=${cleanup_status}" >&2
+              exit "$cleanup_status"
+            fi
+            exit "$primary_status"
           }
           trap cleanup EXIT
-          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB};"
-          # Reconstruct DSN without printing secrets: swap database name only.
-          TARGET_DSN="${IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN/\/postgres?/\/${DB}?}"
-          if [[ "$TARGET_DSN" == "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" ]]; then
-            TARGET_DSN="postgres://postgres:postgres@localhost:5432/${DB}?sslmode=disable"
-          fi
+          DB_CREATED=1
+          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -v db_name="$DB" <<'SQL'
+          CREATE DATABASE :"db_name";
+          SQL
+          TARGET_DSN="postgres://postgres:postgres@localhost:5432/${DB}?sslmode=disable"
           go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$TARGET_DSN"
+          ROLES_CREATED=1
           go run ./cmd/igris-db-roles --mode=apply --database-url="$TARGET_DSN"
           go run ./cmd/igris-db-staging-preflight --database-url="$TARGET_DSN"
 
