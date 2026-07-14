@@ -1,73 +1,199 @@
 #!/usr/bin/env bash
-# Connected staging smoke: disposable PostgreSQL only.
-# Never targets shared, staging-shared, or production databases.
+# Connected staging validation.
 #
-# Steps:
-#   1. Create disposable database
-#   2. Bootstrap actions-first schema through v069
-#   3. Provision least-privilege roles
-#   4. Staging preflight
-#   5. Synthetic contract sync + evidence probe as runtime role
-#   6. Verify read-only can inspect but not mutate
-#   7. Drop disposable database
-set -euo pipefail
+# Default mode is non-destructive preflight for an explicitly supplied DSN.
+# Destructive disposable smoke is allowed only when pg16_local_validate.sh has
+# created and positively identified the cluster with a run-specific marker.
+set -Eeuo pipefail
+umask 077
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
+error() { printf 'error: %s\n' "$*" >&2; }
+
+MODE="${IGRIS_CONNECTED_SMOKE_MODE:-preflight}"
 ADMIN_DSN="${IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN:-${DATABASE_URL_MIGRATION:-}}"
-if [[ -z "${ADMIN_DSN}" ]]; then
-  echo "error: set IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN or DATABASE_URL_MIGRATION to a local admin DSN" >&2
+PSQL_BIN="${IGRIS_PSQL_BIN:-}"
+
+if [[ -z "$ADMIN_DSN" ]]; then
+  error "set IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN for non-destructive preflight"
   exit 2
 fi
 
-# Refuse obviously shared hosts.
-if echo "${ADMIN_DSN}" | grep -Eiq 'neon\.tech|azure|amazonaws|supabase|prod|shared'; then
-  echo "error: refusing non-local/shared-looking database URL (disposable local only)" >&2
+if [[ "$MODE" == "preflight" ]]; then
+  echo "mode=external_non_destructive_preflight"
+  go run ./cmd/igris-db-staging-preflight --database-url="$ADMIN_DSN"
+  exit $?
+fi
+if [[ "$MODE" != "disposable" ]]; then
+  error "IGRIS_CONNECTED_SMOKE_MODE must be preflight or disposable"
   exit 2
 fi
 
-DB_NAME="igris_connected_smoke_$(openssl rand -hex 4)"
-echo "smoke_database=${DB_NAME}"
+RUN_ID="${IGRIS_CONNECTED_RUN_ID:-}"
+EXPECTED_DATA_DIR="${IGRIS_CONNECTED_EXPECTED_DATA_DIR:-}"
+EXPECTED_SOCKET_DIR="${IGRIS_CONNECTED_EXPECTED_SOCKET_DIR:-}"
+EXPECTED_PORT="${IGRIS_CONNECTED_EXPECTED_PORT:-}"
+MIGRATION_OWNER="${IGRIS_DB_ROLE_MIGRATION_OWNER:-}"
+APP_RUNTIME="${IGRIS_DB_ROLE_APP_RUNTIME:-}"
+READ_ONLY="${IGRIS_DB_ROLE_READ_ONLY_OPERATOR:-}"
+BACKUP_ROLE="${IGRIS_DB_ROLE_BACKUP_RESTORE:-}"
 
-cleanup() {
-  local code=$?
-  psql "${ADMIN_DSN}" -v ON_ERROR_STOP=1 -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${DB_NAME}' AND pid <> pg_backend_pid();" >/dev/null 2>&1 || true
-  psql "${ADMIN_DSN}" -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS ${DB_NAME};" >/dev/null 2>&1 || true
-  # Best-effort cluster role cleanup for default names used only in this smoke.
-  for role in igris_app_runtime igris_read_only_operator igris_backup_restore igris_migration_owner; do
-    psql "${ADMIN_DSN}" -c "DROP OWNED BY ${role} CASCADE;" >/dev/null 2>&1 || true
-    psql "${ADMIN_DSN}" -c "DROP ROLE IF EXISTS ${role};" >/dev/null 2>&1 || true
-  done
-  exit "${code}"
+if [[ ! "$RUN_ID" =~ ^[a-f0-9]{32}$ || ! "$EXPECTED_PORT" =~ ^[0-9]{4,5}$ ]]; then
+  error "missing or invalid run-specific cluster identity"
+  exit 2
+fi
+if [[ -z "$EXPECTED_DATA_DIR" || -z "$EXPECTED_SOCKET_DIR" ]]; then
+  error "missing expected cluster data/socket identity"
+  exit 2
+fi
+if [[ -z "$PSQL_BIN" || ! -f "$PSQL_BIN" || ! -x "$PSQL_BIN" || -L "$PSQL_BIN" ]]; then
+  error "IGRIS_PSQL_BIN must be a verified non-symlink regular executable"
+  exit 2
+fi
+for role in "$MIGRATION_OWNER" "$APP_RUNTIME" "$READ_ONLY" "$BACKUP_ROLE"; do
+  if [[ ! "$role" =~ ^[a-z][a-z0-9_]{0,62}$ ]]; then
+    error "invalid run-scoped role identifier"
+    exit 2
+  fi
+done
+
+RUN_SUFFIX="${RUN_ID:0:12}"
+DB_NAME="igris_smoke_${RUN_SUFFIX}"
+DB_CREATED=0
+ROLES_CREATED=0
+CLEANUP_COMPLETE=0
+
+verify_identity() {
+  local result
+  result="$("$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -At \
+    -v run_id="$RUN_ID" -v data_dir="$EXPECTED_DATA_DIR" \
+    -v socket_dir="$EXPECTED_SOCKET_DIR" -v port="$EXPECTED_PORT" <<'SQL'
+SELECT CASE WHEN EXISTS (
+  SELECT 1
+  FROM public.igris_local_validation_identity i
+  WHERE i.run_id = :'run_id'
+    AND i.data_directory = :'data_dir'
+    AND i.socket_directory = :'socket_dir'
+    AND i.port = :'port'::integer
+    AND current_setting('data_directory') = i.data_directory
+    AND current_setting('unix_socket_directories') = i.socket_directory
+    AND current_setting('port') = i.port::text
+    AND inet_server_addr() IS NULL
+) THEN 'identity_ok' ELSE 'identity_mismatch' END;
+SQL
+)"
+  [[ "$result" == "identity_ok" ]]
 }
-trap cleanup EXIT
 
-psql "${ADMIN_DSN}" -v ON_ERROR_STOP=1 -c "CREATE DATABASE ${DB_NAME};" >/dev/null
+cleanup_resources() {
+  if [[ "$CLEANUP_COMPLETE" -eq 1 ]]; then
+    return 0
+  fi
+  if ! verify_identity; then
+    error "cluster identity mismatch; refusing destructive cleanup"
+    return 72
+  fi
 
-# Derive DB-specific URL without printing secrets.
-export ADMIN_DSN
-SMOKE_URL="$(DB_NAME="${DB_NAME}" python3 - <<'PY'
+  local failed=0
+  if [[ "$DB_CREATED" -eq 1 ]]; then
+    "$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -v db_name="$DB_NAME" <<'SQL' >/dev/null || failed=1
+SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = :'db_name' AND pid <> pg_backend_pid();
+DROP DATABASE IF EXISTS :"db_name";
+SQL
+  fi
+  if [[ "$ROLES_CREATED" -eq 1 ]]; then
+    for role in "$APP_RUNTIME" "$READ_ONLY" "$BACKUP_ROLE" "$MIGRATION_OWNER"; do
+      "$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -v role_name="$role" \
+        >/dev/null <<'SQL' || failed=1
+DROP OWNED BY :"role_name" CASCADE;
+DROP ROLE IF EXISTS :"role_name";
+SQL
+    done
+  fi
+  if [[ "$failed" -ne 0 ]]; then
+    error "run-scoped smoke cleanup failed"
+    return 73
+  fi
+  CLEANUP_COMPLETE=1
+  return 0
+}
+
+on_exit() {
+  local primary_status=$?
+  trap - EXIT ERR INT TERM
+  set +e
+  cleanup_resources
+  local cleanup_status=$?
+  if [[ "$cleanup_status" -ne 0 ]]; then
+    error "primary_status=${primary_status} cleanup_status=${cleanup_status}"
+    if [[ "$primary_status" -ne 0 ]]; then
+      exit "$primary_status"
+    fi
+    exit "$cleanup_status"
+  fi
+  exit "$primary_status"
+}
+
+trap on_exit EXIT
+trap 'status=$?; error "smoke stage failed line=${LINENO} status=${status}"; return "$status" 2>/dev/null || exit "$status"' ERR
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if ! verify_identity; then
+  error "positive cluster identity proof failed; refusing disposable smoke"
+  exit 2
+fi
+if [[ "${IGRIS_PG16_ENABLE_TEST_HOOKS:-0}" == "1" && "${IGRIS_PG16_TEST_FAIL_STAGE:-}" == "preflight" ]]; then
+  error "test-only failure injection stage=preflight status=47"
+  exit 47
+fi
+
+existing_roles="$("$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -At \
+  -v r1="$MIGRATION_OWNER" -v r2="$APP_RUNTIME" -v r3="$READ_ONLY" -v r4="$BACKUP_ROLE" <<'SQL'
+SELECT count(*) FROM pg_roles WHERE rolname IN (:'r1', :'r2', :'r3', :'r4');
+SQL
+)"
+if [[ "$existing_roles" != "0" ]]; then
+  error "run-scoped role collision; refusing to alter pre-existing roles"
+  exit 2
+fi
+
+echo "smoke_database=${DB_NAME}"
+"$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -v db_name="$DB_NAME" <<'SQL' >/dev/null
+CREATE DATABASE :"db_name";
+SQL
+DB_CREATED=1
+
+export ADMIN_DSN DB_NAME
+SMOKE_URL="$(python3 - <<'PY'
 from urllib.parse import urlparse, urlunparse
 import os
+
 u = urlparse(os.environ["ADMIN_DSN"])
+if u.scheme not in ("postgres", "postgresql") or u.fragment:
+    raise SystemExit("admin DSN must be a PostgreSQL URL without a fragment")
 print(urlunparse((u.scheme, u.netloc, "/" + os.environ["DB_NAME"], "", u.query, "")))
 PY
 )"
-export DATABASE_URL_MIGRATION="${SMOKE_URL}"
+export DATABASE_URL_MIGRATION="$SMOKE_URL"
 
 echo "== bootstrap =="
-go run ./cmd/igris-db-bootstrap --mode=apply --database-url="${SMOKE_URL}"
+go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$SMOKE_URL"
 
 echo "== role provision =="
-go run ./cmd/igris-db-roles --mode=apply --database-url="${SMOKE_URL}"
+go run ./cmd/igris-db-roles --mode=apply --database-url="$SMOKE_URL"
+ROLES_CREATED=1
 
 echo "== staging preflight =="
-go run ./cmd/igris-db-staging-preflight --database-url="${SMOKE_URL}"
+go run ./cmd/igris-db-staging-preflight --database-url="$SMOKE_URL"
 
 echo "== synthetic contract + evidence as runtime =="
-psql "${SMOKE_URL}" -v ON_ERROR_STOP=1 <<'SQL'
-SET ROLE igris_app_runtime;
+"$PSQL_BIN" "$SMOKE_URL" -X -v ON_ERROR_STOP=1 -v app_runtime="$APP_RUNTIME" <<'SQL'
+SET ROLE :"app_runtime";
 SET search_path = public, pg_catalog;
 
 INSERT INTO tenants (tenant_id, tenant_name)
@@ -109,7 +235,6 @@ INSERT INTO sdk_evidence_batches (
   1, 1, NOW()
 );
 
--- Explicitly fully-redacted evidence event body (no secrets).
 INSERT INTO sdk_evidence_events (
   tenant_id, key_id, event_hash, batch_id, event, event_id,
   event_type, action_name, contract_hash, timestamp_utc
@@ -121,7 +246,6 @@ SELECT
 FROM sdk_evidence_batches
 WHERE tenant_id = 'smoke-tenant' AND content_hash = repeat('c', 64);
 
--- Immutable mutation must fail.
 DO $$
 BEGIN
   BEGIN
@@ -138,8 +262,8 @@ END $$;
 SQL
 
 echo "== read-only operator inspect / no mutate =="
-psql "${SMOKE_URL}" -v ON_ERROR_STOP=1 <<'SQL'
-SET ROLE igris_read_only_operator;
+"$PSQL_BIN" "$SMOKE_URL" -X -v ON_ERROR_STOP=1 -v read_only="$READ_ONLY" <<'SQL'
+SET ROLE :"read_only";
 SET search_path = public, pg_catalog;
 SELECT count(*) AS contracts FROM action_contract_versions WHERE tenant_id = 'smoke-tenant';
 SELECT count(*) AS events FROM sdk_evidence_events WHERE tenant_id = 'smoke-tenant';
@@ -160,4 +284,14 @@ BEGIN
 END $$;
 SQL
 
+trap - ERR INT TERM
+set +e
+cleanup_resources
+cleanup_status=$?
+set -e
+if [[ "$cleanup_status" -ne 0 ]]; then
+  error "cleanup failed after successful smoke status=${cleanup_status}"
+  exit "$cleanup_status"
+fi
+trap - EXIT
 echo "result=connected_staging_smoke_ok"
