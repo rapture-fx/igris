@@ -1,10 +1,31 @@
-.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console sdk-python-test sdk-python-release-check private-alpha-ci private-alpha-ci-migrations private-alpha-ci-python private-alpha-ci-go private-alpha-ci-postgres private-alpha-ci-artifacts private-alpha-ci-harness
+.PHONY: run-recover-prove-local run-recover-prove-local-provision run-recover-prove-local-doctor run-recover-prove-local-migrate run-recover-prove-local-smoke igris-local-up igris-local-down igris-local-reset web-console-check test-policy-enforcement test-recovery-chaos test-runtime-callbacks test-runtime-failed-callbacks test-proof-tamper product-promise igris-doctor approval-loop-smoke approval-loop-smoke-console dogfood-migration-smoke dogfood-migration-smoke-console dogfood-routed-dev-smoke dogfood-routed-dev-smoke-console sdk-python-test sdk-python-release-check private-alpha-ci private-alpha-ci-migrations private-alpha-ci-python private-alpha-ci-go private-alpha-ci-postgres private-alpha-ci-artifacts private-alpha-ci-harness database-bootstrap-preflight database-bootstrap database-bootstrap-adopt-v066 database-roles-preflight database-roles database-staging-preflight database-staging-smoke database-staging-pg16-validate
 
 product-promise:
 	./scripts/product_promise_acceptance.sh
 
 igris-doctor:
 	./scripts/igris_doctor.sh
+
+database-bootstrap-preflight:
+	go run ./cmd/igris-db-bootstrap --mode=preflight
+
+database-bootstrap:
+	go run ./cmd/igris-db-bootstrap --mode=apply
+
+database-bootstrap-adopt-v066:
+	go run ./cmd/igris-db-bootstrap --mode=adopt-v066
+
+database-roles-preflight:
+	go run ./cmd/igris-db-roles --mode=preflight
+
+database-roles:
+	go run ./cmd/igris-db-roles --mode=apply
+
+database-staging-preflight:
+	go run ./cmd/igris-db-staging-preflight
+
+database-staging-smoke:
+	./scripts/connected/staging_smoke.sh
 
 run-recover-prove-local:
 	./scripts/run-recover-prove-local.sh
@@ -111,3 +132,7 @@ private-alpha-ci-artifacts:
 
 private-alpha-ci-harness:
 	./scripts/ci/private_alpha_ci.sh harness
+
+
+database-staging-pg16-validate:
+	./scripts/connected/pg16_local_validate.sh

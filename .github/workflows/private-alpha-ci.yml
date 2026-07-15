@@ -26,7 +26,11 @@ on:
       - "examples/private-alpha/**"
       - "sdk/python/**"
       - "cmd/igris-overture/**"
+      - "cmd/igris-db-bootstrap/**"
+      - "cmd/igris-db-roles/**"
+      - "cmd/igris-db-staging-preflight/**"
       - "igris-overture/**"
+      - "scripts/connected/**"
       - "conformance/**"
       - "go.mod"
       - "go.sum"
@@ -44,7 +48,11 @@ on:
       - "examples/private-alpha/**"
       - "sdk/python/**"
       - "cmd/igris-overture/**"
+      - "cmd/igris-db-bootstrap/**"
+      - "cmd/igris-db-roles/**"
+      - "cmd/igris-db-staging-preflight/**"
       - "igris-overture/**"
+      - "scripts/connected/**"
       - "conformance/**"
       - "go.mod"
       - "go.sum"
@@ -169,9 +177,9 @@ jobs:
         run: go test ./igris-overture/coordinator -count=1 -timeout=600s
 
   go-postgres:
-    name: Contract + evidence disposable-Postgres suites
+    name: Contract + evidence + Connected staging Postgres 16 suites
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     services:
       postgres:
@@ -189,10 +197,12 @@ jobs:
           --health-retries 5
 
     env:
-      # Ephemeral job-scoped service container; not a real credential. The
-      # tests apply migrations 054/067/068/069 only inside disposable schemas
-      # of this database.
+      # Ephemeral job-scoped service container; not a real credential.
+      # Contract/evidence tests may apply migrations 054/067/068/069 inside
+      # disposable schemas. Bootstrap/role suites create disposable databases
+      # on this same service container and drop them on cleanup.
       IGRIS_OVERTURE_POSTGRES_TEST_DSN: postgres://postgres:postgres@localhost:5432/igris_private_alpha_test?sslmode=disable
+      IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
 
     steps:
       - name: Checkout
@@ -217,11 +227,104 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "sdk/python/pyproject.toml"
 
+      - name: Deterministic greenfield bootstrap (PostgreSQL 16)
+        run: |
+          set -o pipefail
+          go test ./igris-overture/database/bootstrap -count=1 -timeout=300s -v 2>&1 | tee bootstrap-pg16.log
+          if grep -q "no tests to run" bootstrap-pg16.log; then
+            echo "FAIL: bootstrap suite matched no tests"; exit 1
+          fi
+
+      - name: Application startup remains migration-free (PostgreSQL 16)
+        run: |
+          set -o pipefail
+          go test ./igris-overture/database -run 'TestApplicationStartupDoesNotMigrateOutdatedDatabase' -count=1 -timeout=120s -v 2>&1 | tee runtime-startup-pg16.log
+          if grep -q "no tests to run" runtime-startup-pg16.log; then
+            echo "FAIL: runtime startup suite matched no tests"; exit 1
+          fi
+
+      - name: Least-privilege role boundary suite (PostgreSQL 16)
+        run: |
+          set -o pipefail
+          go test ./igris-overture/database/roles -count=1 -timeout=400s -v 2>&1 | tee roles-pg16.log
+          if grep -q "no tests to run" roles-pg16.log; then
+            echo "FAIL: roles suite matched no tests"; exit 1
+          fi
+
+      - name: Connected runtime-role store paths (PostgreSQL 16)
+        run: |
+          set -o pipefail
+          go test ./igris-overture/api -run 'TestConnectedPathsUnderRuntimeRolePostgres' -count=1 -timeout=300s -v 2>&1 | tee runtime-role-pg16.log
+          if grep -q "no tests to run" runtime-role-pg16.log; then
+            echo "FAIL: runtime-role suite matched no tests"; exit 1
+          fi
+
+      - name: Staging preflight against disposable PostgreSQL 16 database
+        run: |
+          set -euo pipefail
+          RUN_SUFFIX="$(openssl rand -hex 6)"
+          DB="igris_staging_preflight_ci_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_MIGRATION_OWNER="igris_mig_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_APP_RUNTIME="igris_rt_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_READ_ONLY_OPERATOR="igris_ro_${RUN_SUFFIX}"
+          export IGRIS_DB_ROLE_BACKUP_RESTORE="igris_bk_${RUN_SUFFIX}"
+          DB_CREATED=0
+          ROLES_CREATED=0
+          cleanup() {
+            primary_status=$?
+            trap - EXIT
+            set +e
+            cleanup_status=0
+            if [[ "$DB_CREATED" -eq 1 ]]; then
+              psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -v db_name="$DB" <<'SQL' >/dev/null || cleanup_status=70
+          SELECT pg_terminate_backend(pid)
+          FROM pg_stat_activity
+          WHERE datname = :'db_name' AND pid <> pg_backend_pid();
+          DROP DATABASE IF EXISTS :"db_name";
+          SQL
+            fi
+            if [[ "$ROLES_CREATED" -eq 1 ]]; then
+              for role in "$IGRIS_DB_ROLE_APP_RUNTIME" "$IGRIS_DB_ROLE_READ_ONLY_OPERATOR" "$IGRIS_DB_ROLE_BACKUP_RESTORE" "$IGRIS_DB_ROLE_MIGRATION_OWNER"; do
+                psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -v role_name="$role" <<'SQL' >/dev/null || cleanup_status=70
+          SELECT format('DROP OWNED BY %I CASCADE', :'role_name')
+          WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role_name')
+          \gexec
+          SELECT format('DROP ROLE %I', :'role_name')
+          WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role_name')
+          \gexec
+          SQL
+              done
+            fi
+            if [[ "$cleanup_status" -ne 0 ]]; then
+              echo "cleanup failed status=${cleanup_status}" >&2
+              exit "$cleanup_status"
+            fi
+            exit "$primary_status"
+          }
+          trap cleanup EXIT
+          MIGRATION_PASSWORD="$(openssl rand -hex 24)"
+          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 \
+            -v migration_owner="$IGRIS_DB_ROLE_MIGRATION_OWNER" -v migration_password="$MIGRATION_PASSWORD" <<'SQL'
+          CREATE ROLE :"migration_owner" LOGIN PASSWORD :'migration_password'
+            NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOREPLICATION NOBYPASSRLS;
+          SQL
+          ROLES_CREATED=1
+          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 \
+            -v db_name="$DB" -v migration_owner="$IGRIS_DB_ROLE_MIGRATION_OWNER" <<'SQL'
+          CREATE DATABASE :"db_name" OWNER :"migration_owner";
+          SQL
+          DB_CREATED=1
+          TARGET_DSN="postgres://postgres:postgres@localhost:5432/${DB}?sslmode=disable"
+          MIGRATION_DSN="postgres://${IGRIS_DB_ROLE_MIGRATION_OWNER}:${MIGRATION_PASSWORD}@localhost:5432/${DB}?sslmode=disable"
+          go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$MIGRATION_DSN" --migration-owner="$IGRIS_DB_ROLE_MIGRATION_OWNER"
+          go run ./cmd/igris-db-roles --mode=apply --database-url="$TARGET_DSN"
+          go run ./cmd/igris-db-staging-preflight --database-url="$TARGET_DSN"
+
       - name: Contract + evidence lifecycle, concurrency, idempotency, immutability
         run: |
           set -o pipefail
           go test ./igris-overture/api \
-            -run 'TestContractSyncPostgres.*|TestEvidenceIngestPostgres.*|TestConnectedImmutableRecordsPostgres' \
+            -run 'TestContractSyncPostgres.*|TestEvidenceIngestPostgres.*|TestConnectedImmutableRecordsPostgres|TestConnectedPathsUnderRuntimeRolePostgres' \
             -count=1 -timeout=600s -v 2>&1 | tee pg-suite.log
           if grep -q "no tests to run" pg-suite.log; then
             echo "FAIL: Postgres suite regex matched no tests"; exit 1

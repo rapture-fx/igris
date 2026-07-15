@@ -88,6 +88,11 @@ stage_postgres() {
   # shellcheck disable=SC2064
   trap "dropdb -h '$host' -p '$port' -U '$user' --if-exists '$db' >/dev/null 2>&1 || true" EXIT
   export IGRIS_OVERTURE_POSTGRES_TEST_DSN="postgres://$user@$host:$port/$db?sslmode=disable"
+  export IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN="postgres://$user@$host:$port/postgres?sslmode=disable"
+
+  go_test_matching ./igris-overture/database \
+    'TestApplicationStartupDoesNotMigrateOutdatedDatabase' \
+    -timeout=120s
 
   go_test_matching ./igris-overture/api \
     'TestContractSyncPostgres.*|TestEvidenceIngestPostgres.*|TestConnectedImmutableRecordsPostgres' \
