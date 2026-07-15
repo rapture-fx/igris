@@ -1,8 +1,11 @@
 # Igris protocol resolved decisions
 
-Status: **First design-freeze candidate; requires human ratification**
+Status: **Corrected design-freeze candidate; requires independent Clock 2B
+ratification**
 
-Decision basis: senior review at `8523c597f24599a7d1afb7f8f2420342d3b47c0e`.
+Decision basis: senior review at `8523c597f24599a7d1afb7f8f2420342d3b47c0e`,
+candidate `41879dcfb971dcad0bfa254dab83b0a6d738dcbf`, and independent
+CONDITIONAL GO review `9514931345898505feafd2db32f6d047fe131d2f`.
 
 Scope: protocol architecture and specification only. These decisions do not
 authorize Evidence v2, ActionContract v2, a producer SDK, backend changes, or
@@ -239,6 +242,14 @@ The initial future suite identifier is `igris-ed25519-sha256-1`. It fixes:
 
 Algorithm names are protocol registry identifiers, not library names.
 
+`igris-ed25519-sha256-1` remains a proposed future suite. Ed25519 signs a
+SHA-256 pre-hash of the frame, so the construction depends on SHA-256 collision
+resistance and does not retain pure Ed25519's direct-message
+collision-resilience property. Specialist cryptographic review of the
+composition, domains, collision properties, and substitution properties is
+required before any new signed schema using it is approved or emitted. This
+decision records framing structure; it is not formal cryptographic approval.
+
 ### Unsigned payload
 
 For every framed signed object, the canonical unsigned payload is the complete
@@ -380,6 +391,14 @@ Local-only namespaces are valid and self-asserted. An organization, Connected,
 or another authority may bind a namespace to a subject in trust metadata.
 Transfer or delegated control is a trust-artifact operation and does not change
 historical Action identity.
+
+A namespace is not an identity credential, ownership proof, or secret
+possession proof. Any party may copy or squat an existing value and emit a
+contract that names it. Namespace use alone proves no organizational authority.
+Publisher attribution requires a separate signed ActionContract attestation
+and an explicit verifier trust binding to its signer. Semantic contract
+identity remains signer-independent; no global registry, PKI, or Connected
+dependency is introduced.
 
 ### Action identity
 

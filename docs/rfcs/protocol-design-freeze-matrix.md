@@ -1,6 +1,6 @@
 # Igris protocol design-freeze matrix
 
-Status: **First design-freeze candidate; human ratification required**
+Status: **Corrected candidate; independent Clock 2B delta review required**
 
 “Freeze now” means the invariant is proposed for ratification, not that a v2
 implementation is authorized. Existing schema `1` behavior is permanent even
@@ -21,12 +21,12 @@ where the future rule differs.
 | Closed signed schemas | RFC 003 | v1 hashes unknown fields; Connected rejects some | Known future schema rejects unknown fields; no generic initial extension container | Adding signed field requires new schema | Yes | YES | NO | NO | OD-04 resolved |
 | Generic extension container | RFC 003/007 | None | No minimum v2 container | A later mechanism requires new schema and vectors | Yes if later added | NO | YES | NO | Safe to defer; no demonstrated need |
 | Unsupported schema | RFC 001/003/007 | Python/Go return unknown schema | Dispatch before schema-specific crypto; return unsupported, never downgrade | Preserves legacy and future isolation | No, result policy | YES | NO | NO | OD-04/OD-09 resolved |
-| Signature suite | RFC 003 | Implicit legacy SHA-256/Ed25519 | `igris-ed25519-sha256-1` selects full construction | New suite registry; legacy unchanged | Yes | YES | NO | NO | OD-03 resolved |
+| Signature suite | RFC 003 | Implicit legacy SHA-256/Ed25519 | Proposed `igris-ed25519-sha256-1` selects full construction; specialist crypto review required before approval/emission | New suite registry; legacy unchanged | Future only | YES | NO | NO | OD-03 structure resolved; cryptographic approval not claimed |
 | Signature framing | RFC 003 | v1 Ed25519 over raw digest, no domain | Fixed magic/version plus length-framed domain/schema/suite/payload, then SHA-256/Ed25519 | All v2 signatures intentionally differ | Yes | YES | NO | NO | Cross-object/version separation |
 | Object domains | RFC 003/004 | None | Separate ActionContract-attestation, Evidence, trust, checkpoint domains | Prevents signature replay across object classes without making signer rotation change contract identity | Yes | YES | NO | NO | OD-03 resolved |
 | Algorithm substitution | RFC 003 | No agility fields | Signed suite selects exact algorithm; unsupported means not evaluated, no fallback | New suite requires review/vectors | No fallback bytes; result policy | YES | NO | NO | Fail closed |
 | Full signer reference | RFC 003/004 | 64-bit truncated Ed25519 lookup hint | Future objects carry `ed25519-sha256:<full fingerprint>` | v1 ambiguity still handled by trust store | Yes | YES | NO | NO | OD-03/OD-10 resolved |
-| Publisher namespace | RFC 002 | Local/tenant-scoped `action_name` | Opaque random 256-bit `igris-publisher:` ID, trust external | Requires ActionContract v2 | Yes | YES | NO | NO | OD-05 resolved |
+| Publisher namespace | RFC 002 | Local/tenant-scoped `action_name` | Opaque random 256-bit identifier; copy/squatting possible; attribution requires separate attestation and trust binding | Requires ActionContract v2; no registry/Connected dependency | Yes | YES | NO | NO | OD-05 uniqueness is not identity authority |
 | Action identity | RFC 002 | Name plus Python-origin hints | `(publisher_namespace, action_name)` only | Same name across publishers is distinct | Yes | YES | NO | NO | Language-neutral identity |
 | Contract version identity | RFC 002 | v1 hash includes Python fields/source fingerprint | v2 semantic body includes portable policy requirements and excludes implementation identity | Requires exact v2 schema/vectors; v1 preserved | Yes | YES | NO | NO | OD-06 resolved architecturally |
 | Implementation binding | RFC 002/008 | v1 source fingerprint inside hash | Separate future object, not minimum contract | Allows implementation evolution without Action redefinition | Yes if later signed | NO | YES | NO | Safe to defer |
@@ -54,14 +54,16 @@ where the future rule differs.
 | Continuity versus completeness | RFC 001/003 | Tail deletion undetectable | Separate result dimensions and fixed vocabulary | Honest limitation preserved | No | YES | NO | NO | OD-12 resolved |
 | Checkpoint mechanism | RFC 004 | None | Optional separate signed object, never minimum Evidence event | No mandatory service; schema deferred | Separate future bytes | NO | YES | NO | Safe to defer implementation |
 | Global checkpoint/log/cloud root | RFC 000/004 | None | Never required for local content verification | Preserves offline operation | No | NO | NO | YES | Should not enter minimum protocol |
-| Schema `1` vector release | RFC 007/vector design | Historical point-in-time fixtures | Additive released manifest/vectors using common result | No production fixture change | No signed production bytes | YES | NO | NO | May be implemented after ratification |
+| Schema `1` vector release | RFC 007/vector design | Historical point-in-time fixtures | Additive released manifest/vectors using common result | No production fixture change | No signed production bytes | YES | NO | NO | May be implemented only after Clock 2B GO |
 | Standalone Go verifier | RFC 007/008 | Go verifier coupled to API | Independent offline consumer of frozen candidate spec/vectors | Validates protocol independence and enables vector release | No producer bytes | NO | YES | NO | Implementation waits for candidate vector/result freeze |
 | Workflow/Rust/shared engine | RFC 000/002/008 | None | Outside protocol freeze | Avoids premature scope/runtime coupling | No | NO | NO | YES | No interoperability need |
 
 ## Authorization result
 
-- Schema `1` vector implementation: **conditionally authorized after human
-  ratification**, additive test/spec scope only.
+- Schema `1` vector implementation: **eligible only after independent Clock 2B
+  GO**, additive test/spec scope only.
+- Machine-readable verification-result schema freeze: **eligible only after
+  Clock 2B confirms vocabulary consistency**.
 - Standalone Go verifier: **not yet authorized**; wait for frozen candidate
   vectors and result schema.
 - ActionContract v2: **not authorized**; exact schema/vectors remain open.

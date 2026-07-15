@@ -1,6 +1,6 @@
 # Igris verification-result schema draft
 
-Status: **Design-freeze candidate; schema identifier
+Status: **Corrected design-freeze candidate pending Clock 2B; schema identifier
 `igris:protocol:verification-result:1`**
 
 Scope: language-neutral verifier output for ActionContract, Evidence, trust,
@@ -218,7 +218,7 @@ does not select a summary.
 | `unknown_decision_reference` | `semantics=invalid` | error | `invalid` | An Outcome references no applicable Decision in the evaluated context |
 | `duplicate_outcome` | `semantics=invalid` | error | `invalid` | More than one Outcome exists for one Decision where at most one is allowed |
 | `unresolved_execution` | `semantics=unresolved` | warning | `indeterminate` when execution occurrence/result is requested | Evidence cannot establish whether execution occurred or its result |
-| `unknown_fields_present` | no phase change | warning | no forced change | Schema `1` cryptographically includes fields whose semantics are not registered |
+| `unknown_fields_present` | `semantics=valid` for registered fields | warning | no forced change | Schema `1` cryptographically includes fields whose additional semantics are not registered |
 | `untrusted_key` | `trust=untrusted` | warning | `valid_but_untrusted` when content checks are valid | Applicable trust input explicitly distrusts the key in scope |
 | `revoked_key` | `trust=revoked` | warning | `valid_but_untrusted` when content checks are valid | Applicable trust input records the key revoked for the evaluation context |
 | `outside_binding_interval` | `trust=outside_binding_interval` | warning | `valid_but_untrusted` when content checks are valid | Trustworthy time evidence places the artifact outside an applicable interval |
@@ -238,6 +238,7 @@ does not select a summary.
 | Valid old signature, key now revoked | `signature=valid`, `trust=revoked` | `valid_but_untrusted` |
 | Valid historical signature credibly bounded before compromise/revocation | `signature=valid`, `trust=trusted`, defensible non-producer time confidence | `valid_and_trusted` |
 | Valid signature outside defensible binding interval | `signature=valid`, `trust=outside_binding_interval` | `valid_but_untrusted` |
+| Valid signature outside a named policy | `signature=valid`, `policy.status=rejected` | Content/trust-derived valid summary; never `invalid_signature` |
 | Binding interval cannot be evaluated without trustworthy time | `signature=valid`, `trust=binding_interval_indeterminate`, `time_confidence=producer_asserted` or `unavailable` | `indeterminate` |
 | Relevant normative artifacts conflict | `specification=conflict`, affected phases `not_evaluated` | `indeterminate` |
 | Valid JSON schema `1` number requires a lexeme the verifier did not preserve | `canonicalization=unsupported`, later checks `not_evaluated` | `unsupported` |

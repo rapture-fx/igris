@@ -29,10 +29,19 @@ Action identity is exactly `(publisher_namespace, action_name)`.
 
 `publisher_namespace` is `igris-publisher:` plus the lowercase unpadded RFC
 4648 base32 encoding of 32 cryptographically random bytes. It is opaque,
-collision-resistant, and signed into ActionContract v2, but it carries no
+collision-resistant, and committed into the ActionContract v2 semantic body,
+but it carries no
 inherent person/organization trust. Local self-asserted namespaces are valid;
 trust metadata may bind one to an organization. The Action-name grammar remains
 `^[A-Za-z][A-Za-z0-9_.:-]{0,127}$`.
+
+`publisher_namespace` is an identifier, not an identity credential, ownership
+claim, or proof of possession. Any party can copy or squat an existing value
+and emit a contract that names it. Namespace use alone proves no organizational
+authority. Publisher attribution requires a separate signed ActionContract
+attestation plus an explicit verifier trust binding to the attestation signer.
+Semantic contract identity remains signer-independent. This clarification adds
+no global registry, PKI, or mandatory Connected dependency.
 
 ## Intent
 
@@ -208,8 +217,9 @@ v1.
 
 ## Resolved and remaining questions
 
-Resolved by the first design-freeze candidate: publisher namespace is signed
-but externally trusted; implementation identity is separate; intent is
+Resolved by the corrected design-freeze candidate: publisher namespace is
+committed into semantic identity but externally attributed/trusted;
+implementation identity is separate; intent is
 deferred; Action-instance IDs are opaque random 256-bit values; provider
 instances are invocation context.
 

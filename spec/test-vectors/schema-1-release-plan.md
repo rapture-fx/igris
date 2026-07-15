@@ -1,6 +1,6 @@
 # Igris schema `1` conformance-vector release plan
 
-Status: **Implementation-ready plan after design-freeze ratification**
+Status: **Implementation plan; blocked pending independent Clock 2B GO**
 
 Scope: additive conformance artifacts for the permanent ActionContract schema
 `1` and Evidence schema `1` compatibility profile. This plan does not alter or
@@ -10,9 +10,9 @@ Known current implementation gaps are recorded in
 
 ## Authorization boundary
 
-After ratification of the first design-freeze candidate, implementation of
-this schema `1` vector suite is authorized as a documentation/test-fixture task
-only. It must not change SDK/backend code, current fixture bytes, schema `1`
+Only after an independent Clock 2B GO on the corrected design-freeze delta may
+implementation of this schema `1` vector suite begin as a documentation/
+test-fixture task. It must not change SDK/backend code, current fixture bytes, schema `1`
 cryptographic interpretation, default emission, or package artifacts. Any
 new safe-parser or semantic-policy rejection remains a separate result
 dimension and is not retroactively labeled a signature failure.
@@ -247,7 +247,7 @@ The same cryptographically valid event is evaluated with:
 - explicitly untrusted key;
 - active organization binding;
 - revoked key;
-- evidence inside/outside a defensible binding interval; and
+- evidence inside/outside a defensible binding interval;
 - an applicable binding interval that is indeterminate because trustworthy
   time is unavailable; and
 - stale or absent revocation snapshot.

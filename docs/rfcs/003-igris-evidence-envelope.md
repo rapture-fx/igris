@@ -239,6 +239,14 @@ signature interpretation. Unsupported suites return `unsupported_algorithm`;
 verifiers MUST NOT substitute or downgrade. New suites require registry,
 security, and vector review.
 
+The proposed suite signs `SHA-256(frame)`, so the composition depends on
+SHA-256 collision resistance and gives up pure Ed25519's direct-message
+collision-resilience property. This RFC does not claim cryptographic approval.
+Specialist review of that composition, domain separation, collision behavior,
+and substitution resistance is mandatory before Evidence v2, ActionContract
+attestations, or any other new signed schema using the suite is approved or
+emitted.
+
 ## Key identifiers
 
 `key_id = "ed25519:" + SHA-256(raw_ed25519_public_key).hex()[0:16]`.

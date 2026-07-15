@@ -19,6 +19,12 @@ implementation fingerprints are separate, optional implementation bindings.
 Publisher attribution is a separate signed contract attestation, so signer
 rotation does not change the semantic contract hash.
 
+A publisher namespace is an identifier, not an identity credential or proof of
+possession. Another party can copy or squat the value. Namespace use alone
+proves no organizational authority; attribution requires the separate signed
+attestation and an explicit verifier trust binding. No global registry or
+Connected service is required.
+
 Future Evidence uses signed opaque 256-bit `igris-stream:` and
 `igris-instance:` identifiers. Sequence is stream-local, begins at zero, and
 increments by one. An event's identity is its `(stream_id, sequence,

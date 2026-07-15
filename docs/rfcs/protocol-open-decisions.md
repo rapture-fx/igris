@@ -1,12 +1,12 @@
 # Igris protocol open decisions
 
-Status: **Architecture decisions resolved in first design-freeze candidate;
+Status: **Clock 2A review conditions resolved in corrected candidate; Clock 2B
 ratification and implementation-enabling artifacts remain open**
 
-The senior review identified 12 decisions. All 12 now have candidate
+The senior review identified 12 decisions. All 12 retain candidate
 resolutions in [`protocol-resolved-decisions.md`](protocol-resolved-decisions.md).
 This register preserves their disposition, dissenting alternatives, and the
-remaining gates. Candidate resolution is not human ratification.
+remaining gates. Clock 2A remediation is not self-ratification.
 
 ## Resolved senior-review decisions
 
@@ -14,9 +14,9 @@ remaining gates. Candidate resolution is not human ratification.
 | --- | --- | --- | --- |
 | OD-01 | Release manifest pins normative artifacts; prose/canonical rules/schemas/vectors have explicit responsibilities; implementations are non-normative | `schema_semantic_irreversible` | Human governance ratification |
 | OD-02 | `igris-canonical-json-1`: duplicate rejection, safe integers, scalar-preserving Unicode, scalar ordering, fixed escaping, explicit null | `signed_byte_irreversible` | Canonical vectors and ratification |
-| OD-03 | `igris-ed25519-sha256-1` with length-framed object domains/schema/suite/payload; ActionContract attribution uses a separate attestation | `signed_byte_irreversible` | Frame vectors and cryptography approval |
+| OD-03 | Proposed `igris-ed25519-sha256-1` with length-framed object domains/schema/suite/payload; ActionContract attribution uses a separate attestation | `signed_byte_irreversible` | Frame vectors and specialist cryptographic approval of the pre-hash composition |
 | OD-04 | ASCII schema IDs, dispatch before interpretation, closed schemas, no generic v2 extension container | `schema_semantic_irreversible` | Machine schemas and negative vectors |
-| OD-05 | Action identity `(opaque random publisher_namespace, action_name)`; trust binding external | `schema_semantic_irreversible`, `trust_policy` | ActionContract v2 schema/vectors |
+| OD-05 | Action identity `(opaque random publisher_namespace, action_name)`; namespace is copyable/squattable and attribution requires attestation plus external trust binding | `schema_semantic_irreversible`, `trust_policy` | ActionContract v2 schema/vectors |
 | OD-06 | Semantic contract hash includes language-neutral policy requirements; implementation binding separate/deferred | `signed_byte_irreversible` | Exact ActionContract v2 body schema/vectors |
 | OD-07 | Signed random stream/instance IDs, sequence, previous hash, decision hash reference; no minimum event UUID | `signed_byte_irreversible` | Exact Evidence v2 schemas/vectors |
 | OD-08 | Pre-decision failure emits no required Decision; Allowed does not prove execution; denial terminal; at most one Outcome | `schema_semantic_irreversible` | Event field/transition vectors |
@@ -27,11 +27,30 @@ remaining gates. Candidate resolution is not human ratification.
 
 ## Remaining blockers
 
-### OPEN-01 — Human ratification
+### Closed Clock 2A review-remediation conditions
 
-The protocol owner, cryptography/security reviewer, SDK implementability
-reviewers, and conformance owner must approve the candidate. Until then none of
-the resolved decisions is a ratified protocol release.
+The three documentation conditions from independent review commit
+`9514931345898505feafd2db32f6d047fe131d2f` are closed in the Clock 2A
+remediation delta, subject to Clock 2B confirmation:
+
+| Condition | Clock 2A resolution | Remaining gate |
+| --- | --- | --- |
+| Verification-result vocabulary | One issue registry and summary mapping; event type, interval, time-confidence, and specification-conflict terms reconciled | Clock 2B delta review; OPEN-04 machine schema/released results remain open |
+| Schema `1` U+2028/U+2029 | Python raw-UTF-8 baseline frozen; current Go behavior recorded non-conforming | Clock 2B delta review; later production fix remains separate |
+| Schema `1` adversarial numeric literals | Original number-token lexemes govern external schema `1` verification; inability to preserve fails closed | Clock 2B delta review; vectors and later verifier hardening remain separate |
+
+Closing these review-remediation conditions does not close OPEN-01 through
+OPEN-06 and is not protocol ratification.
+
+### OPEN-01 — Independent Clock 2B ratification
+
+Clock 2B must review only the exact delta from
+`41879dcfb971dcad0bfa254dab83b0a6d738dcbf` to the final remediation tip and
+issue GO, CONDITIONAL GO, or NO-GO for schema `1` vector implementation and
+machine-readable verification-result schema freeze. It must confirm the three
+conditions, two clarifications, OD-01 through OD-12 stability, and the absence
+of production/signed-byte changes. Until then none of the resolved decisions is
+a ratified protocol release.
 
 Blocks: all implementation authorization, including schema `1` vector work.
 
@@ -58,7 +77,9 @@ Blocks: Evidence v2 implementation and TypeScript producer.
 The language-neutral model is drafted at
 [`../../spec/verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
 A machine-readable schema, issue registry revision, and released expected
-results must be approved before verifier implementation.
+results must be approved before verifier implementation. The Clock 2A prose
+registry is internally reconciled, but OPEN-04 remains open until those
+machine-readable and released artifacts pass Clock 2B and their own freeze.
 
 Blocks: standalone Go verifier.
 
@@ -66,7 +87,7 @@ Blocks: standalone Go verifier.
 
 The release is fully designed at
 [`../../spec/test-vectors/schema-1-release-plan.md`](../../spec/test-vectors/schema-1-release-plan.md),
-but the additive files have not been generated. After ratification they may be
+but the additive files have not been generated. After Clock 2B GO they may be
 frozen as a candidate using maintained Python and Go paths. The Stage 2
 standalone verifier supplies the independence result required for release
 promotion.
@@ -127,3 +148,8 @@ tip. Closing any implementation-enabling item additionally requires:
 5. a focused review range with no unrelated production change.
 
 No implementation may choose a remaining detail silently.
+
+Pure Ed25519 over the complete frame and Ed25519ph remain recorded comparison
+alternatives for the mandatory specialist cryptographic review. Clock 2A does
+not select or formally reject them and does not approve the proposed pre-hash
+suite.

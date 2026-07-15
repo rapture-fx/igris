@@ -242,7 +242,7 @@ The implementation is independent only when:
 Design is complete. Implementation is **not yet authorized**. Authorization
 requires:
 
-1. human ratification of the first design-freeze candidate;
+1. independent Clock 2B GO on the corrected design-freeze delta;
 2. freeze of the schema `1` candidate vector suite;
 3. freeze of `igris:protocol:verification-result:1`; and
 4. a focused implementation task with an exact review range.

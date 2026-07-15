@@ -1,20 +1,26 @@
-# Igris protocol first design-freeze candidate
+# Igris protocol corrected design-freeze candidate
 
-Status: **Candidate ready for human senior ratification**
+Status: **Clock 2A remediation complete; pending independent Clock 2B delta
+review and ratification**
 
-Source tip: `8523c597f24599a7d1afb7f8f2420342d3b47c0e`
+Authoritative candidate base:
+`41879dcfb971dcad0bfa254dab83b0a6d738dcbf`
+
+Independent review consumed:
+`9514931345898505feafd2db32f6d047fe131d2f` (**CONDITIONAL GO**)
 
 Scope: protocol specification and decision freeze only. Ratification does not
 merge, publish, deploy, or implement a new signed format.
 
 ## Executive decision
 
-The 12 senior-review decisions are resolved at the architecture/specification
-level. The candidate is sufficiently concrete to authorize additive schema `1`
-conformance-vector implementation after ratification. It is not sufficient to
-authorize Evidence v2, ActionContract v2, or a standalone verifier because
-their exact object schemas/vectors or prerequisite released suite do not yet
-exist.
+The 12 senior-review decisions remain resolved at the architecture/
+specification level. The three independent-review conditions are remediated in
+documentation and await Clock 2B confirmation. After an independent GO, the
+candidate is sufficiently concrete to authorize only additive schema `1`
+conformance-vector implementation and machine-readable verification-result
+schema freeze. It does not authorize Evidence v2, ActionContract v2, or a
+standalone verifier implementation.
 
 ## Invariants proposed for freeze
 
@@ -71,7 +77,10 @@ exist.
     content-addressed; attribution is a separate attestation so key rotation
     does not change contract identity.
 22. Algorithm substitution is forbidden; new suites require registry review,
-    threat analysis, and vectors.
+    threat analysis, vectors, and specialist cryptographic approval. The
+    proposed Ed25519-over-SHA-256(frame) composition depends on SHA-256
+    collision resistance and does not retain pure Ed25519's direct-message
+    collision-resilience property.
 
 ### Action identity
 
@@ -80,6 +89,10 @@ exist.
     form. They are collision-resistant but carry no inherent trust.
 25. Local self-asserted namespaces are valid; organization attribution is an
     external trust binding.
+    A publisher namespace is an identifier, not an identity credential,
+    ownership claim, or possession proof. It can be copied or squatted;
+    attribution requires a separate signed attestation and verifier trust
+    binding.
 26. `contract_hash` identifies an immutable contract version, not the Action.
 27. Risk, decision requirement, portable input shape, evidence/disclosure
     requirement, and execution capability requirements affect contract version
@@ -231,9 +244,10 @@ These are not delegated implementation choices.
 
 ## Authorization matrix
 
-| Work | Authorization after candidate ratification | Reason |
+| Work | Authorization after independent Clock 2B GO | Reason |
 | --- | --- | --- |
-| Schema `1` vector implementation | **AUTHORIZED, narrowly** | Legacy semantics/result model are sufficiently resolved; work must be additive test/spec artifacts only |
+| Schema `1` vector implementation | **ELIGIBLE TO PROCEED, narrowly** | Legacy semantics/result model are sufficiently resolved; work must be additive test/spec artifacts only |
+| Machine-readable verification-result schema freeze | **ELIGIBLE TO PROCEED, narrowly** | Clock 2B must first confirm the reconciled vocabulary and mappings |
 | Standalone Go verifier implementation | **NOT YET AUTHORIZED** | Requires frozen schema `1` candidate vectors and a ratified result schema |
 | ActionContract v2 implementation | **NOT AUTHORIZED** | Exact object schema and golden vectors do not exist |
 | Evidence v2 implementation | **NOT AUTHORIZED** | Exact event schemas and golden vectors do not exist |
@@ -243,9 +257,9 @@ These are not delegated implementation choices.
 Authorization never includes backend, database, migration, deployment,
 publication, or Connected feature work.
 
-## Ratification checklist
+## Clock 2B ratification checklist
 
-Human senior ratification must confirm:
+Independent Clock 2B review of the exact remediation delta must confirm:
 
 - canonical integer bound, Unicode ordering, and escape rules are acceptable;
 - frame bytes, suite ID, domains, and full fingerprint are acceptable;
@@ -254,8 +268,11 @@ Human senior ratification must confirm:
 - risk/approval/evidence requirements belong in semantic contract versions;
 - no event UUID or execution-start event is required in the minimum;
 - result summary is descriptive and policy remains separate;
+- the three review conditions and two accepted clarifications are complete;
+- no OD-01 through OD-12 decision changed unexpectedly;
+- no production source, fixture, migration, or schema `1` signed byte changed;
 - trust/checkpoint wire formats may remain deferred; and
 - schema `1` vector work is the only next implementation authorized.
 
-Until that review records approval, this file is a candidate and authorizes no
-implementation.
+Until Clock 2B records GO against the exact remediation tip, this file remains
+a candidate and authorizes no implementation. It does not self-ratify.

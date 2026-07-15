@@ -27,6 +27,7 @@ Status: **Draft terminology**
 | Managed | Future SDK integration where authenticated Igris runtime controls execution; outside Protocol v1 |
 | Outcome | Adapter-observed normal return or ordinary failure; not independent external truth |
 | Provider | Explicit implementation of approval, signing, storage, registry, clock, or identifier capability |
+| Publisher namespace | Opaque uniqueness identifier for Action identity; not an identity credential, ownership proof, or trust binding |
 | Reference implementation | Implementation used to validate and illustrate a specification, not the specification itself |
 | Signing identity reference | Algorithm-qualified key lookup handle; not automatically human identity |
 | Signature domain | Object-type-specific label bound into a future signature frame to prevent cross-object reuse |

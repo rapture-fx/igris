@@ -1,18 +1,20 @@
 # Igris protocol next implementation sequence
 
-Status: **Updated sequence for the first design-freeze candidate**
+Status: **Updated sequence for the corrected design-freeze candidate**
 
 This is a gated order. Protocol work and product work remain separate. The 12
-architecture decisions now have candidate resolutions, but human ratification
-is still required. After ratification, only Stage 1 schema `1` vector work is
-authorized; every later implementation retains its own entry gate.
+architecture decisions now have candidate resolutions, but independent Clock
+2B ratification is still required. After Clock 2B GO, only Stage 1 schema `1`
+vector work and the machine-readable result-schema freeze are eligible; every
+later implementation retains its own entry gate.
 
 ## Current authorization
 
 | Work | Status |
 | --- | --- |
-| Ratify decision candidate and RFC consistency | Ready for human review |
-| Implement additive schema `1` vectors | Authorized only after ratification |
+| Ratify corrected candidate and RFC consistency | Pending Clock 2B delta review |
+| Implement additive schema `1` vectors | Eligible only after Clock 2B GO |
+| Freeze machine-readable verification-result schema | Eligible only after Clock 2B confirms vocabulary consistency |
 | Implement standalone Go verifier | Blocked until candidate vector/result freeze |
 | Implement ActionContract v2 | Blocked on exact schema/vectors |
 | Implement Evidence v2 | Blocked on exact schemas/vectors |
@@ -33,7 +35,7 @@ authorized; every later implementation retains its own entry gate.
                         -> 8. GA trust, export, and operations gate
 ```
 
-## Stage 0 — Ratify the design-freeze candidate
+## Stage 0 — Clock 2B ratifies the corrected design-freeze candidate
 
 Protocol work only; documentation, schemas, registries, and vector design.
 
