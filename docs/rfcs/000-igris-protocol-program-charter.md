@@ -4,6 +4,10 @@ Status: **Draft**
 Audience: protocol maintainers, SDK authors, service implementers, reviewers
 Scope: governance and compatibility; no production implementation
 
+Normative status: requirements in this RFC are candidate requirements governed
+by the artifact precedence below. They become normative only when a release
+manifest records human ratification.
+
 ## Problem statement
 
 Igris began with an SDK-first developer experience: guard an ordinary callable,
@@ -45,14 +49,39 @@ The Python SDK is the current reference implementation because it emits the
 adopted v1 artifacts. It is not automatically the specification. Where prose,
 fixtures, and code disagree during the draft period:
 
-1. existing signed Evidence v1 bytes remain interpreted by the shipped v1
-   verification algorithm;
-2. golden vectors decide byte-level conformance;
-3. an RFC correction clarifies intent without retroactively altering bytes;
-4. a semantic change uses a new schema version.
+1. the disagreement is recorded as a specification defect rather than choosing
+   deployed behavior as normative;
+2. existing schema `1` fixtures continue to pin the exact historical bytes and
+   verification cases they enumerate;
+3. construction of a disputed future object fails closed until the candidate
+   artifacts agree; and
+4. an RFC erratum may clarify but never alter released bytes/meaning; a semantic
+   or byte change uses a new schema/release.
 
 Independent implementations MUST be possible without importing Igris code.
 Shared implementation code is optional and is not evidence of conformance.
+
+## Normative artifact precedence
+
+An Igris protocol release is identified by an immutable release manifest that
+pins the identifiers and hashes of its normative artifacts:
+
+1. ratified RFC requirements define meaning, claims, and compatibility;
+2. referenced canonicalization specifications and registries define exact
+   bytes and registered identifiers in their delegated scope;
+3. machine-readable schemas define mechanically expressible shape; and
+4. released vectors define exact inputs, bytes, and results for enumerated
+   cases.
+
+These artifacts MUST agree. A conflict is a specification defect, not a choice
+for an implementation. Construction fails closed; verification reports
+`specification_conflict` when affected; the protocol owner issues an erratum or
+new release. An erratum MUST NOT change released bytes, signatures, vector
+outcomes, or historical meaning. Reference implementations and deployed
+product behavior are non-normative and MUST NOT become normative accidentally.
+
+The full candidate resolution is
+[`protocol-resolved-decisions.md`](protocol-resolved-decisions.md#rd-01--normative-protocol-contract-and-precedence).
 
 ## Open specification principles
 
@@ -95,6 +124,11 @@ Registry additions that cannot affect signed interpretation may use normal
 review. Changes to signed fields, canonical bytes, algorithm identifiers,
 version semantics, or verification meaning require an RFC, vectors, migration
 analysis, and security review.
+
+The protocol owner also owns release manifests and errata. The conformance
+owner owns vector-suite releases. Cryptographic changes require a named
+cryptography/security approval. A release is not ratified until these roles and
+the SDK implementability reviewers approve one exact candidate tip.
 
 ## Compatibility philosophy
 

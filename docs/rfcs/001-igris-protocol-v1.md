@@ -1,19 +1,22 @@
-# RFC 001: Igris Protocol v1
+# RFC 001: Igris protocol model and schema `1` compatibility profile
 
 Status: **Draft**
-Protocol maturity: proposed model around existing schema `1` artifacts
+Protocol maturity: proposed model around a permanent schema `1` compatibility profile
 Compatibility rule: no redefinition of current signed bytes
 
 ## Normative terminology
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHOULD**, **SHOULD NOT**,
-and **MAY** are normative only within sections labeled “Draft invariant.”
-“Current” describes Alpha.2 and is not retroactive protocol approval. “Open
-question” and “Rejected for v1” are non-normative.
+and **MAY** mark candidate requirements throughout RFCs 000–008. “Current”
+describes Alpha.2 and is not retroactive protocol approval. “Open question,”
+“draft option,” and “rejected” text are non-normative. Candidate requirements
+become normative only when a release manifest records ratification under RFC
+000's artifact-precedence rule.
 
-Protocol version `1` is a compatibility umbrella. Today its wire artifacts are
-ActionContract schema `1` and Evidence event schema `1`. Logical objects below
-that lack v1 fields are not silently serialized into either artifact.
+ActionContract schema `1` and Evidence event schema `1` form the **schema `1`
+compatibility profile**. This name does not imply the proposed logical model is
+already a ratified Protocol v1. Logical objects below that lack schema `1`
+fields are not silently serialized into either artifact.
 
 ## Protocol objects
 
@@ -22,7 +25,8 @@ that lack v1 fields are not silently serialized into either artifact.
 - an **ActionContract**, the static declaration;
 - an **Action instance**, one attempted invocation of that declaration;
 - a **Decision**, an authorization/policy observation for that instance;
-- an **Outcome**, an observation after allowed execution begins;
+- an **Outcome**, an adapter observation after an allowed decision and
+  attempted execution;
 - an **Evidence event**, one signed lifecycle assertion;
 - an **Evidence chain**, an ordered integrity-linked event stream;
 - a **Signing identity reference**, the key/algorithm lookup handle;
@@ -46,6 +50,10 @@ it does not grant execution permission and does not represent an invocation.
 Within schema `1`, `action_name` is the logical name and `module` plus
 `qualified_name` is a Python-origin code-location descriptor. Language-neutral
 replacement descriptors require ActionContract v2.
+
+The v2 semantic descriptor remains content-addressed. A separate signed
+attestation may bind its schema-qualified hash to a publisher; signer keys do
+not enter semantic contract identity.
 
 ## Action instance
 
@@ -113,7 +121,9 @@ signed event. See `sdk/python/src/igris/identity.py` and
 cryptographic verification; it does not itself establish person,
 organization, workload, or environment identity. Collision handling and
 full-fingerprint binding are verifier/trust-store duties for v1. A generalized
-algorithm-qualified identity requires versioned design.
+algorithm-qualified identity requires versioned design. Future signed objects
+use the full `ed25519-sha256:<64 hex>` reference selected by their registered
+signature suite; this rule is not backported to schema `1`.
 
 ## Verification result
 
@@ -122,21 +132,17 @@ algorithm-qualified identity requires versioned design.
 `hash_mismatch`, `unknown_key`, and `bad_signature`. The Go verifier adds
 field, timestamp, and transition checks.
 
-**Draft invariant:** Verification MUST be decomposed. At minimum a verifier
-must be able to distinguish:
+**Draft invariant:** Verification MUST use the decomposed, language-neutral
+model in
+[`../../spec/verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
+Parse, schema, canonicalization, algorithm, hash, signature, key resolution,
+continuity, completeness, semantics, trust, time confidence, and named policy
+are distinct. A cryptographically valid artifact may be trust-unknown,
+untrusted, revoked, outside a binding interval, or policy-rejected.
 
-| Dimension | Example results |
-| --- | --- |
-| Parsing/schema | malformed, unsupported schema, unsupported event type |
-| Cryptographic integrity | valid signature, invalid signature, hash mismatch |
-| Key resolution | known, unknown, ambiguous key identifier |
-| Chain | complete from supplied anchor, broken, partial/unanchored |
-| Trust | trusted, untrusted, revoked, trust unknown |
-| Semantics | valid transition, invalid transition, unresolved decision |
-
-`overall_valid` MUST NOT collapse unsupported schema into bad signature or
-untrusted key into cryptographic invalidity. Trust evaluation MAY be performed
-after content verification.
+The descriptive `summary` MUST NOT be treated as universal authorization.
+Unsupported schema/algorithm and unknown key leave dependent checks
+`not_evaluated`; they are not invalid signatures.
 
 ## Correlation and causation
 
@@ -178,14 +184,22 @@ verification and MUST NOT upgrade `embedded` execution provenance to
 
 ## Protocol versioning
 
-Envelope schemas are versioned independently. A verifier MUST dispatch by the
-object's schema version before applying field semantics. Existing schema `1`
-bytes are immutable. Writers MUST NOT emit a changed field meaning under the
-same schema.
+Envelope schemas are versioned independently. Existing schema `1` bytes are
+immutable and retain dedicated legacy dispatch. Future schema IDs use
+`igris:protocol:<object-name>:<major>`, are signed, and are dispatched after
+bounded syntactic parsing but before schema-specific canonicalization,
+cryptography, or semantics.
+
+Future signed schemas are closed. Unknown fields invalidate a known schema;
+unknown schemas return `unsupported_schema`. No downgrade or best-effort
+reinterpretation is permitted. Writers MUST NOT emit a changed field or meaning
+under the same schema.
 
 Additive documentation, new SDK adapters, or richer out-of-band trust policy
-do not require a schema version. Any changed signed field set, canonical
-encoding, signature input, identity reference, or existing field meaning does.
+do not require a signed-object schema version when they preserve every existing
+byte/result/meaning. Any changed signed field set, requiredness, type, canonical
+encoding, signature input, identity reference, unknown-field rule, or existing
+field meaning requires a new schema ID and vectors.
 
 ## Capability negotiation
 
@@ -198,8 +212,9 @@ therefore conservative:
 - absence of a capability means unsupported, not silently downgraded;
 - downgrading MUST NOT discard a required security property.
 
-A standardized negotiation document is an open question and MUST remain
-outside Evidence v1 signed bytes.
+A standardized negotiation document remains deferred and MUST remain outside
+Evidence schema `1` signed bytes. Transport capability advertisement never
+authorizes silent downgrade.
 
 ## Non-goals
 

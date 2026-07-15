@@ -9,10 +9,14 @@ A runtime environment is the explicit set of provider capabilities used to
 prepare, decide, execute, and record one Action instance. It is not a workflow
 runtime, dependency-injection framework, or guarantee of process isolation.
 
-**Draft invariant:** Protocol requirements describe provider behavior and
+**Candidate invariant:** Protocol requirements describe provider behavior and
 failure semantics, not provider implementation classes. A language binding may
 use arguments, configuration objects, interfaces, closures, contexts, or host
 framework facilities as long as resolution is explicit and testable.
+
+Provider interfaces, dependency-resolution containers, and class names are
+implementation-only. They become protocol-visible only through signed objects,
+portable result semantics, or required externally observable ordering.
 
 ## Approval provider
 
@@ -70,10 +74,12 @@ There is no public provider seam or trusted-time evidence.
 
 ## Identifier provider
 
-The provider supplies event identifiers and, in a future schema, may supply
-Action instance identifiers. Identifiers MUST be opaque to protocol semantics
-unless their format is explicitly standardized. Uniqueness does not prove
-authenticity or idempotency.
+The provider supplies schema-qualified identifiers. Schema 1 event identifiers
+remain UUIDv4 strings under the permanent legacy profile. Future Evidence uses
+opaque random stream and Action-instance identifiers in the formats frozen by
+[RFC 002](002-igris-action-model.md) and [RFC 003](003-igris-evidence-envelope.md);
+an event is identified by stream, sequence, and event hash rather than a new
+event UUID. Uniqueness does not prove authenticity or idempotency.
 
 **Current:** `journal.new_event_id` emits UUIDv4 strings. It is not injectable
 through the public Python API.
@@ -97,6 +103,9 @@ Missing required approval, invalid provider output, unusable signing identity,
 failed input canonicalization, and pre-execution evidence failure MUST prevent
 execution. A provider failure MUST NOT be translated to allow. Partial remote
 configuration MUST NOT silently downgrade to Embedded-only behavior.
+Preparation and provider failures before an allowed or denied result are
+pre-decision failures; the protocol does not require a synthetic Decision event
+for them.
 
 ## Terminal approval
 
@@ -131,7 +140,7 @@ provenance to Embedded evidence or turn registration into authorization.
 
 ## Dependency resolution
 
-**Draft resolution order:**
+**Binding recommendation:**
 
 1. explicit per-Action/per-call provider supplied by the application;
 2. explicit runtime-environment configuration;

@@ -45,6 +45,12 @@ and reject collisions. Display surfaces SHOULD show enough fingerprint to let
 an operator compare keys without representing a truncated ID as globally
 unique.
 
+Future signed schemas use the full key reference
+`ed25519-sha256:<64-lowercase-hex-digits>`. The reference is an identifier for
+the raw Ed25519 public key, not a certificate subject, account, organization,
+or authorization grant. Schema 1 retains its existing truncated reference
+without reinterpretation.
+
 ## Self-asserted local identity
 
 The first-use local key is self-asserted. Offline verification with its public
@@ -58,9 +64,11 @@ TOFU records the first observed full fingerprint for a local trust scope and
 warns or fails on unexpected change. It can detect later substitution but
 cannot prove the first key was authentic.
 
-**Draft proposal:** TOFU MAY be an Embedded trust policy. Pin stores should be
+**Candidate invariant:** TOFU MAY be an Embedded trust policy. Pin stores should be
 scope-qualified, atomic, inspectable, and explicit about reset. TOFU state is
-not Evidence v1 and can be added without changing event bytes.
+not signed evidence and can be added without changing event bytes. A verifier
+MUST report TOFU as the policy that produced a trust conclusion; it MUST NOT
+present a first-use pin as independently authenticated identity.
 
 ## Bring-your-own-key
 
@@ -87,9 +95,28 @@ turn Embedded execution into Managed execution.
 
 ## Verifier trust store
 
-**Draft invariant:** Trust evaluation consumes a trust store containing, at
-minimum, scope, full public key/fingerprint, key status, validity observations,
-and provenance of the binding. It SHOULD support:
+**Candidate invariant:** Trust evaluation consumes explicit trust inputs. A
+minimum usable trust binding has these logical slots:
+
+| Slot | Required semantics |
+| --- | --- |
+| signer key or reference | The public key bytes, or an exact reference resolvable from supplied inputs |
+| key fingerprint | Full algorithm-qualified fingerprint derived from the public key |
+| subject binding | The asserted human, workload, device, organization, or local subject, if any |
+| binding authority | Who asserted the subject-to-key relationship; self-asserted is explicit |
+| trust scope | The audience, publisher namespace, tenant, application, or other scope in which the binding is evaluated |
+| validity interval | Optional start/end bounds and the confidence of the time source |
+| revocation status | Good, revoked, unknown, or unavailable, plus effective/observed times when known |
+| verification policy | Named/versioned local policy that maps facts and bindings to a trust result |
+| historical artifact | Retained binding/revocation material sufficient to reproduce the historical evaluation |
+
+The serialization of a portable trust bundle remains deferred. Implementations
+MAY store these slots in any inspectable representation until a signed trust
+artifact is standardized. A future signed trust artifact uses the
+`igris.trust-artifact` signature domain and a closed, independently versioned
+schema.
+
+A trust store SHOULD support:
 
 - self-asserted/explicitly supplied keys;
 - TOFU pins;
@@ -97,8 +124,11 @@ and provenance of the binding. It SHOULD support:
 - revoked/compromised intervals;
 - policy version and evaluation time.
 
-Cryptographic verification MUST remain possible without a trust store; its
-result is then integrity-valid with trust unknown/untrusted.
+Cryptographic verification MUST remain possible without a trust store when the
+public key is supplied. Its result is then cryptographically valid with trust
+unknown; absence of trust data is not itself evidence that a key is malicious.
+The portable result vocabulary is defined in
+[`verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
 
 ## Key registration
 
@@ -107,9 +137,10 @@ binding authority, derive rather than trust the v1 key ID, reject ambiguous
 reuse, and record when/how the binding was established. Registration grants no
 execution permission by itself.
 
-Current Connected first-use registration is acceptable for private-alpha
-coordination but leaves rotation/revocation policy open. A future registration
-protocol is not part of Evidence v1.
+Current Connected first-use registration is a Connected-local binding for
+private-alpha coordination. It is not a protocol-wide identity assertion. A
+portable registration or trust-artifact schema is not part of Evidence v1 and
+remains a future decision.
 
 ## Key rotation
 
@@ -117,10 +148,11 @@ Rotation introduces a new key and a temporal or signed relationship to the old
 key. It MUST NOT rewrite historical evidence or reuse an identifier for
 different key material.
 
-**Draft options:** administrator-authorized rotation; old-key-signed successor;
-or both. Recovery when the old key is unavailable requires an independently
-authenticated authority. Rotation links may be trust-store records rather than
-evidence events.
+Rotation MAY be administrator-authorized, old-key-signed, or both, according to
+the relying policy. Recovery when the old key is unavailable requires an
+independently authenticated authority. Rotation links belong in trust inputs,
+not core evidence events. Every evidence event remains verified with the key it
+actually references; a rotation never changes historical signed bytes.
 
 ## Key revocation
 
@@ -129,23 +161,29 @@ scope after a time or for all time. It is not cryptographic erasure and does
 not make old signatures mathematically invalid.
 
 Revocation records SHOULD include key fingerprint, scope, effective time,
-recorded time, reason category, authority, and status of timestamp confidence.
-Offline verifiers may have stale revocation information and MUST report that
-limitation.
+recorded time, reason category, authority, and timestamp confidence. A verifier
+MUST NOT turn a cryptographically valid signature into `invalid_signature`
+because the key is revoked. It reports the cryptographic fact and the policy
+outcome separately. Offline verifiers may have stale revocation information
+and MUST report that limitation.
 
 ## Compromise time
 
-When compromise time is known with defensible confidence, trust policy may
+When compromise time is known with defensible confidence, trust policy MAY
 distinguish signatures before and after that time. Producer timestamps alone
 are not sufficient because they are untrusted. A trusted checkpoint, receipt
 time, or transparency inclusion can bound when evidence existed.
 
 If compromise time is unknown, policy may mark all evidence under that key as
 indeterminate or untrusted; it MUST NOT fabricate a precise safe interval.
+When trustworthy time is unavailable, the verifier reports
+`time_confidence = producer_asserted`, `unavailable`, or another registered
+non-trusted value and MUST NOT enforce a binding interval as a cryptographic
+fact.
 
 ## Historical evidence after revocation
 
-A verifier should return both:
+A verifier MUST return both dimensions:
 
 - cryptographic result: signature valid/invalid under the historical key;
 - trust result: trusted at claimed/observed time, revoked, compromise-affected,
@@ -162,6 +200,12 @@ binding authorities it trusts. Matching an Igris Connected tenant registration
 is not universal federation. Exported trust bundles, bilateral pins, or
 federated assertions are future options and MUST preserve the organization
 scope of key bindings.
+
+Connected MAY add authenticated organization bindings, operational key
+lifecycle, shared trust-policy distribution, retention, and audit views. These
+services MUST remain optional to content verification and SHOULD provide
+exportable historical public keys and binding artifacts so discontinued service
+does not strand historical evidence.
 
 ## Offline verification
 

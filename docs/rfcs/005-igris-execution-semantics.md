@@ -9,24 +9,38 @@ The proposed state model is semantic, not a claim that every state is emitted
 in Evidence v1. Execution state and evidence state are orthogonal.
 
 ```text
-Declared -> Prepared -> Decision pending -> Allowed -> Executing
-                         |                 |             |-> Succeeded
-                         |                 |             |-> Failed
-                         |                 |             |-> Cancelled
-                         |                 |             `-> unknown after crash
-                         |                 `-> Expired (future)
-                         `-> Denied
+Declared
+  `-> preparing
+      |-> pre-decision failure
+      `-> Prepared
+          `-> Decision pending
+              |-> pre-decision failure
+              |-> Denied [terminal]
+              `-> Allowed
+                  `-> Executing
+                      |-> Succeeded
+                      |-> Failed
+                      `-> runtime state unknown after crash
 
 Any point that required a durable event may additionally report
 evidence incomplete. Evidence incomplete does not erase the execution state.
+
+Evidence-only view: Allowed plus no Outcome or other trusted execution
+observation means execution occurrence is unknown.
 ```
 
 **Current mapping:** contract construction corresponds to Declared; successful
 argument binding/provider resolution/redaction corresponds approximately to
 Prepared; approval occurs during Decision pending; signed decision events
-represent Allowed/Denied; execution after an allowed event is inferred as
-Executing; outcome events represent Succeeded/Failed. Cancelled and Expired
-are not Evidence v1 event states.
+represent Allowed/Denied; outcome events represent the adapter's observation
+of Succeeded/Failed. An Allowed event alone does not establish that execution
+started. Preparation or provider failure can occur before any signed Decision.
+Cancelled and Expired are not Evidence v1 event states.
+
+The minimum portable event model is deliberately smaller than the logical
+state machine: one Decision followed by zero or one observed Outcome. It does
+not require an execution-start event. Durable pending, expiry, cancellation,
+and recovery remain outside this design-freeze candidate.
 
 ## Declared
 
@@ -41,8 +55,10 @@ requires before asking for a decision: contract version, canonicalizable
 redacted inputs, signing identity, evidence store, and explicit provider
 configuration.
 
-**Draft invariant:** failure while preparing MUST occur before application
-execution and MUST NOT emit an allowed decision.
+**Candidate invariant:** failure while preparing MUST occur before application
+execution and MUST NOT emit an allowed decision. Canonicalization, identity,
+provider-resolution, redaction, and provider failures before a decision are
+pre-decision failures; the protocol does not require a Decision event for them.
 
 ## Decision pending
 
@@ -55,6 +71,8 @@ approval currently fails closed rather than remaining durably pending.
 The provider returned allow and the allowed decision evidence was durably
 written. Allowed is authorization observed by this provider under its policy;
 it is not proof of execution, organizational approval, or external effect.
+Allowed without Outcome leaves execution occurrence unknown unless another
+trusted observation establishes that execution began.
 
 ## Denied
 
@@ -65,7 +83,7 @@ NOT execute and no outcome is valid for that decision.
 ## Executing
 
 Application execution has begun after an allowed decision. Evidence v1 has no
-explicit executing event, so an allowed decision without outcome is ambiguous:
+explicit execution-start event, so an allowed decision without outcome is ambiguous:
 the process may have crashed before invocation, during execution, or before
 outcome persistence.
 
@@ -116,7 +134,9 @@ and `test_outcome_write_failure_after_function_exception`.
 | From | To | v1 status |
 | --- | --- | --- |
 | Declared | Prepared | Logical/current adapter behavior |
+| Declared/preparing | Pre-decision failure | Current binding behavior; no Decision required |
 | Prepared | Decision pending | Logical/current adapter behavior |
+| Decision pending | Pre-decision failure | Provider/configuration failure; no Decision required |
 | Decision pending | Allowed | Current signed decision |
 | Decision pending | Denied | Current signed decision; terminal |
 | Allowed | Executing | Logical, not separately emitted |
@@ -125,8 +145,12 @@ and `test_outcome_write_failure_after_function_exception`.
 | Executing | Cancelled | Future signed state |
 | Allowed | Expired | Future only |
 
-An outcome after Denied is invalid. More than one outcome for the same decision
-is invalid. A missing outcome is unresolved, not an implicit terminal state.
+An outcome after Denied is invalid. Denied is terminal for the instance. More
+than one observed outcome for the same decision is invalid in the minimum
+protocol. A missing outcome is unresolved, not an implicit terminal state.
+“Occurrence unknown” is an evidence-only verifier conclusion, not a runtime
+transition: it applies when Allowed is the last trusted fact and no Outcome or
+other trusted execution observation is available.
 
 ## Sync execution
 
@@ -163,7 +187,7 @@ the missing evidence honestly.
 segmentation fault, power loss, or `os._exit` can leave an allowed decision
 without outcome. This is documented in `sdk/python/src/igris/guard.py`.
 
-**Draft invariant:** a verifier MUST interpret this pattern as unresolved.
+**Candidate invariant:** a verifier MUST interpret this pattern as unresolved.
 Implementations MUST NOT synthesize success or failure after restart without a
 separately trustworthy observation.
 
@@ -192,7 +216,8 @@ If outcome evidence cannot be persisted, the adapter MUST NOT retry and MUST
 not return ordinary success as though evidence were complete. It should expose
 the observed outcome and `retry_safe=false` without logging sensitive results.
 This distinction is a binding-level error model today; adding a repair event
-or signed evidence-state field requires Evidence v2.
+or signed evidence-state field requires a future schema. It does not create
+external exactly-once behavior and MUST NOT trigger automatic replay.
 
 ## Execution completed but evidence incomplete
 
@@ -242,3 +267,11 @@ models. None is necessary to define signed evidence for one ordinary callable.
 Selecting one now would couple the protocol to a runtime architecture before
 multiple independent bindings demonstrate the need. Protocol v1 standardizes
 observable invariants, not scheduler internals.
+
+## Deferred lifecycle states
+
+Signed execution-start, cancellation, and expiry events, durable suspension,
+workflow recovery, compensation, and distributed transactions are deliberately
+deferred. If a later interoperability requirement needs any of them, it receives
+an explicit schema and transition review; none is inferred from the current
+Decision/Outcome pair.

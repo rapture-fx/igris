@@ -110,7 +110,10 @@ vectors or, preferably, Evidence v2.
 A denied decision is terminal and has no outcome. An allowed decision may be
 followed by at most one outcome that references its `event_id`. Outcome status
 describes the adapter's observation of a return or ordinary exception. It does
-not assert an external transaction result.
+not assert an external transaction result. An allowed decision alone proves
+permission was durably observed; it does not prove invocation began. Without an
+Outcome or another future execution observation, execution occurrence and
+result are unknown to the verifier.
 
 The current Python verifier checks event structure and chain but not the
 decision/outcome state transition. The current Go ingest verifier does check
@@ -128,6 +131,15 @@ and require the first event to match it.
 Adding a signed sequence number or stream ID changes the unsigned payload and
 requires Evidence v2. A transport may count events without presenting that
 count as signed evidence.
+
+**Design-freeze candidate for Evidence v2:** Every event signs an opaque random
+256-bit `stream_id`, an integer `sequence`, an opaque random 256-bit
+`action_instance_id`, and the previous object hash. Sequence begins at `0`,
+increments by exactly one, and cannot wrap. Genesis alone has a null previous
+hash. Event identity is `(stream_id, sequence)` plus object hash; no separate
+minimum event UUID is required. An Outcome repeats the instance ID and
+references the Decision's object hash. General trace/correlation/causation IDs
+remain deferred.
 
 ## Canonical encoding
 
@@ -147,9 +159,18 @@ payload. Python uses `canonical_json_bytes` in
 `testdata/igris-contract-v1/canonical/` and checked by both Go conformance
 suites.
 
-**Open question:** v1's general number model is under-specified across
-languages. Before non-integer numeric values are treated as independently
-portable protocol inputs, vectors must define accepted lexical/range behavior.
+Schema `1` retains this legacy profile permanently. Its release vectors MUST
+pin historical integer/finite-float behavior, Unicode, parsing, and unknown
+fields without changing existing fixtures.
+
+Future signed schemas do not generalize the legacy encoder. They use
+`igris-canonical-json-1`, fully defined in
+[`protocol-resolved-decisions.md`](protocol-resolved-decisions.md#rd-02--canonical-data-profile-for-future-signed-objects): duplicate names rejected
+before object construction; valid Unicode scalar values without normalization;
+keys sorted by Unicode scalar sequence; fixed escaping; missing distinct from
+null; and integers only in
+`-9007199254740991..9007199254740991`. Floating-point and exponent values are
+not future protocol numeric values.
 
 ## Hash calculation
 
@@ -172,6 +193,12 @@ A verifier MUST verify over the recomputed digest, not trust the submitted
 There is no additional domain-separation string in Evidence v1. Adding one is
 cryptographically attractive but incompatible and requires Evidence v2.
 
+Future signed objects use the exact `IGRIS-SIGNATURE-FRAME` construction in
+[`protocol-resolved-decisions.md`](protocol-resolved-decisions.md#rd-03--future-signature-framing-and-domain-separation).
+The frame length-binds object domain, schema ID, signature-suite ID, and the
+complete canonical unsigned payload before SHA-256 and Ed25519. Evidence uses
+domain `igris.evidence-event`. This rule begins only at a new schema boundary.
+
 ## Algorithm identifiers
 
 Evidence v1 implicitly fixes SHA-256, Ed25519, lowercase hex, and standard
@@ -179,8 +206,12 @@ base64. It has no independent hash or signature algorithm fields. The
 `ed25519:` prefix in `key_id` is an identity encoding, not a general algorithm
 negotiation framework.
 
-Explicit algorithm identifiers require Evidence v2. They MUST be covered by
-the signature and selected before interpreting key or signature bytes.
+The first future suite is `igris-ed25519-sha256-1`, which selects the canonical
+profile, SHA-256 object/signature digests, Ed25519, padded standard base64, key
+encoding, and frame. The signed suite identifier is selected before key or
+signature interpretation. Unsupported suites return `unsupported_algorithm`;
+verifiers MUST NOT substitute or downgrade. New suites require registry,
+security, and vector review.
 
 ## Key identifiers
 
@@ -193,6 +224,10 @@ MUST reject ambiguity.
 Changing the identifier or adding a full signed fingerprint requires
 Evidence v2. A trust store may record the full fingerprint without changing
 events.
+
+Future objects use the full reference
+`ed25519-sha256:<64 lowercase hex characters>` derived from the raw 32-byte
+public key. It remains a key reference, not a human/organization identity.
 
 ## Timestamp claims
 
@@ -212,6 +247,10 @@ or that the body was authorized. Verification SHOULD report contract
 resolution separately from signature validity. Embedding a contract or
 versioned reference object requires a future schema decision.
 
+Evidence v2 MUST carry a schema-qualified contract reference containing the
+contract schema ID and semantic contract hash. The exact field representation
+and vectors remain an implementation blocker.
+
 ## Unknown field behavior
 
 Current Python verification accepts additional fields and includes them when
@@ -228,6 +267,12 @@ This means cryptographic acceptance does not imply semantic understanding.
 - Security-boundary fields such as tenant and managed provenance MUST remain
   transport/server-assigned, not client-asserted v1 extensions.
 - A required semantic extension uses a new schema.
+
+Future signed schemas are closed. A known future schema with an undeclared
+field has schema status `invalid` and issue `unknown_field`; generic
+cryptographic dimensions may still be reported when safely computable, but the
+field is never treated as understood. The first v2 schemas have no generic
+extension container. Adding a signed field requires a new schema ID.
 
 ## Size and privacy limits
 
@@ -279,11 +324,18 @@ partial until its anchor is supplied or trusted. A null-genesis segment may
 still be tail-truncated. Verifiers MUST distinguish `chain_valid` from
 `chain_complete`. Evidence v1 alone cannot prove complete history.
 
+Candidate result vocabulary is `valid_genesis`, `valid_anchored`,
+`valid_unanchored`, or `discontinuous` for continuity and
+`complete_to_checkpoint`, `incomplete`, or `completeness_unknown` for
+completeness. A checkpoint is an optional separately signed object using domain
+`igris.chain-checkpoint`, not an Evidence event or mandatory service. It proves
+only observation of one head under its stated witness/time confidence.
+
 ## Schema evolution
 
-Evidence v2 is required for any of the following proposals:
+Evidence v2 is required for any of the following:
 
-- action instance, stream, sequence, correlation, or causation identifiers;
+- action instance, stream, or sequence identifiers;
 - explicit algorithm identifiers or signature domain separation;
 - a full signed key fingerprint or richer signer reference;
 - trusted-time, environment-attestation, or provider-identity references;
@@ -294,11 +346,20 @@ Evidence v2 is required for any of the following proposals:
 New SDK-only errors, trust-store policies, transport limits, privacy
 inspection, and adapter APIs do not change the evidence schema.
 
+General correlation/causation, execution-start, cancellation, expiry, repair,
+trusted-time, and attestation fields are deliberately deferred beyond minimum
+Evidence v2. Their presence in this list does not authorize them.
+
 ## Historical verification
 
-Verifiers SHOULD keep immutable schema/algorithm dispatch and golden vectors
-for every accepted historical version. Revocation or later distrust of a key
-changes the trust result, not the mathematical fact that an old signature
-verified. Historical reports SHOULD include evaluation time, trust-policy
-version, key status interval when known, and whether required artifacts were
-available.
+Verifiers MUST keep immutable schema `1` canonical/signature dispatch and
+released golden vectors permanently. No future canonical, domain, schema,
+signer, stream, sequence, or lifecycle rule is backported. Revocation or later
+distrust changes trust, not the mathematical fact that an old signature
+verified. A stronger semantic/ingest policy may reject a cryptographically
+valid schema `1` artifact but MUST report those dimensions separately.
+
+Historical reports include evaluation time, policy version, key status
+interval and time confidence when known, artifact availability, and
+completeness limitations. Schema `1` signatures remain self-asserted relative
+to a key unless an external trust binding says more.

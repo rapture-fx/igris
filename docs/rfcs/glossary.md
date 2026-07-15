@@ -12,6 +12,7 @@ Status: **Draft terminology**
 | Attribution | Binding a signing key to a person, organization, workload, or device |
 | Authorization | Policy conclusion that an attributed principal may perform an operation |
 | Canonical bytes | Exact schema-defined byte representation used for hashing |
+| Canonical-data profile | Versioned rules that map accepted language-neutral values to exact bytes |
 | Causation | Signed relationship asserting that one protocol object caused another |
 | Chain anchor | Expected preceding hash or checkpoint used to evaluate a segment |
 | Chain completeness | Confidence that no earlier/later event is omitted; stronger than internal validity |
@@ -28,6 +29,8 @@ Status: **Draft terminology**
 | Provider | Explicit implementation of approval, signing, storage, registry, clock, or identifier capability |
 | Reference implementation | Implementation used to validate and illustrate a specification, not the specification itself |
 | Signing identity reference | Algorithm-qualified key lookup handle; not automatically human identity |
+| Signature domain | Object-type-specific label bound into a future signature frame to prevent cross-object reuse |
+| Trust binding | Scoped assertion by a named authority connecting a key to a subject, validity information, and status |
 | Trust store | Scoped key bindings, status, authority, and temporal metadata used by a verifier |
 | Verification result | Structured parsing, integrity, key, chain, semantic, and trust conclusions |
 | Witness/checkpoint | External observation of a chain head used to strengthen completeness/timing claims |

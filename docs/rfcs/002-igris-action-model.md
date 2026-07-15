@@ -23,11 +23,16 @@ derived from module and qualified function name. `action_id` is
 `sdk/python/src/igris/contracts.py::validate_action_name` and
 `sdk/python/tests/test_contracts.py::TestActionIdentity`.
 
-**Draft invariant:** Within one administrative namespace, `action_name`
-identifies the logical Action. `action_id` in current Evidence v1 is a
-code-location hint and MUST NOT be treated as a globally unique identifier.
-Cross-organization global identity and publisher namespaces remain open and
-would require ActionContract v2.
+**Draft invariant:** Current Evidence schema `1` `action_id` is a code-location
+hint and MUST NOT be treated as global or semantic identity. Future semantic
+Action identity is exactly `(publisher_namespace, action_name)`.
+
+`publisher_namespace` is `igris-publisher:` plus the lowercase unpadded RFC
+4648 base32 encoding of 32 cryptographically random bytes. It is opaque,
+collision-resistant, and signed into ActionContract v2, but it carries no
+inherent person/organization trust. Local self-asserted namespaces are valid;
+trust metadata may bind one to an organization. The Action-name grammar remains
+`^[A-Za-z][A-Za-z0-9_.:-]{0,127}$`.
 
 ## Intent
 
@@ -37,8 +42,9 @@ do and the boundary of its consequential effect.
 **Current:** ActionContract v1 has no intent field. Function names, annotations,
 or source MUST NOT be treated as a signed intent statement.
 
-**Draft proposal:** A future contract may carry a bounded, non-secret intent
-descriptor. Adding it to the signed contract requires ActionContract v2.
+**Deferred:** Human-facing intent remains external metadata and does not affect
+minimum semantic contract identity. A future typed signed intent claim would
+require a new schema and privacy/compatibility review.
 
 ## Input descriptors
 
@@ -101,7 +107,11 @@ execution requirements are excluded from v1.
 
 ## Evidence requirements
 
-**Current:** all guarded calls write a decision; allowed calls attempt an
+**Current:** A call may fail before any decision during binding, explicit
+Connected configuration/synchronization, redaction/canonicalization, identity,
+provider evaluation, or decision persistence. When a valid provider decision
+is obtained, the adapter attempts to write it durably; application execution is
+forbidden until an allowed decision is durable. Allowed executions attempt one
 outcome. The requirements themselves are not contract fields.
 
 **Draft invariant:** Required event classes and failure handling should be
@@ -118,10 +128,13 @@ static Action and contract version.
 named as an action instance. Reusing `input_hash` or `contract_hash` as an
 instance ID is forbidden: equal inputs may be invoked more than once.
 
-**Draft proposal:** A future `action_instance_id` is opaque, unique within its
-issuer namespace, and signed into all instance events. This requires Evidence
-v2, and possibly ActionContract v2 only if identifier policy becomes a contract
-requirement.
+**Draft invariant:** Evidence v2 uses
+`action_instance_id = "igris-instance:" + base32lower(random_32_bytes)` with
+no padding. It is opaque,
+collision-resistant, created once per attempted invocation, and signed into
+every Decision/Outcome for that instance. Equal input/contract values never
+reuse an instance ID. The identifier has no time, authorization, identity, or
+idempotency meaning and does not belong in ActionContract identity.
 
 ## Static description versus invocation
 
@@ -157,8 +170,22 @@ callable supplied to a retrofit wrapper; Alpha.2 proves this in
 `test_wrap_tool.py::test_original_callable_unchanged`.
 
 Runtime provider instances and local configuration may change without changing
-the contract only when they do not alter signed contract fields. Whether that
-is desirable for redaction policy is an explicit v2 question.
+the contract only when they do not alter signed contract fields.
+
+For ActionContract v2, `contract_hash` identifies one immutable version of an
+Action, not the Action itself. Its semantic body includes namespace/name,
+portable input shape, risk, decision requirement, evidence/disclosure
+requirement profile, and declared execution capability requirements. Changes to
+those fields create a new contract version for the same Action. Module/source,
+artifact digest, provider instances, transport, invocation inputs, trace,
+caller/session, and human description are excluded. Any later implementation
+binding is a separate versioned object.
+
+ActionContract v2 is content-addressed by this semantic hash; a signer key is
+not part of the contract body. Publisher attribution, when required, is a
+separate signed ActionContract attestation that references the schema-qualified
+contract hash under the `igris.action-contract` domain. Rotating a signer
+therefore does not create a new semantic contract version.
 
 ## Nested actions and correlation
 
@@ -179,17 +206,14 @@ Protocol v1 therefore defines one Action instance at a time. DAGs, pipelines,
 fibers, transactions across Actions, and compensating actions are rejected for
 v1.
 
-## Open questions
+## Resolved and remaining questions
 
-- Does logical Action identity need an organization/publisher namespace in
-  the signed contract, or can trust context provide it?
-- Which portable input descriptor subset is worth standardizing before a
-  second SDK exists?
-- Should redaction requirements be contract fields, a separate policy object,
-  or both?
-- How should a semantic contract hash be separated from an implementation
-  fingerprint in v2?
-- Is a signed intent descriptor useful enough to justify compatibility cost?
-- Should action-instance identifiers be UUIDs, URI-like names, or opaque
-  algorithm-qualified identifiers?
-- Which requirements are genuinely protocol-level versus provider policy?
+Resolved by the first design-freeze candidate: publisher namespace is signed
+but externally trusted; implementation identity is separate; intent is
+deferred; Action-instance IDs are opaque random 256-bit values; provider
+instances are invocation context.
+
+Still blocking ActionContract v2 implementation: the exact portable input
+descriptor vocabulary, evidence/disclosure profile registry, execution
+capability registry, machine schema, and golden vectors. These are specification
+work and MUST NOT be chosen by an SDK implementation.
