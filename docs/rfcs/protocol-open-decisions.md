@@ -1,184 +1,129 @@
-# Igris protocol open senior decisions
+# Igris protocol open decisions
 
-Status: **Blocking decision register**
+Status: **Architecture decisions resolved in first design-freeze candidate;
+ratification and implementation-enabling artifacts remain open**
 
-This is the short list of choices that must not be made implicitly in
-implementation code. “Recommended resolution” is the senior-review candidate,
-not an approved standard. Owners are roles; the protocol owner records the
-final decision and required approvals.
+The senior review identified 12 decisions. All 12 now have candidate
+resolutions in [`protocol-resolved-decisions.md`](protocol-resolved-decisions.md).
+This register preserves their disposition, dissenting alternatives, and the
+remaining gates. Candidate resolution is not human ratification.
 
-## Blocking before any v2 implementation
+## Resolved senior-review decisions
 
-### OD-01 — Normative grammar, document precedence, and release naming
+| ID | Candidate resolution | Classification | Remaining gate |
+| --- | --- | --- | --- |
+| OD-01 | Release manifest pins normative artifacts; prose/canonical rules/schemas/vectors have explicit responsibilities; implementations are non-normative | `schema_semantic_irreversible` | Human governance ratification |
+| OD-02 | `igris-canonical-json-1`: duplicate rejection, safe integers, scalar-preserving Unicode, scalar ordering, fixed escaping, explicit null | `signed_byte_irreversible` | Canonical vectors and ratification |
+| OD-03 | `igris-ed25519-sha256-1` with length-framed object domains/schema/suite/payload; ActionContract attribution uses a separate attestation | `signed_byte_irreversible` | Frame vectors and cryptography approval |
+| OD-04 | ASCII schema IDs, dispatch before interpretation, closed schemas, no generic v2 extension container | `schema_semantic_irreversible` | Machine schemas and negative vectors |
+| OD-05 | Action identity `(opaque random publisher_namespace, action_name)`; trust binding external | `schema_semantic_irreversible`, `trust_policy` | ActionContract v2 schema/vectors |
+| OD-06 | Semantic contract hash includes language-neutral policy requirements; implementation binding separate/deferred | `signed_byte_irreversible` | Exact ActionContract v2 body schema/vectors |
+| OD-07 | Signed random stream/instance IDs, sequence, previous hash, decision hash reference; no minimum event UUID | `signed_byte_irreversible` | Exact Evidence v2 schemas/vectors |
+| OD-08 | Pre-decision failure emits no required Decision; Allowed does not prove execution; denial terminal; at most one Outcome | `schema_semantic_irreversible` | Event field/transition vectors |
+| OD-09 | Versioned decomposed verifier result with descriptive summary and separate named policy | `verifier_policy`, `schema_semantic_irreversible` | Ratified machine schema and released expected results |
+| OD-10 | External trust slots and temporal rules frozen; self-asserted/TOFU/Connected meanings separated | `trust_policy` | Serialized trust bundle only before an exchange/GA claim requires it |
+| OD-11 | Permanent schema `1` legacy dispatch; stronger policy never rewrites cryptographic facts | `verifier_policy` | Released schema `1` vectors |
+| OD-12 | Checkpoint optional, separate signed object; continuity/completeness vocabulary frozen | `safe_to_defer`, `verifier_policy` | Serialized checkpoint only before checkpoint-backed claims |
 
-- **Decision:** Which text is normative, how RFC/registry/vector conflicts are
-  resolved, and whether current artifacts are called Protocol v1.
-- **Recommended resolution:** use “schema `1` compatibility profile” for
-  Evidence v1/ActionContract v1; reserve a protocol release number for an
-  approved suite. RFC 2119 terms are normative only in a clearly marked
-  Normative Requirements section in every RFC. Released golden bytes decide
-  byte conformance; RFC errata decide prose without rewriting history.
-- **Owner/approval:** protocol owner + SDK maintainers.
-- **Blocks:** all formal conformance and all v2 work.
+## Remaining blockers
 
-### OD-02 — Canonical JSON data model
+### OPEN-01 — Human ratification
 
-- **Decision:** number domain/bounds, Unicode scalar validity, normalization,
-  object-name ordering, escaping, duplicate keys, null/absent, trailing data,
-  and parser limits.
-- **Recommended resolution:** v2 signed core accepts valid UTF-8 scalar strings
-  without normalization, rejects duplicate keys before map construction,
-  permits null only where declared, orders keys by one explicitly vector-pinned
-  scalar/UTF-8 rule, uses fixed minimal escaping, accepts one top-level value,
-  and permits bounded decimal integers only. Arbitrary application numbers are
-  outside the core envelope.
-- **Still requires choice:** exact integer range and exact key comparator.
-- **Owner/approval:** protocol owner + cryptography/security reviewer + Python,
-  Go, and TypeScript implementability reviewers.
-- **Blocks:** Evidence v2, ActionContract v2, C1 vectors, TypeScript producer.
+The protocol owner, cryptography/security reviewer, SDK implementability
+reviewers, and conformance owner must approve the candidate. Until then none of
+the resolved decisions is a ratified protocol release.
 
-### OD-03 — Signature suite and domain-separated framing
+Blocks: all implementation authorization, including schema `1` vector work.
 
-- **Decision:** first suite identifier, signature preimage, domain tags, length
-  framing, hash/signature algorithms, key encoding, and registry evolution.
-- **Recommended resolution:** one signed suite ID selects the complete
-  construction; the signature preimage is unambiguously length-framed and
-  binds object domain, schema ID, suite ID, and canonical-payload digest. The
-  first suite remains SHA-256 + Ed25519 unless a security review finds a reason
-  to change. No independent mix-and-match algorithm defaults.
-- **Owner/approval:** cryptography/security owner + protocol owner.
-- **Blocks:** Evidence v2 and any other new signed object.
+### OPEN-02 — ActionContract v2 object schema and vectors
 
-### OD-04 — Schema identifiers, field closure, and extension registry
+Architecture now fixes Action identity, semantic-hash inclusion/exclusion,
+canonical profile, schema closure, and signature framing. The exact required/
+optional field schema, portable input vocabulary, requirement-profile
+registries, and golden vectors do not yet exist.
 
-- **Decision:** identifier syntax, dispatch order, required/optional fields,
-  unknown-field semantics, and extension namespace.
-- **Recommended resolution:** globally unambiguous object/schema IDs; dispatch
-  before field interpretation or crypto; closed core schemas; explicitly named
-  extension containers; unsupported schema distinct from invalid signature.
-  v1 keeps hashing every field except hash/signature.
-- **Owner/approval:** protocol owner + conformance owner.
-- **Blocks:** all v2 schemas and result vectors.
+Blocks: ActionContract v2 implementation and TypeScript producer.
 
-### OD-05 — Semantic Action identity and publisher namespace
+### OPEN-03 — Evidence v2 object/event schemas and vectors
 
-- **Decision:** how a language-neutral Action is scoped and whether namespace
-  is signed or only registry context.
-- **Recommended resolution:** Action identity is signed
-  `(publisher_namespace, action_name)`. The namespace is an opaque identifier
-  whose attribution comes from external trust binding; it is not a global PKI
-  claim. Local self-asserted namespaces remain valid with trust unknown.
-- **Still requires choice:** namespace syntax, normalization, transfer, and
-  collision policy.
-- **Owner/approval:** protocol owner + product/identity owner.
-- **Blocks:** ActionContract v2 and TypeScript producer.
+Architecture now fixes stream/instance/sequence/linkage identity and lifecycle
+meaning. The exact event field tables, contract-reference representation,
+conditional fields, object hashes, signatures, and golden vectors do not yet
+exist.
 
-### OD-06 — Semantic contract hash and implementation binding
+Blocks: Evidence v2 implementation and TypeScript producer.
 
-- **Decision:** exact fields in semantic contract identity and the format, if
-  any, for binding a contract to implementation artifacts.
-- **Recommended resolution:** the semantic hash includes namespace/name,
-  portable input shape, risk/decision requirement, evidence/disclosure
-  requirement profile, and declared execution capabilities. It excludes
-  module names, source text, package locations, provider instances, and human
-  descriptions. Implementation artifact digest/reference is separate and may
-  be deferred.
-- **Owner/approval:** protocol owner + SDK architects + security reviewer.
-- **Blocks:** ActionContract v2.
+### OPEN-04 — Verification-result machine schema release
 
-### OD-07 — Evidence stream, sequence, event, and Action-instance identity
+The language-neutral model is drafted at
+[`../../spec/verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
+A machine-readable schema, issue registry revision, and released expected
+results must be approved before verifier implementation.
 
-- **Decision:** identifier formats/scopes, genesis sequence, overflow,
-  uniqueness, key rotation within a stream, and outcome-to-decision reference.
-- **Recommended resolution:** opaque signed `stream_id`; monotonic signed
-  sequence with fixed genesis; opaque signed `action_instance_id` created once
-  per attempt; retain an opaque event ID only if it has a distinct replay or
-  reference purpose. Equal inputs/contracts never imply the same instance.
-- **Owner/approval:** protocol owner + distributed-systems reviewer.
-- **Blocks:** Evidence v2.
+Blocks: standalone Go verifier.
 
-### OD-08 — Core lifecycle and conditional event fields
+### OPEN-05 — Schema `1` vector candidate and release
 
-- **Decision:** the exact state/event table, required fields per event, and
-  verifier conclusions for missing outcomes and crash boundaries.
-- **Recommended resolution:** durable allowed/denied decision before
-  invocation; denial terminal; at most one terminal observed outcome; allowed
-  without outcome means execution occurrence/outcome unknown. Evidence
-  completeness is orthogonal. Do not add cancellation, expiry, start, repair,
-  or suspension events to minimum v2.
-- **Owner/approval:** protocol owner + runtime/SDK owners.
-- **Blocks:** Evidence v2, C2/C3 conformance.
+The release is fully designed at
+[`../../spec/test-vectors/schema-1-release-plan.md`](../../spec/test-vectors/schema-1-release-plan.md),
+but the additive files have not been generated. After ratification they may be
+frozen as a candidate using maintained Python and Go paths. The Stage 2
+standalone verifier supplies the independence result required for release
+promotion.
 
-### OD-09 — Versioned verification-result schema
+Blocks: standalone Go verifier until the candidate files/result schema are
+frozen. After OPEN-01, candidate-vector implementation is the only task the
+candidate recommends authorizing.
 
-- **Decision:** exact fields/enums/issue precedence and whether an overall
-  verdict exists.
-- **Recommended resolution:** versioned dimensions for parse, schema,
-  canonical/integrity, key resolution, continuity, completeness, semantics,
-  trust, authorization policy, and time confidence. Use `not_evaluated` where
-  dispatch prevents a check. Do not standardize universal `overall_valid`;
-  named policy profiles may derive an acceptance decision.
-- **Owner/approval:** conformance owner + security reviewer + protocol owner.
-- **Blocks:** standalone verifier, v1 suite release, TypeScript work.
+### OPEN-06 — Trust/checkpoint serialization when claimed
 
-## Blocking before externally exchanged Evidence v2 or Connected GA
+Minimum trust and checkpoint semantics are frozen. Their serialized schemas
+remain deliberately deferred. A trust-bundle schema is required before trusted
+cross-organization exchange or Connected GA depends on portable trust input. A
+checkpoint schema is required before any product claims checkpoint-backed
+completeness.
 
-### OD-10 — Trust bundle and temporal revocation model
+Does not block: local integrity verification or schema `1` vector release.
 
-- **Decision:** open representation for scoped key bindings, authority,
-  rotation, revocation/compromise intervals, evaluation time, and snapshots.
-- **Recommended resolution:** define an open exportable trust-bundle schema
-  separate from Evidence. A valid signature remains integrity-valid after
-  revocation. Producer time alone cannot place evidence before compromise.
-  Offline staleness is a first-class result.
-- **Owner/approval:** identity/security owner + protocol owner.
-- **Blocks:** trusted external v2 claims and Connected GA; does not block
-  self-asserted local integrity verification.
+## Dissenting alternatives retained
 
-### OD-11 — Historical Evidence v1 semantic profile
+The candidate rejects these alternatives but records them for ratification:
 
-- **Decision:** whether new verifiers apply Go's stricter field/transition
-  checks to old v1 journals and how status changes are reported.
-- **Recommended resolution:** retain one immutable v1 cryptographic profile;
-  add a separately versioned semantic profile. A journal can remain
-  cryptographically valid while failing a newer semantic or ingest policy.
-  Never relabel this as invalid signature.
-- **Owner/approval:** protocol owner + Python/Go maintainers.
-- **Blocks:** released C2 v1 result vectors and migration of verifier behavior.
+| Decision | Rejected alternative | Reason |
+| --- | --- | --- |
+| Precedence | Let fixtures or deployed behavior silently override prose | Makes implementation accidents normative and hides conflicts |
+| Canonical numbers | Arbitrary JSON numbers/JCS-style binary64 for all protocol data | Cross-language loss and unnecessary numeric surface; domain decimals can be strings |
+| Unicode | NFC-normalize before signing | Silent transformation changes identifiers and hides original code points |
+| Ordering | Use host-language default sort | TypeScript UTF-16 ordering can differ for supplementary scalars |
+| Signatures | Sign canonical bytes with an unframed algorithm field | Cross-object/version ambiguity and algorithm substitution risk |
+| Extensions | Accept unknown signed fields with warnings | Creates semantic divergence and downgrade ambiguity |
+| Namespace | DNS/tenant/key-derived namespace | Couples identity to infrastructure, service, or rotation |
+| Event identity | Mandate UUIDv4 plus stream/sequence | Redundant identity with no distinct minimum purpose |
+| Lifecycle | Add execution-start/cancellation/expiry now | Adds crash/recovery semantics not required for current interoperability |
+| Results | One universal `valid` boolean | Collapses crypto, trust, completeness, semantics, and policy |
+| Trust | Mandatory CA, Igris cloud, or transparency log | Breaks offline/local operation and centralizes trust |
+| Checkpoint | Put checkpoints inside every Evidence stream | Expands minimum signed surface without a current interoperability need |
 
-### OD-12 — Checkpoint and chain-completeness vocabulary
+## Decisions deliberately deferred
 
-- **Decision:** what anchor/checkpoint evidence supports `partial`, `anchored`,
-  `complete_to_checkpoint`, or stronger claims, and how forks are reported.
-- **Recommended resolution:** freeze continuity separately from completeness;
-  define a minimal portable checkpoint record or bundle reference without
-  requiring a global log. Never claim latest-tail completeness without an
-  authenticated witness and freshness policy.
-- **Owner/approval:** distributed-systems/security reviewer + protocol owner.
-- **Blocks:** strong completeness claims and Connected GA audit wording; does
-  not block local integrity verification.
-
-## Decisions intentionally not open for Protocol v1
-
-The following are rejected from the current design surface unless a later RFC
-reopens them with a new problem statement and threat model:
-
-- mandatory Igris cloud or global PKI;
-- signature-as-human/organization identity;
-- proof of external side effects from SDK outcome evidence;
-- workflow composition, DAGs, fibers, sagas, compensation, or exactly-once;
-- required lazy Action API;
-- Python decorator, `wrap_tool`, module name, file journal, or environment
-  variable as protocol primitive; and
-- Rust/WASM/sidecar/shared execution engine selected before independent
-  implementations demonstrate a measured need.
+- Generic signed extensions.
+- Implementation-artifact binding and signed human intent.
+- General correlation, causation, and OpenTelemetry fields.
+- Execution-start, cancellation, expiry, repair, suspension, and workflow
+  recovery events.
+- Global PKI, mandatory log/cloud, trusted time, and attestation.
+- Workflow composition, exactly-once, compensation, distributed transactions.
+- TypeScript producer, full Go SDK, Rust/WASM/sidecar/shared engine.
 
 ## Approval rule
 
-Each blocking decision requires:
+Closing OPEN-01 requires named approval recorded against the exact candidate
+tip. Closing any implementation-enabling item additionally requires:
 
-1. an RFC edit with current/proposed/rejected sections;
+1. normative schema/RFC update;
 2. compatibility and threat analysis;
-3. positive and negative language-neutral vectors where bytes/results change;
-4. named protocol and security approval; and
-5. a recorded decision without production implementation in the same review.
+3. positive and negative language-neutral vectors;
+4. independent runner results where applicable; and
+5. a focused review range with no unrelated production change.
+
+No implementation may choose a remaining detail silently.

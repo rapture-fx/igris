@@ -12,8 +12,10 @@ specification and public vectors, not by importing Python code.
 
 - **Current** means implemented on `origin/main` at the Alpha.2 merge
   (`1ef093a96dc8ae55c317266aa9b0dc94e5b08579`).
-- **Draft invariant** is a normative proposal using RFC 2119-style terms.
-- **Open question** requires senior review before it can become normative.
+- **Draft invariant** or **candidate invariant** is proposed for senior
+  ratification using RFC 2119-style terms; it is not yet a released protocol
+  contract.
+- **Open decision** remains a blocker or explicitly deferred choice.
 - **Rejected for v1** is deliberately outside the Protocol v1 boundary.
 
 No draft invariant changes the interpretation of ActionContract schema `1`
@@ -38,7 +40,18 @@ Supporting analysis:
 
 - [Protocol gap analysis](protocol-gap-analysis.md)
 - [Glossary](glossary.md)
+- [Senior foundation review](protocol-foundation-senior-review.md)
+- [Resolved decisions](protocol-resolved-decisions.md)
+- [Design-freeze candidate](protocol-design-freeze-candidate.md)
+- [Design-freeze matrix](protocol-design-freeze-matrix.md)
+- [Open decisions](protocol-open-decisions.md)
+- [Next implementation sequence](protocol-next-implementation-sequence.md)
+- [Standalone Go verifier design](standalone-go-verifier-design.md)
+- [Verification-result schema draft](../../spec/verification-result-schema-draft.md)
 - [Test-vector design](../../spec/test-vectors/README.md)
+- [Schema-1 vector release plan](../../spec/test-vectors/schema-1-release-plan.md)
+
+Material architecture decisions are recorded in [the ADR index](../adr/README.md).
 
 ## Current implementation authority
 

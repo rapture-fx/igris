@@ -1,17 +1,30 @@
 # Igris protocol next implementation sequence
 
-Status: **Candidate sequence after senior approval**
+Status: **Updated sequence for the first design-freeze candidate**
 
-This is a gated order, not authorization to implement. Protocol work and
-product work remain separate. No stage may start merely because a prior draft
-exists; its exit evidence must be reviewed.
+This is a gated order. Protocol work and product work remain separate. The 12
+architecture decisions now have candidate resolutions, but human ratification
+is still required. After ratification, only Stage 1 schema `1` vector work is
+authorized; every later implementation retains its own entry gate.
+
+## Current authorization
+
+| Work | Status |
+| --- | --- |
+| Ratify decision candidate and RFC consistency | Ready for human review |
+| Implement additive schema `1` vectors | Authorized only after ratification |
+| Implement standalone Go verifier | Blocked until candidate vector/result freeze |
+| Implement ActionContract v2 | Blocked on exact schema/vectors |
+| Implement Evidence v2 | Blocked on exact schemas/vectors |
+| Implement TypeScript producer or Rust core | Deferred |
 
 ## Sequence overview
 
 ```text
-0. Senior decisions and RFC corrections
-   -> 1. Released schema-1 conformance baseline
+0. Ratify decisions and RFC corrections
+   -> 1. Frozen schema-1 conformance candidate
       -> 2. Standalone Go verifier
+         -> promote schema-1 suite to released baseline
          -> 3. ActionContract v2 freeze and read-path proof
             -> 4. Evidence v2 freeze and verifier-first proof
                -> 5. Opt-in reference producer
@@ -20,60 +33,75 @@ exists; its exit evidence must be reviewed.
                         -> 8. GA trust, export, and operations gate
 ```
 
-## Stage 0 — Resolve the design-freeze blockers
+## Stage 0 — Ratify the design-freeze candidate
 
 Protocol work only; documentation, schemas, registries, and vector design.
 
 Required work:
 
-1. resolve OD-01 through OD-09 in
+1. review all candidate resolutions in
+   [`protocol-resolved-decisions.md`](protocol-resolved-decisions.md);
+2. verify RFCs 000–008 apply one normative precedence model;
+3. approve canonical data model, schema IDs/closure, signature framing,
+   Action/Evidence identity, lifecycle, trust/checkpoint semantics, historical
+   schema `1`, and the result draft;
+4. review every retained dissenting alternative in
    [`protocol-open-decisions.md`](protocol-open-decisions.md);
-2. revise RFCs 000–008 so one normative grammar applies suite-wide;
-3. correct “all guarded calls write a decision” and Allowed-to-Executing
-   inference;
-4. mark stale architecture statements superseded where current source differs;
-5. approve canonical data model, schema IDs, signature suite/framing, Action
-   identity, Evidence identity, lifecycle table, and result schema; and
-6. record named protocol/security approvals and registry ownership.
+5. mark stale architecture statements superseded where current source differs;
+   and
+6. record named protocol, cryptography/security, SDK implementability, and
+   conformance approvals against the exact candidate tip.
 
 Exit gate:
 
-- no unresolved byte-affecting choice is delegated to an SDK implementer;
+- no resolved byte-affecting choice is silently changed by an SDK implementer;
 - every approved invariant has an explicit compatibility consequence;
 - Evidence v1 and ActionContract v1 remain unchanged; and
 - the work is still documentation/schema/vector design only.
 
-## Stage 1 — Release the schema `1` conformance baseline
+## Stage 1 — Freeze the schema `1` conformance candidate
 
 Protocol-conformance work, not a product feature.
 
 Required work:
 
-1. create actual language-neutral manifests and expected-result schemas;
-2. import existing ActionContract v1/Evidence v1 fixtures without altering
+1. implement
+   [`../../spec/test-vectors/schema-1-release-plan.md`](../../spec/test-vectors/schema-1-release-plan.md);
+2. create actual language-neutral manifests and expected-result objects using
+   `igris:protocol:verification-result:1`;
+3. import existing ActionContract v1/Evidence v1 fixtures without altering
    their historical bytes;
-3. add deterministic additive vectors for canonical valid/invalid boundaries;
-4. add malformed, unsupported, tampered, invalid-signature, unknown-key,
+4. add deterministic additive vectors for canonical valid/invalid boundaries;
+5. add malformed, unsupported, tampered, invalid-signature, unknown-key,
    ambiguous-key, untrusted, revoked, partial, incomplete, and transition
    cases;
-5. label all fixture private keys `TEST ONLY` and ensure no production path can
+6. label all fixture private keys `TEST ONLY` and ensure no production path can
    load them;
-6. publish suite revision and breaking-change policy; and
-7. adapt Python and existing Go tests to consume the manifest independently.
+7. assign a candidate suite revision and breaking-change policy; and
+8. adapt maintained Python and existing Go conformance/application verifier
+   paths to check the candidate manifest without changing production behavior.
 
 Exit gate:
 
 - clean deterministic regeneration in a temporary directory;
-- exact bytes/hashes/signatures independently reproduced;
-- Python and Go agree on the versioned result schema or document a declared
-  profile difference;
+- exact bytes/hashes/signatures reproduced by maintained Python and Go paths;
+- maintained Python and Go paths agree on candidate bytes/results or expose a
+  specification gap that returns the work to Stage 0;
 - no network, database, service, secret, or mutable golden dependency; and
-- released goldens are immutable.
+- candidate goldens are content-frozen for independent verification.
+
+This stage does not claim independent protocol validation: the existing Go
+path is application-coupled. It supplies stable inputs for Stage 2 and avoids a
+circular requirement that the independent verifier exist before its vectors.
 
 ## Stage 2 — Build the standalone Go verifier
 
 This is the first independent implementation and the protocol-validation goal.
 It is not a Go SDK and not a Connected feature.
+
+Implementation follows
+[`standalone-go-verifier-design.md`](standalone-go-verifier-design.md). It is
+not authorized until Stage 1 and the verification-result schema are frozen.
 
 Required properties:
 
@@ -93,6 +121,11 @@ Exit gate:
 - unsupported capabilities return typed unsupported results; and
 - differential fuzz/property tests reveal no unresolved parser or canonical
   divergence.
+
+After this gate, the conformance owner may promote the unchanged candidate
+suite to a released baseline with the independent result and exact artifact
+hashes recorded. Any vector change returns to Stage 1 and requires rerunning
+the independent verifier.
 
 Why this precedes TypeScript: it isolates protocol ambiguity from adoption/API
 questions and creates a small, auditable verifier oracle without copying the
