@@ -26,7 +26,7 @@ Do **not** use this model to bootstrap or reconcile:
 
 | Variable | Role | Use |
 | --- | --- | --- |
-| `DATABASE_URL_MIGRATION` | `igris_migration_owner` (or superuser acting for it) | Bootstrap, forward migrations, role provisioning |
+| `DATABASE_URL_MIGRATION` | `igris_migration_owner` | Bootstrap and forward migrations; role provisioning may separately use an authorized operator connection |
 | `DATABASE_URL_RUNTIME` | `igris_app_runtime` | Go API process |
 | `DATABASE_URL` / `POSTGRES_URL` | Runtime only (legacy alias) | Accepted by the API when `DATABASE_URL_RUNTIME` is unset |
 
@@ -35,7 +35,10 @@ Hard rules:
 - The API **never** falls back to `DATABASE_URL_MIGRATION`.
 - If `DATABASE_URL_RUNTIME` / `DATABASE_URL` equals `DATABASE_URL_MIGRATION`,
   the runtime config refuses the URL.
-- Role provisioning and bootstrap require a migration-capable connection.
+- Bootstrap apply/adopt requires direct migration-owner credentials; a
+  superuser using `SET ROLE` is not accepted as the bootstrap credential.
+- Role provisioning requires an explicitly supplied authorized operator
+  connection and remains separate from application startup.
 - Passwords are never embedded in repository SQL artifacts.
 
 Optional role name overrides:

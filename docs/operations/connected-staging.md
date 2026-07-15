@@ -28,6 +28,7 @@ Use separate credentials:
 ```bash
 export DATABASE_URL_MIGRATION='postgres://igris_migration_owner@…/connected_staging'
 export DATABASE_URL_RUNTIME='postgres://igris_app_runtime@…/connected_staging'
+export IGRIS_DB_ROLE_MIGRATION_OWNER='igris_migration_owner'
 ```
 
 The API reads `DATABASE_URL_RUNTIME` (preferred) or `DATABASE_URL` /
@@ -48,8 +49,8 @@ make database-roles
 Empty database:
 
 ```bash
-DATABASE_URL_MIGRATION='…' make database-bootstrap-preflight
-DATABASE_URL_MIGRATION='…' make database-bootstrap
+DATABASE_URL_MIGRATION='…' IGRIS_DB_ROLE_MIGRATION_OWNER='igris_migration_owner' make database-bootstrap-preflight
+DATABASE_URL_MIGRATION='…' IGRIS_DB_ROLE_MIGRATION_OWNER='igris_migration_owner' make database-bootstrap
 DATABASE_URL_MIGRATION='…' make database-roles
 DATABASE_URL_MIGRATION='…' make database-staging-preflight
 ```
@@ -61,7 +62,7 @@ Details: `docs/operations/database-bootstrap.md`.
 Exact unrecorded v066 schema only:
 
 ```bash
-DATABASE_URL_MIGRATION='…' go run ./cmd/igris-db-bootstrap --mode=adopt-v066
+DATABASE_URL_MIGRATION='…' IGRIS_DB_ROLE_MIGRATION_OWNER='igris_migration_owner' go run ./cmd/igris-db-bootstrap --mode=adopt-v066
 DATABASE_URL_MIGRATION='…' make database-roles
 ```
 

@@ -67,7 +67,10 @@ func TestPostgresRoleBoundaries(t *testing.T) {
 		}
 	})
 
-	bootstrapRunner, err := bootstrap.NewRunner()
+	bootstrapIdentityDB, err := sql.Open("postgres", adminDSN)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, bootstrapIdentityDB.Close()) })
+	bootstrapRunner, err := bootstrapRunnerForDB(t, bootstrapIdentityDB)
 	require.NoError(t, err)
 	roleRunner, err := NewRunner(names)
 	require.NoError(t, err)
@@ -104,6 +107,13 @@ func TestPostgresRoleBoundaries(t *testing.T) {
 		require.Error(t, err)
 		_, err = runtimeDB.Exec(`CREATE FUNCTION evil() RETURNS int LANGUAGE sql AS $$ SELECT 1 $$`)
 		require.Error(t, err)
+
+		// Even if runtime code somehow obtained the operator executor, the
+		// credential identity check must refuse migration execution.
+		runtimeBootstrap, err := bootstrap.NewOperatorRunner(names.MigrationOwner)
+		require.NoError(t, err)
+		_, err = runtimeBootstrap.Run(ctx, runtimeDB, bootstrap.ModeApply, io.Discard)
+		require.ErrorContains(t, err, "requires session_user and current_user")
 
 		// Runtime cannot disable triggers.
 		_, err = runtimeDB.Exec(`ALTER TABLE action_contract_versions DISABLE TRIGGER action_contract_versions_immutable`)
@@ -309,6 +319,18 @@ func openAsRole(t *testing.T, adminDSN, dbName, role string) *sql.DB {
 	return db
 }
 
+func bootstrapRunnerForDB(t *testing.T, db *sql.DB) (*bootstrap.Runner, error) {
+	t.Helper()
+	var sessionUser, currentUser string
+	if err := db.QueryRow(`SELECT session_user, current_user`).Scan(&sessionUser, &currentUser); err != nil {
+		return nil, err
+	}
+	if sessionUser != currentUser {
+		return nil, fmt.Errorf("bootstrap test connection identity mismatch: session_user=%s current_user=%s", sessionUser, currentUser)
+	}
+	return bootstrap.NewOperatorRunner(currentUser)
+}
+
 func dbNameFromConn(t *testing.T, db *sql.DB) string {
 	t.Helper()
 	var name string
@@ -371,7 +393,7 @@ func TestStagingPreflightRejectsStructuralDrift(t *testing.T) {
 
 	db := openDisposableDatabase(t, adminDSN)
 	ctx := testContext(t)
-	bootstrapRunner, err := bootstrap.NewRunner()
+	bootstrapRunner, err := bootstrapRunnerForDB(t, db)
 	require.NoError(t, err)
 	_, err = bootstrapRunner.Run(ctx, db, bootstrap.ModeApply, io.Discard)
 	require.NoError(t, err)

@@ -469,7 +469,7 @@ func openStructuralManifestTestDatabase(t *testing.T) (*sql.DB, Names) {
 
 	db := openDisposableDatabase(t, adminDSN)
 	ctx := testContext(t)
-	bootstrapRunner, err := bootstrap.NewRunner()
+	bootstrapRunner, err := bootstrapRunnerForDB(t, db)
 	require.NoError(t, err)
 	_, err = bootstrapRunner.Run(ctx, db, bootstrap.ModeApply, io.Discard)
 	require.NoError(t, err)

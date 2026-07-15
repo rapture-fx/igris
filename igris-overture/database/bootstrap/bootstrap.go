@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -49,13 +50,34 @@ type Plan struct {
 }
 
 type Runner struct {
-	baseline Artifact
-	forward  []Artifact
+	baseline       Artifact
+	forward        []Artifact
+	migrationOwner string
 }
 
+// NewRunner constructs a read-only bootstrap inspector. Apply and adopt modes
+// fail closed unless the caller uses NewOperatorRunner with an explicit
+// migration-owner identity.
 func NewRunner() (*Runner, error) {
+	return newRunner("")
+}
+
+var migrationOwnerPattern = regexp.MustCompile(`^[a-z][a-z0-9_]{0,62}$`)
+
+// NewOperatorRunner constructs the explicit migration executor. The expected
+// owner is checked against both session_user and current_user before any write
+// transaction begins.
+func NewOperatorRunner(migrationOwner string) (*Runner, error) {
+	if !migrationOwnerPattern.MatchString(migrationOwner) {
+		return nil, fmt.Errorf("invalid migration-owner role %q", migrationOwner)
+	}
+	return newRunner(migrationOwner)
+}
+
+func newRunner(migrationOwner string) (*Runner, error) {
 	r := &Runner{
-		baseline: Artifact{Version: BaselineVersion, Kind: "baseline", Checksum: BaselineSHA256, SQL: BaselineSQL},
+		baseline:       Artifact{Version: BaselineVersion, Kind: "baseline", Checksum: BaselineSHA256, SQL: BaselineSQL},
+		migrationOwner: migrationOwner,
 		forward: []Artifact{
 			{Version: "067_action_contract_versions", Kind: "migration", Checksum: "c5eea0ec499c758d13ea67310290634b54671a53ffb71e31ac76b0cc7a13a5f9"},
 			{Version: "068_sdk_evidence_ingestion", Kind: "migration", Checksum: "87b2401eacb7440d35efa28d10c4d848b7274bb06dcba74514a0b4fd3c424e48"},
@@ -87,6 +109,11 @@ func (r *Runner) Run(ctx context.Context, db *sql.DB, mode Mode, out io.Writer) 
 	if mode != ModePreflight && mode != ModeApply && mode != ModeAdoptV066 {
 		return Plan{}, fmt.Errorf("unsupported mode %q", mode)
 	}
+	if mode != ModePreflight {
+		if err := r.requireMigrationOwner(ctx, db); err != nil {
+			return Plan{}, err
+		}
+	}
 	plan, err := r.Preflight(ctx, db)
 	if err != nil {
 		return Plan{}, err
@@ -116,6 +143,21 @@ func (r *Runner) Run(ctx context.Context, db *sql.DB, mode Mode, out io.Writer) 
 	}
 	fmt.Fprintln(out, "result=current-v069 schema verified")
 	return final, nil
+}
+
+func (r *Runner) requireMigrationOwner(ctx context.Context, db *sql.DB) error {
+	if r.migrationOwner == "" {
+		return errors.New("migration apply requires an explicit migration-owner identity")
+	}
+	var sessionUser, currentUser string
+	if err := db.QueryRowContext(ctx, `SELECT session_user, current_user`).Scan(&sessionUser, &currentUser); err != nil {
+		return fmt.Errorf("verify migration-owner identity: %w", err)
+	}
+	if sessionUser != r.migrationOwner || currentUser != r.migrationOwner {
+		return fmt.Errorf("migration apply requires session_user and current_user %q; connected as session_user=%q current_user=%q",
+			r.migrationOwner, sessionUser, currentUser)
+	}
+	return nil
 }
 
 func (r *Runner) inspect(ctx context.Context, db *sql.DB) (Plan, error) {

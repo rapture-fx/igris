@@ -10,7 +10,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/Igris-inertial/system/igris-overture/database/bootstrap"
+	"github.com/Igris-inertial/system/igris-overture/database/schemastate"
 )
 
 // StagingPreflightResult captures Connected staging readiness checks.
@@ -34,7 +34,7 @@ type StagingPreflightResult struct {
 // triggers, and runtime privilege boundaries. It fails closed on any mismatch.
 // adminDB must be able to SET ROLE to the runtime role for privilege probes.
 //
-// Catalog hash notes: bootstrap.ExpectedV069SchemaSHA256 pins the post-bootstrap
+// Catalog hash notes: schemastate.ExpectedV069SchemaSHA256 pins the post-bootstrap
 // pre-role ACL state. Role provisioning intentionally rewrites ACLs and
 // function settings, so staging also pins a separate post-role structural
 // manifest that excludes ownership/grants but retains schema objects.
@@ -68,7 +68,7 @@ func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.
 	rows, err := adminDB.QueryContext(ctx, `
 		SELECT version, artifact_kind, checksum_sha256
 		FROM public.igris_schema_history
-		WHERE component = $1 ORDER BY version`, bootstrap.Component)
+		WHERE component = $1 ORDER BY version`, schemastate.Component)
 	if err != nil {
 		return res, fmt.Errorf("read schema history: %w", err)
 	}
@@ -89,30 +89,24 @@ func StagingPreflight(ctx context.Context, adminDB *sql.DB, names Names, out io.
 	// Bootstrap preflight validates ledger checksums and the pre-role hash. A
 	// raw hash mismatch is acceptable only when the independently pinned
 	// post-role structural manifest still matches exactly.
-	br, err := bootstrap.NewRunner()
-	if err != nil {
-		return res, err
-	}
-	bootPlan, bootErr := br.Preflight(ctx, adminDB)
+	bootPlan, bootErr := schemastate.Inspect(ctx, adminDB)
 	if bootErr != nil {
 		if !strings.Contains(bootErr.Error(), "ledger claims v069 but required schema objects differ") {
 			res.Issues = append(res.Issues, fmt.Sprintf("bootstrap preflight: %v", bootErr))
-		} else if hash == bootstrap.ExpectedV069SchemaSHA256 {
+		} else if hash == schemastate.ExpectedV069SchemaSHA256 {
 			res.Issues = append(res.Issues, fmt.Sprintf("bootstrap preflight: %v", bootErr))
 		} else if structuralHash == ExpectedV069PostRoleStructureSHA256 {
-			fmt.Fprintf(out, "catalog_hash_note=acl_sensitive_hash_differs_after_role_provision expected_bootstrap_v069=%s\n", bootstrap.ExpectedV069SchemaSHA256)
+			fmt.Fprintf(out, "catalog_hash_note=acl_sensitive_hash_differs_after_role_provision expected_bootstrap_v069=%s\n", schemastate.ExpectedV069SchemaSHA256)
 		}
-	} else if bootPlan.Path != bootstrap.PathCurrent {
-		res.Issues = append(res.Issues, fmt.Sprintf("bootstrap path is %s, want %s", bootPlan.Path, bootstrap.PathCurrent))
-	} else if hash != bootstrap.ExpectedV069SchemaSHA256 {
-		res.Issues = append(res.Issues, fmt.Sprintf("catalog hash mismatch: got %s want %s", hash, bootstrap.ExpectedV069SchemaSHA256))
+	} else if bootPlan.Path != schemastate.PathCurrent {
+		res.Issues = append(res.Issues, fmt.Sprintf("bootstrap path is %s, want %s", bootPlan.Path, schemastate.PathCurrent))
+	} else if hash != schemastate.ExpectedV069SchemaSHA256 {
+		res.Issues = append(res.Issues, fmt.Sprintf("catalog hash mismatch: got %s want %s", hash, schemastate.ExpectedV069SchemaSHA256))
 	}
 
-	required := map[string]string{
-		bootstrap.BaselineVersion:         "baseline",
-		"067_action_contract_versions":    "migration",
-		"068_sdk_evidence_ingestion":      "migration",
-		"069_connected_immutable_records": "migration",
+	required := make(map[string]string, len(schemastate.ExpectedHistory))
+	for _, artifact := range schemastate.ExpectedHistory {
+		required[artifact.Version] = artifact.Kind
 	}
 	have := map[string]histRow{}
 	for _, row := range history {
@@ -304,7 +298,7 @@ func probeRuntimePrivileges(ctx context.Context, adminDB *sql.DB, names Names, r
 }
 
 func computeSchemaHash(ctx context.Context, db *sql.DB) (string, error) {
-	return computeManifestHash(ctx, db, bootstrap.SchemaManifestSQL)
+	return computeManifestHash(ctx, db, schemastate.ManifestSQL)
 }
 
 func computeStructuralHash(ctx context.Context, db *sql.DB) (string, error) {

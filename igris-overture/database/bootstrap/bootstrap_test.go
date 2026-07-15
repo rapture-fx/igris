@@ -34,10 +34,16 @@ func TestPostgresBootstrapLifecycle(t *testing.T) {
 	if adminDSN == "" {
 		t.Skip("set IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN to run disposable database bootstrap tests")
 	}
-	runner, err := NewRunner()
+	admin, err := sql.Open("postgres", adminDSN)
+	require.NoError(t, err)
+	defer admin.Close()
+	var sessionUser, currentUser string
+	require.NoError(t, admin.QueryRow(`SELECT session_user, current_user`).Scan(&sessionUser, &currentUser))
+	require.Equal(t, sessionUser, currentUser)
+	runner, err := NewOperatorRunner(currentUser)
 	require.NoError(t, err)
 
-	t.Run("greenfield and repeat invocation", func(t *testing.T) {
+	t.Run("explicit operator bootstrap applies actions baseline through v069", func(t *testing.T) {
 		db := openDisposableDatabase(t, adminDSN)
 		ctx := testContext(t)
 		plan, err := runner.Run(ctx, db, ModePreflight, io.Discard)
@@ -53,6 +59,49 @@ func TestPostgresBootstrapLifecycle(t *testing.T) {
 		var historyCount int
 		require.NoError(t, db.QueryRowContext(ctx, `SELECT count(*) FROM public.igris_schema_history WHERE component = $1`, Component).Scan(&historyCount))
 		require.Equal(t, 4, historyCount)
+		for _, table := range []string{"action_contract_versions", "sdk_evidence_batches", "sdk_evidence_events"} {
+			var exists bool
+			require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('public.' || $1) IS NOT NULL`, table).Scan(&exists))
+			require.True(t, exists, table)
+		}
+	})
+
+	t.Run("apply without migration-owner identity fails before DDL", func(t *testing.T) {
+		db := openDisposableDatabase(t, adminDSN)
+		ctx := testContext(t)
+		inspector, err := NewRunner()
+		require.NoError(t, err)
+		_, err = inspector.Run(ctx, db, ModeApply, io.Discard)
+		require.ErrorContains(t, err, "explicit migration-owner identity")
+		var historyExists bool
+		require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('public.igris_schema_history') IS NOT NULL`).Scan(&historyExists))
+		require.False(t, historyExists)
+	})
+
+	t.Run("mismatched migration-owner credential fails before DDL", func(t *testing.T) {
+		db := openDisposableDatabase(t, adminDSN)
+		ctx := testContext(t)
+		wrongOwner, err := NewOperatorRunner("igris_wrong_migration_owner")
+		require.NoError(t, err)
+		_, err = wrongOwner.Run(ctx, db, ModeApply, io.Discard)
+		require.ErrorContains(t, err, "requires session_user and current_user")
+		var historyExists bool
+		require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('public.igris_schema_history') IS NOT NULL`).Scan(&historyExists))
+		require.False(t, historyExists)
+	})
+
+	t.Run("dedicated migration-owner credential applies bootstrap", func(t *testing.T) {
+		db, owner := openDisposableDatabaseAsMigrationOwner(t, adminDSN)
+		ctx := testContext(t)
+		operator, err := NewOperatorRunner(owner)
+		require.NoError(t, err)
+		plan, err := operator.Run(ctx, db, ModeApply, io.Discard)
+		require.NoError(t, err)
+		require.Equal(t, PathCurrent, plan.Path)
+		var sessionUser, currentUser string
+		require.NoError(t, db.QueryRowContext(ctx, `SELECT session_user, current_user`).Scan(&sessionUser, &currentUser))
+		require.Equal(t, owner, sessionUser)
+		require.Equal(t, owner, currentUser)
 	})
 
 	t.Run("explicit v066 adoption preserves data", func(t *testing.T) {
@@ -210,6 +259,41 @@ func openDisposableDatabase(t *testing.T, adminDSN string) *sql.DB {
 		require.NoError(t, admin.Close())
 	})
 	return db
+}
+
+func openDisposableDatabaseAsMigrationOwner(t *testing.T, adminDSN string) (*sql.DB, string) {
+	t.Helper()
+	admin, err := sql.Open("postgres", adminDSN)
+	require.NoError(t, err)
+	require.NoError(t, admin.Ping())
+	owner := "igris_migration_test_" + randomHex(t, 4)
+	password := randomHex(t, 24)
+	name := "igris_bootstrap_owner_test_" + randomHex(t, 6)
+	_, err = admin.Exec(`CREATE ROLE ` + pq.QuoteIdentifier(owner) + ` LOGIN PASSWORD ` + pq.QuoteLiteral(password) +
+		` NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOREPLICATION NOBYPASSRLS`)
+	require.NoError(t, err)
+	_, err = admin.Exec(`CREATE DATABASE ` + pq.QuoteIdentifier(name) + ` OWNER ` + pq.QuoteIdentifier(owner))
+	require.NoError(t, err)
+
+	targetURL, err := url.Parse(adminDSN)
+	require.NoError(t, err)
+	targetURL.Path = "/" + name
+	targetURL.User = url.UserPassword(owner, password)
+	db, err := sql.Open("postgres", targetURL.String())
+	require.NoError(t, err)
+	require.NoError(t, db.Ping())
+	t.Cleanup(func() {
+		db.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+		_, _ = admin.ExecContext(ctx, `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()`, name)
+		_, dropErr := admin.ExecContext(ctx, `DROP DATABASE IF EXISTS `+pq.QuoteIdentifier(name))
+		require.NoError(t, dropErr)
+		_, dropRoleErr := admin.ExecContext(ctx, `DROP ROLE IF EXISTS `+pq.QuoteIdentifier(owner))
+		require.NoError(t, dropRoleErr)
+		require.NoError(t, admin.Close())
+	})
+	return db, owner
 }
 
 func randomHex(t *testing.T, bytes int) string {

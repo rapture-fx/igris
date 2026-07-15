@@ -1,3 +1,4 @@
+-- Read-only manifest for the supported actions-first Connected schema.
 WITH extension_objects AS (
     SELECT d.objid
     FROM pg_depend d

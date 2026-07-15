@@ -53,7 +53,10 @@ func TestConnectedPathsUnderRuntimeRolePostgres(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
-	boot, err := bootstrap.NewRunner()
+	var sessionUser, currentUser string
+	require.NoError(t, adminDB.QueryRowContext(ctx, `SELECT session_user, current_user`).Scan(&sessionUser, &currentUser))
+	require.Equal(t, sessionUser, currentUser)
+	boot, err := bootstrap.NewOperatorRunner(currentUser)
 	require.NoError(t, err)
 	_, err = boot.Run(ctx, adminDB, bootstrap.ModeApply, io.Discard)
 	require.NoError(t, err)

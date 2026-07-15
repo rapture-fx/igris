@@ -85,6 +85,14 @@ jobs:
           IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         run: go test ./igris-overture/database/bootstrap -count=1 -timeout=300s
 
+      - name: Prove application startup does not migrate
+        env:
+          IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+        run: |
+          set -euo pipefail
+          go test ./igris-overture/database -run 'TestApplicationStartupDoesNotMigrateOutdatedDatabase' -count=1 -timeout=120s -v 2>&1 | tee runtime-startup.log
+          ! grep -q 'no tests to run' runtime-startup.log
+
       - name: Run least-privilege role boundary tests
         env:
           IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
@@ -143,13 +151,21 @@ jobs:
             exit "$primary_status"
           }
           trap cleanup EXIT
-          DB_CREATED=1
-          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 -v db_name="$DB" <<'SQL'
-          CREATE DATABASE :"db_name";
+          MIGRATION_PASSWORD="$(openssl rand -hex 24)"
+          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 \
+            -v migration_owner="$IGRIS_DB_ROLE_MIGRATION_OWNER" -v migration_password="$MIGRATION_PASSWORD" <<'SQL'
+          CREATE ROLE :"migration_owner" LOGIN PASSWORD :'migration_password'
+            NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOREPLICATION NOBYPASSRLS;
           SQL
-          TARGET_DSN="postgres://postgres:postgres@localhost:5432/${DB}?sslmode=disable"
-          go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$TARGET_DSN"
           ROLES_CREATED=1
+          psql "$IGRIS_BOOTSTRAP_POSTGRES_ADMIN_DSN" -v ON_ERROR_STOP=1 \
+            -v db_name="$DB" -v migration_owner="$IGRIS_DB_ROLE_MIGRATION_OWNER" <<'SQL'
+          CREATE DATABASE :"db_name" OWNER :"migration_owner";
+          SQL
+          DB_CREATED=1
+          TARGET_DSN="postgres://postgres:postgres@localhost:5432/${DB}?sslmode=disable"
+          MIGRATION_DSN="postgres://${IGRIS_DB_ROLE_MIGRATION_OWNER}:${MIGRATION_PASSWORD}@localhost:5432/${DB}?sslmode=disable"
+          go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$MIGRATION_DSN" --migration-owner="$IGRIS_DB_ROLE_MIGRATION_OWNER"
           go run ./cmd/igris-db-roles --mode=apply --database-url="$TARGET_DSN"
           go run ./cmd/igris-db-staging-preflight --database-url="$TARGET_DSN"
 

@@ -204,7 +204,8 @@ Use a direct PostgreSQL connection as a dedicated migration owner. Do not use a
 transaction-pooled URL.
 
 ```bash
-export DATABASE_URL_DIRECT='postgresql://MIGRATION_ROLE@HOST/DATABASE?sslmode=require'
+export DATABASE_URL_MIGRATION='postgresql://MIGRATION_ROLE@HOST/DATABASE?sslmode=require'
+export IGRIS_DB_ROLE_MIGRATION_OWNER='MIGRATION_ROLE'
 make database-bootstrap-preflight
 make database-bootstrap
 ```
@@ -225,11 +226,17 @@ Older actions-first databases may have no checksum ledger. Adoption is
 supported only when the complete catalog is an exact v066 match:
 
 ```bash
-export DATABASE_URL_DIRECT='postgresql://MIGRATION_ROLE@HOST/DATABASE?sslmode=require'
+export DATABASE_URL_MIGRATION='postgresql://MIGRATION_ROLE@HOST/DATABASE?sslmode=require'
+export IGRIS_DB_ROLE_MIGRATION_OWNER='MIGRATION_ROLE'
 make database-bootstrap-preflight
 # Review the exact-v066 result and take a backup.
 make database-bootstrap-adopt-v066
 ```
+
+Apply and adoption verify that both PostgreSQL `session_user` and
+`current_user` equal `IGRIS_DB_ROLE_MIGRATION_OWNER` before opening the write
+transaction. A superuser connection, runtime URL, `SET ROLE` session, or
+generic `DATABASE_URL` fallback is refused by the bootstrap command.
 
 Ordinary `database-bootstrap` refuses an unrecorded baseline. Adoption is an
 explicit operator action; it records v066 only after proving the corresponding

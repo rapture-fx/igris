@@ -163,8 +163,12 @@ if [[ "$existing_roles" != "0" ]]; then
 fi
 
 echo "smoke_database=${DB_NAME}"
-"$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -v db_name="$DB_NAME" <<'SQL' >/dev/null
-CREATE DATABASE :"db_name";
+"$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -v migration_owner="$MIGRATION_OWNER" <<'SQL' >/dev/null
+CREATE ROLE :"migration_owner" LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOREPLICATION NOBYPASSRLS;
+SQL
+ROLES_CREATED=1
+"$PSQL_BIN" "$ADMIN_DSN" -X -v ON_ERROR_STOP=1 -v db_name="$DB_NAME" -v migration_owner="$MIGRATION_OWNER" <<'SQL' >/dev/null
+CREATE DATABASE :"db_name" OWNER :"migration_owner";
 SQL
 DB_CREATED=1
 
@@ -179,14 +183,26 @@ if u.scheme not in ("postgres", "postgresql") or u.fragment:
 print(urlunparse((u.scheme, u.netloc, "/" + os.environ["DB_NAME"], "", u.query, "")))
 PY
 )"
-export DATABASE_URL_MIGRATION="$SMOKE_URL"
+export MIGRATION_OWNER SMOKE_URL
+MIGRATION_URL="$(python3 - <<'PY'
+from urllib.parse import urlparse, urlunparse
+import os
+
+u = urlparse(os.environ["SMOKE_URL"])
+if u.scheme not in ("postgres", "postgresql") or u.fragment:
+    raise SystemExit("admin DSN must be a PostgreSQL URL without a fragment")
+_, separator, host = u.netloc.rpartition("@")
+netloc = os.environ["MIGRATION_OWNER"] + "@" + (host if separator else u.netloc)
+print(urlunparse((u.scheme, netloc, u.path, "", u.query, "")))
+PY
+)"
+export DATABASE_URL_MIGRATION="$MIGRATION_URL"
 
 echo "== bootstrap =="
-go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$SMOKE_URL"
+go run ./cmd/igris-db-bootstrap --mode=apply --database-url="$MIGRATION_URL" --migration-owner="$MIGRATION_OWNER"
 
 echo "== role provision =="
 go run ./cmd/igris-db-roles --mode=apply --database-url="$SMOKE_URL"
-ROLES_CREATED=1
 
 echo "== staging preflight =="
 go run ./cmd/igris-db-staging-preflight --database-url="$SMOKE_URL"

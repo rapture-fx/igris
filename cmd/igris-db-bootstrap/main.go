@@ -14,21 +14,17 @@ import (
 
 func main() {
 	mode := flag.String("mode", string(bootstrap.ModePreflight), "preflight, apply, or adopt-v066")
-	databaseURL := flag.String("database-url", "", "PostgreSQL URL (prefer DATABASE_URL_DIRECT environment variable)")
+	databaseURL := flag.String("database-url", "", "explicit PostgreSQL migration-owner URL (or set DATABASE_URL_MIGRATION)")
+	migrationOwner := flag.String("migration-owner", os.Getenv("IGRIS_DB_ROLE_MIGRATION_OWNER"), "expected migration-owner role (required for apply/adopt-v066)")
 	timeout := flag.Duration("timeout", 5*time.Minute, "overall operation timeout")
 	flag.Parse()
 
 	url := *databaseURL
 	if url == "" {
-		for _, name := range []string{"DATABASE_URL_DIRECT", "DATABASE_URL", "POSTGRES_URL"} {
-			if value := os.Getenv(name); value != "" {
-				url = value
-				break
-			}
-		}
+		url = os.Getenv("DATABASE_URL_MIGRATION")
 	}
 	if url == "" {
-		fatal("database URL is required via --database-url, DATABASE_URL_DIRECT, DATABASE_URL, or POSTGRES_URL")
+		fatal("migration database URL is required via --database-url or DATABASE_URL_MIGRATION")
 	}
 
 	db, err := sql.Open("postgres", url)
@@ -41,11 +37,20 @@ func main() {
 	if err := db.PingContext(ctx); err != nil {
 		fatal("connect to PostgreSQL: %v", err)
 	}
-	runner, err := bootstrap.NewRunner()
+	selectedMode := bootstrap.Mode(*mode)
+	var runner *bootstrap.Runner
+	if selectedMode == bootstrap.ModePreflight {
+		runner, err = bootstrap.NewRunner()
+	} else {
+		if *migrationOwner == "" {
+			fatal("--migration-owner or IGRIS_DB_ROLE_MIGRATION_OWNER is required for %s", selectedMode)
+		}
+		runner, err = bootstrap.NewOperatorRunner(*migrationOwner)
+	}
 	if err != nil {
 		fatal("load bootstrap artifacts: %v", err)
 	}
-	if _, err := runner.Run(ctx, db, bootstrap.Mode(*mode), os.Stdout); err != nil {
+	if _, err := runner.Run(ctx, db, selectedMode, os.Stdout); err != nil {
 		fatal("bootstrap refused: %v", err)
 	}
 }

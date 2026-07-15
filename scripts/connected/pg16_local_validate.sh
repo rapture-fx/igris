@@ -372,6 +372,10 @@ log "cluster_identity=verified_socket_only"
 log "== bootstrap package =="
 run_stage bootstrap go test ./igris-overture/database/bootstrap -count=1 -timeout=400s
 
+log "== runtime startup migration boundary =="
+run_stage runtime_startup go test ./igris-overture/database \
+  -run 'TestApplicationStartupDoesNotMigrateOutdatedDatabase' -count=1 -timeout=120s
+
 log "== roles package =="
 run_stage roles go test ./igris-overture/database/roles -count=1 -timeout=400s
 
