@@ -42,6 +42,14 @@ include key ordering, Unicode, `<>&`, quotes, backslashes, control characters,
 null/bool/integer, arrays, nested objects, empty values, invalid numbers,
 excessive depth, and input-shape failures.
 
+Schema `1` vectors MUST separately pin raw-UTF-8 U+2028 and U+2029 to the
+Python historical producer bytes. They MUST also preserve original number-token
+lexemes for externally supplied legacy JSON and distinguish numerically equal
+spellings such as `1E+2`, `1e2`, and `100`. Valid JSON is not automatically
+producer-conforming canonical output. A runner unable to preserve a required
+legacy number lexeme returns `unsupported_legacy_representation`; it must not
+normalize and continue.
+
 Current positive authority is
 `testdata/igris-contract-v1/canonical/*.canonical.json`. Current negative
 control is `TestHTMLEscapedEncodingMustDiffer` in
@@ -264,6 +272,8 @@ claimed historical schemas. Old runners may report a new schema unsupported.
 No golden update may cause valid Alpha.2 v1 journals to hash differently.
 Conformance tightening that adds semantic diagnostics must preserve separate
 cryptographic results and document whether historical overall status changes.
+The current Go U+2028/U+2029 behavior is a known implementation defect to be
+fixed only in a separate production task after normative vectors exist.
 
 ## Design-freeze gates
 

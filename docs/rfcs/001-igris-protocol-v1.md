@@ -193,6 +193,13 @@ immutable and retain dedicated legacy dispatch. Future schema IDs use
 bounded syntactic parsing but before schema-specific canonicalization,
 cryptography, or semantics.
 
+The historical schema `1` producer baseline is the byte representation emitted
+by Python 0.1.0a2. Current Go re-encoding is known non-conforming for U+2028 and
+U+2029; that defect does not redefine the profile. Externally supplied schema
+`1` number tokens are verified using preserved original lexemes, not
+host-language numeric normalization. These compatibility rules change no
+existing artifact.
+
 Future signed schemas are closed. Unknown fields invalidate a known schema;
 unknown schemas return `unsupported_schema`. No downgrade or best-effort
 reinterpretation is permitted. Writers MUST NOT emit a changed field or meaning

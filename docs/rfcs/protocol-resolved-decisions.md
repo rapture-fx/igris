@@ -607,6 +607,20 @@ ActionContract schema `1` and Evidence schema `1` retain forever:
 - null genesis previous hash and existing chain semantics; and
 - every released historical fixture and expected byte/result.
 
+The historical producer baseline is the exact schema `1` byte representation
+emitted by Python 0.1.0a2. U+2028 and U+2029 are raw UTF-8 in that baseline.
+Current Go production re-encoding escapes those scalars and is a known
+non-conforming implementation defect, not an alternate legacy profile.
+Verification follows the schema profile/vectors rather than a host serializer.
+
+For arbitrary externally supplied schema `1` JSON, every accepted numeric
+token's original lexeme is preserved for canonical reconstruction. Python-
+emitted number rendering remains authoritative for Python-produced artifacts;
+numerically equal external spellings are not interchangeable bytes. A verifier
+that cannot preserve a required lexeme fails closed with
+`unsupported_legacy_representation` and does not evaluate dependent
+cryptography.
+
 No v2 canonical, schema, key-reference, domain, stream, sequence, or lifecycle
 rule is backported. Future verifiers retain a dedicated schema `1` dispatch.
 
@@ -627,8 +641,9 @@ signed bytes. Results must keep cryptographic facts separate. A schema `1`
 artifact can have valid hash/signature while a newer semantic or ingest policy
 rejects it. Such a result is not `invalid_signature`.
 
-The initial released schema `1` vector suite must pin current positive bytes
-and add legacy number, Unicode, parser, transition, key, and chain limitations.
+The initial released schema `1` vector suite must pin current positive bytes,
+raw-UTF-8 U+2028/U+2029, preserved numeric-lexeme variants, and parser,
+transition, key, and chain limitations.
 Released vectors, public keys, schemas, and issue meanings are retained
 indefinitely and never rewritten in place.
 

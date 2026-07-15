@@ -2,6 +2,13 @@
 
 Status: **Protocol Design-Freeze Candidate; senior approval required**
 
+Amendment (2026-07-16): independent review at
+`9514931345898505feafd2db32f6d047fe131d2f` confirmed that current Go
+re-encoding diverges from the Python schema `1` baseline for U+2028/U+2029 and
+that adversarial external numeric spellings require original-token lexical
+preservation. The corrected candidate records both without changing this
+review's historical findings or any signed bytes.
+
 Review range: `1ef093a96dc8ae55c317266aa9b0dc94e5b08579..73e0a5ab8cf95eb114a16f0e76c808c168de9c00`
 
 Review posture: independent documentation-only review. This document does not

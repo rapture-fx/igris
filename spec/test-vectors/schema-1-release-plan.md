@@ -5,6 +5,8 @@ Status: **Implementation-ready plan after design-freeze ratification**
 Scope: additive conformance artifacts for the permanent ActionContract schema
 `1` and Evidence schema `1` compatibility profile. This plan does not alter or
 regenerate current production/reference fixtures and creates no v2 artifact.
+Known current implementation gaps are recorded in
+[`schema-1-known-implementation-divergences.md`](../../docs/rfcs/schema-1-known-implementation-divergences.md).
 
 ## Authorization boundary
 
@@ -120,7 +122,8 @@ Positive vectors:
   values;
 - sorted ASCII keys, prefix keys, Unicode BMP and supplementary-plane keys;
 - raw Unicode, `<`, `>`, `&`, solidus, quote, reverse solidus, controls,
-  `U+2028`, and `U+2029`;
+  raw-UTF-8 `U+2028`, and raw-UTF-8 `U+2029`, each pinned to the Python
+  historical producer bytes;
 - nested arrays/objects and optional metadata values; and
 - unknown fields included in the unsigned-payload hash.
 
@@ -132,8 +135,29 @@ Negative/policy vectors:
 - excessive depth/size reported as `resource_limit`; and
 - non-object event/contract top levels.
 
-Legacy numeric vectors document existing behavior; they do not apply
-`igris-canonical-json-1` to schema `1`.
+Legacy numeric vectors document the frozen schema `1` rule; they do not apply
+`igris-canonical-json-1` to schema `1`. Python-emitted artifacts use the
+historical Python rendering. For arbitrary externally supplied valid JSON, the
+canonical reconstruction preserves each original number token lexeme. A
+runner must compare exact lexemes rather than parsed numeric equality.
+
+Required lexical families include:
+
+- `1E+2`, `1e2`, and `100` as distinct signed byte representations;
+- `-0`, `0`, and `0.0` as distinct representations when accepted by the
+  legacy JSON grammar;
+- finite spellings emitted by the Python reference producer, including
+  normalization boundaries;
+- large integers near and beyond common host-language limits without rounding;
+- other valid JSON spellings that Python and Go would otherwise re-render
+  differently; and
+- invalid forms such as leading-plus, leading-zero, incomplete decimal,
+  NaN/infinity, or malformed exponent spellings, rejected during parsing.
+
+If a runner cannot preserve an accepted token needed for exact reconstruction,
+the expected result is `canonicalization=unsupported`, issue
+`unsupported_legacy_representation`, summary `unsupported`, and dependent
+checks `not_evaluated`. It must not silently normalize the token.
 
 ### ActionContract schema `1`
 
@@ -169,6 +193,8 @@ Positive vectors:
 - failed Outcome with sanitized summary;
 - optional metadata and optional success output hash;
 - Unicode/special characters;
+- U+2028 and U+2029 in applicable signed string fields, with raw UTF-8
+  canonical bytes;
 - correct unknown-field cryptographic inclusion with semantic warning; and
 - exact unsigned payload, canonical bytes, digest, event hash, signature, and
   key ID.
@@ -246,6 +272,11 @@ The first release must include at least these IDs:
 | `ev1-valid-revoked-key-001` | Signature valid; trust revoked; `valid_but_untrusted` |
 | `ev1-valid-tail-unwitnessed-001` | Continuity valid; completeness unknown |
 | `ev1-invalid-outcome-after-denial-001` | Crypto may be valid; semantics invalid |
+| `can1-valid-u2028-raw-001` | Python-baseline raw UTF-8 U+2028 canonical bytes |
+| `can1-valid-u2029-raw-001` | Python-baseline raw UTF-8 U+2029 canonical bytes |
+| `can1-valid-number-1Eplus2-001` | Exact `1E+2` lexeme retained |
+| `can1-valid-number-1e2-001` | Exact `1e2` lexeme retained and distinct from `1E+2` |
+| `can1-unsupported-number-lexeme-lost-001` | `unsupported_legacy_representation`; dependent checks not evaluated |
 
 ## Mutation format
 
@@ -296,7 +327,9 @@ Release requires:
 1. decoded structured diff and raw byte/hash/signature diff;
 2. protocol-owner approval;
 3. security-owner approval for crypto/trust/negative cases;
-4. a frozen candidate checked by maintained Python and existing Go paths;
+4. a frozen candidate checked by maintained Python and existing Go paths, with
+   the known Go U+2028/U+2029 non-conformance reported as a blocking production
+   divergence rather than normalized away;
 5. a successful standalone independent Go verifier result over the unchanged
    candidate;
 6. clean regeneration; and

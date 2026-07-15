@@ -3,6 +3,11 @@
 Status: **Draft analysis for senior review**
 Baseline: `origin/main` at `1ef093a96dc8ae55c317266aa9b0dc94e5b08579`
 
+Amendment (2026-07-16): the corrected design-freeze candidate resolves the
+numeric-verification gap below by preserving original accepted schema `1`
+number-token lexemes. It also records current Go U+2028/U+2029 re-encoding as a
+known implementation defect. The original gap table remains as review history.
+
 ## Classification
 
 - **Implemented:** current source and tests cover the invariant.

@@ -50,6 +50,8 @@ Supporting analysis:
 - [Verification-result schema draft](../../spec/verification-result-schema-draft.md)
 - [Test-vector design](../../spec/test-vectors/README.md)
 - [Schema-1 vector release plan](../../spec/test-vectors/schema-1-release-plan.md)
+- [Schema-1 known implementation divergences](schema-1-known-implementation-divergences.md)
+- [Independent-review condition resolution](protocol-independent-review-condition-resolution.md)
 
 Material architecture decisions are recorded in [the ADR index](../adr/README.md).
 

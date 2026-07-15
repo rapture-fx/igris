@@ -162,9 +162,32 @@ payload. Python uses `canonical_json_bytes` in
 `testdata/igris-contract-v1/canonical/` and checked by both Go conformance
 suites.
 
+Python 0.1.0a2-emitted bytes are the historical normative schema `1` producer
+baseline. In particular, U+2028 LINE SEPARATOR and U+2029 PARAGRAPH SEPARATOR
+are raw UTF-8, not `\u2028` or `\u2029`. Current production Go re-encoding
+escapes those two scalars even with HTML escaping disabled. That behavior is a
+known non-conforming implementation defect; it is not an alternate schema `1`
+profile. Existing fixtures do not contain these scalars. The documentation-only
+record is
+[`schema-1-known-implementation-divergences.md`](schema-1-known-implementation-divergences.md).
+
+For numbers emitted by the Python reference producer, its historical rendering
+is authoritative. For arbitrary externally supplied schema `1` JSON, the
+verification rule is preservation of each accepted original number token's
+lexeme during canonical reconstruction. Thus `1E+2`, `1e2`, `100`, `-0`, `0`,
+and `0.0` are distinct byte representations even where a host language assigns
+equal numeric values. A verifier MUST NOT parse an untrusted number, silently
+normalize it, and claim the normalized bytes were signed. If it cannot
+preserve a required accepted lexeme, it returns
+`unsupported_legacy_representation` with canonicalization `unsupported`,
+summary `unsupported`, and dependent cryptographic checks `not_evaluated`.
+Invalid JSON number forms fail during parsing.
+
 Schema `1` retains this legacy profile permanently. Its release vectors MUST
-pin historical integer/finite-float behavior, Unicode, parsing, and unknown
-fields without changing existing fixtures.
+pin historical integer/finite-float behavior, adversarial number lexemes,
+raw-UTF-8 U+2028/U+2029, parsing, and unknown fields without changing existing
+fixtures. A verifier implements the profile rather than delegating correctness
+to a language-default JSON serializer.
 
 Future signed schemas do not generalize the legacy encoder. They use
 `igris-canonical-json-1`, fully defined in

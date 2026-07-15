@@ -23,9 +23,11 @@ a signature proves, and how an independent verifier reaches a typed result.
 
 **Current:** ActionContract schema `1` and Evidence schema `1` are implemented
 in `sdk/python/src/igris/contracts.py` and `sdk/python/src/igris/journal.py`.
-Go reproduces the Python bytes and signatures in
-`conformance/contractv1/canonical_conformance_test.go` and verifies ingested
-evidence in `igris-overture/api/evidence_verify.go`.
+Go reproduces the Python bytes and signatures for the current fixtures in
+`conformance/contractv1/canonical_conformance_test.go` and verifies those
+covered ingested values in `igris-overture/api/evidence_verify.go`. This is not
+general schema `1` equivalence: current Go re-encoding is known non-conforming
+for U+2028/U+2029.
 
 **Draft invariant:** Protocol work MUST preserve verifiability of already
 emitted evidence. A design improvement is not permission to reinterpret

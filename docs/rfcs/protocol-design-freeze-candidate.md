@@ -159,6 +159,15 @@ exist.
     latest tail.
 62. `complete_to_checkpoint` means the verified chain reaches one exact trusted
     checkpoint head; it does not prove no later events or external truth.
+63. Python 0.1.0a2-emitted bytes are the historical schema `1` producer
+    baseline. U+2028/U+2029 are raw UTF-8; current Go escaped re-encoding is a
+    known non-conforming implementation defect.
+64. Externally supplied accepted schema `1` number tokens are reconstructed
+    with preserved original lexemes. A verifier unable to preserve a required
+    lexeme returns `unsupported_legacy_representation` and stops dependent
+    verification.
+65. Valid JSON, Python producer-conforming output, and equal host-language
+    numeric values are not interchangeable canonical-byte claims.
 
 ## Signed-byte consequences
 
@@ -172,6 +181,7 @@ exist.
 | Stream/sequence/instance | Evidence v2 bytes require new signed identity/linkage fields |
 | No generic extensions | Unplanned signed metadata cannot enter v2 without a schema decision |
 | Optional checkpoints/trust artifacts | They are separate signed objects with their own domain/schema, never anonymous Evidence fields |
+| Schema `1` Unicode/numbers | Existing Python-emitted bytes remain authoritative; the Go Unicode fix and number-token preservation are later verifier work, not byte changes |
 
 No consequence changes existing schema `1` bytes.
 

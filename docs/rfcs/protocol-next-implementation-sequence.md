@@ -72,21 +72,27 @@ Required work:
 3. import existing ActionContract v1/Evidence v1 fixtures without altering
    their historical bytes;
 4. add deterministic additive vectors for canonical valid/invalid boundaries;
-5. add malformed, unsupported, tampered, invalid-signature, unknown-key,
+5. pin Python-baseline raw UTF-8 U+2028/U+2029 and preserved external numeric
+   lexemes, including the fail-closed result when a lexeme is unavailable;
+6. add malformed, unsupported, tampered, invalid-signature, unknown-key,
    ambiguous-key, untrusted, revoked, partial, incomplete, and transition
    cases;
-6. label all fixture private keys `TEST ONLY` and ensure no production path can
+7. label all fixture private keys `TEST ONLY` and ensure no production path can
    load them;
-7. assign a candidate suite revision and breaking-change policy; and
-8. adapt maintained Python and existing Go conformance/application verifier
+8. assign a candidate suite revision and breaking-change policy; and
+9. adapt maintained Python and existing Go conformance/application verifier
    paths to check the candidate manifest without changing production behavior.
 
 Exit gate:
 
 - clean deterministic regeneration in a temporary directory;
-- exact bytes/hashes/signatures reproduced by maintained Python and Go paths;
-- maintained Python and Go paths agree on candidate bytes/results or expose a
-  specification gap that returns the work to Stage 0;
+- exact bytes/hashes/signatures reproduced by each conforming maintained path;
+- the current Go U+2028/U+2029 failure is reported against the normative bytes
+  as the known production defect in
+  [`schema-1-known-implementation-divergences.md`](schema-1-known-implementation-divergences.md),
+  never accepted as alternate output;
+- any disagreement other than a pre-declared implementation divergence exposes
+  a specification gap and returns the work to Stage 0;
 - no network, database, service, secret, or mutable golden dependency; and
 - candidate goldens are content-frozen for independent verification.
 

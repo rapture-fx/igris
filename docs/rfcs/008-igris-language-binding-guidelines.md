@@ -84,7 +84,13 @@ decoded JSON equality. It must reject or explicitly mark values outside the
 schema's portable domain rather than depend on runtime-specific rendering.
 
 For schema 1, the binding MUST use the immutable legacy canonicalization
-profile and its historical vectors. Future signed schemas use
+profile and its historical vectors. Python 0.1.0a2-emitted bytes are the
+historical producer baseline, including raw UTF-8 for U+2028/U+2029. The
+current Go encoder's escaped U+2028/U+2029 output is known non-conforming and
+must not be copied. Externally supplied accepted number tokens require original
+lexeme preservation; inability to preserve one maps to
+`unsupported_legacy_representation` and stops dependent verification. Future
+signed schemas use
 `igris-canonical-json-1`: duplicate names are rejected before object mapping;
 only safe-range integers are numbers; non-integer numbers are prohibited;
 Unicode scalar values are preserved without normalization; keys are ordered by
@@ -196,10 +202,12 @@ boundaries, avoid object-property-order assumptions, and distinguish thrown
 application errors from protocol errors. Decorator syntax must not be required,
 given ecosystem/compiler variance.
 
-Go should use explicit contexts/interfaces, preserve integer literals during
-verification, disable HTML escaping for v1 canonical bytes, and avoid making
-goroutines or channels visible protocol concepts. A Go verifier already exists;
-that does not constitute a full Go SDK.
+Go should use explicit contexts/interfaces, preserve all schema `1` number
+token lexemes during verification, and use schema-profile-aware string
+encoding. Disabling HTML escaping alone is insufficient because Go's standard
+JSON encoder still escapes U+2028/U+2029. A Go verifier already exists; that
+does not constitute a full Go SDK, and the current Connected defect is not
+fixed by this RFC work.
 
 Both should begin as independent implementations against vectors, not ports
 that call Python or a premature native core.

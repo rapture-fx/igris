@@ -153,7 +153,13 @@ Trust evaluation never changes hash/signature facts.
 `legacyjson.go` is implemented from the schema `1` specification and released
 vectors, not copied from Python or
 `igris-overture/internal/canonicaljson`. It must preserve numeric literals and
-reproduce the exact historical cases. Boundary vectors determine whether the
+reproduce the exact historical cases. Python-emitted bytes are the historical
+producer baseline, including raw UTF-8 for U+2028/U+2029. The implementation
+must not use Go's default escaped output for those scalars. For external JSON it
+preserves every accepted number token lexeme, including exponent case/sign and
+negative zero; if the parser loses a required lexeme it emits
+`unsupported_legacy_representation` and does not evaluate hash/signature.
+Boundary vectors determine whether the
 specification is complete; implementation code must not consult Python at
 runtime or generation time.
 
