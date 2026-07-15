@@ -1,0 +1,142 @@
+# Frozen-candidate validation only. This workflow does not publish, deploy, or
+# promote the schema-1 suite to released status. Pull requests run with a
+# read-only token, immutable action pins, and no persisted checkout credential.
+name: Schema-1 Conformance Candidate
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/schema1-conformance-candidate.yml"
+      - "conformance/schema1/**"
+      - "spec/schemas/verification-result-1.schema.json"
+      - "spec/test-vectors/suite-schema-1/**"
+      - "testdata/igris-contract-v1/**"
+      - "sdk/python/pyproject.toml"
+      - "sdk/python/uv.lock"
+      - "igris-overture/api/schema1_conformance_candidate_test.go"
+      - "igris-overture/api/evidence_verify.go"
+      - "igris-overture/internal/canonicaljson/**"
+      - "go.mod"
+      - "go.sum"
+  merge_group:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - ".github/workflows/schema1-conformance-candidate.yml"
+      - "conformance/schema1/**"
+      - "spec/schemas/verification-result-1.schema.json"
+      - "spec/test-vectors/suite-schema-1/**"
+      - "testdata/igris-contract-v1/**"
+      - "sdk/python/pyproject.toml"
+      - "sdk/python/uv.lock"
+      - "igris-overture/api/schema1_conformance_candidate_test.go"
+      - "igris-overture/api/evidence_verify.go"
+      - "igris-overture/internal/canonicaljson/**"
+      - "go.mod"
+      - "go.sum"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: schema1-candidate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  python-candidate:
+    name: Schema, manifest, Python runner, determinism
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/uv.lock"
+
+      - name: Install pinned test environment
+        run: uv sync --project sdk/python --group dev --frozen
+
+      - name: Run schema, parser, runner, integrity, and negative tests offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          PYTHONPATH: .
+        run: uv run --project sdk/python --no-sync pytest -q conformance/schema1/python
+
+      - name: Execute committed Python candidate offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          PYTHONPATH: .
+        run: >-
+          uv run --project sdk/python --no-sync python
+          -m conformance.schema1.python.runner
+          --suite spec/test-vectors/suite-schema-1
+
+      - name: Enforce deterministic test-seed containment
+        env:
+          PYTHONPATH: .
+        run: >-
+          uv run --project sdk/python --no-sync python
+          -m conformance.schema1.python.check_test_seed_references
+
+      - name: Regenerate twice and compare every candidate byte
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          first="$(mktemp -d)/suite-schema-1"
+          second="$(mktemp -d)/suite-schema-1"
+          uv run --project sdk/python --no-sync python -m conformance.schema1.python.generate --output "$first"
+          uv run --project sdk/python --no-sync python -m conformance.schema1.python.generate --output "$second"
+          diff -qr "$first" "$second"
+          diff -qr "$first" spec/test-vectors/suite-schema-1
+
+  existing-go-path:
+    name: Existing Go paths consume frozen candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Download pinned Go modules
+        run: go mod download
+
+      - name: Run candidate and historical Go paths offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+        run: |
+          go test ./igris-overture/api -run '^TestSchema1ConformanceCandidate$' -count=1 -v -timeout=300s
+          go test ./conformance/contractv1 ./igris-overture/internal/canonicaljson -count=1 -timeout=120s
