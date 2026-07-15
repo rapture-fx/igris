@@ -277,8 +277,8 @@ fixed only in a separate production task after normative vectors exist.
 
 ## Design-freeze gates
 
-- Publishing the additive schema-1 vector suite MAY proceed after senior
-  ratification of the candidate decisions.
+- Publishing the additive schema-1 vector suite MAY proceed only after
+  independent Clock 2B GO on the corrected candidate delta.
 - A standalone Go verifier MAY begin only after that suite and the result
   vocabulary are frozen.
 - No Evidence v2 or ActionContract v2 producer may begin from prose alone;
