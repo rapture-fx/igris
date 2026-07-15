@@ -1,0 +1,5 @@
+{
+  "base_vector": "ev1-valid-allowed-decision-001",
+  "operation": "use_wrong_public_key",
+  "recompute_hash": false
+}

@@ -1,0 +1,16 @@
+{
+  "artifact_vector_id": "ev1-valid-allowed-decision-001",
+  "binding": {
+    "authority": "test-only",
+    "subject": "organization:example",
+    "valid_from": "2029-01-01T00:00:00Z",
+    "valid_until": "2031-01-01T00:00:00Z"
+  },
+  "binding_evaluation": "not_applicable",
+  "key_resolution": "unknown",
+  "key_trust": "unknown",
+  "revocation_snapshot": "current",
+  "time_confidence": "unavailable",
+  "trust_basis": "none",
+  "trust_profile_id": "ev1-indeterminate-trust-unknown-key-001"
+}

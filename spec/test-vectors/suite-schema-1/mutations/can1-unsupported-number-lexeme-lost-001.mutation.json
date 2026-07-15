@@ -1,0 +1,5 @@
+{
+  "base_vector": "can1-valid-number-1Eplus2-001",
+  "operation": "drop_numeric_lexemes",
+  "recompute_hash": false
+}

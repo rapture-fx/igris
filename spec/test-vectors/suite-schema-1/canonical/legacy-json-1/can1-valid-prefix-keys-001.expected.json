@@ -1,0 +1,35 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhIjoyLCJhYSI6MX0=",
+    "sha256_hex": "792cf0409ad5e0c6ebb96ec55d82e4517810bebf918659b12ef4e52396f257d3",
+    "utf8": "{\"a\":2,\"aa\":1}"
+  },
+  "rule": "Schema-1 legacy canonical reconstruction with preserved numeric lexemes",
+  "signature": null,
+  "vector_id": "can1-valid-prefix-keys-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "unknown"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "not_required",
+    "object_hash": "not_present",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_applicable",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

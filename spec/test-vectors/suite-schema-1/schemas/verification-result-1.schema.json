@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "igris:protocol:verification-result:1",
+  "title": "Igris protocol verification result version 1",
+  "description": "Closed, language-neutral result contract for protocol verification. It is descriptive and is not an authorization decision.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "artifact",
+    "specification",
+    "parse",
+    "schema",
+    "canonicalization",
+    "algorithm",
+    "object_hash",
+    "signature",
+    "key_resolution",
+    "continuity",
+    "completeness",
+    "semantics",
+    "trust",
+    "time_confidence",
+    "summary",
+    "policy",
+    "events_verified",
+    "issues"
+  ],
+  "properties": {
+    "schema_id": {
+      "const": "igris:protocol:verification-result:1"
+    },
+    "artifact": {
+      "$ref": "#/$defs/artifact"
+    },
+    "specification": {
+      "enum": [
+        "consistent",
+        "conflict",
+        "not_evaluated"
+      ]
+    },
+    "parse": {
+      "enum": [
+        "valid",
+        "malformed",
+        "resource_limit"
+      ]
+    },
+    "schema": {
+      "enum": [
+        "supported",
+        "unsupported",
+        "invalid",
+        "not_evaluated"
+      ]
+    },
+    "canonicalization": {
+      "enum": [
+        "valid",
+        "invalid",
+        "unsupported",
+        "not_evaluated"
+      ]
+    },
+    "algorithm": {
+      "enum": [
+        "supported",
+        "unsupported",
+        "not_evaluated"
+      ]
+    },
+    "object_hash": {
+      "enum": [
+        "valid",
+        "mismatch",
+        "not_present",
+        "not_evaluated"
+      ]
+    },
+    "signature": {
+      "enum": [
+        "valid",
+        "invalid",
+        "not_present",
+        "not_evaluated"
+      ]
+    },
+    "key_resolution": {
+      "enum": [
+        "resolved",
+        "unknown",
+        "ambiguous",
+        "not_required",
+        "not_evaluated"
+      ]
+    },
+    "continuity": {
+      "enum": [
+        "valid_genesis",
+        "valid_anchored",
+        "valid_unanchored",
+        "discontinuous",
+        "not_applicable",
+        "not_evaluated"
+      ]
+    },
+    "completeness": {
+      "enum": [
+        "complete_to_checkpoint",
+        "incomplete",
+        "completeness_unknown",
+        "not_applicable",
+        "not_evaluated"
+      ]
+    },
+    "semantics": {
+      "enum": [
+        "valid",
+        "invalid",
+        "unresolved",
+        "not_applicable",
+        "not_evaluated"
+      ]
+    },
+    "trust": {
+      "enum": [
+        "trusted",
+        "unknown",
+        "untrusted",
+        "revoked",
+        "outside_binding_interval",
+        "binding_interval_indeterminate",
+        "not_evaluated"
+      ]
+    },
+    "time_confidence": {
+      "enum": [
+        "producer_asserted",
+        "receipt_bounded",
+        "checkpoint_bounded",
+        "trusted",
+        "unavailable",
+        "not_applicable",
+        "not_evaluated"
+      ]
+    },
+    "summary": {
+      "enum": [
+        "valid_and_trusted",
+        "valid_but_trust_unknown",
+        "valid_but_untrusted",
+        "invalid",
+        "unsupported",
+        "indeterminate"
+      ]
+    },
+    "policy": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/policy"
+        }
+      ]
+    },
+    "events_verified": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/issue"
+      }
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_schema_id",
+        "object_type",
+        "artifact_id"
+      ],
+      "properties": {
+        "object_schema_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "object_type": {
+          "enum": [
+            "action-contract",
+            "evidence-event",
+            "evidence-chain",
+            "trust-artifact",
+            "checkpoint",
+            "unknown"
+          ]
+        },
+        "artifact_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "profile_version",
+        "status",
+        "evaluated_at"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "rejected",
+            "indeterminate"
+          ]
+        },
+        "evaluated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "code",
+        "event_index",
+        "path"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "code": {
+          "enum": [
+            "specification_conflict",
+            "malformed",
+            "invalid_utf8",
+            "duplicate_member",
+            "trailing_content",
+            "resource_limit",
+            "unsupported_schema",
+            "unknown_field",
+            "missing_field",
+            "invalid_field",
+            "invalid_null",
+            "canonicalization_failed",
+            "unsupported_legacy_representation",
+            "integer_out_of_range",
+            "invalid_unicode_scalar",
+            "unsupported_algorithm",
+            "hash_mismatch",
+            "invalid_signature",
+            "missing_signature",
+            "unknown_key",
+            "ambiguous_key",
+            "chain_discontinuity",
+            "partial_chain",
+            "incomplete_chain",
+            "completeness_unknown",
+            "fork_detected",
+            "invalid_transition",
+            "unknown_decision_reference",
+            "duplicate_outcome",
+            "unresolved_execution",
+            "unknown_fields_present",
+            "untrusted_key",
+            "revoked_key",
+            "outside_binding_interval",
+            "binding_interval_indeterminate",
+            "stale_trust_snapshot",
+            "trust_unknown",
+            "producer_time_only",
+            "time_confidence_unavailable"
+          ]
+        },
+        "event_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "path": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

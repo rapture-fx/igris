@@ -1,0 +1,55 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25faWQiOiJjb25mb3JtYW5jZS5hY3Rpb25zLnRyYW5zZmVyIiwiYWN0aW9uX25hbWUiOiJjb25mb3JtYW5jZS50cmFuc2ZlciIsImFwcHJvdmFsX21vZGUiOiJyZXF1aXJlZCIsImNvbnRyYWN0X2hhc2giOiJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiIiwiZGVjaXNpb24iOiJhbGxvd2VkIiwiZXZlbnRfaWQiOiJldnQtYWxsb3ciLCJldmVudF90eXBlIjoiZGVjaXNpb24iLCJpbnB1dF9oYXNoIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZCIsImtleV9pZCI6ImVkMjU1MTk6NzAyMDlmYzhhNGUzNTRhMCIsInByZXZpb3VzX2V2ZW50X2hhc2giOm51bGwsInJlZGFjdGVkX2lucHV0X3N1bW1hcnkiOiJhbW91bnQ9NyIsInJpc2siOiJoaWdoIiwic2NoZW1hX3ZlcnNpb24iOiIxIiwidGltZXN0YW1wX3V0YyI6IjIwMzAtMDEtMDJUMDM6MDQ6MDUuMDAwMDAwWiJ9",
+    "sha256_hex": "cfc1f3c15125efaea920cd397ee59212b58640c00b7f452dbe01ad2e93001277",
+    "utf8": "{\"action_id\":\"conformance.actions.transfer\",\"action_name\":\"conformance.transfer\",\"approval_mode\":\"required\",\"contract_hash\":\"abababababababababababababababababababababababababababababababab\",\"decision\":\"allowed\",\"event_id\":\"evt-allow\",\"event_type\":\"decision\",\"input_hash\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\",\"key_id\":\"ed25519:70209fc8a4e354a0\",\"previous_event_hash\":null,\"redacted_input_summary\":\"amount=7\",\"risk\":\"high\",\"schema_version\":\"1\",\"timestamp_utc\":\"2030-01-02T03:04:05.000000Z\"}"
+  },
+  "event_hash": "cfc1f3c15125efaea920cd397ee59212b58640c00b7f452dbe01ad2e93001277",
+  "rule": "Ed25519 over raw SHA-256 digest of schema-1 canonical unsigned payload",
+  "signature": {
+    "algorithm": "ed25519",
+    "input": "sha256_digest",
+    "key_id": "ed25519:70209fc8a4e354a0",
+    "public_key_fingerprint_sha256": "70209fc8a4e354a0b5721ee8d23811ea2e718533dd564339eba6a349281d8a56",
+    "value_base64": "rWRb6rHkILAjhrslgCb9IbVitwst1eKEe3ZPqDCEaNamDfU4NZjCTXbmlUVsHxCmKxlRgX5GjkMLMFySpe69Aw=="
+  },
+  "vector_id": "ev1-valid-allowed-decision-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [
+      {
+        "code": "trust_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "producer_time_only",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25faWQiOiJfX21haW5fXy5tYWluLjxsb2NhbHM+LnJlZnVuZF9jdXN0b21lciIsImFjdGlvbl9uYW1lIjoiZml4dHVyZXMuY3VzdG9tZXIucmVmdW5kIiwiYXBwcm92YWxfbW9kZSI6InJlcXVpcmVkIiwiY29udHJhY3RfaGFzaCI6ImEyNjkyZmI1OTYzNWY2ZjAwMmIyMzI4YzUyNjMxZTAwYmQ2MDFkNTEwNTQ4OGNhZWY2MmY3ODU0ZGVkZTA0ZGIiLCJkZWNpc2lvbiI6ImFsbG93ZWQiLCJldmVudF9pZCI6IjRhM2Y4MGFiLTFmZjYtNGEyMi05Y2UwLTI5NTY4YjllM2QwNCIsImV2ZW50X3R5cGUiOiJkZWNpc2lvbiIsImlucHV0X2hhc2giOiJjOWE2NGUyZmUwOGNkMmU4MzQzZDc1YjA3ZGQwYjU4YjAwMTcyNzc5YzcyNGQ1M2U4MGNhNTY0N2NhY2UzMGI3Iiwia2V5X2lkIjoiZWQyNTUxOTo3ZTcyNDdiNDI5YTA3NTUwIiwibWV0YWRhdGEiOnsibm90ZSI6IsO8bsOvY29kZSDinJMg5pel5pys6KqeIDx0YWc+ICYgXCJxXCIiLCJzdWl0ZSI6ImlncmlzLWNvbnRyYWN0LXYxIn0sInByZXZpb3VzX2V2ZW50X2hhc2giOm51bGwsInJlZGFjdGVkX2lucHV0X3N1bW1hcnkiOiJhbW91bnQ9MjUwMCwgYXBpX2tleT1cIjxSRURBQ1RFRD5cIiwgY2FyZF9udW1iZXI9XCI8UkVEQUNURUQ+XCIsIGN1c3RvbWVyX2lkPVwiY3VzX8O8bsOvY29kZV8wMDFcIiwgbWVtbz1cImNhZsOpIOKYlSDml6XmnKzoqp4gPGI+JmFtcDs8L2I+IFxcXCJxdW90ZWRcXFwiIGJhY2tcXFxcc2xhc2ggbGluZTFcXG5saW5lMlwiIiwicmlzayI6ImNyaXRpY2FsIiwic2NoZW1hX3ZlcnNpb24iOiIxIiwidGltZXN0YW1wX3V0YyI6IjIwMjYtMDctMTBUMTU6Mjk6MDguNzI1ODk4WiJ9",
+    "sha256_hex": "d363f8c934637a39e0232e85a99bb76b9953b61e824f93479e821d2ff7ec6379",
+    "utf8": "{\"action_id\":\"__main__.main.<locals>.refund_customer\",\"action_name\":\"fixtures.customer.refund\",\"approval_mode\":\"required\",\"contract_hash\":\"a2692fb59635f6f002b2328c52631e00bd601d5105488caef62f7854dede04db\",\"decision\":\"allowed\",\"event_id\":\"4a3f80ab-1ff6-4a22-9ce0-29568b9e3d04\",\"event_type\":\"decision\",\"input_hash\":\"c9a64e2fe08cd2e8343d75b07dd0b58b00172779c724d53e80ca5647cace30b7\",\"key_id\":\"ed25519:7e7247b429a07550\",\"metadata\":{\"note\":\"ünïcode ✓ 日本語 <tag> & \\\"q\\\"\",\"suite\":\"igris-contract-v1\"},\"previous_event_hash\":null,\"redacted_input_summary\":\"amount=2500, api_key=\\\"<REDACTED>\\\", card_number=\\\"<REDACTED>\\\", customer_id=\\\"cus_ünïcode_001\\\", memo=\\\"café ☕ 日本語 <b>&amp;</b> \\\\\\\"quoted\\\\\\\" back\\\\\\\\slash line1\\\\nline2\\\"\",\"risk\":\"critical\",\"schema_version\":\"1\",\"timestamp_utc\":\"2026-07-10T15:29:08.725898Z\"}"
+  },
+  "rule": "Historical Python 0.1.0a2 canonical unsigned event bytes",
+  "signature": null,
+  "vector_id": "can1-valid-alpha2-decision-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "unknown"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "not_required",
+    "object_hash": "not_present",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_applicable",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

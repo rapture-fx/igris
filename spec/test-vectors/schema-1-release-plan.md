@@ -1,6 +1,7 @@
 # Igris schema `1` conformance-vector release plan
 
-Status: **Implementation plan; blocked pending independent Clock 2B GO**
+Status: **Implemented as a frozen candidate; release promotion remains blocked
+on the recorded production divergences**
 
 Scope: additive conformance artifacts for the permanent ActionContract schema
 `1` and Evidence schema `1` compatibility profile. This plan does not alter or
@@ -10,10 +11,11 @@ Known current implementation gaps are recorded in
 
 ## Authorization boundary
 
-Only after an independent Clock 2B GO on the corrected design-freeze delta may
-implementation of this schema `1` vector suite begin as a documentation/
-test-fixture task. It must not change SDK/backend code, current fixture bytes, schema `1`
-cryptographic interpretation, default emission, or package artifacts. Any
+Independent Clock 2B issued GO in the
+[`final delta review`](../../docs/rfcs/reviews/protocol-design-freeze-final-delta-review.md).
+The resulting [`suite-schema-1`](suite-schema-1/) candidate is additive. It
+does not change SDK/backend production behavior, current fixture bytes, schema
+`1` cryptographic interpretation, default emission, or package artifacts. Any
 new safe-parser or semantic-policy rejection remains a separate result
 dimension and is not retroactively labeled a signature failure.
 
@@ -26,7 +28,7 @@ independent result is required before release promotion.
 ```text
 spec/test-vectors/suite-schema-1/
   manifest.json
-  RELEASE.md
+  CANDIDATE.md
   keys/
     alpha2-historical.public.pem
     deterministic-001.public.raw.b64

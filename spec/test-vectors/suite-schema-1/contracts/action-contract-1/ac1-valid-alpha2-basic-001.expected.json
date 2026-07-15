@@ -1,0 +1,36 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25fbmFtZSI6ImZpeHR1cmVzLmN1c3RvbWVyLnJlZnVuZCIsImFwcHJvdmFsX21vZGUiOiJyZXF1aXJlZCIsImNvZGVfZmluZ2VycHJpbnQiOiI3NmU2NmQ4OGQzZjA4MDgzZDViMjA4ZGJjZDU5YTUzMjQwOGU4NDY3ZGFjMjA0MGE4NzkwNTQ2MjFjOTBiZTAwIiwiZXhlY3V0aW9uX21vZGUiOiJlbWJlZGRlZCIsIm1vZHVsZSI6Il9fbWFpbl9fIiwicGFyYW1ldGVyX2Rlc2NyaXB0b3JzIjpbeyJhbm5vdGF0aW9uIjoic3RyIiwiaGFzX2RlZmF1bHQiOmZhbHNlLCJraW5kIjoiUE9TSVRJT05BTF9PUl9LRVlXT1JEIiwibmFtZSI6ImN1c3RvbWVyX2lkIn0seyJhbm5vdGF0aW9uIjoiaW50IiwiaGFzX2RlZmF1bHQiOmZhbHNlLCJraW5kIjoiUE9TSVRJT05BTF9PUl9LRVlXT1JEIiwibmFtZSI6ImFtb3VudCJ9LHsiYW5ub3RhdGlvbiI6InN0ciIsImhhc19kZWZhdWx0IjpmYWxzZSwia2luZCI6IlBPU0lUSU9OQUxfT1JfS0VZV09SRCIsIm5hbWUiOiJhcGlfa2V5In0seyJhbm5vdGF0aW9uIjoic3RyIiwiaGFzX2RlZmF1bHQiOmZhbHNlLCJraW5kIjoiUE9TSVRJT05BTF9PUl9LRVlXT1JEIiwibmFtZSI6ImNhcmRfbnVtYmVyIn0seyJhbm5vdGF0aW9uIjoic3RyIiwiaGFzX2RlZmF1bHQiOmZhbHNlLCJraW5kIjoiUE9TSVRJT05BTF9PUl9LRVlXT1JEIiwibmFtZSI6Im1lbW8ifV0sInF1YWxpZmllZF9uYW1lIjoibWFpbi48bG9jYWxzPi5yZWZ1bmRfY3VzdG9tZXIiLCJyaXNrIjoiY3JpdGljYWwiLCJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+    "sha256_hex": "a2692fb59635f6f002b2328c52631e00bd601d5105488caef62f7854dede04db",
+    "utf8": "{\"action_name\":\"fixtures.customer.refund\",\"approval_mode\":\"required\",\"code_fingerprint\":\"76e66d88d3f08083d5b208dbcd59a532408e8467dac2040a879054621c90be00\",\"execution_mode\":\"embedded\",\"module\":\"__main__\",\"parameter_descriptors\":[{\"annotation\":\"str\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"customer_id\"},{\"annotation\":\"int\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"amount\"},{\"annotation\":\"str\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"api_key\"},{\"annotation\":\"str\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"card_number\"},{\"annotation\":\"str\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"memo\"}],\"qualified_name\":\"main.<locals>.refund_customer\",\"risk\":\"critical\",\"schema_version\":\"1\"}"
+  },
+  "object_hash": "a2692fb59635f6f002b2328c52631e00bd601d5105488caef62f7854dede04db",
+  "rule": "Historical ActionContract body excluding contract_hash",
+  "signature": null,
+  "vector_id": "ac1-valid-alpha2-basic-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "action-contract"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "not_required",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

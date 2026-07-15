@@ -1,0 +1,55 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25faWQiOiJjb25mb3JtYW5jZS5hY3Rpb25zLnRyYW5zZmVyIiwiYWN0aW9uX25hbWUiOiJjb25mb3JtYW5jZS50cmFuc2ZlciIsImFwcHJvdmFsX21vZGUiOiJyZXF1aXJlZCIsImNvbnRyYWN0X2hhc2giOiJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiIiwiZGVjaXNpb24iOiJhbGxvd2VkIiwiZXZlbnRfaWQiOiJldnQtdTIwMjkiLCJldmVudF90eXBlIjoiZGVjaXNpb24iLCJpbnB1dF9oYXNoIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZCIsImtleV9pZCI6ImVkMjU1MTk6NzAyMDlmYzhhNGUzNTRhMCIsInByZXZpb3VzX2V2ZW50X2hhc2giOm51bGwsInJlZGFjdGVkX2lucHV0X3N1bW1hcnkiOiJiZWZvcmXigKlhZnRlciIsInJpc2siOiJoaWdoIiwic2NoZW1hX3ZlcnNpb24iOiIxIiwidGltZXN0YW1wX3V0YyI6IjIwMzAtMDEtMDJUMDM6MDQ6MDUuMDAwMDAwWiJ9",
+    "sha256_hex": "2093661e765f24f163c22ab79c7577617f95f5e5ca08fbb0f38df9f3e993ad4e",
+    "utf8": "{\"action_id\":\"conformance.actions.transfer\",\"action_name\":\"conformance.transfer\",\"approval_mode\":\"required\",\"contract_hash\":\"abababababababababababababababababababababababababababababababab\",\"decision\":\"allowed\",\"event_id\":\"evt-u2029\",\"event_type\":\"decision\",\"input_hash\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\",\"key_id\":\"ed25519:70209fc8a4e354a0\",\"previous_event_hash\":null,\"redacted_input_summary\":\"before after\",\"risk\":\"high\",\"schema_version\":\"1\",\"timestamp_utc\":\"2030-01-02T03:04:05.000000Z\"}"
+  },
+  "event_hash": "2093661e765f24f163c22ab79c7577617f95f5e5ca08fbb0f38df9f3e993ad4e",
+  "rule": "Ed25519 over raw SHA-256 digest of schema-1 canonical unsigned payload",
+  "signature": {
+    "algorithm": "ed25519",
+    "input": "sha256_digest",
+    "key_id": "ed25519:70209fc8a4e354a0",
+    "public_key_fingerprint_sha256": "70209fc8a4e354a0b5721ee8d23811ea2e718533dd564339eba6a349281d8a56",
+    "value_base64": "FDd4gf9Uw/o71RpCq5iGbIYJhmmwaTyyaRXVpp2w75lf71zVPKxrLObLJvxuVDvsIXMAVfD9kY8qJdyBetvOCQ=="
+  },
+  "vector_id": "ev1-valid-u2029-signed-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [
+      {
+        "code": "trust_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "producer_time_only",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}

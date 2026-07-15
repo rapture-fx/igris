@@ -1,0 +1,43 @@
+{
+  "action_name": "conformance.contract",
+  "approval_mode": "never",
+  "code_fingerprint": null,
+  "contract_hash": "c5ed68dbcf5745e46772f7496f24242df653b52d1087da032918152a3664ca76",
+  "execution_mode": "embedded",
+  "module": "conformance",
+  "parameter_descriptors": [
+    {
+      "annotation": null,
+      "has_default": false,
+      "kind": "POSITIONAL_ONLY",
+      "name": "p0"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "p1"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": false,
+      "kind": "VAR_POSITIONAL",
+      "name": "p2"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": true,
+      "kind": "KEYWORD_ONLY",
+      "name": "p3"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": false,
+      "kind": "VAR_KEYWORD",
+      "name": "p4"
+    }
+  ],
+  "qualified_name": "contract",
+  "risk": "low",
+  "schema_version": "1"
+}

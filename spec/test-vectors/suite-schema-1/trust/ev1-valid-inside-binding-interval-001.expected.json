@@ -1,0 +1,31 @@
+{
+  "canonical": null,
+  "rule": "External trust overlay never changes artifact hash or signature facts",
+  "signature": null,
+  "vector_id": "ev1-valid-inside-binding-interval-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_applicable",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_and_trusted",
+    "time_confidence": "receipt_bounded",
+    "trust": "trusted"
+  }
+}

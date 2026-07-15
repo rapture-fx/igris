@@ -1,0 +1,45 @@
+{
+  "canonical": null,
+  "event_hash": "cfc1f3c15125efaea920cd397ee59212b58640c00b7f452dbe01ad2e93001277",
+  "rule": "Fail-closed schema-1 Evidence mutation",
+  "signature": {
+    "algorithm": "ed25519",
+    "input": "sha256_digest",
+    "key_id": "ed25519:70209fc8a4e354a0",
+    "public_key_fingerprint_sha256": "70209fc8a4e354a0b5721ee8d23811ea2e718533dd564339eba6a349281d8a56",
+    "value_base64": "rGRb6rHkILAjhrslgCb9IbVitwst1eKEe3ZPqDCEaNamDfU4NZjCTXbmlUVsHxCmKxlRgX5GjkMLMFySpe69Aw=="
+  },
+  "vector_id": "ev1-invalid-tampered-signature-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 0,
+    "issues": [
+      {
+        "code": "invalid_signature",
+        "event_index": null,
+        "path": null,
+        "severity": "error"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_evaluated",
+    "signature": "invalid",
+    "specification": "consistent",
+    "summary": "invalid",
+    "time_confidence": "not_evaluated",
+    "trust": "not_evaluated"
+  }
+}

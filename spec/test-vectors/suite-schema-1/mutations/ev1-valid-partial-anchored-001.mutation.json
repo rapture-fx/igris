@@ -1,0 +1,8 @@
+{
+  "operation": "verify_partial_segment",
+  "trusted_decision": {
+    "decision": "allowed",
+    "event_id": "chain-allow"
+  },
+  "trusted_preceding_hash": "a042005ae915e3f2b48b0f31d930094396722d18ff2cc97c0d2e73f822859a39"
+}

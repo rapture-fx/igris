@@ -1,7 +1,8 @@
 # Igris verification-result schema draft
 
-Status: **Corrected design-freeze candidate pending Clock 2B; schema identifier
-`igris:protocol:verification-result:1`**
+Status: **Ratified data model; machine-readable frozen candidate implemented
+as [`schemas/verification-result-1.schema.json`](schemas/verification-result-1.schema.json);
+schema identifier `igris:protocol:verification-result:1`; not released**
 
 Scope: language-neutral verifier output for ActionContract, Evidence, trust,
 and checkpoint verification. This is a result data model, not an Evidence

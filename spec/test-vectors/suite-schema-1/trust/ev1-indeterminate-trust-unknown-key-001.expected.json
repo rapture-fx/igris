@@ -1,0 +1,38 @@
+{
+  "canonical": null,
+  "rule": "External trust overlay never changes artifact hash or signature facts",
+  "signature": null,
+  "vector_id": "ev1-indeterminate-trust-unknown-key-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 0,
+    "issues": [
+      {
+        "code": "unknown_key",
+        "event_index": null,
+        "path": null,
+        "severity": "error"
+      }
+    ],
+    "key_resolution": "unknown",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_applicable",
+    "signature": "not_evaluated",
+    "specification": "consistent",
+    "summary": "indeterminate",
+    "time_confidence": "unavailable",
+    "trust": "unknown"
+  }
+}

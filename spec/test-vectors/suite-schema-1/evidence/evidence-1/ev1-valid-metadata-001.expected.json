@@ -1,0 +1,55 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25faWQiOiJjb25mb3JtYW5jZS5hY3Rpb25zLnRyYW5zZmVyIiwiYWN0aW9uX25hbWUiOiJjb25mb3JtYW5jZS50cmFuc2ZlciIsImFwcHJvdmFsX21vZGUiOiJyZXF1aXJlZCIsImNvbnRyYWN0X2hhc2giOiJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiIiwiZGVjaXNpb24iOiJhbGxvd2VkIiwiZXZlbnRfaWQiOiJldnQtbWV0YWRhdGEiLCJldmVudF90eXBlIjoiZGVjaXNpb24iLCJpbnB1dF9oYXNoIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZCIsImtleV9pZCI6ImVkMjU1MTk6NzAyMDlmYzhhNGUzNTRhMCIsIm1ldGFkYXRhIjp7Im5lc3RlZCI6eyJuIjo3fSwic3VpdGUiOiJzY2hlbWEtMSJ9LCJwcmV2aW91c19ldmVudF9oYXNoIjpudWxsLCJyZWRhY3RlZF9pbnB1dF9zdW1tYXJ5IjoiYW1vdW50PTciLCJyaXNrIjoiaGlnaCIsInNjaGVtYV92ZXJzaW9uIjoiMSIsInRpbWVzdGFtcF91dGMiOiIyMDMwLTAxLTAyVDAzOjA0OjA1LjAwMDAwMFoifQ==",
+    "sha256_hex": "c9aa050e2df01b76898a583444a87279727d292c934bda9b7495aebd341308fe",
+    "utf8": "{\"action_id\":\"conformance.actions.transfer\",\"action_name\":\"conformance.transfer\",\"approval_mode\":\"required\",\"contract_hash\":\"abababababababababababababababababababababababababababababababab\",\"decision\":\"allowed\",\"event_id\":\"evt-metadata\",\"event_type\":\"decision\",\"input_hash\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\",\"key_id\":\"ed25519:70209fc8a4e354a0\",\"metadata\":{\"nested\":{\"n\":7},\"suite\":\"schema-1\"},\"previous_event_hash\":null,\"redacted_input_summary\":\"amount=7\",\"risk\":\"high\",\"schema_version\":\"1\",\"timestamp_utc\":\"2030-01-02T03:04:05.000000Z\"}"
+  },
+  "event_hash": "c9aa050e2df01b76898a583444a87279727d292c934bda9b7495aebd341308fe",
+  "rule": "Ed25519 over raw SHA-256 digest of schema-1 canonical unsigned payload",
+  "signature": {
+    "algorithm": "ed25519",
+    "input": "sha256_digest",
+    "key_id": "ed25519:70209fc8a4e354a0",
+    "public_key_fingerprint_sha256": "70209fc8a4e354a0b5721ee8d23811ea2e718533dd564339eba6a349281d8a56",
+    "value_base64": "/YZ/S/Z2gwy8GutN8a3a+5DYLPNFS9gVhlUU2i90pPsXZORUZGng6DtF8hFAQKv0dGGkBo40yUa4TOmcqNRDCw=="
+  },
+  "vector_id": "ev1-valid-metadata-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [
+      {
+        "code": "trust_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "producer_time_only",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}

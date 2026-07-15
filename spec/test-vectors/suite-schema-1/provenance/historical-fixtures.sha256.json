@@ -1,0 +1,52 @@
+[
+  {
+    "path": "testdata/igris-contract-v1/README.md",
+    "sha256": "87203d7b2e094fa974ef750ec09ddb0db30a76ae940bb1cdd75f6f527fbb06fa",
+    "size": 3206
+  },
+  {
+    "path": "testdata/igris-contract-v1/action_contract.json",
+    "sha256": "2dc7293f89d534dbbe4c290619d2dcf7836b85ebca06a42db1c23811718f937a",
+    "size": 1104
+  },
+  {
+    "path": "testdata/igris-contract-v1/action_contract_specialchars.json",
+    "sha256": "e40c440bd27cb37a5716bea74b16467ed210a0ff0145004741c3c157a57bc749",
+    "size": 864
+  },
+  {
+    "path": "testdata/igris-contract-v1/canonical/decision_approved.canonical.json",
+    "sha256": "a1208ba7a1565c86a52666080952c6d2901f6136a06d6d530f396426ad79f130",
+    "size": 829
+  },
+  {
+    "path": "testdata/igris-contract-v1/canonical/outcome_succeeded.canonical.json",
+    "sha256": "b76cbb6a7511153c40dbb9caf7e192bd408a427cc5706b765cb94b8318aa2260",
+    "size": 653
+  },
+  {
+    "path": "testdata/igris-contract-v1/expected.json",
+    "sha256": "520570dba4a17c00cab88bfcf050e8b44d141bf3b51855d974bd1e3e2b40dc78",
+    "size": 1602
+  },
+  {
+    "path": "testdata/igris-contract-v1/generate_fixtures.py",
+    "sha256": "6e254105a60954fc8a0fc0397077b7de7f7ad802c9cedf77c5f1151da4868489",
+    "size": 8193
+  },
+  {
+    "path": "testdata/igris-contract-v1/generate_specialchars_contract.py",
+    "sha256": "02f63f5422b1660aa3d23572c3564afb16c94332d4a3aafc6086d64c4ee0d855",
+    "size": 2854
+  },
+  {
+    "path": "testdata/igris-contract-v1/journal.jsonl",
+    "sha256": "fa1b70b3745de47ba8f3200e4524ae8d47aca0ff49de3c484770283df2ce35f4",
+    "size": 4709
+  },
+  {
+    "path": "testdata/igris-contract-v1/verify_key.pem",
+    "sha256": "879a7c824d336b062d56c7bf7dd323c886f5e2e9e75663b086a64653866adcc0",
+    "size": 113
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "canonical": null,
+  "chain_head": "851365da8d6d8773cfed1d1bf345f847b63786e13ec5afba370e8bd66a9ad4eb",
+  "rule": "Historical journal preserved byte-for-byte",
+  "signature": null,
+  "vector_id": "ev1-valid-alpha2-journal-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-chain"
+    },
+    "canonicalization": "valid",
+    "completeness": "completeness_unknown",
+    "continuity": "valid_genesis",
+    "events_verified": 5,
+    "issues": [
+      {
+        "code": "completeness_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "trust_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "producer_time_only",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}
