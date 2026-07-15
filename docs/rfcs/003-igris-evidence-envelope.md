@@ -99,11 +99,14 @@ vector-pinned before protocol approval.
 
 ## Event type registry
 
-Schema `1` registers only `decision` and `outcome`. Unknown event types are
-reported as unsupported/unknown, not reinterpreted. Adding an event type whose
-fields participate in schema `1` signed payloads risks verifier divergence and
-therefore requires either an explicit compatible registry decision with
-vectors or, preferably, Evidence v2.
+Schema `1` registers only `decision` and `outcome`. Under the portable result
+vocabulary, any other `event_type` in a supported schema `1` object is
+`schema=invalid` with issue `invalid_field` and summary `invalid`; there is no
+separate `unsupported_event_type` alias. An unknown object schema remains
+`unsupported_schema`. A verifier MUST NOT reinterpret an unregistered event
+layout. Adding an event type whose fields participate in schema `1` signed
+payloads risks verifier divergence and therefore requires either an explicit
+compatible registry decision with vectors or, preferably, Evidence v2.
 
 ## Decision and outcome events
 

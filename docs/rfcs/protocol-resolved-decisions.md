@@ -109,7 +109,8 @@ another. A conflict is a specification defect:
 
 - constructors fail closed rather than choose an interpretation;
 - verifiers report `specification_conflict` when the conflict affects the
-  artifact under review;
+  artifact under review, set the specification dimension to `conflict`, stop
+  affected artifact interpretation, and return summary `indeterminate`;
 - the protocol owner issues an erratum or a new release manifest;
 - an erratum may clarify meaning but may not change already released canonical
   bytes, hashes, signatures, vector outcomes, or historical schema semantics;
@@ -525,17 +526,20 @@ distributed transaction states are deferred.
 Verifier output uses `igris:protocol:verification-result:1`, specified in
 [`../../spec/verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
 
-The result decomposes parse, schema, canonicalization, algorithm, object hash,
-signature, key resolution, continuity, completeness, lifecycle semantics,
-trust, time confidence, and optional named policy evaluation. An artifact may
-be cryptographically valid and policy-rejected. Unsupported schema/algorithm is
-not invalid signature. Unknown or revoked key does not erase signature math.
+The result decomposes specification consistency, parse, schema,
+canonicalization, algorithm, object hash, signature, key resolution,
+continuity, completeness, lifecycle semantics, trust, time confidence, and
+optional named policy evaluation. An artifact may be cryptographically valid
+and policy-rejected. Unsupported schema/algorithm is not invalid signature.
+Unknown or revoked key does not erase signature math.
 
 `summary` is a deterministic descriptive classification, not a universal
 authorization verdict: `valid_and_trusted`, `valid_but_trust_unknown`,
 `valid_but_untrusted`, `invalid`, `unsupported`, or `indeterminate`. Policy
 acceptance appears only when a named policy profile is supplied. Issues carry
-independent severity, so warnings do not require a fatal result.
+one registered meaning, owning dimension, fixed severity, and deterministic
+minimum summary consequence. An unregistered event type under a supported
+closed schema is `invalid_field`, not `unsupported_event_type`.
 
 ## RD-10 — Minimum trust-bundle semantics
 
@@ -574,8 +578,12 @@ Rotation creates a new fingerprint and retains old keys/bindings. Revocation
 changes trust, not cryptographic validity. If compromise time is reliably
 bounded, policy may distinguish evidence proven to exist before and after that
 bound. A producer timestamp alone is not reliable evidence of creation time.
-Without trustworthy time, temporal trust is `unknown` or policy-rejected; a
-verifier must not invent a safe interval.
+Without trustworthy time, an applicable interval is
+`binding_interval_indeterminate`; a verifier must not invent a safe interval.
+With trustworthy time proving the artifact outside it, the distinct result is
+`outside_binding_interval`. Time evidence uses `unavailable` when no usable
+basis exists; it does not use `unknown`, `claimed`, or `inferred` as portable
+`time_confidence` values.
 
 The exact serialized trust-bundle schema is deferred until an external trust
 exchange or Connected GA claim requires it. These semantic slots are frozen.

@@ -135,14 +135,17 @@ field, timestamp, and transition checks.
 **Draft invariant:** Verification MUST use the decomposed, language-neutral
 model in
 [`../../spec/verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
-Parse, schema, canonicalization, algorithm, hash, signature, key resolution,
-continuity, completeness, semantics, trust, time confidence, and named policy
-are distinct. A cryptographically valid artifact may be trust-unknown,
+Specification consistency, parse, schema, canonicalization, algorithm, hash,
+signature, key resolution, continuity, completeness, semantics, trust, time
+confidence, and named policy are distinct. A cryptographically valid artifact may be trust-unknown,
 untrusted, revoked, outside a binding interval, or policy-rejected.
 
 The descriptive `summary` MUST NOT be treated as universal authorization.
 Unsupported schema/algorithm and unknown key leave dependent checks
-`not_evaluated`; they are not invalid signatures.
+`not_evaluated`; they are not invalid signatures. A conflict among applicable
+normative artifacts sets `specification=conflict`, stops the affected
+verification, and returns summary `indeterminate` rather than selecting a
+preferred implementation.
 
 ## Correlation and causation
 
@@ -207,7 +210,9 @@ Protocol v1 has no on-wire capability-negotiation object. Draft behavior is
 therefore conservative:
 
 - a writer emits only a schema it explicitly supports;
-- a verifier reports unsupported schema/type distinctly;
+- a verifier reports an unknown schema as `unsupported_schema`;
+- an unregistered `event_type` within a supported closed schema is
+  `schema=invalid` with `invalid_field`, not a second unsupported alias;
 - a Connected transport MAY advertise accepted schema versions and limits;
 - absence of a capability means unsupported, not silently downgraded;
 - downgrading MUST NOT discard a required security property.

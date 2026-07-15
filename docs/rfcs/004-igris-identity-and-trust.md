@@ -177,9 +177,20 @@ time, or transparency inclusion can bound when evidence existed.
 If compromise time is unknown, policy may mark all evidence under that key as
 indeterminate or untrusted; it MUST NOT fabricate a precise safe interval.
 When trustworthy time is unavailable, the verifier reports
-`time_confidence = producer_asserted`, `unavailable`, or another registered
-non-trusted value and MUST NOT enforce a binding interval as a cryptographic
-fact.
+`time_confidence = producer_asserted` when only the producer claim exists, or
+`unavailable` when no usable time basis exists. `unknown`, `claimed`, and
+`inferred` are not registered `time_confidence` values. These values classify
+the strongest time-evidence basis actually evaluated; they are not identity
+facts or policy authorization labels.
+
+If an applicable binding interval exists but trustworthy time cannot place the
+artifact inside or outside it, trust is `binding_interval_indeterminate`, issue
+`binding_interval_indeterminate`, and summary `indeterminate`. If trustworthy
+time places the artifact outside the interval, trust is instead
+`outside_binding_interval`, with a valid signature retained and summary
+`valid_but_untrusted`. The two states are mutually exclusive. Neither state is
+`invalid_signature`, and a verifier MUST NOT enforce an interval as a
+cryptographic fact.
 
 ## Historical evidence after revocation
 

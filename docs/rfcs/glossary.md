@@ -30,6 +30,8 @@ Status: **Draft terminology**
 | Reference implementation | Implementation used to validate and illustrate a specification, not the specification itself |
 | Signing identity reference | Algorithm-qualified key lookup handle; not automatically human identity |
 | Signature domain | Object-type-specific label bound into a future signature frame to prevent cross-object reuse |
+| Specification conflict | Applicable normative artifacts give incompatible instructions; affected verification stops with an indeterminate result |
+| Time confidence | Strongest evaluated time-evidence basis; not an identity fact or authorization label |
 | Trust binding | Scoped assertion by a named authority connecting a key to a subject, validity information, and status |
 | Trust store | Scoped key bindings, status, authority, and temporal metadata used by a verifier |
 | Verification result | Structured parsing, integrity, key, chain, semantic, and trust conclusions |

@@ -9,8 +9,8 @@ object and not a policy authorization.
 
 ## Design rules
 
-- Cryptographic facts, schema validity, chain state, trust, and policy are
-  separate dimensions.
+- Specification consistency, cryptographic facts, schema validity, chain
+  state, trust, time evidence, and policy are separate dimensions.
 - A later failure never rewrites an earlier fact. A valid signature can coexist
   with revoked trust or policy rejection.
 - A dimension that cannot safely be evaluated is `not_evaluated`, not false.
@@ -31,6 +31,7 @@ The language-neutral shape is:
     "object_type": "evidence-chain",
     "artifact_id": null
   },
+  "specification": "consistent",
   "parse": "valid",
   "schema": "supported",
   "canonicalization": "valid",
@@ -76,9 +77,10 @@ schema explicitly declares nullable.
 
 | Field | Allowed values | Meaning |
 | --- | --- | --- |
+| `specification` | `consistent`, `conflict`, `not_evaluated` | Whether the manifest-selected normative artifacts give one applicable interpretation |
 | `parse` | `valid`, `malformed`, `resource_limit` | UTF-8/JSON/framing and bounded parse result |
 | `schema` | `supported`, `unsupported`, `invalid`, `not_evaluated` | Schema dispatch and declared-field validity |
-| `canonicalization` | `valid`, `invalid`, `not_evaluated` | Canonical data-domain and encoding result |
+| `canonicalization` | `valid`, `invalid`, `unsupported`, `not_evaluated` | Canonical data-domain, representation support, and encoding result |
 | `algorithm` | `supported`, `unsupported`, `not_evaluated` | Signature/hash suite support |
 | `object_hash` | `valid`, `mismatch`, `not_present`, `not_evaluated` | Submitted versus recomputed object hash |
 | `signature` | `valid`, `invalid`, `not_present`, `not_evaluated` | Mathematical signature result under the resolved key |
@@ -86,8 +88,31 @@ schema explicitly declares nullable.
 | `continuity` | `valid_genesis`, `valid_anchored`, `valid_unanchored`, `discontinuous`, `not_applicable`, `not_evaluated` | Hash/sequence continuity relative to the supplied start |
 | `completeness` | `complete_to_checkpoint`, `incomplete`, `completeness_unknown`, `not_applicable`, `not_evaluated` | Whether a trusted required head is reached |
 | `semantics` | `valid`, `invalid`, `unresolved`, `not_applicable`, `not_evaluated` | Known field meaning and lifecycle transition result |
-| `trust` | `trusted`, `unknown`, `untrusted`, `revoked`, `outside_binding_interval`, `not_evaluated` | Relying-policy evaluation of the resolved key/binding |
-| `time_confidence` | `producer_asserted`, `receipt_bounded`, `checkpoint_bounded`, `trusted`, `unknown`, `not_applicable`, `not_evaluated` | Strongest time basis actually evaluated |
+| `trust` | `trusted`, `unknown`, `untrusted`, `revoked`, `outside_binding_interval`, `binding_interval_indeterminate`, `not_evaluated` | Relying-policy evaluation of the resolved key/binding |
+| `time_confidence` | `producer_asserted`, `receipt_bounded`, `checkpoint_bounded`, `trusted`, `unavailable`, `not_applicable`, `not_evaluated` | Strongest time basis actually evaluated |
+
+`specification=conflict` means two or more manifest-selected normative
+artifacts give incompatible instructions that affect this verification. The
+verifier MUST emit `specification_conflict`, set every affected artifact phase
+to `not_evaluated`, return summary `indeterminate`, and stop the affected
+verification. It MUST NOT choose an implementation, a permissive reading, or a
+document-precedence shortcut. `not_evaluated` is used only when specification
+selection itself could not safely complete.
+
+`outside_binding_interval` and `binding_interval_indeterminate` are mutually
+exclusive. The former requires an applicable binding plus trustworthy time
+evidence that places the artifact outside the interval. The latter requires an
+applicable binding interval but insufficient trustworthy time evidence to
+place the artifact inside or outside it; its summary is `indeterminate`, not
+`invalid` or `valid_but_untrusted`.
+
+The `time_confidence` enum records the strongest time-evidence basis actually
+evaluated. `producer_asserted`, `receipt_bounded`, `checkpoint_bounded`, and
+`trusted` are evidence-basis classifications, not identity facts or
+authorization labels. `unavailable` means no usable time basis was available.
+`unknown`, `claimed`, and `inferred` are not registered `time_confidence`
+values. A producer assertion is explicitly non-trusted even though the
+producer's claim is known.
 
 `incomplete` is used only when a supplied trusted anchor/checkpoint or manifest
 proves a required event/head is missing. Absence of such proof is
@@ -104,16 +129,18 @@ completeness claim.
 
 ## Summary classification
 
-`summary` is descriptive and deterministic. It is not authorization.
+`summary` is descriptive and deterministic. It is not authorization. Apply the
+rows in order; the first matching row wins. A named policy result never changes
+cryptographic dimensions or turns a valid signature into an invalid one.
 
 | Summary | Required condition |
 | --- | --- |
-| `valid_and_trusted` | Parse/schema/canonicalization/algorithm/hash/signature and applicable semantics/continuity are valid; trust is `trusted` |
-| `valid_but_trust_unknown` | The same content checks are valid; trust is `unknown` or `not_evaluated` |
-| `valid_but_untrusted` | The same content checks are valid; trust is `untrusted`, `revoked`, or `outside_binding_interval` |
 | `invalid` | Malformed/schema-invalid/canonical-invalid/hash-mismatch/signature-invalid/discontinuous/semantic-invalid |
-| `unsupported` | Schema or algorithm is unsupported and prevents the required verification |
-| `indeterminate` | Key is unknown/ambiguous, a required check is not evaluable, or semantics remain unresolved without a stronger invalid fact |
+| `unsupported` | Schema, canonical representation, or algorithm is unsupported and prevents required verification, with no stronger invalid fact |
+| `indeterminate` | Specification conflict, resource limit, unknown/ambiguous key, `binding_interval_indeterminate`, proven incomplete required chain, unresolved required semantics, or another required check is not evaluable, with no stronger invalid/unsupported fact |
+| `valid_but_untrusted` | Required content checks are valid and trust is `untrusted`, `revoked`, or `outside_binding_interval` |
+| `valid_and_trusted` | Required content checks are valid and trust is `trusted` |
+| `valid_but_trust_unknown` | Required content checks are valid and trust is `unknown` or `not_evaluated` |
 
 Completeness unknown alone does not make cryptographic content invalid. A named
 policy may still reject it.
@@ -151,20 +178,55 @@ verification phase, path, then code. Implementations may log richer local
 diagnostics separately, but conformance output must not add unbounded or
 sensitive free text.
 
-## Required issue codes
+## Required issue-code registry
 
-| Phase | Codes |
-| --- | --- |
-| Parse | `malformed`, `invalid_utf8`, `duplicate_member`, `trailing_content`, `resource_limit` |
-| Schema | `unsupported_schema`, `unknown_field`, `missing_field`, `invalid_field`, `invalid_null` |
-| Canonicalization | `canonicalization_failed`, `integer_out_of_range`, `invalid_unicode_scalar` |
-| Algorithm/integrity | `unsupported_algorithm`, `hash_mismatch`, `invalid_signature`, `missing_signature` |
-| Key | `unknown_key`, `ambiguous_key` |
-| Chain | `chain_discontinuity`, `partial_chain`, `incomplete_chain`, `completeness_unknown`, `fork_detected` |
-| Semantics | `invalid_transition`, `unknown_decision_reference`, `duplicate_outcome`, `unresolved_execution` |
-| Trust | `untrusted_key`, `revoked_key`, `outside_binding_interval`, `stale_trust_snapshot`, `trust_unknown` |
-| Time | `producer_time_only`, `time_confidence_unknown` |
-| Specification | `specification_conflict` |
+Each code has exactly one meaning and one owning dimension. Severity is fixed
+for portable conformance output: `error` is fatal for the affected requested
+verification; `warning` preserves the stated phase fact but may still make a
+requested conclusion indeterminate. “No forced change” means the issue alone
+does not select a summary.
+
+| Code | Dimension effect | Severity | Minimum summary consequence | Exact meaning |
+| --- | --- | --- | --- | --- |
+| `specification_conflict` | `specification=conflict`; affected phases `not_evaluated` | error | `indeterminate` | Applicable normative artifacts conflict; affected verification stops |
+| `malformed` | `parse=malformed` | error | `invalid` | Input is not one permitted top-level syntactic form |
+| `invalid_utf8` | `parse=malformed` | error | `invalid` | Input is not valid UTF-8 |
+| `duplicate_member` | `parse=malformed` | error | `invalid` | One object contains duplicate decoded member names |
+| `trailing_content` | `parse=malformed` | error | `invalid` | Non-whitespace content follows the permitted top-level value |
+| `resource_limit` | `parse=resource_limit` | error | `indeterminate` | A declared bounded-work limit prevented safe parsing or verification |
+| `unsupported_schema` | `schema=unsupported` | error | `unsupported` | The declared object schema is not supported; no downgrade is attempted |
+| `unknown_field` | `schema=invalid` | error | `invalid` | A supported closed schema contains an undeclared field |
+| `missing_field` | `schema=invalid` | error | `invalid` | A supported schema omits a required field |
+| `invalid_field` | `schema=invalid` | error | `invalid` | A declared field has an unregistered value, including an unknown `event_type`, or violates its type/constraint |
+| `invalid_null` | `schema=invalid` | error | `invalid` | A field is null where its schema is not nullable |
+| `canonicalization_failed` | `canonicalization=invalid` | error | `invalid` | An accepted parsed value violates the selected canonical data profile |
+| `unsupported_legacy_representation` | `canonicalization=unsupported` | error | `unsupported` | Exact schema `1` verification requires an original number lexeme the verifier did not preserve |
+| `integer_out_of_range` | `canonicalization=invalid` | error | `invalid` | A future-profile integer is outside its registered safe range |
+| `invalid_unicode_scalar` | `canonicalization=invalid` | error | `invalid` | A value contains a code point excluded by the selected canonical profile |
+| `unsupported_algorithm` | `algorithm=unsupported` | error | `unsupported` | A selected hash/signature suite is not supported; no substitution occurs |
+| `hash_mismatch` | `object_hash=mismatch` | error | `invalid` | Submitted and recomputed object hashes differ |
+| `invalid_signature` | `signature=invalid` | error | `invalid` | Mathematical signature verification failed under the resolved key |
+| `missing_signature` | `signature=not_present` | error | `invalid` | The selected signed schema requires a signature and none is present |
+| `unknown_key` | `key_resolution=unknown` | error | `indeterminate` | No supplied trust/key input resolves the signing reference |
+| `ambiguous_key` | `key_resolution=ambiguous` | error | `indeterminate` | More than one distinct key matches the submitted lookup reference |
+| `chain_discontinuity` | `continuity=discontinuous` | error | `invalid` | Sequence or previous-hash linkage fails relative to supplied input/anchor |
+| `partial_chain` | `continuity=valid_unanchored` | warning | no forced change | Submitted events link locally but their non-genesis start is not anchored |
+| `incomplete_chain` | `completeness=incomplete` | error | `indeterminate` | A trusted required head/manifest proves one or more required events missing |
+| `completeness_unknown` | `completeness=completeness_unknown` | warning | no forced change | No trusted required head establishes tail completeness |
+| `fork_detected` | `continuity=discontinuous` | error | `invalid` | Distinct hashes occupy the same signed stream/sequence identity |
+| `invalid_transition` | `semantics=invalid` | error | `invalid` | A known lifecycle transition violates the selected schema profile |
+| `unknown_decision_reference` | `semantics=invalid` | error | `invalid` | An Outcome references no applicable Decision in the evaluated context |
+| `duplicate_outcome` | `semantics=invalid` | error | `invalid` | More than one Outcome exists for one Decision where at most one is allowed |
+| `unresolved_execution` | `semantics=unresolved` | warning | `indeterminate` when execution occurrence/result is requested | Evidence cannot establish whether execution occurred or its result |
+| `unknown_fields_present` | no phase change | warning | no forced change | Schema `1` cryptographically includes fields whose semantics are not registered |
+| `untrusted_key` | `trust=untrusted` | warning | `valid_but_untrusted` when content checks are valid | Applicable trust input explicitly distrusts the key in scope |
+| `revoked_key` | `trust=revoked` | warning | `valid_but_untrusted` when content checks are valid | Applicable trust input records the key revoked for the evaluation context |
+| `outside_binding_interval` | `trust=outside_binding_interval` | warning | `valid_but_untrusted` when content checks are valid | Trustworthy time evidence places the artifact outside an applicable interval |
+| `binding_interval_indeterminate` | `trust=binding_interval_indeterminate` | warning | `indeterminate` | An interval applies but trustworthy time is insufficient to evaluate it |
+| `stale_trust_snapshot` | `trust=unknown` | warning | `valid_but_trust_unknown` when content checks are valid | Available trust status is too stale for the requested evaluation |
+| `trust_unknown` | `trust=unknown` | warning | `valid_but_trust_unknown` when content checks are valid | No applicable authoritative trust conclusion is available |
+| `producer_time_only` | `time_confidence=producer_asserted` | warning | no forced change | Only the signed producer assertion supplies time information |
+| `time_confidence_unavailable` | `time_confidence=unavailable` | warning | no forced change | No usable time-evidence basis is available |
 
 ## Required distinction examples
 
@@ -176,6 +238,9 @@ sensitive free text.
 | Valid old signature, key now revoked | `signature=valid`, `trust=revoked` | `valid_but_untrusted` |
 | Valid historical signature credibly bounded before compromise/revocation | `signature=valid`, `trust=trusted`, defensible non-producer time confidence | `valid_and_trusted` |
 | Valid signature outside defensible binding interval | `signature=valid`, `trust=outside_binding_interval` | `valid_but_untrusted` |
+| Binding interval cannot be evaluated without trustworthy time | `signature=valid`, `trust=binding_interval_indeterminate`, `time_confidence=producer_asserted` or `unavailable` | `indeterminate` |
+| Relevant normative artifacts conflict | `specification=conflict`, affected phases `not_evaluated` | `indeterminate` |
+| Valid JSON schema `1` number requires a lexeme the verifier did not preserve | `canonicalization=unsupported`, later checks `not_evaluated` | `unsupported` |
 | Wrong signature under resolved key | `signature=invalid` | `invalid` |
 | Payload differs from submitted hash | `object_hash=mismatch` | `invalid` |
 | Broken previous hash/sequence | `continuity=discontinuous` | `invalid` |

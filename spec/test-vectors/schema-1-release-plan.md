@@ -176,7 +176,8 @@ Positive vectors:
 Negative vectors:
 
 - malformed/non-object event;
-- unsupported schema and event type;
+- unsupported schema, plus an unregistered event type mapped to
+  `schema=invalid` and `invalid_field`;
 - missing/wrong-type field;
 - invalid timestamp/decision/status;
 - tampered payload with original hash/signature;
@@ -221,6 +222,8 @@ The same cryptographically valid event is evaluated with:
 - active organization binding;
 - revoked key;
 - evidence inside/outside a defensible binding interval; and
+- an applicable binding interval that is indeterminate because trustworthy
+  time is unavailable; and
 - stale or absent revocation snapshot.
 
 Trust overlays never change canonical bytes or mathematical signature results.
@@ -271,6 +274,8 @@ Every vector has a complete
 `igris:protocol:verification-result:1` expected object. Primary failure and
 permitted secondary issues are explicit. Required examples include:
 
+- `specification=consistent` for ordinary vectors and a separate
+  `specification_conflict` governance/result case;
 - cryptographically valid but trust unknown;
 - cryptographically valid but untrusted/revoked;
 - cryptographically valid but semantic policy rejected;

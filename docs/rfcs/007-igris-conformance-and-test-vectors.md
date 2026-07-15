@@ -152,6 +152,7 @@ For example:
     "object_type": "evidence-chain",
     "artifact_id": null
   },
+  "specification": "consistent",
   "parse": "valid",
   "schema": "supported",
   "canonicalization": "valid",
@@ -171,14 +172,18 @@ For example:
 }
 ```
 
-Required distinct issue codes include `malformed`, `unsupported_schema`,
-`unsupported_algorithm`, `unsupported_event_type`, `missing_field`,
-`invalid_field`, `hash_mismatch`, `invalid_signature`, `unknown_key`,
-`ambiguous_key`, `untrusted_key`, `revoked_key`, `chain_discontinuity`,
-`incomplete_chain`, `completeness_unknown`, `invalid_transition`, and
-`binding_interval_indeterminate`. Language exceptions may differ but MUST map
-to these meanings. Cryptographic facts, continuity, completeness, and trust
-policy remain separate dimensions; warnings do not silently become fatal.
+The result draft's issue-code registry is the only portable registry. In
+particular, an unregistered event type in a supported closed schema maps to
+`schema=invalid` plus `invalid_field`; `unsupported_event_type` is not a
+portable alias. `outside_binding_interval` requires trustworthy evidence that
+the artifact is outside the interval, while `binding_interval_indeterminate`
+requires an applicable interval that cannot be evaluated because trustworthy
+time is insufficient. `time_confidence=unavailable` is the sole no-usable-time
+value. `specification_conflict` owns the specification dimension, returns
+`indeterminate`, and stops affected verification. Language exceptions may
+differ but MUST map to the registry meanings. Cryptographic facts, continuity,
+completeness, semantics, trust, time basis, and policy remain separate;
+warnings and fatal issues have the registry-defined summary consequences.
 
 ## Language-neutral vector format
 

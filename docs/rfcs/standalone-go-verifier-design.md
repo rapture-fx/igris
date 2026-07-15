@@ -95,22 +95,26 @@ Artifact invalidity is data in the result and is not an exceptional exit.
 The pipeline is phase-ordered and never calls a later phase when its inputs are
 unsafe:
 
-1. bounded local read;
-2. UTF-8/JSON/JSONL parsing with duplicate detection and trailing-content
+1. select the manifest-pinned specifications and fail closed with
+   `specification_conflict` if applicable normative artifacts disagree;
+2. bounded local read;
+3. UTF-8/JSON/JSONL parsing with duplicate detection and trailing-content
    checks;
-3. object/schema dispatch;
-4. schema `1` required-field and type validation;
-5. legacy canonical reconstruction;
-6. contract/event hash recomputation;
-7. key resolution and key-ID comparison;
-8. Ed25519 signature verification over the recomputed raw digest;
-9. previous-hash chain and optional anchor validation;
-10. known schema `1` decision/Outcome semantics;
-11. optional trust overlay evaluation; and
-12. deterministic result aggregation and issue ordering.
+4. object/schema dispatch;
+5. schema `1` required-field and type validation;
+6. legacy canonical reconstruction;
+7. contract/event hash recomputation;
+8. key resolution and key-ID comparison;
+9. Ed25519 signature verification over the recomputed raw digest;
+10. previous-hash chain and optional anchor validation;
+11. known schema `1` decision/Outcome semantics;
+12. optional trust/time overlay evaluation; and
+13. deterministic result aggregation and issue ordering.
 
 Unknown schema returns `unsupported_schema` before schema-specific canonical or
-signature evaluation. Unknown/ambiguous keys leave signature `not_evaluated`.
+signature evaluation. An unknown event type in supported schema `1` returns
+`invalid_field`, not `unsupported_event_type`. Unknown/ambiguous keys leave
+signature `not_evaluated`.
 Trust evaluation never changes hash/signature facts.
 
 ## Schema `1` implementation requirements

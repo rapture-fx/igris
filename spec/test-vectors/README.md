@@ -98,6 +98,7 @@ Expected files use only language-neutral JSON values:
       "object_type": "evidence-chain",
       "artifact_id": null
     },
+    "specification": "consistent",
     "parse": "valid",
     "schema": "supported",
     "canonicalization": "valid",

@@ -118,11 +118,11 @@ exist.
 
 45. Portable results use
     `igris:protocol:verification-result:1` and decompose every verification
-    phase.
+    phase, including specification consistency.
 46. Cryptographic validity may coexist with trust unknown, explicit distrust,
     revocation, outside-binding interval, or policy rejection.
-47. Warnings are independent of fatal errors; completeness unknown alone does
-    not invalidate signed content.
+47. Every issue has one meaning, dimension, fixed severity, and summary
+    consequence. Completeness unknown alone does not invalidate signed content.
 48. A descriptive summary is not a universal authorization decision; named
     policy output is separate.
 49. Trust input is external to Evidence and minimally records full key,
@@ -134,22 +134,30 @@ exist.
     math. Producer time alone cannot prove pre-compromise creation.
 52. Connected organization binding is scoped/exportable trust metadata, not a
     universal root.
+53. An unknown event type under a supported closed schema is `invalid_field`,
+    not `unsupported_event_type`.
+54. `outside_binding_interval` requires trustworthy time proving the artifact
+    outside; `binding_interval_indeterminate` means trustworthy time is
+    insufficient. `time_confidence=unavailable` is the sole no-usable-time
+    value.
+55. A relevant specification conflict stops affected verification and yields
+    `indeterminate`; no implementation receives implicit precedence.
 
 ### Historical compatibility and checkpoints
 
-53. Every schema `1` field, byte, hash, signature, fixture, and historical
+56. Every schema `1` field, byte, hash, signature, fixture, and historical
     meaning remains permanently verifiable under dedicated legacy dispatch.
-54. No future canonical, domain, key, stream, sequence, identity, or lifecycle
+57. No future canonical, domain, key, stream, sequence, identity, or lifecycle
     rule is backported to schema `1`.
-55. Stronger parsing/semantic/trust policy may reject a cryptographically valid
+58. Stronger parsing/semantic/trust policy may reject a cryptographically valid
     schema `1` artifact but must preserve the valid cryptographic fact.
-56. Released schema `1` vectors and verification materials are retained
+59. Released schema `1` vectors and verification materials are retained
     indefinitely and never rewritten.
-57. Checkpoints are optional external signed objects, not minimum Evidence
+60. Checkpoints are optional external signed objects, not minimum Evidence
     events and not a mandatory Connected/global service.
-58. Continuity and completeness are separate. A local chain cannot prove its
+61. Continuity and completeness are separate. A local chain cannot prove its
     latest tail.
-59. `complete_to_checkpoint` means the verified chain reaches one exact trusted
+62. `complete_to_checkpoint` means the verified chain reaches one exact trusted
     checkpoint head; it does not prove no later events or external truth.
 
 ## Signed-byte consequences

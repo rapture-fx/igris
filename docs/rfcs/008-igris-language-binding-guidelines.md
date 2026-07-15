@@ -106,7 +106,12 @@ schema/transition profile, and return decomposed results. It must operate
 offline with supplied evidence/key and use bounded resources.
 
 Unknown schema, unknown key, untrusted key, revoked key, incomplete chain, and
-invalid signature must remain distinguishable.
+invalid signature must remain distinguishable. An unknown `event_type` within
+a supported closed schema maps to `invalid_field`; bindings must not emit the
+non-registry alias `unsupported_event_type`. A binding interval proven out of
+range and one that cannot be evaluated for lack of trustworthy time map to
+`outside_binding_interval` and `binding_interval_indeterminate`, respectively.
+Specification conflict terminates affected verification as `indeterminate`.
 Portable results MUST map to
 [`verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md);
 language-native errors may contain more detail but may not collapse a valid
