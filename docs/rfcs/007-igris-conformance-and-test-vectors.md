@@ -7,8 +7,10 @@ Goal: enforce interoperability without shared implementation code
 two Go byte-verification suites, but no language-neutral manifest, deterministic
 fixture generator, common result schema, or declared conformance levels.
 
-**Draft proposal:** The levels, vector families, runner contract, and governance
-below define the target conformance program. They do not alter current fixtures.
+**Candidate proposal:** The levels, vector families, runner contract, and
+governance below define the target conformance program. They do not alter
+current fixtures. The concrete schema-1 release design is
+[`schema-1-release-plan.md`](../../spec/test-vectors/schema-1-release-plan.md).
 
 ## Conformance levels
 
@@ -26,6 +28,11 @@ conformant” without a level and schema list.
 An implementation MAY claim multiple levels. Claims MUST name schema versions,
 algorithms, vector-suite revision, language/runtime version, and excluded
 optional profiles.
+
+C1 through C3 are protocol-object capabilities. C4 is a language-binding
+profile, and C5 is a Connected transport/product profile; neither adds fields
+to a signed protocol object. A standalone verifier is expected to claim C2,
+not C4 or C5.
 
 ## Canonicalization vectors
 
@@ -133,29 +140,45 @@ retained values.
 
 ## Expected verification results
 
-The common result shape is conceptual until a language-neutral schema is
-approved, but vectors use these fields:
+All new expected-result files use the draft portable result schema in
+[`verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md).
+For example:
 
 ```json
 {
+  "schema_id": "igris:protocol:verification-result:1",
+  "artifact": {
+    "object_schema_id": "1",
+    "object_type": "evidence-chain",
+    "artifact_id": null
+  },
   "parse": "valid",
   "schema": "supported",
-  "integrity": "valid",
+  "canonicalization": "valid",
+  "algorithm": "supported",
+  "object_hash": "valid",
+  "signature": "valid",
   "key_resolution": "resolved",
-  "trust": "not_evaluated",
-  "chain": "valid_unwitnessed",
+  "continuity": "valid_genesis",
+  "completeness": "completeness_unknown",
   "semantics": "valid",
-  "overall": "valid_with_unestablished_trust",
+  "trust": "unknown",
+  "time_confidence": "producer_asserted",
+  "summary": "valid_but_trust_unknown",
+  "policy": null,
+  "events_verified": 2,
   "issues": []
 }
 ```
 
 Required distinct issue codes include `malformed`, `unsupported_schema`,
-`unsupported_event_type`, `missing_field`, `invalid_field`, `hash_mismatch`,
-`invalid_signature`, `unknown_key`, `ambiguous_key`, `untrusted_key`,
-`revoked_key`, `chain_break`, `partial_chain`, `invalid_transition`, and
-`unresolved_decision`. Language exceptions may differ but must map to these
-meanings.
+`unsupported_algorithm`, `unsupported_event_type`, `missing_field`,
+`invalid_field`, `hash_mismatch`, `invalid_signature`, `unknown_key`,
+`ambiguous_key`, `untrusted_key`, `revoked_key`, `chain_discontinuity`,
+`incomplete_chain`, `completeness_unknown`, `invalid_transition`, and
+`binding_interval_indeterminate`. Language exceptions may differ but MUST map
+to these meanings. Cryptographic facts, continuity, completeness, and trust
+policy remain separate dimensions; warnings do not silently become fatal.
 
 ## Language-neutral vector format
 
@@ -167,6 +190,10 @@ to interpret a vector.
 
 The detailed proposed layout is
 [`spec/test-vectors/README.md`](../../spec/test-vectors/README.md).
+The schema-1 release MUST retain the existing fixture bytes and add manifests,
+canonical-byte files, expected values, and declarative negative mutations
+around them. It MUST NOT regenerate historical signatures with a replacement
+key.
 
 ## Deterministic fixture generation
 
@@ -218,6 +245,13 @@ One implementation passing its own generated vectors is necessary but not
 sufficient. At least one independent verifier should pass before a new signed
 format is accepted.
 
+The smallest independent implementation is the offline C2 verifier specified
+in
+[`standalone-go-verifier-design.md`](standalone-go-verifier-design.md). Its
+implementation is not authorized until a schema-1 candidate suite and the
+portable result schema are frozen. Passing that independent verifier is an
+exit gate for promoting the candidate vectors to a released baseline.
+
 ## Backward compatibility
 
 Historical vector suites remain runnable. New runners MUST keep support for
@@ -225,3 +259,13 @@ claimed historical schemas. Old runners may report a new schema unsupported.
 No golden update may cause valid Alpha.2 v1 journals to hash differently.
 Conformance tightening that adds semantic diagnostics must preserve separate
 cryptographic results and document whether historical overall status changes.
+
+## Design-freeze gates
+
+- Publishing the additive schema-1 vector suite MAY proceed after senior
+  ratification of the candidate decisions.
+- A standalone Go verifier MAY begin only after that suite and the result
+  vocabulary are frozen.
+- No Evidence v2 or ActionContract v2 producer may begin from prose alone;
+  each requires its closed schema, exact canonical/signature vectors, and
+  positive and negative semantic vectors.

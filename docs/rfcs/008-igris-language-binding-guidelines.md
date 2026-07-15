@@ -7,7 +7,7 @@ Scope: idiomatic independent bindings over shared protocol invariants
 surface. Go independently canonicalizes and verifies the artifacts but is not a
 full Action SDK.
 
-**Draft invariant:** Future bindings are idiomatic independent implementations
+**Candidate invariant:** Future bindings are idiomatic independent implementations
 whose interoperability is judged by protocol semantics and conformance vectors.
 
 ## Protocol invariants
@@ -83,6 +83,16 @@ reviewed library that matches every vector. It MUST compare exact bytes, not
 decoded JSON equality. It must reject or explicitly mark values outside the
 schema's portable domain rather than depend on runtime-specific rendering.
 
+For schema 1, the binding MUST use the immutable legacy canonicalization
+profile and its historical vectors. Future signed schemas use
+`igris-canonical-json-1`: duplicate names are rejected before object mapping;
+only safe-range integers are numbers; non-integer numbers are prohibited;
+Unicode scalar values are preserved without normalization; keys are ordered by
+Unicode scalar value; and escaping is fixed by
+[`protocol-resolved-decisions.md`](protocol-resolved-decisions.md). A binding
+MUST NOT silently share an encoder between the legacy and future profiles
+unless it proves byte identity for the selected schema.
+
 Host objects, exceptions, functions, dates, large integers, floating point,
 Unicode normalization, map key types, and cycles require explicit policies.
 Python's unsupported-type markers are current reference behavior for input
@@ -97,6 +107,10 @@ offline with supplied evidence/key and use bounded resources.
 
 Unknown schema, unknown key, untrusted key, revoked key, incomplete chain, and
 invalid signature must remain distinguishable.
+Portable results MUST map to
+[`verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md);
+language-native errors may contain more detail but may not collapse a valid
+signature and a rejected trust policy into the same status.
 
 ## Provider interfaces
 
@@ -138,6 +152,8 @@ MUST publish a support matrix:
 A binding may support multiple read schemas while emitting one configured
 write schema. Upgrading the package must not silently switch emitted schema or
 canonical bytes without an explicit compatibility release decision.
+Unsupported schemas and algorithms fail closed with typed results; a binding
+MUST NOT guess a compatible parser or signature suite.
 
 ## Conformance requirements
 
@@ -182,6 +198,14 @@ that does not constitute a full Go SDK.
 
 Both should begin as independent implementations against vectors, not ports
 that call Python or a premature native core.
+
+The next protocol-validation implementation is the narrow offline verifier in
+[`standalone-go-verifier-design.md`](standalone-go-verifier-design.md), after
+the schema-1 vector/result contracts are frozen. This is a cleaner independence
+test than beginning a producer SDK. A TypeScript producer remains blocked until
+the ActionContract v2 and Evidence v2 closed schemas and vectors are approved;
+its later value is adoption and binding ergonomics, not initial validation of
+schema-1 verification.
 
 ## Criteria for considering a shared Rust core
 
