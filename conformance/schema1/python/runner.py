@@ -18,10 +18,10 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from conformance.schema1.python.legacy_json import (
+from igris.legacy_schema1 import (
     DuplicateMember,
     InvalidUnicodeScalar,
-    LegacyJSONError,
+    LegacySchema1JSONError,
     ResourceLimit,
     TrailingContent,
     canonicalize_legacy_json,
@@ -353,7 +353,7 @@ def evaluate_canonical(
         )
     except ResourceLimit:
         actual_issue = "resource_limit"
-    except LegacyJSONError:
+    except LegacySchema1JSONError:
         actual_issue = primary or "malformed"
     else:
         compare_canonical(vector["id"], actual, read_canonical(suite, vector), expected)
@@ -448,7 +448,7 @@ def evaluate_contract(
         contract = parse_legacy_json(raw)
     except DuplicateMember:
         return malformed("action-contract", "duplicate_member")
-    except LegacyJSONError:
+    except LegacySchema1JSONError:
         return malformed("action-contract", "malformed")
     if not isinstance(contract, dict):
         return malformed("action-contract", "malformed")
@@ -667,7 +667,7 @@ def evaluate_evidence(
     raw = safe_path(suite, vector["input"]).read_bytes()
     try:
         event = parse_legacy_json(raw)
-    except LegacyJSONError:
+    except LegacySchema1JSONError:
         return malformed("evidence-event", "malformed")
     if not isinstance(event, dict):
         return malformed("evidence-event", "malformed")
@@ -1059,14 +1059,14 @@ def run(
             run_vector(suite, vector)
         except (
             ConformanceFailure,
-            LegacyJSONError,
+            LegacySchema1JSONError,
             KeyError,
             TypeError,
             ValueError,
         ) as exc:
             failures.append({"id": vector["id"], "reason": type(exc).__name__})
     report = {
-        "runner": "python-reference-path",
+        "runner": "python-maintained-schema1-path",
         "suite_id": manifest["suite_id"],
         "suite_revision": manifest["suite_revision"],
         "status": "pass" if not failures else "fail",

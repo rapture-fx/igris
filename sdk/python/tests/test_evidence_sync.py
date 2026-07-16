@@ -35,6 +35,7 @@ from igris.evidence_sync import (
     sync_journal,
 )
 from igris.identity import LocalSigningIdentity, default_journal_path
+from igris.legacy_schema1 import RawNumber
 
 TOKEN = "igris_test_token_ev_not_real"
 ENDPOINT = "https://igris.test"
@@ -259,6 +260,32 @@ class TestLocalValidationBeforeNetwork:
 
 
 class TestUploadContents:
+    @pytest.mark.parametrize("lexeme", ["1E+2", "1e2", "100", "-0", "0", "0.0"])
+    def test_submit_preserves_signed_numeric_lexeme_and_raw_separators(self, lexeme):
+        opener = RecordingOpener(verified_response(events=1))
+        client = make_client(opener)
+        event = {
+            "event_hash": "ab" * 32,
+            "previous_event_hash": None,
+            "numeric_extension": RawNumber(lexeme),
+            "text_extension": "left\u2028middle\u2029right",
+        }
+
+        client.submit_batch("ed25519:" + "ab" * 8, "PUBLIC TEST FIXTURE", None, [event])
+
+        body = opener.requests[0].data
+        assert f'"numeric_extension":{lexeme}'.encode() in body
+        assert b"\\u2028" not in body and b"\\u2029" not in body
+        assert b"\xe2\x80\xa8" in body and b"\xe2\x80\xa9" in body
+
+    def test_batch_identity_distinguishes_numeric_spellings(self):
+        key_id = "ed25519:" + "ab" * 8
+        hashes = {
+            batch_content_hash(key_id, [{"number": RawNumber(lexeme)}])
+            for lexeme in ("1E+2", "1e2", "100", "-0", "0", "0.0")
+        }
+        assert len(hashes) == 6
+
     def test_uploads_exactly_the_allowed_envelope(self, igris_home):
         journal = write_journal(igris_home)
         raw_events = [json.loads(line) for line in journal.read_text("utf-8").strip().splitlines()]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 
 import pytest
@@ -9,6 +10,7 @@ from conftest import StaticProvider, read_events
 
 import igris
 from igris.identity import LocalSigningIdentity, load_public_key
+from igris.legacy_schema1 import RawNumber, encode_legacy_json
 from igris.verification import verify_journal
 
 
@@ -110,6 +112,69 @@ class TestDetection:
         result = verify_journal(journal, public)
         assert not result.valid
         assert "malformed_json" in codes(result)
+
+    def test_duplicate_object_member_rejected(self, populated):
+        journal, public = populated
+        line = journal.read_bytes().splitlines()[0]
+        journal.write_bytes(b'{"schema_version":"1",' + line[1:] + b"\n")
+        result = verify_journal(journal, public)
+        assert not result.valid
+        assert codes(result) == {"malformed_json"}
+
+    @pytest.mark.parametrize("separator", ["\u2028", "\u2029"])
+    def test_genuine_signed_unicode_separator_verifies(self, igris_home, separator):
+        identity = LocalSigningIdentity.load_or_create()
+        payload = self._decision_payload(identity.key_id)
+        payload["redacted_input_summary"] = f'message="left{separator}right"'
+        event = self._sign_legacy_event(identity, payload)
+        journal = igris_home / "journal.jsonl"
+        journal.write_bytes(encode_legacy_json(event) + b"\n")
+
+        assert verify_journal(journal, identity.public_key()).valid
+        assert separator.encode() in journal.read_bytes()
+
+    def test_numeric_lexeme_mutation_is_not_equivalent(self, igris_home):
+        identity = LocalSigningIdentity.load_or_create()
+        payload = self._decision_payload(identity.key_id)
+        payload["numeric_extension"] = RawNumber("1E+2")
+        event = self._sign_legacy_event(identity, payload)
+        journal = igris_home / "journal.jsonl"
+        exact = encode_legacy_json(event) + b"\n"
+        journal.write_bytes(exact)
+        assert verify_journal(journal, identity.public_key()).valid
+
+        journal.write_bytes(exact.replace(b"1E+2", b"1e2"))
+        result = verify_journal(journal, identity.public_key())
+        assert not result.valid
+        assert {"hash_mismatch", "bad_signature"} <= codes(result)
+
+    @staticmethod
+    def _decision_payload(key_id):
+        return {
+            "schema_version": "1",
+            "event_type": "decision",
+            "event_id": "event-schema1-test",
+            "action_id": "action-schema1-test",
+            "action_name": "tests.schema1",
+            "contract_hash": "ab" * 32,
+            "timestamp_utc": "2026-07-17T00:00:00Z",
+            "key_id": key_id,
+            "previous_event_hash": None,
+            "decision": "allowed",
+            "risk": "low",
+            "approval_mode": "never",
+            "redacted_input_summary": "",
+            "input_hash": "cd" * 32,
+        }
+
+    @staticmethod
+    def _sign_legacy_event(identity, payload):
+        digest = hashlib.sha256(encode_legacy_json(payload)).digest()
+        return {
+            **payload,
+            "event_hash": digest.hex(),
+            "signature": identity.sign(digest),
+        }
 
     def test_unknown_schema_version_fails(self, populated, igris_home):
         journal, public = populated
