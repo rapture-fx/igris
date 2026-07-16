@@ -19,6 +19,7 @@ APPROVED_PREFIXES = (
     "spec/test-vectors/suite-schema-1/",
 )
 APPROVED_FILES = {
+    ".gitignore",
     "spec/test-vectors/README.md",
     "spec/test-vectors/schema-1-release-plan.md",
 }

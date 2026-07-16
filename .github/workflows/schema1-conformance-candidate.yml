@@ -63,6 +63,13 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Verify every manifest file is committed and byte-exact
+        env:
+          PYTHONPATH: .
+        run: >-
+          python -m
+          conformance.schema1.python.check_manifest_git_completeness
+
       - name: Set up uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
