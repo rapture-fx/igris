@@ -15,7 +15,7 @@ package api
 //   - Tenant identity comes exclusively from authentication (BetterAuth
 //     session or tenant-scoped API key). A body-supplied tenant is rejected.
 //   - The caller's contract_hash is never trusted: the server recomputes it
-//     from the canonical bytes (igris-overture/internal/canonicaljson, pinned
+//     from the canonical bytes (igris-overture/internal/schema1json, pinned
 //     byte-for-byte to the Python SDK fixtures) and rejects mismatches.
 //   - Idempotency keys are bound to the server-recomputed fingerprint; the
 //     same key with a different fingerprint is an explicit 409 conflict.
@@ -34,7 +34,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Igris-inertial/system/igris-overture/internal/canonicaljson"
+	"github.com/Igris-inertial/system/igris-overture/internal/schema1json"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -142,7 +142,7 @@ func handleContractSync(db *sql.DB) fiber.Handler {
 			})
 		}
 
-		request, err := canonicaljson.DecodeObjectPreserving(body)
+		request, err := schema1json.DecodeObject(body)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 		}
@@ -451,7 +451,7 @@ func validateContractV1(contract map[string]any) (*validatedContract, *contractV
 		return fail(http.StatusUnprocessableEntity, "validation_failed", "contract_hash must be 64 lowercase hex chars")
 	}
 
-	recomputed, err := canonicaljson.ContractHash(contract)
+	recomputed, err := schema1json.ContractHash(contract)
 	if err != nil {
 		return fail(http.StatusUnprocessableEntity, "validation_failed", "contract could not be canonicalized")
 	}
@@ -459,7 +459,7 @@ func validateContractV1(contract map[string]any) (*validatedContract, *contractV
 		return fail(http.StatusUnprocessableEntity, "contract_hash_mismatch", "supplied contract_hash does not match the server-recomputed canonical hash")
 	}
 
-	canonicalBody, err := canonicaljson.Encode(contract)
+	canonicalBody, err := schema1json.Encode(contract)
 	if err != nil {
 		return fail(http.StatusUnprocessableEntity, "validation_failed", "contract could not be canonicalized")
 	}

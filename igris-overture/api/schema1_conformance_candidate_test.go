@@ -15,6 +15,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Igris-inertial/system/igris-overture/internal/canonicaljson"
+	"github.com/Igris-inertial/system/igris-overture/internal/schema1json"
 )
 
 const schema1CandidateSuite = "../../spec/test-vectors/suite-schema-1"
@@ -75,6 +76,7 @@ type schema1Canonical struct {
 type schema1Verification struct {
 	SchemaID         string         `json:"schema_id"`
 	Canonicalization string         `json:"canonicalization"`
+	Algorithm        string         `json:"algorithm"`
 	ObjectHash       string         `json:"object_hash"`
 	Signature        string         `json:"signature"`
 	KeyResolution    string         `json:"key_resolution"`
@@ -106,7 +108,6 @@ func TestSchema1ConformanceCandidate(t *testing.T) {
 		}
 		vectorIDs[vector.ID] = true
 	}
-	observedDIV001 := map[string]bool{}
 	families := map[string]int{}
 	for _, vector := range manifest.Vectors {
 		families[vector.Family]++
@@ -115,15 +116,11 @@ func TestSchema1ConformanceCandidate(t *testing.T) {
 
 		switch vector.Family {
 		case "canonical":
-			if runGoCanonicalPath(t, vector, expected) {
-				observedDIV001[vector.ID] = true
-			}
+			runGoCanonicalPath(t, vector, expected)
 		case "contract":
 			runGoContractPath(t, vector, expected)
 		case "evidence":
-			if runGoEvidencePath(t, vector) {
-				observedDIV001[vector.ID] = true
-			}
+			runGoEvidencePath(t, vector)
 		case "chain":
 			runGoChainPath(t, vector)
 		case "trust":
@@ -133,17 +130,8 @@ func TestSchema1ConformanceCandidate(t *testing.T) {
 		}
 	}
 
-	declaredDIV001 := divergenceVectorSet(t, manifest, "DIV-001")
-	if !equalStringSet(observedDIV001, declaredDIV001) {
-		t.Fatalf("DIV-001 mismatch: observed=%v declared=%v", sortedSet(observedDIV001), sortedSet(declaredDIV001))
-	}
-	declaredDIV002 := divergenceVectorSet(t, manifest, "DIV-002")
-	if !declaredDIV002["can1-unsupported-number-lexeme-lost-001"] {
-		t.Fatal("DIV-002 must retain the fail-closed numeric lexeme capability vector")
-	}
 	t.Logf("schema-1 candidate consumed: revision=%s vectors=%d families=%v", manifest.SuiteRevision, len(manifest.Vectors), families)
-	t.Logf("known blocking production divergence DIV-001: %v", sortedSet(observedDIV001))
-	t.Logf("known blocking production capability gap DIV-002: %v", sortedSet(declaredDIV002))
+	t.Log("production conformance exemptions: DIV-001=0 DIV-002=0")
 }
 
 func loadSchema1Manifest(t *testing.T) schema1Manifest {
@@ -229,31 +217,41 @@ func assertExpectedPrimaryIssue(t *testing.T, vector schema1Vector, expected sch
 	}
 }
 
-// runGoCanonicalPath returns true only for an observed, declared DIV-001 byte
-// mismatch. All other canonical vectors must reproduce the frozen bytes.
-func runGoCanonicalPath(t *testing.T, vector schema1Vector, expected schema1Expected) bool {
+func runGoCanonicalPath(t *testing.T, vector schema1Vector, expected schema1Expected) {
 	t.Helper()
+	operation := loadSchema1MutationOperation(t, vector)
+	if operation == "drop_numeric_lexemes" {
+		var normalized any
+		if err := json.Unmarshal(readSchema1File(t, vector.Input), &normalized); err != nil {
+			t.Fatalf("%s: simulate lost numeric lexeme: %v", vector.ID, err)
+		}
+		_, err := schema1json.Encode(normalized)
+		if !errors.Is(err, schema1json.ErrUnsupportedLegacyRepresentation) {
+			t.Fatalf("%s: lost lexeme got %v, want unsupported legacy representation", vector.ID, err)
+		}
+		if expected.Verification.Canonicalization != "unsupported" || expected.Verification.Summary != "unsupported" {
+			t.Fatalf("%s: frozen unsupported result changed", vector.ID)
+		}
+		if expected.Verification.Algorithm != "not_evaluated" ||
+			expected.Verification.ObjectHash != "not_evaluated" ||
+			expected.Verification.Signature != "not_evaluated" ||
+			expected.Verification.KeyResolution != "not_evaluated" {
+			t.Fatalf("%s: dependent checks did not remain not_evaluated", vector.ID)
+		}
+		return
+	}
 	if vector.Canonical == nil {
-		return false
+		return
 	}
 	raw := readSchema1File(t, vector.Input)
-	var value any
-	decodeSchema1JSON(t, raw, &value)
-	got, err := canonicaljson.Encode(value)
+	got, err := schema1json.Canonicalize(raw)
 	if err != nil {
-		t.Fatalf("%s: existing canonical path: %v", vector.ID, err)
+		t.Fatalf("%s: production schema-1 canonical path: %v", vector.ID, err)
 	}
 	want := decodeCanonicalBytes(t, vector, expected)
-	if bytes.Equal(got, want) {
-		if vector.KnownDivergence != nil && *vector.KnownDivergence == "DIV-001" {
-			t.Fatalf("%s: DIV-001 unexpectedly disappeared; production remediation requires a separate change", vector.ID)
-		}
-		return false
+	if !bytes.Equal(got, want) {
+		t.Fatalf("%s: canonical byte mismatch", vector.ID)
 	}
-	if vector.KnownDivergence == nil || *vector.KnownDivergence != "DIV-001" {
-		t.Fatalf("%s: undeclared canonical byte mismatch", vector.ID)
-	}
-	return true
 }
 
 func decodeCanonicalBytes(t *testing.T, vector schema1Vector, expected schema1Expected) []byte {
@@ -280,11 +278,11 @@ func runGoContractPath(t *testing.T, vector schema1Vector, expected schema1Expec
 	if vector.Canonical == nil {
 		return // malformed/schema-invalid cases are consumed through their portable expected result
 	}
-	contract, err := canonicaljson.DecodeObjectPreserving(readSchema1File(t, vector.Input))
+	contract, err := schema1json.DecodeObject(readSchema1File(t, vector.Input))
 	if err != nil {
 		t.Fatalf("%s: existing contract decoder: %v", vector.ID, err)
 	}
-	gotHash, err := canonicaljson.ContractHash(contract)
+	gotHash, err := schema1json.ContractHash(contract)
 	if err != nil {
 		t.Fatalf("%s: existing contract hash path: %v", vector.ID, err)
 	}
@@ -298,20 +296,20 @@ func runGoContractPath(t *testing.T, vector schema1Vector, expected schema1Expec
 			unsigned[key] = value
 		}
 	}
-	gotCanonical, err := canonicaljson.Encode(unsigned)
+	gotCanonical, err := schema1json.Encode(unsigned)
 	if err != nil || !bytes.Equal(gotCanonical, decodeCanonicalBytes(t, vector, expected)) {
 		t.Fatalf("%s: contract canonical bytes mismatch", vector.ID)
 	}
 }
 
-func runGoEvidencePath(t *testing.T, vector schema1Vector) bool {
+func runGoEvidencePath(t *testing.T, vector schema1Vector) {
 	t.Helper()
-	event, err := canonicaljson.DecodeObjectPreserving(readSchema1File(t, vector.Input))
+	event, err := schema1json.DecodeObject(readSchema1File(t, vector.Input))
 	if err != nil {
 		if vector.ExpectedPrimaryIssue == nil || *vector.ExpectedPrimaryIssue != "malformed" {
 			t.Fatalf("%s: unexpected object parse failure: %v", vector.ID, err)
 		}
-		return false
+		return
 	}
 	publicKey, keyID := loadSchema1PublicKey(t, *vector.KeyRef)
 	operation := loadSchema1MutationOperation(t, vector)
@@ -324,14 +322,7 @@ func runGoEvidencePath(t *testing.T, vector schema1Vector) bool {
 		t.Fatalf("%s: existing Evidence path: %v", vector.ID, err)
 	}
 	actual := normalizeSchema1EvidenceIssues(issues, operation)
-	if vector.KnownDivergence != nil && *vector.KnownDivergence == "DIV-001" {
-		if !actual["hash_mismatch"] || !actual["invalid_signature"] {
-			t.Fatalf("%s: expected current Go U+2028/U+2029 defect was not exposed: %v", vector.ID, sortedSet(actual))
-		}
-		return true
-	}
 	assertSchema1Primary(t, vector, actual)
-	return false
 }
 
 func runGoChainPath(t *testing.T, vector schema1Vector) {
@@ -446,8 +437,10 @@ func decodeSchema1JSONLines(t *testing.T, raw []byte) []map[string]any {
 		if len(bytes.TrimSpace(line)) == 0 {
 			continue
 		}
-		var event map[string]any
-		decodeSchema1JSON(t, line, &event)
+		event, err := schema1json.DecodeObject(line)
+		if err != nil {
+			t.Fatalf("decode schema-1 JSON line: %v", err)
+		}
 		events = append(events, event)
 	}
 	return events
