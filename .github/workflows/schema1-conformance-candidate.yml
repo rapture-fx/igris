@@ -15,9 +15,18 @@ on:
       - "testdata/igris-contract-v1/**"
       - "sdk/python/pyproject.toml"
       - "sdk/python/uv.lock"
+      - "sdk/python/src/igris/legacy_schema1.py"
+      - "sdk/python/src/igris/verification.py"
+      - "sdk/python/src/igris/evidence_sync.py"
+      - "sdk/python/tests/test_legacy_schema1.py"
+      - "sdk/python/tests/test_verification.py"
+      - "sdk/python/tests/test_evidence_sync.py"
       - "igris-overture/api/schema1_conformance_candidate_test.go"
       - "igris-overture/api/evidence_verify.go"
+      - "igris-overture/api/routes_evidence.go"
+      - "igris-overture/api/routes_contracts.go"
       - "igris-overture/internal/canonicaljson/**"
+      - "igris-overture/internal/schema1json/**"
       - "go.mod"
       - "go.sum"
   merge_group:
@@ -34,9 +43,18 @@ on:
       - "testdata/igris-contract-v1/**"
       - "sdk/python/pyproject.toml"
       - "sdk/python/uv.lock"
+      - "sdk/python/src/igris/legacy_schema1.py"
+      - "sdk/python/src/igris/verification.py"
+      - "sdk/python/src/igris/evidence_sync.py"
+      - "sdk/python/tests/test_legacy_schema1.py"
+      - "sdk/python/tests/test_verification.py"
+      - "sdk/python/tests/test_evidence_sync.py"
       - "igris-overture/api/schema1_conformance_candidate_test.go"
       - "igris-overture/api/evidence_verify.go"
+      - "igris-overture/api/routes_evidence.go"
+      - "igris-overture/api/routes_contracts.go"
       - "igris-overture/internal/canonicaljson/**"
+      - "igris-overture/internal/schema1json/**"
       - "go.mod"
       - "go.sum"
 
@@ -107,6 +125,17 @@ jobs:
           -m conformance.schema1.python.runner
           --suite spec/test-vectors/suite-schema-1
 
+      - name: Exercise maintained Python schema-1 verification and sync paths offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+        run: >-
+          uv run --project sdk/python --no-sync pytest -q
+          sdk/python/tests/test_legacy_schema1.py
+          sdk/python/tests/test_verification.py
+          sdk/python/tests/test_evidence_sync.py
+
       - name: Enforce deterministic test-seed containment
         env:
           PYTHONPATH: .
@@ -155,4 +184,4 @@ jobs:
           NO_PROXY: ""
         run: |
           go test ./igris-overture/api -run '^TestSchema1ConformanceCandidate$' -count=1 -v -timeout=300s
-          go test ./conformance/contractv1 ./igris-overture/internal/canonicaljson -count=1 -timeout=120s
+          go test ./conformance/contractv1 ./igris-overture/internal/canonicaljson ./igris-overture/internal/schema1json -count=1 -timeout=120s
