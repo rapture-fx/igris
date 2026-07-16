@@ -6,6 +6,9 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
+[options]
+exclude-newer = "2026-07-16T15:07:12Z"
+
 [[package]]
 name = "arrow"
 version = "1.4.0"

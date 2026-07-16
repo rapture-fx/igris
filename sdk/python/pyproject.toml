@@ -52,6 +52,11 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.uv]
+# Freeze registry visibility at the original lock commit boundary. Every
+# intentionally locked artifact predates this instant; Ruff 0.15.22 does not.
+exclude-newer = "2026-07-16T15:07:12Z"
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"
