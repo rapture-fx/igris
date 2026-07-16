@@ -78,8 +78,11 @@ jobs:
           cache-dependency-glob: "sdk/python/uv.lock"
 
       - name: Verify frozen Python dependency state is committed and current
+        env:
+          PYTHONPATH: .
         run: |
           git ls-files --error-unmatch sdk/python/uv.lock
+          python -m conformance.schema1.python.check_python_lock_reproducibility
           uv lock --project sdk/python --check
 
       - name: Install pinned test environment
