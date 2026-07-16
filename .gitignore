@@ -215,6 +215,15 @@ credentials/
 .env.secret
 .env.production
 config/secrets.json
+
+# Frozen schema-1 conformance keys are manifest-pinned test fixtures only.
+# Keep every other keys/ directory ignored and allow only these reviewed files.
+!/spec/test-vectors/suite-schema-1/keys/
+/spec/test-vectors/suite-schema-1/keys/*
+!/spec/test-vectors/suite-schema-1/keys/alpha2-historical.public.pem
+!/spec/test-vectors/suite-schema-1/keys/deterministic-001.metadata.json
+!/spec/test-vectors/suite-schema-1/keys/deterministic-001.private.seed.TEST-ONLY.b64
+!/spec/test-vectors/suite-schema-1/keys/deterministic-001.public.raw.b64
 # Test data (keep test_data.csv as it's small and part of demo)
 # large_test_data/
 # sample_datasets/

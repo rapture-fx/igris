@@ -1,0 +1,12 @@
+{
+  "algorithm": "Ed25519",
+  "approved_loader_prefixes": [
+    "conformance/schema1/",
+    "spec/test-vectors/suite-schema-1/"
+  ],
+  "creation_method": "SHA-256 of the ASCII string igris-schema-1-conformance-deterministic-key-001",
+  "key_id": "ed25519:70209fc8a4e354a0",
+  "production_use": "prohibited",
+  "public_fingerprint_sha256": "70209fc8a4e354a0b5721ee8d23811ea2e718533dd564339eba6a349281d8a56",
+  "purpose": "conformance-test-only"
+}
