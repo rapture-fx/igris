@@ -89,10 +89,11 @@ strings and never touches shared databases.
 - GitHub-hosted execution of this workflow has not run until the branch is
   pushed; everything above is validated by running the underlying commands
   locally.
-- `sdk/python` has no `uv.lock`, so dev-dependency resolution (pytest, ruff)
-  floats within `pyproject.toml` constraints. Runtime dependency is
-  `cryptography` only. Committing a lockfile is a possible follow-up owned by
-  the SDK, not this pipeline.
+- `sdk/python/uv.lock` is committed for the schema-1 conformance workflow,
+  which pins uv 0.9.8 and uses `uv sync --frozen`. This private-alpha workflow
+  still uses `uv sync --dev` across its Python matrix so it can validate the
+  SDK's declared compatibility range; runtime dependency remains
+  `cryptography` only.
 - Repository-wide `go vet` has pre-existing defects (see the merge manifest
   §7); the workflow reports them in a non-blocking informational step rather
   than suppressing or fixing them here.
