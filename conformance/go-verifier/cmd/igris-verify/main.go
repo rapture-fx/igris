@@ -140,7 +140,7 @@ func runArtifact(args []string, stdin io.Reader, stdout, stderr io.Writer, defau
 
 	resolvedType := *artifactType
 	if resolvedType == "auto" || resolvedType == "" {
-		resolvedType = detectArtifactType(input)
+		resolvedType = detectArtifactType(input, limits)
 	}
 	var requestType verifier.ArtifactType
 	switch resolvedType {
@@ -176,32 +176,47 @@ func runArtifact(args []string, stdin io.Reader, stdout, stderr io.Writer, defau
 }
 
 // detectArtifactType classifies raw input structurally without weakening any
-// later check: multiple JSONL lines mean a chain, an event_type member means
-// an Evidence event, a contract_hash member without event_type means an
-// ActionContract. Anything else is undetermined.
-func detectArtifactType(input []byte) string {
-	lines := 0
-	for _, line := range strings.Split(string(input), "\n") {
-		if strings.TrimSpace(line) != "" {
-			lines++
+// later check. Structure, never whitespace, decides the framing: an input
+// that parses as exactly one JSON document is always a single artifact
+// (pretty-printing is irrelevant), and JSONL chain framing is considered
+// only when the whole input is not one document and every non-empty line is
+// itself a complete JSON object. Anything else is undetermined and fails
+// closed; --type always bypasses detection.
+func detectArtifactType(input []byte, limits verifier.Limits) string {
+	if document, err := verifier.ParseLegacyJSON(input, limits); err == nil {
+		// Exactly one JSON document: classify by its distinguishing
+		// schema-1 members. An event_type member means an Evidence event; a
+		// contract_hash member without event_type means an ActionContract.
+		if document.Kind != verifier.KindObject {
+			return ""
 		}
-	}
-	if lines > 1 {
-		return "chain"
-	}
-	probe := struct {
-		EventType    *string `json:"event_type"`
-		ContractHash *string `json:"contract_hash"`
-	}{}
-	if err := json.Unmarshal(input, &probe); err != nil {
-		// Not decodable as an object here; the strict parser will classify it.
+		if document.Lookup("event_type") != nil {
+			return "evidence"
+		}
+		if document.Lookup("contract_hash") != nil {
+			return "contract"
+		}
 		return ""
 	}
-	if probe.EventType != nil {
-		return "evidence"
+	// Not a single document: accept JSONL chain framing only when there are
+	// at least two records and every non-empty line parses as one complete
+	// JSON object under the per-event bound.
+	perEvent := limits
+	perEvent.MaxInputBytes = limits.MaxEventBytes
+	records := 0
+	for _, line := range strings.Split(string(input), "\n") {
+		trimmed := strings.TrimSpace(strings.TrimRight(line, "\r"))
+		if trimmed == "" {
+			continue
+		}
+		record, err := verifier.ParseLegacyJSON([]byte(trimmed), perEvent)
+		if err != nil || record.Kind != verifier.KindObject {
+			return ""
+		}
+		records++
 	}
-	if probe.ContractHash != nil {
-		return "contract"
+	if records >= 2 {
+		return "chain"
 	}
 	return ""
 }
