@@ -1,0 +1,25 @@
+{
+  "action_name": "fixtures.specialchars.transfer",
+  "approval_mode": "required",
+  "code_fingerprint": "70cff6fd5a31848035867ee4d1510a673f91d09a19c5f8a71cac846f25b2b5ef",
+  "contract_hash": "b9e8eb26798d304327e5ab3a2d2686c790aacb43340376f33f6f8e3cfcb91f55",
+  "execution_mode": "embedded",
+  "module": "__main__",
+  "parameter_descriptors": [
+    {
+      "annotation": "Annotated[str, \"café ☕ 日本語 <b>&amp;</b> \\\"quoted\\\" back\\\\slash line1\\nline2\"]",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "recipient"
+    },
+    {
+      "annotation": "café ☕ 日本語 <b>&amp;</b> \"quoted\" back\\slash line1\nline2",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "note"
+    }
+  ],
+  "qualified_name": "main.<locals>.transfer_funds",
+  "risk": "high",
+  "schema_version": "1"
+}

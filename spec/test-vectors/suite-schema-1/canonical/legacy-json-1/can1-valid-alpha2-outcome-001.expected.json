@@ -1,0 +1,35 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25faWQiOiJfX21haW5fXy5tYWluLjxsb2NhbHM+LnJlZnVuZF9jdXN0b21lciIsImFjdGlvbl9uYW1lIjoiZml4dHVyZXMuY3VzdG9tZXIucmVmdW5kIiwiY29udHJhY3RfaGFzaCI6ImEyNjkyZmI1OTYzNWY2ZjAwMmIyMzI4YzUyNjMxZTAwYmQ2MDFkNTEwNTQ4OGNhZWY2MmY3ODU0ZGVkZTA0ZGIiLCJkZWNpc2lvbl9ldmVudF9pZCI6IjRhM2Y4MGFiLTFmZjYtNGEyMi05Y2UwLTI5NTY4YjllM2QwNCIsImV2ZW50X2lkIjoiYzI5NmE1OGQtMWRmMC00ODRhLTg5ODEtODcyMDI2ODRmNDU2IiwiZXZlbnRfdHlwZSI6Im91dGNvbWUiLCJrZXlfaWQiOiJlZDI1NTE5OjdlNzI0N2I0MjlhMDc1NTAiLCJvYnNlcnZlZF9yZXN1bHRfdHlwZSI6ImJ1aWx0aW5zLmRpY3QiLCJwcmV2aW91c19ldmVudF9oYXNoIjoiZDM2M2Y4YzkzNDYzN2EzOWUwMjMyZTg1YTk5YmI3NmI5OTUzYjYxZTgyNGY5MzQ3OWU4MjFkMmZmN2VjNjM3OSIsInJlZGFjdGVkX291dHB1dF9oYXNoIjoiNTg1MzNjYmI0YTRmODdjZGJiN2VkMTVlNzVmNDAxYTNlZjEwYTM4YjkzYWRiNzE3ZTE1MGQ1ZGU4ZTBiMTcwYSIsInNjaGVtYV92ZXJzaW9uIjoiMSIsInN0YXR1cyI6InN1Y2NlZWRlZCIsInRpbWVzdGFtcF91dGMiOiIyMDI2LTA3LTEwVDE1OjI5OjA4LjcyNzQxOFoifQ==",
+    "sha256_hex": "2ce3d18a52083bb218385ee3b4dc569fe45db314c9d193a7ff86aae3d1b93bf4",
+    "utf8": "{\"action_id\":\"__main__.main.<locals>.refund_customer\",\"action_name\":\"fixtures.customer.refund\",\"contract_hash\":\"a2692fb59635f6f002b2328c52631e00bd601d5105488caef62f7854dede04db\",\"decision_event_id\":\"4a3f80ab-1ff6-4a22-9ce0-29568b9e3d04\",\"event_id\":\"c296a58d-1df0-484a-8981-87202684f456\",\"event_type\":\"outcome\",\"key_id\":\"ed25519:7e7247b429a07550\",\"observed_result_type\":\"builtins.dict\",\"previous_event_hash\":\"d363f8c934637a39e0232e85a99bb76b9953b61e824f93479e821d2ff7ec6379\",\"redacted_output_hash\":\"58533cbb4a4f87cdbb7ed15e75f401a3ef10a38b93adb717e150d5de8e0b170a\",\"schema_version\":\"1\",\"status\":\"succeeded\",\"timestamp_utc\":\"2026-07-10T15:29:08.727418Z\"}"
+  },
+  "rule": "Historical Python 0.1.0a2 canonical unsigned event bytes",
+  "signature": null,
+  "vector_id": "can1-valid-alpha2-outcome-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "unknown"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "not_required",
+    "object_hash": "not_present",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_applicable",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

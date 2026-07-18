@@ -1,0 +1,61 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25faWQiOiJjb25mb3JtYW5jZS5hY3Rpb25zLnRyYW5zZmVyIiwiYWN0aW9uX25hbWUiOiJjb25mb3JtYW5jZS50cmFuc2ZlciIsImFwcHJvdmFsX21vZGUiOiJyZXF1aXJlZCIsImNvbnRyYWN0X2hhc2giOiJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiYWJhYmFiIiwiZGVjaXNpb24iOiJhbGxvd2VkIiwiZXZlbnRfaWQiOiJldnQtdW5rbm93bi1maWVsZCIsImV2ZW50X3R5cGUiOiJkZWNpc2lvbiIsImlucHV0X2hhc2giOiJjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkIiwia2V5X2lkIjoiZWQyNTUxOTo3MDIwOWZjOGE0ZTM1NGEwIiwicHJldmlvdXNfZXZlbnRfaGFzaCI6bnVsbCwicmVkYWN0ZWRfaW5wdXRfc3VtbWFyeSI6ImFtb3VudD03IiwicmlzayI6ImhpZ2giLCJzY2hlbWFfdmVyc2lvbiI6IjEiLCJ0aW1lc3RhbXBfdXRjIjoiMjAzMC0wMS0wMlQwMzowNDowNS4wMDAwMDBaIiwieF9mdXR1cmUiOnsibWVhbmluZyI6Im5vdC1yZWdpc3RlcmVkIiwibiI6N319",
+    "sha256_hex": "e617103695e3f5de40a79a7f3eff8ba24f864ed9da0bbf1f0f035bc01964f741",
+    "utf8": "{\"action_id\":\"conformance.actions.transfer\",\"action_name\":\"conformance.transfer\",\"approval_mode\":\"required\",\"contract_hash\":\"abababababababababababababababababababababababababababababababab\",\"decision\":\"allowed\",\"event_id\":\"evt-unknown-field\",\"event_type\":\"decision\",\"input_hash\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\",\"key_id\":\"ed25519:70209fc8a4e354a0\",\"previous_event_hash\":null,\"redacted_input_summary\":\"amount=7\",\"risk\":\"high\",\"schema_version\":\"1\",\"timestamp_utc\":\"2030-01-02T03:04:05.000000Z\",\"x_future\":{\"meaning\":\"not-registered\",\"n\":7}}"
+  },
+  "event_hash": "e617103695e3f5de40a79a7f3eff8ba24f864ed9da0bbf1f0f035bc01964f741",
+  "rule": "Ed25519 over raw SHA-256 digest of schema-1 canonical unsigned payload",
+  "signature": {
+    "algorithm": "ed25519",
+    "input": "sha256_digest",
+    "key_id": "ed25519:70209fc8a4e354a0",
+    "public_key_fingerprint_sha256": "70209fc8a4e354a0b5721ee8d23811ea2e718533dd564339eba6a349281d8a56",
+    "value_base64": "9744UdWvvseDA6W2Y4Nal/1KX6DDbmUos7SMhpyQlqzaT3jEmjyWCD1JLghAQSJxy6p8wCXMYTZFIx7VdsfmCA=="
+  },
+  "vector_id": "ev1-valid-unknown-field-hashed-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-event"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [
+      {
+        "code": "unknown_fields_present",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "trust_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "producer_time_only",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}

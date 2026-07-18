@@ -6,4 +6,7 @@ build/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
-uv.lock
+
+# Intentionally committed: schema-1 CI uses uv sync --frozen so the Python
+# dependency environment must be reproducible from Git alone.
+!uv.lock

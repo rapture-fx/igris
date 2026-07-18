@@ -1,0 +1,5 @@
+{
+  "base_vector": "ev1-valid-allowed-succeeded-chain-001",
+  "operation": "truncate",
+  "recompute_hash": false
+}

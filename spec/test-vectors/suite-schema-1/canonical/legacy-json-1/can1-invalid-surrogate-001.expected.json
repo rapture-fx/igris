@@ -1,0 +1,38 @@
+{
+  "canonical": null,
+  "rule": "Fail-closed legacy parser or bounded-resource rejection",
+  "signature": null,
+  "vector_id": "can1-invalid-surrogate-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "unknown"
+    },
+    "canonicalization": "invalid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 0,
+    "issues": [
+      {
+        "code": "invalid_unicode_scalar",
+        "event_index": null,
+        "path": null,
+        "severity": "error"
+      }
+    ],
+    "key_resolution": "not_required",
+    "object_hash": "not_present",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_applicable",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "invalid",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

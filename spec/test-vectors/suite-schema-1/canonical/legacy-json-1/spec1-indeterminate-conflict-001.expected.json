@@ -1,0 +1,38 @@
+{
+  "canonical": null,
+  "rule": "Applicable normative artifacts conflict; affected verification stops",
+  "signature": null,
+  "vector_id": "spec1-indeterminate-conflict-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": null,
+      "object_type": "unknown"
+    },
+    "canonicalization": "not_evaluated",
+    "completeness": "not_evaluated",
+    "continuity": "not_evaluated",
+    "events_verified": 0,
+    "issues": [
+      {
+        "code": "specification_conflict",
+        "event_index": null,
+        "path": null,
+        "severity": "error"
+      }
+    ],
+    "key_resolution": "not_evaluated",
+    "object_hash": "not_evaluated",
+    "parse": "valid",
+    "policy": null,
+    "schema": "not_evaluated",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "not_evaluated",
+    "signature": "not_evaluated",
+    "specification": "conflict",
+    "summary": "indeterminate",
+    "time_confidence": "not_evaluated",
+    "trust": "not_evaluated"
+  }
+}

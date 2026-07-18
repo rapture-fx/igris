@@ -1,0 +1,4081 @@
+{
+  "files": [
+    {
+      "path": "canonical/legacy-json-1/can1-indeterminate-excessive-depth-001.expected.json",
+      "sha256": "0e5c92a63f3ac21afbf2b2de95ce509e5b89daff203181201145712cedba03b0"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-indeterminate-excessive-depth-001.input.json",
+      "sha256": "eb3b1a766f30c4184ac108f65107da42bed30953d7350ac96b5ae95b4f9887a4"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-indeterminate-excessive-size-001.expected.json",
+      "sha256": "a162f821500fd5dfac5984193953efdd860ce9c716e1a61a49126981bad59c56"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-indeterminate-excessive-size-001.input.json",
+      "sha256": "9f0508ac34f6db8a1ca7c4e001b89e4f677a5f5ca2b33241e67857c914e234f1"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-duplicate-member-001.expected.json",
+      "sha256": "efaa8c70228a5f0c69ed5d44776cc684865022fd1bb34bde9387401a2622fb8d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-duplicate-member-001.input.json",
+      "sha256": "d38245cfdb5d2239d67fe2a719312768b668a6928d8d97d04fbce83215e50b44"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-incomplete-decimal-001.expected.json",
+      "sha256": "f8b74a9d27dd6232baad0a4a1e6c645232f7ba9c45e368242ea393d6aac93a03"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-incomplete-decimal-001.input.json",
+      "sha256": "e406a1dd4479dd833660fae73a08b859af75c8a75b0999ff6d832661a3133640"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-infinity-001.expected.json",
+      "sha256": "3fe69d9a3b2f3af9fb8f359af0ccf70fcd86f482cde511e7eb7d42e1d66fb32b"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-infinity-001.input.json",
+      "sha256": "504a7fad8d7687a0ca0c9eace25c99c63e8e3cf1ad8f4945644c781e4605c02d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-leading-plus-001.expected.json",
+      "sha256": "48401941242187fe5de0661ba566760504efe910ff23c00640421793f8de28b0"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-leading-plus-001.input.json",
+      "sha256": "4861b30e049a42a39c4e4d95805d55140e3b1f00f3f7347f3d5861eb4f4cbe0a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-leading-zero-001.expected.json",
+      "sha256": "b5d282ae6d7aed386c612f02daa7ee64ec2978aad0d4bb0bc95eedaa919ab1cb"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-leading-zero-001.input.json",
+      "sha256": "43022ca90e71c62ee14e400472572343518c62a5a475c8a0ae24e23cbe2d80af"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-malformed-exponent-001.expected.json",
+      "sha256": "7256c2ab2c39f15640f93994a8c6d6b32f6582991205386d220c51de46c90ca1"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-malformed-exponent-001.input.json",
+      "sha256": "a53ccffeb6a4db7caecbb20fb7da2197e07e10f142fa7a5fb242ac9eed08ed39"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-nan-001.expected.json",
+      "sha256": "b7b22dbc7f7058ab84efece436161af1397bfb1f817763aaec0821a177c5c35d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-nan-001.input.json",
+      "sha256": "c238cb6e9ac5407491b0988102620ab9445290d2ed7713c516a2b28bd2388968"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-surrogate-001.expected.json",
+      "sha256": "ba27cc4356e3105e1bd08a81a430455f0963ee62c44d6bd635d1d3fbaa64bb4c"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-surrogate-001.input.json",
+      "sha256": "7f3c6b6b4a88409efe4d2fba1cb3cf2b79b682fe4387678cba2e6b9645b58221"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-trailing-content-001.expected.json",
+      "sha256": "fb830fc3a827f20e670be255bf2cc7661bb3704dcaa8dd247c1d455390b7cb9d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-trailing-content-001.input.json",
+      "sha256": "c2a188bbbb08aa302fa9ac1352dbeb79baa8248da1e21af4cb782753220fc734"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-utf8-001.expected.json",
+      "sha256": "a83e298992dd48df1a431830d20d6d89eb46494e166e584be74968fb53d91f3a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-invalid-utf8-001.input.json",
+      "sha256": "36781faac995a68b69aab7d540747e0c70efed427e66a608cdf64fc4feaaff12"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-unsupported-number-lexeme-lost-001.expected.json",
+      "sha256": "316acd35457afd59801c3f2d47b1deb53246298ecaea29eee40af94794a47765"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-unsupported-number-lexeme-lost-001.input.json",
+      "sha256": "e580045ed3d3e7c2a9fab3e94d38d4fad7cc4a3ea0f513a69328db94541aa72f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-alpha2-decision-001.canonical.b64",
+      "sha256": "9aacc3e4c5c4fb50418207b36b05447eeb80b2fe5e641c9ebe0b4ea61eb8dc48"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-alpha2-decision-001.expected.json",
+      "sha256": "73f72ac9024203407af133ffdaedc94b21d2d11dfa1f39d9ab69f0d4560545c3"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-alpha2-decision-001.input.json",
+      "sha256": "a1208ba7a1565c86a52666080952c6d2901f6136a06d6d530f396426ad79f130"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-alpha2-outcome-001.canonical.b64",
+      "sha256": "8baef7932aee4b4ce6e4bff1307cfc1a5b0131dc7f21cbfb9d43d3ac239c790f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-alpha2-outcome-001.expected.json",
+      "sha256": "2281e8422e78065b154fd022669818878b2f3b3f7d21b23eb44a23fd809af045"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-alpha2-outcome-001.input.json",
+      "sha256": "b76cbb6a7511153c40dbb9caf7e192bd408a427cc5706b765cb94b8318aa2260"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-control-characters-001.canonical.b64",
+      "sha256": "eb3a39470cea1e63c6dbee718ecff020307d3156a9346d708a60ccbf2bb2f22f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-control-characters-001.expected.json",
+      "sha256": "f306209253e3b31d886e2e23a1e4ea349ba6b45979ec75daffe5cd800e0ecd55"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-control-characters-001.input.json",
+      "sha256": "be645b296d04623f21502be10c3aa0561b1c9e727f3d8774acfdedd53f3215ae"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-empty-array-001.canonical.b64",
+      "sha256": "1ea3b6aaf56ad5d16e88703778b147bdfcadce2bcbb42c1dd2cbf4b80a81d03d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-empty-array-001.expected.json",
+      "sha256": "9300b80310ddd976624ad0b6bee4aadd404583af771c597fd62d57aadc16e466"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-empty-array-001.input.json",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-empty-object-001.canonical.b64",
+      "sha256": "469abedf5797bb56f1afa35a227eba1d8f7b3e22c99426e527da4b0d839dde15"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-empty-object-001.expected.json",
+      "sha256": "e902faccc958b6c85037dd23fc0bb41b8bdffe18c9e06c6ce9b85a9d8b5d1884"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-empty-object-001.input.json",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-false-001.canonical.b64",
+      "sha256": "cb5f606b013e0d99ef34cc61f9dee9b5935b0f5915de1dae020140a25b1b261d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-false-001.expected.json",
+      "sha256": "38b17510b7890b754a4a432a73630b5255c835812fc1efe50df96c8516e083c4"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-false-001.input.json",
+      "sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-boundary-large-001.canonical.b64",
+      "sha256": "1f042950ab7202db84e9376b891d27124de70a88cc10c0ab78ebf4b37fe58282"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-boundary-large-001.expected.json",
+      "sha256": "357ffe4b747978ba15530d5c29d3f093642aa953567bbe5587f1e9a0ed6a082d"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-boundary-large-001.input.json",
+      "sha256": "2b0de494c41db4c1bf0b41b0a3483db71f2b53a5e37caf5a61abee2d4169a935"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-boundary-small-001.canonical.b64",
+      "sha256": "6cd105ff957c73270cf2acd2871a2e65a62c1b66aabd3112ad9351560cc57701"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-boundary-small-001.expected.json",
+      "sha256": "904f60ee08c4907378b64c393c8126fd72dda17f393f56df54e9eb8fca9a2ff4"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-boundary-small-001.input.json",
+      "sha256": "e485fac25775a7da830698e7daac582737fc8b43ba4b351467a16cf8ed83122a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-negative-zero-001.canonical.b64",
+      "sha256": "69365c72e70873875e14c4a97c53a0922053ecaac71d713d2ff0bd397dea1330"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-negative-zero-001.expected.json",
+      "sha256": "4e6b265a69139b1dd1b45001aaa8ba54986884a6871b93ec51a2901eb4d5d763"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-negative-zero-001.input.json",
+      "sha256": "c26617c7ccbcaa6631b45d851b8cf56e21d2ca624bdb1193afdbd4b560702cec"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-one-001.canonical.b64",
+      "sha256": "1233b8722b75bde4d5668b430ce3ac238e06fab503ff39cb5f1959dc09ab6949"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-one-001.expected.json",
+      "sha256": "25017b5b7e3c1e6582842376d3e7bf2e388e6444803904fef8bba30f7bfa995c"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-float-one-001.input.json",
+      "sha256": "d0ff5974b6aa52cf562bea5921840c032a860a91a3512f7fe8f768f6bbe005f6"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-large-integer-001.canonical.b64",
+      "sha256": "936051e07217be00b7f3269f7bd33afebb2cc0551cdfb0c2ca302a46efb6616e"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-large-integer-001.expected.json",
+      "sha256": "7272debd9c4396bc50cd81a34dc0895f869f847a7d4dc87fc028e5b6ab60e238"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-large-integer-001.input.json",
+      "sha256": "f54e5c8f810648e7638d25eb7ed6d24b7e5999d588e88826f2aa837d2ee52ecd"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-negative-integer-001.canonical.b64",
+      "sha256": "dfc422b9df4eab2640bee830f10a1688c3da3911013c7da6aacc57c076cfd97f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-negative-integer-001.expected.json",
+      "sha256": "cb4a30e085cc7e25cd1ddfa4df59b952db3e59a06546875f1fb0f2aa6d6a78b4"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-negative-integer-001.input.json",
+      "sha256": "a770d3270c9dcdedf12ed9fd70444f7c8a95c26cae3cae9bd867499090a2f14b"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-nested-001.canonical.b64",
+      "sha256": "5fc2303903ca6b25505da37a297434d29099ef3743e1d342b06b36ef389042f3"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-nested-001.expected.json",
+      "sha256": "31a168c82019382503cc6c6751d8ead70dfe205c82c33419b535da94d7f91107"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-nested-001.input.json",
+      "sha256": "db0aa846b4d658548423fb9d45394d64a3ac5c6bf01dd9e587486495e7404275"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-null-001.canonical.b64",
+      "sha256": "b677e3612b146a0dea61010968f2f89e5561c5decb7b7be85226c8223e50a7f3"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-null-001.expected.json",
+      "sha256": "93f6ad95b30df0a9ebeed32b226ef644e76ac083bbbc78e55b15515a64520fa6"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-null-001.input.json",
+      "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-100-001.canonical.b64",
+      "sha256": "9cb2e9cfabc5ece17ec9aec4835a2c214c391539b62623fd9264e2bcdeaa0123"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-100-001.expected.json",
+      "sha256": "82f2a884c8f08ade6186914ebadb93de13ecdd26ed59cd810acfd953b307b870"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-100-001.input.json",
+      "sha256": "6ae8ec2b1e8338f7511a7ea1366734f52ad540e10118fdb4a1221f10b9026f77"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-1Eplus2-001.canonical.b64",
+      "sha256": "622809587a1ee4f7321822e1e4967ed8db78b6c21f9729c23baba070387a9090"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-1Eplus2-001.expected.json",
+      "sha256": "832f6d145f8183928fc4de9e172d131280a184e503f4f6d2b1f734d04496473f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-1Eplus2-001.input.json",
+      "sha256": "e580045ed3d3e7c2a9fab3e94d38d4fad7cc4a3ea0f513a69328db94541aa72f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-1e2-001.canonical.b64",
+      "sha256": "3225a0d834b5aa050fc41a4c7320f50495484eb5dab1f54a10c6bad53fc646eb"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-1e2-001.expected.json",
+      "sha256": "c73520e11a8ca52202663f414461752c9493c546df4d102e86551eabb3e797ef"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-1e2-001.input.json",
+      "sha256": "98b9f41b2194a9dd7d9a909e528c0c038ca9d1695037dc4145bc71ef0c4602ec"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-beyond-safe-001.canonical.b64",
+      "sha256": "c4846cbde3bbe487f78a19de1ba941f3aeb1ec5c2bd47c04df99106e6c491351"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-beyond-safe-001.expected.json",
+      "sha256": "a115cb02ba53c6d8323f2bd93b654b56a189ccbbcbe9de9bef081b0af4b0664c"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-beyond-safe-001.input.json",
+      "sha256": "880e06ad9369e8753dceaecd582caad85e45a16007844f958ad5818b7c14e44a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-negative-zero-001.canonical.b64",
+      "sha256": "334fd5554a07953b0d5beb1780059fb4e7226d6c407418579cf5e9f859360e33"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-negative-zero-001.expected.json",
+      "sha256": "30d8e04a3c3a892b880e08810cccc0eca2d8bf5a23edcfc4bf43b0afe68b65ef"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-negative-zero-001.input.json",
+      "sha256": "ea1ee51d0264a2f47ec96a676c4fe606fbb18b1cc55fb8be80a9a568fd8c02c3"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-safe-max-001.canonical.b64",
+      "sha256": "419ee4ecb698295fadb1a828f10cf7aec1d3940fe46bbe60db0c715904563df6"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-safe-max-001.expected.json",
+      "sha256": "ed0063f0d2d3a4c6ccea65ecbe4ab6be08e72cbbe1592ce2dfd7e8a690da2b88"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-safe-max-001.input.json",
+      "sha256": "e9b5e276a84ec2efb237123ad920232fb71e5e9c60f60aa2cd3f75b822db9628"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-zero-001.canonical.b64",
+      "sha256": "c37f0913dfa29a2cb911c29e0be865db525f7610fad6bd28e2ab92fe134b0528"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-zero-001.expected.json",
+      "sha256": "ddb2daf44618357f5f2e866607a24d37de7f2c91b81a388d19fa3fdbf127c224"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-zero-001.input.json",
+      "sha256": "5bff452c5ed93f2e87a23984db5a15050c6477335fdec955b70063bb2d692bf1"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-zero-point-zero-001.canonical.b64",
+      "sha256": "96d1d52ccc4b342af92f15e364becec39a941afb931ce9814757ddbcfd461f49"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-zero-point-zero-001.expected.json",
+      "sha256": "342a262bc59561b49a72ed45efa6f126afdad88b4b1ffa75d9ae9c604e7a3d37"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-number-zero-point-zero-001.input.json",
+      "sha256": "306e4750ee8b575278c968fd63668192aeba456e5e47da97ed835e2d498ef9cf"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-prefix-keys-001.canonical.b64",
+      "sha256": "6e37afb6f5967c5d5becf355d80c7bc5717489f8363004647aaec9f01fff96f0"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-prefix-keys-001.expected.json",
+      "sha256": "468c870fc0ecac1a8b654af8c25911318e5a1a747b8ab21afcb9c4b070b35171"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-prefix-keys-001.input.json",
+      "sha256": "de112c8c6c45f59e94627bfa63735b8d9dae1ccf1638a190df6941a353473bc8"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-raw-unicode-001.canonical.b64",
+      "sha256": "e1acf1275a99d60f8274fc18f302001d6833a0d9268304d5cf98cd9394f8e76a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-raw-unicode-001.expected.json",
+      "sha256": "150fa2a73357f6692cc86892d235f535feecfc1f47bb6a2c61779a07b18390d4"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-raw-unicode-001.input.json",
+      "sha256": "ee8bd19303cd5bcec077407a45404383d8b2fa0d2daf63dd19635066678b98d5"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-sorted-ascii-keys-001.canonical.b64",
+      "sha256": "013d8446aa264b8aee85a07bd1b399eaec94ec75175a6853dfbcee54e5dc32b8"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-sorted-ascii-keys-001.expected.json",
+      "sha256": "7bc8e90b1f1750146f56b48276d1d576e30cf434429e2615b3f0e86e0a800718"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-sorted-ascii-keys-001.input.json",
+      "sha256": "c5c2b1fdd0d4a83cda3ff79c9c74f2c72e2a92920afda20bcafc90c1a72f86a9"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-special-characters-001.canonical.b64",
+      "sha256": "732eb135d5ab6d695e0cdf1ce7cfe91a8fe6163eaad040f050359b0ef4f56e4a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-special-characters-001.expected.json",
+      "sha256": "c790a060276d6d60cbb50f026b6c6e7ac930f65945b771dd37b69f4dcd5a8335"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-special-characters-001.input.json",
+      "sha256": "3269fc33bef5c04c2d6eb3069a85037cc074f786fb3de499f771498c3383efcf"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-true-001.canonical.b64",
+      "sha256": "14812b752d6c54f313c7d1835eb705a3a172285c41e642c947d59780d16bb36f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-true-001.expected.json",
+      "sha256": "801955c13691af2cc99e303eda30ed7f55af4274677ac8164d39d2e407c5f7ec"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-true-001.input.json",
+      "sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-u2028-raw-001.canonical.b64",
+      "sha256": "20839545a24bf4c417e945ae080067fe6d6cc031790cca9da35efe0068185992"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-u2028-raw-001.expected.json",
+      "sha256": "a2e3cc279837c310b8083f2a522b71c8c0e21a3860f10e56cfcc39fb33970f5f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-u2028-raw-001.input.json",
+      "sha256": "460d7b4b88fe01d179a1febcbf6e038be99dc6d05d284425a463f688370e6541"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-u2029-raw-001.canonical.b64",
+      "sha256": "0e884bc0e65623a3b67857fbf5a11346cf59b2e77c5172627ee4de0a39c7d27a"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-u2029-raw-001.expected.json",
+      "sha256": "29bd1a7c684a3bbc8ccb5aa518917619b0e3620eebb1bbd1f22aa23b72b77dd2"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-u2029-raw-001.input.json",
+      "sha256": "75c3523664c32a1948e22e94488ab381bf321358ad84e23c35fc50e73796bf84"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unicode-bmp-keys-001.canonical.b64",
+      "sha256": "b7821ee6a0b314dc2de90fafcab1dd3c33139b0bb392fd3dcafd452aa8fcafd6"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unicode-bmp-keys-001.expected.json",
+      "sha256": "cc6a28264257655cd339c22243b24b6ddd08b4fc097102d7c2ded4aa068bdc89"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unicode-bmp-keys-001.input.json",
+      "sha256": "6b7c362b46a21f7487f770c38154a58bc117e49f90511aef3ac9e97f89a7b2e1"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unicode-supplementary-keys-001.canonical.b64",
+      "sha256": "3eaa1f7b43d62f2bb99f1c165b7266b7a42767aa8f4112ac195129df9c01b39f"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unicode-supplementary-keys-001.expected.json",
+      "sha256": "414fd1ad621f81981511bc49f68f38fbbab491b84be4c3b4c1d92916cccf4539"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unicode-supplementary-keys-001.input.json",
+      "sha256": "539381c40e1d57e20a374454ca194aade03a0af28d78e022938b2c5489f092b0"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unknown-field-hashed-001.canonical.b64",
+      "sha256": "becc738517e3330216d59da5704bc9d4ae4337ee52d5d43d490792be468f37dc"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unknown-field-hashed-001.expected.json",
+      "sha256": "0be4b8a4d8b94cfdb821ddcf0336c6dfa238893d6fc3a2c7339fe7c8ec3642f7"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-unknown-field-hashed-001.input.json",
+      "sha256": "ff183e7c84c493e90d4d8eabf2f074e3ed0c373865fcae6df756bce68f574580"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-zero-001.canonical.b64",
+      "sha256": "9be24d46a14994cea6c15925cb009404f245ed5031a01aabcfbed94d3cd89bd2"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-zero-001.expected.json",
+      "sha256": "4f56a06f49980cd64beca464ed4a6a9f13273459057cc519bb61a756a82e7d5c"
+    },
+    {
+      "path": "canonical/legacy-json-1/can1-valid-zero-001.input.json",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "path": "canonical/legacy-json-1/spec1-indeterminate-conflict-001.expected.json",
+      "sha256": "107b10c93b6ba64ef77de7aa9b252eae9553a7a8cd42ee43b244c479f64e1e34"
+    },
+    {
+      "path": "canonical/legacy-json-1/spec1-indeterminate-conflict-001.input.json",
+      "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+    },
+    {
+      "path": "chains/evidence-1/ev1-indeterminate-checkpoint-head-missing-001.expected.json",
+      "sha256": "899d4bf446967e6465fec18089180e3ca0fe99c8dc2725ef9fdf83e813748bcd"
+    },
+    {
+      "path": "chains/evidence-1/ev1-indeterminate-checkpoint-head-missing-001.input.jsonl",
+      "sha256": "e9fa84e1b76abe97f19b6ecd4812c58fac3db7734c291121d83513e207692096"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-broken-previous-hash-001.expected.json",
+      "sha256": "0e04e89eef9ab33a12d8614fa68ab696074e59e73e796e50eaed49cfabb46fd0"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-broken-previous-hash-001.input.jsonl",
+      "sha256": "a889343d7db7c53dc00417af62491fbec48c03b1b9cd034b2168811e4b358b1a"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-duplicate-event-001.expected.json",
+      "sha256": "f40102727d764431d2d4348e9fb02fd7eb5a5780658bb4bf710abb4bfaa58903"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-duplicate-event-001.input.jsonl",
+      "sha256": "d9bfdaf32325972f16d67bf6c49312ed034320b0be0079fb5ffba03aedfbc8ec"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-duplicate-outcome-001.expected.json",
+      "sha256": "aa2a9e30880d6cadbbfe625069c7bf30ccb2b8bbbd51bcd9b9ef3f67a862e278"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-duplicate-outcome-001.input.jsonl",
+      "sha256": "333897d3076c3d4fe1477898cec2d4156205df1218f086beb333799da98da9d8"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-fork-001.expected.json",
+      "sha256": "84510ec8d0feac6879fddc3a057b99835643ddb9cd5db62d161edab4ce7a572c"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-fork-001.input.jsonl",
+      "sha256": "4648ce7675302866c9177a0208e87356b0621301532cb5303ccf20ef72c7faeb"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-insertion-001.expected.json",
+      "sha256": "d1496149519abadfa096e2e0438559d89a5d6a12646309e39179f08417e8b536"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-insertion-001.input.jsonl",
+      "sha256": "1a2772c7f700407247ed63d04f8754436b3053a351c1ed8d5e2e152381fcb220"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-middle-deletion-001.expected.json",
+      "sha256": "46dd75cbcf0521228287389b11ed84052d43e1a3d9d0f4bb8c6b81ad6f63666e"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-middle-deletion-001.input.jsonl",
+      "sha256": "7884ebeb078744449a7ca78100fee001072c2cc071388a611bd4263c7004a330"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-orphan-outcome-001.expected.json",
+      "sha256": "fc0239171db9909e4e97b01877dbba87ba2a622d9c52742de6bc91e46f0dd775"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-orphan-outcome-001.input.jsonl",
+      "sha256": "d9e0d14723ecfe24886c81fa6be200581b5384496f9c83bb5815fcfb9d6ed7e7"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-outcome-after-denial-001.expected.json",
+      "sha256": "f39f555da397d6cc0c4d4e8045b0c1bee6aa1037dc33f8418ede9fd70f06e754"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-outcome-after-denial-001.input.jsonl",
+      "sha256": "22bfad618e8e0c3e83da54b42c38c79ee45deb04d023b4ed713f2bbeeb03aa74"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-reorder-001.expected.json",
+      "sha256": "f11d5d932a53b627620563bf79afedad43ac50413fd08089a8c2704cbd9de300"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-reorder-001.input.jsonl",
+      "sha256": "88e59921ceed607122a00be2934ddfac80cce85bdc185895dc9430d5d7a4ce5e"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-wrong-genesis-001.expected.json",
+      "sha256": "ffe03bd55444279b4ea03a792f0a15e948cb78673088c27f149440cf8d0eea81"
+    },
+    {
+      "path": "chains/evidence-1/ev1-invalid-wrong-genesis-001.input.jsonl",
+      "sha256": "639a2a98cc7d0e805dbd6e2ff2803ebfa4f45428a527b57ad62948880eb2e839"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-allowed-failed-chain-001.expected.json",
+      "sha256": "2708d77b396cc6242d5986db6a60dca65a1f9a32d98622106bd4575d5223d779"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-allowed-failed-chain-001.input.jsonl",
+      "sha256": "a8ab959de1864440a476fc192a990a1ac95b9a34989d243902bb128a3ffcf51b"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-allowed-succeeded-chain-001.expected.json",
+      "sha256": "f500c65c47093a4faa431ee1fe38aeb1341838913ba1a60bc137ce5468b5baf9"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-allowed-succeeded-chain-001.input.jsonl",
+      "sha256": "c4b9e52891561e45abbd9f7fbf309cccbbffdc90be82cf7a473bbfa9a969f29e"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-alpha2-journal-001.expected.json",
+      "sha256": "eaa324b1e3209b1cd984029b5060353332d4380d2bcf4eaa074f0b176366c21f"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-alpha2-journal-001.input.jsonl",
+      "sha256": "fa1b70b3745de47ba8f3200e4524ae8d47aca0ff49de3c484770283df2ce35f4"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-denied-chain-001.expected.json",
+      "sha256": "591fd1c501dcedec4a5a52863a24a452141f4efecd80ea363cb8730cfe6dfb23"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-denied-chain-001.input.jsonl",
+      "sha256": "02b689bb08fe97265fd9b0c98547b72dfe8c6f591de9768f8cec72c7bcdb557f"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-multiple-action-instances-001.expected.json",
+      "sha256": "7a85245efae6b3c4020406d4d4cfd2f20fdaa7b29b0c40f422271c2cecc7083b"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-multiple-action-instances-001.input.jsonl",
+      "sha256": "bc78f1781b74778161a117fe65e68fd6cdc9535fd356261a50826b7d72b13d07"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-partial-anchored-001.expected.json",
+      "sha256": "0f48a8f9b57e16223a6f73aee6caeb34d16973c669b1a1fceb7c83be340e019c"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-partial-anchored-001.input.jsonl",
+      "sha256": "7884ebeb078744449a7ca78100fee001072c2cc071388a611bd4263c7004a330"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-tail-unwitnessed-001.expected.json",
+      "sha256": "d1f3873d682e8c8909b88ba5b18afc7d3a984d4fd0944cfdf3a9b357bcd1c309"
+    },
+    {
+      "path": "chains/evidence-1/ev1-valid-tail-unwitnessed-001.input.jsonl",
+      "sha256": "e9fa84e1b76abe97f19b6ecd4812c58fac3db7734c291121d83513e207692096"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-action-name-001.expected.json",
+      "sha256": "3ab60efbe130cabbeb76c98bed026c5460a6d353589ce1f33d2cbc5b82dcf1cf"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-action-name-001.input.json",
+      "sha256": "456974bbb3b853258ab25714abe8187b36e545b8937f84e8985956302c3071bc"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-approval-001.expected.json",
+      "sha256": "7c9440ceffdd95a8439443b5f434242269bb4f7812933a42cf17e68230e2b4ad"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-approval-001.input.json",
+      "sha256": "2056ed3b92450927ada94ca2e9259bbaea76e172e9b98997054cdcfbe5a56c5b"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-descriptor-001.expected.json",
+      "sha256": "0e89d10844189fab300189ef7d1a9cc2eb8ab8620cb85873cb1da8f7d0adf5d3"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-descriptor-001.input.json",
+      "sha256": "a014b381510ff44b01f8781ba324c3db6975e3abd5e2a40247f5d230b046e9e5"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-duplicate-member-001.expected.json",
+      "sha256": "ddc5473743294f36a793c757a0bf654b86609b6413fd0b8c3c2d4404816ead7c"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-duplicate-member-001.input.json",
+      "sha256": "b1ea968b22ac25a38364f186f0cb32054b23d3d049fa9039935de2318d42c4a6"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-execution-mode-001.expected.json",
+      "sha256": "962fa55a10cde00f59dcd761baedf4f439d51eeeacda95ae98e1bf571e62a267"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-execution-mode-001.input.json",
+      "sha256": "220c1aa7ff0f5fdc48594ec4248d078a5c8424e54b8f56eb27ca2c2e12957e40"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-extra-field-001.expected.json",
+      "sha256": "776ca700e2aec317597ab372c4cbba158207224853304d1659721c778db6f611"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-extra-field-001.input.json",
+      "sha256": "26e1ae98071824a1b39dd4fdeffa3ca24f50ef7ac401bafe4b260fcb07ea526b"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-fingerprint-001.expected.json",
+      "sha256": "0873c2ba08fd54e83fd04f251e49dcf8a7922a2ea52adb99fb2de6fede4ca283"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-fingerprint-001.input.json",
+      "sha256": "37d1197db0249e264e0eb7a810a4759a183611c2d0a93088e891793560ea0d03"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-malformed-hash-001.expected.json",
+      "sha256": "54b5702eb12a6d34034ae63f1192d13712a395b96909d81131b458308e87dd65"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-malformed-hash-001.input.json",
+      "sha256": "8276c77ec831244a1c09b8e616ad5332eaa9a71512e2266810330c8b24235d0b"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-missing-field-001.expected.json",
+      "sha256": "79fad6b3dad9cedbb4f391198fe0e88d51092a2645b30ffe567fbdbcdda5dc5c"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-missing-field-001.input.json",
+      "sha256": "73c85d9f8c287a0378feb7b0639d849e97362195db85e6a426bc1027edeb27ff"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-risk-001.expected.json",
+      "sha256": "efa20b216233fa56fb0b67ed160e8a9d7d5d4e865efbb8af6fc0c9396c796f32"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-risk-001.input.json",
+      "sha256": "487bac4e270bb36b37a3e0fc244728bbe8f938dafe853d86fbbc173393e1441a"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-tampered-body-001.expected.json",
+      "sha256": "5a53db25b5a0bbb9507a1e9d66d6d67960330b55cbb36115c29d27a038d2e21c"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-tampered-body-001.input.json",
+      "sha256": "6333618a7ead9cedcf0ffa123946bc633fa026505932866d4cde0298fab5b6dc"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-unicode-action-name-001.expected.json",
+      "sha256": "5e3de94d2ca7c3674753fe0532473f32584627cbf46b6b044364b6e29c1b4dec"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-unicode-action-name-001.input.json",
+      "sha256": "44c4824926eed00d2aac8412e8f0b42647f9179a9f6fc2d5115968c07210fadf"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-wrong-type-001.expected.json",
+      "sha256": "e60c0dab0eb27eb81bd3291c07f2ea4ba4732d5e636b54a0f471b942ac7fe516"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-invalid-wrong-type-001.input.json",
+      "sha256": "3eac02032e42d72cb52715414d31066e75531201003c0c35b079f4d9c29463bb"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-unsupported-schema-001.expected.json",
+      "sha256": "9058fc7bc72bcebdbf7015f2143cf59eb0d3c62b328bb9e6ad3b6b7ac255e45d"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-unsupported-schema-001.input.json",
+      "sha256": "23289269e0aed1387dc2f3942e0a42e3c915d00706cd9f6904b4f6b62695190f"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-all-parameter-kinds-001.canonical.b64",
+      "sha256": "a646e2cdbe810a18d7b41584e50a5dd3795ed2e71d40921575135c723fdf8534"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-all-parameter-kinds-001.expected.json",
+      "sha256": "e308c5a9a6bee268de41130094d6f3bc2050582e8711a5717f05cf5a0059600f"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-all-parameter-kinds-001.input.json",
+      "sha256": "585d2f0aa8b935f2460ffe306a974e5f8694a0d052775a983c2052f27bd87723"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-alpha2-basic-001.canonical.b64",
+      "sha256": "8bffaba2e0257d89cff48474f63ccae8564bf85ecff665831a8c36fc189bd42d"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-alpha2-basic-001.expected.json",
+      "sha256": "f4479920932ac06807b8f7fab9037a9b0fe45e897264893c32ba7ec558bd821a"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-alpha2-basic-001.input.json",
+      "sha256": "2dc7293f89d534dbbe4c290619d2dcf7836b85ebca06a42db1c23811718f937a"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-alpha2-specialchars-001.canonical.b64",
+      "sha256": "ae82f2b888c8fdd0ddaf655ae9c2e4f71abdf417fa04e28f90f8570202e8cc4e"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-alpha2-specialchars-001.expected.json",
+      "sha256": "ab5a892c27624da0ea92a61b3f9a40eb3b6ed048ed52ccf78dca78103d6bf1a5"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-alpha2-specialchars-001.input.json",
+      "sha256": "e40c440bd27cb37a5716bea74b16467ed210a0ff0145004741c3c157a57bc749"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-critical-001.canonical.b64",
+      "sha256": "24801ee47f71c89741469f3082a5eb6811a9088742945468bcddcac2048e2db9"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-critical-001.expected.json",
+      "sha256": "49b991f89fe66e12fc25f951e17dca114f33b4c1938bbf6202697118183f8242"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-critical-001.input.json",
+      "sha256": "307450eb3847e857ca0a3bce974421f8033c2e8b6aad046662bc49a8f9193f2e"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-high-001.canonical.b64",
+      "sha256": "7b27756e3c947ea3828693d32deeed8d28913657f4012bd1e6d23783e302105f"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-high-001.expected.json",
+      "sha256": "e7ce04f3dfee5a1cc6fdf8d46d8a2f09431387f88d5b9e83ed93540a8bc2c44d"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-high-001.input.json",
+      "sha256": "79f0bbed5745386846b6e09f76d656c1392196d4e39e6b2715774bfbe635c7bc"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-low-001.canonical.b64",
+      "sha256": "c9276a11a10462f698a9fa2ad12887d44ddf89d3110a34f02d7aab778f1b24a5"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-low-001.expected.json",
+      "sha256": "b28377c399f9fadacb5c6c222de8ffa0d2c80feeb04e1e6db0fe09bd431e58be"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-low-001.input.json",
+      "sha256": "37ff7a22127e98f18bab70f8723d941f00255a8b1f62db423a6469992512dfbc"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-medium-001.canonical.b64",
+      "sha256": "c024acecba3e32613c905befb4216d3ebfd79303b172c00f13e1d4ea01207e18"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-medium-001.expected.json",
+      "sha256": "f95efd2f62d607cf67883f666a0ae620a961f952520dfbe119b46506414601cb"
+    },
+    {
+      "path": "contracts/action-contract-1/ac1-valid-risk-medium-001.input.json",
+      "sha256": "37b160df165950b9c87ef1d2fe7cc6caa3c44b8c9b14171806edb5f863e1be76"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-indeterminate-ambiguous-key-001.expected.json",
+      "sha256": "0b4d0457fb17ad72b540af6a841d593bd0164651ac69d85dda91902d05d36676"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-indeterminate-ambiguous-key-001.input.json",
+      "sha256": "628d23689105be3eed57d6b145624a114040e8cd009b3a43b7744fbd379bee29"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-indeterminate-unknown-key-001.expected.json",
+      "sha256": "ef8a1b8eee77a176d532f8e4f42270fa09b57439444cac9953a2b2d3d4ff7857"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-indeterminate-unknown-key-001.input.json",
+      "sha256": "306b8f7976cf5bf13746e4b13e502663cff12fb70682f9140a94366f47e679e3"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-decision-001.expected.json",
+      "sha256": "6d494acb978b4f6ab76918f9fdb1d386276fb21b29d7da7afb1c46906955d61b"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-decision-001.input.json",
+      "sha256": "434bb9b0c1f4c74f4502a7afee19daed7cd1cea3c193c97fe357cd61af3f604b"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-malformed-signature-001.expected.json",
+      "sha256": "1d650c9c662eff181e5e04ab389dc5ff6bb95faef39ba3160e0e66553e9ca6f5"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-malformed-signature-001.input.json",
+      "sha256": "7f07de4d4b2d9b6b4a72591d6c6bfcd6e49e375ba00f34af2c5381f50786276c"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-missing-field-001.expected.json",
+      "sha256": "d5988e6305e1e869ca5af0f599a26fdba2217ee5738fc8558c0796dfa16d6c3c"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-missing-field-001.input.json",
+      "sha256": "ed5d7b437e00d9958f538a5bce8fcd8c27495d5b2680f1411a6aa7a614198aee"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-recomputed-hash-original-signature-001.expected.json",
+      "sha256": "4bb1df50d0a732bd83653aa2791a8267ff3cdf00953720f1af7cfcd7d2040c63"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-recomputed-hash-original-signature-001.input.json",
+      "sha256": "5a7b614223f5def324613f6994460e6046ca10ca450b6c47fdadf2c1d3228bb5"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-signature-length-001.expected.json",
+      "sha256": "31b578d468b8c099e1e60d6f28b3e6c92b57f279375faaf33d633fe6b43eb0c4"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-signature-length-001.input.json",
+      "sha256": "7ac73e2da6f9215970c5c2b8f6f7b7b97935b2990f0e24f533ba109bc97892d0"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-signature-wrong-representation-001.expected.json",
+      "sha256": "ad5685e209ac8478977e8f72ba893190afbc6d4a31236349682fc78378c1d806"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-signature-wrong-representation-001.input.json",
+      "sha256": "086f40e33494ab8bcc6600ba26c4c0eef7e9f517843c5ed6d33bc7d9ddeabbf5"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-tampered-payload-001.expected.json",
+      "sha256": "f54bc3be3f302d1a417b3431b8bf49e6fc735cecad00dd7df4ebd375919f367a"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-tampered-payload-001.input.json",
+      "sha256": "6ba14f724886ef812e8aa7f71542ed64212c2c0dfaff103f795fd15f0bcaf235"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-tampered-signature-001.expected.json",
+      "sha256": "43f635f47a49cd0318bfa1ab56c683a713a3a74c83b895f87f8635b4c4ff5f54"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-tampered-signature-001.input.json",
+      "sha256": "4d8917897c585fd2c67aa322c810b1b715d890bb81ff5e3fc64677e1dc90487d"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-timestamp-001.expected.json",
+      "sha256": "721fe79cd123c208361d1ddf4bd0f74d6629c806d85334f45bb95490144138ca"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-timestamp-001.input.json",
+      "sha256": "046d4aefac0cb1e865e2226d4fd1c37cac8dfe3b02ec24fe9117ffbffb8a72a9"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-unregistered-event-type-001.expected.json",
+      "sha256": "4244f9f36289c964f4835eebadc67267329c6120f0ebc8349bd3903cca9ba3f2"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-unregistered-event-type-001.input.json",
+      "sha256": "687380fe48c54677d74b9f83f0152c200fdeb153069b1447a13be01c5c93340f"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-wrong-field-type-001.expected.json",
+      "sha256": "0f19825a5aaa63bdcf71c2744baf2de020de90bb1841afb1a7d766a1e618696c"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-wrong-field-type-001.input.json",
+      "sha256": "029fe858b0660ce456ee49ce24f5bcaee9b2d9a97fcf479499d80fcd8478daaf"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-wrong-public-key-001.expected.json",
+      "sha256": "6b97dd286b1731d4085fd1cf22d27bbe4558a9e5f5ca31e681aee90223f3b39d"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-invalid-wrong-public-key-001.input.json",
+      "sha256": "628d23689105be3eed57d6b145624a114040e8cd009b3a43b7744fbd379bee29"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-malformed-object-001.expected.json",
+      "sha256": "1179359415cb0602ed2b54b048c6cf1b6582bc2f002fd83766190fa54470ab4c"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-malformed-object-001.input.json",
+      "sha256": "f109b002d2f351fa534341fcb7d18145d187efd8a47fc21539f8395a7a85d0d6"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-unsupported-schema-001.expected.json",
+      "sha256": "344e9e8022bbc1af9e5779951fea542bd13fc7c584c0c95e14655181edb3eeca"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-unsupported-schema-001.input.json",
+      "sha256": "f87bb74900b9681286f413994001601074a0543b54d4a4829e4488992b413f52"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-allowed-decision-001.canonical.b64",
+      "sha256": "c17ac86a34d03a67f77ed9bd0dfa7af465d335184bdcac8f42098bb57c0bf2ed"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-allowed-decision-001.expected.json",
+      "sha256": "883e5f6efa30ebbf8b2a6c225a346462dd3a28b487393206d22ce894d14261b8"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-allowed-decision-001.input.json",
+      "sha256": "628d23689105be3eed57d6b145624a114040e8cd009b3a43b7744fbd379bee29"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-denied-decision-001.canonical.b64",
+      "sha256": "9ff02854e72b36fe0f7df1d2251819e0d6cc80b1cd729b22a4672f001dafc406"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-denied-decision-001.expected.json",
+      "sha256": "9f608ab58ea70399a7a935e0d3fb59c1f1df6c027437a36e350a731ea98ffa2e"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-denied-decision-001.input.json",
+      "sha256": "18954677d75306769d79a09799d65ba1d1a1fa3119739c4958ba83b4c5175062"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-metadata-001.canonical.b64",
+      "sha256": "059b13ea1f2cb64be3a46d6f5e3e968071b73c899af577e83ba46a743e01adcb"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-metadata-001.expected.json",
+      "sha256": "fd064c4502c7c4c913fd0f2a0e57065fd6b24bbd800f83a0b8dfe5a1a914facc"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-metadata-001.input.json",
+      "sha256": "1ceb0a87123f3991590a5404ef903033dde53c1de57b515347b85520f520612f"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-u2028-signed-001.canonical.b64",
+      "sha256": "a9acdbdff232db72c08bd3a59e78f3ec48c74899690bb6dabbd03d9e1de84679"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-u2028-signed-001.expected.json",
+      "sha256": "4da48fb94ae5d82bccd6dc5469867e25a8b34eb3a7dfc4126bcae3d0a06bc7ec"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-u2028-signed-001.input.json",
+      "sha256": "70ce00e59f98399762feb0f5af25d0394af26223fa1d7d1e8fe65e37025cc90d"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-u2029-signed-001.canonical.b64",
+      "sha256": "476a877dac1b105c0b5f5d3c037e6cef3cc9f8844e87524f36cb32b0b6e91eed"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-u2029-signed-001.expected.json",
+      "sha256": "5a281d6059fc729f2edfc33e206bc6147b8567df519c4e5b18851d3f24d10373"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-u2029-signed-001.input.json",
+      "sha256": "20dab1c6ed3dc8360969968191c918cd0ad386f046c05efca357d51bbf31daee"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-unknown-field-hashed-001.canonical.b64",
+      "sha256": "a829e34a8a89e70a3d57f92c4ca5e1850395911af413bc83a42314cf0a8c106f"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-unknown-field-hashed-001.expected.json",
+      "sha256": "2eadf41b7c3b4d4c6a33649baeb41adf804ded81f2d8554a0111d89dc8095387"
+    },
+    {
+      "path": "evidence/evidence-1/ev1-valid-unknown-field-hashed-001.input.json",
+      "sha256": "125efe1bf798b4a910cd42b8256b044c7c59760d2a52bfd61c2177d98e8ba1a3"
+    },
+    {
+      "path": "keys/alpha2-historical.public.pem",
+      "sha256": "879a7c824d336b062d56c7bf7dd323c886f5e2e9e75663b086a64653866adcc0"
+    },
+    {
+      "path": "keys/deterministic-001.metadata.json",
+      "sha256": "83be9ab097b4f93673b8b8113a459f9f4b1999a08a5e8bec4619ae0de2fb4480"
+    },
+    {
+      "path": "keys/deterministic-001.private.seed.TEST-ONLY.b64",
+      "sha256": "583c76b52147cf8c952d150e132418a65cd595d47459a39db0ea38ef4af04986"
+    },
+    {
+      "path": "keys/deterministic-001.public.raw.b64",
+      "sha256": "80695f1c5af853e50622b5b536c7dfbb6d7f0736519a38feb961469eb9ce0688"
+    },
+    {
+      "path": "mutations/can1-unsupported-number-lexeme-lost-001.mutation.json",
+      "sha256": "c3779248f5c6f31dacfeb79343802ebf03921175b81ac17f5293ae559959b91e"
+    },
+    {
+      "path": "mutations/ev1-indeterminate-ambiguous-key-001.mutation.json",
+      "sha256": "0fd678b08d9971ae72e6289bdfe1f75db6b5930c639d8376def45cd4de01cd91"
+    },
+    {
+      "path": "mutations/ev1-indeterminate-checkpoint-head-missing-001.mutation.json",
+      "sha256": "b73dc531fa64900b30c0625eae62a28f79aebc8b4310cb6a458e52bec6a51eaa"
+    },
+    {
+      "path": "mutations/ev1-indeterminate-unknown-key-001.mutation.json",
+      "sha256": "dcb405bf85b3bf52609e404f557ba5eef8d478ff3ea862ad87ecfd486c06ef91"
+    },
+    {
+      "path": "mutations/ev1-invalid-broken-previous-hash-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-decision-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-duplicate-event-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-duplicate-outcome-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-fork-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-insertion-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-malformed-signature-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-middle-deletion-001.mutation.json",
+      "sha256": "b98ee0f69eb00316f333bd378d601e8fa2f4c6538998d3de98f1376ae33b727c"
+    },
+    {
+      "path": "mutations/ev1-invalid-missing-field-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-orphan-outcome-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-outcome-after-denial-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-recomputed-hash-original-signature-001.mutation.json",
+      "sha256": "dcb405bf85b3bf52609e404f557ba5eef8d478ff3ea862ad87ecfd486c06ef91"
+    },
+    {
+      "path": "mutations/ev1-invalid-reorder-001.mutation.json",
+      "sha256": "2b4c7300cd863b3356fe1a6b55ece297699853f2daf86bec54066edca6efbe3e"
+    },
+    {
+      "path": "mutations/ev1-invalid-signature-length-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-signature-wrong-representation-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-tampered-payload-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-tampered-signature-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-timestamp-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-unregistered-event-type-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-wrong-field-type-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-invalid-wrong-genesis-001.mutation.json",
+      "sha256": "b971a24713218ae95b9fb67b16d3e81ffb3b51eef0a847d7e114f54def0bba4d"
+    },
+    {
+      "path": "mutations/ev1-invalid-wrong-public-key-001.mutation.json",
+      "sha256": "22c414c8391b0f2699fb866614057868e1540c2a11e56e372c9575d99250f631"
+    },
+    {
+      "path": "mutations/ev1-unsupported-schema-001.mutation.json",
+      "sha256": "9b80e5830435914dea47d60e75b1fb0022b118e3d606eec049b68b97dc42647f"
+    },
+    {
+      "path": "mutations/ev1-valid-partial-anchored-001.mutation.json",
+      "sha256": "853cca19564760e40aaabb0e0ea1d2b2ff449888642cebb1fdfae2989afc6902"
+    },
+    {
+      "path": "provenance/alpha2-expected.json",
+      "sha256": "520570dba4a17c00cab88bfcf050e8b44d141bf3b51855d974bd1e3e2b40dc78"
+    },
+    {
+      "path": "provenance/historical-fixtures.sha256.json",
+      "sha256": "d9c428aafbdb3ed0b364c91618e60649cf434242206ba90ec61c63575b00fd75"
+    },
+    {
+      "path": "schemas/verification-result-1.schema.json",
+      "sha256": "7dd74dd713c3d49d67b16f4d5d3924516da721ecf9df740f36818f96683dcf71"
+    },
+    {
+      "path": "trust/ev1-indeterminate-binding-interval-001.expected.json",
+      "sha256": "4e0c3c2730c019989f4fdd03e9f5fbe2e1cd503fc7c0cc3bd807612c7585c000"
+    },
+    {
+      "path": "trust/ev1-indeterminate-binding-interval-001.input.json",
+      "sha256": "5e42b5260730ff05fd24343529952630b0153f588e48de7b1d36b48a2f889504"
+    },
+    {
+      "path": "trust/ev1-indeterminate-trust-ambiguous-key-001.expected.json",
+      "sha256": "c5b77ef967f9de548ed1b4bc87cedac017669bd72778dff3f656cb1003c59d82"
+    },
+    {
+      "path": "trust/ev1-indeterminate-trust-ambiguous-key-001.input.json",
+      "sha256": "9a8b3b49f01a98dd769d04de034bf4b71291bec0faa123d6a21d2f33f2ee0691"
+    },
+    {
+      "path": "trust/ev1-indeterminate-trust-unknown-key-001.expected.json",
+      "sha256": "8ea9aab2f214f6ccbb9aab2836e8ae5eaa854a7c3e7ed21f00a2966ca3c7602c"
+    },
+    {
+      "path": "trust/ev1-indeterminate-trust-unknown-key-001.input.json",
+      "sha256": "ebf46b6c5063246d0bc546e84439572c4df712144f1433f68ed56f29ab50b8d0"
+    },
+    {
+      "path": "trust/ev1-valid-absent-revocation-snapshot-001.expected.json",
+      "sha256": "4beacce53b3de5fd614811ce9c7c6e97d820b1118b5f779dc34598b1974ac8f4"
+    },
+    {
+      "path": "trust/ev1-valid-absent-revocation-snapshot-001.input.json",
+      "sha256": "0030fea4c3f57e1d1beea600a2a6f1ba4fa9f1523702b6cb074d2d19e882b7e3"
+    },
+    {
+      "path": "trust/ev1-valid-active-organization-binding-001.expected.json",
+      "sha256": "eb0730c63a781122c71c43550f122b3159d41ae5f5a54d4cd39bb095c79a5c10"
+    },
+    {
+      "path": "trust/ev1-valid-active-organization-binding-001.input.json",
+      "sha256": "b52f9286ff243f58d6102997e5ac7be97ec04d3c1219a5e87aec06e05552990d"
+    },
+    {
+      "path": "trust/ev1-valid-inside-binding-interval-001.expected.json",
+      "sha256": "edcdf80e012684db7eac47999cfc8499df0de2254d7f95fb09ba64306d41fcca"
+    },
+    {
+      "path": "trust/ev1-valid-inside-binding-interval-001.input.json",
+      "sha256": "2747d73bf91527dbc7ac14633b650dc0e015339f789a7cf36c40c74581e8f864"
+    },
+    {
+      "path": "trust/ev1-valid-outside-binding-interval-001.expected.json",
+      "sha256": "a1ddd5ea414b0a1d7e3b574926e6a6e1649408f2be753db202fcccbfe204a5ea"
+    },
+    {
+      "path": "trust/ev1-valid-outside-binding-interval-001.input.json",
+      "sha256": "3775c421c3ab3e5a5b7cc39811a726e02bec2b5b6c9a76b4b36ccfc60e20f805"
+    },
+    {
+      "path": "trust/ev1-valid-revoked-key-001.expected.json",
+      "sha256": "27063207fc807262e517e843e2716264ac238a271762dddd55c349d2b1a48535"
+    },
+    {
+      "path": "trust/ev1-valid-revoked-key-001.input.json",
+      "sha256": "6142485ae922c6d862058fb5a4d3723fe1ac2fc720c7acc8da204c54515f3726"
+    },
+    {
+      "path": "trust/ev1-valid-self-asserted-key-001.expected.json",
+      "sha256": "24837d67dfff67091f3f48ff75416cccbe856df03d6d87e49290a8188d1083e9"
+    },
+    {
+      "path": "trust/ev1-valid-self-asserted-key-001.input.json",
+      "sha256": "6def6216b81ed5d0bc73ca0bfb61f844a32b9c2e32c24eaafce3162f16f4fb05"
+    },
+    {
+      "path": "trust/ev1-valid-stale-trust-snapshot-001.expected.json",
+      "sha256": "586d18a468a9054800692327404341365002c536115874670df53d73f352f55c"
+    },
+    {
+      "path": "trust/ev1-valid-stale-trust-snapshot-001.input.json",
+      "sha256": "e0cac45b2dd5c3b0a3fe1c3caf44a859169a6605160900fd75329759e60dd6fc"
+    },
+    {
+      "path": "trust/ev1-valid-trusted-pin-001.expected.json",
+      "sha256": "4334202097105180b9805b71fea7cbd82dae64ce83232d2f11214d9e7feadbbb"
+    },
+    {
+      "path": "trust/ev1-valid-trusted-pin-001.input.json",
+      "sha256": "3ca5d2e95f2fed8ef2989e0d6f01b7728f05c7798d94423f03ceed9e466e9df7"
+    },
+    {
+      "path": "trust/ev1-valid-untrusted-key-001.expected.json",
+      "sha256": "cc79c446641c99adf1e85ddfa5ea3b2d49c0295f086496ba754c9a801e00eb51"
+    },
+    {
+      "path": "trust/ev1-valid-untrusted-key-001.input.json",
+      "sha256": "6874d6d4cdd265a47d515b5151847bbe8b50480d99733438f836378605ae1c90"
+    }
+  ],
+  "format": "igris-test-vector-manifest",
+  "format_version": "1",
+  "generator": {
+    "implementation": "CPython",
+    "network_required": false,
+    "path": "conformance/schema1/python/generate.py",
+    "python_language_version": "3.11"
+  },
+  "known_divergences": [
+    {
+      "id": "DIV-001",
+      "status": "blocking-production-defect",
+      "vectors": [
+        "can1-valid-u2028-raw-001",
+        "can1-valid-u2029-raw-001",
+        "ev1-valid-u2028-signed-001",
+        "ev1-valid-u2029-signed-001"
+      ]
+    },
+    {
+      "id": "DIV-002",
+      "status": "blocking-production-capability-gap",
+      "vectors": [
+        "can1-unsupported-number-lexeme-lost-001",
+        "can1-valid-large-integer-001",
+        "can1-valid-number-1Eplus2-001",
+        "can1-valid-number-1e2-001",
+        "can1-valid-number-beyond-safe-001",
+        "can1-valid-number-negative-zero-001",
+        "can1-valid-number-zero-point-zero-001"
+      ]
+    }
+  ],
+  "object_schema_profile": "schema-1-legacy-compatibility",
+  "protocol_status": "frozen-candidate",
+  "ratification_commit": "938c8c27b96d38cd1819eb881d5fe57a197ddaa1",
+  "source_baseline_commit": "55d400490a5e6915b9ae634749c6845a0cd15726",
+  "suite_id": "igris-schema-1-conformance",
+  "suite_revision": "1.0.0-candidate.1",
+  "vectors": [
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-action-name-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-action-name-001",
+      "input": "contracts/action-contract-1/ac1-invalid-action-name-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-approval-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-approval-001",
+      "input": "contracts/action-contract-1/ac1-invalid-approval-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-descriptor-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-descriptor-001",
+      "input": "contracts/action-contract-1/ac1-invalid-descriptor-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-duplicate-member-001.expected.json",
+      "expected_primary_issue": "duplicate_member",
+      "family": "contract",
+      "id": "ac1-invalid-duplicate-member-001",
+      "input": "contracts/action-contract-1/ac1-invalid-duplicate-member-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "duplicate",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-execution-mode-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-execution-mode-001",
+      "input": "contracts/action-contract-1/ac1-invalid-execution-mode-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-extra-field-001.expected.json",
+      "expected_primary_issue": "unknown_field",
+      "family": "contract",
+      "id": "ac1-invalid-extra-field-001",
+      "input": "contracts/action-contract-1/ac1-invalid-extra-field-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-fingerprint-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-fingerprint-001",
+      "input": "contracts/action-contract-1/ac1-invalid-fingerprint-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-malformed-hash-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-malformed-hash-001",
+      "input": "contracts/action-contract-1/ac1-invalid-malformed-hash-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-missing-field-001.expected.json",
+      "expected_primary_issue": "missing_field",
+      "family": "contract",
+      "id": "ac1-invalid-missing-field-001",
+      "input": "contracts/action-contract-1/ac1-invalid-missing-field-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-risk-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-risk-001",
+      "input": "contracts/action-contract-1/ac1-invalid-risk-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-tampered-body-001.expected.json",
+      "expected_primary_issue": "hash_mismatch",
+      "family": "contract",
+      "id": "ac1-invalid-tampered-body-001",
+      "input": "contracts/action-contract-1/ac1-invalid-tampered-body-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-unicode-action-name-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-unicode-action-name-001",
+      "input": "contracts/action-contract-1/ac1-invalid-unicode-action-name-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-invalid-wrong-type-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "contract",
+      "id": "ac1-invalid-wrong-type-001",
+      "input": "contracts/action-contract-1/ac1-invalid-wrong-type-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-unsupported-schema-001.expected.json",
+      "expected_primary_issue": "unsupported_schema",
+      "family": "contract",
+      "id": "ac1-unsupported-schema-001",
+      "input": "contracts/action-contract-1/ac1-unsupported-schema-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-all-parameter-kinds-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-all-parameter-kinds-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-all-parameter-kinds-001",
+      "input": "contracts/action-contract-1/ac1-valid-all-parameter-kinds-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "deterministic",
+        "python-origin-descriptors"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-alpha2-basic-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-alpha2-basic-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-alpha2-basic-001",
+      "input": "contracts/action-contract-1/ac1-valid-alpha2-basic-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "historical-alpha2-byte-copy",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "historical"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-alpha2-specialchars-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-alpha2-specialchars-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-alpha2-specialchars-001",
+      "input": "contracts/action-contract-1/ac1-valid-alpha2-specialchars-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "historical-alpha2-byte-copy",
+      "schema_version": "1",
+      "tags": [
+        "action-contract",
+        "historical"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-risk-critical-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-risk-critical-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-risk-critical-001",
+      "input": "contracts/action-contract-1/ac1-valid-risk-critical-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "deterministic",
+        "python-origin-descriptors"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-risk-high-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-risk-high-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-risk-high-001",
+      "input": "contracts/action-contract-1/ac1-valid-risk-high-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "deterministic",
+        "python-origin-descriptors"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-risk-low-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-risk-low-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-risk-low-001",
+      "input": "contracts/action-contract-1/ac1-valid-risk-low-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "deterministic",
+        "python-origin-descriptors"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "contracts/action-contract-1/ac1-valid-risk-medium-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "verify"
+      ],
+      "expected": "contracts/action-contract-1/ac1-valid-risk-medium-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "contract",
+      "id": "ac1-valid-risk-medium-001",
+      "input": "contracts/action-contract-1/ac1-valid-risk-medium-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "action-contract",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "deterministic",
+        "python-origin-descriptors"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-indeterminate-excessive-depth-001.expected.json",
+      "expected_primary_issue": "resource_limit",
+      "family": "canonical",
+      "id": "can1-indeterminate-excessive-depth-001",
+      "input": "canonical/legacy-json-1/can1-indeterminate-excessive-depth-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "negative",
+        "resource_limit"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-indeterminate-excessive-size-001.expected.json",
+      "expected_primary_issue": "resource_limit",
+      "family": "canonical",
+      "id": "can1-indeterminate-excessive-size-001",
+      "input": "canonical/legacy-json-1/can1-indeterminate-excessive-size-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "negative",
+        "resource_limit"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-duplicate-member-001.expected.json",
+      "expected_primary_issue": "duplicate_member",
+      "family": "canonical",
+      "id": "can1-invalid-duplicate-member-001",
+      "input": "canonical/legacy-json-1/can1-invalid-duplicate-member-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "duplicate_member",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-incomplete-decimal-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "canonical",
+      "id": "can1-invalid-incomplete-decimal-001",
+      "input": "canonical/legacy-json-1/can1-invalid-incomplete-decimal-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-infinity-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "canonical",
+      "id": "can1-invalid-infinity-001",
+      "input": "canonical/legacy-json-1/can1-invalid-infinity-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-leading-plus-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "canonical",
+      "id": "can1-invalid-leading-plus-001",
+      "input": "canonical/legacy-json-1/can1-invalid-leading-plus-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-leading-zero-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "canonical",
+      "id": "can1-invalid-leading-zero-001",
+      "input": "canonical/legacy-json-1/can1-invalid-leading-zero-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-malformed-exponent-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "canonical",
+      "id": "can1-invalid-malformed-exponent-001",
+      "input": "canonical/legacy-json-1/can1-invalid-malformed-exponent-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-nan-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "canonical",
+      "id": "can1-invalid-nan-001",
+      "input": "canonical/legacy-json-1/can1-invalid-nan-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-surrogate-001.expected.json",
+      "expected_primary_issue": "invalid_unicode_scalar",
+      "family": "canonical",
+      "id": "can1-invalid-surrogate-001",
+      "input": "canonical/legacy-json-1/can1-invalid-surrogate-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_unicode_scalar",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-trailing-content-001.expected.json",
+      "expected_primary_issue": "trailing_content",
+      "family": "canonical",
+      "id": "can1-invalid-trailing-content-001",
+      "input": "canonical/legacy-json-1/can1-invalid-trailing-content-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "negative",
+        "trailing_content"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-invalid-utf8-001.expected.json",
+      "expected_primary_issue": "invalid_utf8",
+      "family": "canonical",
+      "id": "can1-invalid-utf8-001",
+      "input": "canonical/legacy-json-1/can1-invalid-utf8-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_utf8",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "capability-failure"
+      ],
+      "expected": "canonical/legacy-json-1/can1-unsupported-number-lexeme-lost-001.expected.json",
+      "expected_primary_issue": "unsupported_legacy_representation",
+      "family": "canonical",
+      "id": "can1-unsupported-number-lexeme-lost-001",
+      "input": "canonical/legacy-json-1/can1-unsupported-number-lexeme-lost-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": "mutations/can1-unsupported-number-lexeme-lost-001.mutation.json",
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "fail-closed",
+        "numeric-lexeme",
+        "required"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-alpha2-decision-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-alpha2-decision-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-alpha2-decision-001",
+      "input": "canonical/legacy-json-1/can1-valid-alpha2-decision-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "historical-alpha2-byte-copy",
+      "schema_version": "1",
+      "tags": [
+        "evidence",
+        "historical"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-alpha2-outcome-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-alpha2-outcome-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-alpha2-outcome-001",
+      "input": "canonical/legacy-json-1/can1-valid-alpha2-outcome-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "historical-alpha2-byte-copy",
+      "schema_version": "1",
+      "tags": [
+        "evidence",
+        "historical"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-control-characters-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-control-characters-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-control-characters-001",
+      "input": "canonical/legacy-json-1/can1-valid-control-characters-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "controls",
+        "escaping"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-empty-array-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-empty-array-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-empty-array-001",
+      "input": "canonical/legacy-json-1/can1-valid-empty-array-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "array",
+        "empty"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-empty-object-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-empty-object-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-empty-object-001",
+      "input": "canonical/legacy-json-1/can1-valid-empty-object-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "empty",
+        "object"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-false-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-false-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-false-001",
+      "input": "canonical/legacy-json-1/can1-valid-false-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "boolean"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-float-boundary-large-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-float-boundary-large-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-float-boundary-large-001",
+      "input": "canonical/legacy-json-1/can1-valid-float-boundary-large-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "float",
+        "python-emitted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-float-boundary-small-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-float-boundary-small-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-float-boundary-small-001",
+      "input": "canonical/legacy-json-1/can1-valid-float-boundary-small-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "float",
+        "python-emitted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-float-negative-zero-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-float-negative-zero-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-float-negative-zero-001",
+      "input": "canonical/legacy-json-1/can1-valid-float-negative-zero-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "float",
+        "python-emitted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-float-one-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-float-one-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-float-one-001",
+      "input": "canonical/legacy-json-1/can1-valid-float-one-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "float",
+        "python-emitted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-large-integer-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-large-integer-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-large-integer-001",
+      "input": "canonical/legacy-json-1/can1-valid-large-integer-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "integer",
+        "large"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-negative-integer-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-negative-integer-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-negative-integer-001",
+      "input": "canonical/legacy-json-1/can1-valid-negative-integer-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "integer"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-nested-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-nested-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-nested-001",
+      "input": "canonical/legacy-json-1/can1-valid-nested-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "nested"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-null-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-null-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-null-001",
+      "input": "canonical/legacy-json-1/can1-valid-null-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "null"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-100-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-100-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-100-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-100-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "numeric-lexeme"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-1Eplus2-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-1Eplus2-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-1Eplus2-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-1Eplus2-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "numeric-lexeme",
+        "required"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-1e2-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-1e2-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-1e2-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-1e2-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "numeric-lexeme",
+        "required"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-beyond-safe-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-beyond-safe-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-beyond-safe-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-beyond-safe-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "large",
+        "numeric-lexeme"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-negative-zero-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-negative-zero-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-negative-zero-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-negative-zero-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "numeric-lexeme"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-safe-max-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-safe-max-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-safe-max-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-safe-max-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "large",
+        "numeric-lexeme"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-zero-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-zero-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-zero-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-zero-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "numeric-lexeme"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-number-zero-point-zero-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-number-zero-point-zero-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-number-zero-point-zero-001",
+      "input": "canonical/legacy-json-1/can1-valid-number-zero-point-zero-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-002",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "numeric-lexeme"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-prefix-keys-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-prefix-keys-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-prefix-keys-001",
+      "input": "canonical/legacy-json-1/can1-valid-prefix-keys-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "ordering"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-raw-unicode-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-raw-unicode-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-raw-unicode-001",
+      "input": "canonical/legacy-json-1/can1-valid-raw-unicode-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "unicode"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-sorted-ascii-keys-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-sorted-ascii-keys-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-sorted-ascii-keys-001",
+      "input": "canonical/legacy-json-1/can1-valid-sorted-ascii-keys-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "ordering"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-special-characters-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-special-characters-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-special-characters-001",
+      "input": "canonical/legacy-json-1/can1-valid-special-characters-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "escaping"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-true-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-true-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-true-001",
+      "input": "canonical/legacy-json-1/can1-valid-true-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "boolean"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-u2028-raw-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-u2028-raw-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-u2028-raw-001",
+      "input": "canonical/legacy-json-1/can1-valid-u2028-raw-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-001",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "required",
+        "u2028",
+        "unicode"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-u2029-raw-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-u2029-raw-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-u2029-raw-001",
+      "input": "canonical/legacy-json-1/can1-valid-u2029-raw-001.input.json",
+      "key_ref": null,
+      "known_divergence": "DIV-001",
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "required",
+        "u2029",
+        "unicode"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-unicode-bmp-keys-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-unicode-bmp-keys-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-unicode-bmp-keys-001",
+      "input": "canonical/legacy-json-1/can1-valid-unicode-bmp-keys-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "ordering",
+        "unicode"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-unicode-supplementary-keys-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-unicode-supplementary-keys-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-unicode-supplementary-keys-001",
+      "input": "canonical/legacy-json-1/can1-valid-unicode-supplementary-keys-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "ordering",
+        "unicode"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-unknown-field-hashed-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-unknown-field-hashed-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-unknown-field-hashed-001",
+      "input": "canonical/legacy-json-1/can1-valid-unknown-field-hashed-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "legacy-unknown-field"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "canonical/legacy-json-1/can1-valid-zero-001.canonical.b64",
+      "capabilities": [
+        "canonical"
+      ],
+      "expected": "canonical/legacy-json-1/can1-valid-zero-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "canonical",
+      "id": "can1-valid-zero-001",
+      "input": "canonical/legacy-json-1/can1-valid-zero-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "integer"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-indeterminate-ambiguous-key-001.expected.json",
+      "expected_primary_issue": "ambiguous_key",
+      "family": "evidence",
+      "id": "ev1-indeterminate-ambiguous-key-001",
+      "input": "evidence/evidence-1/ev1-indeterminate-ambiguous-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-indeterminate-ambiguous-key-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "ambiguous_key",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-indeterminate-binding-interval-001.expected.json",
+      "expected_primary_issue": "binding_interval_indeterminate",
+      "family": "trust",
+      "id": "ev1-indeterminate-binding-interval-001",
+      "input": "trust/ev1-indeterminate-binding-interval-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "binding_interval_indeterminate",
+        "trust"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "completeness",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-indeterminate-checkpoint-head-missing-001.expected.json",
+      "expected_primary_issue": "incomplete_chain",
+      "family": "chain",
+      "id": "ev1-indeterminate-checkpoint-head-missing-001",
+      "input": "chains/evidence-1/ev1-indeterminate-checkpoint-head-missing-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-indeterminate-checkpoint-head-missing-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "checkpoint",
+        "incomplete"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-indeterminate-trust-ambiguous-key-001.expected.json",
+      "expected_primary_issue": "ambiguous_key",
+      "family": "trust",
+      "id": "ev1-indeterminate-trust-ambiguous-key-001",
+      "input": "trust/ev1-indeterminate-trust-ambiguous-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "unknown"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-indeterminate-trust-unknown-key-001.expected.json",
+      "expected_primary_issue": "unknown_key",
+      "family": "trust",
+      "id": "ev1-indeterminate-trust-unknown-key-001",
+      "input": "trust/ev1-indeterminate-trust-unknown-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "unknown"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-indeterminate-unknown-key-001.expected.json",
+      "expected_primary_issue": "unknown_key",
+      "family": "evidence",
+      "id": "ev1-indeterminate-unknown-key-001",
+      "input": "evidence/evidence-1/ev1-indeterminate-unknown-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-indeterminate-unknown-key-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "negative",
+        "unknown_key"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-broken-previous-hash-001.expected.json",
+      "expected_primary_issue": "chain_discontinuity",
+      "family": "chain",
+      "id": "ev1-invalid-broken-previous-hash-001",
+      "input": "chains/evidence-1/ev1-invalid-broken-previous-hash-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-broken-previous-hash-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "chain_discontinuity",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-decision-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "evidence",
+      "id": "ev1-invalid-decision-001",
+      "input": "evidence/evidence-1/ev1-invalid-decision-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-decision-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_field",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-duplicate-event-001.expected.json",
+      "expected_primary_issue": "chain_discontinuity",
+      "family": "chain",
+      "id": "ev1-invalid-duplicate-event-001",
+      "input": "chains/evidence-1/ev1-invalid-duplicate-event-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-duplicate-event-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "chain_discontinuity",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-duplicate-outcome-001.expected.json",
+      "expected_primary_issue": "duplicate_outcome",
+      "family": "chain",
+      "id": "ev1-invalid-duplicate-outcome-001",
+      "input": "chains/evidence-1/ev1-invalid-duplicate-outcome-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-duplicate-outcome-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "duplicate_outcome",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-fork-001.expected.json",
+      "expected_primary_issue": "fork_detected",
+      "family": "chain",
+      "id": "ev1-invalid-fork-001",
+      "input": "chains/evidence-1/ev1-invalid-fork-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-fork-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "fork_detected",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-insertion-001.expected.json",
+      "expected_primary_issue": "chain_discontinuity",
+      "family": "chain",
+      "id": "ev1-invalid-insertion-001",
+      "input": "chains/evidence-1/ev1-invalid-insertion-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-insertion-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "chain_discontinuity",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-malformed-signature-001.expected.json",
+      "expected_primary_issue": "invalid_signature",
+      "family": "evidence",
+      "id": "ev1-invalid-malformed-signature-001",
+      "input": "evidence/evidence-1/ev1-invalid-malformed-signature-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-malformed-signature-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_signature",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-middle-deletion-001.expected.json",
+      "expected_primary_issue": "chain_discontinuity",
+      "family": "chain",
+      "id": "ev1-invalid-middle-deletion-001",
+      "input": "chains/evidence-1/ev1-invalid-middle-deletion-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-middle-deletion-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "chain_discontinuity",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-missing-field-001.expected.json",
+      "expected_primary_issue": "missing_field",
+      "family": "evidence",
+      "id": "ev1-invalid-missing-field-001",
+      "input": "evidence/evidence-1/ev1-invalid-missing-field-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-missing-field-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "missing_field",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-orphan-outcome-001.expected.json",
+      "expected_primary_issue": "unknown_decision_reference",
+      "family": "chain",
+      "id": "ev1-invalid-orphan-outcome-001",
+      "input": "chains/evidence-1/ev1-invalid-orphan-outcome-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-orphan-outcome-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "negative",
+        "unknown_decision_reference"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-outcome-after-denial-001.expected.json",
+      "expected_primary_issue": "invalid_transition",
+      "family": "chain",
+      "id": "ev1-invalid-outcome-after-denial-001",
+      "input": "chains/evidence-1/ev1-invalid-outcome-after-denial-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-outcome-after-denial-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "invalid_transition",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-recomputed-hash-original-signature-001.expected.json",
+      "expected_primary_issue": "invalid_signature",
+      "family": "evidence",
+      "id": "ev1-invalid-recomputed-hash-original-signature-001",
+      "input": "evidence/evidence-1/ev1-invalid-recomputed-hash-original-signature-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-recomputed-hash-original-signature-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_signature",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-reorder-001.expected.json",
+      "expected_primary_issue": "chain_discontinuity",
+      "family": "chain",
+      "id": "ev1-invalid-reorder-001",
+      "input": "chains/evidence-1/ev1-invalid-reorder-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-reorder-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "chain_discontinuity",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-signature-length-001.expected.json",
+      "expected_primary_issue": "invalid_signature",
+      "family": "evidence",
+      "id": "ev1-invalid-signature-length-001",
+      "input": "evidence/evidence-1/ev1-invalid-signature-length-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-signature-length-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_signature",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-signature-wrong-representation-001.expected.json",
+      "expected_primary_issue": "invalid_signature",
+      "family": "evidence",
+      "id": "ev1-invalid-signature-wrong-representation-001",
+      "input": "evidence/evidence-1/ev1-invalid-signature-wrong-representation-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-signature-wrong-representation-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_signature",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [
+        "invalid_signature"
+      ],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-tampered-payload-001.expected.json",
+      "expected_primary_issue": "hash_mismatch",
+      "family": "evidence",
+      "id": "ev1-invalid-tampered-payload-001",
+      "input": "evidence/evidence-1/ev1-invalid-tampered-payload-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-tampered-payload-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "hash_mismatch",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-tampered-signature-001.expected.json",
+      "expected_primary_issue": "invalid_signature",
+      "family": "evidence",
+      "id": "ev1-invalid-tampered-signature-001",
+      "input": "evidence/evidence-1/ev1-invalid-tampered-signature-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-tampered-signature-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_signature",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-timestamp-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "evidence",
+      "id": "ev1-invalid-timestamp-001",
+      "input": "evidence/evidence-1/ev1-invalid-timestamp-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-timestamp-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_field",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-unregistered-event-type-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "evidence",
+      "id": "ev1-invalid-unregistered-event-type-001",
+      "input": "evidence/evidence-1/ev1-invalid-unregistered-event-type-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-unregistered-event-type-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_field",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-wrong-field-type-001.expected.json",
+      "expected_primary_issue": "invalid_field",
+      "family": "evidence",
+      "id": "ev1-invalid-wrong-field-type-001",
+      "input": "evidence/evidence-1/ev1-invalid-wrong-field-type-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-wrong-field-type-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_field",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-invalid-wrong-genesis-001.expected.json",
+      "expected_primary_issue": "chain_discontinuity",
+      "family": "chain",
+      "id": "ev1-invalid-wrong-genesis-001",
+      "input": "chains/evidence-1/ev1-invalid-wrong-genesis-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-wrong-genesis-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "chain_discontinuity",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-invalid-wrong-public-key-001.expected.json",
+      "expected_primary_issue": "invalid_signature",
+      "family": "evidence",
+      "id": "ev1-invalid-wrong-public-key-001",
+      "input": "evidence/evidence-1/ev1-invalid-wrong-public-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-invalid-wrong-public-key-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "invalid_signature",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "parse",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-malformed-object-001.expected.json",
+      "expected_primary_issue": "malformed",
+      "family": "evidence",
+      "id": "ev1-malformed-object-001",
+      "input": "evidence/evidence-1/ev1-malformed-object-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "malformed",
+        "negative"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-unsupported-schema-001.expected.json",
+      "expected_primary_issue": "unsupported_schema",
+      "family": "evidence",
+      "id": "ev1-unsupported-schema-001",
+      "input": "evidence/evidence-1/ev1-unsupported-schema-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-unsupported-schema-001.mutation.json",
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "negative",
+        "unsupported_schema"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-absent-revocation-snapshot-001.expected.json",
+      "expected_primary_issue": "trust_unknown",
+      "family": "trust",
+      "id": "ev1-valid-absent-revocation-snapshot-001",
+      "input": "trust/ev1-valid-absent-revocation-snapshot-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "unknown"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-active-organization-binding-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "trust",
+      "id": "ev1-valid-active-organization-binding-001",
+      "input": "trust/ev1-valid-active-organization-binding-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "trusted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "evidence/evidence-1/ev1-valid-allowed-decision-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "signature",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-valid-allowed-decision-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "evidence",
+      "id": "ev1-valid-allowed-decision-001",
+      "input": "evidence/evidence-1/ev1-valid-allowed-decision-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "decision",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-allowed-failed-chain-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-allowed-failed-chain-001",
+      "input": "chains/evidence-1/ev1-valid-allowed-failed-chain-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-allowed-succeeded-chain-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-allowed-succeeded-chain-001",
+      "input": "chains/evidence-1/ev1-valid-allowed-succeeded-chain-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-alpha2-journal-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-alpha2-journal-001",
+      "input": "chains/evidence-1/ev1-valid-alpha2-journal-001.input.jsonl",
+      "key_ref": "alpha2-historical",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-chain",
+      "provenance": "historical-alpha2-byte-copy",
+      "schema_version": "1",
+      "tags": [
+        "historical",
+        "journal",
+        "required"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-denied-chain-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-denied-chain-001",
+      "input": "chains/evidence-1/ev1-valid-denied-chain-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "evidence/evidence-1/ev1-valid-denied-decision-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "signature",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-valid-denied-decision-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "evidence",
+      "id": "ev1-valid-denied-decision-001",
+      "input": "evidence/evidence-1/ev1-valid-denied-decision-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "decision",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-inside-binding-interval-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "trust",
+      "id": "ev1-valid-inside-binding-interval-001",
+      "input": "trust/ev1-valid-inside-binding-interval-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "trusted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "evidence/evidence-1/ev1-valid-metadata-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "signature",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-valid-metadata-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "evidence",
+      "id": "ev1-valid-metadata-001",
+      "input": "evidence/evidence-1/ev1-valid-metadata-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "decision",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-multiple-action-instances-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-multiple-action-instances-001",
+      "input": "chains/evidence-1/ev1-valid-multiple-action-instances-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "multiple-instances",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-outside-binding-interval-001.expected.json",
+      "expected_primary_issue": "outside_binding_interval",
+      "family": "trust",
+      "id": "ev1-valid-outside-binding-interval-001",
+      "input": "trust/ev1-valid-outside-binding-interval-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "outside_binding_interval",
+        "trust"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-partial-anchored-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-partial-anchored-001",
+      "input": "chains/evidence-1/ev1-valid-partial-anchored-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": "mutations/ev1-valid-partial-anchored-001.mutation.json",
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "anchored",
+        "chain",
+        "partial"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-revoked-key-001.expected.json",
+      "expected_primary_issue": "revoked_key",
+      "family": "trust",
+      "id": "ev1-valid-revoked-key-001",
+      "input": "trust/ev1-valid-revoked-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "revoked",
+        "trust"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-self-asserted-key-001.expected.json",
+      "expected_primary_issue": "trust_unknown",
+      "family": "trust",
+      "id": "ev1-valid-self-asserted-key-001",
+      "input": "trust/ev1-valid-self-asserted-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "unknown"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-stale-trust-snapshot-001.expected.json",
+      "expected_primary_issue": "stale_trust_snapshot",
+      "family": "trust",
+      "id": "ev1-valid-stale-trust-snapshot-001",
+      "input": "trust/ev1-valid-stale-trust-snapshot-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "unknown"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "hash",
+        "signature",
+        "continuity",
+        "semantics",
+        "verify"
+      ],
+      "expected": "chains/evidence-1/ev1-valid-tail-unwitnessed-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "chain",
+      "id": "ev1-valid-tail-unwitnessed-001",
+      "input": "chains/evidence-1/ev1-valid-tail-unwitnessed-001.input.jsonl",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-chain",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "chain",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-trusted-pin-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "trust",
+      "id": "ev1-valid-trusted-pin-001",
+      "input": "trust/ev1-valid-trusted-pin-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "trusted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "evidence/evidence-1/ev1-valid-u2028-signed-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "signature",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-valid-u2028-signed-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "evidence",
+      "id": "ev1-valid-u2028-signed-001",
+      "input": "evidence/evidence-1/ev1-valid-u2028-signed-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": "DIV-001",
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "decision",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "evidence/evidence-1/ev1-valid-u2029-signed-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "signature",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-valid-u2029-signed-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "evidence",
+      "id": "ev1-valid-u2029-signed-001",
+      "input": "evidence/evidence-1/ev1-valid-u2029-signed-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": "DIV-001",
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "decision",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": "evidence/evidence-1/ev1-valid-unknown-field-hashed-001.canonical.b64",
+      "capabilities": [
+        "canonical",
+        "hash",
+        "signature",
+        "verify"
+      ],
+      "expected": "evidence/evidence-1/ev1-valid-unknown-field-hashed-001.expected.json",
+      "expected_primary_issue": null,
+      "family": "evidence",
+      "id": "ev1-valid-unknown-field-hashed-001",
+      "input": "evidence/evidence-1/ev1-valid-unknown-field-hashed-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "decision",
+        "positive"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "trust",
+        "verify"
+      ],
+      "expected": "trust/ev1-valid-untrusted-key-001.expected.json",
+      "expected_primary_issue": "untrusted_key",
+      "family": "trust",
+      "id": "ev1-valid-untrusted-key-001",
+      "input": "trust/ev1-valid-untrusted-key-001.input.json",
+      "key_ref": "deterministic-001",
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "evidence-event",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "trust",
+        "untrusted"
+      ]
+    },
+    {
+      "allowed_secondary_issues": [],
+      "canonical": null,
+      "capabilities": [
+        "governance"
+      ],
+      "expected": "canonical/legacy-json-1/spec1-indeterminate-conflict-001.expected.json",
+      "expected_primary_issue": "specification_conflict",
+      "family": "canonical",
+      "id": "spec1-indeterminate-conflict-001",
+      "input": "canonical/legacy-json-1/spec1-indeterminate-conflict-001.input.json",
+      "key_ref": null,
+      "known_divergence": null,
+      "mutation": null,
+      "object_type": "unknown",
+      "provenance": "deterministic-new",
+      "schema_version": "1",
+      "tags": [
+        "fail-closed",
+        "specification"
+      ]
+    }
+  ],
+  "verification_result_schema_id": "igris:protocol:verification-result:1"
+}

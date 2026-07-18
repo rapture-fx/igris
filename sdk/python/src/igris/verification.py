@@ -21,14 +21,20 @@ capability).
 from __future__ import annotations
 
 import dataclasses
-import json
+import hashlib
 from pathlib import Path
 from typing import Any
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .identity import key_id_for, verify_signature
-from .journal import EVENT_SCHEMA_VERSION, event_digest, unsigned_payload
+from .journal import EVENT_SCHEMA_VERSION, unsigned_payload
+from .legacy_schema1 import (
+    LegacySchema1JSONError,
+    UnsupportedLegacyRepresentation,
+    encode_legacy_json,
+    parse_legacy_object,
+)
 
 KNOWN_SCHEMA_VERSIONS = frozenset({EVENT_SCHEMA_VERSION})
 KNOWN_EVENT_TYPES = frozenset({"decision", "outcome"})
@@ -123,20 +129,12 @@ def load_journal_snapshot(path: Path, public_key: Ed25519PublicKey) -> JournalSn
             continue
 
         try:
-            event = json.loads(stripped.decode("utf-8"))
-        except (ValueError, UnicodeDecodeError) as exc:
+            event = parse_legacy_object(stripped)
+        except LegacySchema1JSONError as exc:
             issues.append(
                 VerificationIssue(line_number, "malformed_json", f"line is not valid JSON: {exc}")
             )
             # The chain cannot be followed past an unparseable line.
-            return JournalSnapshot(
-                VerificationResult(False, events_verified, tuple(issues)), tuple(events)
-            )
-
-        if not isinstance(event, dict):
-            issues.append(
-                VerificationIssue(line_number, "malformed_event", "line is not a JSON object")
-            )
             return JournalSnapshot(
                 VerificationResult(False, events_verified, tuple(issues)), tuple(events)
             )
@@ -225,7 +223,24 @@ def _verify_event(
 
     # Hash integrity.
     payload = unsigned_payload(event)
-    digest = event_digest(payload)
+    try:
+        digest = hashlib.sha256(encode_legacy_json(payload)).digest()
+    except UnsupportedLegacyRepresentation as exc:
+        issues.append(
+            VerificationIssue(
+                line_number,
+                "unsupported_legacy_representation",
+                f"exact schema-1 reconstruction is unavailable: {exc}",
+            )
+        )
+        return issues
+    except LegacySchema1JSONError as exc:
+        issues.append(
+            VerificationIssue(
+                line_number, "malformed_event", f"event cannot be reconstructed: {exc}"
+            )
+        )
+        return issues
     if event["event_hash"] != digest.hex():
         issues.append(
             VerificationIssue(

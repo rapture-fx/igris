@@ -1,0 +1,43 @@
+{
+  "action_name": "conformance.risk.critical",
+  "approval_mode": "required",
+  "code_fingerprint": null,
+  "contract_hash": "824bbeb820a8d77737c98958824c551b2f37a1174e0938450a3fdd34de08f131",
+  "execution_mode": "embedded",
+  "module": "conformance",
+  "parameter_descriptors": [
+    {
+      "annotation": null,
+      "has_default": false,
+      "kind": "POSITIONAL_ONLY",
+      "name": "p0"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": false,
+      "kind": "POSITIONAL_OR_KEYWORD",
+      "name": "p1"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": false,
+      "kind": "VAR_POSITIONAL",
+      "name": "p2"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": true,
+      "kind": "KEYWORD_ONLY",
+      "name": "p3"
+    },
+    {
+      "annotation": "typing.Annotated[str, 'café ☕']",
+      "has_default": false,
+      "kind": "VAR_KEYWORD",
+      "name": "p4"
+    }
+  ],
+  "qualified_name": "contract",
+  "risk": "critical",
+  "schema_version": "1"
+}

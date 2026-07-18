@@ -19,6 +19,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"regexp"
 	"strings"
@@ -28,7 +29,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Igris-inertial/system/igris-overture/internal/canonicaljson"
+	"github.com/Igris-inertial/system/igris-overture/internal/schema1json"
 	"github.com/Igris-inertial/system/igris-overture/middleware"
 )
 
@@ -404,8 +405,11 @@ func decodeEvidenceSubmission(body []byte) (*evidenceSubmission, *contractValida
 		return nil, &contractValidationError{status: status, code: code, detail: detail}
 	}
 
-	request, err := canonicaljson.DecodeObjectPreserving(body)
+	request, err := schema1json.DecodeObject(body)
 	if err != nil {
+		if errors.Is(err, schema1json.ErrMaximumDepth) {
+			return fail(http.StatusUnprocessableEntity, "validation_failed", "event nesting exceeds maximum depth")
+		}
 		return fail(http.StatusBadRequest, "invalid_body", "request must be a JSON object")
 	}
 	for key := range request {
@@ -471,7 +475,7 @@ func decodeEvidenceSubmission(body []byte) (*evidenceSubmission, *contractValida
 		if depth := jsonDepth(event, 0); depth > evidenceMaxDepth {
 			return fail(http.StatusUnprocessableEntity, "validation_failed", "event nesting exceeds maximum depth")
 		}
-		encoded, err := canonicaljson.Encode(event)
+		encoded, err := schema1json.Encode(event)
 		if err != nil || len(encoded) > evidenceMaxEventBytes {
 			return fail(http.StatusUnprocessableEntity, "validation_failed", "an event exceeds the per-event size limit")
 		}
@@ -480,7 +484,7 @@ func decodeEvidenceSubmission(body []byte) (*evidenceSubmission, *contractValida
 		}
 		// Batch identity commits to the ACTUAL submitted bytes (see
 		// evidenceContentHash), never the claimed event_hash manifest.
-		byteHashes = append(byteHashes, canonicaljson.SHA256Hex(encoded))
+		byteHashes = append(byteHashes, schema1json.SHA256Hex(encoded))
 		if index == 0 {
 			var eventPrev *string
 			switch prev := event["previous_event_hash"].(type) {

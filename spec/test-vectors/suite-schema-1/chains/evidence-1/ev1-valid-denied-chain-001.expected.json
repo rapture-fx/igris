@@ -1,0 +1,51 @@
+{
+  "canonical": null,
+  "chain_head": "43276b2ce0007ecfbd4b9b51701b2b5bc364726b8b76317e2244445d28f8f812",
+  "rule": "Schema-1 Evidence chain continuity and lifecycle",
+  "signature": null,
+  "vector_id": "ev1-valid-denied-chain-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-chain"
+    },
+    "canonicalization": "valid",
+    "completeness": "completeness_unknown",
+    "continuity": "valid_genesis",
+    "events_verified": 1,
+    "issues": [
+      {
+        "code": "completeness_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "trust_unknown",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      },
+      {
+        "code": "producer_time_only",
+        "event_index": null,
+        "path": null,
+        "severity": "warning"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}

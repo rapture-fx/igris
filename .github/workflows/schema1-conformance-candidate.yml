@@ -1,0 +1,339 @@
+# Frozen-candidate validation only. This workflow does not publish, deploy, or
+# promote the schema-1 suite to released status. Pull requests run with a
+# read-only token, immutable action pins, and no persisted checkout credential.
+name: Schema-1 Conformance Candidate
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/schema1-conformance-candidate.yml"
+      - "conformance/schema1/**"
+      - "conformance/go-verifier/**"
+      - "spec/schemas/verification-result-1.schema.json"
+      - "spec/test-vectors/suite-schema-1/**"
+      - "testdata/igris-contract-v1/**"
+      - "sdk/python/pyproject.toml"
+      - "sdk/python/uv.lock"
+      - "sdk/python/src/igris/legacy_schema1.py"
+      - "sdk/python/src/igris/verification.py"
+      - "sdk/python/src/igris/evidence_sync.py"
+      - "sdk/python/tests/test_legacy_schema1.py"
+      - "sdk/python/tests/test_verification.py"
+      - "sdk/python/tests/test_evidence_sync.py"
+      - "igris-overture/api/schema1_conformance_candidate_test.go"
+      - "igris-overture/api/evidence_verify.go"
+      - "igris-overture/api/routes_evidence.go"
+      - "igris-overture/api/routes_contracts.go"
+      - "igris-overture/internal/canonicaljson/**"
+      - "igris-overture/internal/schema1json/**"
+      - "go.mod"
+      - "go.sum"
+  merge_group:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - ".github/workflows/schema1-conformance-candidate.yml"
+      - "conformance/schema1/**"
+      - "conformance/go-verifier/**"
+      - "spec/schemas/verification-result-1.schema.json"
+      - "spec/test-vectors/suite-schema-1/**"
+      - "testdata/igris-contract-v1/**"
+      - "sdk/python/pyproject.toml"
+      - "sdk/python/uv.lock"
+      - "sdk/python/src/igris/legacy_schema1.py"
+      - "sdk/python/src/igris/verification.py"
+      - "sdk/python/src/igris/evidence_sync.py"
+      - "sdk/python/tests/test_legacy_schema1.py"
+      - "sdk/python/tests/test_verification.py"
+      - "sdk/python/tests/test_evidence_sync.py"
+      - "igris-overture/api/schema1_conformance_candidate_test.go"
+      - "igris-overture/api/evidence_verify.go"
+      - "igris-overture/api/routes_evidence.go"
+      - "igris-overture/api/routes_contracts.go"
+      - "igris-overture/internal/canonicaljson/**"
+      - "igris-overture/internal/schema1json/**"
+      - "go.mod"
+      - "go.sum"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: schema1-candidate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  python-candidate:
+    name: Schema, manifest, Python runner, determinism
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Verify every manifest file is committed and byte-exact
+        env:
+          PYTHONPATH: .
+        run: >-
+          python -m
+          conformance.schema1.python.check_manifest_git_completeness
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          version: "0.9.8"
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/uv.lock"
+
+      - name: Verify frozen Python dependency state is committed and current
+        env:
+          PYTHONPATH: .
+        run: |
+          git ls-files --error-unmatch sdk/python/uv.lock
+          python -m conformance.schema1.python.check_python_lock_reproducibility
+          uv lock --project sdk/python --check
+
+      - name: Install pinned test environment
+        run: uv sync --project sdk/python --group dev --frozen
+
+      - name: Run schema, parser, runner, integrity, and negative tests offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          PYTHONPATH: .
+        run: uv run --project sdk/python --no-sync pytest -q conformance/schema1/python
+
+      - name: Execute committed Python candidate offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          PYTHONPATH: .
+        run: >-
+          uv run --project sdk/python --no-sync python
+          -m conformance.schema1.python.runner
+          --suite spec/test-vectors/suite-schema-1
+
+      - name: Exercise maintained Python schema-1 verification and sync paths offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+        run: >-
+          uv run --project sdk/python --no-sync pytest -q
+          sdk/python/tests/test_legacy_schema1.py
+          sdk/python/tests/test_verification.py
+          sdk/python/tests/test_evidence_sync.py
+
+      - name: Enforce deterministic test-seed containment
+        env:
+          PYTHONPATH: .
+        run: >-
+          uv run --project sdk/python --no-sync python
+          -m conformance.schema1.python.check_test_seed_references
+
+      - name: Regenerate twice and compare every candidate byte
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          first="$(mktemp -d)/suite-schema-1"
+          second="$(mktemp -d)/suite-schema-1"
+          uv run --project sdk/python --no-sync python -m conformance.schema1.python.generate --output "$first"
+          uv run --project sdk/python --no-sync python -m conformance.schema1.python.generate --output "$second"
+          diff -qr "$first" "$second"
+          diff -qr "$first" spec/test-vectors/suite-schema-1
+
+  existing-go-path:
+    name: Existing Go paths consume frozen candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Download pinned Go modules
+        run: go mod download
+
+      - name: Run candidate and historical Go paths offline
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+        run: |
+          go test ./igris-overture/api -run '^TestSchema1ConformanceCandidate$' -count=1 -v -timeout=300s
+          go test ./conformance/contractv1 ./igris-overture/internal/canonicaljson ./igris-overture/internal/schema1json -count=1 -timeout=120s
+
+  standalone-verifier:
+    name: Standalone Go verifier conformance and isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.24.x"
+          cache: false
+
+      - name: Verify frozen manifest integrity
+        run: |
+          echo "864e8043944191222af789b3d0dd3d947f03b1aadf52651bde97511d807776f4  spec/test-vectors/suite-schema-1/manifest.json" | sha256sum -c -
+          python3 -c "import json; assert len(json.load(open('spec/test-vectors/suite-schema-1/manifest.json'))['files']) == 321"
+
+      - name: Enforce formatting and vet
+        working-directory: conformance/go-verifier
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+
+      - name: Build the standalone CLI
+        working-directory: conformance/go-verifier
+        env:
+          GOPROXY: "off"
+        run: go build ./...
+
+      - name: Enforce implementation-independence guard
+        working-directory: conformance/go-verifier
+        env:
+          GOPROXY: "off"
+        run: |
+          # The standalone module must build from the Go standard library only.
+          # go list writes to a file first so a package-load failure (for
+          # example an unresolvable prohibited import) fails this step instead
+          # of being swallowed by the empty-result filter below.
+          dep_list="$(mktemp)"
+          go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... > "$dep_list"
+          deps="$(grep -v '^$' "$dep_list" | grep -v '^github.com/Igris-inertial/system/conformance/go-verifier' || true)"
+          if [ -n "$deps" ]; then
+            echo "prohibited non-standard dependencies:" >&2
+            echo "$deps" >&2
+            exit 1
+          fi
+          # Test binaries must also stay standard-library + module-local, so a
+          # prohibited import in any _test.go file (including the enforcement
+          # test) is caught structurally rather than by text search.
+          test_dep_list="$(mktemp)"
+          go list -deps -test -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... > "$test_dep_list"
+          testdeps="$(grep -v '^$' "$test_dep_list" | grep -v '^github.com/Igris-inertial/system/conformance/go-verifier' || true)"
+          if [ -n "$testdeps" ]; then
+            echo "prohibited non-standard test dependencies:" >&2
+            echo "$testdeps" >&2
+            exit 1
+          fi
+          if go list -deps ./... | grep -E '^(net|net/http|os/exec|database/sql)$|igris-overture'; then
+            echo "prohibited capability package in the build graph" >&2
+            exit 1
+          fi
+          # independence_test.go is the only file allowed to name the
+          # production module: it carries the prohibited-package blocklist this
+          # guard enforces. Imports there are still covered by the -test
+          # dependency check above.
+          if grep -rn "igris-overture" --include='*.go' --exclude=independence_test.go .; then
+            echo "prohibited source reference to production packages" >&2
+            exit 1
+          fi
+
+      - name: Run standalone unit, adversarial, and CLI tests offline
+        working-directory: conformance/go-verifier
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          GOPROXY: "off"
+        run: go test ./... -count=1 -timeout=300s
+
+      - name: Run frozen 120-vector conformance with the standalone verifier only
+        working-directory: conformance/go-verifier
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+          GOPROXY: "off"
+        run: |
+          go run ./cmd/igris-verify vectors --suite ../../spec/test-vectors/suite-schema-1 > standalone-report.json
+          python3 -c "import json; r=json.load(open('standalone-report.json')); assert r['status']=='pass' and r['selected']==120 and r['passed']==120, r"
+          rm standalone-report.json
+
+      - name: Run bounded fuzz smoke
+        working-directory: conformance/go-verifier
+        env:
+          GOPROXY: "off"
+        run: |
+          go test ./verifier/ -run '^$' -fuzz FuzzParseLegacyJSON -fuzztime 20s
+          go test ./verifier/ -run '^$' -fuzz FuzzVerifyArtifacts -fuzztime 20s
+
+      - name: Enforce clean tree
+        run: |
+          git diff --check
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+
+  three-way-differential:
+    name: Three-way implementation differential
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          version: "0.9.8"
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/uv.lock"
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
+        with:
+          go-version: "1.24.x"
+          cache: true
+
+      - name: Install locked Python environment
+        run: uv sync --project sdk/python --group dev --frozen
+
+      - name: Download pinned Go modules
+        run: go mod download
+
+      - name: Run all three implementations against the frozen candidate
+        env:
+          HTTP_PROXY: http://127.0.0.1:9
+          HTTPS_PROXY: http://127.0.0.1:9
+          NO_PROXY: ""
+        run: ./conformance/schema1/three_way_differential.sh "$RUNNER_TEMP/three-way"

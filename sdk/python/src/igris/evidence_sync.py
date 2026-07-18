@@ -46,7 +46,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-from .canonical import canonical_json_bytes, sha256_hex
+from .canonical import sha256_hex
 from .connected import (
     DEFAULT_TIMEOUT_SECONDS,
     ENDPOINT_ENV,
@@ -74,6 +74,7 @@ from .identity import (
     key_id_for,
     load_public_key,
 )
+from .legacy_schema1 import encode_legacy_json, parse_legacy_object
 from .verification import load_journal_snapshot
 
 BATCHES_PATH = "/v1/evidence/batches"
@@ -139,7 +140,7 @@ def read_journal_events(path: Path) -> list[dict[str, Any]]:
     for line in path.read_bytes().split(b"\n"):
         stripped = line.strip()
         if stripped:
-            events.append(json.loads(stripped.decode("utf-8")))
+            events.append(parse_legacy_object(stripped))
     return events
 
 
@@ -150,7 +151,7 @@ def batch_content_hash(key_id: str, events: list[dict[str, Any]]) -> str:
     the canonical event bytes (igris-overture/api/evidence_verify.go
     ``evidenceContentHash``). Keep the two implementations in lockstep.
     """
-    byte_hashes = [sha256_hex(canonical_json_bytes(event)) for event in events]
+    byte_hashes = [sha256_hex(encode_legacy_json(event)) for event in events]
     material = "igris-evidence-batch:v1:" + key_id + ":" + ",".join(byte_hashes)
     return sha256_hex(material.encode("utf-8"))
 
@@ -216,7 +217,7 @@ class HttpEvidenceSyncClient:
         # S310: scheme restricted to https/local-dev http by configuration.
         request = urllib.request.Request(  # noqa: S310
             self._config.endpoint + BATCHES_PATH,
-            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            data=encode_legacy_json(payload),
             method="POST",
             headers={
                 "Content-Type": "application/json",
@@ -500,7 +501,7 @@ def _next_chunk(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     chunk: list[dict[str, Any]] = []
     budget = MAX_BATCH_PAYLOAD_BYTES
     for event in events:
-        size = len(canonical_json_bytes(event)) + 1
+        size = len(encode_legacy_json(event)) + 1
         if chunk and (len(chunk) >= MAX_EVENTS_PER_BATCH or size > budget):
             break
         chunk.append(event)

@@ -1,0 +1,36 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25fbmFtZSI6ImZpeHR1cmVzLnNwZWNpYWxjaGFycy50cmFuc2ZlciIsImFwcHJvdmFsX21vZGUiOiJyZXF1aXJlZCIsImNvZGVfZmluZ2VycHJpbnQiOiI3MGNmZjZmZDVhMzE4NDgwMzU4NjdlZTRkMTUxMGE2NzNmOTFkMDlhMTljNWY4YTcxY2FjODQ2ZjI1YjJiNWVmIiwiZXhlY3V0aW9uX21vZGUiOiJlbWJlZGRlZCIsIm1vZHVsZSI6Il9fbWFpbl9fIiwicGFyYW1ldGVyX2Rlc2NyaXB0b3JzIjpbeyJhbm5vdGF0aW9uIjoiQW5ub3RhdGVkW3N0ciwgXCJjYWbDqSDimJUg5pel5pys6KqeIDxiPiZhbXA7PC9iPiBcXFwicXVvdGVkXFxcIiBiYWNrXFxcXHNsYXNoIGxpbmUxXFxubGluZTJcIl0iLCJoYXNfZGVmYXVsdCI6ZmFsc2UsImtpbmQiOiJQT1NJVElPTkFMX09SX0tFWVdPUkQiLCJuYW1lIjoicmVjaXBpZW50In0seyJhbm5vdGF0aW9uIjoiY2Fmw6kg4piVIOaXpeacrOiqniA8Yj4mYW1wOzwvYj4gXCJxdW90ZWRcIiBiYWNrXFxzbGFzaCBsaW5lMVxubGluZTIiLCJoYXNfZGVmYXVsdCI6ZmFsc2UsImtpbmQiOiJQT1NJVElPTkFMX09SX0tFWVdPUkQiLCJuYW1lIjoibm90ZSJ9XSwicXVhbGlmaWVkX25hbWUiOiJtYWluLjxsb2NhbHM+LnRyYW5zZmVyX2Z1bmRzIiwicmlzayI6ImhpZ2giLCJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+    "sha256_hex": "b9e8eb26798d304327e5ab3a2d2686c790aacb43340376f33f6f8e3cfcb91f55",
+    "utf8": "{\"action_name\":\"fixtures.specialchars.transfer\",\"approval_mode\":\"required\",\"code_fingerprint\":\"70cff6fd5a31848035867ee4d1510a673f91d09a19c5f8a71cac846f25b2b5ef\",\"execution_mode\":\"embedded\",\"module\":\"__main__\",\"parameter_descriptors\":[{\"annotation\":\"Annotated[str, \\\"café ☕ 日本語 <b>&amp;</b> \\\\\\\"quoted\\\\\\\" back\\\\\\\\slash line1\\\\nline2\\\"]\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"recipient\"},{\"annotation\":\"café ☕ 日本語 <b>&amp;</b> \\\"quoted\\\" back\\\\slash line1\\nline2\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"note\"}],\"qualified_name\":\"main.<locals>.transfer_funds\",\"risk\":\"high\",\"schema_version\":\"1\"}"
+  },
+  "object_hash": "b9e8eb26798d304327e5ab3a2d2686c790aacb43340376f33f6f8e3cfcb91f55",
+  "rule": "Historical ActionContract body excluding contract_hash",
+  "signature": null,
+  "vector_id": "ac1-valid-alpha2-specialchars-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "action-contract"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "not_required",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

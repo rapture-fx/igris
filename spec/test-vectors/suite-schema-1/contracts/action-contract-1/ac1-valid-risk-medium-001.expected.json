@@ -1,0 +1,36 @@
+{
+  "canonical": {
+    "bytes_base64": "eyJhY3Rpb25fbmFtZSI6ImNvbmZvcm1hbmNlLnJpc2subWVkaXVtIiwiYXBwcm92YWxfbW9kZSI6InJlcXVpcmVkIiwiY29kZV9maW5nZXJwcmludCI6bnVsbCwiZXhlY3V0aW9uX21vZGUiOiJlbWJlZGRlZCIsIm1vZHVsZSI6ImNvbmZvcm1hbmNlIiwicGFyYW1ldGVyX2Rlc2NyaXB0b3JzIjpbeyJhbm5vdGF0aW9uIjpudWxsLCJoYXNfZGVmYXVsdCI6ZmFsc2UsImtpbmQiOiJQT1NJVElPTkFMX09OTFkiLCJuYW1lIjoicDAifSx7ImFubm90YXRpb24iOiJ0eXBpbmcuQW5ub3RhdGVkW3N0ciwgJ2NhZsOpIOKYlSddIiwiaGFzX2RlZmF1bHQiOmZhbHNlLCJraW5kIjoiUE9TSVRJT05BTF9PUl9LRVlXT1JEIiwibmFtZSI6InAxIn0seyJhbm5vdGF0aW9uIjoidHlwaW5nLkFubm90YXRlZFtzdHIsICdjYWbDqSDimJUnXSIsImhhc19kZWZhdWx0IjpmYWxzZSwia2luZCI6IlZBUl9QT1NJVElPTkFMIiwibmFtZSI6InAyIn0seyJhbm5vdGF0aW9uIjoidHlwaW5nLkFubm90YXRlZFtzdHIsICdjYWbDqSDimJUnXSIsImhhc19kZWZhdWx0Ijp0cnVlLCJraW5kIjoiS0VZV09SRF9PTkxZIiwibmFtZSI6InAzIn0seyJhbm5vdGF0aW9uIjoidHlwaW5nLkFubm90YXRlZFtzdHIsICdjYWbDqSDimJUnXSIsImhhc19kZWZhdWx0IjpmYWxzZSwia2luZCI6IlZBUl9LRVlXT1JEIiwibmFtZSI6InA0In1dLCJxdWFsaWZpZWRfbmFtZSI6ImNvbnRyYWN0IiwicmlzayI6Im1lZGl1bSIsInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+    "sha256_hex": "207b66bfc5983a0431d5682e36725463c98c19af5c6bcf9501b372b081cf4dc0",
+    "utf8": "{\"action_name\":\"conformance.risk.medium\",\"approval_mode\":\"required\",\"code_fingerprint\":null,\"execution_mode\":\"embedded\",\"module\":\"conformance\",\"parameter_descriptors\":[{\"annotation\":null,\"has_default\":false,\"kind\":\"POSITIONAL_ONLY\",\"name\":\"p0\"},{\"annotation\":\"typing.Annotated[str, 'café ☕']\",\"has_default\":false,\"kind\":\"POSITIONAL_OR_KEYWORD\",\"name\":\"p1\"},{\"annotation\":\"typing.Annotated[str, 'café ☕']\",\"has_default\":false,\"kind\":\"VAR_POSITIONAL\",\"name\":\"p2\"},{\"annotation\":\"typing.Annotated[str, 'café ☕']\",\"has_default\":true,\"kind\":\"KEYWORD_ONLY\",\"name\":\"p3\"},{\"annotation\":\"typing.Annotated[str, 'café ☕']\",\"has_default\":false,\"kind\":\"VAR_KEYWORD\",\"name\":\"p4\"}],\"qualified_name\":\"contract\",\"risk\":\"medium\",\"schema_version\":\"1\"}"
+  },
+  "object_hash": "207b66bfc5983a0431d5682e36725463c98c19af5c6bcf9501b372b081cf4dc0",
+  "rule": "Schema-1 ActionContract body excludes contract_hash",
+  "signature": null,
+  "vector_id": "ac1-valid-risk-medium-001",
+  "verification": {
+    "algorithm": "not_evaluated",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "action-contract"
+    },
+    "canonicalization": "valid",
+    "completeness": "not_applicable",
+    "continuity": "not_applicable",
+    "events_verified": 1,
+    "issues": [],
+    "key_resolution": "not_required",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "not_present",
+    "specification": "consistent",
+    "summary": "valid_but_trust_unknown",
+    "time_confidence": "not_applicable",
+    "trust": "not_evaluated"
+  }
+}

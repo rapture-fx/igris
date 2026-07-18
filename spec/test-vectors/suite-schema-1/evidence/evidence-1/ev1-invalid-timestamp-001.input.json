@@ -1,0 +1,18 @@
+{
+  "action_id": "conformance.actions.transfer",
+  "action_name": "conformance.transfer",
+  "approval_mode": "required",
+  "contract_hash": "abababababababababababababababababababababababababababababababab",
+  "decision": "allowed",
+  "event_hash": "cfc1f3c15125efaea920cd397ee59212b58640c00b7f452dbe01ad2e93001277",
+  "event_id": "evt-allow",
+  "event_type": "decision",
+  "input_hash": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+  "key_id": "ed25519:70209fc8a4e354a0",
+  "previous_event_hash": null,
+  "redacted_input_summary": "amount=7",
+  "risk": "high",
+  "schema_version": "1",
+  "signature": "rWRb6rHkILAjhrslgCb9IbVitwst1eKEe3ZPqDCEaNamDfU4NZjCTXbmlUVsHxCmKxlRgX5GjkMLMFySpe69Aw==",
+  "timestamp_utc": "not-a-time"
+}

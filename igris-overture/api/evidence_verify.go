@@ -3,7 +3,7 @@ package api
 // Server-side verification of Embedded SDK evidence (event schema v1).
 //
 // The payload is treated as hostile: every event hash is recomputed from the
-// canonical unsigned payload bytes (igris-overture/internal/canonicaljson —
+// canonical unsigned payload bytes (igris-overture/internal/schema1json —
 // byte-pinned to the Python SDK), every Ed25519 signature is verified over
 // the raw digest, and chain linkage is checked. Issue codes reuse the SDK
 // verifier vocabulary (sdk/python/src/igris/verification.py): unknown_schema,
@@ -30,7 +30,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Igris-inertial/system/igris-overture/internal/canonicaljson"
+	"github.com/Igris-inertial/system/igris-overture/internal/schema1json"
 )
 
 const (
@@ -217,9 +217,13 @@ func verifyEvidenceEvents(events []map[string]any, pub ed25519.PublicKey, expect
 			}
 			unsigned[k] = v
 		}
-		canonicalUnsigned, err := canonicaljson.Encode(unsigned)
+		canonicalUnsigned, err := schema1json.Encode(unsigned)
 		if err != nil {
-			fail("invalid_field")
+			if errors.Is(err, schema1json.ErrUnsupportedLegacyRepresentation) {
+				fail("unsupported_legacy_representation")
+			} else {
+				fail("invalid_field")
+			}
 			return nil, issues, nil
 		}
 		digest := sha256.Sum256(canonicalUnsigned)
@@ -278,7 +282,7 @@ func verifyEvidenceEvents(events []map[string]any, pub ed25519.PublicKey, expect
 		}
 
 		if eventOK {
-			canonicalFull, err := canonicaljson.Encode(event)
+			canonicalFull, err := schema1json.Encode(event)
 			if err != nil {
 				fail("invalid_field")
 			} else {

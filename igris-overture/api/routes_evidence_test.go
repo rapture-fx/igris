@@ -24,6 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Igris-inertial/system/igris-overture/internal/canonicaljson"
+	"github.com/Igris-inertial/system/igris-overture/internal/schema1json"
 )
 
 // ---------------------------------------------------------------------------
@@ -665,6 +666,88 @@ func TestEvidenceVerifyTamperAndTransitionRejections(t *testing.T) {
 		require.NoError(t, err)
 		require.Contains(t, issueCodes(issues), "chain_break")
 	})
+}
+
+func TestConnectedSchema1FrozenUnicodeEvidence(t *testing.T) {
+	for _, vectorID := range []string{"ev1-valid-u2028-signed-001", "ev1-valid-u2029-signed-001"} {
+		t.Run(vectorID, func(t *testing.T) {
+			input := "evidence/evidence-1/" + vectorID + ".input.json"
+			event, err := schema1json.DecodeObject(readSchema1File(t, input))
+			require.NoError(t, err)
+			pub, keyID := loadSchema1PublicKey(t, "deterministic-001")
+			der, err := x509.MarshalPKIXPublicKey(pub)
+			require.NoError(t, err)
+			publicPEM := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: der}))
+
+			body, err := schema1json.Encode(map[string]any{
+				"key_id":         keyID,
+				"public_key_pem": publicPEM,
+				"journal_segment": map[string]any{
+					"first_previous_event_hash": nil,
+					"events":                    []any{event},
+				},
+			})
+			require.NoError(t, err)
+			require.NotContains(t, string(body), `\u2028`)
+			require.NotContains(t, string(body), `\u2029`)
+
+			submission, validation := decodeEvidenceSubmission(body)
+			require.Nil(t, validation)
+			verified, issues, err := verifyEvidenceEvents(
+				submission.Events, pub, keyID, submission.FirstPrev, nil,
+			)
+			require.NoError(t, err)
+			require.Empty(t, issues)
+			require.Len(t, verified, 1)
+			separator := []byte{0xE2, 0x80, 0xA8}
+			if vectorID == "ev1-valid-u2029-signed-001" {
+				separator = []byte{0xE2, 0x80, 0xA9}
+			}
+			require.Contains(t, string(verified[0].CanonicalEvent), string(separator))
+		})
+	}
+}
+
+func TestConnectedSchema1NumericLexemes(t *testing.T) {
+	signer := newTestSigner(t)
+	contentHashes := map[string]bool{}
+	for _, lexeme := range []string{"1E+2", "1e2", "100", "-0", "0", "0.0", "123456789012345678901234567890"} {
+		t.Run(lexeme, func(t *testing.T) {
+			event := signer.event(t, "decision", "numeric-"+hex.EncodeToString([]byte(lexeme)), nil, map[string]any{
+				"numeric_extension": json.Number(lexeme),
+			})
+			body, err := schema1json.Encode(map[string]any{
+				"key_id":         signer.keyID,
+				"public_key_pem": signer.pem,
+				"journal_segment": map[string]any{
+					"first_previous_event_hash": nil,
+					"events":                    []any{event},
+				},
+			})
+			require.NoError(t, err)
+			require.Contains(t, string(body), `"numeric_extension":`+lexeme)
+
+			submission, validation := decodeEvidenceSubmission(body)
+			require.Nil(t, validation)
+			verified, issues, err := verifyEvidenceEvents(submission.Events, signer.pub, signer.keyID, nil, nil)
+			require.NoError(t, err)
+			require.Empty(t, issues)
+			require.Len(t, verified, 1)
+			contentHashes[submission.ContentHash] = true
+		})
+	}
+	require.Len(t, contentHashes, 7, "numeric spellings and large integers must retain distinct batch identities")
+}
+
+func TestEvidenceVerificationFailsClosedAfterNumericLexemeLoss(t *testing.T) {
+	signer := newTestSigner(t)
+	event := signer.event(t, "decision", "numeric-lost", nil, nil)
+	event["numeric_extension"] = float64(100)
+
+	verified, issues, err := verifyEvidenceEvents([]map[string]any{event}, signer.pub, signer.keyID, nil, nil)
+	require.NoError(t, err)
+	require.Empty(t, verified)
+	require.Equal(t, []string{"unsupported_legacy_representation"}, issueCodes(issues))
 }
 
 func issueCodes(issues []evidenceIssue) []string {

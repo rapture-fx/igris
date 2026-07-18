@@ -1,0 +1,38 @@
+{
+  "canonical": null,
+  "rule": "Trusted required head proves the submitted chain incomplete",
+  "signature": null,
+  "vector_id": "ev1-indeterminate-checkpoint-head-missing-001",
+  "verification": {
+    "algorithm": "supported",
+    "artifact": {
+      "artifact_id": null,
+      "object_schema_id": "1",
+      "object_type": "evidence-chain"
+    },
+    "canonicalization": "valid",
+    "completeness": "incomplete",
+    "continuity": "valid_genesis",
+    "events_verified": 1,
+    "issues": [
+      {
+        "code": "incomplete_chain",
+        "event_index": null,
+        "path": null,
+        "severity": "error"
+      }
+    ],
+    "key_resolution": "resolved",
+    "object_hash": "valid",
+    "parse": "valid",
+    "policy": null,
+    "schema": "supported",
+    "schema_id": "igris:protocol:verification-result:1",
+    "semantics": "valid",
+    "signature": "valid",
+    "specification": "consistent",
+    "summary": "indeterminate",
+    "time_confidence": "producer_asserted",
+    "trust": "unknown"
+  }
+}
