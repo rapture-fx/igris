@@ -227,17 +227,37 @@ jobs:
           GOPROXY: "off"
         run: |
           # The standalone module must build from the Go standard library only.
-          deps="$(go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... | grep -v '^$' | grep -v '^github.com/Igris-inertial/system/conformance/go-verifier' || true)"
+          # go list writes to a file first so a package-load failure (for
+          # example an unresolvable prohibited import) fails this step instead
+          # of being swallowed by the empty-result filter below.
+          dep_list="$(mktemp)"
+          go list -deps -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... > "$dep_list"
+          deps="$(grep -v '^$' "$dep_list" | grep -v '^github.com/Igris-inertial/system/conformance/go-verifier' || true)"
           if [ -n "$deps" ]; then
             echo "prohibited non-standard dependencies:" >&2
             echo "$deps" >&2
+            exit 1
+          fi
+          # Test binaries must also stay standard-library + module-local, so a
+          # prohibited import in any _test.go file (including the enforcement
+          # test) is caught structurally rather than by text search.
+          test_dep_list="$(mktemp)"
+          go list -deps -test -f '{{if not .Standard}}{{.ImportPath}}{{end}}' ./... > "$test_dep_list"
+          testdeps="$(grep -v '^$' "$test_dep_list" | grep -v '^github.com/Igris-inertial/system/conformance/go-verifier' || true)"
+          if [ -n "$testdeps" ]; then
+            echo "prohibited non-standard test dependencies:" >&2
+            echo "$testdeps" >&2
             exit 1
           fi
           if go list -deps ./... | grep -E '^(net|net/http|os/exec|database/sql)$|igris-overture'; then
             echo "prohibited capability package in the build graph" >&2
             exit 1
           fi
-          if grep -rn "igris-overture" --include='*.go' .; then
+          # independence_test.go is the only file allowed to name the
+          # production module: it carries the prohibited-package blocklist this
+          # guard enforces. Imports there are still covered by the -test
+          # dependency check above.
+          if grep -rn "igris-overture" --include='*.go' --exclude=independence_test.go .; then
             echo "prohibited source reference to production packages" >&2
             exit 1
           fi
