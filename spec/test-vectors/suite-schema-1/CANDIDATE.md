@@ -2,6 +2,14 @@
 
 Status: **Frozen candidate; not released**
 
+> Historical status note (2026-07-18): this file records the candidate-freeze
+> point and is superseded operationally by [`RELEASE.md`](RELEASE.md). The
+> statements below that DIV-001 vectors were blocking and that the standalone
+> Go verifier was "not part of this candidate" described the freeze moment;
+> both divergences were later remediated in production paths and the
+> standalone verifier has since passed the unchanged suite 120/120 (see
+> RELEASE.md provenance). The frozen bytes themselves are unchanged.
+
 - Suite: igris-schema-1-conformance
 - Revision: 1.0.0-candidate.1
 - Ratified protocol candidate: 55d400490a5e6915b9ae634749c6845a0cd15726
