@@ -148,12 +148,65 @@ remain deferred.
 
 For schema `1`, canonical bytes are UTF-8 JSON with:
 
-- object keys sorted lexicographically;
+- object keys sorted lexicographically **by Unicode scalar value** —
+  equivalently, by byte-wise comparison of the keys' UTF-8 encodings, since
+  UTF-8 byte order equals scalar order. The comparison unit is the Unicode
+  scalar, never the UTF-16 code unit: host languages whose default string
+  comparison is UTF-16-code-unit based (for example JavaScript and Java)
+  order supplementary-plane keys differently and MUST NOT use that default.
+  The frozen vector `can1-valid-unicode-supplementary-keys-001` pins U+FFFF
+  ordering before U+1F600, which is scalar order and contradicts UTF-16
+  code-unit order;
 - separators exactly `,` and `:` with no insignificant whitespace;
 - non-ASCII characters emitted as UTF-8, not `\u` escapes;
-- `<`, `>`, and `&` not HTML-escaped;
+- `<`, `>`, and `&` not HTML-escaped; `/` SOLIDUS not escaped (an input `\/`
+  escape decodes to `/` and is re-emitted unescaped);
+- within strings, exactly two printable ASCII characters escaped: `"` as
+  `\"` and `\` as `\\`;
+- control characters U+0000 through U+001F escaped, and only they: U+0008,
+  U+0009, U+000A, U+000C, and U+000D use the short escapes `\b`, `\t`, `\n`,
+  `\f`, and `\r`; every other scalar in that range uses a four-digit
+  **lowercase**-hex `\u00xx` escape. U+007F DELETE is outside the range and
+  is emitted raw. The frozen vector `can1-valid-control-characters-001` pins
+  these exact bytes;
+- no Unicode normalization at any point: decoded string content is emitted as
+  the exact scalar sequence received, so NFC/NFD-equivalent spellings remain
+  distinct canonical bytes;
 - no trailing newline in the canonical value;
 - finite JSON numbers only for values emitted by the Python canonicalizer.
+
+For externally supplied schema `1` JSON text, the accepted string grammar and
+its classification are normative:
+
+- input MUST be valid UTF-8; anything else is `parse=malformed` with issue
+  `invalid_utf8` (`can1-invalid-utf8-001`);
+- a `\uXXXX` escape is accepted with either hex-digit case and, when it
+  denotes a non-surrogate scalar, decodes to that scalar and is re-emitted
+  under the output rules above (raw UTF-8 unless the scalar is `"`, `\`, or a
+  U+0000–U+001F control);
+- a high-surrogate escape immediately followed by a low-surrogate escape
+  decodes to the single supplementary-plane scalar and is re-emitted as raw
+  UTF-8;
+- a lone surrogate escape is tolerated syntactically (`parse=valid`) but the
+  containing value fails canonical reconstruction: `canonicalization=invalid`
+  with issue `invalid_unicode_scalar` and dependent checks `not_evaluated`
+  (`can1-invalid-surrogate-001`);
+- a duplicate member name within one object is `parse=malformed` with issue
+  `duplicate_member` (`can1-invalid-duplicate-member-001`);
+- non-whitespace content after the single permitted top-level value is
+  `parse=malformed` with issue `trailing_content`
+  (`can1-invalid-trailing-content-001`);
+- parse depth and size bounds are implementation-declared bounded-work
+  limits, not signed-byte semantics; exceeding one is `parse=resource_limit`
+  with summary `indeterminate`, never a signature failure.
+
+These issue classifications reference the registry in
+[`verification-result-schema-draft.md`](../../spec/verification-result-schema-draft.md)
+and introduce no new codes. String serialization and numeric handling are
+separate rules: the string rules above never alter a number token, and the
+numeric-lexeme rules below never alter string bytes. This section documents
+the frozen historical behavior already pinned by the cited vectors and by the
+Python 0.1.0a2 producer baseline; it defines no new behavior.
 
 Canonical evidence bytes are computed from the already constructed unsigned
 payload. Python uses `canonical_json_bytes` in
