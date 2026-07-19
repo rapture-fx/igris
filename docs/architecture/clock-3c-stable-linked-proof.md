@@ -33,17 +33,16 @@ Action Protocol Evidence and Runtime receipts remain **separate claim types**. N
 | Branch | `feature/clock-3c-stable-linked-proof` |
 | Worktree | `/Users/wira/Desktop/system-clock-3c` |
 | Base | exact `0740f3d90a59a0730ead10f7a1fbae85e8e0b9fe` |
-
-(Final HEAD filled after commits.)
+| Final HEAD (pre-report-SHA-fix) | `7ffe02faed0b4f2cc1fbf6da6837ec688db93be2` |
 
 ## Commits
 
-Suggested focused groups (see git log on the branch):
-
-1. `feat(proof): stabilize contract-bound run proof contract`
-2. `fix(proof): enforce run-scoped evidence linkage`
-3. `fix(adapter): harden orphaned idempotency state`
-4. `ci(proof): continuously gate ratified durable recovery path`
+| Full SHA | Message |
+|----------|---------|
+| `fe889fe0e323a5d8736e97301e93dc394aef4d8e` | `feat(proof): stabilize contract-bound run proof contract` |
+| `471761b017f9c3c6b8a63e78857f7680524d037a` | `fix(proof): enforce run-scoped evidence linkage` |
+| `601d37e371d43dac1ec0988dd1083eb29071dd72` | `fix(adapter): harden orphaned idempotency state` |
+| `7ffe02faed0b4f2cc1fbf6da6837ec688db93be2` | `ci(proof): continuously gate ratified durable recovery path` |
 
 ## Files changed
 

@@ -72,10 +72,15 @@ type evidenceLinkEligibility struct {
 	ActionName  string
 }
 
-// extractBoundToolContext recovers action_name and the canonical tool input
-// hash from the durable task definition produced for a contract-bound run.
-// The tool input is the HTTP body of the first contract-bound http_request
-// node — the same payload the adapter feeds to wrap_tool.
+// extractBoundToolContext recovers action_name and the tool input identity
+// digest from the durable task definition for a contract-bound run.
+//
+// For plaintext HTTP bodies, the digest is the canonical JSON SHA-256 of the
+// tool kwargs (matching SDK Evidence decision.input_hash).
+// For encrypted input refs (production Clock 3B path), the durable definition
+// stores only a redacted placeholder; the server-computed input_digest_sha256
+// on that placeholder is the same digest the Embedded adapter journals as
+// input_hash, so it is the trustworthy run-scoped identity without decrypting.
 func extractBoundToolContext(taskDefinition json.RawMessage) (actionName string, toolInputHash string, err error) {
 	if len(taskDefinition) == 0 {
 		return "", "", fmt.Errorf("empty task definition")
@@ -94,9 +99,6 @@ func extractBoundToolContext(taskDefinition json.RawMessage) (actionName string,
 		if toolName != "http_request" {
 			continue
 		}
-		if nodeID != "contract-bound-http-0" && actionName == "" {
-			// Prefer the dedicated contract-bound node; fall through for older shapes.
-		}
 		if meta, ok := node["metadata"].(map[string]interface{}); ok {
 			if name, ok := meta["action_name"].(string); ok && name != "" {
 				actionName = name
@@ -112,21 +114,14 @@ func extractBoundToolContext(taskDefinition json.RawMessage) (actionName string,
 		if !ok {
 			continue
 		}
-		bodyStr := stringifyActionBody(bodyRaw)
-		if strings.TrimSpace(bodyStr) == "" {
+		hash, hashErr := toolInputHashFromHTTPBody(bodyRaw)
+		if hashErr != nil {
+			return actionName, "", hashErr
+		}
+		if hash == "" {
 			continue
 		}
-		toolInput, decErr := canonicaljson.DecodeObjectPreserving([]byte(bodyStr))
-		if decErr != nil {
-			return actionName, "", fmt.Errorf("decode tool body: %w", decErr)
-		}
-		// Normalize json.Number integers so canonical bytes match Python ints.
-		normalizeCanonicalNumbers(toolInput)
-		canonical, encErr := canonicaljson.Encode(toolInput)
-		if encErr != nil {
-			return actionName, "", fmt.Errorf("canonical tool body: %w", encErr)
-		}
-		toolInputHash = canonicaljson.SHA256Hex(canonical)
+		toolInputHash = hash
 		if nodeID == "contract-bound-http-0" {
 			return actionName, toolInputHash, nil
 		}
@@ -135,6 +130,67 @@ func extractBoundToolContext(taskDefinition json.RawMessage) (actionName string,
 		return actionName, "", fmt.Errorf("bound tool input not found in task definition")
 	}
 	return actionName, toolInputHash, nil
+}
+
+// toolInputHashFromHTTPBody derives the run-scoped tool input digest from a
+// graph node body, which may be plaintext JSON or an encrypted-input-ref stub.
+func toolInputHashFromHTTPBody(bodyRaw interface{}) (string, error) {
+	// Encrypted input-ref placeholder (object form after JSON unmarshal).
+	if bodyMap, ok := bodyRaw.(map[string]interface{}); ok {
+		if isEncryptedInputRefStub(bodyMap) {
+			digest, _ := bodyMap["input_digest_sha256"].(string)
+			if !contractHashPattern.MatchString(digest) {
+				return "", fmt.Errorf("encrypted input ref missing valid input_digest_sha256")
+			}
+			return digest, nil
+		}
+		// Plain object body (rare in stored definitions; usually a JSON string).
+		normalizeCanonicalNumbers(bodyMap)
+		canonical, err := canonicaljson.Encode(bodyMap)
+		if err != nil {
+			return "", fmt.Errorf("canonical tool body: %w", err)
+		}
+		return canonicaljson.SHA256Hex(canonical), nil
+	}
+
+	bodyStr := stringifyActionBody(bodyRaw)
+	if strings.TrimSpace(bodyStr) == "" {
+		return "", nil
+	}
+	toolInput, decErr := canonicaljson.DecodeObjectPreserving([]byte(bodyStr))
+	if decErr != nil {
+		return "", fmt.Errorf("decode tool body: %w", decErr)
+	}
+	if isEncryptedInputRefStub(toolInput) {
+		digest, _ := toolInput["input_digest_sha256"].(string)
+		if !contractHashPattern.MatchString(digest) {
+			return "", fmt.Errorf("encrypted input ref missing valid input_digest_sha256")
+		}
+		return digest, nil
+	}
+	// Normalize json.Number integers so canonical bytes match Python ints.
+	normalizeCanonicalNumbers(toolInput)
+	canonical, encErr := canonicaljson.Encode(toolInput)
+	if encErr != nil {
+		return "", fmt.Errorf("canonical tool body: %w", encErr)
+	}
+	return canonicaljson.SHA256Hex(canonical), nil
+}
+
+func isEncryptedInputRefStub(body map[string]interface{}) bool {
+	if body == nil {
+		return false
+	}
+	if flag, ok := body["encrypted_input_ref"].(bool); ok && flag {
+		return true
+	}
+	// Redacted inspection form uses input_redacted + digest without plaintext.
+	if redacted, ok := body["input_redacted"].(bool); ok && redacted {
+		if digest, _ := body["input_digest_sha256"].(string); contractHashPattern.MatchString(digest) {
+			return true
+		}
+	}
+	return false
 }
 
 func normalizeCanonicalNumbers(v interface{}) {

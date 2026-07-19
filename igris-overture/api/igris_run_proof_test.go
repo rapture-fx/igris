@@ -73,6 +73,40 @@ func TestExtractBoundToolContextRejectsMissingToolBody(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestExtractBoundToolContextUsesEncryptedInputDigest(t *testing.T) {
+	t.Parallel()
+	digest := "20ad649578cecdcc49393db339d09adcfced38bea03678cb5f7cab9d7115db5a"
+	def := map[string]interface{}{
+		"graph": map[string]interface{}{
+			"nodes": []map[string]interface{}{
+				{
+					"node_id":   "contract-bound-http-0",
+					"tool_name": "http_request",
+					"args": map[string]interface{}{
+						"url": "http://127.0.0.1:18099/v1/clock3b/consequential-transfer",
+						"body": map[string]interface{}{
+							"encrypted_input_ref":    true,
+							"input_redacted":         true,
+							"input_digest_sha256":    digest,
+							"encrypted_input_ref_id": uuid.New().String(),
+							"safe_summary":           "sensitive input redacted",
+						},
+					},
+					"metadata": map[string]interface{}{
+						"action_name": "clock3b.consequential_transfer",
+					},
+				},
+			},
+		},
+	}
+	raw, err := json.Marshal(def)
+	require.NoError(t, err)
+	actionName, toolHash, err := extractBoundToolContext(raw)
+	require.NoError(t, err)
+	require.Equal(t, "clock3b.consequential_transfer", actionName)
+	require.Equal(t, digest, toolHash)
+}
+
 func TestBuildIgrisRunProofClaimTypeSeparation(t *testing.T) {
 	t.Parallel()
 	taskID := uuid.New()
