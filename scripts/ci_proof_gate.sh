@@ -153,12 +153,14 @@ SQL
     "062_task_records_registered_agent"
     # Contract-bound durable Action proof: 067 records immutable SDK contract
     # versions, 068 stores separately verified Embedded evidence, 069 enforces
-    # database immutability, and 070 adds explicit contract-to-target bindings
-    # plus immutable durable-run/evidence links.
+    # database immutability, 070 adds explicit contract-to-target bindings
+    # plus immutable durable-run/evidence links, and 071 enforces exclusive
+    # run-scoped evidence linkage (Clock 3C).
     "067_action_contract_versions"
     "068_sdk_evidence_ingestion"
     "069_connected_immutable_records"
     "070_contract_execution_bindings"
+    "071_run_scoped_evidence_link_exclusivity"
   )
   local migration_file
   local migration_name
