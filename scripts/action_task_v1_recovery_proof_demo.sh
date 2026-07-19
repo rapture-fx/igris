@@ -925,7 +925,11 @@ EXPECTED_HTTP_AFTER="1"
 if [[ "$CUMULATIVE_CLEAN_HOST_MODE" == "true" ]]; then
   EXPECTED_HTTP_AFTER="2"
 fi
-if [[ "$EFFECT_COUNT_AFTER" != "1" ]]; then
+# Clock 3B asserts exactly-once consequential adapter effects. Ordinary /
+# cumulative Action Task V1 modes must keep their HTTP-count expectations
+# (including EXPECTED_HTTP_AFTER=2 in cumulative clean-host recovery) and must
+# not inherit this one-effect check via EFFECT_COUNT_AFTER="$HTTP_COUNT_AFTER".
+if [[ "$CLOCK3B_MODE" == "true" && "$EFFECT_COUNT_AFTER" != "1" ]]; then
   echo "consequential effect duplicated after recovery: expected 1, got $EFFECT_COUNT_AFTER" >&2
   exit 1
 fi
