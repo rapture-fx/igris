@@ -1,10 +1,22 @@
 #!/usr/bin/env python3
-"""Authenticated Clock 3B HTTP adapter for one contract-bound Igris Action.
+"""Authenticated Clock 3B/3C HTTP adapter for one contract-bound Igris Action.
 
 This is deliberately not a generic Python executor. It exposes one fixed
 JSON endpoint and invokes one callable already wrapped with ``igris.wrap_tool``.
-The durable idempotency ledger reserves a key before the consequential effect;
-an interrupted in-progress request fails closed and is never re-executed.
+The durable idempotency ledger reserves a key before the consequential effect.
+
+Clock 3C orphan semantics
+-------------------------
+When a request is reserved as ``in_progress`` and the process dies before a
+terminal result is stored, the key remains in an unresolved effect state.
+Subsequent requests with the same key:
+
+* same payload → refuse re-execution with ``reconciliation_required`` /
+  ``unknown_effect_state`` (never silently re-run a consequential effect)
+* different payload → non-retryable ``idempotency_conflict``
+
+A stale ``in_progress`` record is never permission to execute again. Only a
+known ``completed`` record may be replayed with the stored result.
 """
 
 from __future__ import annotations
@@ -27,6 +39,17 @@ ACTION_NAME = "clock3b.consequential_transfer"
 AUTH_HEADER = "X-Igris-Adapter-Token"
 MAX_BODY_BYTES = 16 * 1024
 _EFFECT_PATH: Path | None = None
+
+# Ledger states. Terminal: completed, reconciliation_required.
+# Non-terminal reserve: in_progress (may become an orphan).
+STATE_IN_PROGRESS = "in_progress"
+STATE_COMPLETED = "completed"
+STATE_RECONCILIATION_REQUIRED = "reconciliation_required"
+STATE_UNKNOWN_EFFECT = "unknown_effect_state"
+
+# Orphan in_progress records are reported with this explicit unresolved status.
+# We deliberately do NOT auto-promote after a timeout into re-execution.
+UNRESOLVED_EFFECT_STATUS = "unknown_effect_state"
 
 
 def consequential_transfer(account_id: str, amount_cents: int) -> dict[str, Any]:
@@ -59,6 +82,8 @@ def consequential_transfer(account_id: str, amount_cents: int) -> dict[str, Any]
 
 
 class DurableLedger:
+    """File-backed idempotency ledger with fail-closed orphan semantics."""
+
     def __init__(self, path: Path) -> None:
         self.path = path
         self._lock = threading.Lock()
@@ -85,6 +110,21 @@ class DurableLedger:
             if os.path.exists(tmp_name):
                 os.unlink(tmp_name)
 
+    def _refuse_unresolved(self, existing: dict[str, Any], request_hash: str) -> None:
+        """Refuse re-execution when a prior attempt has no terminal known result."""
+        if existing.get("request_hash") != request_hash:
+            raise IdempotencyConflict("key already used with a different request")
+        # Promote durable reporting of orphaned in_progress to an explicit
+        # reconciliation state without claiming effect completion or retry safety.
+        raise IdempotencyUnresolved(
+            status=UNRESOLVED_EFFECT_STATUS,
+            detail=(
+                "prior request has unresolved effect state "
+                f"(ledger_state={existing.get('state')}); "
+                "refusing re-execution — reconciliation required"
+            ),
+        )
+
     def execute(
         self,
         key: str,
@@ -95,29 +135,57 @@ class DurableLedger:
             ledger = self._load()
             existing = ledger["records"].get(key)
             if existing is not None:
-                if existing["request_hash"] != request_hash:
+                state = existing.get("state")
+                if existing.get("request_hash") != request_hash:
                     raise IdempotencyConflict("key already used with a different request")
-                if existing["state"] != "completed":
-                    raise IdempotencyInProgress("prior request is incomplete; refusing re-execution")
-                return existing["result"], True
+                if state == STATE_COMPLETED:
+                    return existing["result"], True
+                # in_progress, reconciliation_required, unknown_effect_state,
+                # or any unrecognized non-completed state: fail closed.
+                self._refuse_unresolved(existing, request_hash)
 
             ledger["records"][key] = {
                 "request_hash": request_hash,
-                "state": "in_progress",
+                "state": STATE_IN_PROGRESS,
             }
             ledger["endpoint_invocation_count"] += 1
             self._store(ledger)
 
-            result = operation()
+            try:
+                result = operation()
+            except Exception:
+                # Effect may or may not have occurred; do not claim either.
+                # Persist an explicit unresolved terminal so retries cannot
+                # silently re-execute. Operator reconciliation is required.
+                ledger = self._load()
+                ledger["records"][key] = {
+                    "request_hash": request_hash,
+                    "state": STATE_RECONCILIATION_REQUIRED,
+                    "effect_status": STATE_UNKNOWN_EFFECT,
+                }
+                self._store(ledger)
+                raise
+
             ledger = self._load()
             ledger["effect_count"] += 1
             ledger["records"][key] = {
                 "request_hash": request_hash,
-                "state": "completed",
+                "state": STATE_COMPLETED,
                 "result": result,
             }
             self._store(ledger)
             return result, False
+
+    def mark_orphan_for_test(self, key: str, request_hash: str) -> None:
+        """Test helper: persist an orphaned in_progress reservation."""
+        with self._lock:
+            ledger = self._load()
+            ledger["records"][key] = {
+                "request_hash": request_hash,
+                "state": STATE_IN_PROGRESS,
+            }
+            ledger["endpoint_invocation_count"] = ledger.get("endpoint_invocation_count", 0) + 1
+            self._store(ledger)
 
     def snapshot(self) -> dict[str, Any]:
         with self._lock:
@@ -129,7 +197,18 @@ class IdempotencyConflict(Exception):
 
 
 class IdempotencyInProgress(Exception):
+    """Back-compat alias for incomplete prior requests (Clock 3B clients)."""
+
     pass
+
+
+class IdempotencyUnresolved(Exception):
+    """Prior request has unknown/unresolved effect state; do not re-execute."""
+
+    def __init__(self, status: str, detail: str) -> None:
+        super().__init__(detail)
+        self.status = status
+        self.detail = detail
 
 
 def strict_request(body: bytes) -> dict[str, Any]:
@@ -195,8 +274,30 @@ def build_handler(
             except IdempotencyConflict as exc:
                 self._json(HTTPStatus.CONFLICT, {"error": "idempotency_conflict", "detail": str(exc)})
                 return
+            except IdempotencyUnresolved as exc:
+                self._json(
+                    HTTPStatus.CONFLICT,
+                    {
+                        "error": "idempotency_unresolved",
+                        "status": exc.status,
+                        "effect_status": UNRESOLVED_EFFECT_STATUS,
+                        "reconciliation_required": True,
+                        "detail": exc.detail,
+                    },
+                )
+                return
             except IdempotencyInProgress as exc:
-                self._json(HTTPStatus.CONFLICT, {"error": "idempotency_in_progress", "detail": str(exc)})
+                # Legacy path: treat as unresolved effect state.
+                self._json(
+                    HTTPStatus.CONFLICT,
+                    {
+                        "error": "idempotency_unresolved",
+                        "status": UNRESOLVED_EFFECT_STATUS,
+                        "effect_status": UNRESOLVED_EFFECT_STATUS,
+                        "reconciliation_required": True,
+                        "detail": str(exc),
+                    },
+                )
                 return
             except (json.JSONDecodeError, ValueError, TypeError) as exc:
                 self._json(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": "invalid_request", "detail": str(exc)})
