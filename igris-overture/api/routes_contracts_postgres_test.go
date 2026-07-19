@@ -24,7 +24,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 )
@@ -68,6 +70,26 @@ func openContractPostgres(t *testing.T) *sql.DB {
 		require.NoError(t, err, "apply %s", migration)
 	}
 	return scoped
+}
+
+func openContractBindingPostgres(t *testing.T) *sql.DB {
+	t.Helper()
+	db := openContractPostgres(t)
+	for _, migration := range []string{
+		"031_task_records.sql",
+		"055_action_execution_targets.sql",
+		"057_task_records_tenant_scoped_idempotency.sql",
+		"062_task_records_registered_agent.sql",
+		"068_sdk_evidence_ingestion.sql",
+		"069_connected_immutable_records.sql",
+		"070_contract_execution_bindings.sql",
+	} {
+		ddl, err := os.ReadFile(filepath.Join("..", "database", "migrations", migration))
+		require.NoError(t, err)
+		_, err = db.Exec(string(ddl))
+		require.NoError(t, err, "apply %s", migration)
+	}
+	return db
 }
 
 func dsnWithSearchPath(dsn, schema string) string {
@@ -175,6 +197,120 @@ func TestContractSyncPostgresLifecycle(t *testing.T) {
 		SELECT COUNT(*) FROM action_contract_versions WHERE tenant_id = 'tenant-pg-b'
 	`).Scan(&crossTenantRows))
 	require.Equal(t, 1, crossTenantRows, "tenant-b must have exactly its own row")
+}
+
+func TestContractExecutionBindingPostgresTenantScopeAndImmutability(t *testing.T) {
+	db := openContractBindingPostgres(t)
+	appA := contractTestApp(db, "tenant-binding-a")
+	appB := contractTestApp(db, "tenant-binding-b")
+	contract := buildTestContract(t, func(c map[string]any) {
+		c["action_name"] = "clock3b.consequential_transfer"
+		c["approval_mode"] = "never"
+	})
+	hash := contract["contract_hash"].(string)
+	status, _, _ := postContractSyncRaw(t, appA, syncBody(t, contract), nil)
+	require.Equal(t, http.StatusCreated, status)
+	status, _, _ = postContractSyncRaw(t, appB, syncBody(t, contract), nil)
+	require.Equal(t, http.StatusCreated, status)
+
+	targetID := uuid.NewString()
+	_, err := db.Exec(`
+		INSERT INTO action_definitions (
+			id, tenant_id, name, display_name, target_type, target_url, method,
+			policy_preset, replay_class, approval_required, irreversible,
+			secret_refs, target_metadata, fallback_policy, origin
+		) VALUES (
+			$1, 'tenant-binding-a', 'clock3b_adapter_target', 'Clock 3B Adapter',
+			'webhook', 'http://127.0.0.1:18099/v1/clock3b/consequential-transfer',
+			'POST', 'Safe automation', 'retryable', false, false, '[]'::jsonb,
+			'{"local_auth_header_name":"X-Igris-Adapter-Token","local_auth_secret_env":"IGRIS_CLOCK3B_ADAPTER_TOKEN"}'::jsonb,
+			'{"enabled":false}'::jsonb, 'manual'
+		)`, targetID)
+	require.NoError(t, err)
+
+	body := map[string]any{
+		"target_action_id":     targetID,
+		"input_mapping":        map[string]string{"customer_id": "customer_id"},
+		"timeout_ms":           30_000,
+		"replay_class":         "retryable",
+		"idempotency_required": true,
+	}
+	raw, err := json.Marshal(body)
+	require.NoError(t, err)
+	path := "/v1/contracts/actions/clock3b.consequential_transfer/versions/" + hash + "/bindings"
+	req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(string(raw)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := appA.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	var created map[string]any
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&created))
+	bindingID := created["id"].(string)
+	targetVersionHash := created["target_version_hash"].(string)
+	require.Equal(t, hash, created["contract_hash"])
+	require.Equal(t, targetID, created["target_action_id"])
+
+	// The selected immutable identities are inserted atomically with the
+	// durable task rather than being inferred later from an Action name.
+	store := coordinator.NewCheckpointStore(db)
+	taskID := uuid.New()
+	parsedBindingID, err := uuid.Parse(bindingID)
+	require.NoError(t, err)
+	parsedTargetID, err := uuid.Parse(targetID)
+	require.NoError(t, err)
+	task := &coordinator.TaskRecord{
+		TaskID:         taskID,
+		TenantID:       "tenant-binding-a",
+		Status:         coordinator.TaskStatusPending,
+		TaskDefinition: json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+		IdempotencyKey: "clock3b-business-effect",
+		BoundAction: &coordinator.BoundActionRunIdentity{
+			BindingID:              parsedBindingID,
+			ContractHash:           hash,
+			TargetActionID:         parsedTargetID,
+			TargetVersionHash:      targetVersionHash,
+			BusinessIdempotencyKey: "clock3b-business-effect",
+			RequestFingerprint:     strings.Repeat("c", 64),
+		},
+	}
+	inserted, err := store.CreateTask(task)
+	require.NoError(t, err)
+	require.True(t, inserted)
+	persisted, err := store.GetBoundActionRun(t.Context(), taskID, "tenant-binding-a")
+	require.NoError(t, err)
+	require.Equal(t, parsedBindingID, persisted.BindingID)
+	require.Equal(t, hash, persisted.ContractHash)
+	require.Equal(t, parsedTargetID, persisted.TargetActionID)
+
+	historical := &coordinator.TaskRecord{
+		TaskID: uuid.New(), TenantID: "tenant-binding-a",
+		Status: coordinator.TaskStatusPending, TaskDefinition: json.RawMessage(`{"type":"execution_graph","graph":{"nodes":[]}}`),
+		IdempotencyKey: "historical-unbound-task",
+	}
+	inserted, err = store.CreateTask(historical)
+	require.NoError(t, err)
+	require.True(t, inserted)
+	_, err = store.GetBoundActionRun(t.Context(), historical.TaskID, "tenant-binding-a")
+	require.ErrorIs(t, err, sql.ErrNoRows)
+
+	// The same exact contract version cannot be rebound, even to the same target.
+	req = httptest.NewRequest(http.MethodPost, path, strings.NewReader(string(raw)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = appA.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusConflict, resp.StatusCode)
+
+	// Tenant B knows the target UUID but cannot bind to tenant A's target.
+	req = httptest.NewRequest(http.MethodPost, path, strings.NewReader(string(raw)))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = appB.Test(req, -1)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+	_, err = db.Exec(`UPDATE action_contract_execution_bindings SET timeout_ms = 1 WHERE id = $1`, bindingID)
+	require.Error(t, err, "database trigger must reject binding mutation")
+	_, err = db.Exec(`DELETE FROM action_contract_execution_bindings WHERE id = $1`, bindingID)
+	require.Error(t, err, "database trigger must reject binding deletion")
 }
 
 func TestContractSyncPostgresConcurrentDuplicates(t *testing.T) {

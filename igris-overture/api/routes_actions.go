@@ -69,6 +69,7 @@ type actionRunRequest struct {
 	// customer payloads cannot spoof which target the gateway selects.
 	executedTarget     string
 	preferredRuntimeID string
+	boundAction        *coordinator.BoundActionRunIdentity
 }
 
 // actionFallbackPolicy describes how an Action may fall back from a primary
@@ -128,6 +129,7 @@ type actionRunByNameRequest struct {
 	Input          map[string]interface{} `json:"input"`
 	Metadata       map[string]interface{} `json:"metadata,omitempty"`
 	IdempotencyKey string                 `json:"idempotency_key,omitempty"`
+	ContractHash   string                 `json:"contract_hash,omitempty"`
 	DeadlineAt     *time.Time             `json:"deadline_at,omitempty"`
 	AgentID        string                 `json:"agent_id,omitempty"`
 	AgentName      string                 `json:"agent_name,omitempty"`
@@ -154,6 +156,7 @@ func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordi
 	v1.Post("", handleActionCreate(db))
 	v1.Post("/run", handleActionRun(db, tc))
 	v1.Get("/runs/:id", handleActionGetRun(tc))
+	v1.Post("/runs/:id/evidence-links", handleActionEvidenceLinkCreate(db, tc))
 	v1.Post("/runs/:id/approve", handleActionApproveRun(tc))
 	v1.Post("/runs/:id/reject", handleActionRejectRun(tc))
 	v1.Post("/:name/run", handleActionRunByName(db, tc))
@@ -239,6 +242,45 @@ func handleActionRunByName(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Ha
 			if err := json.Unmarshal(c.Body(), &req); err != nil {
 				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
 			}
+		}
+		if strings.TrimSpace(req.ContractHash) != "" {
+			hash := strings.TrimSpace(req.ContractHash)
+			if !contractHashPattern.MatchString(hash) {
+				return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_contract_hash"})
+			}
+			if !contractIdempotencyKeyPattern.MatchString(strings.TrimSpace(req.IdempotencyKey)) {
+				return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+					"error":   "idempotency_key_required",
+					"message": "contract-bound durable runs require a 1-128 character idempotency_key",
+				})
+			}
+			binding, err := getContractExecutionBinding(c.Context(), db, tenantID, name, hash)
+			if err == sql.ErrNoRows {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{
+					"error":   "binding_required",
+					"message": "the exact contract version has no execution binding",
+				})
+			}
+			if err != nil {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+			version, err := getContractVersion(c.Context(), db, tenantID, name, hash)
+			if err != nil {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+			runReq, targetDef, err := buildBoundActionRunRequest(binding, version, req)
+			if err != nil {
+				return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+					"error": "invalid_bound_action_request", "message": err.Error(),
+				})
+			}
+			if !tenantHasHealthyRuntime(c.Context(), db, tenantID, runReq.preferredRuntimeID) {
+				return c.Status(http.StatusServiceUnavailable).JSON(fiber.Map{
+					"error":   "runtime_unavailable",
+					"message": "no connected runtime is available to execute this contract-bound local Action; install or reconnect a runtime and retry",
+				})
+			}
+			return submitActionRun(c, db, tc, tenantID, runReq, &targetDef)
 		}
 		runReq, err := buildActionRunRequestFromDefinition(def, req)
 		if err != nil {
@@ -336,6 +378,12 @@ func submitActionRun(c *fiber.Ctx, db *sql.DB, tc *coordinator.TaskCoordinator, 
 		task, err = tc.Submit(c.Context(), taskReq)
 	}
 	if err != nil {
+		if errors.Is(err, coordinator.ErrTaskIdempotencyConflict) {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":   "idempotency_key_conflict",
+				"message": "this idempotency key is already bound to a different request",
+			})
+		}
 		if errors.Is(err, coordinator.ErrTaskCapabilityDenied) {
 			return c.Status(http.StatusForbidden).JSON(fiber.Map{
 				"error":   "policy_denied",
@@ -359,6 +407,9 @@ func submitActionRun(c *fiber.Ctx, db *sql.DB, tc *coordinator.TaskCoordinator, 
 			"error":   "runtime_unavailable",
 			"message": "no runtime was available to accept the action",
 		})
+	}
+	if req.boundAction != nil {
+		task.BoundAction = req.boundAction
 	}
 
 	// Stamp executed_target once a real execution target has been selected.
@@ -412,8 +463,144 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 				task.Proof = proof
 			}
 		}
-		return c.JSON(buildActionRunResponse(task, nil))
+		if bound, err := tc.Store().GetBoundActionRun(c.Context(), taskID, tenantID); err == nil {
+			task.BoundAction = bound
+		} else if err != sql.ErrNoRows {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		resp := buildActionRunResponse(task, nil)
+		if link, err := loadActionEvidenceLink(c.Context(), tc.Store().DB(), taskID, tenantID); err == nil {
+			if linked, ok := resp["linked_proof"].(fiber.Map); ok {
+				linked["action_protocol_evidence"] = fiber.Map{
+					"batch_id":          link.BatchID.String(),
+					"chain_head_digest": link.ChainDigest,
+					"verification":      "verified Embedded Action Protocol evidence",
+				}
+			}
+		} else if err != sql.ErrNoRows {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if linked, ok := resp["linked_proof"].(fiber.Map); ok {
+			if events, err := tc.Store().ListRecoveryEvents(tenantID, taskID); err == nil {
+				linked["recovery_lineage"] = events
+			} else {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+			if handoff, err := tc.Store().LatestRuntimeHandoffEvent(tenantID, taskID); err == nil {
+				linked["latest_runtime_handoff"] = handoff
+			} else if err != sql.ErrNoRows {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+		}
+		return c.JSON(resp)
 	}
+}
+
+type actionEvidenceLink struct {
+	ID          uuid.UUID
+	BatchID     uuid.UUID
+	ChainDigest string
+	CreatedAt   time.Time
+}
+
+func handleActionEvidenceLinkCreate(db *sql.DB, tc *coordinator.TaskCoordinator) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		taskID, err := uuid.Parse(c.Params("id"))
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_run_id"})
+		}
+		bound, err := tc.Store().GetBoundActionRun(c.Context(), taskID, tenantID)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "contract_bound_run_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		var request struct {
+			BatchID string `json:"batch_id"`
+		}
+		if err := json.Unmarshal(c.Body(), &request); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body"})
+		}
+		batchID, err := uuid.Parse(strings.TrimSpace(request.BatchID))
+		if err != nil {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{"error": "invalid_batch_id"})
+		}
+		var chainDigest string
+		err = db.QueryRowContext(c.Context(), `
+			SELECT b.chain_head
+			FROM sdk_evidence_batches b
+			WHERE b.id = $1 AND b.tenant_id = $2
+			  AND b.evidence_state = 'verified'
+			  AND b.execution_provenance = 'embedded'
+			  AND EXISTS (
+				SELECT 1 FROM sdk_evidence_events e
+				WHERE e.batch_id = b.id AND e.tenant_id = b.tenant_id
+				  AND e.contract_hash = $3
+			  )`,
+			batchID, tenantID, bound.ContractHash,
+		).Scan(&chainDigest)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":   "evidence_not_linkable",
+				"message": "batch must be verified Embedded evidence for this exact contract_hash",
+			})
+		}
+		if err != nil || !contractHashPattern.MatchString(chainDigest) {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		var link actionEvidenceLink
+		err = db.QueryRowContext(c.Context(), `
+			INSERT INTO contract_bound_action_evidence_links (
+				task_id, tenant_id, evidence_chain_digest, evidence_batch_id
+			) VALUES ($1,$2,$3,$4)
+			ON CONFLICT (tenant_id, task_id, evidence_chain_digest) DO NOTHING
+			RETURNING id, evidence_batch_id, evidence_chain_digest, created_at`,
+			taskID, tenantID, chainDigest, batchID,
+		).Scan(&link.ID, &link.BatchID, &link.ChainDigest, &link.CreatedAt)
+		if err == sql.ErrNoRows {
+			existing, loadErr := loadActionEvidenceLink(c.Context(), db, taskID, tenantID)
+			if loadErr != nil {
+				err = loadErr
+			} else {
+				link = *existing
+				err = nil
+			}
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.Status(http.StatusCreated).JSON(fiber.Map{
+			"id":                    link.ID.String(),
+			"task_id":               taskID.String(),
+			"contract_hash":         bound.ContractHash,
+			"binding_id":            bound.BindingID.String(),
+			"evidence_batch_id":     link.BatchID.String(),
+			"evidence_chain_digest": link.ChainDigest,
+			"claim_type":            "action_protocol_evidence",
+			"execution_provenance":  "embedded",
+		})
+	}
+}
+
+func loadActionEvidenceLink(ctx context.Context, db *sql.DB, taskID uuid.UUID, tenantID string) (*actionEvidenceLink, error) {
+	var link actionEvidenceLink
+	err := db.QueryRowContext(ctx, `
+		SELECT id, evidence_batch_id, evidence_chain_digest, created_at
+		FROM contract_bound_action_evidence_links
+		WHERE task_id = $1 AND tenant_id = $2
+		ORDER BY created_at DESC
+		LIMIT 1`,
+		taskID, tenantID,
+	).Scan(&link.ID, &link.BatchID, &link.ChainDigest, &link.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &link, nil
 }
 
 // handleActionApproveRun approves an approval_required durable action run and
@@ -701,7 +888,13 @@ func buildActionTaskSubmitRequest(req actionRunRequest, tenantID string) (*coord
 	if req.Input == nil {
 		return nil, fmt.Errorf("input is required")
 	}
-	def, err := buildActionExecutionGraphDefinition(req)
+	var def json.RawMessage
+	var err error
+	if req.boundAction != nil {
+		def, err = buildBoundActionExecutionGraphDefinition(req)
+	} else {
+		def, err = buildActionExecutionGraphDefinition(req)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -716,6 +909,7 @@ func buildActionTaskSubmitRequest(req actionRunRequest, tenantID string) (*coord
 		IdempotencyKey:     req.IdempotencyKey,
 		DeadlineAt:         req.DeadlineAt,
 		PreferredRuntimeID: req.preferredRuntimeID,
+		BoundAction:        req.boundAction,
 	}, nil
 }
 
@@ -821,6 +1015,180 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 	// (and the console) can render "Routed via …" without re-deriving it.
 	runReq.Metadata["target_type"] = targetType
 	return runReq, nil
+}
+
+func buildBoundActionRunRequest(
+	binding *contractExecutionBindingRecord,
+	version *contractVersionRecord,
+	req actionRunByNameRequest,
+) (actionRunRequest, actionDefinition, error) {
+	if binding == nil || version == nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("binding and contract version are required")
+	}
+	snapshot, err := binding.decodeTargetSnapshot()
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("decode target snapshot: %w", err)
+	}
+	mapping, err := binding.decodeInputMapping()
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("decode input mapping: %w", err)
+	}
+	descriptors, err := contractParameterDescriptors(version.Contract)
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("decode contract parameters: %w", err)
+	}
+	mappedInput, err := mapBoundActionInput(descriptors, mapping, req.Input)
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, err
+	}
+	targetDef := actionDefinition{
+		ID:               binding.TargetActionID.String(),
+		Name:             binding.ActionName,
+		TargetType:       snapshot.TargetType,
+		TargetURL:        snapshot.TargetURL,
+		Method:           snapshot.Method,
+		PolicyPreset:     snapshot.PolicyPreset,
+		ReplayClass:      snapshot.ReplayClass,
+		ApprovalRequired: snapshot.ApprovalRequired || version.ApprovalMode == "required",
+		Irreversible:     snapshot.Irreversible,
+		SecretRefs:       append([]string(nil), snapshot.SecretRefs...),
+		TargetMetadata:   copyActionMap(snapshot.TargetMetadata),
+	}
+	headers, err := localWebhookAuthHeaders(targetDef)
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, err
+	}
+	if headers == nil {
+		headers = map[string]interface{}{}
+	}
+	headers["Idempotency-Key"] = req.IdempotencyKey
+
+	effectiveReplayClass := binding.ReplayClass
+	if snapshot.ReplayClass == "non_retryable" {
+		effectiveReplayClass = "non_retryable"
+	}
+	metadata := map[string]interface{}{
+		"action_definition_id": binding.TargetActionID.String(),
+		"action_name":          binding.ActionName,
+		"target_type":          snapshot.TargetType,
+		"policy_preset":        snapshot.PolicyPreset,
+		"replay_class":         effectiveReplayClass,
+		"approval_required":    targetDef.ApprovalRequired,
+		"irreversible":         targetDef.Irreversible,
+		"contract_hash":        binding.ContractHash,
+		"contract_binding_id":  binding.ID.String(),
+		"target_version_hash":  binding.TargetVersionHash,
+		"contract_risk":        version.Risk,
+		"authorization_layers": []string{"managed", "embedded"},
+	}
+	bodyBytes, err := json.Marshal(mappedInput)
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("encode mapped input: %w", err)
+	}
+	fingerprintBody, err := json.Marshal(struct {
+		BindingID    string                 `json:"binding_id"`
+		ContractHash string                 `json:"contract_hash"`
+		Input        map[string]interface{} `json:"input"`
+	}{
+		BindingID: binding.ID.String(), ContractHash: binding.ContractHash, Input: mappedInput,
+	})
+	if err != nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("encode request fingerprint: %w", err)
+	}
+	boundIdentity := &coordinator.BoundActionRunIdentity{
+		BindingID:              binding.ID,
+		ContractHash:           binding.ContractHash,
+		TargetActionID:         binding.TargetActionID,
+		TargetVersionHash:      binding.TargetVersionHash,
+		BusinessIdempotencyKey: req.IdempotencyKey,
+		RequestFingerprint:     sha256HexString(string(fingerprintBody)),
+	}
+	runReq := actionRunRequest{
+		Action:         binding.ActionName,
+		Input:          mappedInput,
+		Metadata:       metadata,
+		RuntimeTarget:  "http_request",
+		IdempotencyKey: req.IdempotencyKey,
+		DeadlineAt:     req.DeadlineAt,
+		AgentID:        req.AgentID,
+		AgentName:      req.AgentName,
+		executedTarget: actionTargetLocalRuntime,
+		boundAction:    boundIdentity,
+	}
+	runReq.Input = map[string]interface{}{
+		"url":        snapshot.TargetURL,
+		"method":     snapshot.Method,
+		"body":       string(bodyBytes),
+		"headers":    headers,
+		"timeout_ms": binding.TimeoutMS,
+	}
+	return runReq, targetDef, nil
+}
+
+func mapBoundActionInput(
+	descriptors []contractParameterDescriptor,
+	mapping map[string]string,
+	input map[string]interface{},
+) (map[string]interface{}, error) {
+	if input == nil {
+		input = map[string]interface{}{}
+	}
+	known := make(map[string]contractParameterDescriptor, len(descriptors))
+	for _, descriptor := range descriptors {
+		known[descriptor.Name] = descriptor
+	}
+	for key := range input {
+		if _, ok := known[key]; !ok {
+			return nil, fmt.Errorf("unexpected input field %q", key)
+		}
+	}
+	mapped := make(map[string]interface{}, len(input))
+	for _, descriptor := range descriptors {
+		value, ok := input[descriptor.Name]
+		if !ok {
+			if descriptor.HasDefault {
+				continue
+			}
+			return nil, fmt.Errorf("missing required input field %q", descriptor.Name)
+		}
+		if err := validateBoundParameterType(descriptor, value); err != nil {
+			return nil, err
+		}
+		targetField := mapping[descriptor.Name]
+		mapped[targetField] = value
+	}
+	return mapped, nil
+}
+
+func validateBoundParameterType(descriptor contractParameterDescriptor, value interface{}) error {
+	if descriptor.Annotation == nil || strings.TrimSpace(*descriptor.Annotation) == "" {
+		return nil
+	}
+	annotation := strings.ToLower(strings.TrimSpace(*descriptor.Annotation))
+	valid := true
+	switch annotation {
+	case "str", "string", "<class 'str'>":
+		_, valid = value.(string)
+	case "int", "integer", "<class 'int'>":
+		number, ok := value.(float64)
+		valid = ok && number == float64(int64(number))
+	case "float", "number", "<class 'float'>":
+		_, valid = value.(float64)
+	case "bool", "boolean", "<class 'bool'>":
+		_, valid = value.(bool)
+	case "dict", "object", "<class 'dict'>":
+		_, valid = value.(map[string]interface{})
+	case "list", "array", "<class 'list'>":
+		_, valid = value.([]interface{})
+	default:
+		// Unknown Python annotations are descriptive in ActionContract v1;
+		// rejecting them would make existing valid contracts unbindable.
+		return nil
+	}
+	if !valid {
+		return fmt.Errorf("input field %q is incompatible with annotation %q", descriptor.Name, *descriptor.Annotation)
+	}
+	return nil
 }
 
 func localWebhookAuthHeaders(def actionDefinition) (map[string]interface{}, error) {
@@ -936,6 +1304,61 @@ func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage,
 	return buildExecutionGraphDefinition(req.Action, []map[string]interface{}{node})
 }
 
+func buildBoundActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage, error) {
+	if req.boundAction == nil {
+		return nil, fmt.Errorf("bound action identity is required")
+	}
+	url := stringFromMap(req.Input, "url")
+	if url == "" {
+		return nil, fmt.Errorf("bound action target URL is required")
+	}
+	method := strings.ToUpper(stringFromMap(req.Input, "method"))
+	if method == "" {
+		method = "POST"
+	}
+	args := map[string]interface{}{"method": method, "url": url}
+	if body, ok := req.Input["body"]; ok {
+		args["body"] = stringifyActionBody(body)
+	}
+	if headers, ok := req.Input["headers"].(map[string]interface{}); ok {
+		args["headers"] = headers
+	}
+	actionNode := map[string]interface{}{
+		"kind":           "tool",
+		"node_id":        "contract-bound-http-0",
+		"checkpoint_key": "contract-bound-http-checkpoint-0",
+		"write_slot":     "action.contract_bound_http_0",
+		"tool_name":      "http_request",
+		"args":           args,
+		"metadata":       actionNodeMetadata(req),
+	}
+	completionNode := map[string]interface{}{
+		"kind":           "tool",
+		"node_id":        "contract-bound-completion-1",
+		"checkpoint_key": "contract-bound-completion-checkpoint-1",
+		"write_slot":     "action.contract_bound_completion_1",
+		"tool_name":      "database_write",
+		"args": map[string]interface{}{
+			"table": "action_task_contract_bound_completions",
+			"record": map[string]interface{}{
+				"binding_id":               req.boundAction.BindingID.String(),
+				"contract_hash":            req.boundAction.ContractHash,
+				"business_idempotency_key": req.boundAction.BusinessIdempotencyKey,
+				"status":                   "completed",
+			},
+		},
+		"metadata": map[string]interface{}{
+			"action_name":                   req.Action,
+			"contract_hash":                 req.boundAction.ContractHash,
+			"contract_binding_id":           req.boundAction.BindingID.String(),
+			"deterministic_completion_step": true,
+			"irreversible":                  true,
+		},
+	}
+	checkpointAfter := uint32(1)
+	return buildExecutionGraphDefinition(req.Action, []map[string]interface{}{actionNode, completionNode}, &checkpointAfter)
+}
+
 func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistry.ResolvedAgent) fiber.Map {
 	proofStatus := "pending"
 	executionID := ""
@@ -955,6 +1378,28 @@ func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistr
 	}
 	if executionID != "" {
 		resp["execution_id"] = executionID
+	}
+	if task.BoundAction != nil {
+		resp["contract_binding"] = fiber.Map{
+			"binding_id":          task.BoundAction.BindingID.String(),
+			"contract_hash":       task.BoundAction.ContractHash,
+			"target_action_id":    task.BoundAction.TargetActionID.String(),
+			"target_version_hash": task.BoundAction.TargetVersionHash,
+		}
+		resp["linked_proof"] = fiber.Map{
+			"claim_boundary": fiber.Map{
+				"action_protocol_evidence": "separate SDK-signed decision/outcome claim",
+				"runtime_receipt":          "separate Runtime-signed managed execution claim",
+				"external_effect":          "neither cryptographic claim independently proves the external effect",
+			},
+			"contract_hash": task.BoundAction.ContractHash,
+			"binding_id":    task.BoundAction.BindingID.String(),
+			"task_id":       task.TaskID.String(),
+			"runtime_proof": fiber.Map{
+				"execution_id": executionID,
+				"status":       proofStatus,
+			},
+		}
 	}
 	if task.Status == coordinator.TaskStatusFailed && task.FailureReason != nil {
 		resp["error"] = "action_failed"
@@ -989,6 +1434,19 @@ func loadActionDefinitionByID(ctx context.Context, db *sql.DB, tenantID, id stri
 		       target_metadata, fallback_policy, created_at, updated_at, archived_at
 		FROM action_definitions
 		WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL`, tenantID, id)
+}
+
+func loadActionDefinitionByIDFromQuerier(ctx context.Context, q contractQuerier, tenantID, id string) (actionDefinition, error) {
+	row := q.QueryRowContext(ctx, `
+		SELECT id, tenant_id, name, display_name, description, target_type, target_url, method,
+		       policy_preset, replay_class, approval_required, irreversible, secret_refs,
+		       target_metadata, fallback_policy, created_at, updated_at, archived_at
+		FROM action_definitions
+		WHERE tenant_id = $1 AND id = $2 AND archived_at IS NULL
+		FOR SHARE`,
+		tenantID, id,
+	)
+	return scanActionDefinition(row)
 }
 
 func loadActionDefinitionByName(ctx context.Context, db *sql.DB, tenantID, name string) (actionDefinition, error) {
@@ -1317,7 +1775,10 @@ func actionNodeMetadata(req actionRunRequest) map[string]interface{} {
 	metadata := map[string]interface{}{"action": req.Action}
 	for key, value := range req.Metadata {
 		switch key {
-		case "action_definition_id", "action_name", "target_type", "policy_preset", "replay_class", "approval_required", "irreversible":
+		case "action_definition_id", "action_name", "target_type", "policy_preset",
+			"replay_class", "approval_required", "irreversible", "contract_hash",
+			"contract_binding_id", "target_version_hash", "contract_risk",
+			"authorization_layers":
 			metadata[key] = value
 		case "request_summary":
 			// Caller-provided, operator-facing one-liner ("apply

@@ -152,6 +152,9 @@ func (s *CheckpointStore) CreateTaskWithExecutionInputRefs(ctx context.Context, 
 			return false, err
 		}
 	}
+	if err := insertBoundActionRun(ctx, tx, task); err != nil {
+		return false, err
+	}
 	if err := tx.Commit(); err != nil {
 		return false, err
 	}

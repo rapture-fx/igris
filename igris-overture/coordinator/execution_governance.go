@@ -199,14 +199,74 @@ type actionPolicyInput struct {
 	RecoveryAttempt bool
 }
 
+type boundActionPolicy struct {
+	Present          bool
+	Risk             string
+	ReplayClass      string
+	ApprovalRequired bool
+}
+
+func extractBoundActionPolicy(definition json.RawMessage) boundActionPolicy {
+	var payload struct {
+		Graph struct {
+			Nodes []struct {
+				Metadata map[string]interface{} `json:"metadata"`
+			} `json:"nodes"`
+		} `json:"graph"`
+	}
+	if err := json.Unmarshal(definition, &payload); err != nil {
+		return boundActionPolicy{}
+	}
+	for _, node := range payload.Graph.Nodes {
+		contractHash, _ := node.Metadata["contract_hash"].(string)
+		bindingID, _ := node.Metadata["contract_binding_id"].(string)
+		if strings.TrimSpace(contractHash) == "" || strings.TrimSpace(bindingID) == "" {
+			continue
+		}
+		risk, _ := node.Metadata["contract_risk"].(string)
+		if riskLevelRank(risk) == 0 {
+			risk = "low"
+		}
+		replayClass, _ := node.Metadata["replay_class"].(string)
+		if replayClass != ReplayClassNonRetryable {
+			replayClass = ReplayClassRetryable
+		}
+		approvalRequired, _ := node.Metadata["approval_required"].(bool)
+		return boundActionPolicy{
+			Present:          true,
+			Risk:             risk,
+			ReplayClass:      replayClass,
+			ApprovalRequired: approvalRequired,
+		}
+	}
+	return boundActionPolicy{}
+}
+
+func riskLevelRank(risk string) int {
+	switch strings.ToLower(strings.TrimSpace(risk)) {
+	case "low":
+		return 1
+	case "medium":
+		return 2
+	case "high":
+		return 3
+	case "critical":
+		return 4
+	default:
+		return 0
+	}
+}
+
 func evaluateActionPolicy(input actionPolicyInput) ActionPolicyDecision {
 	taskType, actionName := classifyTaskAction(input.TaskDefinition)
 	irreversible := taskHasIrreversibleAction(input.TaskDefinition)
 	humanGated := taskRequiresHumanApproval(input.TaskDefinition)
+	boundPolicy := extractBoundActionPolicy(input.TaskDefinition)
 	replayClass := ReplayClassRetryable
 	risk := "low"
 	decision := ActionDecisionAllowed
 	reason := "allowed by built-in execution governance"
+	policyVersion := "execution-governance.builtin.v1"
 	portability := CheckpointPortabilityCompatibleRuntime
 
 	// A recovery may safely resume forward only when the checkpoint proves every
@@ -223,8 +283,21 @@ func evaluateActionPolicy(input actionPolicyInput) ActionPolicyDecision {
 			portability = CheckpointPortabilityCompatibleRuntime
 		}
 	}
+	if boundPolicy.Present {
+		policyVersion = "execution-governance.contract-bound.v1"
+		if riskLevelRank(boundPolicy.Risk) > riskLevelRank(risk) {
+			risk = boundPolicy.Risk
+		}
+		if boundPolicy.ReplayClass == ReplayClassNonRetryable {
+			replayClass = ReplayClassNonRetryable
+		}
+		humanGated = humanGated || boundPolicy.ApprovalRequired
+		reason = "allowed by stricter bound-contract and execution governance policy"
+	}
 	if humanGated {
-		risk = "medium"
+		if riskLevelRank("medium") > riskLevelRank(risk) {
+			risk = "medium"
+		}
 		decision = ActionDecisionApprovalRequired
 		reason = "human approval required before execution"
 	}
@@ -257,7 +330,7 @@ func evaluateActionPolicy(input actionPolicyInput) ActionPolicyDecision {
 		ReplayClass:           replayClass,
 		Irreversible:          irreversible,
 		HumanGated:            humanGated,
-		PolicyVersion:         "execution-governance.builtin.v1",
+		PolicyVersion:         policyVersion,
 		PolicyReason:          reason,
 		ActionDigest:          digestRaw(input.TaskDefinition),
 		BoundaryDigest:        boundary.digest,
