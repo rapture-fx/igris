@@ -280,7 +280,7 @@ var routeManifestRules = []routeManifestRule{
 			DefaultExposure:        "authenticated",
 			AuthExpectation:        "BetterAuth tenant credential",
 			TenantScopeExpectation: "tenant-owned logical actions and immutable contract versions",
-			Notes:                  "Connected contract synchronization and lookup; declaration only, grants no execution permission",
+			Notes:                  "Contract sync remains declaration-only; execution requires a separate explicit immutable target binding",
 		},
 	},
 	{
