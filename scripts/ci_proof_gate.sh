@@ -151,6 +151,14 @@ SQL
     # still run — it only provisions the replay-protection table they require.
     "052_runtime_callback_envelopes"
     "062_task_records_registered_agent"
+    # Contract-bound durable Action proof: 067 records immutable SDK contract
+    # versions, 068 stores separately verified Embedded evidence, 069 enforces
+    # database immutability, and 070 adds explicit contract-to-target bindings
+    # plus immutable durable-run/evidence links.
+    "067_action_contract_versions"
+    "068_sdk_evidence_ingestion"
+    "069_connected_immutable_records"
+    "070_contract_execution_bindings"
   )
   local migration_file
   local migration_name
@@ -202,6 +210,9 @@ preflight_durable_task_schema() {
   # Signed runtime checkpoint callbacks reserve a replay nonce here; without the
   # table the callback fails closed (403) and recovery reports no runtime.
   require_relation "runtime_callback_nonces"
+  require_relation "action_contract_execution_bindings"
+  require_relation "contract_bound_action_runs"
+  require_relation "contract_bound_action_evidence_links"
 
   require_column "task_records" "last_checkpoint"
   require_column "task_records" "proof_verified"
@@ -324,6 +335,9 @@ run_heavy_gate() {
 
   echo "[heavy] Running existing Action Task V1 proof"
   "$SCRIPT_DIR/action_task_v1_proof_demo.sh"
+
+  echo "[heavy] Running Clock 3B contract-bound durable Action proof"
+  "$SCRIPT_DIR/clock_3b_contract_bound_durable_action_proof.sh"
 
   echo "[heavy] Running core proof suite"
   run_core_proof_suite_containment_aware
