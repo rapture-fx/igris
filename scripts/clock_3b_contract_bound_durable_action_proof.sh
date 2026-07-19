@@ -48,6 +48,7 @@ required_migrations=(
   "068_sdk_evidence_ingestion"
   "069_connected_immutable_records"
   "070_contract_execution_bindings"
+  "071_run_scoped_evidence_link_exclusivity"
 )
 
 for migration_name in "${required_migrations[@]}"; do

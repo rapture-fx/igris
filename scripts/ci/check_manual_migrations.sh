@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# CI guard: the private-alpha Connected / Clock 3B migrations
-# (067, 068, 069, 070) are manual-runbook-only. This guard fails if:
+# CI guard: the private-alpha Connected / Clock 3B / Clock 3C migrations
+# (067, 068, 069, 070, 071) are manual-runbook-only. This guard fails if:
 #   1. any of the migration files loses its explicit manual-only wording,
 #   2. a workflow, application source file, or operational script starts
 #      referencing these migrations (the first step toward auto-applying them),
@@ -22,6 +22,7 @@ MIGRATIONS=(
   068_sdk_evidence_ingestion.sql
   069_connected_immutable_records.sql
   070_contract_execution_bindings.sql
+  071_run_scoped_evidence_link_exclusivity.sql
 )
 
 fail=0
@@ -48,7 +49,7 @@ done
 #   - Go test files (they apply the DDL inside disposable test schemas),
 #   - documentation,
 #   - this guard.
-pattern='067_action_contract_versions|068_sdk_evidence_ingestion|069_connected_immutable_records|070_contract_execution_bindings'
+pattern='067_action_contract_versions|068_sdk_evidence_ingestion|069_connected_immutable_records|070_contract_execution_bindings|071_run_scoped_evidence_link_exclusivity'
 offenders=$(grep -rlE "$pattern" \
   --exclude-dir=.git \
   --exclude-dir=node_modules \
@@ -83,4 +84,4 @@ if [[ "$fail" -ne 0 ]]; then
   exit 1
 fi
 
-echo "migration guard: OK (067/068/069/070 remain manual-runbook-only)"
+echo "migration guard: OK (067/068/069/070/071 remain manual-runbook-only)"

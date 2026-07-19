@@ -83,6 +83,7 @@ func openContractBindingPostgres(t *testing.T) *sql.DB {
 		"068_sdk_evidence_ingestion.sql",
 		"069_connected_immutable_records.sql",
 		"070_contract_execution_bindings.sql",
+		"071_run_scoped_evidence_link_exclusivity.sql",
 	} {
 		ddl, err := os.ReadFile(filepath.Join("..", "database", "migrations", migration))
 		require.NoError(t, err)
