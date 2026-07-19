@@ -469,28 +469,26 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
 		resp := buildActionRunResponse(task, nil)
-		if link, err := loadActionEvidenceLink(c.Context(), tc.Store().DB(), taskID, tenantID); err == nil {
-			if linked, ok := resp["linked_proof"].(fiber.Map); ok {
-				linked["action_protocol_evidence"] = fiber.Map{
-					"batch_id":          link.BatchID.String(),
-					"chain_head_digest": link.ChainDigest,
-					"verification":      "verified Embedded Action Protocol evidence",
-				}
-			}
-		} else if err != sql.ErrNoRows {
-			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
-		}
-		if linked, ok := resp["linked_proof"].(fiber.Map); ok {
-			if events, err := tc.Store().ListRecoveryEvents(tenantID, taskID); err == nil {
-				linked["recovery_lineage"] = events
-			} else {
-				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
-			}
-			if handoff, err := tc.Store().LatestRuntimeHandoffEvent(tenantID, taskID); err == nil {
-				linked["latest_runtime_handoff"] = handoff
+		if task.BoundAction != nil {
+			var link *actionEvidenceLink
+			if loaded, err := loadActionEvidenceLink(c.Context(), tc.Store().DB(), taskID, tenantID); err == nil {
+				link = loaded
 			} else if err != sql.ErrNoRows {
 				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 			}
+			var recovery []coordinator.RecoveryEvent
+			if events, err := tc.Store().ListRecoveryEvents(tenantID, taskID); err == nil {
+				recovery = events
+			} else {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+			var handoff *coordinator.RuntimeHandoffEvent
+			if event, err := tc.Store().LatestRuntimeHandoffEvent(tenantID, taskID); err == nil {
+				handoff = event
+			} else if err != sql.ErrNoRows {
+				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+			}
+			attachIgrisRunProof(resp, task, link, recovery, handoff)
 		}
 		return c.JSON(resp)
 	}
@@ -513,6 +511,7 @@ func handleActionEvidenceLinkCreate(db *sql.DB, tc *coordinator.TaskCoordinator)
 		if err != nil {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_run_id"})
 		}
+		// Tenant-scoped bound-run load prevents IDOR across runs/tenants.
 		bound, err := tc.Store().GetBoundActionRun(c.Context(), taskID, tenantID)
 		if err == sql.ErrNoRows {
 			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "contract_bound_run_not_found"})
@@ -520,6 +519,15 @@ func handleActionEvidenceLinkCreate(db *sql.DB, tc *coordinator.TaskCoordinator)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
+		task, err := tc.Store().GetTask(taskID, tenantID)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "run_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		task.BoundAction = bound
+
 		var request struct {
 			BatchID string `json:"batch_id"`
 		}
@@ -530,46 +538,28 @@ func handleActionEvidenceLinkCreate(db *sql.DB, tc *coordinator.TaskCoordinator)
 		if err != nil {
 			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{"error": "invalid_batch_id"})
 		}
-		var chainDigest string
-		err = db.QueryRowContext(c.Context(), `
-			SELECT b.chain_head
-			FROM sdk_evidence_batches b
-			WHERE b.id = $1 AND b.tenant_id = $2
-			  AND b.evidence_state = 'verified'
-			  AND b.execution_provenance = 'embedded'
-			  AND EXISTS (
-				SELECT 1 FROM sdk_evidence_events e
-				WHERE e.batch_id = b.id AND e.tenant_id = b.tenant_id
-				  AND e.contract_hash = $3
-			  )`,
-			batchID, tenantID, bound.ContractHash,
-		).Scan(&chainDigest)
-		if err == sql.ErrNoRows {
+
+		// Fail closed: eligibility requires tenant, action_name, contract_hash,
+		// decision input_hash match for this run, and exclusive batch/chain ownership.
+		elig, err := evaluateEvidenceLinkEligibility(
+			c.Context(), db, tenantID, taskID, bound, task.TaskDefinition, batchID,
+		)
+		if isEvidenceNotLinkable(err) {
 			return c.Status(http.StatusConflict).JSON(fiber.Map{
 				"error":   "evidence_not_linkable",
-				"message": "batch must be verified Embedded evidence for this exact contract_hash",
+				"message": err.Error(),
 			})
 		}
-		if err != nil || !contractHashPattern.MatchString(chainDigest) {
+		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
-		var link actionEvidenceLink
-		err = db.QueryRowContext(c.Context(), `
-			INSERT INTO contract_bound_action_evidence_links (
-				task_id, tenant_id, evidence_chain_digest, evidence_batch_id
-			) VALUES ($1,$2,$3,$4)
-			ON CONFLICT (tenant_id, task_id, evidence_chain_digest) DO NOTHING
-			RETURNING id, evidence_batch_id, evidence_chain_digest, created_at`,
-			taskID, tenantID, chainDigest, batchID,
-		).Scan(&link.ID, &link.BatchID, &link.ChainDigest, &link.CreatedAt)
-		if err == sql.ErrNoRows {
-			existing, loadErr := loadActionEvidenceLink(c.Context(), db, taskID, tenantID)
-			if loadErr != nil {
-				err = loadErr
-			} else {
-				link = *existing
-				err = nil
-			}
+
+		link, err := insertEvidenceLinkExclusive(c.Context(), db, taskID, tenantID, elig)
+		if isEvidenceNotLinkable(err) {
+			return c.Status(http.StatusConflict).JSON(fiber.Map{
+				"error":   "evidence_not_linkable",
+				"message": err.Error(),
+			})
 		}
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
@@ -577,12 +567,17 @@ func handleActionEvidenceLinkCreate(db *sql.DB, tc *coordinator.TaskCoordinator)
 		return c.Status(http.StatusCreated).JSON(fiber.Map{
 			"id":                    link.ID.String(),
 			"task_id":               taskID.String(),
+			"run_id":                taskID.String(),
 			"contract_hash":         bound.ContractHash,
 			"binding_id":            bound.BindingID.String(),
 			"evidence_batch_id":     link.BatchID.String(),
 			"evidence_chain_digest": link.ChainDigest,
 			"claim_type":            "action_protocol_evidence",
 			"execution_provenance":  "embedded",
+			"run_linkage_status":    runLinkageEligibleLinked,
+			"tool_input_hash":       elig.InputHash,
+			"action_name":           elig.ActionName,
+			"schema":                igrisRunProofSchemaV1,
 		})
 	}
 }
@@ -1381,23 +1376,30 @@ func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistr
 	}
 	if task.BoundAction != nil {
 		resp["contract_binding"] = fiber.Map{
-			"binding_id":          task.BoundAction.BindingID.String(),
-			"contract_hash":       task.BoundAction.ContractHash,
-			"target_action_id":    task.BoundAction.TargetActionID.String(),
-			"target_version_hash": task.BoundAction.TargetVersionHash,
+			"binding_id":               task.BoundAction.BindingID.String(),
+			"contract_hash":            task.BoundAction.ContractHash,
+			"target_action_id":         task.BoundAction.TargetActionID.String(),
+			"target_version_hash":      task.BoundAction.TargetVersionHash,
+			"business_idempotency_key": task.BoundAction.BusinessIdempotencyKey,
+			"request_fingerprint":      task.BoundAction.RequestFingerprint,
 		}
+		// Minimal linked_proof scaffold for non-GET paths (run create/approve).
+		// GET /runs/:id replaces this via attachIgrisRunProof with full recovery
+		// lineage, evidence link, and machine-readable status dimensions.
 		resp["linked_proof"] = fiber.Map{
-			"claim_boundary": fiber.Map{
-				"action_protocol_evidence": "separate SDK-signed decision/outcome claim",
-				"runtime_receipt":          "separate Runtime-signed managed execution claim",
-				"external_effect":          "neither cryptographic claim independently proves the external effect",
-			},
-			"contract_hash": task.BoundAction.ContractHash,
-			"binding_id":    task.BoundAction.BindingID.String(),
-			"task_id":       task.TaskID.String(),
+			"schema":         igrisRunProofSchemaV1,
+			"product_term":   "Igris Run Proof",
+			"claim_boundary": igrisRunProofClaimBoundary(),
+			"contract_hash":  task.BoundAction.ContractHash,
+			"binding_id":     task.BoundAction.BindingID.String(),
+			"task_id":        task.TaskID.String(),
+			"run_id":         task.TaskID.String(),
+			"business_idempotency_key": task.BoundAction.BusinessIdempotencyKey,
 			"runtime_proof": fiber.Map{
-				"execution_id": executionID,
-				"status":       proofStatus,
+				"execution_id":        executionID,
+				"status":              proofStatus,
+				"verification_status": proofStatus,
+				"claim_type":          "runtime_receipt",
 			},
 		}
 	}

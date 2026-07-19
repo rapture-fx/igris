@@ -1146,6 +1146,24 @@ if (!proof.contract_binding || proof.contract_binding.contract_hash !== contract
 if (!proof.linked_proof || !proof.linked_proof.runtime_proof || proof.linked_proof.runtime_proof.status !== "verified") throw new Error("verified Runtime claim missing");
 if (!proof.linked_proof.action_protocol_evidence || proof.linked_proof.action_protocol_evidence.verification.indexOf("Embedded") < 0) throw new Error("separate Embedded evidence claim missing");
 if (!proof.linked_proof.claim_boundary) throw new Error("claim boundary missing");
+// Clock 3C stable Igris Run Proof contract (additive; must not break 3B fields).
+if (!proof.igris_run_proof || proof.igris_run_proof.schema !== "igris_run_proof.v1") {
+  throw new Error("stable igris_run_proof.v1 missing");
+}
+if (proof.igris_run_proof.contract_hash !== contractHash) throw new Error("igris_run_proof contract_hash mismatch");
+if (proof.igris_run_proof.binding_id !== proof.contract_binding.binding_id) throw new Error("igris_run_proof binding mismatch");
+if (!proof.igris_run_proof.statuses || proof.igris_run_proof.statuses.runtime_proof_status !== "verified") {
+  throw new Error("igris_run_proof runtime status missing");
+}
+if (proof.igris_run_proof.statuses.action_evidence_status !== "linked") {
+  throw new Error("igris_run_proof action evidence not linked");
+}
+if (proof.igris_run_proof.statuses.run_linkage_status !== "eligible_linked") {
+  throw new Error("igris_run_proof run linkage status unexpected");
+}
+if (!proof.igris_run_proof.claim_boundary || !proof.igris_run_proof.claim_boundary.linked_view) {
+  throw new Error("igris_run_proof claim boundary incomplete");
+}
 const recovery = Array.isArray(proof.linked_proof.recovery_lineage) ? proof.linked_proof.recovery_lineage : [];
 const handoff = proof.linked_proof.latest_runtime_handoff || {};
 if (!recovery.some((event) => event.source_runtime_id === runtime1 && event.target_runtime_id === runtime2) &&
