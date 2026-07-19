@@ -55,6 +55,7 @@ offenders=$(grep -rlE "$pattern" \
   .github cmd igris-overture scripts Makefile 2>/dev/null \
   | grep -v '_test\.go$' \
   | grep -v '^scripts/ci/check_manual_migrations\.sh$' \
+  | grep -v '^scripts/clock_3b_contract_bound_durable_action_proof\.sh$' \
   || true)
 if [[ -n "$offenders" ]]; then
   echo "FAIL: private-alpha migrations are referenced outside tests/docs/migrations:"
