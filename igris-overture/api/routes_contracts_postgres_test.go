@@ -77,6 +77,7 @@ func openContractBindingPostgres(t *testing.T) *sql.DB {
 	db := openContractPostgres(t)
 	for _, migration := range []string{
 		"031_task_records.sql",
+		"035_task_failure_details.sql",
 		"055_action_execution_targets.sql",
 		"057_task_records_tenant_scoped_idempotency.sql",
 		"062_task_records_registered_agent.sql",
@@ -84,6 +85,7 @@ func openContractBindingPostgres(t *testing.T) *sql.DB {
 		"069_connected_immutable_records.sql",
 		"070_contract_execution_bindings.sql",
 		"071_run_scoped_evidence_link_exclusivity.sql",
+		"072_operator_reconciliation_events.sql",
 	} {
 		ddl, err := os.ReadFile(filepath.Join("..", "database", "migrations", migration))
 		require.NoError(t, err)
