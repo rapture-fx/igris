@@ -893,6 +893,7 @@ mod tests {
                     step_index: Some(0),
                     domain: Some("agent".to_string()),
                     node_id: Some("agent-0".to_string()),
+                    ..task_executor::TaskFailureDetails::default()
                 }),
                 execution_envelope: None,
                 execution_receipt: None,

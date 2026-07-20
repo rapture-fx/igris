@@ -281,6 +281,13 @@ func (tc *TaskCoordinator) HandleFailed(taskID uuid.UUID, reason string) error {
 	return tc.store.MarkFailed(taskID, reason)
 }
 
+// HandleFailedWithDetails preserves the signed Runtime callback's structured
+// failure metadata. Unknown-effect reconciliation eligibility is established
+// here before the Runtime's synchronous task response can race the callback.
+func (tc *TaskCoordinator) HandleFailedWithDetails(taskID uuid.UUID, reason string, details *TaskFailureDetails) error {
+	return tc.store.MarkFailedWithDetails(taskID, reason, details)
+}
+
 // RecordRuntimeFailedRecoveryDecision persists the conservative recovery
 // decision that follows an accepted runtime failed callback for irreversible or
 // otherwise non-replayable work. It does not redispatch the task.
