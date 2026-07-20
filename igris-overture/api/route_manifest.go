@@ -248,6 +248,32 @@ var routeManifestRules = []routeManifestRule{
 		},
 	},
 	{
+		Method: "GET",
+		Path:   "/v1/actions/runs/:id/reconciliation",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "actions",
+			RegistrationSource:     "RegisterActionRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth admin session",
+			TenantScopeExpectation: "tenant-owned immutable reconciliation history",
+			Notes:                  "Operator inspection of typed unknown-effect state; no raw target body or proof mutation",
+		},
+	},
+	{
+		Method: "POST",
+		Path:   "/v1/actions/runs/:id/reconciliation",
+		Meta: RouteManifestMetadata{
+			RouteGroup:             "actions",
+			RegistrationSource:     "RegisterActionRoutes",
+			Classification:         "core_public_product_api",
+			DefaultExposure:        "authenticated",
+			AuthExpectation:        "BetterAuth admin session",
+			TenantScopeExpectation: "tenant-owned append-only operator resolution",
+			Notes:                  "Appends an operator assertion only; never retries an effect or rewrites execution evidence",
+		},
+	},
+	{
 		Path: "/v1/actions/*",
 		Meta: RouteManifestMetadata{
 			RouteGroup:             "actions",

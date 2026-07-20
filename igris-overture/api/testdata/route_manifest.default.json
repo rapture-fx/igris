@@ -388,6 +388,30 @@
       "notes": "Registered action gateway"
     },
     {
+      "method": "GET",
+      "path": "/v1/actions/runs/:id/reconciliation",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth admin session",
+      "tenant_scope_expectation": "tenant-owned immutable reconciliation history",
+      "feature_flag": "",
+      "notes": "Operator inspection of typed unknown-effect state; no raw target body or proof mutation"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/actions/runs/:id/reconciliation",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth admin session",
+      "tenant_scope_expectation": "tenant-owned append-only operator resolution",
+      "feature_flag": "",
+      "notes": "Appends an operator assertion only; never retries an effect or rewrites execution evidence"
+    },
+    {
       "method": "POST",
       "path": "/v1/actions/runs/:id/reject",
       "route_group": "actions",
