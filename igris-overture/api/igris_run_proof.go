@@ -27,30 +27,30 @@ const (
 	igrisRunProofSchemaV1 = "igris_run_proof.v1"
 
 	// Status vocabulary for machine-readable operator claims.
-	statusObserved   = "observed"
-	statusVerified   = "verified"
-	statusPending    = "pending"
+	statusObserved    = "observed"
+	statusVerified    = "verified"
+	statusPending     = "pending"
 	statusUnavailable = "unavailable"
-	statusNotLinked  = "not_linked"
-	statusLinked     = "linked"
-	statusRejected   = "rejected"
-	statusUnknown    = "unknown"
-	statusCompleted  = "completed"
-	statusInProgress = "in_progress"
-	statusRequired   = "required"
+	statusNotLinked   = "not_linked"
+	statusLinked      = "linked"
+	statusRejected    = "rejected"
+	statusUnknown     = "unknown"
+	statusCompleted   = "completed"
+	statusInProgress  = "in_progress"
+	statusRequired    = "required"
 	statusNotRequired = "not_required"
-	statusFailed     = "failed"
-	statusRecovering = "recovering"
-	statusNone       = "none"
-	statusPresent    = "present"
+	statusFailed      = "failed"
+	statusRecovering  = "recovering"
+	statusNone        = "none"
+	statusPresent     = "present"
 
 	// Run linkage: strongest server-side eligibility without frozen protocol
 	// run identity. "cryptographically_run_bound" is intentionally unused —
 	// Action Protocol Evidence v1 has no run_id field.
-	runLinkageNotApplicable = "not_applicable"
-	runLinkageNotLinked     = "not_linked"
+	runLinkageNotApplicable  = "not_applicable"
+	runLinkageNotLinked      = "not_linked"
 	runLinkageEligibleLinked = "eligible_linked"
-	runLinkageUnverified    = "unverified_for_run"
+	runLinkageUnverified     = "unverified_for_run"
 )
 
 // igrisRunProofClaimBoundary documents that Runtime and Action Protocol
@@ -59,6 +59,7 @@ func igrisRunProofClaimBoundary() fiber.Map {
 	return fiber.Map{
 		"action_protocol_evidence": "separate SDK-signed decision/outcome claim; does not prove managed Overture dispatch or Runtime recovery",
 		"runtime_receipt":          "separate Runtime-signed managed execution claim; does not prove external side-effect uniqueness or Action Protocol chain validity",
+		"operator_reconciliation":  "separate authenticated operator assertion over managed unresolved-effect state; not cryptographic proof of the external effect",
 		"external_effect":          "neither cryptographic claim independently proves the external effect",
 		"linked_view":              "Igris Run Proof joins claims for one durable run; it is not protocol-level cryptographic unification",
 		"run_scoped_evidence":      "server eligibility requires tenant, action_name, contract_hash, decision input_hash match, exclusive batch/chain ownership; Evidence v1 has no run_id so identical tool inputs across different business keys cannot be cryptographically distinguished",
@@ -426,35 +427,35 @@ func attachIgrisRunProof(
 	}
 
 	proof := fiber.Map{
-		"schema":       igrisRunProofSchemaV1,
-		"product_term": "Igris Run Proof",
-		"run_id":       task.TaskID.String(),
-		"task_id":      task.TaskID.String(),
-		"action_name":  actionName,
-		"contract_hash": bound.ContractHash,
-		"binding_id":   bound.BindingID.String(),
-		"target_action_id":    bound.TargetActionID.String(),
-		"target_version":      bound.TargetVersionHash,
-		"target_version_hash": bound.TargetVersionHash,
+		"schema":                   igrisRunProofSchemaV1,
+		"product_term":             "Igris Run Proof",
+		"run_id":                   task.TaskID.String(),
+		"task_id":                  task.TaskID.String(),
+		"action_name":              actionName,
+		"contract_hash":            bound.ContractHash,
+		"binding_id":               bound.BindingID.String(),
+		"target_action_id":         bound.TargetActionID.String(),
+		"target_version":           bound.TargetVersionHash,
+		"target_version_hash":      bound.TargetVersionHash,
 		"business_idempotency_key": bound.BusinessIdempotencyKey,
 		"request_fingerprint":      bound.RequestFingerprint,
 		"tool_input_hash":          toolInputHash,
 		"runtime_execution_id":     executionID,
 		"statuses": fiber.Map{
-			"contract_binding_status": statusPresent,
-			"managed_decision_status": managedDecisionStatus(task),
-			"execution_status":        durableExecutionStatus(task),
-			"recovery_status":         recoveryStatus(task, recovery, handoff),
-			"runtime_proof_status":    rtStatus,
-			"action_evidence_status":  actionEvidenceStatus,
+			"contract_binding_status":             statusPresent,
+			"managed_decision_status":             managedDecisionStatus(task),
+			"execution_status":                    durableExecutionStatus(task),
+			"recovery_status":                     recoveryStatus(task, recovery, handoff),
+			"runtime_proof_status":                rtStatus,
+			"action_evidence_status":              actionEvidenceStatus,
 			"action_evidence_verification_status": actionEvidenceVerification,
-			"run_linkage_status":      runLinkage,
+			"run_linkage_status":                  runLinkage,
 		},
 		"claim_boundary": igrisRunProofClaimBoundary(),
 		"runtime_proof": fiber.Map{
-			"claim_type":   "runtime_receipt",
-			"execution_id": executionID,
-			"status":       rtStatus,
+			"claim_type":          "runtime_receipt",
+			"execution_id":        executionID,
+			"status":              rtStatus,
 			"verification_status": rtStatus,
 		},
 	}
@@ -481,14 +482,14 @@ func attachIgrisRunProof(
 
 	// Backwards-compatible linked_proof view (Clock 3B + additive fields).
 	linked := fiber.Map{
-		"schema":         igrisRunProofSchemaV1,
-		"product_term":   "Igris Run Proof",
-		"claim_boundary": igrisRunProofClaimBoundary(),
-		"contract_hash":  bound.ContractHash,
-		"binding_id":     bound.BindingID.String(),
-		"task_id":        task.TaskID.String(),
-		"run_id":         task.TaskID.String(),
-		"action_name":    actionName,
+		"schema":                   igrisRunProofSchemaV1,
+		"product_term":             "Igris Run Proof",
+		"claim_boundary":           igrisRunProofClaimBoundary(),
+		"contract_hash":            bound.ContractHash,
+		"binding_id":               bound.BindingID.String(),
+		"task_id":                  task.TaskID.String(),
+		"run_id":                   task.TaskID.String(),
+		"action_name":              actionName,
 		"target_action_id":         bound.TargetActionID.String(),
 		"target_version":           bound.TargetVersionHash,
 		"business_idempotency_key": bound.BusinessIdempotencyKey,
@@ -606,5 +607,3 @@ func loadActionEvidenceLinkTx(ctx context.Context, q interface {
 	}
 	return &link, nil
 }
-
-
