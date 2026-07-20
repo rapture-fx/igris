@@ -3,18 +3,15 @@
 Commands:
 
 * ``igris verify [JOURNAL_PATH]`` — verify a local evidence journal offline.
-  Exit code 0 only when the journal is fully valid.
-* ``igris key-info`` — print the local public key identity. Never prints
-  private-key material.
-* ``igris evidence sync [JOURNAL_PATH]`` — EXPLICITLY verify the local
-  journal and upload it to the configured Connected endpoint. Requires
-  ``IGRIS_API_URL`` and ``IGRIS_API_KEY``. Exit code 0 only for a successful
-  (or safely replayed / already up-to-date) upload. Guarded execution never
-  triggers this.
-* ``igris evidence inspect [JOURNAL_PATH]`` — verify and classify argument
-  retention locally. Never performs network activity or prints values.
-* ``igris evidence status BATCH_ID`` — fetch a previously uploaded batch's
-  tenant-scoped verification status.
+* ``igris key-info`` — print the local public key identity.
+* ``igris evidence sync|inspect|status`` — explicit Connected evidence commands.
+* ``igris binding get|create`` — inspect or create exact contract bindings.
+* ``igris run submit|status|wait|proof`` — durable run lifecycle and proof.
+* ``igris run link-evidence`` — explicitly link a verified Evidence batch.
+
+Durable commands reuse :class:`~igris.IgrisDurableClient` and require explicit
+``IGRIS_API_URL`` + ``IGRIS_API_KEY`` (or ``--endpoint`` / ``--api-key``).
+They never make Embedded ``wrap_tool`` remote.
 """
 
 from __future__ import annotations
@@ -23,14 +20,20 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 from . import __version__
+from .durable import IgrisDurableClient
 from .errors import (
+    DurableConfigurationError,
+    DurableError,
     EvidencePrivacyInspectionError,
     EvidencePrivacyPreflightError,
     EvidenceSyncConfigurationError,
     EvidenceSyncError,
     IdentityError,
+    ReconciliationRequiredError,
+    UnboundActionError,
 )
 from .evidence_privacy import inspect_journal
 from .evidence_sync import get_batch_status, sync_journal
@@ -124,6 +127,79 @@ def main(argv: list[str] | None = None) -> int:
     )
     status_parser.add_argument("batch_id", help="batch id returned by `igris evidence sync`")
 
+    binding_parser = subparsers.add_parser(
+        "binding", help="inspect or create exact contract→target bindings"
+    )
+    binding_sub = binding_parser.add_subparsers(dest="binding_command", required=True)
+    binding_get = binding_sub.add_parser("get", help="inspect binding by exact contract_hash")
+    _add_durable_auth_flags(binding_get)
+    binding_get.add_argument("--action", required=True, help="action name")
+    binding_get.add_argument("--contract-hash", required=True, help="exact 64-hex contract hash")
+    binding_get.add_argument("--json", action="store_true", help="machine-readable JSON output")
+
+    binding_create = binding_sub.add_parser("create", help="create an immutable exact-hash binding")
+    _add_durable_auth_flags(binding_create)
+    binding_create.add_argument("--action", required=True, help="action name")
+    binding_create.add_argument("--contract-hash", required=True, help="exact 64-hex contract hash")
+    binding_create.add_argument(
+        "--target-action-id", required=True, help="target Action definition UUID"
+    )
+    binding_create.add_argument(
+        "--input-mapping",
+        required=True,
+        help='JSON object mapping contract params to target fields, e.g. \'{"a":"a"}\'',
+    )
+    binding_create.add_argument("--replay-class", default="retryable")
+    binding_create.add_argument("--json", action="store_true", help="machine-readable JSON output")
+
+    run_parser = subparsers.add_parser("run", help="durable run submit/status/wait/proof")
+    run_sub = run_parser.add_subparsers(dest="run_command", required=True)
+
+    run_submit = run_sub.add_parser("submit", help="submit a durable contract-bound run")
+    _add_durable_auth_flags(run_submit)
+    run_submit.add_argument("--action", required=True, help="action name")
+    run_submit.add_argument("--contract-hash", required=True, help="exact 64-hex contract hash")
+    run_submit.add_argument(
+        "--idempotency-key",
+        required=True,
+        help="explicit business idempotency key (never auto-generated)",
+    )
+    run_submit.add_argument(
+        "--input",
+        default="{}",
+        help="JSON object of run input (default: {})",
+    )
+    run_submit.add_argument("--json", action="store_true", help="machine-readable JSON output")
+
+    run_status = run_sub.add_parser("status", help="fetch durable run status")
+    _add_durable_auth_flags(run_status)
+    run_status.add_argument("run_id", help="durable run id")
+    run_status.add_argument("--json", action="store_true", help="machine-readable JSON output")
+
+    run_wait = run_sub.add_parser("wait", help="wait for a terminal durable run status")
+    _add_durable_auth_flags(run_wait)
+    run_wait.add_argument("run_id", help="durable run id")
+    run_wait.add_argument("--timeout", type=float, default=60.0, help="bounded timeout seconds")
+    run_wait.add_argument("--poll-interval", type=float, default=1.0)
+    run_wait.add_argument("--json", action="store_true", help="machine-readable JSON output")
+
+    run_proof = run_sub.add_parser("proof", help="retrieve Igris Run Proof for a run")
+    _add_durable_auth_flags(run_proof)
+    run_proof.add_argument("run_id", help="durable run id")
+    run_proof.add_argument(
+        "--human",
+        action="store_true",
+        help="concise human-readable summary (default output is JSON)",
+    )
+
+    run_link = run_sub.add_parser(
+        "link-evidence", help="explicitly link a verified Evidence batch to a run"
+    )
+    _add_durable_auth_flags(run_link)
+    run_link.add_argument("run_id", help="durable run id")
+    run_link.add_argument("--batch-id", required=True, help="verified Evidence batch id")
+    run_link.add_argument("--json", action="store_true", help="machine-readable JSON output")
+
     args = parser.parse_args(argv)
 
     if args.command == "verify":
@@ -136,8 +212,220 @@ def main(argv: list[str] | None = None) -> int:
         if args.evidence_command == "inspect":
             return _cmd_evidence_inspect(args)
         return _cmd_evidence_status(args)
+    if args.command == "binding":
+        return _cmd_binding(args)
+    if args.command == "run":
+        return _cmd_run(args)
     parser.error(f"unknown command {args.command!r}")
     return EXIT_USAGE  # unreachable; parser.error exits
+
+
+def _add_durable_auth_flags(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--endpoint",
+        default=None,
+        help="Igris API endpoint (default: $IGRIS_API_URL)",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=None,
+        help="tenant-scoped igris_… API key (default: $IGRIS_API_KEY)",
+    )
+
+
+def _durable_client(args: argparse.Namespace) -> IgrisDurableClient:
+    endpoint = getattr(args, "endpoint", None)
+    api_key = getattr(args, "api_key", None)
+    if endpoint or api_key:
+        return IgrisDurableClient(endpoint=endpoint, api_key=api_key)
+    return IgrisDurableClient.from_env()
+
+
+def _print_json(payload: Any) -> None:
+    print(json.dumps(payload, indent=2, sort_keys=True, default=str))
+
+
+def _cmd_binding(args: argparse.Namespace) -> int:
+    try:
+        client = _durable_client(args)
+        if args.binding_command == "get":
+            binding = client.get_binding(args.action, args.contract_hash)
+        else:
+            try:
+                mapping = json.loads(args.input_mapping)
+            except json.JSONDecodeError as exc:
+                print(f"igris binding create: invalid --input-mapping JSON: {exc}", file=sys.stderr)
+                return EXIT_USAGE
+            if not isinstance(mapping, dict):
+                print(
+                    "igris binding create: --input-mapping must be a JSON object", file=sys.stderr
+                )
+                return EXIT_USAGE
+            binding = client.create_binding(
+                action_name=args.action,
+                contract_hash=args.contract_hash,
+                target_action_id=args.target_action_id,
+                input_mapping={str(k): str(v) for k, v in mapping.items()},
+                replay_class=args.replay_class,
+            )
+    except DurableConfigurationError as exc:
+        print(f"igris binding: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except DurableError as exc:
+        print(f"igris binding: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+
+    payload = {
+        "id": binding.id,
+        "action_name": binding.action_name,
+        "contract_hash": binding.contract_hash,
+        "target_action_id": binding.target_action_id,
+        "target_version_hash": binding.target_version_hash,
+        "input_mapping": binding.input_mapping,
+        "timeout_ms": binding.timeout_ms,
+        "replay_class": binding.replay_class,
+        "idempotency_required": binding.idempotency_required,
+        "immutable": binding.immutable,
+        "created_at": binding.created_at,
+    }
+    if args.json:
+        _print_json(payload)
+    else:
+        print(f"binding {binding.id}")
+        print(f"  action:          {binding.action_name}")
+        print(f"  contract_hash:   {binding.contract_hash}")
+        print(f"  target_action_id:{binding.target_action_id}")
+        print(f"  target_version:  {binding.target_version_hash}")
+        print(f"  input_mapping:   {json.dumps(binding.input_mapping, sort_keys=True)}")
+        print(f"  idempotency_required: {binding.idempotency_required}")
+    return EXIT_OK
+
+
+def _cmd_run(args: argparse.Namespace) -> int:
+    try:
+        client = _durable_client(args)
+        if args.run_command == "submit":
+            try:
+                run_input = json.loads(args.input)
+            except json.JSONDecodeError as exc:
+                print(f"igris run submit: invalid --input JSON: {exc}", file=sys.stderr)
+                return EXIT_USAGE
+            if not isinstance(run_input, dict):
+                print("igris run submit: --input must be a JSON object", file=sys.stderr)
+                return EXIT_USAGE
+            handle = client.run(
+                args.action,
+                input=run_input,
+                idempotency_key=args.idempotency_key,
+                contract_hash=args.contract_hash,
+            )
+            status = handle.last_status
+            payload = {
+                "run_id": handle.run_id,
+                "status": status.status if status else None,
+                "task_id": status.task_id if status else None,
+            }
+            if args.json:
+                _print_json(payload)
+            else:
+                print(f"run_id: {handle.run_id}")
+                if status is not None:
+                    print(f"status: {status.status}")
+            return EXIT_OK
+
+        if args.run_command == "status":
+            status = client.get_run(args.run_id)
+            return _emit_run_status(status, as_json=args.json)
+
+        if args.run_command == "wait":
+            from .durable import DurableRun
+
+            status = DurableRun(client, run_id=args.run_id).wait(
+                timeout=args.timeout, poll_interval=args.poll_interval
+            )
+            return _emit_run_status(status, as_json=args.json)
+
+        if args.run_command == "proof":
+            from .durable import DurableRun
+
+            proof = DurableRun(client, run_id=args.run_id).proof()
+            if args.human:
+                print(f"schema:        {proof.schema}")
+                print(f"product_term:  {proof.product_term}")
+                print(f"run_id:        {proof.run_id}")
+                print(f"action_name:   {proof.action_name}")
+                print(f"contract_hash: {proof.contract_hash}")
+                print(f"statuses:      {json.dumps(proof.statuses, sort_keys=True)}")
+                print(
+                    "claim_boundary preserves Runtime receipt vs Action Protocol Evidence "
+                    "as separate claims; eligible_linked is server eligibility."
+                )
+                return EXIT_OK
+            _print_json(proof.raw)
+            return EXIT_OK
+
+        if args.run_command == "link-evidence":
+            result = client.link_evidence(args.run_id, args.batch_id)
+            payload = {
+                "id": result.id,
+                "run_id": result.run_id,
+                "evidence_batch_id": result.evidence_batch_id,
+                "claim_type": result.claim_type,
+                "run_linkage_status": result.run_linkage_status,
+                "schema": result.schema,
+            }
+            if args.json:
+                _print_json(payload)
+            else:
+                print(f"linked batch {result.evidence_batch_id} → run {result.run_id}")
+                print(f"  claim_type:         {result.claim_type}")
+                print(f"  run_linkage_status: {result.run_linkage_status}")
+                print("  note: eligible_linked is server eligibility, not a crypto run bind")
+            return EXIT_OK
+    except UnboundActionError as exc:
+        print(f"igris run: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+    except ReconciliationRequiredError as exc:
+        print(f"igris run: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+    except DurableConfigurationError as exc:
+        print(f"igris run: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except DurableError as exc:
+        print(f"igris run: {exc}", file=sys.stderr)
+        return EXIT_INVALID
+
+    print(f"igris run: unknown subcommand {args.run_command!r}", file=sys.stderr)
+    return EXIT_USAGE
+
+
+def _emit_run_status(status: Any, *, as_json: bool) -> int:
+    payload = {
+        "run_id": status.run_id,
+        "task_id": status.task_id,
+        "status": status.status,
+        "proof_status": status.proof_status,
+        "durable_execution_status": status.durable_execution_status,
+        "managed_decision_status": status.managed_decision_status,
+        "recovery_status": status.recovery_status,
+        "run_linkage_status": status.run_linkage_status,
+        "is_terminal": status.is_terminal,
+        "is_recovering": status.is_recovering,
+        "requires_reconciliation": status.requires_reconciliation,
+    }
+    if as_json:
+        _print_json(payload)
+    else:
+        print(f"run_id:                 {status.run_id}")
+        print(f"status:                 {status.status}")
+        print(f"durable_execution:      {status.durable_execution_status}")
+        print(f"recovery_status:        {status.recovery_status}")
+        print(f"proof_status:           {status.proof_status}")
+        print(f"run_linkage_status:     {status.run_linkage_status}")
+        print(f"is_terminal:            {status.is_terminal}")
+        print(f"is_recovering:          {status.is_recovering}")
+        print(f"requires_reconciliation:{status.requires_reconciliation}")
+    return EXIT_OK
 
 
 def _cmd_verify(args: argparse.Namespace) -> int:
