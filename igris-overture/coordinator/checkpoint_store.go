@@ -172,6 +172,11 @@ type TaskFailureDetails struct {
 	RequestedCheckpointDigest string  `json:"requested_checkpoint_digest,omitempty"`
 	LocalCheckpointDigest     string  `json:"local_checkpoint_digest,omitempty"`
 	ResumeCheckpointProvided  *bool   `json:"resume_checkpoint_provided,omitempty"`
+	EffectState               string  `json:"effect_state,omitempty"`
+	ReconciliationRequired    bool    `json:"reconciliation_required,omitempty"`
+	TargetErrorCode           string  `json:"target_error_code,omitempty"`
+	TargetHost                string  `json:"target_host,omitempty"`
+	TargetResponseDigest      string  `json:"target_response_digest,omitempty"`
 }
 
 const (
@@ -717,6 +722,24 @@ func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
 	return s.MarkFailedWithDetails(taskID, reason, nil)
 }
 
+// IsTypedReconciliationFailure accepts only the narrow, machine-readable
+// Runtime signal emitted for a target's explicit unknown-effect response.
+// Human-readable failure strings never establish reconciliation eligibility.
+func IsTypedReconciliationFailure(details *TaskFailureDetails) bool {
+	if details == nil ||
+		!details.ReconciliationRequired ||
+		details.EffectState != "unknown_effect_state" ||
+		details.TargetErrorCode != "idempotency_unresolved" ||
+		details.StatusCode < 400 || details.StatusCode > 599 ||
+		len(details.TargetResponseDigest) != 64 ||
+		len(strings.TrimSpace(details.TargetHost)) < 1 ||
+		len(strings.TrimSpace(details.TargetHost)) > 253 {
+		return false
+	}
+	decoded, err := hex.DecodeString(details.TargetResponseDigest)
+	return err == nil && len(decoded) == sha256.Size
+}
+
 func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string, details *TaskFailureDetails) error {
 	var detailBytes []byte
 	if details != nil {
@@ -727,6 +750,75 @@ func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string,
 		detailBytes = encoded
 	}
 
+	if IsTypedReconciliationFailure(details) {
+		tx, err := s.db.Begin()
+		if err != nil {
+			return s.markFailedRecord(taskID, reason, detailBytes)
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		result, err := tx.Exec(`
+			UPDATE task_records
+			SET status = $1, failure_reason = $2, failure_details = $3
+			WHERE task_id = $4
+			  AND status IN ($5, $6, $7)`,
+			TaskStatusFailed, reason, nullRawJSON(detailBytes), taskID,
+			TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
+		)
+		if err := taskTransitionResult(result, err); err != nil {
+			return err
+		}
+
+		// The observation is eligible only for an immutable contract-bound run
+		// whose binding required a business idempotency identity. The inserted
+		// row snapshots managed identities; no client metadata is trusted.
+		_, err = tx.Exec(`
+			INSERT INTO contract_bound_action_reconciliation_events (
+				tenant_id, task_id, binding_id, contract_hash,
+				target_action_id, target_version_hash,
+				business_idempotency_digest, event_type,
+				observed_effect_state, actor_type, actor_id, reason,
+				external_reference_type, external_reference_value,
+				target_host, source_status_code
+			)
+			SELECT r.tenant_id, r.task_id, r.binding_id, r.contract_hash,
+			       r.target_action_id, r.target_version_hash,
+			       encode(sha256(convert_to(r.business_idempotency_key, 'UTF8')), 'hex'),
+			       'unresolved_effect_observed', 'unknown_effect_state',
+			       'runtime', COALESCE(NULLIF(t.runtime_id, ''), 'runtime:unknown'),
+			       'Runtime reported a typed unknown consequential effect; automatic replay is refused',
+			       'runtime_response_digest', $2, $3, $4
+			FROM contract_bound_action_runs r
+			JOIN action_contract_execution_bindings b
+			  ON b.id = r.binding_id
+			 AND b.tenant_id = r.tenant_id
+			 AND b.contract_hash = r.contract_hash
+			 AND b.target_action_id = r.target_action_id
+			 AND b.target_version_hash = r.target_version_hash
+			JOIN task_records t
+			  ON t.task_id = r.task_id AND t.tenant_id = r.tenant_id
+			WHERE r.task_id = $1
+			  AND b.idempotency_required = TRUE
+			ON CONFLICT DO NOTHING`,
+			taskID, details.TargetResponseDigest, strings.TrimSpace(details.TargetHost), details.StatusCode,
+		)
+		if err != nil {
+			// Migration 072 is manual. If its table is unavailable (or the
+			// observation insert otherwise fails), the task must still become
+			// terminal failed so recovery can never replay an uncertain effect.
+			_ = tx.Rollback()
+			return s.markFailedRecord(taskID, reason, detailBytes)
+		}
+		if err := tx.Commit(); err != nil {
+			return s.ensureTaskFailedRecord(taskID, reason, detailBytes)
+		}
+		return nil
+	}
+
+	return s.markFailedRecord(taskID, reason, detailBytes)
+}
+
+func (s *CheckpointStore) markFailedRecord(taskID uuid.UUID, reason string, detailBytes []byte) error {
 	result, err := s.db.Exec(`
 		UPDATE task_records
 		SET status = $1, failure_reason = $2, failure_details = $3
@@ -736,6 +828,21 @@ func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string,
 		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
 	)
 	return taskTransitionResult(result, err)
+}
+
+func (s *CheckpointStore) ensureTaskFailedRecord(taskID uuid.UUID, reason string, detailBytes []byte) error {
+	err := s.markFailedRecord(taskID, reason, detailBytes)
+	if !errors.Is(err, ErrTaskTransitionRejected) {
+		return err
+	}
+	var status TaskRecordStatus
+	if queryErr := s.db.QueryRow(`
+		SELECT status FROM task_records WHERE task_id = $1`,
+		taskID,
+	).Scan(&status); queryErr == nil && status == TaskStatusFailed {
+		return nil
+	}
+	return err
 }
 
 // StampExecutedTarget records which Action execution target (hosted_api,
