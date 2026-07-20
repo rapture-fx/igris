@@ -156,6 +156,8 @@ func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordi
 	v1.Post("", handleActionCreate(db))
 	v1.Post("/run", handleActionRun(db, tc))
 	v1.Get("/runs/:id", handleActionGetRun(tc))
+	v1.Get("/runs/:id/reconciliation", handleActionReconciliationGet(db, tc))
+	v1.Post("/runs/:id/reconciliation", handleActionReconciliationAppend(db, tc))
 	v1.Post("/runs/:id/evidence-links", handleActionEvidenceLinkCreate(db, tc))
 	v1.Post("/runs/:id/approve", handleActionApproveRun(tc))
 	v1.Post("/runs/:id/reject", handleActionRejectRun(tc))
@@ -489,6 +491,25 @@ func handleActionGetRun(tc *coordinator.TaskCoordinator) fiber.Handler {
 				return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 			}
 			attachIgrisRunProof(resp, task, link, recovery, handoff)
+			reconciliation := &operatorReconciliationState{
+				Required:     false,
+				CurrentState: statusNotRequired,
+			}
+			if coordinator.IsTypedReconciliationFailure(task.FailureDetails) {
+				loaded, err := loadOperatorReconciliationState(
+					c.Context(), tc.Store().DB(), tenantID, taskID,
+				)
+				if err == nil {
+					reconciliation = loaded
+				} else if err == sql.ErrNoRows {
+					// A typed Runtime signal alone is not managed eligibility.
+					// Without the immutable initial observation, fail closed.
+					reconciliation.CurrentState = statusUnavailable
+				} else {
+					return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+				}
+			}
+			attachOperatorReconciliationProof(resp, reconciliation)
 		}
 		return c.JSON(resp)
 	}
@@ -1387,13 +1408,13 @@ func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistr
 		// GET /runs/:id replaces this via attachIgrisRunProof with full recovery
 		// lineage, evidence link, and machine-readable status dimensions.
 		resp["linked_proof"] = fiber.Map{
-			"schema":         igrisRunProofSchemaV1,
-			"product_term":   "Igris Run Proof",
-			"claim_boundary": igrisRunProofClaimBoundary(),
-			"contract_hash":  task.BoundAction.ContractHash,
-			"binding_id":     task.BoundAction.BindingID.String(),
-			"task_id":        task.TaskID.String(),
-			"run_id":         task.TaskID.String(),
+			"schema":                   igrisRunProofSchemaV1,
+			"product_term":             "Igris Run Proof",
+			"claim_boundary":           igrisRunProofClaimBoundary(),
+			"contract_hash":            task.BoundAction.ContractHash,
+			"binding_id":               task.BoundAction.BindingID.String(),
+			"task_id":                  task.TaskID.String(),
+			"run_id":                   task.TaskID.String(),
 			"business_idempotency_key": task.BoundAction.BusinessIdempotencyKey,
 			"runtime_proof": fiber.Map{
 				"execution_id":        executionID,
