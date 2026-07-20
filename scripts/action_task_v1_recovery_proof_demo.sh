@@ -1063,14 +1063,22 @@ if (cumulativeMode === "true") {
 NODE
 
 if [[ "$CLOCK3B_MODE" == "true" ]]; then
-  PROTOCOL_MANIFEST_SHA=$(git show f98ef76e4fe0cb6b52341639d42cf99213623465:spec/test-vectors/suite-schema-1/manifest.json | shasum -a 256 | awk '{print $1}')
+  # Immutable Schema-1 release identity. Hosted shallow checkouts must fetch
+  # tag schema1-conformance-v1.0.0 first (scripts/ci/fetch_frozen_protocol_release.sh).
+  PROTOCOL_RELEASE_COMMIT="f98ef76e4fe0cb6b52341639d42cf99213623465"
+  if ! git cat-file -e "${PROTOCOL_RELEASE_COMMIT}^{commit}" 2>/dev/null; then
+    echo "frozen protocol release commit ${PROTOCOL_RELEASE_COMMIT} is unavailable in this clone" >&2
+    echo "hosted Proof Gate must run scripts/ci/fetch_frozen_protocol_release.sh after checkout" >&2
+    exit 1
+  fi
+  PROTOCOL_MANIFEST_SHA=$(git show "${PROTOCOL_RELEASE_COMMIT}:spec/test-vectors/suite-schema-1/manifest.json" | shasum -a 256 | awk '{print $1}')
   if [[ "$PROTOCOL_MANIFEST_SHA" != "864e8043944191222af789b3d0dd3d947f03b1aadf52651bde97511d807776f4" ]]; then
     echo "frozen protocol manifest identity mismatch: $PROTOCOL_MANIFEST_SHA" >&2
     exit 1
   fi
   mkdir -p "$TMP_DIR/protocol-release"
   # The frozen verifier is its own Go module under conformance/go-verifier.
-  git archive f98ef76e4fe0cb6b52341639d42cf99213623465 \
+  git archive "${PROTOCOL_RELEASE_COMMIT}" \
     conformance/go-verifier | tar -x -C "$TMP_DIR/protocol-release"
   (
     cd "$TMP_DIR/protocol-release/conformance/go-verifier"
