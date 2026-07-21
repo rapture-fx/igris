@@ -116,16 +116,68 @@ func TestBuildBoundActionRunRequestProducesTwoStepRecoveryGraph(t *testing.T) {
 	definition, err := buildBoundActionExecutionGraphDefinition(run)
 	require.NoError(t, err)
 	var decoded struct {
-		CheckpointAfterSteps uint32 `json:"checkpoint_after_steps"`
-		Graph                struct {
+		CheckpointAfterSteps    uint32 `json:"checkpoint_after_steps"`
+		ContinueAfterCheckpoint bool   `json:"continue_after_checkpoint"`
+		Graph                   struct {
 			Nodes []map[string]interface{} `json:"nodes"`
 		} `json:"graph"`
 	}
 	require.NoError(t, json.Unmarshal(definition, &decoded))
 	require.Equal(t, uint32(1), decoded.CheckpointAfterSteps)
+	require.True(t, decoded.ContinueAfterCheckpoint)
 	require.Len(t, decoded.Graph.Nodes, 2)
 	require.Equal(t, "http_request", decoded.Graph.Nodes[0]["tool_name"])
 	require.Equal(t, "database_write", decoded.Graph.Nodes[1]["tool_name"])
+}
+
+func TestBuildBoundActionExecutionGraphDefinitionYieldsWhenProofEnvSet(t *testing.T) {
+	t.Setenv("IGRIS_CLOCK3B_ADAPTER_TOKEN", "test-token")
+	t.Setenv("IGRIS_BOUND_ACTION_YIELD_AFTER_CHECKPOINT", "1")
+	contractHash := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	targetHash := "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	snapshot, err := json.Marshal(boundTargetSnapshot{
+		Name: "clock3b_adapter_target", TargetType: actionTargetWebhook,
+		TargetURL: "http://127.0.0.1:18099/v1/clock3b/consequential-transfer",
+		Method:    "POST", PolicyPreset: "Safe automation", ReplayClass: "retryable",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Adapter-Token",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_CLOCK3B_ADAPTER_TOKEN",
+		},
+	})
+	require.NoError(t, err)
+	mapping, err := json.Marshal(map[string]string{"account_id": "account_id", "amount_cents": "amount_cents"})
+	require.NoError(t, err)
+	contract, err := json.Marshal(map[string]interface{}{
+		"parameter_descriptors": []map[string]interface{}{
+			{"name": "account_id", "kind": "POSITIONAL_OR_KEYWORD", "has_default": false, "annotation": "str"},
+			{"name": "amount_cents", "kind": "POSITIONAL_OR_KEYWORD", "has_default": false, "annotation": "int"},
+		},
+	})
+	require.NoError(t, err)
+
+	run, _, err := buildBoundActionRunRequest(
+		&contractExecutionBindingRecord{
+			ID: uuid.New(), ActionName: "clock3b.consequential_transfer",
+			ContractHash: contractHash, TargetActionID: uuid.New(),
+			TargetVersionHash: targetHash, TargetSnapshot: snapshot,
+			InputMapping: mapping, ReplayClass: "retryable", TimeoutMS: 30_000,
+		},
+		&contractVersionRecord{Contract: contract, Risk: "high", ApprovalMode: "never"},
+		actionRunByNameRequest{
+			Input:          map[string]interface{}{"account_id": "acct-1", "amount_cents": float64(2500)},
+			IdempotencyKey: "business-effect-1",
+		},
+	)
+	require.NoError(t, err)
+	definition, err := buildBoundActionExecutionGraphDefinition(run)
+	require.NoError(t, err)
+	var decoded struct {
+		CheckpointAfterSteps     uint32 `json:"checkpoint_after_steps"`
+		ContinueAfterCheckpoint  bool   `json:"continue_after_checkpoint"`
+	}
+	require.NoError(t, json.Unmarshal(definition, &decoded))
+	require.Equal(t, uint32(1), decoded.CheckpointAfterSteps)
+	require.False(t, decoded.ContinueAfterCheckpoint)
 }
 
 func TestHandleActionRunByNameRequiresExactContractBinding(t *testing.T) {
