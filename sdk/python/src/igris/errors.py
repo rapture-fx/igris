@@ -373,3 +373,183 @@ class EvidenceSyncServerError(EvidenceSyncError):
         self, message: str, *, status_code: int | None = None, error_code: str | None = None
     ) -> None:
         super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=True)
+
+
+# ---------------------------------------------------------------------------
+# Durable client errors (explicit durable execution — never Embedded wrap_tool)
+# ---------------------------------------------------------------------------
+
+
+class DurableError(IgrisError):
+    """Base class for explicit durable-client failures.
+
+    Durable APIs never execute local Python callables and never upload source.
+    These errors are raised by :class:`~igris.durable.IgrisDurableClient` and
+    related helpers only.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        error_code: str | None = None,
+        retry_safe: bool | None = None,
+        response_body: dict | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.error_code = error_code
+        self.retry_safe = retry_safe
+        self.response_body = response_body
+
+
+class DurableConfigurationError(DurableError):
+    """Durable client configuration is missing or invalid.
+
+    Raised when endpoint/api_key are incomplete, the URL scheme is unsafe, or
+    required durable parameters (exact ``contract_hash``, business
+    ``idempotency_key``) are omitted. Not retry-safe until configuration is
+    fixed. Never implies Embedded ``wrap_tool`` became remote.
+    """
+
+    def __init__(self, message: str, *, error_code: str | None = "durable_configuration") -> None:
+        super().__init__(message, error_code=error_code, retry_safe=False)
+
+
+class AuthenticationError(DurableError):
+    """The durable endpoint rejected the machine-client credential (401/403)."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = None, error_code: str | None = None
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class AuthorizationDenied(DurableError):
+    """The durable request was authenticated but denied by policy or grants."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = None, error_code: str | None = None
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class ActionNotRegistered(DurableError):
+    """The named Action or contract version was not found for this tenant."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = 404, error_code: str | None = None
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class UnboundActionError(DurableError):
+    """A durable run was requested for an exact contract that has no binding.
+
+    Binding is never inferred from Action name alone. Create or inspect an
+    exact ``contract_hash`` binding before submitting a durable run.
+    """
+
+    def __init__(
+        self, message: str, *, status_code: int | None = 409, error_code: str = "binding_required"
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class ContractMismatchError(DurableError):
+    """Contract identity did not match server recomputation or path identity."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = 422, error_code: str | None = None
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class BindingConflictError(DurableError):
+    """An immutable binding already exists for this exact contract version."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = 409, error_code: str = "binding_exists"
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class IdempotencyConflictError(DurableError):
+    """The business idempotency key was reused with a different request fingerprint."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = 409,
+        error_code: str = "idempotency_key_conflict",
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class ReconciliationRequiredError(DurableError):
+    """The run is in an unresolved effect / reconciliation-required state.
+
+    Automatic retry is unsafe. Inspect the run and apply operator
+    reconciliation outside the durable client; the SDK does not auto-retry.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        error_code: str = "reconciliation_required",
+        run_id: str | None = None,
+        recovery_status: str | None = None,
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+        self.run_id = run_id
+        self.recovery_status = recovery_status
+
+
+class RunNotFoundError(DurableError):
+    """The durable run id was not found for this tenant."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = 404, error_code: str = "run_not_found"
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class ProofUnavailableError(DurableError):
+    """Igris Run Proof is not available on this run response."""
+
+    def __init__(
+        self, message: str, *, status_code: int | None = None, error_code: str = "proof_unavailable"
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class EvidenceNotLinkableError(DurableError):
+    """Verified Evidence could not be linked to this run (eligibility failed)."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = 409,
+        error_code: str = "evidence_not_linkable",
+    ) -> None:
+        super().__init__(message, status_code=status_code, error_code=error_code, retry_safe=False)
+
+
+class DurableTimeoutError(DurableError):
+    """``DurableRun.wait`` exceeded its bounded timeout without a terminal state."""
+
+    def __init__(self, message: str, *, run_id: str | None = None) -> None:
+        super().__init__(message, error_code="wait_timeout", retry_safe=True)
+        self.run_id = run_id
+
+
+class DurableTransportError(DurableError):
+    """The durable endpoint could not be reached (DNS, connect, TLS, timeout)."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, error_code="transport_failure", retry_safe=True)

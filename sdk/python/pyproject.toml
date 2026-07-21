@@ -3,7 +3,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "igris"
+# Distribution name is igris-sdk (not the unrelated public PyPI package named
+# "igris"). The import package remains `igris`. Do not `pip install igris`
+# from the public index for this SDK until publication is explicitly authorized.
+name = "igris-sdk"
 version = "0.1.0a2"
 description = "Igris is a drop-in action layer for consequential AI-agent actions."
 readme = "README.md"
@@ -12,7 +15,7 @@ requires-python = ">=3.10"
 dependencies = [
     "cryptography>=42.0",
 ]
-keywords = ["ai-agents", "approval", "audit", "evidence", "guardrails"]
+keywords = ["ai-agents", "approval", "audit", "evidence", "guardrails", "durable-actions"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -44,6 +47,7 @@ include = [
     "src/igris",
     "docs/evidence-privacy.md",
     "docs/wrapping-existing-tools.md",
+    "docs/durable-action-quickstart.md",
     "README.md",
     "LICENSE",
 ]
