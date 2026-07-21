@@ -451,6 +451,39 @@ class TestDurableHttpClient:
         with pytest.raises(ReconciliationRequiredError):
             handle.wait(timeout=1.0, poll_interval=0.01)
 
+    def test_reconciliation_required_from_top_level_flag_when_status_failed(self):
+        """Clock 3D attaches reconciliation_required on GET run even when
+        task.status remains failed — SDK must not miss that signal."""
+        body = sample_run_status_body(
+            status="failed",
+            durable_execution_status="failed",
+            recovery_status="present",
+        )
+        body["reconciliation_required"] = True
+        body["reconciliation_status"] = "reconciliation_required"
+        body["igris_run_proof"] = {
+            "schema": "igris_run_proof.v1",
+            "product_term": "Igris Run Proof",
+            "run_id": RUN_ID,
+            "statuses": {"reconciliation_status": "reconciliation_required"},
+            "operator_reconciliation": {
+                "claim_type": "operator_reconciliation",
+                "cryptographic_proof": False,
+                "reconciliation_required": True,
+                "status": "reconciliation_required",
+            },
+        }
+        status = igris.DurableRunStatus.from_response(body)
+        assert status.status == "failed"
+        assert status.requires_reconciliation is True
+
+        def opener(request, timeout=None):
+            return FakeHTTPResponse(200, body)
+
+        handle = igris.DurableRun(make_client(opener), run_id=RUN_ID)
+        with pytest.raises(ReconciliationRequiredError):
+            handle.status()
+
     def test_wait_timeout(self, monkeypatch):
         monkeypatch.setattr("igris.durable.time.sleep", lambda _s: None)
 

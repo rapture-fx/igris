@@ -333,6 +333,20 @@ class DurableRunStatus:
         }
         if candidates & _RECONCILIATION_STATUSES:
             return True
+        if self.raw.get("reconciliation_required") is True:
+            return True
+        if (self.raw.get("reconciliation_status") or "").lower() in _RECONCILIATION_STATUSES:
+            return True
+        if self.igris_run_proof is not None:
+            recon_status = (self.igris_run_proof.statuses or {}).get("reconciliation_status")
+            if str(recon_status or "").lower() in _RECONCILIATION_STATUSES:
+                return True
+            claim = self.igris_run_proof.raw.get("operator_reconciliation")
+            if isinstance(claim, dict) and (
+                claim.get("reconciliation_required") is True
+                or str(claim.get("status") or "").lower() in _RECONCILIATION_STATUSES
+            ):
+                return True
         raw_result = self.raw.get("result")
         if isinstance(raw_result, dict) and raw_result.get("reconciliation_required") is True:
             return True
