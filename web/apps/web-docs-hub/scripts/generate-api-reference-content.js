@@ -12,13 +12,13 @@ const apiGuides = [
     slug: 'introduction',
     title: 'Introduction',
     summary:
-      'How the Igris API reference is organized, when to use each access point, and how to move from guides into endpoint-level integration work.',
+      'How the Igris API reference is organized for durable Actions, runs, proof, and MCP.',
     sections: [
       {
-        title: 'Two Product Surfaces',
+        title: 'Primary Product Surface',
         paragraphs: [
-          'Igris is documented here as one product with two access points. Use the hosted API at `https://overture.igrisinertial.com` for registered actions, runs, MCP, account, fleet, receipt, and policy capabilities. Use the local runtime API at `http://localhost:8080` by default when the request belongs on the machine where Igris is running.',
-          'This split is about where the request executes, not about two different products. The API reference groups endpoints by capability so you can navigate by task first and only think about the base URL when you are ready to make the call.',
+          'Use this API reference after you understand the durable Action journey in [Quickstart](/docs/quickstart) and [Your First Durable Action](/docs/first-durable-action).',
+          'Hosted API calls use `https://overture.igrisinertial.com` with `Authorization: Bearer igris_…`. Prefer the Python `IgrisDurableClient` for application code; use these HTTP contracts when integrating another language or debugging.',
         ],
       },
       {
@@ -29,24 +29,24 @@ const apiGuides = [
         ],
       },
       {
-        title: 'First-Agent Onboarding Path',
+        title: 'Recommended First Routes',
         paragraphs: [
-          'If you are wiring a new agent, start with the **Action Packs** section: list built-in packs, install the `starter` pack, then run `demo.echo` through **Actions** (`POST /v1/actions/:name/run`) or MCP `call_action`. Action Packs register safe actions — they do not execute raw tasks or ship live external connectors.',
-          'See [First Agent Onboarding](/docs/first-agent-onboarding) for the full CLI and MCP walkthrough.',
+          'Start with Actions routes: create/inspect targets, create exact contract bindings, submit runs with a business idempotency key and exact `contract_hash`, then inspect runs / Igris Run Proof.',
+          'Recommended order: `POST /v1/actions`, `POST /v1/contracts/actions/:name/versions/:hash/bindings`, `POST /v1/actions/:name/run`, `GET /v1/actions/runs/:id`.',
         ],
       },
       {
         title: 'SDK Guidance',
         paragraphs: [
-          'JavaScript/TypeScript, Go, Rust, and Python are the first-class SDK languages today. When an endpoint is covered by a native SDK, prefer that SDK for application code because it gives you a cleaner call surface and reduces request-shape drift over time.',
-          'Some management routes are still best treated as direct HTTP integrations. In those cases, the endpoint page is the primary contract: use the request and response examples, confirm the authentication model, and wire your own client behavior around the listed status codes.',
+          'External Alpha first-class SDK support is Python (`igris-sdk`, `IgrisDurableClient`). Other languages should call the hosted Actions HTTP API directly.',
+          'Some management routes remain direct HTTP integrations. In those cases, the endpoint page is the primary contract.',
         ],
       },
       {
         title: 'Support Labels and Deployment Modes',
         paragraphs: [
           'Each endpoint page carries both a support label and a deployment mode. **Core** routes are the primary customer contract. **Supported** routes are part of the shipped product surface but may not be the first endpoint a new customer should start with. **Preview** routes are available, but they should be adopted deliberately. Routes whose stability badge reads **experimental** are disabled by default — they require an explicit experimental feature flag on the deployment and are not part of the stable API contract.',
-          'Deployment mode tells you where the route belongs operationally. **Cloud** routes are served by the hosted API, **Local** routes are served by `igris-runtime`, and **Hybrid** routes are used when the hosted product and one or more runtimes are working together.',
+          'Deployment mode tells you where the route belongs operationally. **Cloud** routes are served by the hosted API, **Local** routes are served by local Runtime, and **Hybrid** routes are used when the hosted product and one or more runtimes are working together.',
         ],
       },
     ],
@@ -60,10 +60,10 @@ http://localhost:8080`,
     response: `{
   "surface": "cloud",
   "supports": [
-    "routing",
-    "billing",
-    "receipts",
-    "fleet coordination"
+    "actions",
+    "durable runs",
+    "igris run proof",
+    "mcp beta"
   ]
 }`,
   },

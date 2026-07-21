@@ -1,0 +1,65 @@
+---
+title: "IgrisDurableClient"
+description: "Construct the explicit durable client with endpoint and API key."
+audience: "public"
+---
+
+# IgrisDurableClient
+
+`IgrisDurableClient` is the supported durable product client.
+
+## Construction
+
+```python
+from igris import IgrisDurableClient
+
+client = IgrisDurableClient(
+    endpoint="https://overture.igrisinertial.com",
+    api_key="igris_…",
+)
+```
+
+Or from environment variables — this call is still explicit:
+
+```python
+# Requires BOTH IGRIS_API_URL and IGRIS_API_KEY
+client = IgrisDurableClient.from_env()
+```
+
+Partial configuration fails closed. Missing endpoint or API key raises `DurableConfigurationError`.
+
+## Authentication
+
+- Credential: tenant-scoped API key (`igris_…`)
+- Header: `Authorization: Bearer <key>`
+- Session cookies are never read or stored by this client
+
+Canonical hosted hostname placeholder:
+
+```text
+https://overture.igrisinertial.com
+```
+
+Use the endpoint from your External Alpha invitation when it differs.
+
+## Core methods
+
+| Method | Role |
+|---|---|
+| `sync_contract(...)` | Synchronize an ActionContract |
+| `create_action_target(...)` | Register an executable webhook target |
+| `ensure_binding(...)` / `create_binding(...)` | Exact `contract_hash` → target binding |
+| `run(...)` | Submit one durable run |
+| `get_run(...)` | Fetch typed run status |
+| `get_proof(...)` | Fetch Igris Run Proof |
+| `link_evidence(...)` | Link a verified Evidence batch to a run |
+
+Run handles returned by `run()` also expose `status()`, `wait()`, `proof()`, and `link_evidence()`.
+
+## What this client does not do
+
+- Upload Python source, wheels, pickle, or shell commands to Runtime
+- Bind by Action name alone
+- Invent idempotency keys
+- Auto-retry reconciliation-required states
+- Collapse Runtime proof and Action Protocol Evidence into one claim

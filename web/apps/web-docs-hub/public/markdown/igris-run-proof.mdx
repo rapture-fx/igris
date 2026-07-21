@@ -1,0 +1,54 @@
+---
+title: "Igris Run Proof"
+description: "Igris Run Proof links distinct claims for one durable run. It is not one universal cryptographic proof."
+audience: "public"
+---
+
+# Igris Run Proof
+
+**Igris Run Proof** (`igris_run_proof.v1`) is the product representation returned for a contract-bound durable run.
+
+It is a **linked view** of distinct claims for one run. It is not one universal cryptographic proof object, and it does not collapse Runtime receipts with Action Protocol Evidence.
+
+## Retrieve it
+
+```python
+proof = run.proof()  # prefers igris_run_proof
+print(proof.schema, proof.product_term)
+print(proof.statuses)
+print(proof.claim_boundary)
+print(proof.runtime_proof)
+print(proof.action_protocol_evidence)
+```
+
+```bash
+igris run proof "$RUN_ID"
+```
+
+## Claim boundaries
+
+Read these literally:
+
+| Claim | Meaning |
+|---|---|
+| Runtime receipt | Managed execution claim. Does **not** prove external side-effect uniqueness or Action Protocol chain validity. |
+| Action Protocol Evidence | SDK-signed decision/outcome claim. Does **not** prove managed dispatch or Runtime recovery. |
+| Operator reconciliation | Authenticated operator assertion over unresolved-effect state. **Not** cryptographic proof of the external effect. |
+| External effect | Neither cryptographic claim independently proves the external effect. |
+| Linked view | Igris Run Proof joins claims for one durable run; it is not protocol-level cryptographic unification. |
+
+## `eligible_linked`
+
+When Evidence is linked to a run, `eligible_linked` means **server eligibility** matched tenant/action/contract/input rules.
+
+It is **not** a signed protocol-level run binding, and it is not a universal proof that Evidence and Runtime receipt are one cryptographic object.
+
+## What good use looks like
+
+Use Igris Run Proof to answer:
+
+- Which Action / contract / binding / business key was this run?
+- What managed status and recovery lineage does Igris record?
+- Which distinct proof materials are present or absent?
+
+Do not use it to claim “the external world did exactly one thing” unless your target and operational process independently support that conclusion.

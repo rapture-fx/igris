@@ -1,0 +1,53 @@
+---
+title: "REST API"
+description: "Call durable Actions over the hosted HTTP API when you are not using the Python SDK."
+audience: "public"
+---
+
+# REST API
+
+The hosted Actions API is the language-neutral integration surface.
+
+Canonical hostname:
+
+```text
+https://overture.igrisinertial.com
+```
+
+Authenticate with a tenant API key:
+
+```http
+Authorization: Bearer igris_…
+```
+
+## Core durable routes
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/v1/actions` | Create an Action target |
+| `GET` | `/v1/actions/:id` | Inspect an Action target |
+| `POST` | `/v1/contracts/actions/:name/versions/:hash/bindings` | Create exact binding |
+| `GET` | `/v1/contracts/actions/:name/versions/:hash/binding` | Inspect exact binding |
+| `POST` | `/v1/actions/:name/run` | Submit a durable run |
+| `GET` | `/v1/actions/runs/:id` | Inspect run + Igris Run Proof |
+| `POST` | `/v1/actions/runs/:id/evidence-links` | Link verified Evidence |
+| `GET`/`POST` | `/v1/actions/runs/:id/reconciliation` | Operator reconciliation |
+
+Prefer the Python SDK for first integration. Use REST when you are wiring another language or debugging with HTTP.
+
+Full route contracts live in the [API Reference](/docs/api-reference).
+
+## Example: submit a run
+
+```bash
+curl -X POST "$IGRIS_API_URL/v1/actions/demo.consequential_transfer/run" \
+  -H "Authorization: Bearer $IGRIS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": {"account_id": "acct_1", "amount_cents": 100},
+    "idempotency_key": "demo-transfer-2026-07-22-001",
+    "contract_hash": "'"$CONTRACT_HASH"'"
+  }'
+```
+
+Do not put raw API keys in command transcripts you share.

@@ -5,40 +5,28 @@
   },
   "guides": [
     {
-      "slug": "first-agent-onboarding",
-      "title": "First Agent Onboarding",
-      "href": "/docs/first-agent-onboarding",
-      "summary": "Connect Claude Code, Codex, Cursor, or a custom agent to registered actions, run one action, and inspect the run safely."
-    },
-    {
-      "slug": "agent-templates",
-      "title": "Agent Templates",
-      "href": "/docs/agent-templates",
-      "summary": "Generate safe MCP and CLI setup files for Claude Code, Codex, Cursor, and custom agents."
-    },
-    {
       "slug": "mcp",
-      "title": "Overview",
+      "title": "MCP (Beta)",
       "href": "/docs/mcp",
-      "summary": "What MCP does in Igris, where it fits in the product, and which transport surfaces expose it."
+      "summary": "Beta MCP transport for discovering and calling registered Actions after the durable SDK path."
     },
     {
-      "slug": "mcp-server",
-      "title": "MCP Server",
-      "href": "/docs/mcp-server",
-      "summary": "The product-facing MCP server contract, JSON-RPC request shape, and core method families."
+      "slug": "first-durable-action",
+      "title": "Your First Durable Action",
+      "href": "/docs/first-durable-action",
+      "summary": "Bind one Action, submit a durable run, wait, and inspect Igris Run Proof."
     },
     {
-      "slug": "mcp-swarm",
-      "title": "MCP Swarm Mode",
-      "href": "/docs/mcp-swarm",
-      "summary": "How shared context replication works across multiple runtimes and where its design boundaries are."
+      "slug": "rest-api",
+      "title": "REST API",
+      "href": "/docs/rest-api",
+      "summary": "Language-neutral Actions HTTP API for durable runs and proof inspection."
     },
     {
-      "slug": "mcp-integration-patterns",
-      "title": "MCP Integration Patterns",
-      "href": "/docs/mcp-integration-patterns",
-      "summary": "How to use MCP in production without confusing shared context, durable progress, and audit evidence."
+      "slug": "sdk",
+      "title": "Python SDK",
+      "href": "/docs/sdk",
+      "summary": "Install igris-sdk and use IgrisDurableClient for consequential durable Actions."
     }
   ],
   "methodGroups": [
@@ -121,5 +109,5 @@
       ]
     }
   ],
-  "generated_at": "2026-07-02T14:21:05.748Z"
+  "generated_at": "2026-07-21T16:46:49.190Z"
 }

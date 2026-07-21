@@ -1,0 +1,38 @@
+---
+title: "Uncertain Effects"
+description: "When the external outcome is unknown, Igris fails closed and requires reconciliation."
+audience: "public"
+---
+
+# Uncertain Effects
+
+Some failures leave the external side effect in an **unknown** state: the request may have applied, may not have applied, or may have applied in a way the managed layer cannot safely observe.
+
+Igris fails closed in those cases.
+
+## Product rule
+
+If a durable run reaches `reconciliation_required` or `unknown_effect_state`:
+
+- the SDK raises `ReconciliationRequiredError` from `wait()` / `status()` by default
+- automatic retry is treated as unsafe
+- an operator must reconcile with an attributable assertion
+
+Do not write application loops that blindly resubmit the Action when the effect is uncertain.
+
+## Why fail closed?
+
+Blind retry can double-apply irreversible work. Stopping is the correct default for consequential agents.
+
+## What to do next
+
+1. Inspect the run: `client.get_run(run_id)` or `igris run status "$RUN_ID"`
+2. Inspect Igris Run Proof: `run.proof()` / `igris run proof "$RUN_ID"`
+3. Check the external system using its own authoritative records
+4. Record an operator reconciliation resolution when authorized
+
+See [Reconciliation](/docs/reconciliation).
+
+## Related claim boundary
+
+Neither Runtime receipt claims nor Action Protocol Evidence independently prove the external effect. Uncertain-effect handling exists because those claims are deliberately separate from “what happened in the outside world.”

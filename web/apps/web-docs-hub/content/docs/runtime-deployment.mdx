@@ -1,0 +1,38 @@
+---
+title: "Runtime deployment"
+description: "Deploy Runtime so bound Actions can execute against your targets."
+audience: "public"
+---
+
+# Runtime deployment
+
+Durable Actions execute through managed Runtime capacity attached to your tenant.
+
+For External Alpha, Runtime and the hosted API endpoint are typically provisioned as part of invitation setup. Application developers usually do not need to operate control-plane internals to run their first Action.
+
+## What you need for a first durable run
+
+- Hosted API endpoint from your invitation (canonical placeholder: `https://overture.igrisinertial.com`)
+- Tenant API key (`igris_…`)
+- At least one healthy Runtime available to your tenant
+- A reachable Action target (webhook adapter) that the binding points at
+
+## Local / operator deployments
+
+If you are operating a Runtime yourself:
+
+1. Install the Runtime binary from your External Alpha kit or release channel
+2. Configure the Runtime with the hosted API endpoint and a Runtime credential supplied by Igris
+3. Confirm the Runtime registers and remains healthy
+4. Keep outbound HTTPS to the hosted API allowed
+
+Default local Runtime listen address in many developer setups is `http://127.0.0.1:8080`. Application durable calls still go to the **hosted API** endpoint (`IGRIS_API_URL`), not directly to Runtime.
+
+## Application vs operator concerns
+
+| Role | Focus |
+|---|---|
+| Application developer | `IgrisDurableClient`, bindings, runs, proof |
+| Operator | Runtime health, network path, reconciliation authority, target adapter availability |
+
+See [Troubleshooting](/docs/troubleshooting) when runs cannot start because Runtime is unavailable.

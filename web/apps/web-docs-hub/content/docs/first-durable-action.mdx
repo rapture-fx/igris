@@ -1,0 +1,167 @@
+---
+title: "Your First Durable Action"
+description: "Bind one Action, submit a durable run, wait, and inspect Igris Run Proof."
+audience: "public"
+---
+
+# Your First Durable Action
+
+This walkthrough uses the supported Python durable client: `IgrisDurableClient`.
+
+Prerequisites:
+
+- External Alpha invitation with API endpoint and `igris_…` API key
+- `igris-sdk` installed (`pip install ./sdk/python`)
+- A reachable authenticated webhook Action target for your Action
+
+## Configure the client
+
+```python
+import os
+from igris import IgrisDurableClient, wrap_tool
+from igris.approval import ApprovalDecision
+
+endpoint = os.environ["IGRIS_API_URL"]
+api_key = os.environ["IGRIS_API_KEY"]
+
+client = IgrisDurableClient(endpoint=endpoint, api_key=api_key)
+```
+
+## 1. Declare the consequential function
+
+Embedded `wrap_tool` stays local when *you* call it. Durable mode does not upload this Python function to Runtime. The contract is what gets synchronized and bound.
+
+```python
+class AlwaysAllow:
+    def decide(self, request):  # noqa: ARG002
+        return ApprovalDecision("allowed", "first durable action")
+
+
+def transfer(account_id: str, amount_cents: int) -> dict:
+    return {"account_id": account_id, "amount_cents": amount_cents, "ok": True}
+
+
+tool = wrap_tool(
+    transfer,
+    action="demo.consequential_transfer",
+    risk="critical",
+    approval="never",
+    approval_provider=AlwaysAllow(),
+)
+contract = tool.__igris_contract__
+print(contract.action_name, contract.contract_hash)
+```
+
+## 2. Synchronize the ActionContract
+
+```python
+sync = client.sync_contract(tool)
+print("synced", sync.contract_hash, "created=", sync.created)
+```
+
+## 3. Create an Action target
+
+Register an executable webhook target. Target identity stays visible — this is not Python upload.
+
+```python
+target = client.create_action_target(
+    name="demo_transfer_adapter",
+    target_type="webhook",
+    target_url=os.environ.get(
+        "IGRIS_DEMO_TARGET_URL",
+        "http://127.0.0.1:18099/v1/demo/transfer",
+    ),
+    method="POST",
+    replay_class="retryable",
+    approval_required=False,
+    target_metadata={
+        "local_auth_header_name": "X-Igris-Adapter-Token",
+        "local_auth_secret_env": "IGRIS_DEMO_ADAPTER_TOKEN",
+    },
+)
+print("target_action_id", target.id)
+```
+
+## 4. Bind exact contract_hash → target
+
+Name-only binding is rejected. You must pass the exact `contract_hash` and `target_action_id`.
+
+```python
+binding = client.ensure_binding(
+    action_name=contract.action_name,
+    contract_hash=contract.contract_hash,
+    target_action_id=target.id,
+    input_mapping={
+        "account_id": "account_id",
+        "amount_cents": "amount_cents",
+    },
+)
+print("binding", binding.id)
+```
+
+## 5. Submit one durable run
+
+Provide a stable **business** idempotency key. The client never invents a random one.
+
+```python
+run = client.run(
+    contract.action_name,
+    input={"account_id": "acct_1", "amount_cents": 100},
+    idempotency_key="demo-transfer-2026-07-22-001",
+    contract_hash=contract.contract_hash,
+)
+print("run_id", run.run_id)
+```
+
+## 6. Wait for a terminal status
+
+```python
+status = run.wait(timeout=60.0, poll_interval=1.0)
+print(status.status, status.recovery_status, status.is_terminal)
+```
+
+If the run enters an unresolved effect state, `wait()` raises `ReconciliationRequiredError`. Do not auto-retry. See [Uncertain Effects](/docs/uncertain-effects) and [Reconciliation](/docs/reconciliation).
+
+## 7. Inspect Igris Run Proof
+
+```python
+proof = run.proof()
+print(proof.schema, proof.product_term)
+print(proof.statuses)
+print(proof.claim_boundary)
+```
+
+Igris Run Proof is a **linked product view**. Runtime receipt claims and Action Protocol Evidence remain separate. See [Igris Run Proof](/docs/igris-run-proof).
+
+## Optional: Evidence sync and link
+
+Evidence upload is never automatic.
+
+```bash
+igris evidence sync
+igris run link-evidence "$RUN_ID" --batch-id "$BATCH_ID"
+```
+
+```python
+# After evidence sync returned a verified batch_id:
+link = run.link_evidence(batch_id)
+print(link.run_linkage_status)  # eligible_linked = server eligibility
+```
+
+## CLI equivalents
+
+```bash
+igris binding create \
+  --action demo.consequential_transfer \
+  --contract-hash "$CONTRACT_HASH" \
+  --target-action-id "$TARGET_ID" \
+  --input-mapping '{"account_id":"account_id","amount_cents":"amount_cents"}' \
+  --json
+
+igris run wait "$RUN_ID" --timeout 60 --json
+igris run proof "$RUN_ID"
+```
+
+## Done
+
+You now have one durable Action run you can recover, reconcile when uncertain, and prove. Continue with [Durable Runs](/docs/durable-runs), [Recovery](/docs/recovery), and [IgrisDurableClient](/docs/sdk-durable-client).

@@ -1,0 +1,53 @@
+---
+title: "Actions"
+description: "Actions are typed consequential operations bound to an executable target by exact contract hash."
+audience: "public"
+---
+
+# Actions
+
+An **Action** is a typed consequential operation your agent is allowed to run through Igris.
+
+In the durable product path, an Action is not “upload this Python function and run it remotely.” It is:
+
+1. an **ActionContract** (name + exact `contract_hash` + parameters)
+2. an **Action target** (executable webhook / target identity)
+3. an immutable **binding** from exact `contract_hash` → `target_action_id`
+
+## Why exact binding matters
+
+Durable runs require the exact `contract_hash`. Binding by Action name alone is rejected. That keeps the executable target pinned to the contract the caller intended, not whatever latest version happens to share a name.
+
+## Creating targets and bindings
+
+Use `IgrisDurableClient`:
+
+```python
+target = client.create_action_target(
+    name="payments_refund_adapter",
+    target_type="webhook",
+    target_url="https://adapter.example.internal/v1/refund",
+    replay_class="retryable",
+)
+
+binding = client.ensure_binding(
+    action_name=contract.action_name,
+    contract_hash=contract.contract_hash,
+    target_action_id=target.id,
+    input_mapping={"customer_id": "customer_id", "amount": "amount"},
+)
+```
+
+See [Bind an Action](/docs/sdk-bind-action) for the full client surface.
+
+## Idempotency and targets
+
+External duplicate-effect safety depends on supported idempotent targets. Igris carries a business idempotency key on the durable run so retries are safe at the Igris layer. That is not the same as every external system being exactly-once.
+
+Prefer targets that honor idempotency keys or are otherwise safe under retry. Irreversible targets need extra operational care and may require approval gates.
+
+## Related
+
+- [Durable Runs](/docs/durable-runs)
+- [Business Idempotency](/docs/business-idempotency)
+- [Your First Durable Action](/docs/first-durable-action)

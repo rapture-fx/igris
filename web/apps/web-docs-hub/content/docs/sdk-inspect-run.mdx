@@ -1,0 +1,60 @@
+---
+title: "Inspect a Run"
+description: "Status, wait, Igris Run Proof, and optional Evidence linking."
+audience: "public"
+---
+
+# Inspect a Run
+
+## Status and wait
+
+```python
+status = run.status()
+# or
+status = run.wait(timeout=60.0, poll_interval=1.0)
+print(status.status, status.recovery_status, status.is_terminal)
+```
+
+`wait()` polls until a terminal status, a reconciliation-required state, or timeout.
+
+By default, unresolved effect states raise `ReconciliationRequiredError`.
+
+```python
+from igris import ReconciliationRequiredError
+
+try:
+    run.wait(timeout=60.0)
+except ReconciliationRequiredError as exc:
+    print("needs operator reconciliation", exc.run_id, exc.recovery_status)
+```
+
+## Igris Run Proof
+
+```python
+proof = run.proof()
+print(proof.schema)
+print(proof.claim_boundary)
+print(proof.statuses)
+```
+
+`prefer="igris_run_proof"` is the default. Use `prefer="linked_proof"` only for compatibility with older linked-proof consumers.
+
+## Evidence link
+
+Evidence upload remains a separate explicit step (`igris evidence sync`). Linking only attaches an already verified batch:
+
+```python
+link = run.link_evidence(batch_id)
+print(link.run_linkage_status)
+```
+
+`eligible_linked` is server eligibility, not signed run binding.
+
+## CLI
+
+```bash
+igris run status "$RUN_ID"
+igris run wait "$RUN_ID" --timeout 60 --json
+igris run proof "$RUN_ID"
+igris run link-evidence "$RUN_ID" --batch-id "$BATCH_ID"
+```

@@ -118,13 +118,28 @@ function main() {
 
     const requiredStartPath = [
       'quickstart',
+      'first-durable-action',
+      'actions',
+      'durable-runs',
+      'business-idempotency',
+      'recovery',
+      'uncertain-effects',
+      'igris-run-proof',
       'sdk',
-      'sdk-integration-patterns',
-      'first-cloud-integration',
-      'deploy-local-runtime',
-      'hybrid-deployment-workflow',
-      'receipts-audit-workflow',
+      'sdk-durable-client',
+      'sdk-bind-action',
+      'sdk-run-action',
+      'sdk-inspect-run',
+      'runtime-deployment',
+      'reconciliation',
+      'troubleshooting',
+      'rest-api',
+      'mcp',
+      'action-protocol',
+      'evidence',
+      'verification',
     ];
+    const requiredReferencePath = ['api-reference', 'cli', 'configuration'];
     let previousIndex = -1;
     for (const page of requiredStartPath) {
       const currentIndex = rootPages.indexOf(page);
@@ -134,6 +149,11 @@ function main() {
         failures.push(`${rootMetaPath}: customer onboarding page "${page}" appears out of order.`);
       }
       previousIndex = currentIndex;
+    }
+    for (const page of requiredReferencePath) {
+      if (!rootPages.includes(page)) {
+        failures.push(`${rootMetaPath}: missing required reference page "${page}" in root navigation.`);
+      }
     }
 
     const apiReferenceIndex = rootPages.indexOf('api-reference');
@@ -271,182 +291,110 @@ function main() {
     failures.push('mcp-reference.json must include MCP method groups.');
   }
 
-  const requiredWorkflowDocs = [
-    'first-cloud-integration.mdx',
-    'deploy-local-runtime.mdx',
-    'hybrid-deployment-workflow.mdx',
-    'receipts-audit-workflow.mdx',
-    'fleet-rollout-workflow.mdx',
-  ];
-  for (const fileName of requiredWorkflowDocs) {
-    const fullPath = path.join(docsDir, fileName);
-    if (!fs.existsSync(fullPath)) {
-      failures.push(`Missing workflow documentation page: ${fullPath}`);
-    }
-  }
-
-  const requiredReferenceDocs = [
-    'context-engineering.mdx',
-    'sdk-integration-patterns.mdx',
-    'documentation-roadmap.mdx',
+  const requiredProductDocs = [
+    'first-durable-action.mdx',
+    'actions.mdx',
+    'durable-runs.mdx',
+    'business-idempotency.mdx',
+    'recovery.mdx',
+    'uncertain-effects.mdx',
+    'igris-run-proof.mdx',
+    'sdk-durable-client.mdx',
+    'sdk-bind-action.mdx',
+    'sdk-run-action.mdx',
+    'sdk-inspect-run.mdx',
+    'runtime-deployment.mdx',
+    'reconciliation.mdx',
+    'rest-api.mdx',
+    'action-protocol.mdx',
+    'evidence.mdx',
+    'cli.mdx',
+    'configuration.mdx',
     'mcp.mdx',
-    'mcp-server.mdx',
-    'mcp-swarm.mdx',
-    'mcp-integration-patterns.mdx',
   ];
-  for (const fileName of requiredReferenceDocs) {
+  for (const fileName of requiredProductDocs) {
     const fullPath = path.join(docsDir, fileName);
     if (!fs.existsSync(fullPath)) {
-      failures.push(`Missing reference documentation page: ${fullPath}`);
+      failures.push(`Missing External Alpha product documentation page: ${fullPath}`);
     }
   }
 
   const quickstart = fs.readFileSync(path.join(docsDir, 'quickstart.mdx'), 'utf8');
-  if (!quickstart.includes('/docs/first-cloud-integration')) {
-    failures.push('quickstart.mdx must point readers at the actions-first First Hosted Integration guide.');
+  if (!quickstart.includes('/docs/first-durable-action')) {
+    failures.push('quickstart.mdx must point readers at Your First Durable Action.');
+  }
+  if (!quickstart.includes('IgrisDurableClient') || !quickstart.includes('igris-sdk')) {
+    failures.push('quickstart.mdx must document igris-sdk and IgrisDurableClient.');
+  }
+  if (quickstart.includes('pip install igris-inertial')) {
+    failures.push('quickstart.mdx must not recommend pip install igris-inertial.');
   }
 
   const sdkPage = fs.readFileSync(path.join(docsDir, 'sdk.mdx'), 'utf8');
-  const normalizeLanguage = (language) => language.replace(/\s*\/\s*/g, '/');
   const firstClassLanguages = (sdkSupport.rows ?? [])
     .filter((row) => row.status === 'first-class')
-    .map((row) => normalizeLanguage(row.language));
-  const httpApiLanguages = (sdkSupport.rows ?? [])
-    .filter((row) => row.status === 'http-api')
     .map((row) => row.language);
-
-  const mentionsAllFirstClass = firstClassLanguages.every((language) => sdkPage.includes(language));
-  const mentionsHttpApiLanguages = httpApiLanguages.every((language) => sdkPage.includes(language));
-  if (!mentionsAllFirstClass || !mentionsHttpApiLanguages) {
-    failures.push('sdk.mdx must state the current first-class SDK support clearly.');
+  if (!firstClassLanguages.includes('Python')) {
+    failures.push('sdk-support.json must mark Python as first-class for External Alpha.');
   }
-  if (!sdkPage.includes('/v1/actions/') || !sdkPage.includes('runAction')) {
-    failures.push('sdk.mdx must document the actions-first integration path (Actions HTTP API and runAction).');
+  if (!sdkPage.includes('IgrisDurableClient') || !sdkPage.includes('igris-sdk')) {
+    failures.push('sdk.mdx must document the Python durable SDK (igris-sdk / IgrisDurableClient).');
   }
-  if (!sdkPage.includes('## Support Policy')) {
-    failures.push('sdk.mdx must include a Support Policy section.');
-  }
-  if (!sdkPage.includes('## Deployment Mode Guidance')) {
-    failures.push('sdk.mdx must include deployment mode guidance.');
-  }
-  if (!sdkPage.includes('## Code Quality Expectations')) {
-    failures.push('sdk.mdx must include code quality expectations.');
+  if (sdkPage.includes('pip install igris-inertial') || sdkPage.includes('from igris import IgrisClient')) {
+    failures.push('sdk.mdx must not document the obsolete igris-inertial / IgrisClient install path.');
   }
 
-  const sdkPatterns = fs.readFileSync(path.join(docsDir, 'sdk-integration-patterns.mdx'), 'utf8');
+  const pythonSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'Python');
+  if (!pythonSdkRow) {
+    failures.push('Missing Python SDK support row.');
+  } else {
+    const pyprojectPath = path.join(repoRoot, 'sdk/python/pyproject.toml');
+    if (!fs.existsSync(pyprojectPath)) {
+      failures.push(`Missing Python SDK pyproject at ${pyprojectPath}`);
+    } else {
+      const pyproject = fs.readFileSync(pyprojectPath, 'utf8');
+      if (!pyproject.includes('name = "igris-sdk"')) {
+        failures.push('Python SDK distribution name must remain igris-sdk.');
+      }
+      if (pythonSdkRow.package !== 'igris-sdk') {
+        failures.push(`Python SDK docs package mismatch: expected igris-sdk, found ${pythonSdkRow.package}`);
+      }
+      if (!String(pythonSdkRow.install || '').includes('sdk/python') && !String(pythonSdkRow.install || '').includes('igris-sdk')) {
+        failures.push(`Python SDK docs install must reference sdk/python or igris-sdk; found "${pythonSdkRow.install}"`);
+      }
+      if (!String(pythonSdkRow.import || '').includes('IgrisDurableClient')) {
+        failures.push(`Python SDK docs import must use IgrisDurableClient; found "${pythonSdkRow.import}"`);
+      }
+    }
+  }
+
+  const proofPage = fs.readFileSync(path.join(docsDir, 'igris-run-proof.mdx'), 'utf8');
   for (const requiredText of [
-    'IGRIS_API_KEY',
-    'IGRIS_BASE_URL',
-    '## Pattern: Choose A Mode Once',
-    '## Pattern: Keep Receipt And Audit Handling Out Of The Hot Path',
-    'JavaScript / TypeScript',
-    'Go',
-    'Rust',
+    'eligible_linked',
+    'Runtime receipt',
+    'Action Protocol Evidence',
+    'cryptographic',
   ]) {
-    if (!sdkPatterns.includes(requiredText)) {
-      failures.push(`sdk-integration-patterns.mdx is missing required content: ${requiredText}`);
+    if (!proofPage.includes(requiredText)) {
+      failures.push(`igris-run-proof.mdx is missing required claim-boundary content: ${requiredText}`);
     }
   }
-
-  const contextEngineering = fs.readFileSync(path.join(docsDir, 'context-engineering.mdx'), 'utf8');
-  for (const requiredText of [
-    '## Implementation Checklist',
-    'Request-local context',
-    'Retrieval and memory',
-    'MCP and shared context',
-    'Durable task state',
-    'Receipts and audit context',
-    '## Code And Workflow Quality Signals',
-  ]) {
-    if (!contextEngineering.includes(requiredText)) {
-      failures.push(`context-engineering.mdx is missing required content: ${requiredText}`);
-    }
+  if (/universal exactly-once/i.test(proofPage)) {
+    failures.push('igris-run-proof.mdx must not claim universal exactly-once execution.');
   }
 
-  const jsSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'JavaScript / TypeScript');
-  if (!jsSdkRow) {
-    failures.push('Missing JavaScript / TypeScript SDK support row.');
-  } else {
-    const jsPackagePath = path.join(repoRoot, 'igris-javascript-sdk', 'package.json');
-    if (fs.existsSync(jsPackagePath)) {
-      const jsPackage = JSON.parse(fs.readFileSync(jsPackagePath, 'utf8'));
-      if (jsPackage.name !== '@igris-inertial/sdk') {
-        failures.push(`JavaScript SDK package mismatch: expected @igris-inertial/sdk, found ${jsPackage.name}`);
-      }
-      const expectedPackage = jsPackage.name;
-      const expectedInstall = `npm install ${jsPackage.name}`;
-      const expectedImport = `import { IgrisClient } from '${jsPackage.name}';`;
-      if (jsSdkRow.package !== expectedPackage) {
-        failures.push(`JavaScript SDK docs package mismatch: expected ${expectedPackage}, found ${jsSdkRow.package}`);
-      }
-      if (jsSdkRow.install !== expectedInstall) {
-        failures.push(`JavaScript SDK docs install mismatch: expected "${expectedInstall}", found "${jsSdkRow.install}"`);
-      }
-      if (jsSdkRow.import !== expectedImport) {
-        failures.push(`JavaScript SDK docs import mismatch: expected "${expectedImport}", found "${jsSdkRow.import}"`);
-      }
-    } else {
-      warnings.push(`Skipping JavaScript SDK repo validation; missing ${jsPackagePath}`);
-    }
-  }
-
-  const goSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'Go');
-  if (!goSdkRow) {
-    failures.push('Missing Go SDK support row.');
-  } else {
-    const goModPath = path.join(repoRoot, 'igris-go-sdk', 'go.mod');
-    if (fs.existsSync(goModPath)) {
-      const goMod = fs.readFileSync(goModPath, 'utf8');
-      const goModuleMatch = goMod.match(/^module\s+(.+)$/m);
-      if (!goModuleMatch || goModuleMatch[1].trim() !== 'github.com/igris-inertial/go-sdk') {
-        failures.push('Go SDK module path must remain github.com/igris-inertial/go-sdk.');
-      }
-      const goModule = goModuleMatch?.[1]?.trim();
-      if (goModule) {
-        const expectedInstall = `go get ${goModule}`;
-        const expectedImport = `import igris "${goModule}"`;
-        if (goSdkRow.package !== goModule) {
-          failures.push(`Go SDK docs package mismatch: expected ${goModule}, found ${goSdkRow.package}`);
-        }
-        if (goSdkRow.install !== expectedInstall) {
-          failures.push(`Go SDK docs install mismatch: expected "${expectedInstall}", found "${goSdkRow.install}"`);
-        }
-        if (goSdkRow.import !== expectedImport) {
-          failures.push(`Go SDK docs import mismatch: expected "${expectedImport}", found "${goSdkRow.import}"`);
-        }
-      }
-    } else {
-      warnings.push(`Skipping Go SDK repo validation; missing ${goModPath}`);
-    }
-  }
-
-  const rustSdkRow = (sdkSupport.rows ?? []).find((row) => row.language === 'Rust');
-  if (!rustSdkRow) {
-    failures.push('Missing Rust SDK support row.');
-  } else {
-    const rustCargoPath = path.join(repoRoot, 'igris-rust-sdk', 'Cargo.toml');
-    if (fs.existsSync(rustCargoPath)) {
-      const rustCargo = fs.readFileSync(rustCargoPath, 'utf8');
-      const rustPackageMatch = rustCargo.match(/^name\s*=\s*"(.+)"$/m);
-      if (!rustPackageMatch || rustPackageMatch[1].trim() !== 'igris-inertial') {
-        failures.push('Rust SDK crate name must remain igris-inertial.');
-      }
-      const rustPackage = rustPackageMatch?.[1]?.trim();
-      if (rustPackage) {
-        const expectedInstall = `cargo add ${rustPackage}`;
-        const expectedImport = `use ${rustPackage.replace(/-/g, '_')}::IgrisClient;`;
-        if (rustSdkRow.package !== rustPackage) {
-          failures.push(`Rust SDK docs package mismatch: expected ${rustPackage}, found ${rustSdkRow.package}`);
-        }
-        if (rustSdkRow.install !== expectedInstall) {
-          failures.push(`Rust SDK docs install mismatch: expected "${expectedInstall}", found "${rustSdkRow.install}"`);
-        }
-        if (rustSdkRow.import !== expectedImport) {
-          failures.push(`Rust SDK docs import mismatch: expected "${expectedImport}", found "${rustSdkRow.import}"`);
-        }
-      }
-    } else {
-      warnings.push(`Skipping Rust SDK repo validation; missing ${rustCargoPath}`);
+  const publicNavForbidden = [
+    'robotics',
+    'ros2-integration',
+    'fleet-management',
+    'speculative-execution',
+    'multimodal',
+    'semantic-routing',
+  ];
+  const rootMeta = JSON.parse(fs.readFileSync(path.join(docsDir, 'meta.json'), 'utf8'));
+  for (const slug of publicNavForbidden) {
+    if ((rootMeta.pages ?? []).includes(slug)) {
+      failures.push(`meta.json must not list historical page "${slug}" in first-contact navigation.`);
     }
   }
 

@@ -1,6 +1,6 @@
 # Documentation Implementation Audit
 
-Generated: 2026-07-02T14:21:48.964Z
+Generated: 2026-07-21T16:47:04.963Z
 
 This report compares customer-facing docs route claims against routes registered in `igris-overture`, `igris-runtime`, and the web console codebase. It is evidence-based: a route claim is implemented only when the matching method/path is registered in code on the expected surface.
 
@@ -8,16 +8,16 @@ The API reference has a separate endpoint verification report in `api-verificati
 
 ## Summary
 
-- Route claims audited: 975
-- Implemented on expected surface: 975
+- Route claims audited: 971
+- Implemented on expected surface: 971
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
 
 ## Guide Page Summary
 
-- Guide route claims audited: 138
-- Implemented on expected surface: 138
+- Guide route claims audited: 131
+- Implemented on expected surface: 131
 - Missing from code: 0
 - Implemented on a different surface than documented: 0
 - Path exists with a different method: 0
@@ -44,17 +44,15 @@ The API reference has a separate endpoint verification report in `api-verificati
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/memory.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/reconciliation.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/request-execute-verify.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/sdk.mdx` | 4 | 4 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/rest-api.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/trial-billing.mdx` | 11 | 11 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/upgrade-migration.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/verification.mdx` | 2 | 2 | 0 | 0 | 0 |
 
 ## Unsupported Or Mismatched Guide Claims
 
@@ -113,7 +111,7 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-chat-completions.mdx` | 7 | 7 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer-multimodal.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/inference-integration/post-v1-infer.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/api-reference/introduction.mdx` | 1 | 1 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/api-reference/introduction.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-admin-models.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-btree-events.mdx` | 6 | 6 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/api-reference/local-runtime-api/get-v1-federated-model-latest.mdx` | 6 | 6 | 0 | 0 | 0 |
@@ -204,17 +202,15 @@ No unsupported guide-page route claims were found.
 | `web/apps/web-docs-hub/content/docs/mcp-server.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/mcp.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/memory.mdx` | 8 | 8 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/quickstart.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/rate-limiting.mdx` | 1 | 1 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/receipts-audit-workflow.mdx` | 2 | 2 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/reconciliation.mdx` | 2 | 2 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/request-execute-verify.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/sdk.mdx` | 4 | 4 | 0 | 0 | 0 |
+| `web/apps/web-docs-hub/content/docs/rest-api.mdx` | 8 | 8 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/security.mdx` | 4 | 4 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/tamper-evident-logs.mdx` | 3 | 3 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/trial-billing.mdx` | 11 | 11 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/troubleshooting.mdx` | 9 | 9 | 0 | 0 | 0 |
 | `web/apps/web-docs-hub/content/docs/upgrade-migration.mdx` | 1 | 1 | 0 | 0 | 0 |
-| `web/apps/web-docs-hub/content/docs/verification.mdx` | 2 | 2 | 0 | 0 | 0 |
 
 ## All Unsupported Or Mismatched Claims
 

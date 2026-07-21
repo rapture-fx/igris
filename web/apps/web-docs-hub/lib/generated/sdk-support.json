@@ -1,38 +1,38 @@
 {
   "generated_by": "scripts/generate-docs-artifacts.js",
-  "native_sdk_note": "The production integration path is the Actions HTTP API: register an action, run it by name, inspect the run. The first-class native SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should call the Actions HTTP API directly with any standard HTTP client today.",
+  "native_sdk_note": "External Alpha first-class path is the Python durable SDK (distribution igris-sdk, import igris) via IgrisDurableClient. Other languages should call the hosted Actions HTTP API directly.",
   "rows": [
-    {
-      "language": "JavaScript / TypeScript",
-      "status": "first-class",
-      "package": "@igris-inertial/sdk",
-      "install": "npm install @igris-inertial/sdk",
-      "import": "import { IgrisClient } from '@igris-inertial/sdk';",
-      "notes": "Preferred native SDK for browser and Node.js integrations."
-    },
-    {
-      "language": "Go",
-      "status": "first-class",
-      "package": "github.com/igris-inertial/go-sdk",
-      "install": "go get github.com/igris-inertial/go-sdk",
-      "import": "import igris \"github.com/igris-inertial/go-sdk\"",
-      "notes": "Preferred native SDK for backend services and CLI tooling."
-    },
-    {
-      "language": "Rust",
-      "status": "first-class",
-      "package": "igris-inertial",
-      "install": "cargo add igris-inertial",
-      "import": "use igris_inertial::IgrisClient;",
-      "notes": "Preferred native SDK for systems and embedded integrations."
-    },
     {
       "language": "Python",
       "status": "first-class",
-      "package": "igris-inertial",
-      "install": "pip install igris-inertial",
-      "import": "from igris import IgrisClient",
-      "notes": "Preferred native SDK for Python services, data pipelines, and scripting."
+      "package": "igris-sdk",
+      "install": "pip install ./sdk/python",
+      "import": "from igris import IgrisDurableClient",
+      "notes": "Supported durable Action client. Distribution name is igris-sdk; never pip install igris from public PyPI."
+    },
+    {
+      "language": "JavaScript / TypeScript",
+      "status": "http-api",
+      "package": "n/a",
+      "install": "Use any standard HTTP client",
+      "import": "POST /v1/actions/:name/run on the hosted API",
+      "notes": "Call the Actions HTTP API directly for External Alpha unless a durable JS client is explicitly published."
+    },
+    {
+      "language": "Go",
+      "status": "http-api",
+      "package": "n/a",
+      "install": "Use any standard HTTP client",
+      "import": "POST /v1/actions/:name/run on the hosted API",
+      "notes": "Call the Actions HTTP API directly for External Alpha."
+    },
+    {
+      "language": "Rust",
+      "status": "http-api",
+      "package": "n/a",
+      "install": "Use any standard HTTP client",
+      "import": "POST /v1/actions/:name/run on the hosted API",
+      "notes": "Call the Actions HTTP API directly for External Alpha."
     },
     {
       "language": "Java",
@@ -40,7 +40,7 @@
       "package": "n/a",
       "install": "Use any standard HTTP client",
       "import": "POST /v1/actions/:name/run on the hosted API",
-      "notes": "Call the Actions HTTP API directly until a native Java SDK is promoted explicitly."
+      "notes": "Call the Actions HTTP API directly."
     },
     {
       "language": "C#",
@@ -48,7 +48,7 @@
       "package": "n/a",
       "install": "Use any standard HTTP client",
       "import": "POST /v1/actions/:name/run on the hosted API",
-      "notes": "Call the Actions HTTP API directly until a native C# SDK is promoted explicitly."
+      "notes": "Call the Actions HTTP API directly."
     },
     {
       "language": "Ruby",
@@ -56,8 +56,8 @@
       "package": "n/a",
       "install": "Use any standard HTTP client",
       "import": "POST /v1/actions/:name/run on the hosted API",
-      "notes": "Call the Actions HTTP API directly until a native Ruby SDK is promoted explicitly."
+      "notes": "Call the Actions HTTP API directly."
     }
   ],
-  "generated_at": "2026-07-02T14:21:05.748Z"
+  "generated_at": "2026-07-21T16:46:49.190Z"
 }

@@ -1,84 +1,53 @@
 ---
-title: "Overview"
-description: "Igris helps engineers run AI tasks with governed, verifiable execution."
+title: "What is Igris?"
+description: "Reliable execution for AI agents that can change real systems."
 audience: "public"
 ---
 
-# Igris
+# What is Igris?
 
-Igris helps engineers run AI tasks with governed, verifiable execution.
+Igris is reliable execution for AI agents that can change real systems.
 
-Direct provider calls are still the right tool for simple chat or one-off prompting. Igris becomes useful when AI output starts doing work: calling tools, crossing system boundaries, touching customer data, or triggering decisions that need to be reviewed later.
+Use it when an agent is about to do consequential work: touch infrastructure, call a payment API, mutate customer data, or otherwise change something outside the chat transcript. Direct model calls are still fine for ordinary prompting. Igris is for the actions that must survive failure, avoid blind retries, and remain inspectable after the fact.
 
-The simplest mental model is:
+## What you get
 
-1. **Request** through one Igris API surface.
-2. **Execute** with governance, routing, events, and failure handling.
-3. **Verify** with signed records and verification-ready receipts.
+- **Run consequential actions durably.** Submit an Action once with a business idempotency key and a bound contract.
+- **Recover from infrastructure failures.** If a runtime dies mid-flight, Igris can continue the managed run without you inventing a resume protocol.
+- **Stop when the outcome is uncertain.** When the external effect cannot be known safely, Igris fails closed and requires operator reconciliation instead of guessing.
 
----
+## The product lifecycle
 
-## Request -> Execute -> Verify
+```text
+Action → Run → Recover → Reconcile when uncertain → Prove
+```
 
-### Request
+1. **Action** — declare what the agent is allowed to do, as a typed contract bound to an executable target.
+2. **Run** — submit one durable run with an explicit business idempotency key.
+3. **Recover** — infrastructure failures are handled by the managed execution path; you wait and inspect, you do not manually poke checkpoints.
+4. **Reconcile when uncertain** — unresolved external effects require an attributable operator assertion.
+5. **Prove** — retrieve **Igris Run Proof**, a linked product view of distinct claims for that run.
 
-Send a request once. The surface can be a registered action run, a durable task submission, or an MCP tool call — different doors into the same system. The point is not "many products." The point is one execution system that can accept work in a stable, inspectable way.
+## Who this is for
 
-### Execute
+Engineers building coding, infrastructure, and operational agents that have permission to change external systems.
 
-Igris decides how the run should proceed for the deployment you have configured. That can include routing to a runtime, applying capability and policy boundaries, capturing execution events, and surfacing failure paths instead of hiding them behind a plain model response.
-
-### Verify
-
-Igris returns more than output text. The system can also return execution metadata, signed execution records, and receipt material that can be checked after the run. That is the difference between "the model answered" and "the execution can be inspected."
-
----
-
-## What To Expect From The Current Product
-
-**Governed execution.** Igris is built for runs that need boundaries, not just completions. Capability checks, policy controls, and execution-state visibility are part of the product story.
-
-**Execution visibility.** The system tracks route decisions, execution metadata, and receipt-oriented records so engineers can inspect what happened after a run.
-
-**Verification-ready records.** Signed envelopes and receipts are part of the product today, and the local unified proof demonstrates signature and hash verification on the proof-backed path.
-
-**Honest proof status.** The strongest proven path today is the local unified proof with a mock upstream. Real-provider mode is wired, but it requires sanctioned credentials and was not proven in the prior environment. Advanced areas such as local GGUF fallback, checkpoint recovery, fleet failover, robotics, and multimodal should be treated according to their page-level proof labels.
-
-## Recommended Path
-
-Start with the first tenant action path if you are adopting Igris. Use the
-local demo when you only want to see the Run / Recover / Prove story without an
-account.
+## Start here
 
 | Step | Page | Outcome |
 |---:|---|---|
-| 1 | [First Tenant Action in 5 Minutes](/docs/first-tenant-action) | Create an account, get a key, install the starter pack, register an agent, run `demo.echo`, and inspect the run. |
-| 2 | [Install](/docs/install) | Install `igris` and run the no-account local demo. |
-| 3 | [First Agent Onboarding](/docs/first-agent-onboarding) | Connect Claude Code, Codex, Cursor, or a custom agent to registered actions. |
-| 4 | [Quick Start](/docs/quickstart) | Understand the first-run Run / Recover / Prove story. |
-| 5 | [First Verified Run](/docs/first-verified-run) | Inspect the advanced local proof in more detail, including the execution artifacts it checks. |
-| 6 | [Request -> Execute -> Verify](/docs/request-execute-verify) | Learn the core execution model before choosing a deployment shape. |
-| 7 | [Verification](/docs/verification) | Understand execution metadata, signed records, receipts, and the limits of current verification surfaces. |
-| 8 | [Architecture](/docs/architecture) | See how the unified product maps onto hosted and runtime execution components. |
-| 9 | [Proof Status](/docs/proof-status) | Separate proven behavior from source-confirmed, preview, and not-yet-proven claims. |
-| 10 | [API Reference](/docs/api-reference) | Move to endpoint-level contracts once you know which workflow you are implementing. |
+| 1 | [Quickstart](/docs/quickstart) | Install `igris-sdk`, configure endpoint and API key, understand the journey. |
+| 2 | [Your First Durable Action](/docs/first-durable-action) | Bind one Action, run it, wait, and inspect Igris Run Proof. |
+| 3 | [Actions](/docs/actions) | Learn the Action / binding / target model. |
+| 4 | [Igris Run Proof](/docs/igris-run-proof) | Understand what proof claims — and what it does not. |
 
----
+## Honest claim boundaries
 
-## Find By Goal
+Igris does **not** claim universal exactly-once execution against every external system.
 
-| Goal | Start here |
-|---|---|
-| Run the first tenant-scoped action | [First Tenant Action in 5 Minutes](/docs/first-tenant-action) |
-| Install Igris and run the first local demo | [Install](/docs/install) |
-| Connect an agent to Igris | [First Agent Onboarding](/docs/first-agent-onboarding) |
-| Understand the product before integrating | [Request -> Execute -> Verify](/docs/request-execute-verify) |
-| Run the advanced local validation path | [First Verified Run](/docs/first-verified-run) |
-| Inspect receipts and proof semantics | [Verification](/docs/verification) |
-| Prepare a hosted or hybrid integration | [Quick Start](/docs/quickstart) |
-| Review endpoint contracts | [API Reference](/docs/api-reference) |
-| Evaluate advanced deployment topics | [Architecture](/docs/architecture) |
-
-## Advanced Directions
-
-Hybrid deployment, runtime fleets, edge execution, and robotics-adjacent workflows remain part of the broader docs set, but they are not the first-contact story. Start with the verified execution path first, then move into those areas deliberately.
+- External duplicate-effect safety depends on supported idempotent targets.
+- A Runtime receipt is not proof of external side-effect uniqueness.
+- Action Protocol Evidence is not proof of managed execution.
+- Igris Run Proof links distinct claims; it is not one universal cryptographic proof.
+- Operator reconciliation is an attributable administrative assertion, not cryptographic proof of the external world.
+- `eligible_linked` means server eligibility for evidence linkage, not signed run binding.

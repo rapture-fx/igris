@@ -1,0 +1,51 @@
+---
+title: "Configuration"
+description: "Endpoint, API key, and durable client configuration for External Alpha."
+audience: "public"
+---
+
+# Configuration
+
+## Required durable settings
+
+| Name | Purpose |
+|---|---|
+| `IGRIS_API_URL` | Hosted API base URL |
+| `IGRIS_API_KEY` | Tenant-scoped API key (`igris_…`) |
+
+Canonical hosted hostname placeholder:
+
+```text
+https://overture.igrisinertial.com
+```
+
+Use the exact endpoint from your External Alpha invitation when it differs.
+
+## Client construction
+
+```python
+from igris import IgrisDurableClient
+
+client = IgrisDurableClient(
+    endpoint="https://overture.igrisinertial.com",
+    api_key="igris_…",
+)
+
+# Explicit alternative after both env vars are set:
+client = IgrisDurableClient.from_env()
+```
+
+## Optional local / demo settings
+
+| Name | Purpose |
+|---|---|
+| `IGRIS_HOME` | Local SDK home (default `~/.igris`) for journals and signing identity |
+| `IGRIS_DEMO_TARGET_URL` | Demo webhook adapter URL used in examples |
+| `IGRIS_DEMO_ADAPTER_TOKEN` | Demo adapter shared secret referenced by target metadata |
+
+## Security rules
+
+- Never commit API keys
+- Never log Authorization headers or raw key values
+- Treat rotated keys as immediate credential invalidation
+- Embedded mode stays local until you construct `IgrisDurableClient`

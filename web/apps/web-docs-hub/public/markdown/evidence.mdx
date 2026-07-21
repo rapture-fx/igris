@@ -1,0 +1,46 @@
+---
+title: "Evidence"
+description: "Evidence is SDK-signed decision/outcome material. Upload and link are explicit."
+audience: "public"
+---
+
+# Evidence
+
+**Evidence** is Action Protocol material: signed decision and outcome events from the SDK journal.
+
+Important properties:
+
+- Evidence upload is **never automatic**
+- Linking Evidence to a durable run is a separate eligibility-gated step
+- Evidence is not proof of managed Runtime execution
+- `eligible_linked` is server eligibility, not signed run binding
+
+## Sync
+
+```bash
+igris evidence sync
+```
+
+This uploads journal material to the hosted Evidence surface using `IGRIS_API_URL` and `IGRIS_API_KEY`.
+
+## Link to a run
+
+```bash
+igris run link-evidence "$RUN_ID" --batch-id "$BATCH_ID"
+```
+
+```python
+link = run.link_evidence(batch_id)
+print(link.run_linkage_status)
+```
+
+If eligibility fails, the client raises `EvidenceNotLinkableError`.
+
+## Offline journal verification
+
+```bash
+igris verify
+igris verify path/to/journal.jsonl --public-key path/to/verify_key.pem
+```
+
+See [Verification](/docs/verification) and [Action Protocol](/docs/action-protocol).

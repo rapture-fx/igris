@@ -1,44 +1,47 @@
 ---
-title: "MCP"
-description: "MCP Server → · Integration Patterns → · API Reference →"
+title: "MCP (Beta)"
+description: "Beta MCP transport for discovering and calling registered Actions."
 audience: "public"
 ---
 
-# MCP
+# MCP (Beta)
 
-MCP is the agent-facing control surface in Igris. An agent connects to one endpoint
-(`POST /v1/mcp`) and, scoped to its tenant, can do four things:
+MCP is a **beta** agent-facing transport for registered Actions.
 
-- discover the **registered actions** it is allowed to call
-- call a registered action
-- inspect the resulting runs and their proof state
-- list the tenant's registered runtimes
+Endpoint:
 
-It is a narrow, strict-schema JSON-RPC surface — not a general-purpose context or
-resource store. The available tools are fixed (`list_actions`, `get_action`,
-`call_action`, `list_runs`, `get_run`, `get_run_evidence`, `list_runtimes`), every
-tool schema is closed (`additionalProperties: false`), and unknown fields are
-rejected. The tenant always comes from the credential and cannot be overridden
-through arguments.
+```text
+POST /v1/mcp
+```
 
-## Guide Pages
+An agent connects with a tenant credential and can:
 
-- [First Agent Onboarding](/docs/first-agent-onboarding): connect Claude Code, Codex, Cursor, or a custom agent to registered actions
-- [MCP Server](/docs/mcp-server): the transport, the tool list, and strict-schema behavior
-- [MCP Integration Patterns](/docs/mcp-integration-patterns): durable, auditable patterns for calling actions and inspecting runs
-- [MCP Swarm Mode](/docs/mcp-swarm): multi-runtime context exchange (technical preview)
+- discover registered Actions
+- call a registered Action
+- inspect resulting runs / evidence surfaces exposed by the tool set
+- list registered runtimes for the tenant
 
-## Transport Surface
+The tool set is fixed and strict-schema (`additionalProperties: false`). Unknown fields are rejected. Tenant identity always comes from the credential.
 
-- [`POST /v1/mcp`](/docs/mcp-server): JSON-RPC `tools/list` and `tools/call`
+## Current tool set
 
-## How MCP Fits In
+- `list_actions`
+- `get_action`
+- `call_action`
+- `list_runs`
+- `get_run`
+- `get_run_evidence`
+- `list_runtimes`
 
-Use MCP to let an agent call your registered actions and read back what happened.
-Use [durable tasks](/docs/durable-tasks) when long-running progress and recovery
-matter. Use [receipts](/docs/execution-receipts) for audit evidence. Keeping those
-three concerns separate is what keeps the system understandable at scale.
+## How to use it in External Alpha
 
----
+1. Complete the durable Action path first with `IgrisDurableClient` so your Action is registered, bound, and runnable.
+2. Point your MCP-capable agent at `POST /v1/mcp` on your invitation endpoint.
+3. Use tenant API key auth only — never paste raw keys into prompts or shared logs.
 
-[MCP Server →](/docs/mcp-server) · [Integration Patterns →](/docs/mcp-integration-patterns) · [API Reference →](/docs/api-reference)
+MCP is secondary to the durable SDK journey. Prefer [Your First Durable Action](/docs/first-durable-action) before MCP wiring.
+
+## Related
+
+- [REST API](/docs/rest-api)
+- [API Reference](/docs/api-reference)

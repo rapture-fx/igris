@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-07-02T14:21:05.748Z",
+  "generated_at": "2026-07-21T16:46:49.190Z",
   "generated_from": [
     "igris-overture/api/*.go",
     "igris-runtime/crates/igris-server/src/main.rs"
   ],
-  "route_inventory_count": 553,
+  "route_inventory_count": 574,
   "sections": [
     {
       "title": "Action Packs",

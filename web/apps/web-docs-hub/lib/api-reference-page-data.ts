@@ -2094,56 +2094,26 @@ function buildRelatedGuides(endpoint: ApiEndpoint) {
   pushGuide('API Authentication', '/docs/api-reference/authentication');
   pushGuide('API Errors', '/docs/api-reference/errors');
 
-  if (endpoint.deployment === 'local') {
-    pushGuide('Deploy Local Runtime', '/docs/deploy-local-runtime');
-
-    if (path.startsWith('/v1/tasks') || path.startsWith('/v1/btree')) {
-      pushGuide('Context Engineering', '/docs/context-engineering');
-      pushGuide('Behavior Trees', '/docs/behavior-trees');
-    } else {
-      pushGuide('SDK Integration Patterns', '/docs/sdk-integration-patterns');
-      pushGuide('Local LLM Fallback', '/docs/local-llm-fallback');
-    }
-  } else if (endpoint.deployment === 'hybrid') {
-    pushGuide('Hybrid Deployment Workflow', '/docs/hybrid-deployment-workflow');
-    pushGuide('Fleet Rollout Workflow', '/docs/fleet-rollout-workflow');
-
-    if (path.startsWith('/v1/tasks')) {
-      pushGuide('Context Engineering', '/docs/context-engineering');
-    }
-  } else if (path.startsWith('/v1/chat/completions') || path.startsWith('/v1/infer') || path === '/v1/models' || path === '/v1/providers/stats') {
-    pushGuide('SDKs', '/docs/sdk');
-    pushGuide('SDK Integration Patterns', '/docs/sdk-integration-patterns');
-  } else if (path.startsWith('/v1/receipts') || path.startsWith('/v1/history') || path.startsWith('/proof/receipts')) {
-    pushGuide('Receipts and Audit Workflow', '/docs/receipts-audit-workflow');
-    pushGuide('Execution Receipts', '/docs/execution-receipts');
-    pushGuide('Audit', '/docs/audit');
-  } else if (path.startsWith('/v1/tasks') || path.startsWith('/v1/btree')) {
-    pushGuide('Context Engineering', '/docs/context-engineering');
-    pushGuide('Durable Tasks', '/docs/durable-tasks');
-    pushGuide('Behavior Trees', '/docs/behavior-trees');
-  } else if (path.startsWith('/v1/routing')) {
-    pushGuide('Routing Engine', '/docs/escapevector');
-    pushGuide('Speculative Execution', '/docs/speculative-execution');
-    pushGuide('Circuit Breaker', '/docs/circuit-breaker');
-  } else if (path.startsWith('/v1/action-packs')) {
-    pushGuide('First Agent Onboarding', '/docs/first-agent-onboarding');
-    pushGuide('MCP Server', '/docs/mcp-server');
-    pushGuide('MCP Integration Patterns', '/docs/mcp-integration-patterns');
-  } else if (path.startsWith('/v1/actions')) {
-    pushGuide('First Agent Onboarding', '/docs/first-agent-onboarding');
-    pushGuide('MCP', '/docs/mcp');
-    pushGuide('Durable Tasks', '/docs/durable-tasks');
+  if (path.startsWith('/v1/actions') || path.startsWith('/v1/contracts')) {
+    pushGuide('Your First Durable Action', '/docs/first-durable-action');
+    pushGuide('IgrisDurableClient', '/docs/sdk-durable-client');
+    pushGuide('Igris Run Proof', '/docs/igris-run-proof');
   } else if (path.startsWith('/v1/mcp')) {
-    pushGuide('MCP', '/docs/mcp');
-    pushGuide('MCP Server', '/docs/mcp-server');
-    pushGuide('MCP Integration Patterns', '/docs/mcp-integration-patterns');
-  } else if (path.startsWith('/v1/vault') || path.startsWith('/v1/account') || path.startsWith('/api/subscription')) {
-    pushGuide('Key Management', '/docs/key-management');
-    pushGuide('SDKs', '/docs/sdk');
-    pushGuide('First Cloud Integration', '/docs/first-cloud-integration');
+    pushGuide('MCP (Beta)', '/docs/mcp');
+    pushGuide('REST API', '/docs/rest-api');
+    pushGuide('Your First Durable Action', '/docs/first-durable-action');
+  } else if (path.startsWith('/v1/receipts') || path.startsWith('/v1/history') || path.startsWith('/proof/receipts')) {
+    pushGuide('Igris Run Proof', '/docs/igris-run-proof');
+    pushGuide('Verification', '/docs/verification');
+    pushGuide('Evidence', '/docs/evidence');
+  } else if (endpoint.deployment === 'local' || endpoint.deployment === 'hybrid') {
+    pushGuide('Runtime deployment', '/docs/runtime-deployment');
+    pushGuide('Troubleshooting', '/docs/troubleshooting');
+    pushGuide('Configuration', '/docs/configuration');
   } else {
-    pushGuide('API Rate Limits', '/docs/api-reference/rate-limits');
+    pushGuide('Quickstart', '/docs/quickstart');
+    pushGuide('REST API', '/docs/rest-api');
+    pushGuide('Python SDK', '/docs/sdk');
   }
 
   if (guides.length < 3) {

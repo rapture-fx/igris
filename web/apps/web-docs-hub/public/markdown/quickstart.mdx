@@ -1,146 +1,105 @@
 ---
-title: "Quick Start"
-description: "Run the first verified Igris execution flow, then branch into hosted or hybrid deployment paths."
+title: "Quickstart"
+description: "Install igris-sdk, configure the durable client, and run one consequential Action."
 audience: "public"
 ---
 
-# Quick Start
+# Quickstart
 
-Start here if you want to understand what Igris shows on first run and what the
-advanced proof path verifies today. If you want to adopt Igris with a real
-tenant, start with [First Tenant Action in 5 Minutes](/docs/first-tenant-action).
+This is the shortest path to one durable Action run with Igris.
 
-This quickstart is intentionally not a generic hosted-inference tutorial. Direct model calls are fine for simple chat. Igris is for the point where AI output starts doing work and you need governed execution, visible failure paths, and records you can inspect after the run.
+You will install the Python SDK (`igris-sdk`), configure an endpoint and API key, bind one Action to an executable target, submit a run with a business idempotency key, wait for completion, and inspect **Igris Run Proof**.
 
-When you are ready to integrate for real, the standard path is actions-first:
-create an account, get a tenant API key, install the starter Action Pack, run an
-attributed action with an idempotency key, and inspect the durable run. [First
-Tenant Action in 5 Minutes](/docs/first-tenant-action) walks through that path.
+## External Alpha access
 
-If you are connecting Claude Code, Codex, Cursor, or a custom agent, use
-[First Agent Onboarding →](/docs/first-agent-onboarding). It gives the smallest
-registered-action path and the readiness doctor before agent wiring.
+External Alpha is invitation-gated. Igris provides:
 
----
+- the API endpoint for your tenant
+- a tenant-scoped API key (`igris_…`)
 
-## What You Will Do First
+There is no public self-serve bootstrap that creates the first key without that invitation. If your invitation includes console access, you can rotate or create additional keys there later. Do not paste raw API keys into tickets, chat, screenshots, or logs.
 
-Install the CLI and run the self-contained first-run demo:
-
-```bash
-curl -fsSL https://igrisinertial.com/install | bash
-igris demo --recover-prove
-```
-
-This first-run path does not require Postgres, Docker, Homebrew Postgres, or a
-repo checkout. It prints a local execution story URL and labels the result as
-demo evidence, not a production deployment.
-
-The output shows:
-
-- action requested
-- policy applied
-- runtime boundary recorded
-- task executed
-- irreversible replay blocked
-- receipt verification status
-
-## Advanced Local Validation
-
-Use this path when you are contributing to Igris or validating the full local
-proof loop from source.
-
-1. Start a local proof-backed Igris flow.
-2. Send one request through the public execution surface.
-3. Confirm that execution was routed through Runtime.
-4. Verify the signed execution envelope, signed execution receipt, and receipt-log chain.
-
-This advanced path is the narrowest contributor validation path that is proven
-locally today.
-
----
-
-## Prerequisites
-
-- A checkout of this repository
-- `node`, `go`, `cargo`, `curl`, and `lsof`
-- Free local ports `8080` and `8081`
-- Free local port `18090` if you run the default mock-provider mode
-
-You do not need sanctioned provider credentials for the default proof path. The default mode uses a local mock upstream so the proof stays reproducible.
-
-## 1. Run The First Verified Flow
-
-From the repo root:
-
-```bash
-./scripts/unified_execution_proof_demo.sh
-```
-
-The script prepares local proof artifacts, builds or reuses the Runtime binary, builds Overture, starts a local mock upstream, starts Runtime on `127.0.0.1:8080`, starts Overture on `127.0.0.1:8081`, submits one `/v1/infer` request, and fails if Overture falls back away from Runtime.
-
-Expected output shape:
+Canonical hosted API hostname:
 
 ```text
-Unified execution proof succeeded.
-Mode: mock
-Provider: local-mock-cloud
-Route decision: forwarded_to_runtime_task
-Receipt execution_id: ...
-Receipt hash: ...
-Artifacts: /tmp/igris-unified-proof.XXXXXX
+https://overture.igrisinertial.com
 ```
 
-## 2. Inspect What Was Verified
+Your invitation may point at a staging endpoint instead. Use exactly the endpoint you were given.
 
-The proof demonstrates the Request -> Execute -> Verify path:
+## 1. Install the SDK
 
-- **Request**: the script sends one request through Overture's `/v1/infer` surface.
-- **Execute**: Overture forwards the work to Runtime instead of silently answering from its own direct fallback path.
-- **Verify**: the script checks the returned `execution_envelope`, `execution_receipt`, receipt hash, and receipt-log chain.
+Distribution name is **`igris-sdk`**. Import package is **`igris`**.
 
-If the script succeeds, you have a local proof that:
-
-- Runtime handled the execution authority for the request
-- execution metadata captured the route decision
-- the signed execution envelope verified
-- the signed execution receipt verified
-- the receipt hash matched the recomputed digest
-- the receipt was present in the local receipt log with a valid chain link
-
-## 3. Know What This Does And Does Not Prove
-
-| Claim | Current status |
-|---|---|
-| Unified local Request -> Execute -> Verify flow | Proven locally |
-| Signed records and receipt-chain verification on the local proof path | Proven locally |
-| Capability-gated task execution | Proven locally in the proof artifacts and audits |
-| Real provider-backed Runtime execution | Wired and configurable, but not proven in the prior environment |
-| Local GGUF fallback | Source-confirmed, not proven in this quickstart |
-| Checkpoint recovery | Source-confirmed, not proven in this quickstart |
-| Fleet failover, OTA/config push, ROS2, multimodal | Advanced or preview areas, not part of this quickstart |
-
-## 4. Real Provider Mode Is Deliberately Separate
-
-The proof demo also supports a real-provider mode, but it should only be used with sanctioned credentials and it was not proven in the prior environment.
-
-Example shape:
+Do **not** run `pip install igris` from the public package index — that name is an unrelated third-party package.
 
 ```bash
-export IGRIS_UNIFIED_PROVIDER_MODE=real
-export IGRIS_REAL_PROVIDER=openai
-export OPENAI_API_KEY=...
-./scripts/unified_execution_proof_demo.sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip
+
+# From a repository or External Alpha kit checkout:
+python -m pip install ./sdk/python
+
+# Or install a supplied wheel (name may vary by kit):
+# python -m pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
 ```
 
-Use this only when you are intentionally proving a sanctioned provider path. Do not treat it as part of the default onboarding path.
+Verify:
 
-## 5. Choose The Next Path
+```bash
+python -c "import igris; print(igris.__version__)"
+igris --version
+```
 
-1. [First Tenant Action in 5 Minutes](/docs/first-tenant-action) to create an account, install the starter Action Pack, run `demo.echo`, and inspect evidence.
-2. [First Agent Onboarding](/docs/first-agent-onboarding) to connect Claude Code, Codex, Cursor, or a custom agent through registered actions.
-3. [First Hosted Integration](/docs/first-cloud-integration) to register a non-demo action, run it with an idempotency key, and inspect the run.
-4. [First Verified Run](/docs/first-verified-run) for a deeper walkthrough of the proof demo and its artifacts.
-5. [Request -> Execute -> Verify](/docs/request-execute-verify) for the core mental model.
-6. [Verification](/docs/verification) for receipt hashes, signatures, and current proof-route semantics.
-7. [API Reference](/docs/api-reference) when you are ready to integrate against specific routes. The Actions section comes first.
+## 2. Configure endpoint and API key
+
+```bash
+export IGRIS_API_URL="https://overture.igrisinertial.com"   # or the endpoint from your invitation
+export IGRIS_API_KEY="igris_…"                              # never commit or log this value
+```
+
+Construct the durable client explicitly:
+
+```python
+from igris import IgrisDurableClient
+
+client = IgrisDurableClient(
+    endpoint="https://overture.igrisinertial.com",
+    api_key="igris_…",
+)
+
+# Or, after BOTH env vars are set:
+# client = IgrisDurableClient.from_env()
+```
+
+Environment variables alone never switch local Embedded `wrap_tool` into remote execution. Durable mode requires `IgrisDurableClient`.
+
+## 3. Run the first durable Action
+
+Follow [Your First Durable Action](/docs/first-durable-action) for the complete sequence:
+
+1. Declare / wrap the consequential function (local Embedded gate)
+2. Synchronize the ActionContract
+3. Create an Action target (webhook adapter)
+4. Bind exact `contract_hash` → `target_action_id`
+5. `client.run(..., idempotency_key=..., contract_hash=...)`
+6. `run.wait()`
+7. `run.proof()`
+
+## What this quickstart does not do
+
+- No raw control-plane curl in the normal SDK journey
+- No manual checkpoint resume
+- No uploading Python source to Runtime
+- No invented random idempotency keys
+- No claim of universal exactly-once external effects
+
+## Next
+
+| Goal | Page |
+|---|---|
+| Complete the first run end-to-end | [Your First Durable Action](/docs/first-durable-action) |
+| Understand Actions and bindings | [Actions](/docs/actions) |
+| Understand proof claims | [Igris Run Proof](/docs/igris-run-proof) |
+| Handle unresolved effects | [Uncertain Effects](/docs/uncertain-effects) · [Reconciliation](/docs/reconciliation) |

@@ -1,0 +1,47 @@
+---
+title: "CLI"
+description: "igris CLI commands for durable bindings, runs, proof, and evidence."
+audience: "public"
+---
+
+# CLI
+
+The Python package installs an `igris` CLI.
+
+```bash
+python -m pip install ./sdk/python
+igris --version
+```
+
+Durable commands reuse `IgrisDurableClient` and require endpoint + API key (`--endpoint` / `--api-key`, or `IGRIS_API_URL` / `IGRIS_API_KEY`).
+
+## Durable commands
+
+```bash
+igris binding get --action NAME --contract-hash HASH --json
+igris binding create --action NAME --contract-hash HASH \
+  --target-action-id TARGET --input-mapping '{"a":"a"}' --json
+
+igris run submit --action NAME --contract-hash HASH \
+  --idempotency-key KEY --input '{"a":1}' --json
+igris run status RUN_ID
+igris run wait RUN_ID --timeout 60 --json
+igris run proof RUN_ID
+igris run link-evidence RUN_ID --batch-id BATCH_ID
+```
+
+## Evidence and local verify
+
+```bash
+igris evidence sync
+igris evidence inspect
+igris evidence status
+igris verify
+igris key-info
+```
+
+## Notes
+
+- Do not print raw API keys
+- Prefer business idempotency keys over random values
+- `igris run wait` fails closed on reconciliation-required states

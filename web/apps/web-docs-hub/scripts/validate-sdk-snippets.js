@@ -6,7 +6,12 @@ const { docsAppRoot, docsDir, generatedDir, repoRoot, sdkSupport } = require('./
 
 const SDK_DOCS = [
   path.join(docsDir, 'sdk.mdx'),
-  path.join(docsDir, 'sdk-integration-patterns.mdx'),
+  path.join(docsDir, 'sdk-durable-client.mdx'),
+  path.join(docsDir, 'sdk-bind-action.mdx'),
+  path.join(docsDir, 'sdk-run-action.mdx'),
+  path.join(docsDir, 'sdk-inspect-run.mdx'),
+  path.join(docsDir, 'first-durable-action.mdx'),
+  path.join(docsDir, 'quickstart.mdx'),
 ];
 
 function firstExistingPath(candidates) {

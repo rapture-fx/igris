@@ -1,0 +1,72 @@
+---
+title: "Bind an Action"
+description: "Synchronize a contract, create a target, and bind by exact contract_hash."
+audience: "public"
+---
+
+# Bind an Action
+
+Durable execution requires an exact binding before `run()`.
+
+## 1. Synchronize the contract
+
+```python
+sync = client.sync_contract(tool)  # or an ActionContract
+print(sync.action_name, sync.contract_hash, sync.created)
+```
+
+## 2. Create or inspect the target
+
+```python
+target = client.create_action_target(
+    name="demo_transfer_adapter",
+    target_type="webhook",
+    target_url="http://127.0.0.1:18099/v1/demo/transfer",
+    method="POST",
+    replay_class="retryable",
+    approval_required=False,
+)
+```
+
+```python
+existing = client.get_action_target(target.id)
+```
+
+## 3. Create or reuse the exact binding
+
+```python
+binding = client.ensure_binding(
+    action_name=contract.action_name,
+    contract_hash=contract.contract_hash,
+    target_action_id=target.id,
+    input_mapping={
+        "account_id": "account_id",
+        "amount_cents": "amount_cents",
+    },
+)
+```
+
+`ensure_binding` returns an existing immutable binding when the target matches, or creates one. If the exact contract is already bound to a different target, it raises `BindingConflictError`.
+
+## CLI
+
+```bash
+igris binding create \
+  --action demo.consequential_transfer \
+  --contract-hash "$CONTRACT_HASH" \
+  --target-action-id "$TARGET_ID" \
+  --input-mapping '{"account_id":"account_id","amount_cents":"amount_cents"}' \
+  --json
+
+igris binding get \
+  --action demo.consequential_transfer \
+  --contract-hash "$CONTRACT_HASH" \
+  --json
+```
+
+## Rules
+
+- `contract_hash` is required (64 lowercase hex)
+- `target_action_id` is required
+- `input_mapping` must be a non-empty exact parameter map
+- consequential bindings require `idempotency_required=True`

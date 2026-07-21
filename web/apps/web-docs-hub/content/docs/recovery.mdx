@@ -1,0 +1,50 @@
+---
+title: "Recovery"
+description: "Infrastructure failures are recovered by the managed durable path — wait and inspect, do not invent resume protocols."
+audience: "public"
+---
+
+# Recovery
+
+When infrastructure fails mid-run — for example a Runtime host becomes unavailable — Igris can recover the **managed** durable execution.
+
+Your job as an application developer is usually:
+
+1. keep the same business idempotency key
+2. wait on the run handle (`run.wait()`)
+3. inspect status and Igris Run Proof
+4. stop if the effect is uncertain
+
+You do **not** need a manual checkpoint resume step in the normal SDK journey.
+
+## What recovery covers
+
+Recovery covers managed execution continuity for a contract-bound durable run: the control plane and Runtime cooperate so the run can continue after infrastructure replacement or restart.
+
+Recovery lineage appears on Igris Run Proof so operators can see that recovery events occurred.
+
+## What recovery does not cover
+
+Recovery does not invent certainty about the external world.
+
+If the external effect cannot be known safely after a failure, the run enters an unresolved / reconciliation-required state. Automatic retry is unsafe. See [Uncertain Effects](/docs/uncertain-effects).
+
+## Developer pattern
+
+```python
+from igris import ReconciliationRequiredError
+
+try:
+    status = run.wait(timeout=120.0)
+except ReconciliationRequiredError as exc:
+    # Inspect the run. Do not auto-retry.
+    print(exc.run_id, exc.recovery_status)
+    raise
+```
+
+## Related
+
+- [Durable Runs](/docs/durable-runs)
+- [Uncertain Effects](/docs/uncertain-effects)
+- [Reconciliation](/docs/reconciliation)
+- [Igris Run Proof](/docs/igris-run-proof)

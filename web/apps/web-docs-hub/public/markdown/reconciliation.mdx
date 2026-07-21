@@ -1,0 +1,61 @@
+---
+title: "Reconciliation"
+description: "Operator reconciliation records an attributable resolution when the external effect is uncertain."
+audience: "public"
+---
+
+# Reconciliation
+
+When a durable run enters an unresolved effect state, Igris requires **operator reconciliation**.
+
+This is an attributable administrative assertion over managed unresolved-effect state. It is **not** cryptographic proof of what happened in the external system (`cryptographic_proof: false` on the reconciliation claim).
+
+## When it is required
+
+- Run status / recovery state indicates reconciliation is required
+- `run.wait()` / `run.status()` raises `ReconciliationRequiredError`
+- Igris Run Proof shows operator reconciliation as needed / present
+
+## Operator API
+
+```text
+GET  /v1/actions/runs/:id/reconciliation
+POST /v1/actions/runs/:id/reconciliation
+```
+
+`POST` appends an immutable reconciliation event. Typical resolution values:
+
+| Resolution | Meaning |
+|---|---|
+| `confirmed_succeeded` | Operator confirmed the external effect succeeded |
+| `confirmed_failed` | Operator confirmed the external effect failed / did not apply |
+| `remains_unknown` | Operator leaves the effect unknown after inspection |
+
+Request shape (conceptual):
+
+```json
+{
+  "request_id": "op-recon-2026-07-22-001",
+  "resolution": "confirmed_succeeded",
+  "reason": "Verified transfer id txn_123 in the ledger",
+  "external_reference": {
+    "type": "ledger_transfer_id",
+    "value": "txn_123"
+  }
+}
+```
+
+Reconciliation routes require an authorized operator/admin session for the tenant. They are not a substitute for fixing unsafe application retry loops.
+
+## Application developer rules
+
+1. Catch `ReconciliationRequiredError`
+2. Do not auto-retry the durable run
+3. Escalate to an operator with access to external system of record
+4. After resolution, inspect the run and Igris Run Proof again
+
+## Related
+
+- [Uncertain Effects](/docs/uncertain-effects)
+- [Igris Run Proof](/docs/igris-run-proof)
+- [Recovery](/docs/recovery)

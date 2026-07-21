@@ -1,0 +1,45 @@
+---
+title: "Business Idempotency"
+description: "Consequential durable runs require an explicit business idempotency key."
+audience: "public"
+---
+
+# Business Idempotency
+
+Every consequential durable run requires an explicit **business idempotency key**.
+
+The Python durable client never generates a random key for you. That is intentional: retries are only safe when the key names a real business intent (invoice id, transfer request id, change ticket, deploy request, and so on).
+
+## Why it exists
+
+Agents retry. Networks flake. Operators re-run scripts. Without a stable business key, a second submit can become a second logical attempt.
+
+With the same tenant, Action, contract, and idempotency key, Igris can return the original durable run instead of creating a duplicate logical run.
+
+## How to choose a key
+
+Good keys:
+
+```text
+refund-cus_8821-2026-07-22
+deploy-svc-payments-build-1842
+rotate-secret-prod-api-2026-07-22T01
+```
+
+Bad keys:
+
+- random UUIDs regenerated on every retry
+- timestamps that change on every attempt
+- keys copied from unrelated business events
+
+## What it does not mean
+
+Business idempotency at the Igris run layer is **not** universal exactly-once execution against every external system.
+
+External duplicate-effect safety still depends on supported idempotent targets. Prefer adapters and backends that honor the same key, or that are otherwise safe under retry.
+
+## Related
+
+- [Actions](/docs/actions)
+- [Durable Runs](/docs/durable-runs)
+- [Run an Action](/docs/sdk-run-action)

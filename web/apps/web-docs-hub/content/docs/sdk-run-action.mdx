@@ -1,0 +1,47 @@
+---
+title: "Run an Action"
+description: "Submit one contract-bound durable run with an explicit business idempotency key."
+audience: "public"
+---
+
+# Run an Action
+
+```python
+run = client.run(
+    contract.action_name,
+    input={"account_id": "acct_1", "amount_cents": 100},
+    idempotency_key="demo-transfer-2026-07-22-001",
+    contract_hash=contract.contract_hash,
+)
+print(run.run_id)
+```
+
+## Required arguments
+
+| Field | Rule |
+|---|---|
+| Action identity | Action name plus exact `contract_hash` (or a contract/tool that provides both) |
+| `idempotency_key` | Required non-empty business key; never auto-generated |
+| Binding | Required by default (`require_binding=True`) |
+
+If no exact binding exists, `run()` raises `UnboundActionError`.
+
+## CLI
+
+```bash
+igris run submit \
+  --action demo.consequential_transfer \
+  --contract-hash "$CONTRACT_HASH" \
+  --idempotency-key "demo-transfer-2026-07-22-001" \
+  --input '{"account_id":"acct_1","amount_cents":100}' \
+  --json
+```
+
+## After submit
+
+```python
+status = run.wait(timeout=60.0)
+proof = run.proof()
+```
+
+See [Inspect a Run](/docs/sdk-inspect-run) and [Business Idempotency](/docs/business-idempotency).

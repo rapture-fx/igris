@@ -1,310 +1,49 @@
 ---
-title: "SDKs"
-description: "How to call registered actions, durable tasks, and receipts from your language — with native SDKs or plain HTTP."
+title: "Python SDK"
+description: "Install igris-sdk and use IgrisDurableClient for consequential durable Actions."
 audience: "public"
 ---
 
-# SDKs
+# Python SDK
 
-The production Igris integration path is **registered actions**: register an action once, then run it by name and inspect the durable run. That path is plain HTTP — `POST /v1/actions/:name/run` works from any language with any HTTP client — so an SDK is a convenience, not a requirement.
+The External Alpha product path is the Python durable SDK.
 
-- **Native Igris SDKs** add typed clients and helpers for actions (JavaScript/TypeScript), durable tasks, receipts, vault operations, runtimes, and behavior trees
-- **Plain HTTP** is the right answer for any language without a native SDK — every endpoint page in the [API reference](/docs/api-reference) includes ready-to-use cURL, JavaScript, Go, and Rust samples
+- **Distribution name:** `igris-sdk`
+- **Import package:** `igris`
+- **Durable client:** `IgrisDurableClient`
 
-The native first-class SDKs are JavaScript/TypeScript, Go, Rust, and Python. Java, C#, and Ruby should call the Actions HTTP API directly today.
+Do **not** `pip install igris` from the public package index.
 
-For production integration guidance, reusable client construction, and environment-variable patterns, continue with [SDK Integration Patterns →](/docs/sdk-integration-patterns).
-
-## Support Matrix
-
-<SdkSupportMatrix />
-
-## Support Policy
-
-Treat the SDK table as a product support statement, not just a package list:
-
-- **First-class** means the language is part of the maintained customer SDK surface
-- **HTTP API** means the supported contract for that language today is the documented Actions HTTP API through any standard HTTP client
-
-If your team wants the strongest support commitment, choose JavaScript/TypeScript, Go, Rust, or Python. Every other language integrates cleanly over plain HTTP — the actions contract is small on purpose.
-
----
-
-## Run A Registered Action
-
-### JavaScript / TypeScript
-
-The JavaScript SDK wraps the actions gateway directly. `runAction` submits the run; with `wait: true` it polls until the run reaches a terminal state:
-
-```typescript
-import { IgrisClient } from '@igris-inertial/sdk';
-
-const client = new IgrisClient({
-  baseUrl: 'https://overture.igrisinertial.com',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-
-const run = await client.runAction(
-  'send_invoice',
-  { customer_id: 'cus_8821', amount: 4200 },
-  { idempotencyKey: 'invoice-8821-2026-06', wait: true },
-);
-
-console.log(run.status, run.proof_status);
-```
-
-The idempotency key is what makes retries safe: retrying with the same key inside your tenant returns the original run instead of running the action again.
-
-You can also fetch a run later by id:
-
-```typescript
-import { IgrisClient } from '@igris-inertial/sdk';
-
-const client = new IgrisClient({
-  baseUrl: 'https://overture.igrisinertial.com',
-  apiKey: process.env.IGRIS_API_KEY,
-});
-
-const result = await client.getActionResult('018f4a2b-3c1e-7a2d-9b8f-4d5e6f7a8b9c');
-console.log(result.status, result.proof_status);
-```
-
-### Other Languages
-
-For Go, Rust, Python, Java, C#, Ruby, and everything else, run actions over plain HTTP. The request is one POST:
+## Install
 
 ```bash
-curl -X POST https://overture.igrisinertial.com/v1/actions/send_invoice/run \
-  -H "Authorization: Bearer $IGRIS_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input": { "customer_id": "cus_8821", "amount": 4200 },
-    "idempotency_key": "invoice-8821-2026-06"
-  }'
+python -m pip install ./sdk/python
+# or a kit wheel: python -m pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
 ```
-
-The [run-action endpoint page](/docs/api-reference/actions/post-v1-actions-name-run) has the same call as generated JavaScript, Go, and Rust samples, plus the full status-code contract.
-
----
-
-## Durable Tasks
-
-For long-running work, the JavaScript SDK exposes the implemented task manager. Submit the task once, then poll or wait for the terminal task state:
-
-```typescript
-const task = await client.tasks.submit({
-  task_type: 'single_inference',
-  task_definition: {
-    model: 'gpt-4.1-mini',
-    messages: [{ role: 'user', content: 'Summarize the deployment risk.' }],
-  },
-  idempotency_key: 'deployment-risk-2026-04-18',
-});
-
-const completed = await client.tasks.waitForCompletion(task.task_id);
-console.log(completed.status);
-```
-
-Handle durable task failures as ordinary SDK errors or terminal task states:
-
-```typescript
-try {
-  const task = await client.tasks.submit({
-    task_type: 'single_inference',
-    task_definition: {
-      model: 'gpt-4.1-mini',
-      messages: [{ role: 'user', content: 'Replay the last durable task.' }],
-    },
-    idempotency_key: 'deployment-risk-2026-04-18',
-  });
-
-  const finalTask = await client.tasks.waitForCompletion(task.task_id);
-  if (finalTask.status === 'failed') {
-    console.warn('Task failed:', finalTask.failure_reason);
-  }
-} catch (error) {
-  console.warn('Durable task request failed:', error);
-}
-```
-
----
-
-## Native SDK Clients
-
-Choose a native SDK when you want a product-shaped client rather than hand-rolled HTTP. That matters when you are working with receipts, vault operations, runtimes, behavior trees, containment bounds, or richer Igris metadata.
-
-### Go
-
-```go
-package main
-
-import (
-    "os"
-
-    igris "github.com/igris-inertial/go-sdk"
-)
-
-func main() {
-    client := igris.NewClient(
-        "https://overture.igrisinertial.com",
-        os.Getenv("IGRIS_API_KEY"),
-    )
-
-    _ = client // run actions over HTTP; use the client for receipts, vault, and fleet helpers
-}
-```
-
-The Go SDK does not expose an actions helper yet — run actions over plain HTTP (one POST, shown above) and use the typed client for the surfaces it covers.
-
-### Rust
-
-```rust
-use igris_inertial::IgrisClient;
-
-fn create_client() -> Result<IgrisClient, Box<dyn std::error::Error>> {
-    Ok(IgrisClient::builder("https://overture.igrisinertial.com")
-        .api_key(std::env::var("IGRIS_API_KEY")?)
-        .build()?)
-}
-```
-
-Like Go, run actions over plain HTTP and use the typed client for the other product surfaces it covers.
-
-### Python
-
-Install the SDK:
-
-```bash
-pip install igris-inertial
-```
-
-For receipt verification, add the optional extra:
-
-```bash
-pip install "igris-inertial[verification]"
-```
-
-**Client construction**
 
 ```python
-import os
-from igris import IgrisClient
-
-client = IgrisClient(
-    base_url="https://overture.igrisinertial.com",
-    api_key=os.environ["IGRIS_API_KEY"],
-)
+import igris
+from igris import IgrisDurableClient
 ```
 
-**Local runtime with containment bounds**
+## Embedded vs durable
 
-`Runtime` connects to a locally running Igris Runtime binary. Pass `Bounds` to enforce per-tick CPU and time limits. When the local runtime is unreachable and `auto_fallback=True`, requests route to the cloud URL automatically.
+| Mode | Entry point | Network by default? |
+|---|---|---|
+| Embedded | `igris.wrap_tool` / `@igris.guard` | No — local journal and approval |
+| Durable | `IgrisDurableClient` | Yes — explicit endpoint + API key |
 
-```python
-from igris import Runtime, RuntimeConfig, Bounds
+Setting `IGRIS_API_URL` alone never remotes Embedded tools. Construct `IgrisDurableClient` when you want managed durable execution.
 
-rt = Runtime(
-    config=RuntimeConfig(
-        local_url="http://localhost:8080",
-        cloud_url="https://overture.igrisinertial.com",
-        local_model="phi3",
-        bounds=Bounds(cpu_percent=80, memory_mb=512, max_tick_ms=200),
-    )
-)
+## SDK guide map
 
-response = rt.chat({"model": "phi3", "messages": [{"role": "user", "content": "Hello"}]})
-print(response.choices[0].message.content)
-```
+| Page | Purpose |
+|---|---|
+| [IgrisDurableClient](/docs/sdk-durable-client) | Construction, auth, configuration |
+| [Bind an Action](/docs/sdk-bind-action) | Contract sync, targets, exact bindings |
+| [Run an Action](/docs/sdk-run-action) | Submit with business idempotency key |
+| [Inspect a Run](/docs/sdk-inspect-run) | Status, wait, proof, evidence link |
 
-**Behavior trees**
+## REST without the SDK
 
-Build trees with the node builder API and run them against the runtime:
-
-```python
-from igris import BehaviorTree, Sequence, Selector, Action, Condition
-
-tree = BehaviorTree.from_nodes(
-    root=Sequence("main", children=[
-        Condition("has-input", key="input", expected=True),
-        Action("fetch", tool="http", args={"url": "https://example.com/data"}),
-        Action("summarise", tool="llm", args={"prompt": "Summarise this"}),
-    ]),
-    runtime=rt,
-)
-
-result = tree.run(context={"input": True}, max_ticks=500, timeout_ms=10000)
-```
-
-Trees can also be loaded from JSON or YAML:
-
-```python
-tree = BehaviorTree.from_json(tree_dict, runtime=rt)
-tree = BehaviorTree.from_yaml(yaml_string, runtime=rt)  # requires pyyaml
-```
-
-**Vault and fleet**
-
-```python
-# Store a provider API key
-client.vault.store("openai", os.environ["OPENAI_API_KEY"])
-
-# List registered fleet agents
-agents = client.fleet.agents()
-```
-
-**Receipt verification**
-
-Verify the Ed25519 signature on an execution receipt. Requires `PyNaCl`.
-
-```python
-from igris.receipt import verify_receipt
-
-valid = verify_receipt(
-    receipt=response.execution_receipt,
-    public_key=bytes.fromhex(os.environ["IGRIS_RUNTIME_PUBLIC_KEY"]),
-)
-```
-
-**Containment violation callbacks**
-
-Register a callback that fires when the runtime records a containment violation:
-
-```python
-def on_violation(v):
-    print(f"Violation: {v.violation_kind} at {v.timestamp}")
-
-rt.on_violation(on_violation)
-```
-
----
-
-## Experimental: Hosted Inference Clients
-
-The hosted inference surface (`/v1/infer`, `/v1/chat/completions`) is **experimental and disabled by default** — it requires an explicit experimental feature flag on the deployment and is not the product entry point. Registered actions are. If your deployment has the inference surface enabled, the native SDKs expose typed inference calls (`client.infer` in JavaScript/Go/Rust, `chat_completion` in Python), and any OpenAI-style client can point at `https://overture.igrisinertial.com/v1`. Treat that path the way the [API reference labels it](/docs/api-reference): experimental, not part of the stable contract.
-
----
-
-## Deployment Mode Guidance
-
-The same integration can point at different Igris deployments without becoming a different product:
-
-- hosted API: `https://overture.igrisinertial.com`
-- local runtime: `http://localhost:8080`
-- hybrid: keep your application on the hosted API and let Igris coordinate work across runtimes
-
-Use the hosted API unless the workload truly needs on-device execution, offline behavior, or fleet-local control. Note the direction of dispatch for `local_runtime` actions: Igris pushes work to your registered runtime endpoint, so that endpoint must be reachable by Overture — a runtime that is only reachable on `localhost` cannot receive hosted-dispatched work.
-
-## Code Quality Expectations
-
-Well-written Igris integrations usually share a few traits:
-
-- one constructor owns base URL and auth setup
-- credentials come from a secret manager or environment, not source control
-- every action run that has real side effects sends an `idempotency_key`
-- `429`, auth failures, validation failures, and `5xx` responses are handled differently
-- `409 approval_required` is handled as an expected pause for human-gated actions, not as an error
-- receipt, audit, and fleet features are adopted intentionally rather than scattered across request paths
-
----
-
-[SDK Integration Patterns →](/docs/sdk-integration-patterns) · [API Reference →](/docs/api-reference) · [First Hosted Integration →](/docs/first-cloud-integration)
+Any language can call the Actions HTTP API directly. See [REST API](/docs/rest-api) and the [API Reference](/docs/api-reference).

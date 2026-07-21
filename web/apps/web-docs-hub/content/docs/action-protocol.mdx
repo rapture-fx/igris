@@ -1,0 +1,33 @@
+---
+title: "Igris Action Protocol"
+description: "Action Protocol Evidence is a separate claim family from managed Runtime execution."
+audience: "public"
+---
+
+# Igris Action Protocol
+
+The **Igris Action Protocol** is the Evidence family for signed decision and outcome events produced by the SDK journal.
+
+It answers questions like:
+
+- What Action decision was recorded before execution?
+- What outcome was recorded after the local/tool path?
+- Does the local evidence chain verify?
+
+It does **not** by itself prove managed control-plane dispatch, Runtime recovery, or external side-effect uniqueness.
+
+## Where it sits in the product
+
+```text
+Action Protocol Evidence  ≠  Runtime receipt  ≠  external effect certainty
+```
+
+Igris Run Proof can link these claim families for one durable run while keeping them distinct. See [Igris Run Proof](/docs/igris-run-proof) and [Evidence](/docs/evidence).
+
+## Practical guidance
+
+- Use Embedded `wrap_tool` / `@igris.guard` when you want local signed decision/outcome journaling.
+- Use `IgrisDurableClient` when you want managed durable execution.
+- Sync and link Evidence explicitly when you need run-scoped eligibility linkage (`igris evidence sync`, then `run.link_evidence`).
+
+Protocol remains publicly discoverable here, but first-run onboarding starts with durable Actions, not protocol internals.

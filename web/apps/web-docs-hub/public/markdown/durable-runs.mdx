@@ -1,0 +1,55 @@
+---
+title: "Durable Runs"
+description: "A durable run is one contract-bound Action execution you can wait on, recover, and prove."
+audience: "public"
+---
+
+# Durable Runs
+
+A **durable run** is one contract-bound Action execution managed by Igris.
+
+You submit it once with:
+
+- Action name
+- exact `contract_hash`
+- input payload
+- explicit business `idempotency_key`
+
+Then you observe it through typed status, wait until terminal (or reconciliation-required), and retrieve **Igris Run Proof**.
+
+## Submit and wait
+
+```python
+run = client.run(
+    contract.action_name,
+    input={"account_id": "acct_1", "amount_cents": 100},
+    idempotency_key="transfer-acct_1-2026-07-22-001",
+    contract_hash=contract.contract_hash,
+)
+
+status = run.wait(timeout=60.0)
+proof = run.proof()
+```
+
+## Statuses you should expect
+
+Terminal statuses include completed, failed, rejected, cancelled, and unresolved-effect states that require reconciliation.
+
+Important product rules:
+
+- `recovering` is **not** terminal — keep waiting
+- unresolved effect states raise `ReconciliationRequiredError` from `wait()` / `status()` by default
+- the SDK does **not** auto-retry reconciliation-required runs
+
+## What you do not do
+
+- Do not manually resume checkpoints in the normal product journey
+- Do not invent random idempotency keys
+- Do not treat a successful HTTP accept as proof of the external effect
+
+## Related
+
+- [Business Idempotency](/docs/business-idempotency)
+- [Recovery](/docs/recovery)
+- [Uncertain Effects](/docs/uncertain-effects)
+- [Inspect a Run](/docs/sdk-inspect-run)
