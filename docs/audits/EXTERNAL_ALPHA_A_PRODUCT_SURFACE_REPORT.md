@@ -54,7 +54,8 @@ Supported lifecycle: **Action → Run → Recover → Reconcile when uncertain �
 | Evidence Memory | `IGRIS_ENABLE_EXPERIMENTAL_EVIDENCE_MEMORY_ROUTES` | `/v1/agent-memory` |
 | Execution Intelligence | `IGRIS_ENABLE_EXPERIMENTAL_EXECUTION_INTELLIGENCE_ROUTES` | `/v1/execution/intelligence`, affinity, trust-recommendations, `/v1/execution-evals*` |
 | Policy simulation | `IGRIS_ENABLE_EXPERIMENTAL_POLICY_SIMULATION_ROUTES` | `/v1/policy/simulate`, `/v1/policy/proposals*` |
-| Legacy execution console | `IGRIS_ENABLE_EXPERIMENTAL_EXECUTION_CONSOLE_ROUTES` | `/v1/execution/runs*`, BT-state, shadow, policies, alerts |
+| BT live-state | `IGRIS_ENABLE_EXPERIMENTAL_ROBOTICS_ROUTES` | `/v1/agents/:id/bt-state*` |
+| Shadow traces | `IGRIS_ENABLE_EXPERIMENTAL_ROUTING_ROUTES` | `/v1/execution/shadow` |
 
 ### Runtime defaults narrowed
 
@@ -65,9 +66,10 @@ Supported lifecycle: **Action → Run → Recover → Reconcile when uncertain �
 - Chat path respects `routing.speculative.enabled` (no multi-provider race by default)
 - Runtime-local MCP remains config-off (`mcp.enabled=false`); when enabled it **bypasses** Action boundary (documented residual risk)
 
-## Internal surface
+## Internal / console-support (reachable, not Clock 3F.1 product claims)
 
-- License/usage/trial/stats/project console support APIs (operational, not advertised as Clock 3F.1 product)
+- Execution run inspection (`/v1/execution/runs*`, agents list, policies, alerts) — required by Action Task Tier A recovery proofs; BT-state and shadow remain flag-gated
+- License/usage/trial/stats/project console support APIs
 - Polar webhook (only when `POLAR_API_KEY` configured)
 - SLO admin (`ENABLE_SLO_ENFORCER` + `IGRIS_INTERNAL_ADMIN_TOKEN`)
 - Debug metrics (`IGRIS_ENABLE_DEBUG_METRICS_ROUTES`)

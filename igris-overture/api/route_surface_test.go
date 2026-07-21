@@ -41,15 +41,18 @@ func TestExternalAlphaExperimentalPacksDisabledByDefault(t *testing.T) {
 	app := fiber.New()
 	RegisterActionRoutes(app, db, coordinator.NewTaskCoordinator(db))
 	RegisterGovernanceRoutes(app, db)
+	RegisterExecutionRoutes(app, db, nil)
 
 	require.True(t, hasRoute(app, "GET", "/v1/actions"))
 	require.True(t, routePathPrefixExists(app, "/v1/execution/governance"))
+	require.True(t, hasRoute(app, "GET", "/v1/execution/runs"))
 	require.False(t, hasRoute(app, "GET", "/v1/action-packs"))
 	require.False(t, hasRoute(app, "GET", "/v1/execution/intelligence"))
 	require.False(t, hasRoute(app, "POST", "/v1/policy/simulate"))
 	require.False(t, hasRoute(app, "GET", "/v1/agent-memory"))
 	require.False(t, hasRoute(app, "GET", "/v1/agents"))
-	require.False(t, hasRoute(app, "GET", "/v1/execution/runs"))
+	require.False(t, hasRoute(app, "GET", "/v1/agents/:id/bt-state"))
+	require.False(t, hasRoute(app, "GET", "/v1/execution/shadow"))
 }
 
 func TestExternalAlphaExperimentalPacksCanBeEnabled(t *testing.T) {
@@ -59,7 +62,8 @@ func TestExternalAlphaExperimentalPacksCanBeEnabled(t *testing.T) {
 	t.Setenv(ExperimentalPolicySimulationRoutesFlag, "true")
 	t.Setenv(ExperimentalEvidenceMemoryRoutesFlag, "true")
 	t.Setenv(ExperimentalAgentRegistryRoutesFlag, "true")
-	t.Setenv(ExperimentalExecutionConsoleRoutesFlag, "true")
+	t.Setenv(ExperimentalRoboticsRoutesFlag, "true")
+	t.Setenv(ExperimentalRoutingRoutesFlag, "true")
 
 	db, err := sql.Open("postgres", "postgres://route-inventory.invalid/unused")
 	require.NoError(t, err)
@@ -79,6 +83,8 @@ func TestExternalAlphaExperimentalPacksCanBeEnabled(t *testing.T) {
 	require.True(t, hasRoute(app, "GET", "/v1/agent-memory") || hasRoute(app, "POST", "/v1/agent-memory"))
 	require.True(t, hasRoute(app, "GET", "/v1/agents"))
 	require.True(t, hasRoute(app, "GET", "/v1/execution/runs"))
+	require.True(t, hasRoute(app, "GET", "/v1/agents/:id/bt-state"))
+	require.True(t, hasRoute(app, "GET", "/v1/execution/shadow"))
 }
 
 func routePathPrefixExists(app *fiber.App, prefix string) bool {
@@ -203,7 +209,7 @@ func TestRouteRegistrationSourceGuard(t *testing.T) {
 		"RegisterRuntimeAPIKeyRoutes":         "runtime_registration_or_callback",
 		"RegisterAccountAPIKeysRoutes":        "core_public_product_api",
 		"RegisterStatsRoutes":                 "console_support_api",
-		"RegisterExecutionRoutes":             "experimental_non_core",
+		"RegisterExecutionRoutes":             "core_public_product_api with experimental bt/shadow gates",
 		"RegisterExecutionIntelligenceRoutes": "experimental_non_core",
 		"RegisterExecutionAffinityRoutes":     "experimental_non_core",
 		"RegisterTrustRecommendationRoutes":   "experimental_non_core",

@@ -193,9 +193,19 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "recovery-event inspection for durable Action runs",
 	},
 	{
-		Method: "GET,POST", Path: "/v1/execution/runs,/v1/execution/agents,/v1/agents/:id/bt-state,/v1/execution/shadow,/v1/policies,/v1/alerts/stream", RegistrationFile: "igris-overture/api/routes_execution.go",
-		HandlerOrGroup: "legacy execution console", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "legacy inference-era execution console including BT-state and shadow; outside Clock 3F.1 Action/Run surface", FeatureFlag: ExperimentalExecutionConsoleRoutesFlag,
+		Method: "GET,POST", Path: "/v1/execution/runs,/v1/execution/agents,/v1/policies,/v1/alerts/stream", RegistrationFile: "igris-overture/api/routes_execution.go",
+		HandlerOrGroup: "execution run inspection", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped durable execution-run inspection required by Action Task recovery proofs; BT-state and shadow remain flag-gated inside the same registrar",
+	},
+	{
+		Method: "GET", Path: "/v1/agents/:id/bt-state,/v1/agents/:id/bt-state/stream", RegistrationFile: "igris-overture/api/routes_execution.go",
+		HandlerOrGroup: "behavior-tree live state", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "BT live-view surface retained behind robotics experimental flag", FeatureFlag: ExperimentalRoboticsRoutesFlag,
+	},
+	{
+		Method: "GET", Path: "/v1/execution/shadow", RegistrationFile: "igris-overture/api/routes_execution.go",
+		HandlerOrGroup: "shadow execution traces", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "shadow traces retained behind routing experimental flag", FeatureFlag: ExperimentalRoutingRoutesFlag,
 	},
 	{
 		Method: "GET", Path: "/v1/execution/intelligence", RegistrationFile: "igris-overture/api/routes_execution_intelligence.go",

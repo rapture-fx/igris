@@ -134,12 +134,8 @@ func TestExperimentalRoutesNotPublicByDefaultInManifest(t *testing.T) {
 		"/v1/execution-evals",
 		"/v1/policy/simulate",
 		"/v1/policy/proposals",
-		"/v1/execution/runs",
-		"/v1/execution/agents",
 		"/v1/execution/shadow",
 		"/v1/agents",
-		"/v1/policies",
-		"/v1/alerts",
 	}
 	for _, route := range manifest.Routes {
 		for _, prefix := range disabledPrefixes {
@@ -195,6 +191,7 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterRuntimeAPIKeyRoutes(app, db)
 	RegisterAccountAPIKeysRoutes(app, db)
 	RegisterStatsRoutes(app, db, nil, nil)
+	RegisterExecutionRoutes(app, db, nil)
 	RegisterProofRoutes(app, db, nil)
 	RegisterGovernanceRoutes(app, db)
 	RegisterFrontendRoutes(app, db)

@@ -623,11 +623,7 @@ func main() {
 		} else {
 			log.Printf("[Routes] Agent registry routes disabled (%s not enabled)", api.ExperimentalAgentRegistryRoutesFlag)
 		}
-		if api.ExperimentalExecutionConsoleRoutesEnabled() {
-			api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
-		} else {
-			log.Printf("[Routes] Legacy execution console routes disabled (%s not enabled)", api.ExperimentalExecutionConsoleRoutesFlag)
-		}
+		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
 		if api.ExperimentalExecutionIntelligenceRoutesEnabled() {
 			api.RegisterExecutionIntelligenceRoutes(app, dbInstance)
 			api.RegisterExecutionAffinityRoutes(app, dbInstance)

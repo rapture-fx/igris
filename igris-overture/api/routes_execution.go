@@ -136,14 +136,18 @@ func RegisterExecutionRoutes(app *fiber.App, db *sql.DB, _ *middleware.TenantAut
 	app.Post("/v1/execution/runs/:id/approve", auth, h.ApproveRun)
 	app.Post("/v1/execution/runs/:id/reject", auth, h.RejectRun)
 	app.Get("/v1/execution/agents", auth, h.ListAgents)
-	app.Get("/v1/agents/:id/bt-state", auth, h.GetAgentBTState)
-	app.Get("/v1/agents/:id/bt-state/stream", auth, h.StreamBTState)
+	if ExperimentalRoboticsRoutesEnabled() {
+		app.Get("/v1/agents/:id/bt-state", auth, h.GetAgentBTState)
+		app.Get("/v1/agents/:id/bt-state/stream", auth, h.StreamBTState)
+	}
 	app.Post("/v1/policies/assign", auth, h.AssignPolicy)
 	app.Get("/v1/policies", auth, h.GetPolicies)
-	app.Get("/v1/execution/shadow", auth, h.ListShadowTraces)
+	if ExperimentalRoutingRoutesEnabled() {
+		app.Get("/v1/execution/shadow", auth, h.ListShadowTraces)
+	}
 	app.Get("/v1/alerts/stream", auth, h.StreamAlerts)
 
-	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/runs/:id, /v1/execution/runs/:id/approve, /v1/execution/runs/:id/reject, /v1/execution/agents, /v1/agents/:id, /v1/policies, /v1/policies/assign, /v1/execution/shadow, /v1/alerts/stream, /v1/agents/:id/bt-state/stream)")
+	log.Info().Msg("[Routes] Registered execution endpoints (/v1/execution/runs, /v1/execution/runs/:id, /v1/execution/runs/:id/approve, /v1/execution/runs/:id/reject, /v1/execution/agents, /v1/policies, /v1/policies/assign, /v1/alerts/stream)")
 }
 
 // ExecutionRun is the response shape for a single execution row.
