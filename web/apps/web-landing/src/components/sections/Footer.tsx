@@ -19,11 +19,11 @@ const columns: FooterColumn[] = [
   {
     heading: 'Product',
     links: [
-      { label: 'Run', href: landingHash(LANDING_SECTIONS.productRun), section: true },
-      { label: 'Recover', href: landingHash(LANDING_SECTIONS.productRecover), section: true },
-      { label: 'Verify', href: landingHash(LANDING_SECTIONS.productProve), section: true },
-      { label: 'Action endpoint', href: landingHash(LANDING_SECTIONS.actionEndpoint), section: true },
-      { label: 'Pricing', href: '/pricing' },
+      { label: 'How it works', href: landingHash(LANDING_SECTIONS.howItWorks), section: true },
+      { label: 'Outcomes', href: landingHash(LANDING_SECTIONS.outcomes), section: true },
+      { label: 'SDK example', href: landingHash(LANDING_SECTIONS.sdk), section: true },
+      { label: 'Use cases', href: landingHash(LANDING_SECTIONS.useCases), section: true },
+      { label: 'Run proof', href: landingHash(LANDING_SECTIONS.runProof), section: true },
     ],
   },
   {
@@ -33,19 +33,16 @@ const columns: FooterColumn[] = [
       { label: 'Quick start', href: DOCS_LINKS.quickstart, external: true },
       { label: 'API reference', href: DOCS_LINKS.apiReference, external: true },
       { label: 'SDKs', href: DOCS_LINKS.sdk, external: true },
-      { label: 'Verification', href: DOCS_LINKS.verification, external: true },
       { label: 'Architecture', href: DOCS_LINKS.architecture, external: true },
-      { label: 'Tools', href: DOCS_LINKS.tools, external: true },
     ],
   },
   {
-    heading: 'Solutions',
+    heading: 'Use cases',
     links: [
-      { label: 'AI agents', href: DOCS_LINKS.agents, external: true },
-      { label: 'Robotics', href: DOCS_LINKS.robotics, external: true },
-      { label: 'Runtime', href: DOCS_LINKS.runtime, external: true },
-      { label: 'Use cases', href: DOCS_LINKS.useCases, external: true },
-      { label: 'Platform', href: DOCS_LINKS.platform, external: true },
+      { label: 'Coding agents', href: landingHash(LANDING_SECTIONS.useCases), section: true },
+      { label: 'Infrastructure agents', href: landingHash(LANDING_SECTIONS.useCases), section: true },
+      { label: 'Operational agents', href: landingHash(LANDING_SECTIONS.useCases), section: true },
+      { label: 'Agent docs', href: DOCS_LINKS.agents, external: true },
     ],
   },
   {
@@ -124,7 +121,7 @@ export default function Footer() {
                 className="mt-4 text-gray-600 dark:text-[#a8a898]"
                 style={{ fontFamily: SANS, fontSize: '1rem', lineHeight: 1.6 }}
               >
-                Governed execution for agent actions, with recovery and proof built in.
+                Reliable execution for AI agents that perform consequential actions.
               </p>
             </div>
 

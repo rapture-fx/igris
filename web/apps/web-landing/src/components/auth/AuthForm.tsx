@@ -205,7 +205,7 @@ export default function AuthForm() {
             >
               {mode === 'signup'
                 ? 'Start running governed actions with recovery and proof built in.'
-                : 'Sign in to manage actions, receipts, and fleet visibility.'}
+                : 'Sign in to manage durable runs and inspect outcomes.'}
             </p>
           </div>
         )}

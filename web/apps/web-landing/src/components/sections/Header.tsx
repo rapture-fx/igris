@@ -27,17 +27,17 @@ interface DropdownItem {
 }
 
 const productItems: DropdownItem[] = [
-  { label: 'Run', description: 'Every call goes through policy and routing with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
-  { label: 'Recover', description: 'Resume from checkpoints when providers rate-limit or workers fail.', href: landingHash(LANDING_SECTIONS.productRecover) },
-  { label: 'Prove', description: 'Signed receipts for every action. Inspect what ran and what recovered.', href: landingHash(LANDING_SECTIONS.productProve) },
+  { label: 'Problem', description: 'Why ordinary retries fail for consequential agent actions.', href: landingHash(LANDING_SECTIONS.problem) },
+  { label: 'How it works', description: 'One durable execution boundary for agent actions.', href: landingHash(LANDING_SECTIONS.howItWorks) },
+  { label: 'Outcomes', description: 'Completed, recovered, or uncertain — not just timed out.', href: landingHash(LANDING_SECTIONS.outcomes) },
+  { label: 'Use cases', description: 'Coding, infrastructure, and operational agents.', href: landingHash(LANDING_SECTIONS.useCases) },
 ];
 
 const docsItems: DropdownItem[] = [
-  { label: 'Getting Started', description: 'Run your first verified execution path.', href: DOCS_LINKS.quickstart, external: true },
+  { label: 'Getting Started', description: 'Run your first durable execution path.', href: DOCS_LINKS.quickstart, external: true },
   { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: DOCS_LINKS.apiReference, external: true },
-  { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: DOCS_LINKS.sdk, external: true },
-  { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: DOCS_LINKS.verification, external: true },
-  { label: 'Architecture', description: 'How Igris governs execution across environments.', href: DOCS_LINKS.architecture, external: true },
+  { label: 'SDKs', description: 'Python durable client and related examples.', href: DOCS_LINKS.sdk, external: true },
+  { label: 'Architecture', description: 'How durable execution is structured.', href: DOCS_LINKS.architecture, external: true },
 ];
 
 const SIDEBAR_WIDTH = 256;
@@ -112,7 +112,7 @@ export default function Header() {
           <ChevronDown className={`h-3 w-3 transition-transform ${productOpen ? 'rotate-180' : ''}`} />
         </button>
         {productOpen && (
-          <div className="absolute top-full left-0 mt-1.5 w-48 rounded-[10px] border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
+          <div className="absolute top-full left-0 mt-1.5 w-56 rounded-[10px] border border-[#ebebeb] dark:border-white/[0.12] bg-white dark:bg-[#110f0f] p-1.5 shadow-lg z-50">
             {productItems.map(renderSubItem)}
           </div>
         )}

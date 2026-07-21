@@ -1,32 +1,17 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { useState } from 'react'
 import Link from 'next/link'
+import { Copy } from 'lucide-react'
 import Footer from './Footer'
-import { PRICING_TIERS, getTierBilling } from '../../lib/pricing'
-import type { BillingInterval } from '../../lib/pricing'
-import { BillingToggle, TierPriceDisplay } from './Pricing'
-import Faq from './Faq'
-import { BookOpen, ChevronDown, Workflow, Copy, Code } from 'lucide-react'
-import { MermaidChart } from '../MermaidChart'
-import VisionChangesPanel from './VisionChangesPanel'
-import AgentSetupLogos from './AgentSetupLogos'
-import RunHistoryRail, { VISION_SECTION_IDS } from './RunHistoryRail'
+import RunHistoryRail from './RunHistoryRail'
+import OutcomeStatesPanel from './OutcomeStatesPanel'
+import RunProofPanel from './RunProofPanel'
 import { DOCS_LINKS } from '../../lib/docs-urls'
-import { preloadMermaid } from '../../lib/mermaid-loader'
-import { CODING_AGENT_PROMPT } from '../../lib/coding-agent-prompt'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
-
-const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled path'
-const LINE_2_CONT = ' across cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in'
-const LINE_3_CONT = ' that records what happened, recovers from failure, and leaves evidence your team can inspect'
-
-const PRICING_VISION_SUBTEXT =
-  'Open Source: self-host Igris for free. Use Igris Cloud when you want hosted infrastructure, managed retention, team access, and support.'
 
 const TITLE_STYLE: CSSProperties = {
   fontFamily: SANS,
@@ -36,540 +21,225 @@ const TITLE_STYLE: CSSProperties = {
   letterSpacing: '-0.045em',
 }
 
-const VISION_CONT_EASE = [0.16, 1, 0.3, 1] as const
-const VISION_CONT_ENTER = { duration: 0.45, ease: VISION_CONT_EASE }
-const VISION_CONT_EXIT = { duration: 0.14, ease: VISION_CONT_EASE }
-
-// Continuation appears inline in grey — no black flash on enter or exit.
-function HoverPhrase({
-  base,
-  cont,
-  endPunct,
-}: {
-  base: ReactNode
-  cont: string
-  endPunct?: string
-}) {
-  const [hovered, setHovered] = useState(false)
-  const [contVisible, setContVisible] = useState(false)
-  const reduceMotion = useReducedMotion()
-  const displayCont = cont.replace(/[.,]+$/, '')
-
-  return (
-    <span
-      className="cursor-default"
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-    >
-      <span>{base}</span>
-      {endPunct && !contVisible ? endPunct : null}
-      <AnimatePresence
-        onExitComplete={() => setContVisible(false)}
-      >
-        {hovered ? (
-          <motion.span
-            key="cont"
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{
-              opacity: 1,
-              transition: reduceMotion ? { duration: 0 } : VISION_CONT_ENTER,
-            }}
-            exit={{
-              opacity: 0,
-              transition: reduceMotion ? { duration: 0 } : VISION_CONT_EXIT,
-            }}
-            onAnimationStart={() => setContVisible(true)}
-            className="inline font-normal text-[#8f8f8f]"
-          >
-            {displayCont}
-          </motion.span>
-        ) : null}
-      </AnimatePresence>
-    </span>
-  )
-}
-
-type Block =
-  | { type: 'kicker'; text: string }
-  | { type: 'h2'; text: string }
-  | { type: 'section'; text: string }
-  | { type: 'sub'; text: string }
-  | { type: 'lead'; text: string }
-  | { type: 'p'; text: string }
-  | { type: 'code'; text: string }
-  | { type: 'code-card'; label: string; code: string }
-  | { type: 'divider' }
-  | { type: 'p-badges'; text: string }
-  | { type: 'p-code-inline'; text: string }
-  | { type: 'p-with-resources'; text: string }
-  | { type: 'how-it-works' }
-  | { type: 'changes-panel' }
-  | { type: 'agent-setup' }
-
-const HOW_IT_WORKS_CHART = `flowchart LR
-    A["Agent request"] --> B["Policy"]
-    B --> C["Execution"]
-    C --> D["Proof"]
-    C --> F["Recovery"]
-    F -.->|resume| C
-    D --> E["Review"]
-
-    classDef stage fill:#fafafa,stroke:#d4d4d4,color:#171717
-    classDef proof fill:#ecf5ed,stroke:#b8dfc4,color:#047857
-    classDef fault fill:#fdf4f4,stroke:#f0c4c4,color:#be123c
-
-    class A,B,C stage
-    class D,E proof
-    class F fault`
-
-const ARTICLE: Block[] = [
-  { type: 'h2', text: 'Action layer' },
-  { type: 'lead', text: 'Agents already do useful work. Igris makes it safer to trust.' },
-  { type: 'p', text: 'Agents can still plan, decide, and request work in their own way. Igris starts when that request becomes an action your team needs to govern.' },
-
-  { type: 'section', text: 'From request to review' },
-  { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
-  { type: 'p', text: 'Igris gives each action the same path from request to review. The flow, example call, and run record below show what that looks like in practice.' },
-  { type: 'how-it-works' },
-  { type: 'code-card', label: 'Agent call', code: 'await fetch("https://api.igris.dev/v1/actions/run", {\n  method: "POST",\n  headers: {\n    authorization: `Bearer ${IGRIS_API_KEY}`,\n    "content-type": "application/json",\n  },\n  body: JSON.stringify({\n    action: "create_task",\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n  }),\n});' },
-  { type: 'p', text: 'This gives agents useful capabilities without handing them direct access to every tool, credential, workflow, or endpoint.' },
-
-  { type: 'section', text: 'What Igris adds' },
-  { type: 'p', text: 'Beyond routing, Igris leaves a run record your team can open later: who triggered the action, what changed, what failed, what recovered, and the signed receipt attached to the run.' },
-  { type: 'changes-panel' },
-  { type: 'p-with-resources', text: 'That matters once agents can trigger work, change data, call services, open tasks, or perform operational steps your team depends on.' },
-
-  { type: 'section', text: 'Get started' },
-  { type: 'p', text: 'Install Igris and connect your first agent.' },
-  { type: 'code', text: 'curl -fsSL https://igrisinertial.com/install | bash' },
-  { type: 'agent-setup' },
-  { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console.' },
-]
-
 const SECTION_TITLE_STYLE: CSSProperties = {
   ...TITLE_STYLE,
   fontSize: 'clamp(1.5rem, 3.4vw, 2rem)',
 }
 
-function formatTierFeatures(features: string[]): string {
-  if (features.length === 0) return ''
-  if (features.length === 1) return `${features[0]}.`
-  return `${features.slice(0, -1).join(', ')}, and ${features[features.length - 1]}.`
+const BODY_STYLE: CSSProperties = {
+  fontFamily: SANS,
+  fontWeight: 400,
+  fontSize: '1.375rem',
+  lineHeight: 1.75,
 }
 
-function PricingTierRow({
-  tier,
-  interval,
-  isLast,
-}: {
-  tier: (typeof PRICING_TIERS)[number]
-  interval: BillingInterval
-  isLast: boolean
-}) {
-  const billing = getTierBilling(tier, interval)
-
-  return (
-    <div className={isLast ? '' : 'pb-10 mb-10 border-b border-dashed border-[#d4d4d4]'}>
-      <div className="flex w-full items-baseline justify-between gap-8">
-        <span
-          className="text-[#171717]"
-          style={{ fontFamily: SANS, fontWeight: 600, fontSize: '1.5rem', lineHeight: 1.4, letterSpacing: '-0.01em' }}
-        >
-          {tier.name}
-        </span>
-        <div className="shrink-0">
-          <TierPriceDisplay
-            billing={billing}
-            tierKey={tier.key}
-            interval={interval}
-            variant="inline"
-            summary
-            stableLayout
-          />
-        </div>
-      </div>
-
-      <div className="pt-6">
-        <p
-          className="text-[#27272a]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-        >
-          {tier.description}
-        </p>
-        <p
-          className="mt-5 text-[#27272a]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-        >
-          {formatTierFeatures(tier.features)}
-        </p>
-        <div className="pt-7">
-          <a
-            href={billing.checkoutUrl}
-            target={billing.checkoutUrl.startsWith('mailto:') ? undefined : '_blank'}
-            rel={billing.checkoutUrl.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
-            className="inline-flex items-center justify-center h-10 px-4 text-[14px] font-medium rounded-[20px] transition-colors border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)]"
-            style={{ fontFamily: SANS }}
-          >
-            {billing.cta}
-          </a>
-        </div>
-      </div>
-    </div>
-  )
+const LEAD_STYLE: CSSProperties = {
+  fontFamily: SANS,
+  fontWeight: 400,
+  fontSize: 'clamp(1.5rem, 2.8vw, 1.875rem)',
+  lineHeight: 1.45,
+  letterSpacing: '-0.02em',
 }
 
-function VisionPricingBlock({
-  interval,
-  onIntervalChange,
-}: {
-  interval: BillingInterval
-  onIntervalChange: (next: BillingInterval) => void
-}) {
-  const [open, setOpen] = useState(false)
+const SDK_EXAMPLE = `from igris import IgrisDurableClient
 
-  return (
-    <div id="vision-pricing" className="mt-10 mb-8 scroll-mt-28">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="mb-2 flex w-full items-center gap-2 text-left text-black transition-colors hover:text-[#52525b] cursor-pointer"
-        style={SECTION_TITLE_STYLE}
-        aria-expanded={open}
-      >
-        <span>Pricing</span>
-        <ChevronDown
-          size={18}
-          strokeWidth={1.75}
-          className={`shrink-0 text-[#8f8f8f] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
-      </button>
-      <p
-        className="mb-5 text-[#27272a]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-      >
-        {PRICING_VISION_SUBTEXT}
-      </p>
+client = IgrisDurableClient.from_env()
 
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-out"
-        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
-      >
-        <div className="overflow-hidden">
-          {open ? (
-            <div>
-              <BillingToggle
-                interval={interval}
-                onChange={onIntervalChange}
-                rounded="pill"
-                align="left"
-                showSavingsLabel={false}
-                layoutId="billing-toggle-pill-vision"
-              />
-              <div className="flex flex-col pt-2">
-                {PRICING_TIERS.map((tier, index) => (
-                  <PricingTierRow
-                    key={tier.key}
-                    tier={tier}
-                    interval={interval}
-                    isLast={index === PRICING_TIERS.length - 1}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  )
-}
+run = client.run(
+    "deploy.release",
+    input={"service": "payments", "version": "1.4.2"},
+    idempotency_key="deploy-payments-1.4.2",
+    contract_hash=contract.contract_hash,
+)
 
-function HowItWorksBlock() {
-  const [open, setOpen] = useState(false)
+status = run.wait(timeout=60.0)
+proof = run.proof()
+print(status.status, proof.statuses)`
 
-  useEffect(() => {
-    preloadMermaid()
-  }, [])
+const HOW_STEPS = [
+  {
+    title: 'One durable execution boundary',
+    body: 'The agent submits a consequential action once. Igris owns the run identity, progress, and outcome.',
+  },
+  {
+    title: 'Normal actions complete transparently',
+    body: 'When the effect finishes cleanly, the run completes and the agent moves on with a clear result.',
+  },
+  {
+    title: 'Infrastructure failures recover when safe',
+    body: 'Timeouts, worker crashes, and transient outages can resume without inventing a second effect.',
+  },
+  {
+    title: 'Uncertain effects stop rather than guess',
+    body: 'If Igris cannot tell whether an external effect already happened, the run stops for inspection instead of blindly retrying.',
+  },
+]
 
-  return (
-    <figure className="mb-8" aria-label="How Igris works">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
-        aria-expanded={open}
-      >
-        <Workflow size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
-        <span>How it works</span>
-        <ChevronDown
-          size={16}
-          strokeWidth={1.75}
-          className={`shrink-0 text-[#8f8f8f] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
-      </button>
+const USE_CASES = [
+  {
+    title: 'Coding agents',
+    subtitle: 'Deployments and releases',
+    body: 'Ship code, cut releases, and roll changes without duplicating a deploy when a worker dies mid-run.',
+  },
+  {
+    title: 'Infrastructure agents',
+    subtitle: 'Provisioning and configuration',
+    body: 'Create resources and apply config changes with a durable boundary around actions that mutate real environments.',
+  },
+  {
+    title: 'Operational agents',
+    subtitle: 'Database and external API actions',
+    body: 'Run refunds, schema changes, and third-party API calls where a timeout is not the same as a safe retry.',
+  },
+]
 
-      <div
-        className="grid transition-[grid-template-rows] duration-300 ease-out"
-        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
-      >
-        <div className="min-h-0 overflow-hidden">
-          <div className="pt-4" aria-hidden={!open}>
-            <div className="overflow-hidden rounded-[12px] border border-[#ebebeb]">
-              <MermaidChart chart={HOW_IT_WORKS_CHART} variant="featured" animateIn={false} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </figure>
-  )
-}
+const PROBLEM_POINTS = [
+  {
+    title: 'Agents are starting to change real systems',
+    body: 'Coding, infrastructure, and operational agents no longer stop at drafts. They deploy, provision, and call APIs that have consequences.',
+  },
+  {
+    title: 'A timeout does not tell you what happened',
+    body: 'When a worker dies or a request times out, ordinary tools leave you unsure whether the external effect already landed.',
+  },
+  {
+    title: 'Blind retries can duplicate consequential actions',
+    body: 'Retrying the same deploy, refund, or provision call can create a second effect. Ordinary retries were built for read-mostly work, not irreversible side effects.',
+  },
+]
 
-function CodeCardBlock({ label, code }: { label: string; code: string }) {
-  const [open, setOpen] = useState(false)
-
-  const summary = 'POST /v1/actions/run'
-
-  return (
-    <div className="mb-7">
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-2 text-[#171717] transition-colors hover:text-[#52525b]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
-        aria-expanded={open}
-      >
-        <Code size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
-        <span>{label}</span>
-        <span className="text-[#8f8f8f]" style={{ fontFamily: MONO, fontSize: '1.125rem' }}>
-          {summary}
-        </span>
-        <ChevronDown
-          size={16}
-          strokeWidth={1.75}
-          className={`shrink-0 text-[#8f8f8f] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          aria-hidden
-        />
-      </button>
-      <div
-        className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}
-      >
-        <div className="pt-4">
-          <div className="border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
-            <div className="px-5 py-4">
-              <code
-                className="whitespace-pre"
-                style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.6 }}
-              >
-                <HighlightCode code={code} />
-              </code>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function CodeBlockWithCopy({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  return (
-    <div className="mb-7 border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
-      <div className="px-5 py-4 flex items-start justify-between gap-4">
-        <code
-          className="text-[#27272a] whitespace-pre shrink-0"
-          style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.65 }}
-        >
-          {text}
-        </code>
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 text-[12px] text-[#8f8f8f] hover:text-[#171717] transition-colors shrink-0 mt-0.5"
-          style={{ fontFamily: SANS }}
-        >
-          <Copy size={14} strokeWidth={1.5} />
-          {copied ? 'Copied' : 'Copy'}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-const KEYWORDS = new Set([
-  'await', 'async', 'const', 'let', 'var', 'function', 'return', 'new',
-  'import', 'export', 'from', 'default', 'if', 'else', 'for', 'of', 'in',
-  'while', 'do', 'switch', 'case', 'break', 'continue',
-  'true', 'false', 'null', 'undefined', 'throw', 'try', 'catch', 'finally',
-  'typeof', 'instanceof', 'class', 'extends', 'super', 'this', 'yield',
-  'delete', 'void', 'with', 'debugger',
+const PY_KEYWORDS = new Set([
+  'from', 'import', 'as', 'def', 'class', 'return', 'if', 'elif', 'else', 'for', 'while',
+  'with', 'try', 'except', 'finally', 'raise', 'pass', 'break', 'continue', 'lambda',
+  'yield', 'async', 'await', 'True', 'False', 'None', 'and', 'or', 'not', 'in', 'is',
+  'print',
 ])
 
-const GLOBALS = new Set([
-  'fetch', 'console', 'JSON', 'Promise', 'Math', 'Date', 'Array', 'Object',
-  'Map', 'Set', 'WeakMap', 'WeakSet', 'Reflect', 'Proxy', 'Symbol', 'Error',
-  'RegExp', 'String', 'Number', 'Boolean', 'BigInt', 'parseInt', 'parseFloat',
-  'isNaN', 'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval',
-  'structuredClone', 'crypto',
-])
-
-type TokenType =
-  | 'keyword' | 'global' | 'string' | 'template' | 'template-expr'
-  | 'number' | 'object-key' | 'method' | 'punctuation' | 'operator'
-  | 'comment' | 'text' | 'property'
+type TokenType = 'keyword' | 'string' | 'number' | 'method' | 'punctuation' | 'operator' | 'comment' | 'text' | 'property'
 
 type Token = { text: string; type: TokenType }
 
 const COLORS: Record<TokenType, string> = {
-  keyword:       '#cf222e',
-  global:        '#8250df',
-  string:        '#0a3069',
-  template:      '#0a3069',
-  'template-expr':'#953800',
-  number:        '#0550ae',
-  'object-key':  '#0550ae',
-  method:        '#8250df',
-  punctuation:   '#636c76',
-  operator:      '#cf222e',
-  comment:       '#6e7781',
-  text:          '#24292f',
-  property:      '#0550ae',
+  keyword: '#cf222e',
+  string: '#0a3069',
+  number: '#0550ae',
+  method: '#8250df',
+  punctuation: '#636c76',
+  operator: '#cf222e',
+  comment: '#6e7781',
+  text: '#24292f',
+  property: '#0550ae',
 }
 
-function tokenize(code: string): Token[] {
+function tokenizePython(code: string): Token[] {
   const tokens: Token[] = []
   let i = 0
   while (i < code.length) {
     const ch = code[i]
 
-    // Whitespace
     if (/^\s$/.test(ch)) {
       let ws = ''
-      while (i < code.length && /^\s$/.test(code[i])) { ws += code[i]; i++ }
+      while (i < code.length && /^\s$/.test(code[i])) {
+        ws += code[i]
+        i++
+      }
       tokens.push({ text: ws, type: 'text' })
       continue
     }
 
-    // Single-line comment
-    if (ch === '/' && code[i + 1] === '/') {
+    if (ch === '#') {
       let c = ''
-      while (i < code.length && code[i] !== '\n') { c += code[i]; i++ }
+      while (i < code.length && code[i] !== '\n') {
+        c += code[i]
+        i++
+      }
       tokens.push({ text: c, type: 'comment' })
       continue
     }
 
-    // Template literal
-    if (ch === '`') {
-      let tpl = '`'; i++
+    if (ch === '"' || ch === "'") {
+      const q = ch
+      let s = q
+      i++
       while (i < code.length) {
-        if (code[i] === '\\' && i + 1 < code.length) { tpl += code[i] + code[i + 1]; i += 2; continue }
-        if (code[i] === '`') { tpl += '`'; i++; break }
-        if (code[i] === '$' && code[i + 1] === '{') {
-          if (tpl) tokens.push({ text: tpl, type: 'template' })
-          tokens.push({ text: '${', type: 'template-expr' }); i += 2
-          let depth = 1; let expr = ''
-          while (i < code.length && depth > 0) {
-            if (code[i] === '{') depth++
-            if (code[i] === '}') depth--
-            if (depth > 0) expr += code[i]; i++
-          }
-          tokens.push(...tokenize(expr))
-          tokens.push({ text: '}', type: 'template-expr' })
-          tpl = ''
+        if (code[i] === '\\' && i + 1 < code.length) {
+          s += code[i] + code[i + 1]
+          i += 2
           continue
         }
-        tpl += code[i]; i++
-      }
-      if (tpl) tokens.push({ text: tpl, type: 'template' })
-      continue
-    }
-
-    // String (double or single quote)
-    if (ch === '"' || ch === "'") {
-      const q = ch; let s = q; i++
-      while (i < code.length) {
-        if (code[i] === '\\' && i + 1 < code.length) { s += code[i] + code[i + 1]; i += 2; continue }
-        if (code[i] === q) { s += q; i++; break }
-        s += code[i]; i++
+        if (code[i] === q) {
+          s += q
+          i++
+          break
+        }
+        s += code[i]
+        i++
       }
       tokens.push({ text: s, type: 'string' })
       continue
     }
 
-    // Number
     if (/^[\d]$/.test(ch)) {
       let n = ''
-      while (i < code.length && /^[\d.]$/.test(code[i])) { n += code[i]; i++ }
+      while (i < code.length && /^[\d.]$/.test(code[i])) {
+        n += code[i]
+        i++
+      }
       tokens.push({ text: n, type: 'number' })
       continue
     }
 
-    // Word
     if (/^\w$/.test(ch)) {
       let word = ''
-      while (i < code.length && /^\w$/.test(code[i])) { word += code[i]; i++ }
-
-      // Look ahead for what follows
+      while (i < code.length && /^[\w]$/.test(code[i])) {
+        word += code[i]
+        i++
+      }
       let j = i
       while (j < code.length && /^\s$/.test(code[j])) j++
       const next = code[j]
-
-      if (KEYWORDS.has(word)) {
+      if (PY_KEYWORDS.has(word)) {
         tokens.push({ text: word, type: 'keyword' })
       } else if (next === '(') {
-        tokens.push({ text: word, type: GLOBALS.has(word) ? 'global' : 'method' })
-      } else if (next === ':') {
-        tokens.push({ text: word, type: 'object-key' })
-      } else if (GLOBALS.has(word)) {
-        tokens.push({ text: word, type: 'global' })
+        tokens.push({ text: word, type: 'method' })
       } else {
         tokens.push({ text: word, type: 'text' })
       }
       continue
     }
 
-    // Two-char operators
-    if (i + 1 < code.length) {
-      const two = ch + code[i + 1]
-      if (/^(==|===|!=|!==|<=|>=|&&|\|\||=>|\+\+|--|\*\*|\+=|-=|\*=|%=|&=|\|=|\^=|<<|>>|\?\?)$/.test(two)) {
-        tokens.push({ text: two, type: 'operator' }); i += 2; continue
-      }
-    }
-
-    // Single-char operators
-    if (/^[=+\-*/%&|^~!<>?]$/.test(ch)) {
-      tokens.push({ text: ch, type: 'operator' }); i++; continue
-    }
-
-    // Property access (dot then word)
     if (ch === '.') {
-      tokens.push({ text: '.', type: 'punctuation' }); i++
+      tokens.push({ text: '.', type: 'punctuation' })
+      i++
       let word = ''
-      while (i < code.length && /^\w$/.test(code[i])) { word += code[i]; i++ }
+      while (i < code.length && /^\w$/.test(code[i])) {
+        word += code[i]
+        i++
+      }
       if (word) tokens.push({ text: word, type: 'property' })
       continue
     }
 
-    // Punctuation
-    if (/^[{}()\[\],;:]$/.test(ch)) {
-      tokens.push({ text: ch, type: 'punctuation' }); i++; continue
+    if (/^[=+\-*/%<>!]$/.test(ch)) {
+      tokens.push({ text: ch, type: 'operator' })
+      i++
+      continue
     }
 
-    tokens.push({ text: ch, type: 'text' }); i++
+    if (/^[{}()\[\],:]$/.test(ch)) {
+      tokens.push({ text: ch, type: 'punctuation' })
+      i++
+      continue
+    }
+
+    tokens.push({ text: ch, type: 'text' })
+    i++
   }
   return tokens
 }
 
-function HighlightCode({ code }: { code: string }) {
-  const tokens = tokenize(code)
+function HighlightPython({ code }: { code: string }) {
+  const tokens = tokenizePython(code)
   return (
     <span>
       {tokens.map((t, i) => (
@@ -579,231 +249,214 @@ function HighlightCode({ code }: { code: string }) {
   )
 }
 
-function ArticleBlock({ block }: { block: Block }) {
-  switch (block.type) {
-    case 'kicker':
-      return (
-        <p
-          className="mb-4 text-xs font-medium uppercase text-[#8f8f8f]"
-          style={{ fontFamily: SANS, letterSpacing: '0.18em' }}
-        >
-          {block.text}
-        </p>
-      )
-    case 'h2':
-      return (
-        <h3
-          className="mb-5 text-[#171717]"
-          style={{ fontFamily: SANS, fontWeight: 600, fontSize: 'clamp(2.5rem, 6vw, 4rem)', lineHeight: 1.05, letterSpacing: '-0.045em' }}
-        >
-          {block.text}
-        </h3>
-      )
-    case 'section': {
-      const sectionId = VISION_SECTION_IDS[block.text]
-      return (
-        <h4
-          id={sectionId}
-          className="mb-5 mt-10 scroll-mt-28 text-black"
-          style={SECTION_TITLE_STYLE}
-        >
-          {block.text}
-        </h4>
-      )
-    }
-    case 'sub':
-      return (
-        <h5
-          className="mb-3 mt-12 text-[#171717]"
-        style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
-        >
-          {block.text}
-        </h5>
-      )
-    case 'lead':
-      return (
-        <p
-          className="mb-8 text-[#171717]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: 'clamp(1.5rem, 2.8vw, 1.875rem)', lineHeight: 1.45, letterSpacing: '-0.02em' }}
-        >
-          {block.text}
-        </p>
-      )
-    case 'p':
-      return (
-        <p
-          className="mb-6 text-[#27272a]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-        >
-          {block.text}
-        </p>
-      )
-    case 'code':
-      return <CodeBlockWithCopy text={block.text} />
-    case 'code-card':
-      return <CodeCardBlock label={block.label} code={block.code} />
-    case 'p-badges': {
-      const badgeWords = ['policy', 'recovery', 'proof', 'review']
-      const regex = new RegExp(`(${badgeWords.join('|')})`, 'gi')
-      const parts = block.text.split(regex)
-      return (
-        <p
-          className="mb-6 text-[#27272a]"
-          style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-        >
-          {parts.map((part, i) =>
-            badgeWords.includes(part.toLowerCase()) ? (
-              <span
-                key={i}
-                className="inline-flex items-center rounded-[8px] bg-[#f0f0f0] dark:bg-white/[0.08] px-2 py-0.5 text-[0.85em] font-medium text-[#171717]"
-              >
-                {part}
-              </span>
-            ) : (
-              <span key={i}>{part}</span>
-            )
-          )}
-        </p>
-      )
-    }
-    case 'p-code-inline':
-    case 'p-with-resources': {
-      const codeWords = ['control', 'inspect', 'recover', 'improve']
-      const regex = new RegExp(`\\b(${codeWords.join('|')})\\b`, 'gi')
-      const parts = block.text.split(regex)
-      return (
-        <>
-          <p
-            className="mb-3 text-[#27272a]"
-            style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75 }}
-          >
-            {parts.map((part, i) =>
-              codeWords.includes(part.toLowerCase()) ? (
-                <code
-                  key={i}
-                  className="rounded-[6px] bg-[#f0f0f0] px-1.5 py-0.5 text-[0.875em] font-normal text-[#171717]"
-                  style={{ fontFamily: MONO }}
-                >
-                  {part}
-                </code>
-              ) : (
-                <span key={i}>{part}</span>
-              )
-            )}
-          </p>
-          {block.type === 'p-with-resources' && (
-            <Link
-              href={DOCS_LINKS.home}
-              className="inline-flex items-center gap-2 mb-8 text-[#171717] transition-colors hover:text-[#52525b]"
-              style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.375rem', lineHeight: 1.75, letterSpacing: '-0.01em' }}
-            >
-              <BookOpen size={18} strokeWidth={1.75} className="shrink-0 text-[#52525b]" aria-hidden />
-              <span>Read the docs</span>
-            </Link>
-          )}
-        </>
-      )
-    }
-    case 'divider':
-      return <hr className="my-14 border-0 border-t border-[#ececec]" />
-    case 'how-it-works':
-      return <HowItWorksBlock />
-    case 'changes-panel':
-      return <VisionChangesPanel />
-    case 'agent-setup':
-      return <AgentSetupLogos />
-    default:
-      return null
-  }
+function SectionHeading({ id, children }: { id: string; children: string }) {
+  return (
+    <h4 id={id} className="mb-5 mt-10 scroll-mt-28 text-black" style={SECTION_TITLE_STYLE}>
+      {children}
+    </h4>
+  )
 }
 
-export default function Vision() {
-  // ARTICLE[0] is the "Action layer" title, now rendered as the hero below.
-  const bodyBlocks = ARTICLE.slice(1)
-  const [interval, setBillingInterval] = useState<BillingInterval>('yearly')
-  const [promptCopied, setPromptCopied] = useState(false)
+function Body({ children, className = 'mb-6' }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={`${className} text-[#27272a]`} style={BODY_STYLE}>
+      {children}
+    </p>
+  )
+}
 
-  useEffect(() => {
-    preloadMermaid()
-  }, [])
+function SdkExampleCard() {
+  const [copied, setCopied] = useState(false)
 
-  const copySetupPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(CODING_AGENT_PROMPT)
-      setPromptCopied(true)
-      setTimeout(() => setPromptCopied(false), 2000)
-    } catch {
-      setPromptCopied(false)
-    }
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(SDK_EXAMPLE)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
-    <section
-      aria-labelledby="vision-heading"
-      className="bg-white text-[#171717]"
-    >
-      <h2 id="vision-heading" className="sr-only">Vision</h2>
+    <div className="mb-8 border border-[#ebebeb] rounded-[10px] bg-white overflow-hidden">
+      <div className="flex items-center justify-between gap-4 border-b border-[#ebebeb] px-5 py-3">
+        <span className="text-[#8f8f8f]" style={{ fontFamily: MONO, fontSize: '0.875rem' }}>
+          Python · IgrisDurableClient
+        </span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="inline-flex items-center gap-1.5 text-[12px] text-[#8f8f8f] hover:text-[#171717] transition-colors"
+          style={{ fontFamily: SANS }}
+        >
+          <Copy size={14} strokeWidth={1.5} />
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <div className="px-5 py-4 overflow-x-auto">
+        <code
+          className="whitespace-pre"
+          style={{ fontFamily: MONO, fontWeight: 400, fontSize: '1.05rem', lineHeight: 1.65 }}
+        >
+          <HighlightPython code={SDK_EXAMPLE} />
+        </code>
+      </div>
+    </div>
+  )
+}
+
+function CtaPair({ primaryHref = '/auth?mode=signup' }: { primaryHref?: string }) {
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <Link
+        href={primaryHref}
+        prefetch={false}
+        className="inline-flex h-12 items-center justify-center rounded-[20px] px-6 bg-[#171717] text-white text-[15px] hover:bg-[#383838] transition-colors"
+        style={{ fontFamily: SANS, fontWeight: 500 }}
+      >
+        Get started
+      </Link>
+      <a
+        href={DOCS_LINKS.home}
+        className="inline-flex h-12 items-center justify-center rounded-[20px] border border-[rgba(0,0,0,0.1)] bg-white px-6 text-[15px] text-[#171717] hover:bg-[#fafafa] hover:border-[rgba(0,0,0,0.15)] transition-colors"
+        style={{ fontFamily: SANS, fontWeight: 500 }}
+      >
+        Read the docs
+      </a>
+    </div>
+  )
+}
+
+export default function Vision() {
+  return (
+    <section aria-labelledby="vision-heading" className="bg-white text-[#171717]">
+      <h2 id="vision-heading" className="sr-only">
+        Reliable execution for AI agents
+      </h2>
       <RunHistoryRail />
       <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-52 sm:px-6 lg:px-8 md:pt-36 md:pb-72">
         <article className="mx-auto max-w-[920px]">
-          <h3 id="vision-hero" className="mb-4 mt-3 scroll-mt-28 text-black" style={TITLE_STYLE}>
-            Action layer{' '}
-            <HoverPhrase
-              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span>}
-              cont={LINE_1_CONT}
-            />
-            <br />
-            <HoverPhrase
-              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">Run actions safely</span>}
-              cont={LINE_2_CONT}
-            />
-            ,{' '}
-            <br />
-            with{' '}
-            <HoverPhrase
-              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proof from every run</span>}
-              cont={LINE_3_CONT}
-              endPunct="."
-            />
+          {/* Hero */}
+          <h3 id="vision-hero" className="mb-5 mt-3 scroll-mt-28 text-black" style={TITLE_STYLE}>
+            Reliable execution for AI agents.
           </h3>
+          <p className="mb-8 text-[#171717]" style={LEAD_STYLE}>
+            Run consequential actions durably. Recover from infrastructure failures. Stop when the outcome is uncertain.
+          </p>
+          <div className="mb-12">
+            <CtaPair />
+          </div>
+          <img
+            src="/pkrllgol.png"
+            alt="Igris run timeline showing durable agent execution"
+            className="w-full mb-14 rounded-[10px]"
+          />
 
-          {bodyBlocks.length > 0 && <ArticleBlock block={bodyBlocks[0]} />}
-
-          <div className="flex flex-wrap items-center gap-4 mb-12">
-            <Link
-              href="/auth?mode=signup"
-              prefetch={false}
-              className="inline-flex h-12 items-center justify-center rounded-[20px] px-6 bg-[#171717] text-white text-[15px] hover:bg-[#383838] transition-colors"
-              style={{ fontFamily: SANS, fontWeight: 500 }}
-            >
-              Get API Key
-            </Link>
-            <button
-              type="button"
-              onClick={copySetupPrompt}
-              className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[20px] border border-[rgba(0,0,0,0.1)] dark:border-white/[0.12] bg-white dark:bg-transparent px-6 text-[15px] text-[#171717] dark:text-[#f6f6f4] hover:bg-[#fafafa] dark:hover:bg-white/[0.06] hover:border-[rgba(0,0,0,0.15)] transition-colors"
-              style={{ fontFamily: SANS, fontWeight: 500 }}
-            >
-              <Copy size={15} strokeWidth={1.5} className="text-[#8f8f8f]" />
-              {promptCopied ? 'Copied' : 'Copy setup prompt'}
-            </button>
+          {/* Problem */}
+          <SectionHeading id="vision-problem">The problem</SectionHeading>
+          <Body>
+            Engineers building coding, infrastructure, and operational agents need more than model quality.
+            Once an agent can change a real system, execution reliability becomes the product risk.
+          </Body>
+          <div className="mb-8 space-y-8">
+            {PROBLEM_POINTS.map((point) => (
+              <div key={point.title}>
+                <h5
+                  className="mb-2 text-[#171717]"
+                  style={{ fontFamily: SANS, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.45, letterSpacing: '-0.01em' }}
+                >
+                  {point.title}
+                </h5>
+                <Body className="mb-0">{point.body}</Body>
+              </div>
+            ))}
           </div>
 
-          <img src="/pkrllgol.png" alt="" className="w-full mb-14 rounded-[10px]" />
+          {/* How Igris works */}
+          <SectionHeading id="vision-how-it-works">How Igris works</SectionHeading>
+          <Body>
+            Igris gives agents one durable execution boundary for consequential actions.
+            The agent still decides what to do. Igris makes the resulting effect safe to run, recover, or stop.
+          </Body>
+          <ol className="mb-8 space-y-7">
+            {HOW_STEPS.map((step, index) => (
+              <li key={step.title} className="flex gap-4">
+                <span
+                  className="mt-1 shrink-0 text-[#8f8f8f] tabular-nums"
+                  style={{ fontFamily: MONO, fontSize: '0.95rem' }}
+                  aria-hidden
+                >
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <div>
+                  <h5
+                    className="mb-2 text-[#171717]"
+                    style={{ fontFamily: SANS, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.45, letterSpacing: '-0.01em' }}
+                  >
+                    {step.title}
+                  </h5>
+                  <Body className="mb-0">{step.body}</Body>
+                </div>
+              </li>
+            ))}
+          </ol>
 
-          {bodyBlocks.slice(1).map((block, index) => (
-            <ArticleBlock key={index + 1} block={block} />
-          ))}
+          {/* Completed vs Recovered vs Uncertain */}
+          <SectionHeading id="vision-outcomes">Completed, recovered, or uncertain</SectionHeading>
+          <Body>
+            Every durable run ends in a clear operational state. That is the difference between a timeout and an outcome you can trust.
+          </Body>
+          <OutcomeStatesPanel />
 
-          <VisionPricingBlock interval={interval} onIntervalChange={setBillingInterval} />
+          {/* SDK example */}
+          <SectionHeading id="vision-sdk">A short durable run</SectionHeading>
+          <Body>
+            Start an explicit durable run with a business idempotency key and the bound contract hash, wait for the terminal state, then inspect the proof.
+          </Body>
+          <SdkExampleCard />
+          <Body>
+            The example assumes the action is already synced and bound, so <code className="rounded-[6px] bg-[#f0f0f0] px-1.5 py-0.5 text-[0.875em]" style={{ fontFamily: MONO }}>contract</code> is in scope. It shows the public API shape, not an install command.
+          </Body>
 
-          <div id="vision-questions" className="mt-20 mb-8 scroll-mt-28">
+          {/* Use cases */}
+          <SectionHeading id="vision-use-cases">Built for agents that change systems</SectionHeading>
+          <Body>
+            Igris is for engineers whose agents can deploy software, mutate infrastructure, or call APIs that affect production state.
+          </Body>
+          <div className="mb-8 grid gap-6 sm:grid-cols-1">
+            {USE_CASES.map((useCase) => (
+              <div key={useCase.title} className="border-t border-[#ebebeb] pt-6 first:border-t-0 first:pt-0">
+                <h5
+                  className="mb-1 text-[#171717]"
+                  style={{ fontFamily: SANS, fontWeight: 500, fontSize: '1.375rem', lineHeight: 1.45, letterSpacing: '-0.01em' }}
+                >
+                  {useCase.title}
+                </h5>
+                <p
+                  className="mb-2 text-[#8f8f8f]"
+                  style={{ fontFamily: SANS, fontWeight: 400, fontSize: '1.125rem', lineHeight: 1.5 }}
+                >
+                  {useCase.subtitle}
+                </p>
+                <Body className="mb-0">{useCase.body}</Body>
+              </div>
+            ))}
+          </div>
+
+          {/* Run proof */}
+          <SectionHeading id="vision-run-proof">Runs remain inspectable</SectionHeading>
+          <Body>
+            After the fact, your team can open the run and see what was requested, what completed, what recovered, and what stopped as uncertain.
+          </Body>
+          <RunProofPanel />
+
+          {/* Final CTA */}
+          <div id="vision-cta" className="mt-16 mb-4 scroll-mt-28">
             <h4 className="mb-5 text-black" style={SECTION_TITLE_STYLE}>
-              Questions
+              Start with durable execution
             </h4>
-            <Faq simple />
+            <Body>
+              Give your agents a reliable boundary for consequential actions — before ordinary retries create a second effect.
+            </Body>
+            <CtaPair />
           </div>
-
         </article>
       </div>
       <Footer />

@@ -4,12 +4,21 @@ export const LANDING_PRODUCT_TAB_EVENT = 'igris:landing-product-tab';
 export const LANDING_PRODUCT_REVEAL_EVENT = 'igris:landing-product-reveal';
 
 export const LANDING_SECTIONS = {
-  product: 'product',
-  productRun: 'product-run',
-  productRecover: 'product-recover',
-  productProve: 'product-prove',
-  overview: 'overview',
-  actionEndpoint: 'action-endpoint',
+  hero: 'vision-hero',
+  problem: 'vision-problem',
+  howItWorks: 'vision-how-it-works',
+  outcomes: 'vision-outcomes',
+  sdk: 'vision-sdk',
+  useCases: 'vision-use-cases',
+  runProof: 'vision-run-proof',
+  cta: 'vision-cta',
+  // Legacy aliases kept for older deep links; resolve to current sections.
+  product: 'vision-how-it-works',
+  productRun: 'vision-how-it-works',
+  productRecover: 'vision-outcomes',
+  productProve: 'vision-run-proof',
+  overview: 'vision-problem',
+  actionEndpoint: 'vision-sdk',
 } as const;
 
 export function landingHash(sectionId: string): string {
@@ -22,17 +31,23 @@ export function resolveLandingScrollTarget(hash: string): {
 } {
   switch (hash) {
     case LANDING_SECTIONS.productRun:
-      return { elementId: LANDING_SECTIONS.product, productTab: 'run' };
+    case 'product-run':
+      return { elementId: LANDING_SECTIONS.howItWorks };
     case LANDING_SECTIONS.productRecover:
-      return { elementId: LANDING_SECTIONS.product, productTab: 'recover' };
+    case 'product-recover':
+      return { elementId: LANDING_SECTIONS.outcomes };
     case LANDING_SECTIONS.productProve:
-      return { elementId: LANDING_SECTIONS.product, productTab: 'prove' };
+    case 'product-prove':
+      return { elementId: LANDING_SECTIONS.runProof };
     case LANDING_SECTIONS.product:
-      return { elementId: LANDING_SECTIONS.product };
+    case 'product':
+      return { elementId: LANDING_SECTIONS.howItWorks };
     case LANDING_SECTIONS.overview:
-      return { elementId: LANDING_SECTIONS.overview };
+    case 'overview':
+      return { elementId: LANDING_SECTIONS.problem };
     case LANDING_SECTIONS.actionEndpoint:
-      return { elementId: LANDING_SECTIONS.actionEndpoint };
+    case 'action-endpoint':
+      return { elementId: LANDING_SECTIONS.sdk };
     default:
       return { elementId: hash };
   }
