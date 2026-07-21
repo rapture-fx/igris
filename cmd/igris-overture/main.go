@@ -618,15 +618,35 @@ func main() {
 	// Register stats, execution, proof, speculative, and model-provider routes (requires database)
 	if dbInstance != nil {
 		api.RegisterStatsRoutes(app, dbInstance, redisClient, tenantAuth)
-		api.RegisterAgentRegistryRoutes(app, dbInstance, api.NewExecutionHandler(dbInstance))
-		api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
-		api.RegisterExecutionIntelligenceRoutes(app, dbInstance)
-		api.RegisterExecutionAffinityRoutes(app, dbInstance)
-		api.RegisterTrustRecommendationRoutes(app, dbInstance)
-		api.RegisterExecutionEvalRoutes(app, dbInstance)
-		api.RegisterPolicySimulationRoutes(app, dbInstance)
-		api.RegisterPolicyProposalRoutes(app, dbInstance)
-		api.RegisterAgentMemoryRoutes(app, dbInstance)
+		if api.ExperimentalAgentRegistryRoutesEnabled() {
+			api.RegisterAgentRegistryRoutes(app, dbInstance, api.NewExecutionHandler(dbInstance))
+		} else {
+			log.Printf("[Routes] Agent registry routes disabled (%s not enabled)", api.ExperimentalAgentRegistryRoutesFlag)
+		}
+		if api.ExperimentalExecutionConsoleRoutesEnabled() {
+			api.RegisterExecutionRoutes(app, dbInstance, tenantAuth)
+		} else {
+			log.Printf("[Routes] Legacy execution console routes disabled (%s not enabled)", api.ExperimentalExecutionConsoleRoutesFlag)
+		}
+		if api.ExperimentalExecutionIntelligenceRoutesEnabled() {
+			api.RegisterExecutionIntelligenceRoutes(app, dbInstance)
+			api.RegisterExecutionAffinityRoutes(app, dbInstance)
+			api.RegisterTrustRecommendationRoutes(app, dbInstance)
+			api.RegisterExecutionEvalRoutes(app, dbInstance)
+		} else {
+			log.Printf("[Routes] Execution intelligence/eval routes disabled (%s not enabled)", api.ExperimentalExecutionIntelligenceRoutesFlag)
+		}
+		if api.ExperimentalPolicySimulationRoutesEnabled() {
+			api.RegisterPolicySimulationRoutes(app, dbInstance)
+			api.RegisterPolicyProposalRoutes(app, dbInstance)
+		} else {
+			log.Printf("[Routes] Policy simulation routes disabled (%s not enabled)", api.ExperimentalPolicySimulationRoutesFlag)
+		}
+		if api.ExperimentalEvidenceMemoryRoutesEnabled() {
+			api.RegisterAgentMemoryRoutes(app, dbInstance)
+		} else {
+			log.Printf("[Routes] Evidence memory routes disabled (%s not enabled)", api.ExperimentalEvidenceMemoryRoutesFlag)
+		}
 		api.RegisterProofRoutes(app, dbInstance, tenantAuth)
 		api.RegisterGovernanceRoutes(app, dbInstance)
 		if api.ExperimentalRoutingRoutesEnabled() {
@@ -639,7 +659,7 @@ func main() {
 		} else {
 			log.Printf("[Routes] Model provider routes disabled (%s not enabled)", api.ExperimentalModelRoutesFlag)
 		}
-		log.Println("[Routes] ✅ Core dashboard routes registered (stats, execution, evals, proof, governance)")
+		log.Println("[Routes] ✅ Core dashboard routes registered (stats, proof, governance)")
 
 		// Register all web-console frontend endpoints (tenant/current, usage/summary,
 		// cognitive/status, speculative/races, shadow/*, council/*, escapevector/*)

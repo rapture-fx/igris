@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Igris-inertial/system/igris-overture/coordinator"
 	"github.com/gofiber/fiber/v2"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
@@ -28,6 +29,65 @@ func TestExperimentalRoutesDisabledByDefault(t *testing.T) {
 	require.False(t, hasRoute(app, "GET", "/v1/models"))
 	require.False(t, hasRoute(app, "GET", "/metrics"))
 	require.False(t, hasRoute(app, "GET", "/v1/metrics/debug"))
+}
+
+func TestExternalAlphaExperimentalPacksDisabledByDefault(t *testing.T) {
+	clearRouteFlags(t)
+
+	db, err := sql.Open("postgres", "postgres://route-inventory.invalid/unused")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+
+	app := fiber.New()
+	RegisterActionRoutes(app, db, coordinator.NewTaskCoordinator(db))
+	RegisterGovernanceRoutes(app, db)
+
+	require.True(t, hasRoute(app, "GET", "/v1/actions"))
+	require.True(t, routePathPrefixExists(app, "/v1/execution/governance"))
+	require.False(t, hasRoute(app, "GET", "/v1/action-packs"))
+	require.False(t, hasRoute(app, "GET", "/v1/execution/intelligence"))
+	require.False(t, hasRoute(app, "POST", "/v1/policy/simulate"))
+	require.False(t, hasRoute(app, "GET", "/v1/agent-memory"))
+	require.False(t, hasRoute(app, "GET", "/v1/agents"))
+	require.False(t, hasRoute(app, "GET", "/v1/execution/runs"))
+}
+
+func TestExternalAlphaExperimentalPacksCanBeEnabled(t *testing.T) {
+	clearRouteFlags(t)
+	t.Setenv(ExperimentalActionPacksRoutesFlag, "true")
+	t.Setenv(ExperimentalExecutionIntelligenceRoutesFlag, "true")
+	t.Setenv(ExperimentalPolicySimulationRoutesFlag, "true")
+	t.Setenv(ExperimentalEvidenceMemoryRoutesFlag, "true")
+	t.Setenv(ExperimentalAgentRegistryRoutesFlag, "true")
+	t.Setenv(ExperimentalExecutionConsoleRoutesFlag, "true")
+
+	db, err := sql.Open("postgres", "postgres://route-inventory.invalid/unused")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = db.Close() })
+
+	app := fiber.New()
+	RegisterActionRoutes(app, db, coordinator.NewTaskCoordinator(db))
+	RegisterExecutionIntelligenceRoutes(app, db)
+	RegisterPolicySimulationRoutes(app, db)
+	RegisterAgentMemoryRoutes(app, db)
+	RegisterAgentRegistryRoutes(app, db, NewExecutionHandler(db))
+	RegisterExecutionRoutes(app, db, nil)
+
+	require.True(t, hasRoute(app, "GET", "/v1/action-packs"))
+	require.True(t, hasRoute(app, "GET", "/v1/execution/intelligence"))
+	require.True(t, hasRoute(app, "POST", "/v1/policy/simulate"))
+	require.True(t, hasRoute(app, "GET", "/v1/agent-memory") || hasRoute(app, "POST", "/v1/agent-memory"))
+	require.True(t, hasRoute(app, "GET", "/v1/agents"))
+	require.True(t, hasRoute(app, "GET", "/v1/execution/runs"))
+}
+
+func routePathPrefixExists(app *fiber.App, prefix string) bool {
+	for _, route := range app.GetRoutes(true) {
+		if route.Path == prefix || strings.HasPrefix(route.Path, prefix+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 func TestExperimentalRoutesRequireExplicitFlag(t *testing.T) {
@@ -115,6 +175,7 @@ func TestRouteGroupsHaveClassificationGuard(t *testing.T) {
 		"RegisterTaskRoutes",
 		"RegisterRuntimeRoutes",
 		"RegisterExecutionRoutes",
+		"RegisterGovernanceRoutes",
 		"RegisterExecutionAffinityRoutes",
 		"RegisterProofRoutes",
 		"RegisterExecutionEvalRoutes",
@@ -142,13 +203,13 @@ func TestRouteRegistrationSourceGuard(t *testing.T) {
 		"RegisterRuntimeAPIKeyRoutes":         "runtime_registration_or_callback",
 		"RegisterAccountAPIKeysRoutes":        "core_public_product_api",
 		"RegisterStatsRoutes":                 "console_support_api",
-		"RegisterExecutionRoutes":             "core_public_product_api",
-		"RegisterExecutionIntelligenceRoutes": "core_public_product_api",
-		"RegisterExecutionAffinityRoutes":     "core_public_product_api",
-		"RegisterTrustRecommendationRoutes":   "core_public_product_api",
-		"RegisterExecutionEvalRoutes":         "core_public_product_api",
-		"RegisterPolicySimulationRoutes":      "core_public_product_api",
-		"RegisterPolicyProposalRoutes":        "core_public_product_api",
+		"RegisterExecutionRoutes":             "experimental_non_core",
+		"RegisterExecutionIntelligenceRoutes": "experimental_non_core",
+		"RegisterExecutionAffinityRoutes":     "experimental_non_core",
+		"RegisterTrustRecommendationRoutes":   "experimental_non_core",
+		"RegisterExecutionEvalRoutes":         "experimental_non_core",
+		"RegisterPolicySimulationRoutes":      "experimental_non_core",
+		"RegisterPolicyProposalRoutes":        "experimental_non_core",
 		"RegisterProofRoutes":                 "core_public_product_api",
 		"RegisterGovernanceRoutes":            "core_public_product_api",
 		"RegisterSpeculativeRoutes":           "experimental_non_core",
@@ -182,9 +243,9 @@ func TestRouteRegistrationSourceGuard(t *testing.T) {
 		"RegisterActionRoutes":                "core_public_product_api",
 		"RegisterContractRoutes":              "core_public_product_api",
 		"RegisterEvidenceRoutes":              "core_public_product_api",
-		"RegisterActionPackRoutes":            "core_public_product_api",
-		"RegisterAgentRegistryRoutes":         "core_public_product_api",
-		"RegisterAgentMemoryRoutes":           "core_public_product_api",
+		"RegisterActionPackRoutes":            "experimental_non_core",
+		"RegisterAgentRegistryRoutes":         "experimental_non_core",
+		"RegisterAgentMemoryRoutes":           "experimental_non_core",
 		"RegisterAgentMcpRoutes":              "agent_mcp_surface",
 		"RegisterCognitiveRoutes":             "experimental_non_core",
 		"RegisterCognitiveV1Aliases":          "experimental_non_core",
@@ -225,6 +286,12 @@ func clearRouteFlags(t *testing.T) {
 		ExperimentalFederatedRoutesFlag,
 		ExperimentalFleetRoutesFlag,
 		ExperimentalConsoleGapRoutesFlag,
+		ExperimentalExecutionIntelligenceRoutesFlag,
+		ExperimentalEvidenceMemoryRoutesFlag,
+		ExperimentalPolicySimulationRoutesFlag,
+		ExperimentalActionPacksRoutesFlag,
+		ExperimentalAgentRegistryRoutesFlag,
+		ExperimentalExecutionConsoleRoutesFlag,
 		DebugMetricsRoutesFlag,
 		InternalAdminTokenEnv,
 	} {

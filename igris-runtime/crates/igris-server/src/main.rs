@@ -2885,61 +2885,109 @@ async fn chat_completions(
             ));
         }
 
-        // 1) Try cloud providers first using speculative routing (stream winner).
+        // 1) Try cloud providers first. Speculative multi-provider racing is opt-in.
         if !state.cloud_providers.is_empty() {
-            let providers: Vec<CloudProviderWrapper> = state
-                .cloud_providers
-                .iter()
-                .take(3)
-                .map(|p| CloudProviderWrapper(p.clone()))
-                .collect();
+            let speculative_enabled = state.config.routing.speculative.enabled;
+            if speculative_enabled {
+                let providers: Vec<CloudProviderWrapper> = state
+                    .cloud_providers
+                    .iter()
+                    .take(state.config.routing.speculative.max_providers.max(1))
+                    .map(|p| CloudProviderWrapper(p.clone()))
+                    .collect();
 
-            match state
-                .speculative_router
-                .route_stream(&prompt, providers)
-                .await
-            {
-                Ok(stream_result) => {
-                    let model = req.model.clone();
-                    let s = stream_result.stream.map(move |chunk| {
-                        let ev = match chunk {
-                            Ok(text) => {
-                                let payload = serde_json::json!({
-                                    "id": "chatcmpl-stream",
-                                    "object": "chat.completion.chunk",
-                                    "model": model.clone(),
-                                    "choices": [{
-                                        "index": 0,
-                                        "delta": { "content": text },
-                                        "finish_reason": null
-                                    }]
-                                });
-                                Event::default().data(payload.to_string())
-                            }
-                            Err(e) => {
-                                let payload = serde_json::json!({
-                                    "id": "chatcmpl-stream",
-                                    "object": "error",
-                                    "error": { "message": e.to_string(), "type": "stream_error" }
-                                });
-                                Event::default().data(payload.to_string())
-                            }
-                        };
-                        Ok::<Event, Infallible>(ev)
-                    });
+                match state
+                    .speculative_router
+                    .route_stream(&prompt, providers)
+                    .await
+                {
+                    Ok(stream_result) => {
+                        let model = req.model.clone();
+                        let s = stream_result.stream.map(move |chunk| {
+                            let ev = match chunk {
+                                Ok(text) => {
+                                    let payload = serde_json::json!({
+                                        "id": "chatcmpl-stream",
+                                        "object": "chat.completion.chunk",
+                                        "model": model.clone(),
+                                        "choices": [{
+                                            "index": 0,
+                                            "delta": { "content": text },
+                                            "finish_reason": null
+                                        }]
+                                    });
+                                    Event::default().data(payload.to_string())
+                                }
+                                Err(e) => {
+                                    let payload = serde_json::json!({
+                                        "id": "chatcmpl-stream",
+                                        "object": "error",
+                                        "error": { "message": e.to_string(), "type": "stream_error" }
+                                    });
+                                    Event::default().data(payload.to_string())
+                                }
+                            };
+                            Ok::<Event, Infallible>(ev)
+                        });
 
-                    let done = futures::stream::once(async move {
-                        Ok::<Event, Infallible>(Event::default().data("[DONE]"))
-                    });
+                        let done = futures::stream::once(async move {
+                            Ok::<Event, Infallible>(Event::default().data("[DONE]"))
+                        });
 
-                    let out = Sse::new(s.chain(done)).keep_alive(KeepAlive::default());
-                    return Ok(out.into_response());
+                        let out = Sse::new(s.chain(done)).keep_alive(KeepAlive::default());
+                        return Ok(out.into_response());
+                    }
+                    Err(e) => {
+                        warn!(
+                            "Cloud streaming failed, falling back to local if available: {}",
+                            e
+                        );
+                    }
                 }
-                Err(e) => {
-                    warn!(
-                        "Cloud streaming failed, falling back to local if available: {}",
-                        e
-                    );
+            } else if let Some(provider) = state.cloud_providers.first() {
+                match provider.stream(&prompt).await {
+                    Ok(stream) => {
+                        let model = req.model.clone();
+                        let s = stream.map(move |chunk| {
+                            let ev = match chunk {
+                                Ok(text) => {
+                                    let payload = serde_json::json!({
+                                        "id": "chatcmpl-stream",
+                                        "object": "chat.completion.chunk",
+                                        "model": model.clone(),
+                                        "choices": [{
+                                            "index": 0,
+                                            "delta": { "content": text },
+                                            "finish_reason": null
+                                        }]
+                                    });
+                                    Event::default().data(payload.to_string())
+                                }
+                                Err(e) => {
+                                    let payload = serde_json::json!({
+                                        "id": "chatcmpl-stream",
+                                        "object": "error",
+                                        "error": { "message": e.to_string(), "type": "stream_error" }
+                                    });
+                                    Event::default().data(payload.to_string())
+                                }
+                            };
+                            Ok::<Event, Infallible>(ev)
+                        });
+
+                        let done = futures::stream::once(async move {
+                            Ok::<Event, Infallible>(Event::default().data("[DONE]"))
+                        });
+
+                        let out = Sse::new(s.chain(done)).keep_alive(KeepAlive::default());
+                        return Ok(out.into_response());
+                    }
+                    Err(e) => {
+                        warn!(
+                            "Cloud streaming failed, falling back to local if available: {}",
+                            e
+                        );
+                    }
                 }
             }
         }
@@ -3259,31 +3307,45 @@ async fn chat_completions(
         return Ok(Json(response).into_response());
     }
 
-    // Try cloud providers first using speculative routing
+    // Try cloud providers first. Speculative multi-provider racing is opt-in.
     let mut response_text = None;
     let mut used_provider = "unknown".to_string();
     let mut used_local_fallback = false;
 
     if !state.cloud_providers.is_empty() {
-        info!("Attempting cloud providers with speculative routing");
+        let speculative_enabled = state.config.routing.speculative.enabled;
+        if speculative_enabled {
+            info!("Attempting cloud providers with speculative routing");
 
-        // Convert cloud providers to wrappers
-        let providers: Vec<CloudProviderWrapper> = state
-            .cloud_providers
-            .iter()
-            .take(3) // Use top 3 providers for speculative routing
-            .map(|p| CloudProviderWrapper(p.clone()))
-            .collect();
+            // Convert cloud providers to wrappers
+            let providers: Vec<CloudProviderWrapper> = state
+                .cloud_providers
+                .iter()
+                .take(state.config.routing.speculative.max_providers.max(1))
+                .map(|p| CloudProviderWrapper(p.clone()))
+                .collect();
 
-        if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
-            info!(
-                "Cloud provider succeeded: {} ({}ms)",
-                result.winner_id, result.total_latency_ms
-            );
-            response_text = Some(result.response);
-            used_provider = result.winner_id;
-        } else {
-            warn!("All cloud providers failed or timed out");
+            if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
+                info!(
+                    "Cloud provider succeeded: {} ({}ms)",
+                    result.winner_id, result.total_latency_ms
+                );
+                response_text = Some(result.response);
+                used_provider = result.winner_id;
+            } else {
+                warn!("All cloud providers failed or timed out");
+            }
+        } else if let Some(provider) = state.cloud_providers.first() {
+            info!("Attempting single cloud provider (speculative routing disabled)");
+            match provider.complete(&prompt).await {
+                Ok(text) => {
+                    response_text = Some(text);
+                    used_provider = provider.id().to_string();
+                }
+                Err(e) => {
+                    warn!("Cloud provider failed: {}", e);
+                }
+            }
         }
     }
 
@@ -4697,21 +4759,8 @@ async fn main() -> anyhow::Result<()> {
                 None
             }
         } else {
-            info!("EscapeVector not configured (using default: enabled)");
-            // Default behavior: enable with default config
-            let cache_dir = ".escapevector";
-            let mut cache_key = [0u8; 32];
-            let key_material = format!("igris-runtime-{}", config.server.port);
-            let hash = sha2::Sha256::digest(key_material.as_bytes());
-            cache_key.copy_from_slice(&hash[..32]);
-
-            match EscapeVectorCache::new(cache_dir, cache_key) {
-                Ok(cache) => Some(Arc::new(cache)),
-                Err(e) => {
-                    warn!("Failed to initialize default EscapeVector cache: {}", e);
-                    None
-                }
-            }
+            info!("EscapeVector not configured (disabled by default for external-alpha)");
+            None
         };
 
     // Initialize Fleet Management (Phase 2, Dev 10)
@@ -4759,38 +4808,69 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    // Initialize Federated Learning (always available, just may be disabled)
+    // Federated Learning: opt-in only (external-alpha defaults keep this off).
     let federated_manager: Option<Arc<FederatedManager>> = {
-        let fed_config = igris_federated::FederatedConfig {
-            enabled: true,
-            min_participants: 3,
-            ..Default::default()
-        };
-        let state_dir = ".federated_state";
-        match FederatedManager::new(fed_config, state_dir).await {
-            Ok(mgr) => {
-                info!("Federated Learning coordinator initialized");
-                Some(Arc::new(mgr))
+        let enabled = std::env::var("IGRIS_ENABLE_EXPERIMENTAL_RUNTIME_FEDERATED")
+            .map(|value| {
+                matches!(
+                    value.trim().to_ascii_lowercase().as_str(),
+                    "1" | "true" | "yes" | "on" | "enabled"
+                )
+            })
+            .unwrap_or(false);
+        if enabled {
+            let fed_config = igris_federated::FederatedConfig {
+                enabled: true,
+                min_participants: 3,
+                ..Default::default()
+            };
+            let state_dir = ".federated_state";
+            match FederatedManager::new(fed_config, state_dir).await {
+                Ok(mgr) => {
+                    info!("Federated Learning coordinator initialized");
+                    Some(Arc::new(mgr))
+                }
+                Err(e) => {
+                    warn!("Federated Learning disabled: {}", e);
+                    None
+                }
             }
-            Err(e) => {
-                warn!("Federated Learning disabled: {}", e);
-                None
-            }
+        } else {
+            info!(
+                "Federated Learning disabled (set IGRIS_ENABLE_EXPERIMENTAL_RUNTIME_FEDERATED=true to enable)"
+            );
+            None
         }
     };
 
-    // Initialize Swarm Intelligence
+    // Swarm coordinator: opt-in via chat swarm config or explicit experimental flag.
     let swarm_manager: Option<Arc<SwarmManager>> = {
-        let agent_id = format!("runtime-{}", &swarm_peer_id[..8.min(swarm_peer_id.len())]);
-        match SwarmManager::new(&agent_id).await {
-            Ok(mgr) => {
-                info!("Swarm coordinator initialized for agent {}", agent_id);
-                Some(Arc::new(mgr))
+        let swarm_config_enabled = config.swarm.as_ref().map(|s| s.enabled).unwrap_or(false);
+        let experimental_enabled = std::env::var("IGRIS_ENABLE_EXPERIMENTAL_RUNTIME_SWARM")
+            .map(|value| {
+                matches!(
+                    value.trim().to_ascii_lowercase().as_str(),
+                    "1" | "true" | "yes" | "on" | "enabled"
+                )
+            })
+            .unwrap_or(false);
+        if swarm_config_enabled || experimental_enabled {
+            let agent_id = format!("runtime-{}", &swarm_peer_id[..8.min(swarm_peer_id.len())]);
+            match SwarmManager::new(&agent_id).await {
+                Ok(mgr) => {
+                    info!("Swarm coordinator initialized for agent {}", agent_id);
+                    Some(Arc::new(mgr))
+                }
+                Err(e) => {
+                    warn!("Swarm coordination disabled: {}", e);
+                    None
+                }
             }
-            Err(e) => {
-                warn!("Swarm coordination disabled: {}", e);
-                None
-            }
+        } else {
+            info!(
+                "Swarm coordinator disabled (enable config.swarm or IGRIS_ENABLE_EXPERIMENTAL_RUNTIME_SWARM=true)"
+            );
+            None
         }
     };
 
@@ -5036,23 +5116,40 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/admin/models/load", post(load_model))
         .route("/v1/admin/models/swap", post(swap_model))
         .route("/v1/fleet/instances", get(fleet_instances))
-        .route("/v1/fleet/metrics", get(fleet_metrics))
-        // Federated Learning endpoints
-        .route("/v1/federated/status", get(federated_status))
-        .route("/v1/federated/update", post(federated_submit_update))
-        .route("/v1/federated/model/latest", get(federated_latest_model))
-        .route("/v1/federated/participants", get(federated_participants))
-        // Swarm Intelligence endpoints
-        .route("/v1/swarm/status", get(swarm_status))
-        .route("/v1/swarm/agents", get(swarm_agents))
-        .route("/v1/swarm/join", post(swarm_join))
-        .route("/v1/swarm/propose", post(swarm_propose))
-        .route("/v1/swarm/vote", post(swarm_vote))
-        // Behavior Tree endpoints
-        .route("/v1/btree/validate", post(btree_validate))
-        .route("/v1/btree/run", post(btree_run))
-        .route("/v1/btree/deploy", post(btree_deploy))
-        .route("/v1/btree/events", get(btree_events))
+        .route("/v1/fleet/metrics", get(fleet_metrics));
+
+    if state.federated_manager.is_some() {
+        app = app
+            .route("/v1/federated/status", get(federated_status))
+            .route("/v1/federated/update", post(federated_submit_update))
+            .route("/v1/federated/model/latest", get(federated_latest_model))
+            .route("/v1/federated/participants", get(federated_participants));
+    }
+    if state.swarm_manager.is_some() {
+        app = app
+            .route("/v1/swarm/status", get(swarm_status))
+            .route("/v1/swarm/agents", get(swarm_agents))
+            .route("/v1/swarm/join", post(swarm_join))
+            .route("/v1/swarm/propose", post(swarm_propose))
+            .route("/v1/swarm/vote", post(swarm_vote));
+    }
+    let btree_routes_enabled = std::env::var("IGRIS_ENABLE_EXPERIMENTAL_RUNTIME_BTREE")
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on" | "enabled"
+            )
+        })
+        .unwrap_or(false);
+    if btree_routes_enabled {
+        app = app
+            .route("/v1/btree/validate", post(btree_validate))
+            .route("/v1/btree/run", post(btree_run))
+            .route("/v1/btree/deploy", post(btree_deploy))
+            .route("/v1/btree/events", get(btree_events));
+    }
+
+    app = app
         // MCP SSE streaming endpoint
         .route("/mcp/stream", post(mcp_stream))
         .route(

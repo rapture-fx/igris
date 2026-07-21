@@ -112,7 +112,7 @@ pub struct ThompsonSamplingConfig {
 impl Default for ThompsonSamplingConfig {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             exploration_rate: 0.1,
         }
     }
@@ -128,7 +128,7 @@ pub struct SpeculativeConfig {
 impl Default for SpeculativeConfig {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             max_providers: 3,
             first_token_timeout_ms: 5000,
         }
@@ -144,7 +144,7 @@ pub struct CouncilConfig {
 impl Default for CouncilConfig {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             chairman: "anthropic-sonnet".to_string(),
         }
     }
@@ -726,7 +726,7 @@ fn default_escapevector_fallback_threshold_ms() -> u64 {
 impl Default for EscapeVectorConfig {
     fn default() -> Self {
         Self {
-            enabled: true, // Enable by default for resilience
+            enabled: false,
             cache_dir: default_escapevector_cache_dir(),
             min_quality_score: default_escapevector_min_quality(),
             auto_cache: true,

@@ -147,7 +147,9 @@ const (
 // RegisterActionRoutes wires the product-facing action gateway. These routes
 // adapt customer action calls onto the same durable task path used by /v1/tasks.
 func RegisterActionRoutes(app *fiber.App, db *sql.DB, tc *coordinator.TaskCoordinator) {
-	RegisterActionPackRoutes(app, db)
+	if ExperimentalActionPacksRoutesEnabled() {
+		RegisterActionPackRoutes(app, db)
+	}
 
 	v1 := app.Group("/v1/actions")
 	v1.Use(middleware.BetterAuth(db))

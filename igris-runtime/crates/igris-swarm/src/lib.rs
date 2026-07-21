@@ -90,7 +90,7 @@ pub struct SwarmConfig {
 impl Default for SwarmConfig {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             election_timeout_secs: (5, 10),
             heartbeat_interval_secs: 2,
             max_agents: 100,

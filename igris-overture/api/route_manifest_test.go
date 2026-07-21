@@ -92,8 +92,6 @@ func TestCoreRoutesPresentInDefaultManifest(t *testing.T) {
 		"POST /v1/tasks/submit",
 		"GET /v1/tasks",
 		"GET /v1/tasks/:id",
-		"GET /v1/execution-evals",
-		"POST /v1/execution-evals",
 		"POST /api/v1/runtime/register",
 		"POST /api/v1/runtime/heartbeat",
 		"GET /api/v1/runtime/commands",
@@ -128,6 +126,20 @@ func TestExperimentalRoutesNotPublicByDefaultInManifest(t *testing.T) {
 		"/v1/escapevector",
 		"/api/v1/runtime/config/push",
 		"/api/v1/runtime/update",
+		"/v1/action-packs",
+		"/v1/agent-memory",
+		"/v1/execution/intelligence",
+		"/v1/execution/affinity",
+		"/v1/execution/trust-recommendations",
+		"/v1/execution-evals",
+		"/v1/policy/simulate",
+		"/v1/policy/proposals",
+		"/v1/execution/runs",
+		"/v1/execution/agents",
+		"/v1/execution/shadow",
+		"/v1/agents",
+		"/v1/policies",
+		"/v1/alerts",
 	}
 	for _, route := range manifest.Routes {
 		for _, prefix := range disabledPrefixes {
@@ -183,15 +195,6 @@ func buildDefaultRouteManifestApp(t *testing.T) *fiber.App {
 	RegisterRuntimeAPIKeyRoutes(app, db)
 	RegisterAccountAPIKeysRoutes(app, db)
 	RegisterStatsRoutes(app, db, nil, nil)
-	RegisterAgentRegistryRoutes(app, db, NewExecutionHandler(db))
-	RegisterExecutionRoutes(app, db, nil)
-	RegisterExecutionIntelligenceRoutes(app, db)
-	RegisterExecutionAffinityRoutes(app, db)
-	RegisterTrustRecommendationRoutes(app, db)
-	RegisterExecutionEvalRoutes(app, db)
-	RegisterPolicySimulationRoutes(app, db)
-	RegisterPolicyProposalRoutes(app, db)
-	RegisterAgentMemoryRoutes(app, db)
 	RegisterProofRoutes(app, db, nil)
 	RegisterGovernanceRoutes(app, db)
 	RegisterFrontendRoutes(app, db)

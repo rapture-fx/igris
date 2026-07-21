@@ -9,16 +9,22 @@ import (
 )
 
 const (
-	ExperimentalCognitiveRoutesFlag  = "IGRIS_ENABLE_EXPERIMENTAL_COGNITIVE_ROUTES"
-	ExperimentalModelRoutesFlag      = "IGRIS_ENABLE_EXPERIMENTAL_MODEL_ROUTES"
-	ExperimentalRoutingRoutesFlag    = "IGRIS_ENABLE_EXPERIMENTAL_ROUTING_ROUTES"
-	ExperimentalRoboticsRoutesFlag   = "IGRIS_ENABLE_EXPERIMENTAL_ROBOTICS_ROUTES"
-	ExperimentalAIPolicyRoutesFlag   = "IGRIS_ENABLE_EXPERIMENTAL_AI_POLICY_ROUTES"
-	ExperimentalFederatedRoutesFlag  = "IGRIS_ENABLE_EXPERIMENTAL_FEDERATED_ROUTES"
-	ExperimentalFleetRoutesFlag      = "IGRIS_ENABLE_EXPERIMENTAL_FLEET_ROUTES"
-	ExperimentalConsoleGapRoutesFlag = "IGRIS_ENABLE_EXPERIMENTAL_CONSOLE_GAP_ROUTES"
-	DebugMetricsRoutesFlag           = "IGRIS_ENABLE_DEBUG_METRICS_ROUTES"
-	InternalAdminTokenEnv            = "IGRIS_INTERNAL_ADMIN_TOKEN"
+	ExperimentalCognitiveRoutesFlag             = "IGRIS_ENABLE_EXPERIMENTAL_COGNITIVE_ROUTES"
+	ExperimentalModelRoutesFlag                 = "IGRIS_ENABLE_EXPERIMENTAL_MODEL_ROUTES"
+	ExperimentalRoutingRoutesFlag               = "IGRIS_ENABLE_EXPERIMENTAL_ROUTING_ROUTES"
+	ExperimentalRoboticsRoutesFlag              = "IGRIS_ENABLE_EXPERIMENTAL_ROBOTICS_ROUTES"
+	ExperimentalAIPolicyRoutesFlag              = "IGRIS_ENABLE_EXPERIMENTAL_AI_POLICY_ROUTES"
+	ExperimentalFederatedRoutesFlag             = "IGRIS_ENABLE_EXPERIMENTAL_FEDERATED_ROUTES"
+	ExperimentalFleetRoutesFlag                 = "IGRIS_ENABLE_EXPERIMENTAL_FLEET_ROUTES"
+	ExperimentalConsoleGapRoutesFlag            = "IGRIS_ENABLE_EXPERIMENTAL_CONSOLE_GAP_ROUTES"
+	ExperimentalExecutionIntelligenceRoutesFlag = "IGRIS_ENABLE_EXPERIMENTAL_EXECUTION_INTELLIGENCE_ROUTES"
+	ExperimentalEvidenceMemoryRoutesFlag        = "IGRIS_ENABLE_EXPERIMENTAL_EVIDENCE_MEMORY_ROUTES"
+	ExperimentalPolicySimulationRoutesFlag      = "IGRIS_ENABLE_EXPERIMENTAL_POLICY_SIMULATION_ROUTES"
+	ExperimentalActionPacksRoutesFlag           = "IGRIS_ENABLE_EXPERIMENTAL_ACTION_PACKS_ROUTES"
+	ExperimentalAgentRegistryRoutesFlag         = "IGRIS_ENABLE_EXPERIMENTAL_AGENT_REGISTRY_ROUTES"
+	ExperimentalExecutionConsoleRoutesFlag      = "IGRIS_ENABLE_EXPERIMENTAL_EXECUTION_CONSOLE_ROUTES"
+	DebugMetricsRoutesFlag                      = "IGRIS_ENABLE_DEBUG_METRICS_ROUTES"
+	InternalAdminTokenEnv                       = "IGRIS_INTERNAL_ADMIN_TOKEN"
 )
 
 type RouteGroupClassification struct {
@@ -80,6 +86,30 @@ func ExperimentalConsoleGapRoutesEnabled() bool {
 	return RouteFlagEnabled(ExperimentalConsoleGapRoutesFlag)
 }
 
+func ExperimentalExecutionIntelligenceRoutesEnabled() bool {
+	return RouteFlagEnabled(ExperimentalExecutionIntelligenceRoutesFlag)
+}
+
+func ExperimentalEvidenceMemoryRoutesEnabled() bool {
+	return RouteFlagEnabled(ExperimentalEvidenceMemoryRoutesFlag)
+}
+
+func ExperimentalPolicySimulationRoutesEnabled() bool {
+	return RouteFlagEnabled(ExperimentalPolicySimulationRoutesFlag)
+}
+
+func ExperimentalActionPacksRoutesEnabled() bool {
+	return RouteFlagEnabled(ExperimentalActionPacksRoutesFlag)
+}
+
+func ExperimentalAgentRegistryRoutesEnabled() bool {
+	return RouteFlagEnabled(ExperimentalAgentRegistryRoutesFlag)
+}
+
+func ExperimentalExecutionConsoleRoutesEnabled() bool {
+	return RouteFlagEnabled(ExperimentalExecutionConsoleRoutesFlag)
+}
+
 func InternalAdminAuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		expected := strings.TrimSpace(os.Getenv(InternalAdminTokenEnv))
@@ -110,12 +140,12 @@ var RouteGroupInventory = []RouteGroupClassification{
 	{
 		Method: "POST", Path: "/v1/mcp", RegistrationFile: "igris-overture/api/routes_mcp.go",
 		HandlerOrGroup: "agent MCP", RegistrationFunction: "RegisterAgentMcpRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "agent_mcp_surface", DefaultExposureAfterTask: "registered", RiskNotes: "strict versioned schemas and param validation",
+		Classification: "agent_mcp_surface", DefaultExposureAfterTask: "registered", RiskNotes: "BETA: reuses durable Action Task submission boundary; not independently proven through a complete external-alpha MCP journey",
 	},
 	{
 		Method: "GET,POST", Path: "/v1/action-packs,/v1/action-packs/:name/install", RegistrationFile: "igris-overture/api/routes_action_packs.go",
 		HandlerOrGroup: "action packs", RegistrationFunction: "RegisterActionPackRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "installs registered actions only; no raw task execution",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "installs registered actions only; outside Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalActionPacksRoutesFlag,
 	},
 	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/actions,/v1/actions/run,/v1/actions/runs/:id,/v1/actions/runs/:id/approve,/v1/actions/runs/:id/reject", RegistrationFile: "igris-overture/api/routes_actions.go",
@@ -135,12 +165,12 @@ var RouteGroupInventory = []RouteGroupClassification{
 	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/agents,/v1/agents/:id", RegistrationFile: "igris-overture/api/routes_agent_registry.go",
 		HandlerOrGroup: "agent registry", RegistrationFunction: "RegisterAgentRegistryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-scoped agent identity and attribution only; PATCH dispatches registry vs execution settings",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "tenant-scoped agent identity; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalAgentRegistryRoutesFlag,
 	},
 	{
 		Method: "GET,POST", Path: "/v1/agent-memory", RegistrationFile: "igris-overture/api/routes_agent_memory.go",
 		HandlerOrGroup: "agent evidence memory", RegistrationFunction: "RegisterAgentMemoryRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "summary-only memory attached to tenant-owned tasks, executions, or registered agents; rejects prompts, chain-of-thought, and secrets",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "Evidence Memory summary surface; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalEvidenceMemoryRoutesFlag,
 	},
 	{
 		Method: "GET,POST", Path: "/v1/tasks", RegistrationFile: "igris-overture/api/routes_tasks.go",
@@ -158,39 +188,44 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "raw keys returned once only",
 	},
 	{
-		Method: "GET,POST", Path: "/v1/execution/*,/v1/execution/governance/*", RegistrationFile: "igris-overture/api/routes_execution.go",
-		HandlerOrGroup: "execution inspection and governance", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "inspection and governance console surface",
+		Method: "GET,POST", Path: "/v1/execution/governance/*", RegistrationFile: "igris-overture/api/routes_governance.go",
+		HandlerOrGroup: "execution governance recovery", RegistrationFunction: "RegisterGovernanceRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "recovery-event inspection for durable Action runs",
+	},
+	{
+		Method: "GET,POST", Path: "/v1/execution/runs,/v1/execution/agents,/v1/agents/:id/bt-state,/v1/execution/shadow,/v1/policies,/v1/alerts/stream", RegistrationFile: "igris-overture/api/routes_execution.go",
+		HandlerOrGroup: "legacy execution console", RegistrationFunction: "RegisterExecutionRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "legacy inference-era execution console including BT-state and shadow; outside Clock 3F.1 Action/Run surface", FeatureFlag: ExperimentalExecutionConsoleRoutesFlag,
 	},
 	{
 		Method: "GET", Path: "/v1/execution/intelligence", RegistrationFile: "igris-overture/api/routes_execution_intelligence.go",
 		HandlerOrGroup: "execution intelligence", RegistrationFunction: "RegisterExecutionIntelligenceRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only metrics derived from task, approval, policy, and recovery records; no prompt or model-output source",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "read-only metrics; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalExecutionIntelligenceRoutesFlag,
 	},
 	{
 		Method: "GET", Path: "/v1/execution/affinity", RegistrationFile: "igris-overture/api/routes_execution_affinity.go",
 		HandlerOrGroup: "execution affinity", RegistrationFunction: "RegisterExecutionAffinityRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only agent/action/pack relationship aggregates from durable execution records; no prompt, model-output, secret, or raw execution row source",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "relationship aggregates; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalExecutionIntelligenceRoutesFlag,
 	},
 	{
 		Method: "GET,PATCH", Path: "/v1/execution/trust-recommendations,/v1/execution/trust-recommendations/states,/v1/execution/trust-recommendations/:id/state", RegistrationFile: "igris-overture/api/routes_trust_recommendations.go",
 		HandlerOrGroup: "trust recommendations", RegistrationFunction: "RegisterTrustRecommendationRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only deterministic attention items from durable execution aggregates and proposal freshness, plus a tenant-scoped acknowledge/snooze/resolve lifecycle overlay (status/reason/timestamps only); no LLM, no execution mutation, no prompt/model-output/secret/raw-row source; rejects tenant override",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "attention overlay; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalExecutionIntelligenceRoutesFlag,
 	},
 	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/execution-evals,/v1/execution-evals/:id,/v1/execution-evals/:id/run,/v1/execution-evals/:id/runs,/v1/execution-evals/runs/:run_id", RegistrationFile: "igris-overture/api/routes_execution_evals.go",
 		HandlerOrGroup: "execution evaluations", RegistrationFunction: "RegisterExecutionEvalRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "deterministic assertions over tenant-owned task, proof, approval, and recovery records; rejects tenant body overrides",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "deterministic eval console; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalExecutionIntelligenceRoutesFlag,
 	},
 	{
 		Method: "POST", Path: "/v1/policy/simulate", RegistrationFile: "igris-overture/api/routes_policy_simulation.go",
 		HandlerOrGroup: "policy simulation", RegistrationFunction: "RegisterPolicySimulationRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "read-only deterministic preview of a proposed policy rule over durable execution records; no policy mutation, replay, dispatch, persistence, or prompt/model-output source; rejects tenant body overrides",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "read-only policy preview; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalPolicySimulationRoutesFlag,
 	},
 	{
 		Method: "GET,POST,PATCH,DELETE", Path: "/v1/policy/proposals,/v1/policy/proposals/:id,/v1/policy/proposals/:id/simulate,/v1/policy/proposals/:id/approve", RegistrationFile: "igris-overture/api/routes_policy_proposals.go",
 		HandlerOrGroup: "policy proposals", RegistrationFunction: "RegisterPolicyProposalRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "core_public_product_api", DefaultExposureAfterTask: "registered", RiskNotes: "tenant-owned draft policy rules built on the read-only simulation engine; lifecycle/approval is governance metadata only — no active-policy mutation, replay, dispatch, or raw-body persistence; rejects tenant body overrides",
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "draft policy governance metadata; not part of Clock 3F.1 proven external-alpha surface", FeatureFlag: ExperimentalPolicySimulationRoutesFlag,
 	},
 	{
 		Method: "GET,POST", Path: "/proof/receipts,/v1/proof/*,/v1/receipts/*", RegistrationFile: "igris-overture/api/routes_proof.go",
