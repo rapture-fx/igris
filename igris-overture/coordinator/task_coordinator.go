@@ -1722,6 +1722,9 @@ func validateTaskDefinition(taskType string, definition map[string]json.RawMessa
 		if err := validateOptionalPositiveUint32Field(definition, "checkpoint_after_steps"); err != nil {
 			return err
 		}
+		if err := validateOptionalBoolField(definition, "continue_after_checkpoint"); err != nil {
+			return err
+		}
 		if err := validateExecutionGraph(definition); err != nil {
 			return err
 		}
@@ -1945,6 +1948,18 @@ func validateOptionalPositiveUint32Field(definition map[string]json.RawMessage, 
 	}
 	if value == 0 || value > uint64(^uint32(0)) {
 		return invalidTaskDefinition("%s must be a positive integer", field)
+	}
+	return nil
+}
+
+func validateOptionalBoolField(definition map[string]json.RawMessage, field string) error {
+	raw, ok := definition[field]
+	if !ok {
+		return nil
+	}
+	var value bool
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return invalidTaskDefinition("%s must be a boolean", field)
 	}
 	return nil
 }

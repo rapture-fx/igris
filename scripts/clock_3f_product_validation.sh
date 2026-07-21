@@ -409,15 +409,33 @@ run = client.run(
     idempotency_key=idem,
     contract_hash=contract.contract_hash,
 )
-# Bound actions pause at checkpoint_after_steps=1 after the HTTP effect.
-deadline = time.time() + 45
-last = None
-while time.time() < deadline:
-    last = run.status()
-    if last.status in {"checkpointed", "completed", "failed", "reconciliation_required"}:
-        break
-    time.sleep(0.4)
-assert last is not None and last.status in {"checkpointed", "completed"}, last
+# Clock 3F.1: normal durable path must complete via DurableRun.wait() with no
+# manual infrastructure resume. Checkpoints remain internal/transparent.
+status = run.wait(timeout=90)
+assert status.status == "completed", status
+proof = run.proof()
+assert proof.schema == "igris_run_proof.v1"
+boundary = proof.claim_boundary
+boundary_keys = []
+if boundary is not None:
+    import dataclasses as _dc
+    if _dc.is_dataclass(boundary):
+        boundary_keys = [f.name for f in _dc.fields(boundary)]
+orp = proof.raw.get("operator_reconciliation") if isinstance(proof.raw.get("operator_reconciliation"), dict) else None
+run2 = client.run(
+    contract.action_name,
+    input={"service": service, "environment": environment, "commit_sha": commit},
+    idempotency_key=idem,
+    contract_hash=contract.contract_hash,
+)
+assert run2.run_id == run.run_id
+req = urllib.request.Request(
+    f"http://127.0.0.1:{adapter_port}/v1/deploy/staging-release/ledger",
+    headers={"X-Igris-Adapter-Token": adapter_token},
+)
+ledger = json.loads(urllib.request.urlopen(req).read())
+assert ledger.get("effect_journal_count") == 1, ledger
+elapsed = int(time.time()) - int(sys.argv[8])
 out = {
     "bootstrap": {
         "contract_hash": contract.contract_hash,
@@ -429,183 +447,293 @@ out = {
         "service": service,
         "environment": environment,
     },
-    "scenario_a_mid": {
+    "scenario_a": {
+        "ok": True,
         "run_id": run.run_id,
-        "status": last.status,
-        "needs_resume": last.status == "checkpointed",
+        "contract_hash": contract.contract_hash,
+        "binding_id": binding.id,
+        "target_id": target.id,
+        "status": status.status,
+        "proof_schema": proof.schema,
+        "effect_count": ledger.get("effect_count"),
+        "effect_journal_count": ledger.get("effect_journal_count"),
+        "idempotent_replay_run_id": run2.run_id,
+        "claim_boundary_keys": boundary_keys,
+        "operator_reconciliation": orp,
+        "runtime_proof_present": proof.runtime_proof is not None,
+        "action_protocol_evidence_present": proof.action_protocol_evidence is not None,
+        "seconds": elapsed,
+        "completed_via_runtime_resume": False,
+        "manual_resume_required": False,
     },
 }
 Path(report_path).write_text(json.dumps(out, indent=2) + "\n")
-print(json.dumps(out["scenario_a_mid"], indent=2))
+friction = {
+    "scenario_a_seconds": elapsed,
+    "time_to_first_durable_run_seconds": elapsed,
+    "raw_http_calls_in_sdk_journey": 0,
+    "configuration_values": [
+        "endpoint",
+        "api_key",
+        "adapter_url",
+        "adapter_token_env",
+        "idempotency_key",
+        "service",
+        "environment",
+        "commit_sha",
+    ],
+    "product_concepts": [
+        "ActionContract",
+        "wrap_tool",
+        "IgrisDurableClient",
+        "action_target",
+        "exact_contract_hash_binding",
+        "business_idempotency_key",
+        "DurableRun",
+        "Igris_Run_Proof",
+        "Runtime_receipt",
+        "Action_Protocol_Evidence",
+    ],
+    "p0_friction": [],
+}
+Path(friction_path).write_text(json.dumps(friction, indent=2) + "\n")
+print(json.dumps(out["scenario_a"], indent=2))
 PY
 
 CONTRACT_HASH=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).bootstrap.contract_hash)' "$REPORT")
 TARGET_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).bootstrap.target_id)' "$REPORT")
-RUN_A=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).scenario_a_mid.run_id)' "$REPORT")
-NEEDS_RESUME=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).scenario_a_mid.needs_resume))' "$REPORT")
+RUN_A=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).scenario_a.run_id)' "$REPORT")
+json_set "$REPORT" "scenario_a_exit" "0"
+echo "[clock3f] Scenario A PASSED"
 
-resume_with_runtime2() {
-  local label="$1"
-  echo "[clock3f] $label — interrupting Runtime 1 and resuming on Runtime 2"
-  if [[ -n "${RUNTIME_1_PID:-}" ]]; then
-    kill "$RUNTIME_1_PID" 2>/dev/null || true
-    wait "$RUNTIME_1_PID" 2>/dev/null || true
-    RUNTIME_1_PID=""
-  fi
-  # Ensure port free
-  local listener
-  listener=$(lsof -tiTCP:"$RUNTIME_PORT" -sTCP:LISTEN 2>/dev/null || true)
-  if [[ -n "$listener" ]]; then kill "$listener" 2>/dev/null || true; sleep 0.5; fi
+# ---------------------------------------------------------------------------
+# Scenario B — two-Runtime recovery after committed post-HTTP checkpoint.
+# Uses proof-only yield-after-checkpoint so Runtime stops after the durable
+# HTTP checkpoint (same injection window as Clock 3B). Normal Scenario A above
+# already proved transparent continuation without yield.
+# ---------------------------------------------------------------------------
+echo "[clock3f] Scenario B — Runtime failure after committed checkpoint"
 
-  node "$HELPER" runtime-register-request \
-    "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
-    "$RUNTIME_2_MACHINE_ID" \
-    "$RUNTIME_2_PEER_ID" \
-    "darwin" \
-    "1.6.0" \
-    "http://127.0.0.1:$RUNTIME_PORT" > "$TMP_DIR/runtime-2-register.json"
-  curl -sS -f \
-    -H "X-API-Key: $PROOF_RAW_API_KEY" \
-    -H "Content-Type: application/json" \
-    -d @"$TMP_DIR/runtime-2-register.json" \
-    "http://127.0.0.1:$OVERTURE_PORT/api/v1/runtime/register" > "$TMP_DIR/runtime-2-register-response.json"
-  RUNTIME_2_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-2-register-response.json")
-  [[ -n "$RUNTIME_2_REGISTRY_ID" ]] || { cat "$TMP_DIR/runtime-2-register-response.json" >&2; exit 1; }
-  node "$ACTION_HELPER" inject-tools-config \
-    "$RUNTIME_2_CONFIG" \
-    "$INPUT_FILE" \
-    "127.0.0.1" \
-    "$DB_WRITE_GATEWAY_URL" \
-    "$RUNTIME_2_REGISTRY_ID" >/dev/null
+# Restart Overture with yield-after-checkpoint so the bound graph stops after
+# the HTTP effect (recovery-injection affordance; not the product default).
+if [[ -n "${OVERTURE_PID:-}" ]]; then
+  kill "$OVERTURE_PID" 2>/dev/null || true
+  wait "$OVERTURE_PID" 2>/dev/null || true
+  OVERTURE_PID=""
+fi
+listener=$(lsof -tiTCP:"$OVERTURE_PORT" -sTCP:LISTEN 2>/dev/null || true)
+if [[ -n "$listener" ]]; then kill "$listener" 2>/dev/null || true; sleep 0.5; fi
 
-  (
-    cd "$ROOT_DIR"
-    exec env \
-      RUNTIME_MOCK_KEY=dummy \
-      IGRIS_ALLOW_INSECURE_DEV_MODE=true \
-      IGRIS_CONFIG="$RUNTIME_2_CONFIG" \
-      IGRIS_DEVICE_ID="$DEVICE_ID" \
-      IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
-      IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
-      IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
-      IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
-      IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
-      IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
-      IGRIS_CLOCK3F_ADAPTER_TOKEN="$IGRIS_CLOCK3F_ADAPTER_TOKEN" \
-      RUST_LOG=warn \
-      "$RUNTIME_BIN" serve
-  ) > "$LOG_DIR/runtime-2.log" 2>&1 &
-  RUNTIME_2_PID=$!
-  PIDS+=($RUNTIME_2_PID)
-  wait_for_http "http://127.0.0.1:$RUNTIME_PORT/v1/health" "runtime 2"
+(
+  cd "$ROOT_DIR"
+  exec env \
+    PORT="$OVERTURE_PORT" \
+    DATABASE_URL="$DB_URL" \
+    POSTGRES_URL="$DB_URL" \
+    ENABLE_PERSISTENCE=true \
+    PROVIDER_MODE=mock \
+    ALLOW_NON_REAL_PROVIDER_MODE_IN_PRODUCTION=true \
+    ENABLE_MULTI_TENANCY=true \
+    REQUIRE_AUTH_FOR_INFERENCE=true \
+    ALLOW_INSECURE_DEFAULTS=true \
+    JWT_SECRET="$OVERTURE_PRIVATE_KEY_HEX" \
+    BETTER_AUTH_SECRET="$OVERTURE_PRIVATE_KEY_HEX" \
+    VAULT_MASTER_KEY="${OVERTURE_PRIVATE_KEY_HEX:0:64}" \
+    IGRIS_RUNTIME_URL="http://127.0.0.1:$RUNTIME_PORT" \
+    IGRIS_RUNTIME_TIMEOUT=10s \
+    IGRIS_RUNTIME_SECRET="$RUNTIME_SECRET" \
+    IGRIS_OVERTURE_SIGNING_KEY="$OVERTURE_PRIVATE_KEY_HEX" \
+    IGRIS_RUNTIME_PUBLIC_KEY="$RUNTIME_PUBLIC_KEY_HEX" \
+    IGRIS_RUNTIME_CALLBACK_BASE_URL="http://127.0.0.1:$OVERTURE_PORT" \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_NAME=Cookie \
+    IGRIS_RUNTIME_CALLBACK_AUTH_HEADER_VALUE="better-auth.session_token=$PROOF_SESSION_TOKEN" \
+    IGRIS_CLOCK3F_ADAPTER_TOKEN="$IGRIS_CLOCK3F_ADAPTER_TOKEN" \
+    IGRIS_BOUND_ACTION_YIELD_AFTER_CHECKPOINT=1 \
+    IGRIS_EXECUTION_INPUT_REF_KEYS="$IGRIS_EXECUTION_INPUT_REF_KEYS" \
+    IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION="$IGRIS_EXECUTION_INPUT_REF_ACTIVE_KEY_VERSION" \
+    "$OVERTURE_BIN"
+) > "$LOG_DIR/overture-b.log" 2>&1 &
+OVERTURE_PID=$!
+PIDS+=($OVERTURE_PID)
+wait_for_http "http://127.0.0.1:$OVERTURE_PORT/healthz" "overture (scenario B yield)"
 
-  psql "$DB_URL" -X -q <<SQL >/dev/null
+# Ensure Runtime 1 is up without continue-pause (yield handles the stop).
+if [[ -n "${RUNTIME_1_PID:-}" ]]; then
+  kill "$RUNTIME_1_PID" 2>/dev/null || true
+  wait "$RUNTIME_1_PID" 2>/dev/null || true
+  RUNTIME_1_PID=""
+fi
+if [[ -n "${RUNTIME_2_PID:-}" ]]; then
+  kill "$RUNTIME_2_PID" 2>/dev/null || true
+  wait "$RUNTIME_2_PID" 2>/dev/null || true
+  RUNTIME_2_PID=""
+fi
+listener=$(lsof -tiTCP:"$RUNTIME_PORT" -sTCP:LISTEN 2>/dev/null || true)
+if [[ -n "$listener" ]]; then kill "$listener" 2>/dev/null || true; sleep 0.5; fi
+
+# Re-register Runtime 1 against the restarted Overture.
+node "$HELPER" runtime-register-request \
+  "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
+  "$RUNTIME_1_MACHINE_ID" \
+  "$RUNTIME_1_PEER_ID" \
+  "darwin" \
+  "1.6.0" \
+  "http://127.0.0.1:$RUNTIME_PORT" > "$TMP_DIR/runtime-1b-register.json"
+curl -sS -f \
+  -H "X-API-Key: $PROOF_RAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @"$TMP_DIR/runtime-1b-register.json" \
+  "http://127.0.0.1:$OVERTURE_PORT/api/v1/runtime/register" > "$TMP_DIR/runtime-1b-register-response.json"
+RUNTIME_1_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-1b-register-response.json")
+node "$ACTION_HELPER" inject-tools-config \
+  "$RUNTIME_1_CONFIG" \
+  "$INPUT_FILE" \
+  "127.0.0.1" \
+  "$DB_WRITE_GATEWAY_URL" \
+  "$RUNTIME_1_REGISTRY_ID" >/dev/null
+
+(
+  cd "$ROOT_DIR"
+  exec env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$RUNTIME_1_CONFIG" \
+    IGRIS_DEVICE_ID="$DEVICE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
+    IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
+    IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
+    IGRIS_CLOCK3F_ADAPTER_TOKEN="$IGRIS_CLOCK3F_ADAPTER_TOKEN" \
+    RUST_LOG=warn \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime-1b.log" 2>&1 &
+RUNTIME_1_PID=$!
+PIDS+=($RUNTIME_1_PID)
+wait_for_http "http://127.0.0.1:$RUNTIME_PORT/v1/health" "runtime 1 (scenario B)"
+
+COMMIT_B=$(node -e 'process.stdout.write(require("crypto").createHash("sha1").update("clock3f-b").digest("hex"))')
+IDEMP_B="deploy:demo-api:disposable-staging:$COMMIT_B"
+
+"$CLEANROOM_PY" - <<'PY' "$OVERTURE_PORT" "$PROOF_RAW_API_KEY" "$CONTRACT_HASH" "$COMMIT_B" "$IDEMP_B" "$TMP_DIR/scenario_b_submit.json" "$ADAPTER_PORT" "$IGRIS_CLOCK3F_ADAPTER_TOKEN"
+import json, sys, time, urllib.request
+from igris import IgrisDurableClient
+from igris.durable import DurableRun
+
+endpoint = f"http://127.0.0.1:{sys.argv[1]}"
+client = IgrisDurableClient(endpoint=endpoint, api_key=sys.argv[2])
+req = urllib.request.Request(
+    f"http://127.0.0.1:{sys.argv[7]}/v1/deploy/staging-release/ledger",
+    headers={"X-Igris-Adapter-Token": sys.argv[8]},
+)
+before = int(json.loads(urllib.request.urlopen(req).read()).get("effect_journal_count") or 0)
+run = client.run(
+    "deploy.staging_release",
+    input={"service": "demo-api", "environment": "disposable-staging", "commit_sha": sys.argv[4]},
+    idempotency_key=sys.argv[5],
+    contract_hash=sys.argv[3],
+)
+# Yield mode: wait until checkpointed after the HTTP effect.
+deadline = time.time() + 45
+status = None
+while time.time() < deadline:
+    status = DurableRun(client, run_id=run.run_id).status()
+    if status.status in {"checkpointed", "completed", "failed", "reconciliation_required"}:
+        break
+    time.sleep(0.3)
+assert status is not None and status.status == "checkpointed", status
+ledger = json.loads(urllib.request.urlopen(req).read())
+assert int(ledger.get("effect_journal_count") or 0) == before + 1, ledger
+open(sys.argv[6], "w").write(json.dumps({
+    "run_id": run.run_id,
+    "effects_before": before,
+    "status": status.status,
+}, indent=2))
+print(json.dumps({"run_id": run.run_id, "status": status.status, "effects_before": before}))
+PY
+
+RUN_B=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).run_id)' "$TMP_DIR/scenario_b_submit.json")
+EFFECTS_BEFORE_B=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).effects_before))' "$TMP_DIR/scenario_b_submit.json")
+
+echo "[clock3f] Scenario B — interrupting Runtime 1 and recovering on Runtime 2"
+if [[ -n "${RUNTIME_1_PID:-}" ]]; then
+  kill "$RUNTIME_1_PID" 2>/dev/null || true
+  wait "$RUNTIME_1_PID" 2>/dev/null || true
+  RUNTIME_1_PID=""
+fi
+listener=$(lsof -tiTCP:"$RUNTIME_PORT" -sTCP:LISTEN 2>/dev/null || true)
+if [[ -n "$listener" ]]; then kill "$listener" 2>/dev/null || true; sleep 0.5; fi
+
+node "$HELPER" runtime-register-request \
+  "$ROOT_DIR/.igris/runtime-signing-key.ed25519" \
+  "$RUNTIME_2_MACHINE_ID" \
+  "$RUNTIME_2_PEER_ID" \
+  "darwin" \
+  "1.6.0" \
+  "http://127.0.0.1:$RUNTIME_PORT" > "$TMP_DIR/runtime-2-register.json"
+curl -sS -f \
+  -H "X-API-Key: $PROOF_RAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @"$TMP_DIR/runtime-2-register.json" \
+  "http://127.0.0.1:$OVERTURE_PORT/api/v1/runtime/register" > "$TMP_DIR/runtime-2-register-response.json"
+RUNTIME_2_REGISTRY_ID=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).runtime_id || "")' "$TMP_DIR/runtime-2-register-response.json")
+[[ -n "$RUNTIME_2_REGISTRY_ID" ]] || { cat "$TMP_DIR/runtime-2-register-response.json" >&2; exit 1; }
+node "$ACTION_HELPER" inject-tools-config \
+  "$RUNTIME_2_CONFIG" \
+  "$INPUT_FILE" \
+  "127.0.0.1" \
+  "$DB_WRITE_GATEWAY_URL" \
+  "$RUNTIME_2_REGISTRY_ID" >/dev/null
+
+(
+  cd "$ROOT_DIR"
+  exec env \
+    RUNTIME_MOCK_KEY=dummy \
+    IGRIS_ALLOW_INSECURE_DEV_MODE=true \
+    IGRIS_CONFIG="$RUNTIME_2_CONFIG" \
+    IGRIS_DEVICE_ID="$DEVICE_ID" \
+    IGRIS_OFFLINE_LICENSE_PATH="$TMP_DIR/offline-license.json" \
+    IGRIS_LICENSE_OFFLINE_PUBLIC_KEY="$LICENSE_PUBLIC_KEY_HEX" \
+    IGRIS_OVERTURE_PUBLIC_KEY="$OVERTURE_PUBLIC_KEY_HEX" \
+    IGRIS_RECEIPT_LOG="$TMP_DIR/receipts.jsonl" \
+    IGRIS_DB_WRITE_GATEWAY_URL="$DB_WRITE_GATEWAY_URL" \
+    IGRIS_DB_WRITE_ALLOWED_TABLE_PREFIXES="action_task_" \
+    IGRIS_CLOCK3F_ADAPTER_TOKEN="$IGRIS_CLOCK3F_ADAPTER_TOKEN" \
+    RUST_LOG=warn \
+    "$RUNTIME_BIN" serve
+) > "$LOG_DIR/runtime-2.log" 2>&1 &
+RUNTIME_2_PID=$!
+PIDS+=($RUNTIME_2_PID)
+wait_for_http "http://127.0.0.1:$RUNTIME_PORT/v1/health" "runtime 2"
+
+psql "$DB_URL" -X -q <<SQL >/dev/null
 UPDATE runtime_instances
 SET last_heartbeat = NOW() - INTERVAL '120 seconds', is_healthy = true, status = 'active'
 WHERE tenant_id = '$PROOF_TENANT_ID'
   AND machine_id = '$RUNTIME_1_MACHINE_ID';
 SQL
-}
+sleep 2
 
-if [[ "$NEEDS_RESUME" == "true" ]]; then
-  resume_with_runtime2 "Scenario A resume"
-fi
-
-"$CLEANROOM_PY" - <<'PY' "$OVERTURE_PORT" "$PROOF_RAW_API_KEY" "$RUN_A" "$ADAPTER_PORT" "$IGRIS_CLOCK3F_ADAPTER_TOKEN" "$REPORT" "$FRICTION" "$SCENARIO_A_START"
-import json, sys, time, urllib.request
-from pathlib import Path
-from igris.durable import IgrisDurableClient, DurableRun
-endpoint=f"http://127.0.0.1:{sys.argv[1]}"
-client=IgrisDurableClient(endpoint=endpoint, api_key=sys.argv[2])
-run=DurableRun(client, run_id=sys.argv[3])
-status=run.wait(timeout=90)
-assert status.status=="completed", status
-proof=run.proof()
-assert proof.schema=="igris_run_proof.v1"
-boundary=proof.claim_boundary
-boundary_keys=[]
-if boundary is not None:
-    import dataclasses as _dc
-    if _dc.is_dataclass(boundary):
-        boundary_keys=[f.name for f in _dc.fields(boundary)]
-orp=proof.raw.get("operator_reconciliation") if isinstance(proof.raw.get("operator_reconciliation"), dict) else None
-# Idempotent replay
-boot=json.loads(Path(sys.argv[6]).read_text())["bootstrap"]
-run2=client.run(
-    boot["action_name"],
-    input={"service":boot["service"],"environment":boot["environment"],"commit_sha":boot["commit_sha"]},
-    idempotency_key=boot["idempotency_key"],
-    contract_hash=boot["contract_hash"],
-)
-assert run2.run_id==run.run_id
-req=urllib.request.Request(
-    f"http://127.0.0.1:{sys.argv[4]}/v1/deploy/staging-release/ledger",
-    headers={"X-Igris-Adapter-Token": sys.argv[5]},
-)
-ledger=json.loads(urllib.request.urlopen(req).read())
-assert ledger.get("effect_journal_count")==1, ledger
-elapsed=int(time.time())-int(sys.argv[8])
-out=json.loads(Path(sys.argv[6]).read_text())
-out["scenario_a"]={
-    "ok": True,
-    "run_id": run.run_id,
-    "contract_hash": boot["contract_hash"],
-    "binding_id": boot["binding_id"],
-    "target_id": boot["target_id"],
-    "status": status.status,
-    "proof_schema": proof.schema,
-    "effect_count": ledger.get("effect_count"),
-    "effect_journal_count": ledger.get("effect_journal_count"),
-    "idempotent_replay_run_id": run2.run_id,
-    "claim_boundary_keys": boundary_keys,
-    "operator_reconciliation": orp,
-    "runtime_proof_present": proof.runtime_proof is not None,
-    "action_protocol_evidence_present": proof.action_protocol_evidence is not None,
-    "seconds": elapsed,
-    "completed_via_runtime_resume": True,
-}
-Path(sys.argv[6]).write_text(json.dumps(out, indent=2)+"\n")
-friction=json.loads(Path(sys.argv[7]).read_text())
-friction["scenario_a_seconds"]=elapsed
-friction["time_to_first_durable_run_seconds"]=elapsed
-friction["raw_http_calls_in_sdk_journey"]=0
-friction["configuration_values"]=["endpoint","api_key","adapter_url","adapter_token_env","idempotency_key","service","environment","commit_sha"]
-friction["product_concepts"]=["ActionContract","wrap_tool","IgrisDurableClient","action_target","exact_contract_hash_binding","business_idempotency_key","DurableRun","Igris_Run_Proof","Runtime_receipt","Action_Protocol_Evidence","checkpoint_resume"]
-friction["p0_friction"]=[{
-    "id":"checkpoint_resume_required",
-    "severity":"P0",
-    "summary":"Contract-bound runs pause at checkpoint_after_steps=1; completion requires Runtime recovery/resume. Clean-room DurableRun.wait alone will time out unless infrastructure resumes.",
-}]
-Path(sys.argv[7]).write_text(json.dumps(friction, indent=2)+"\n")
-print(json.dumps(out["scenario_a"], indent=2))
-PY
-json_set "$REPORT" "scenario_a_exit" "0"
-echo "[clock3f] Scenario A PASSED"
-
-# ---------------------------------------------------------------------------
-# Scenario B — two-Runtime recovery lineage (exercised by Scenario A resume).
-# Contract-bound graphs checkpoint after the HTTP effect; Runtime 2 completes
-# the deterministic DB write without replaying the adapter effect.
-# ---------------------------------------------------------------------------
-echo "[clock3f] Scenario B — verify recovery lineage from Scenario A resume"
-"$CLEANROOM_PY" - <<'PY' "$OVERTURE_PORT" "$PROOF_RAW_API_KEY" "$RUN_A" "$ADAPTER_PORT" "$IGRIS_CLOCK3F_ADAPTER_TOKEN" "$REPORT"
+"$CLEANROOM_PY" - <<'PY' "$OVERTURE_PORT" "$PROOF_RAW_API_KEY" "$RUN_B" "$ADAPTER_PORT" "$IGRIS_CLOCK3F_ADAPTER_TOKEN" "$REPORT" "$EFFECTS_BEFORE_B"
 import json, sys, urllib.request
 from pathlib import Path
 from igris.durable import IgrisDurableClient, DurableRun
-client=IgrisDurableClient(endpoint=f"http://127.0.0.1:{sys.argv[1]}", api_key=sys.argv[2])
-run=DurableRun(client, run_id=sys.argv[3])
-status=run.status()
-proof=run.proof()
-assert status.status=="completed", status
+client = IgrisDurableClient(endpoint=f"http://127.0.0.1:{sys.argv[1]}", api_key=sys.argv[2])
+run = DurableRun(client, run_id=sys.argv[3])
+status = run.wait(timeout=120)
+assert status.status == "completed", status
+proof = run.proof()
 assert len(proof.recovery_lineage or []) >= 1, proof.recovery_lineage
-req=urllib.request.Request(
+req = urllib.request.Request(
     f"http://127.0.0.1:{sys.argv[4]}/v1/deploy/staging-release/ledger",
     headers={"X-Igris-Adapter-Token": sys.argv[5]},
 )
-ledger=json.loads(urllib.request.urlopen(req).read())
-assert ledger.get("effect_journal_count")==1, ledger
-out=json.loads(Path(sys.argv[6]).read_text())
-out["scenario_b"]={
+ledger = json.loads(urllib.request.urlopen(req).read())
+before = int(sys.argv[7])
+assert int(ledger.get("effect_journal_count") or 0) == before + 1, ledger
+out = json.loads(Path(sys.argv[6]).read_text())
+out["scenario_b"] = {
     "ok": True,
     "run_id": run.run_id,
     "status": status.status,
@@ -614,11 +742,12 @@ out["scenario_b"]={
     "recovery_lineage_len": len(proof.recovery_lineage or []),
     "recovery_lineage": proof.recovery_lineage,
     "effect_journal_count": ledger.get("effect_journal_count"),
+    "scenario_b_effect_delta": 1,
     "raw_task_endpoints_used": False,
-    "note": "Scenario A completed via Runtime 1 interrupt + Runtime 2 resume after HTTP effect checkpoint; adapter effect count remained 1",
+    "note": "Runtime 1 interrupted after durable post-HTTP checkpoint; Runtime 2 completed without replaying adapter effect",
 }
-Path(sys.argv[6]).write_text(json.dumps(out, indent=2)+"\n")
-print(json.dumps({"ok":True,"recovery_lineage_len":len(proof.recovery_lineage or []),"effects":ledger.get("effect_journal_count")}, indent=2))
+Path(sys.argv[6]).write_text(json.dumps(out, indent=2) + "\n")
+print(json.dumps({"ok": True, "recovery_lineage_len": len(proof.recovery_lineage or []), "effects": ledger.get("effect_journal_count"), "delta": 1}, indent=2))
 PY
 echo "[clock3f] Scenario B PASSED"
 
@@ -658,43 +787,47 @@ COMMIT_C=$(node -e 'process.stdout.write(require("crypto").createHash("sha1").up
 IDEMP_C="deploy:demo-web:disposable-staging:$COMMIT_C"
 
 "$CLEANROOM_PY" - <<'PY' "$OVERTURE_PORT" "$PROOF_RAW_API_KEY" "$CONTRACT_HASH" "$COMMIT_C" "$IDEMP_C" "$TMP_DIR/scenario_c_run.json" "$ADAPTER_PORT" "$IGRIS_CLOCK3F_ADAPTER_TOKEN"
-import json, sys, time
+import json, sys, urllib.request
 from igris import IgrisDurableClient
 from igris.errors import ReconciliationRequiredError
-endpoint=f"http://127.0.0.1:{sys.argv[1]}"
-client=IgrisDurableClient(endpoint=endpoint, api_key=sys.argv[2])
-run=client.run(
+endpoint = f"http://127.0.0.1:{sys.argv[1]}"
+client = IgrisDurableClient(endpoint=endpoint, api_key=sys.argv[2])
+run = client.run(
     "deploy.staging_release",
-    input={"service":"demo-web","environment":"disposable-staging","commit_sha":sys.argv[4]},
+    input={"service": "demo-web", "environment": "disposable-staging", "commit_sha": sys.argv[4]},
     idempotency_key=sys.argv[5],
     contract_hash=sys.argv[3],
 )
-caught=False
+caught = False
+status = None
 try:
-    run.wait(timeout=90)
-except ReconciliationRequiredError as exc:
-    caught=True
-    err=str(exc)
-status=run.status()
-import urllib.request
-req=urllib.request.Request(
+    status = run.wait(timeout=90)
+except ReconciliationRequiredError:
+    caught = True
+    # status() also raises when reconciliation is required; that is intentional DX.
+    try:
+        status = run.status()
+    except ReconciliationRequiredError:
+        status = None
+req = urllib.request.Request(
     f"http://127.0.0.1:{sys.argv[7]}/v1/deploy/staging-release/ledger",
     headers={"X-Igris-Adapter-Token": sys.argv[8]},
 )
-ledger=json.loads(urllib.request.urlopen(req).read())
-# External effect happened exactly once; auto-replay refused
+ledger = json.loads(urllib.request.urlopen(req).read())
+# Scenario C creates exactly one new effect on this adapter ledger (fresh file).
 assert ledger.get("effect_journal_count") == 1, ledger
-# Second SDK wait/status must not create another effect
+# Second SDK wait must not create another effect / auto-replay.
 try:
     run.wait(timeout=5)
 except Exception:
     pass
-ledger2=json.loads(urllib.request.urlopen(req).read())
+ledger2 = json.loads(urllib.request.urlopen(req).read())
 assert ledger2.get("effect_journal_count") == 1, ledger2
-open(sys.argv[6],"w").write(json.dumps({
+assert caught is True, "DurableRun.wait must surface ReconciliationRequiredError"
+open(sys.argv[6], "w").write(json.dumps({
     "run_id": run.run_id,
-    "status": status.status,
-    "requires_reconciliation": getattr(status, "requires_reconciliation", None),
+    "status": getattr(status, "status", "reconciliation_required"),
+    "requires_reconciliation": True,
     "caught_reconciliation_error": caught,
     "effect_journal_count": ledger2.get("effect_journal_count"),
 }, indent=2))
