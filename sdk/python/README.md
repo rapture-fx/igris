@@ -42,25 +42,40 @@ See [Wrapping existing tools](docs/wrapping-existing-tools.md) for
 
 ## Installation
 
-**Private alpha:** Do **not** run `pip install igris` from the public package
-index — that name resolves to an unrelated third-party package and also
-collides with legacy distributions (see `RELEASE.md`). This SDK’s distribution
-name is **`igris-sdk`**; the import remains `import igris`.
+**External / private alpha:** Do **not** run `pip install igris` from the
+public package index — that name resolves to an unrelated third-party package
+and also collides with legacy distributions (see `RELEASE.md`). This SDK’s
+distribution name is **`igris-sdk`**; the import remains `import igris`.
 
-Supported interim install paths:
+Supported install paths (no monorepo clone required when using a release
+wheel):
 
 ```bash
-# From a repository checkout:
+# Preferred for design partners: install a GitHub Release wheel
+# (download igris_sdk-0.1.0a2-py3-none-any.whl from the release assets):
+python -m venv .venv && source .venv/bin/activate
+python -m pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
+
+# Or install the matching sdist:
+python -m pip install ./igris_sdk-0.1.0a2.tar.gz
+
+# From a repository checkout (maintainers / contributors):
 pip install ./sdk/python
 
-# Or build and install the wheel:
+# Or build locally:
 uv build sdk/python && pip install sdk/python/dist/igris_sdk-*.whl
-
-# Wheel supplied with a private-alpha kit (name may vary by kit):
-pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
 ```
 
-Public PyPI publication of `igris-sdk` is not authorized in this task.
+Verify the installed distribution identity (must report `igris-sdk`, not
+`igris`):
+
+```bash
+python -c "from importlib.metadata import metadata; print(metadata('igris-sdk')['Name'], metadata('igris-sdk')['Version'])"
+python -c "import igris; from igris import IgrisDurableClient, wrap_tool; print(igris.__version__)"
+```
+
+Public PyPI publication of `igris-sdk` is **not** authorized. Install only from
+repository checkout or owner-published GitHub Release artifacts.
 
 Requires Python 3.10+. The only runtime dependency is `cryptography`.
 

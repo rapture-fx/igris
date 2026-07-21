@@ -1,6 +1,18 @@
 # Embedded Igris SDK Release Notes
 
-Status date: 2026-07-12
+Status date: 2026-07-22
+
+## External-alpha distribution status
+
+Distribution name: **`igris-sdk`** (wheel/sdist filenames use the normalized
+form `igris_sdk-*`). Import name: **`igris`** (unchanged).
+
+Design partners install a versioned GitHub Release wheel or sdist — a monorepo
+clone is not required. Public PyPI publication remains unauthorized.
+
+Artifact release workflow: `.github/workflows/sdk-python-release.yml` builds
+and attaches wheel + sdist to a GitHub prerelease on `sdk-python-v*` tags. It
+does not publish to PyPI and does not deploy backend/runtime images.
 
 ## Internal release status
 
@@ -45,9 +57,11 @@ Clock 3E separates distribution identity from the import package:
   `igris` and reduces collision risk with legacy `igris-inertial`)
 - import name: `igris` (unchanged)
 
-Supported interim install: `pip install ./sdk/python` or the built
-`igris_sdk-*.whl`. Do not instruct developers to `pip install igris` from the
-public index until owner-authorized publication is complete.
+Supported install for design partners: download the GitHub Release wheel
+`igris_sdk-*.whl` (or matching sdist) and `pip install` that artifact. Maintainers
+may still use `pip install ./sdk/python`. Do not instruct developers to
+`pip install igris` from the public index until owner-authorized publication is
+complete.
 
 The legacy `igris-inertial` distribution remains untouched. This branch does not
 modify the nested legacy repository and does not publish to PyPI.
@@ -150,11 +164,19 @@ Artifact checks:
 - [x] Run `igris verify` on each generated journal.
 - [x] Confirm no generated signing identities or journals are included in
       artifacts.
+- [x] Confirm distribution metadata reports `igris-sdk` (not public `igris`).
+- [x] Confirm `from igris import IgrisDurableClient, wrap_tool` works from the
+      wheel alone (no monorepo checkout).
+- [x] Confirm GitHub Release workflow builds/attaches artifacts without PyPI.
 - [ ] Confirm namespace-collision migration plan is approved before any public
       PyPI publication.
+- [ ] Owner creates `sdk-python-v0.1.0a2` tag (or later) to publish GitHub
+      prerelease assets for design partners.
 
 ## This task does not publish the package
 
 This hardening task builds and validates local artifacts only. It does not
-publish `igris`, does not publish `igris-inertial`, and does not reserve or
-modify any public package index state.
+publish `igris`, does not publish `igris-sdk` to public PyPI, does not publish
+`igris-inertial`, and does not reserve or modify any public package index
+state. Owner authorization is required before any PyPI publication of
+`igris-sdk`.

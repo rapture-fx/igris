@@ -1,0 +1,191 @@
+# Build and attach igris-sdk wheel + sdist to a GitHub Release.
+#
+# Trigger: push a tag matching sdk-python-v* (example: sdk-python-v0.1.0a2).
+# This workflow never publishes to PyPI and never deploys backend/runtime images.
+name: Python SDK Release Artifacts
+
+on:
+  push:
+    tags:
+      - "sdk-python-v*"
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Create/update a GitHub prerelease for the current ref"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build igris-sdk artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    defaults:
+      run:
+        working-directory: sdk/python
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "sdk/python/pyproject.toml"
+
+      - name: Install and test
+        run: |
+          uv sync --dev
+          uv run pytest
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Build wheel and sdist
+        run: |
+          rm -rf dist
+          uv build
+          ls -la dist/
+
+      - name: Verify distribution identity and contents
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import tarfile
+          import zipfile
+          from pathlib import Path
+
+          dist = Path("dist")
+          wheels = sorted(dist.glob("igris_sdk-*.whl"))
+          sdists = sorted(dist.glob("igris_sdk-*.tar.gz"))
+          assert len(wheels) == 1, wheels
+          assert len(sdists) == 1, sdists
+
+          with zipfile.ZipFile(wheels[0]) as wheel:
+              names = set(wheel.namelist())
+              meta = next(n for n in names if n.endswith(".dist-info/METADATA"))
+              text = wheel.read(meta).decode()
+          assert "Name: igris-sdk" in text, text[:400]
+          assert "Version: 0.1.0a2" in text
+          assert "unrelated public PyPI package named igris" in text
+          assert "igris/__init__.py" in names
+          assert "igris/durable.py" in names
+          assert "igris/wrap_tool.py" in names
+          assert "igris/py.typed" in names
+          assert not any(n.startswith(("tests/", "examples/")) for n in names)
+          assert not any("signing_key" in n or "journal.jsonl" in n or n.endswith(".env") for n in names)
+          assert not any("/Users/" in n or "/home/" in n for n in names)
+
+          with tarfile.open(sdists[0]) as sdist:
+              snames = set(sdist.getnames())
+          assert not any("/tests/" in n or "/examples/" in n for n in snames)
+          # Hatchling force-includes .gitignore into sdists; that is expected.
+          assert not any("/Users/" in n or "/home/" in n for n in snames)
+
+          manifest = {
+              "distribution_name": "igris-sdk",
+              "import_namespace": "igris",
+              "pypi_publish": False,
+              "artifacts": [
+                  {
+                      "filename": p.name,
+                      "size_bytes": p.stat().st_size,
+                      "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                  }
+                  for p in (*wheels, *sdists)
+              ],
+          }
+          Path("dist/artifact-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Clean-room wheel install smoke
+        run: |
+          uv venv /tmp/igris-sdk-release-smoke
+          /tmp/igris-sdk-release-smoke/bin/python -m pip install --upgrade pip
+          /tmp/igris-sdk-release-smoke/bin/python -m pip install dist/igris_sdk-*.whl
+          /tmp/igris-sdk-release-smoke/bin/python - <<'PY'
+          from importlib.metadata import metadata
+          import igris
+          from igris import IgrisDurableClient, wrap_tool
+          from igris.approval import ApprovalDecision
+
+          m = metadata("igris-sdk")
+          assert m["Name"] == "igris-sdk"
+          assert igris.__version__ == "0.1.0a2"
+          client = IgrisDurableClient(
+              endpoint="https://example.invalid",
+              api_key="igris_dummy_not_a_real_key",
+          )
+          assert client is not None
+
+          class Allow:
+              def decide(self, request):
+                  return ApprovalDecision("allowed", "release-smoke")
+
+          def probe(value: int) -> int:
+              return value + 1
+
+          wrapped = wrap_tool(
+              probe,
+              action="release.smoke.wrap",
+              risk="low",
+              approval="never",
+              approval_provider=Allow(),
+          )
+          assert wrapped(1) == 2
+          print("clean-room OK", m["Name"], m["Version"])
+          PY
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: igris-sdk-dist
+          path: |
+            sdk/python/dist/igris_sdk-*.whl
+            sdk/python/dist/igris_sdk-*.tar.gz
+            sdk/python/dist/artifact-manifest.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub prerelease (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/sdk-python-v')
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          NOTES="$(cat <<EOF
+          ## igris-sdk external-alpha artifacts
+
+          - Distribution name: \`igris-sdk\`
+          - Import namespace: \`igris\` (unchanged)
+          - Do **not** run \`pip install igris\` from public PyPI
+          - This release does **not** publish to PyPI
+
+          Install:
+
+          \`\`\`bash
+          python -m venv .venv && source .venv/bin/activate
+          python -m pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
+          python -c "import igris; from igris import IgrisDurableClient, wrap_tool; print(igris.__version__)"
+          \`\`\`
+          EOF
+          )"
+          gh release create "$TAG" \
+            --title "Python SDK ${TAG#sdk-python-}" \
+            --notes "$NOTES" \
+            --prerelease \
+            sdk/python/dist/igris_sdk-*.whl \
+            sdk/python/dist/igris_sdk-*.tar.gz \
+            sdk/python/dist/artifact-manifest.json

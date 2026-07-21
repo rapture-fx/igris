@@ -31,6 +31,24 @@ class TestPackageMetadata:
         assert project["dependencies"] == ["cryptography>=42.0"]
         assert project["readme"] == "README.md"
         assert project["license"] == {"text": "MIT"}
+        assert "igris-sdk" in project["description"]
+        assert "unrelated public PyPI package named igris" in project["description"]
+        assert "pip install igris" not in project["description"]
+
+    def test_project_urls_point_at_github_release_path(self):
+        urls = load_pyproject()["project"]["urls"]
+
+        assert "Homepage" in urls
+        assert "Release Artifacts" in urls
+        assert urls["Release Artifacts"].endswith("/releases")
+
+    def test_public_exports_include_durable_client_and_wrap_tool(self):
+        import igris
+
+        assert "IgrisDurableClient" in igris.__all__
+        assert "wrap_tool" in igris.__all__
+        assert igris.IgrisDurableClient is not None
+        assert callable(igris.wrap_tool)
 
     def test_declared_python_classifiers_match_release_matrix(self):
         classifiers = set(load_pyproject()["project"]["classifiers"])
@@ -47,14 +65,16 @@ class TestPackageMetadata:
     def test_artifact_include_policy_keeps_distribution_small(self):
         sdist = load_pyproject()["tool"]["hatch"]["build"]["targets"]["sdist"]
 
-        assert sdist["include"] == [
+        assert sdist["only-include"] == [
             "src/igris",
             "docs/evidence-privacy.md",
             "docs/wrapping-existing-tools.md",
             "docs/durable-action-quickstart.md",
             "README.md",
             "LICENSE",
+            "pyproject.toml",
         ]
         assert (PROJECT_ROOT / "LICENSE").is_file()
-        assert "tests" not in sdist["include"]
-        assert "examples" not in sdist["include"]
+        assert "tests" not in sdist["only-include"]
+        assert "examples" not in sdist["only-include"]
+        assert ".gitignore" not in sdist["only-include"]

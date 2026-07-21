@@ -23,7 +23,7 @@ from igris.approval import ApprovalDecision
 
 
 class AlwaysAllow:
-    def decide(self, request):  # noqa: ARG002
+    def decide(self, request):
         return ApprovalDecision("allowed", "durable quickstart")
 
 
@@ -99,10 +99,7 @@ def main() -> int:
     print(f"run_id: {run.run_id}")
 
     status = run.wait(timeout=float(os.environ.get("IGRIS_DEMO_WAIT_TIMEOUT", "60")))
-    print(
-        f"status={status.status} recovery={status.recovery_status} "
-        f"terminal={status.is_terminal}"
-    )
+    print(f"status={status.status} recovery={status.recovery_status} terminal={status.is_terminal}")
 
     proof = run.proof()
     print(f"proof schema={proof.schema} product_term={proof.product_term}")

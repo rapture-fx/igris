@@ -15,16 +15,20 @@ Runtime is not an arbitrary Python executor.
 
 Do **not** run `pip install igris` from the public package index. That name
 resolves to an unrelated third-party package and/or collides with legacy
-distributions. This SDK publishes (internally) as distribution name **`igris-sdk`**
-while keeping `import igris`.
+distributions. This SDK’s distribution name is **`igris-sdk`** while keeping
+`import igris`.
 
 ```bash
-# From a repository checkout (preferred for private alpha):
+# Preferred for design partners: GitHub Release wheel (no monorepo clone):
+python -m venv .venv && source .venv/bin/activate
+python -m pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
+
+# From a repository checkout (maintainers / contributors):
 python -m venv .venv && source .venv/bin/activate
 python -m pip install -U pip
 python -m pip install ./sdk/python
 
-# Or build and install the wheel:
+# Or build and install the wheel locally:
 cd sdk/python && python -m pip install build && python -m build
 python -m pip install dist/igris_sdk-*.whl
 ```
@@ -32,10 +36,12 @@ python -m pip install dist/igris_sdk-*.whl
 Verify:
 
 ```bash
-python -c "import igris; print(igris.__version__)"
+python -c "from importlib.metadata import metadata; print(metadata('igris-sdk')['Name'])"
+python -c "import igris; from igris import IgrisDurableClient, wrap_tool; print(igris.__version__)"
 igris --version
 ```
 
+Public PyPI publication of `igris-sdk` is not authorized.
 ## Prerequisites (infrastructure)
 
 The control plane and a bound webhook adapter must already be running for your

@@ -62,13 +62,18 @@ import zipfile
 from pathlib import Path
 
 dist = Path(sys.argv[1])
-wheels = sorted(dist.glob("igris-*.whl"))
-sdists = sorted(dist.glob("igris-*.tar.gz"))
+wheels = sorted(dist.glob("igris_sdk-*.whl"))
+sdists = sorted(dist.glob("igris_sdk-*.tar.gz"))
 assert len(wheels) == 1, wheels
 assert len(sdists) == 1, sdists
+assert wheels[0].name.startswith("igris_sdk-"), wheels[0].name
+assert sdists[0].name.startswith("igris_sdk-"), sdists[0].name
 
 with zipfile.ZipFile(wheels[0]) as wheel:
     wheel_names = set(wheel.namelist())
+    metadata = next(n for n in wheel_names if n.endswith(".dist-info/METADATA"))
+    meta_text = wheel.read(metadata).decode()
+assert "Name: igris-sdk" in meta_text
 assert "igris/py.typed" in wheel_names
 assert any(n.endswith(".dist-info/licenses/LICENSE") for n in wheel_names)
 assert not any(n.startswith("tests/") for n in wheel_names)
@@ -80,11 +85,11 @@ assert any(n.endswith("/src/igris/py.typed") for n in sdist_names)
 assert any(n.endswith("/LICENSE") for n in sdist_names)
 assert not any("/tests/" in n for n in sdist_names)
 assert not any("signing_key" in n or "journal.jsonl" in n for n in sdist_names)
-print("  contents OK: py.typed + LICENSE packaged; no tests, keys, or journals")
+print("  contents OK: py.typed + LICENSE packaged; Name=igris-sdk; no tests, keys, or journals")
 PY
 
-WHEEL=$(ls "$OUT"/build-a/igris-*.whl)
-SDIST=$(ls "$OUT"/build-a/igris-*.tar.gz)
+WHEEL=$(ls "$OUT"/build-a/igris_sdk-*.whl)
+SDIST=$(ls "$OUT"/build-a/igris_sdk-*.tar.gz)
 
 smoke() {
   # smoke <venv-dir> <igris-home> <artifact>
@@ -96,7 +101,8 @@ smoke() {
   # Embedded-only smokes: make sure no Connected configuration leaks in.
   local -a clean_env=(env -u IGRIS_API_URL -u IGRIS_API_KEY "IGRIS_HOME=$home")
 
-  "${clean_env[@]}" "$py" -c "import igris; from igris import guard; print('import OK', igris.__version__)"
+  "${clean_env[@]}" "$py" -c "from importlib.metadata import metadata; m=metadata('igris-sdk'); assert m['Name']=='igris-sdk'; print('dist OK', m['Name'], m['Version'])"
+  "${clean_env[@]}" "$py" -c "import igris; from igris import guard, IgrisDurableClient, wrap_tool; print('import OK', igris.__version__, IgrisDurableClient.__name__, wrap_tool.__name__)"
   "${clean_env[@]}" "$py" - <<'PY'
 import igris
 
@@ -106,6 +112,18 @@ def probe(value: int):
 
 assert probe(21) == 42
 print("guard execution OK")
+PY
+  "${clean_env[@]}" "$py" - <<'PY'
+import igris
+from igris import IgrisDurableClient
+
+# Construction must succeed without a network request.
+client = IgrisDurableClient(
+    endpoint="https://example.invalid",
+    api_key="igris_dummy_not_a_real_key",
+)
+assert client is not None
+print("IgrisDurableClient construct OK")
 PY
   "${clean_env[@]}" "$py" - <<'PY'
 import igris

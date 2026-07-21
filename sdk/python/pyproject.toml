@@ -8,14 +8,14 @@ build-backend = "hatchling.build"
 # from the public index for this SDK until publication is explicitly authorized.
 name = "igris-sdk"
 version = "0.1.0a2"
-description = "Igris is a drop-in action layer for consequential AI-agent actions."
+description = "Official Igris Python SDK (install igris-sdk; import igris). Drop-in action layer for consequential AI-agent actions. Not the unrelated public PyPI package named igris."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = [
     "cryptography>=42.0",
 ]
-keywords = ["ai-agents", "approval", "audit", "evidence", "guardrails", "durable-actions"]
+keywords = ["ai-agents", "approval", "audit", "evidence", "guardrails", "durable-actions", "igris-sdk"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -28,6 +28,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Security",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Igris-inertial/system"
+Documentation = "https://github.com/Igris-inertial/system/tree/main/sdk/python"
+Issues = "https://github.com/Igris-inertial/system/issues"
+"Release Artifacts" = "https://github.com/Igris-inertial/system/releases"
 
 [project.scripts]
 igris = "igris.cli:main"
@@ -43,13 +49,14 @@ dev = [
 packages = ["src/igris"]
 
 [tool.hatch.build.targets.sdist]
-include = [
+only-include = [
     "src/igris",
     "docs/evidence-privacy.md",
     "docs/wrapping-existing-tools.md",
     "docs/durable-action-quickstart.md",
     "README.md",
     "LICENSE",
+    "pyproject.toml",
 ]
 
 [tool.pytest.ini_options]
