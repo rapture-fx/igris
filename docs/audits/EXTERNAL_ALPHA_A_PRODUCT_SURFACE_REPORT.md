@@ -115,7 +115,7 @@ Supported lifecycle: **Action → Run → Recover → Reconcile when uncertain �
 - Rust `continue_after_checkpoint` — pass
 - Rust `runtime_callback` — pass
 - Clock 3F product validation harness — pass
-- Heavy Tier A (`scripts/ci_proof_gate.sh heavy`) — see CI/local log if completed in same session
+- Heavy Tier A (`scripts/ci_proof_gate.sh heavy`) — **pass** (Action Task V1 recovery proofs + Clock 3B + core suite)
 
 ## Residual risks
 
