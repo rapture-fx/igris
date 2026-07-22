@@ -2,7 +2,8 @@
 // Sessions are cookie-based (set by the Next.js web-console via Better Auth).
 //
 // Better Auth (via better-call) signs cookies as:
-//   encodeURIComponent("<raw_token>.<HMAC-SHA256-base64>")
+//
+//	encodeURIComponent("<raw_token>.<HMAC-SHA256-base64>")
 //
 // The raw_token is what is stored in the session.token column.
 // We must URL-decode and strip the signature before the DB lookup.
@@ -65,6 +66,7 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 			}
 			c.Locals("clerk_user_id", tenantID)
 			c.Locals("clerk_email", email)
+			c.Locals("auth_method", "api_key")
 			c.Locals("tenant", &TenantContext{TenantID: tenantID, TenantName: name})
 			return c.Next()
 		}
@@ -86,7 +88,7 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 		// Extract the raw session token from the signed cookie value.
 		rawToken := extractSessionToken(cookieValue)
 
-		userID, email, name, err := lookupSession(db, rawToken)
+		userID, email, name, role, err := lookupSession(db, rawToken)
 		if err != nil {
 			if err != sql.ErrNoRows {
 				log.Error().Err(err).Msg("[Auth] Session lookup failed")
@@ -110,15 +112,7 @@ func BetterAuth(db *sql.DB) fiber.Handler {
 				tenant_email = CASE WHEN tenants.tenant_email = '' OR tenants.tenant_email IS NULL THEN EXCLUDED.tenant_email ELSE tenants.tenant_email END
 		`, userID, name, email)
 
-		// Keep same locals keys so all existing handlers work unchanged.
-		c.Locals("clerk_user_id", userID)
-		c.Locals("clerk_email", email)
-
-		// Also set tenant context so handlers using GetTenantContext work.
-		c.Locals("tenant", &TenantContext{
-			TenantID:   userID,
-			TenantName: name,
-		})
+		setBetterAuthSessionContext(c, userID, email, name, role)
 		return c.Next()
 	}
 }
@@ -161,14 +155,52 @@ func extractSessionToken(cookieValue string) string {
 	return token
 }
 
-func lookupSession(db *sql.DB, token string) (userID, email, name string, err error) {
+func lookupSession(db *sql.DB, token string) (userID, email, name, role string, err error) {
 	err = db.QueryRow(`
-		SELECT u.id, COALESCE(u.email, ''), COALESCE(u.name, '')
+		SELECT u.id, COALESCE(u.email, ''), COALESCE(u.name, ''), COALESCE(u.role, 'user')
 		FROM session s
 		JOIN "user" u ON u.id = s."userId"
 		WHERE s.token = $1 AND s."expiresAt" > NOW()
-	`, token).Scan(&userID, &email, &name)
+	`, token).Scan(&userID, &email, &name, &role)
 	return
+}
+
+func splitBetterAuthRoles(value string) []string {
+	parts := strings.Split(value, ",")
+	roles := make([]string, 0, len(parts))
+	for _, part := range parts {
+		role := strings.TrimSpace(part)
+		if role != "" {
+			roles = append(roles, role)
+		}
+	}
+	return roles
+}
+
+func hasExactRole(roles []string, expected string) bool {
+	for _, role := range roles {
+		if role == expected {
+			return true
+		}
+	}
+	return false
+}
+
+func setBetterAuthSessionContext(c *fiber.Ctx, userID, email, name, role string) {
+	// Keep the established locals keys so existing handlers and RBAC checks
+	// share one server-derived operator identity.
+	c.Locals("clerk_user_id", userID)
+	c.Locals("clerk_email", email)
+	c.Locals("auth_method", "session")
+	roles := splitBetterAuthRoles(role)
+	c.Locals("clerk_role", role)
+	c.Locals("clerk_roles", roles)
+	c.Locals("tenant", &TenantContext{
+		TenantID:   userID,
+		TenantName: name,
+		Roles:      roles,
+		IsAdmin:    hasExactRole(roles, "admin"),
+	})
 }
 
 func safePrefix(s string) string {

@@ -451,6 +451,28 @@ func TestBuildTaskResponseIncludesFailureReasonAndCheckpointMetadata(t *testing.
 	}, resp["receipt"])
 }
 
+func TestBuildTaskFailureDetailsResponseIncludesTypedReconciliationSignal(t *testing.T) {
+	details := typedReconciliationFailure()
+	resp := buildTaskFailureDetailsResponse(details)
+
+	require.Equal(t, "unknown_effect_state", resp["effect_state"])
+	require.Equal(t, true, resp["reconciliation_required"])
+	require.Equal(t, "idempotency_unresolved", resp["target_error_code"])
+	require.Equal(t, "adapter.internal", resp["target_host"])
+	require.Equal(t, strings.Repeat("a", 64), resp["target_response_digest"])
+}
+
+func TestFailedCallbackBodyPreservesTypedReconciliationSignal(t *testing.T) {
+	raw, err := json.Marshal(taskFailedCallbackBody{
+		Reason:         "unknown effect",
+		FailureDetails: typedReconciliationFailure(),
+	})
+	require.NoError(t, err)
+	var decoded taskFailedCallbackBody
+	require.NoError(t, json.Unmarshal(raw, &decoded))
+	require.True(t, coordinator.IsTypedReconciliationFailure(decoded.FailureDetails))
+}
+
 func TestBuildTaskResponseRedactsHistoricalUnsafeTaskDefinitionInputs(t *testing.T) {
 	t.Parallel()
 

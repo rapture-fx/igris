@@ -12,6 +12,8 @@ This document describes the stable operator/API representation returned for a bo
 |--------|------|------|
 | `GET` | `/v1/actions/runs/:id` | Retrieve run detail + Igris Run Proof when bound |
 | `POST` | `/v1/actions/runs/:id/evidence-links` | Append-only link of verified Embedded evidence |
+| `GET` | `/v1/actions/runs/:id/reconciliation` | Admin inspection of immutable reconciliation history |
+| `POST` | `/v1/actions/runs/:id/reconciliation` | Admin append of an operator resolution |
 
 Auth: BetterAuth tenant credential. All access is tenant-scoped.
 
@@ -61,6 +63,7 @@ Additive fields (Clock 3B fields retained):
 | `claim_boundary` | Explicit separation of claim types |
 | `runtime_proof` | Runtime receipt claim (`claim_type: runtime_receipt`) |
 | `action_protocol_evidence` | Evidence claim when linked (`claim_type: action_protocol_evidence`) |
+| `operator_reconciliation` | Managed operator assertion (`claim_type: operator_reconciliation`, never cryptographic proof) |
 | `recovery_lineage` | Recovery events for this run |
 | `latest_runtime_handoff` | Latest handoff event if any |
 
@@ -76,6 +79,12 @@ Additive fields (Clock 3B fields retained):
 | `action_evidence_status` | Whether Evidence is linked |
 | `action_evidence_verification_status` | Cryptographic verification of linked Evidence |
 | `run_linkage_status` | Server eligibility of linked Evidence for **this** run |
+| `reconciliation_status` | `not_required`, `reconciliation_required`, `remains_unknown`, `confirmed_succeeded`, or `confirmed_failed` |
+
+The reconciliation claim includes `cryptographic_proof=false`, its current
+state, whether operator work remains required, an immutable history count, and
+the tenant-scoped history endpoint. It does not change Runtime proof or Action
+Protocol Evidence verification.
 
 ## POST evidence-links
 
@@ -110,6 +119,7 @@ Evidence validity (hashes/signatures/chain) is established at ingest time. Run e
 - Action Protocol Evidence **does not** prove managed Overture execution  
 - Linked Igris Run Proof **does not** mean protocol-level cryptographic unification  
 - `eligible_linked` is server-rule eligibility, not a frozen-protocol run_id bind  
+- Operator `confirmed_succeeded` / `confirmed_failed` is an attributable assertion, **not** proof of the external effect
 
 ## Backwards compatibility
 
