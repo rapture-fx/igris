@@ -23,7 +23,8 @@ from igris.approval import ApprovalDecision
 
 
 class AlwaysAllow:
-    def decide(self, request):  # noqa: ARG002
+    def decide(self, request):
+        _ = request
         return ApprovalDecision("allowed", "durable quickstart")
 
 
