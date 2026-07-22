@@ -67,7 +67,7 @@ def build_wheel(temp_root: Path) -> Path:
     dist = temp_root / "dist"
     dist.mkdir()
     run([uv, "build", "--wheel", "--out-dir", str(dist), str(ROOT / "sdk" / "python")])
-    wheels = list(dist.glob("igris-*.whl"))
+    wheels = list(dist.glob("igris_sdk-*.whl"))
     if len(wheels) != 1:
         raise ValidationFailure(f"expected one wheel, found {len(wheels)}")
     return wheels[0]
