@@ -15,37 +15,42 @@ before local execution. Evidence upload remains a separate explicit
 `igris evidence sync` command. Redirects are refused, synchronization failure
 prevents execution, and there is no silent downgrade to Embedded-only behavior.
 
-This package does not provide Managed execution, remote approval, central
+Embedded mode does not provide Managed execution, remote approval, central
 policy, automatic evidence upload, a durable background outbox, telemetry,
 containment, recovery, or exactly-once execution/networking.
 
+Durable contract-bound Run → Recover → Prove is available through the explicit
+`IgrisDurableClient` (and matching CLI). Environment variables alone never make
+`wrap_tool` remote. See `docs/durable-action-quickstart.md`.
+
 ## Public release blockers
 
-The package is not ready for public PyPI publication until the namespace and
-migration strategy from the legacy distribution is resolved. Do not publish this
-package in this task.
+Do not publish this package to public PyPI in this task. Owner authorization is
+required before any external publication of `igris-sdk`.
 
 Current blockers:
 
-- `igris` and the legacy `igris-inertial` distribution both expose top-level
-  `import igris`.
-- Installing both can silently replace whichever distribution last wrote the
-  `igris` package files.
-- Users cannot reliably tell which package owns `import igris` from Python
-  import behavior alone.
+- Public index name `igris` is occupied by an unrelated third-party package;
+  this repository must not instruct `pip install igris` from PyPI.
+- Legacy `igris-inertial` also exposes top-level `import igris`; installing both
+  can silently replace package files.
 - Public documentation, migration warnings, and package ownership must be
   approved before publication.
 
-## igris versus igris-inertial namespace collision
+## Distribution name versus import name
 
-The new Embedded SDK remains:
+Clock 3E separates distribution identity from the import package:
 
-- distribution name: `igris`
-- import name: `igris`
+- distribution name: `igris-sdk` (avoids the unrelated public PyPI package named
+  `igris` and reduces collision risk with legacy `igris-inertial`)
+- import name: `igris` (unchanged)
+
+Supported interim install: `pip install ./sdk/python` or the built
+`igris_sdk-*.whl`. Do not instruct developers to `pip install igris` from the
+public index until owner-authorized publication is complete.
 
 The legacy `igris-inertial` distribution remains untouched. This branch does not
-modify the nested legacy repository and does not implement runtime package
-conflict detection as a substitute for a migration plan.
+modify the nested legacy repository and does not publish to PyPI.
 
 ## Why both packages cannot safely coexist
 

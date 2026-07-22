@@ -26,7 +26,7 @@ class TestPackageMetadata:
     def test_distribution_metadata_stays_embedded_and_minimal(self):
         project = load_pyproject()["project"]
 
-        assert project["name"] == "igris"
+        assert project["name"] == "igris-sdk"
         assert project["requires-python"] == ">=3.10"
         assert project["dependencies"] == ["cryptography>=42.0"]
         assert project["readme"] == "README.md"
@@ -51,6 +51,7 @@ class TestPackageMetadata:
             "src/igris",
             "docs/evidence-privacy.md",
             "docs/wrapping-existing-tools.md",
+            "docs/durable-action-quickstart.md",
             "README.md",
             "LICENSE",
         ]

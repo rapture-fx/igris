@@ -42,31 +42,33 @@ See [Wrapping existing tools](docs/wrapping-existing-tools.md) for
 
 ## Installation
 
-**Private alpha:** `igris` is not yet published to PyPI (public publication is
-blocked until the legacy `igris-inertial` distribution migration is resolved —
-see `RELEASE.md`), so `pip install igris` does not work yet. Install from the
-wheel supplied with your alpha kit, or build one from source:
+**Private alpha:** Do **not** run `pip install igris` from the public package
+index — that name resolves to an unrelated third-party package and also
+collides with legacy distributions (see `RELEASE.md`). This SDK’s distribution
+name is **`igris-sdk`**; the import remains `import igris`.
+
+Supported interim install paths:
 
 ```bash
-# From the wheel supplied with your private-alpha kit:
-pip install ./igris-0.1.0a2-py3-none-any.whl
-
-# Or build the wheel yourself from a checkout of this repository:
-uv build sdk/python && pip install sdk/python/dist/igris-*.whl
-
-# Or install straight from the Git source tree:
+# From a repository checkout:
 pip install ./sdk/python
+
+# Or build and install the wheel:
+uv build sdk/python && pip install sdk/python/dist/igris_sdk-*.whl
+
+# Wheel supplied with a private-alpha kit (name may vary by kit):
+pip install ./igris_sdk-0.1.0a2-py3-none-any.whl
 ```
 
-After public publication (post-alpha, not available today) the standard
-commands will be:
-
-```bash
-pip install igris   # post-publication only
-uv add igris        # post-publication only
-```
+Public PyPI publication of `igris-sdk` is not authorized in this task.
 
 Requires Python 3.10+. The only runtime dependency is `cryptography`.
+
+### Durable Run → Recover → Prove
+
+Embedded `wrap_tool` stays local. For durable contract-bound runs, use the
+explicit [`IgrisDurableClient`](docs/durable-action-quickstart.md) — see the
+[Durable Action Quickstart](docs/durable-action-quickstart.md).
 
 ## What happens on a guarded call
 
