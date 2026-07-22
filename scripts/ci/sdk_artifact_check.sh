@@ -62,8 +62,9 @@ import zipfile
 from pathlib import Path
 
 dist = Path(sys.argv[1])
-wheels = sorted(dist.glob("igris-*.whl"))
-sdists = sorted(dist.glob("igris-*.tar.gz"))
+# Distribution name is igris-sdk → PEP 427/621 normalize to igris_sdk-*.
+wheels = sorted(dist.glob("igris_sdk-*.whl"))
+sdists = sorted(dist.glob("igris_sdk-*.tar.gz"))
 assert len(wheels) == 1, wheels
 assert len(sdists) == 1, sdists
 
@@ -83,8 +84,8 @@ assert not any("signing_key" in n or "journal.jsonl" in n for n in sdist_names)
 print("  contents OK: py.typed + LICENSE packaged; no tests, keys, or journals")
 PY
 
-WHEEL=$(ls "$OUT"/build-a/igris-*.whl)
-SDIST=$(ls "$OUT"/build-a/igris-*.tar.gz)
+WHEEL=$(ls "$OUT"/build-a/igris_sdk-*.whl)
+SDIST=$(ls "$OUT"/build-a/igris_sdk-*.tar.gz)
 
 smoke() {
   # smoke <venv-dir> <igris-home> <artifact>

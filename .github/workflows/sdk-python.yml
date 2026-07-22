@@ -96,8 +96,8 @@ jobs:
           from pathlib import Path
 
           dist = Path("dist")
-          wheels = sorted(dist.glob("igris-*.whl"))
-          sdists = sorted(dist.glob("igris-*.tar.gz"))
+          wheels = sorted(dist.glob("igris_sdk-*.whl"))
+          sdists = sorted(dist.glob("igris_sdk-*.tar.gz"))
           assert len(wheels) == 1, wheels
           assert len(sdists) == 1, sdists
 
