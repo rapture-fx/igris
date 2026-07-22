@@ -1439,6 +1439,21 @@ func buildTaskFailureDetailsResponse(details *coordinator.TaskFailureDetails) fi
 	if details.ResumeCheckpointProvided != nil {
 		resp["resume_checkpoint_provided"] = *details.ResumeCheckpointProvided
 	}
+	if details.EffectState != "" {
+		resp["effect_state"] = details.EffectState
+	}
+	if details.ReconciliationRequired {
+		resp["reconciliation_required"] = true
+	}
+	if details.TargetErrorCode != "" {
+		resp["target_error_code"] = details.TargetErrorCode
+	}
+	if details.TargetHost != "" {
+		resp["target_host"] = details.TargetHost
+	}
+	if details.TargetResponseDigest != "" {
+		resp["target_response_digest"] = details.TargetResponseDigest
+	}
 	if len(resp) == 0 {
 		return nil
 	}
@@ -2460,6 +2475,11 @@ func handleTaskComplete(tc *coordinator.TaskCoordinator) fiber.Handler {
 	}
 }
 
+type taskFailedCallbackBody struct {
+	Reason         string                          `json:"reason"`
+	FailureDetails *coordinator.TaskFailureDetails `json:"failure_details,omitempty"`
+}
+
 func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		body := append([]byte(nil), c.Body()...)
@@ -2496,11 +2516,9 @@ func handleTaskFailed(tc *coordinator.TaskCoordinator) fiber.Handler {
 			return runtimeCallbackRejection(c, tc.Store(), task, tenantID, "failed", validation)
 		}
 
-		var failedBody struct {
-			Reason string `json:"reason"`
-		}
+		var failedBody taskFailedCallbackBody
 		_ = json.Unmarshal(body, &failedBody)
-		if err := tc.HandleFailed(taskID, failedBody.Reason); err != nil {
+		if err := tc.HandleFailedWithDetails(taskID, failedBody.Reason, failedBody.FailureDetails); err != nil {
 			if errors.Is(err, coordinator.ErrTaskTransitionRejected) {
 				return c.Status(http.StatusConflict).JSON(taskTransitionRejectedPayload(tc, taskID, tenantID))
 			}

@@ -153,7 +153,7 @@ class DurableLedger:
 
             try:
                 result = operation()
-            except Exception:
+            except Exception as exc:
                 # Effect may or may not have occurred; do not claim either.
                 # Persist an explicit unresolved terminal so retries cannot
                 # silently re-execute. Operator reconciliation is required.
@@ -164,7 +164,7 @@ class DurableLedger:
                     "effect_status": STATE_UNKNOWN_EFFECT,
                 }
                 self._store(ledger)
-                raise
+                raise ConsequentialEffectUncertain(str(exc)) from exc
 
             ledger = self._load()
             ledger["effect_count"] += 1
@@ -209,6 +209,21 @@ class IdempotencyUnresolved(Exception):
         super().__init__(detail)
         self.status = status
         self.detail = detail
+
+
+class ConsequentialEffectUncertain(RuntimeError):
+    """The attempted effect raised after dispatch; completion is unknowable."""
+
+
+def unresolved_effect_response(detail: str) -> dict[str, Any]:
+    """Build the bounded typed response consumed by the Runtime bridge."""
+    return {
+        "error": "idempotency_unresolved",
+        "status": UNRESOLVED_EFFECT_STATUS,
+        "effect_status": UNRESOLVED_EFFECT_STATUS,
+        "reconciliation_required": True,
+        "detail": detail,
+    }
 
 
 def strict_request(body: bytes) -> dict[str, Any]:
@@ -277,26 +292,25 @@ def build_handler(
             except IdempotencyUnresolved as exc:
                 self._json(
                     HTTPStatus.CONFLICT,
-                    {
-                        "error": "idempotency_unresolved",
-                        "status": exc.status,
-                        "effect_status": UNRESOLVED_EFFECT_STATUS,
-                        "reconciliation_required": True,
-                        "detail": exc.detail,
-                    },
+                    unresolved_effect_response(exc.detail),
                 )
                 return
             except IdempotencyInProgress as exc:
                 # Legacy path: treat as unresolved effect state.
                 self._json(
                     HTTPStatus.CONFLICT,
-                    {
-                        "error": "idempotency_unresolved",
-                        "status": UNRESOLVED_EFFECT_STATUS,
-                        "effect_status": UNRESOLVED_EFFECT_STATUS,
-                        "reconciliation_required": True,
-                        "detail": str(exc),
-                    },
+                    unresolved_effect_response(str(exc)),
+                )
+                return
+            except ConsequentialEffectUncertain:
+                # Typed fail-closed bridge for the first uncertain attempt.
+                # Never include the callable exception or raw target data.
+                self._json(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    unresolved_effect_response(
+                        "consequential effect completion is unknown; "
+                        "automatic replay refused"
+                    ),
                 )
                 return
             except (json.JSONDecodeError, ValueError, TypeError) as exc:
