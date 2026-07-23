@@ -130,10 +130,14 @@ fn resolve_and_validate(host: &str, port: u16, require_loopback: bool) -> Result
     }
 
     let lookup = format!("{host}:{port}");
-    let resolved: Vec<SocketAddr> = lookup
-        .to_socket_addrs()
-        .map_err(|e| anyhow!("failed to resolve target host {host:?}: {e}"))?
-        .collect();
+    let mut resolved: Vec<SocketAddr> = match lookup.to_socket_addrs() {
+        Ok(iter) => iter.collect(),
+        Err(_) => Vec::new(),
+    };
+    if resolved.is_empty() {
+        // Fall back to public recursive DNS when the system resolver fails.
+        resolved = resolve_via_public_dns(host, port)?;
+    }
     if resolved.is_empty() {
         bail!("target host {host:?} resolved to no addresses");
     }
@@ -141,6 +145,96 @@ fn resolve_and_validate(host: &str, port: u16, require_loopback: bool) -> Result
         classify_ip(addr.ip(), require_loopback)?;
     }
     Ok(resolved)
+}
+
+fn resolve_via_public_dns(host: &str, port: u16) -> Result<Vec<SocketAddr>> {
+    let mut addrs = Vec::new();
+    for dns in ["1.1.1.1:53", "8.8.8.8:53"] {
+        if let Ok(ips) = dns_query_a(host, dns) {
+            for ip in ips {
+                addrs.push(SocketAddr::new(ip, port));
+            }
+            if !addrs.is_empty() {
+                return Ok(addrs);
+            }
+        }
+    }
+    bail!("failed to resolve target host {host:?} via public DNS")
+}
+
+fn dns_query_a(host: &str, dns_addr: &str) -> Result<Vec<IpAddr>> {
+    use std::net::UdpSocket;
+    let socket = UdpSocket::bind("0.0.0.0:0")?;
+    socket.set_read_timeout(Some(std::time::Duration::from_secs(5)))?;
+    socket.connect(dns_addr)?;
+
+    let mut qname = Vec::new();
+    for label in host.split('.') {
+        let bytes = label.as_bytes();
+        if bytes.is_empty() || bytes.len() > 63 {
+            bail!("invalid DNS label");
+        }
+        qname.push(bytes.len() as u8);
+        qname.extend_from_slice(bytes);
+    }
+    qname.push(0);
+    // Header: id=0x1234, recursion desired, qdcount=1
+    let mut packet = vec![
+        0x12, 0x34, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ];
+    packet.extend_from_slice(&qname);
+    packet.extend_from_slice(&[0x00, 0x01, 0x00, 0x01]); // A IN
+    socket.send(&packet)?;
+
+    let mut buf = [0u8; 512];
+    let n = socket.recv(&mut buf)?;
+    if n < 12 {
+        bail!("short DNS response");
+    }
+    let ancount = u16::from_be_bytes([buf[6], buf[7]]) as usize;
+    let mut i = 12;
+    // skip question
+    while i < n && buf[i] != 0 {
+        i += 1 + buf[i] as usize;
+    }
+    i += 1 + 4; // null + qtype/qclass
+    let mut ips = Vec::new();
+    for _ in 0..ancount {
+        if i >= n {
+            break;
+        }
+        // name (possibly pointer)
+        if buf[i] & 0xc0 == 0xc0 {
+            i += 2;
+        } else {
+            while i < n && buf[i] != 0 {
+                i += 1 + buf[i] as usize;
+            }
+            i += 1;
+        }
+        if i + 10 > n {
+            break;
+        }
+        let rtype = u16::from_be_bytes([buf[i], buf[i + 1]]);
+        let rdlength = u16::from_be_bytes([buf[i + 8], buf[i + 9]]) as usize;
+        i += 10;
+        if i + rdlength > n {
+            break;
+        }
+        if rtype == 1 && rdlength == 4 {
+            ips.push(IpAddr::V4(Ipv4Addr::new(
+                buf[i],
+                buf[i + 1],
+                buf[i + 2],
+                buf[i + 3],
+            )));
+        }
+        i += rdlength;
+    }
+    if ips.is_empty() {
+        bail!("no A records");
+    }
+    Ok(ips)
 }
 
 fn classify_ip(ip: IpAddr, require_loopback: bool) -> Result<()> {
