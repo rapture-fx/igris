@@ -64,11 +64,12 @@ Public PyPI publication of `igris-sdk` is not authorized in this task.
 
 Requires Python 3.10+. The only runtime dependency is `cryptography`.
 
-### Durable Run → Recover → Prove
+### Durable Action → Run → Proof
 
-Embedded `wrap_tool` stays local. For durable contract-bound runs, use the
-explicit [`IgrisDurableClient`](docs/durable-action-quickstart.md) — see the
+Embedded `wrap_tool` stays local. For managed durable runs, use
+[`Igris.from_env()`](docs/durable-action-quickstart.md) — see the
 [Durable Action Quickstart](docs/durable-action-quickstart.md).
+`IgrisDurableClient` remains available for advanced compatibility usage.
 
 ## What happens on a guarded call
 
