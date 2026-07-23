@@ -151,6 +151,16 @@ SQL
     # still run — it only provisions the replay-protection table they require.
     "052_runtime_callback_envelopes"
     "062_task_records_registered_agent"
+    # Contract-bound durable Action proof: 067 records immutable SDK contract
+    # versions, 068 stores separately verified Embedded evidence, 069 enforces
+    # database immutability, 070 adds explicit contract-to-target bindings
+    # plus immutable durable-run/evidence links, and 071 enforces exclusive
+    # run-scoped evidence linkage (Clock 3C).
+    "067_action_contract_versions"
+    "068_sdk_evidence_ingestion"
+    "069_connected_immutable_records"
+    "070_contract_execution_bindings"
+    "071_run_scoped_evidence_link_exclusivity"
   )
   local migration_file
   local migration_name
@@ -202,6 +212,9 @@ preflight_durable_task_schema() {
   # Signed runtime checkpoint callbacks reserve a replay nonce here; without the
   # table the callback fails closed (403) and recovery reports no runtime.
   require_relation "runtime_callback_nonces"
+  require_relation "action_contract_execution_bindings"
+  require_relation "contract_bound_action_runs"
+  require_relation "contract_bound_action_evidence_links"
 
   require_column "task_records" "last_checkpoint"
   require_column "task_records" "proof_verified"
@@ -313,19 +326,55 @@ run_heavy_gate() {
     echo "[heavy] generated ephemeral test execution input-ref keyring (version v1)"
   fi
 
+  echo "[heavy] Checking Action Task recovery harness effect-assertion scoping"
+  "$SCRIPT_DIR/ci/check_action_task_recovery_effect_assertions.sh"
+
+  # Sequential live proofs share fixed local ports. Prior proof EXIT traps may
+  # have killed listeners without the kernel releasing the bind yet; wait/clear
+  # before the next proof so a successful prior proof cannot flake the next.
+  ensure_action_proof_ports_free() {
+    local port listener attempt
+    for port in 8080 8081 18090 18091 18099; do
+      for attempt in $(seq 1 50); do
+        listener=$(lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)
+        if [[ -z "$listener" ]]; then
+          break
+        fi
+        kill $listener >/dev/null 2>&1 || true
+        sleep 0.2
+        if [[ "$attempt" -ge 25 ]]; then
+          kill -9 $listener >/dev/null 2>&1 || true
+        fi
+      done
+      if lsof -tiTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+        echo "proof port $port remained busy after prior proof teardown" >&2
+        exit 1
+      fi
+    done
+  }
+
   echo "[heavy] Running cumulative clean-host recovery proof"
+  ensure_action_proof_ports_free
   "$SCRIPT_DIR/action_task_v1_cumulative_clean_host_recovery_proof_demo.sh"
 
   echo "[heavy] Running existing Action Task V1 clean-host recovery proof"
+  ensure_action_proof_ports_free
   "$SCRIPT_DIR/action_task_v1_clean_host_recovery_proof_demo.sh"
 
   echo "[heavy] Running existing Action Task V1 same-host recovery proof"
+  ensure_action_proof_ports_free
   "$SCRIPT_DIR/action_task_v1_recovery_proof_demo.sh"
 
   echo "[heavy] Running existing Action Task V1 proof"
+  ensure_action_proof_ports_free
   "$SCRIPT_DIR/action_task_v1_proof_demo.sh"
 
+  echo "[heavy] Running Clock 3B contract-bound durable Action proof"
+  ensure_action_proof_ports_free
+  "$SCRIPT_DIR/clock_3b_contract_bound_durable_action_proof.sh"
+
   echo "[heavy] Running core proof suite"
+  ensure_action_proof_ports_free
   run_core_proof_suite_containment_aware
 }
 

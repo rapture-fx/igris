@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# CI guard: the private-alpha Connected migrations (067, 068, 069) are
-# manual-runbook-only. This guard fails if:
-#   1. any of the three migration files loses its explicit manual-only wording,
+# CI guard: the private-alpha Connected / Clock 3B / Clock 3C migrations
+# (067, 068, 069, 070, 071, 072) are manual-runbook-only. This guard fails if:
+#   1. any of the migration files loses its explicit manual-only wording,
 #   2. a workflow, application source file, or operational script starts
 #      referencing these migrations (the first step toward auto-applying them),
 #   3. non-test Go code gains a reference to the migrations directory
 #      (application startup must never apply migrations).
+#
+# The disposable heavy proof gate may reference these migrations explicitly;
+# that is the only allowed operational script exception.
 #
 # The guard reads files only. It never touches a database and never modifies
 # the migrations.
@@ -18,6 +21,9 @@ MIGRATIONS=(
   067_action_contract_versions.sql
   068_sdk_evidence_ingestion.sql
   069_connected_immutable_records.sql
+  070_contract_execution_bindings.sql
+  071_run_scoped_evidence_link_exclusivity.sql
+  072_operator_reconciliation_events.sql
 )
 
 fail=0
@@ -44,7 +50,7 @@ done
 #   - Go test files (they apply the DDL inside disposable test schemas),
 #   - documentation,
 #   - this guard.
-pattern='067_action_contract_versions|068_sdk_evidence_ingestion|069_connected_immutable_records'
+pattern='067_action_contract_versions|068_sdk_evidence_ingestion|069_connected_immutable_records|070_contract_execution_bindings|071_run_scoped_evidence_link_exclusivity|072_operator_reconciliation_events'
 offenders=$(grep -rlE "$pattern" \
   --exclude-dir=.git \
   --exclude-dir=node_modules \
@@ -53,6 +59,8 @@ offenders=$(grep -rlE "$pattern" \
   .github cmd igris-overture scripts Makefile 2>/dev/null \
   | grep -v '_test\.go$' \
   | grep -v '^scripts/ci/check_manual_migrations\.sh$' \
+  | grep -v '^scripts/ci_proof_gate\.sh$' \
+  | grep -v '^scripts/clock_3b_contract_bound_durable_action_proof\.sh$' \
   || true)
 if [[ -n "$offenders" ]]; then
   echo "FAIL: private-alpha migrations are referenced outside tests/docs/migrations:"
@@ -77,4 +85,4 @@ if [[ "$fail" -ne 0 ]]; then
   exit 1
 fi
 
-echo "migration guard: OK (067/068/069 remain manual-runbook-only)"
+echo "migration guard: OK (067/068/069/070/071/072 remain manual-runbook-only)"

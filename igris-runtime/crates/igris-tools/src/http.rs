@@ -182,7 +182,9 @@ impl Tool for HttpTool {
                 // stored) response body — enough to correlate with the
                 // target's own audit trail without leaking its content.
                 if !status.is_success() {
-                    return Ok(ToolResult::failure(
+                    let reconciliation_required =
+                        is_typed_reconciliation_required_response(content_type.as_deref(), &body);
+                    let mut failure = ToolResult::failure(
                         "http_request".to_string(),
                         json!({
                             "error_code": format!("http_status_{}", status.as_u16()),
@@ -201,7 +203,31 @@ impl Tool for HttpTool {
                     )
                     .with_metadata("status_code".to_string(), status.as_u16().to_string())
                     .with_metadata("content_redacted".to_string(), "true".to_string())
-                    .with_metadata("response_digest".to_string(), response_digest));
+                    .with_metadata("response_digest".to_string(), response_digest)
+                    .with_metadata(
+                        "url_host".to_string(),
+                        extract_url_host(url).unwrap_or_default(),
+                    );
+                    if reconciliation_required {
+                        failure = failure
+                            .with_metadata(
+                                "failure_class".to_string(),
+                                "uncertain_external_effect".to_string(),
+                            )
+                            .with_metadata(
+                                "effect_state".to_string(),
+                                "unknown_effect_state".to_string(),
+                            )
+                            .with_metadata(
+                                "reconciliation_required".to_string(),
+                                "true".to_string(),
+                            )
+                            .with_metadata(
+                                "target_error_code".to_string(),
+                                "idempotency_unresolved".to_string(),
+                            );
+                    }
+                    return Ok(failure);
                 }
 
                 let output = safe_content_output(
@@ -237,6 +263,26 @@ impl Tool for HttpTool {
             }
         }
     }
+}
+
+fn is_typed_reconciliation_required_response(content_type: Option<&str>, body: &str) -> bool {
+    if !content_type
+        .unwrap_or_default()
+        .to_ascii_lowercase()
+        .starts_with("application/json")
+    {
+        return false;
+    }
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(body) else {
+        return false;
+    };
+    value.get("error").and_then(|v| v.as_str()) == Some("idempotency_unresolved")
+        && value.get("status").and_then(|v| v.as_str()) == Some("unknown_effect_state")
+        && value.get("effect_status").and_then(|v| v.as_str()) == Some("unknown_effect_state")
+        && value
+            .get("reconciliation_required")
+            .and_then(|v| v.as_bool())
+            == Some(true)
 }
 
 fn http_error_code(error: &reqwest::Error) -> &'static str {
@@ -344,7 +390,65 @@ mod tests {
             !error.contains(refusal_marker),
             "response body leaked into the failure error: {error}"
         );
-        assert_eq!(result.metadata.get("status_code").map(String::as_str), Some("409"));
+        assert_eq!(
+            result.metadata.get("status_code").map(String::as_str),
+            Some("409")
+        );
+        assert!(!result.metadata.contains_key("reconciliation_required"));
+    }
+
+    #[tokio::test]
+    async fn typed_unknown_effect_response_sets_safe_reconciliation_metadata() {
+        let port = serve_once(
+            "409 Conflict",
+            r#"{"error":"idempotency_unresolved","status":"unknown_effect_state","effect_status":"unknown_effect_state","reconciliation_required":true,"detail":"must not be persisted"}"#,
+        );
+        let tool = HttpTool::new(vec!["127.0.0.1".to_string()]);
+        let result = tool
+            .execute(json!({
+                "method": "POST",
+                "url": format!("http://127.0.0.1:{port}/consequential"),
+            }))
+            .await
+            .unwrap();
+
+        assert!(!result.success);
+        assert_eq!(
+            result.metadata.get("failure_class").map(String::as_str),
+            Some("uncertain_external_effect")
+        );
+        assert_eq!(
+            result.metadata.get("effect_state").map(String::as_str),
+            Some("unknown_effect_state")
+        );
+        assert_eq!(
+            result
+                .metadata
+                .get("reconciliation_required")
+                .map(String::as_str),
+            Some("true")
+        );
+        assert!(!result
+            .error
+            .unwrap_or_default()
+            .contains("must not be persisted"));
+    }
+
+    #[test]
+    fn reconciliation_signal_requires_exact_typed_fields() {
+        let content_type = Some("application/json; charset=utf-8");
+        assert!(is_typed_reconciliation_required_response(
+            content_type,
+            r#"{"error":"idempotency_unresolved","status":"unknown_effect_state","effect_status":"unknown_effect_state","reconciliation_required":true}"#
+        ));
+        assert!(!is_typed_reconciliation_required_response(
+            content_type,
+            r#"{"error":"idempotency_unresolved","status":"unknown_effect_state","effect_status":"unknown_effect_state","reconciliation_required":"true"}"#
+        ));
+        assert!(!is_typed_reconciliation_required_response(
+            Some("text/plain"),
+            r#"{"error":"idempotency_unresolved","status":"unknown_effect_state","effect_status":"unknown_effect_state","reconciliation_required":true}"#
+        ));
     }
 
     #[tokio::test]
@@ -359,7 +463,10 @@ mod tests {
             .await
             .unwrap();
         assert!(result.success);
-        assert_eq!(result.metadata.get("status_code").map(String::as_str), Some("200"));
+        assert_eq!(
+            result.metadata.get("status_code").map(String::as_str),
+            Some("200")
+        );
     }
 
     #[test]

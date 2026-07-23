@@ -79,6 +79,21 @@ type TaskRecord struct {
 	// registry agent when the caller supplied agent_id or agent_name.
 	RegisteredAgentID   *uuid.UUID `json:"registered_agent_id,omitempty"`
 	RegisteredAgentName string     `json:"registered_agent_name,omitempty"`
+
+	// BoundAction is present only for the explicit Clock 3B contract-bound
+	// Action path. It links this durable task to one immutable SDK contract
+	// version and one immutable executable-target snapshot without changing
+	// Runtime receipts or Action Protocol Evidence.
+	BoundAction *BoundActionRunIdentity `json:"bound_action,omitempty"`
+}
+
+type BoundActionRunIdentity struct {
+	BindingID              uuid.UUID `json:"binding_id"`
+	ContractHash           string    `json:"contract_hash"`
+	TargetActionID         uuid.UUID `json:"target_action_id"`
+	TargetVersionHash      string    `json:"target_version_hash"`
+	BusinessIdempotencyKey string    `json:"business_idempotency_key"`
+	RequestFingerprint     string    `json:"-"`
 }
 
 type TaskRecordStatus string
@@ -157,6 +172,11 @@ type TaskFailureDetails struct {
 	RequestedCheckpointDigest string  `json:"requested_checkpoint_digest,omitempty"`
 	LocalCheckpointDigest     string  `json:"local_checkpoint_digest,omitempty"`
 	ResumeCheckpointProvided  *bool   `json:"resume_checkpoint_provided,omitempty"`
+	EffectState               string  `json:"effect_state,omitempty"`
+	ReconciliationRequired    bool    `json:"reconciliation_required,omitempty"`
+	TargetErrorCode           string  `json:"target_error_code,omitempty"`
+	TargetHost                string  `json:"target_host,omitempty"`
+	TargetResponseDigest      string  `json:"target_response_digest,omitempty"`
 }
 
 const (
@@ -465,6 +485,43 @@ func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("marshal task definition: %w", err)
 	}
+	if task.BoundAction != nil {
+		tx, err := s.db.Begin()
+		if err != nil {
+			return false, err
+		}
+		defer tx.Rollback()
+		result, err := tx.Exec(`
+			INSERT INTO task_records
+				(task_id, tenant_id, status, task_definition, idempotency_key, deadline_at,
+				 registered_agent_id, registered_agent_name, created_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+			ON CONFLICT (tenant_id, idempotency_key) DO NOTHING`,
+			task.TaskID, task.TenantID, TaskStatusPending, defBytes,
+			task.IdempotencyKey, task.DeadlineAt,
+			nullUUID(task.RegisteredAgentID), task.RegisteredAgentName,
+		)
+		if err != nil {
+			return false, err
+		}
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return false, err
+		}
+		if rowsAffected == 0 {
+			if err := tx.Commit(); err != nil {
+				return false, err
+			}
+			return false, nil
+		}
+		if err := insertBoundActionRun(context.Background(), tx, task); err != nil {
+			return false, err
+		}
+		if err := tx.Commit(); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
 	result, err := s.db.Exec(`
 		INSERT INTO task_records
 			(task_id, tenant_id, status, task_definition, idempotency_key, deadline_at,
@@ -486,6 +543,68 @@ func (s *CheckpointStore) CreateTask(task *TaskRecord) (bool, error) {
 		return false, err
 	}
 	return rowsAffected == 1, nil
+}
+
+func insertBoundActionRun(ctx context.Context, execer sqlExecerContext, task *TaskRecord) error {
+	if task == nil || task.BoundAction == nil {
+		return nil
+	}
+	bound := task.BoundAction
+	if bound.BindingID == uuid.Nil || bound.TargetActionID == uuid.Nil ||
+		strings.TrimSpace(bound.ContractHash) == "" ||
+		strings.TrimSpace(bound.TargetVersionHash) == "" ||
+		strings.TrimSpace(bound.BusinessIdempotencyKey) == "" ||
+		strings.TrimSpace(bound.RequestFingerprint) == "" {
+		return fmt.Errorf("bound action identity is incomplete")
+	}
+	_, err := execer.ExecContext(ctx, `
+		INSERT INTO contract_bound_action_runs (
+			task_id, tenant_id, binding_id, contract_hash, target_action_id,
+			target_version_hash, business_idempotency_key, request_fingerprint
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+		task.TaskID, task.TenantID, bound.BindingID, bound.ContractHash,
+		bound.TargetActionID, bound.TargetVersionHash, bound.BusinessIdempotencyKey,
+		bound.RequestFingerprint,
+	)
+	return err
+}
+
+func (s *CheckpointStore) GetBoundActionRunByIdempotency(ctx context.Context, tenantID, key string) (*BoundActionRunIdentity, error) {
+	var bound BoundActionRunIdentity
+	err := s.db.QueryRowContext(ctx, `
+		SELECT binding_id, contract_hash, target_action_id, target_version_hash,
+		       business_idempotency_key, request_fingerprint
+		FROM contract_bound_action_runs
+		WHERE tenant_id = $1 AND business_idempotency_key = $2`,
+		tenantID, key,
+	).Scan(
+		&bound.BindingID, &bound.ContractHash, &bound.TargetActionID,
+		&bound.TargetVersionHash, &bound.BusinessIdempotencyKey,
+		&bound.RequestFingerprint,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &bound, nil
+}
+
+func (s *CheckpointStore) GetBoundActionRun(ctx context.Context, taskID uuid.UUID, tenantID string) (*BoundActionRunIdentity, error) {
+	var bound BoundActionRunIdentity
+	err := s.db.QueryRowContext(ctx, `
+		SELECT binding_id, contract_hash, target_action_id, target_version_hash,
+		       business_idempotency_key, request_fingerprint
+		FROM contract_bound_action_runs
+		WHERE task_id = $1 AND tenant_id = $2`,
+		taskID, tenantID,
+	).Scan(
+		&bound.BindingID, &bound.ContractHash, &bound.TargetActionID,
+		&bound.TargetVersionHash, &bound.BusinessIdempotencyKey,
+		&bound.RequestFingerprint,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &bound, nil
 }
 
 // MarkDispatched transitions a task to DISPATCHED and records which runtime took it.
@@ -603,6 +722,24 @@ func (s *CheckpointStore) MarkFailed(taskID uuid.UUID, reason string) error {
 	return s.MarkFailedWithDetails(taskID, reason, nil)
 }
 
+// IsTypedReconciliationFailure accepts only the narrow, machine-readable
+// Runtime signal emitted for a target's explicit unknown-effect response.
+// Human-readable failure strings never establish reconciliation eligibility.
+func IsTypedReconciliationFailure(details *TaskFailureDetails) bool {
+	if details == nil ||
+		!details.ReconciliationRequired ||
+		details.EffectState != "unknown_effect_state" ||
+		details.TargetErrorCode != "idempotency_unresolved" ||
+		details.StatusCode < 400 || details.StatusCode > 599 ||
+		len(details.TargetResponseDigest) != 64 ||
+		len(strings.TrimSpace(details.TargetHost)) < 1 ||
+		len(strings.TrimSpace(details.TargetHost)) > 253 {
+		return false
+	}
+	decoded, err := hex.DecodeString(details.TargetResponseDigest)
+	return err == nil && len(decoded) == sha256.Size
+}
+
 func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string, details *TaskFailureDetails) error {
 	var detailBytes []byte
 	if details != nil {
@@ -613,6 +750,75 @@ func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string,
 		detailBytes = encoded
 	}
 
+	if IsTypedReconciliationFailure(details) {
+		tx, err := s.db.Begin()
+		if err != nil {
+			return s.markFailedRecord(taskID, reason, detailBytes)
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		result, err := tx.Exec(`
+			UPDATE task_records
+			SET status = $1, failure_reason = $2, failure_details = $3
+			WHERE task_id = $4
+			  AND status IN ($5, $6, $7)`,
+			TaskStatusFailed, reason, nullRawJSON(detailBytes), taskID,
+			TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
+		)
+		if err := taskTransitionResult(result, err); err != nil {
+			return err
+		}
+
+		// The observation is eligible only for an immutable contract-bound run
+		// whose binding required a business idempotency identity. The inserted
+		// row snapshots managed identities; no client metadata is trusted.
+		_, err = tx.Exec(`
+			INSERT INTO contract_bound_action_reconciliation_events (
+				tenant_id, task_id, binding_id, contract_hash,
+				target_action_id, target_version_hash,
+				business_idempotency_digest, event_type,
+				observed_effect_state, actor_type, actor_id, reason,
+				external_reference_type, external_reference_value,
+				target_host, source_status_code
+			)
+			SELECT r.tenant_id, r.task_id, r.binding_id, r.contract_hash,
+			       r.target_action_id, r.target_version_hash,
+			       encode(sha256(convert_to(r.business_idempotency_key, 'UTF8')), 'hex'),
+			       'unresolved_effect_observed', 'unknown_effect_state',
+			       'runtime', COALESCE(NULLIF(t.runtime_id, ''), 'runtime:unknown'),
+			       'Runtime reported a typed unknown consequential effect; automatic replay is refused',
+			       'runtime_response_digest', $2, $3, $4
+			FROM contract_bound_action_runs r
+			JOIN action_contract_execution_bindings b
+			  ON b.id = r.binding_id
+			 AND b.tenant_id = r.tenant_id
+			 AND b.contract_hash = r.contract_hash
+			 AND b.target_action_id = r.target_action_id
+			 AND b.target_version_hash = r.target_version_hash
+			JOIN task_records t
+			  ON t.task_id = r.task_id AND t.tenant_id = r.tenant_id
+			WHERE r.task_id = $1
+			  AND b.idempotency_required = TRUE
+			ON CONFLICT DO NOTHING`,
+			taskID, details.TargetResponseDigest, strings.TrimSpace(details.TargetHost), details.StatusCode,
+		)
+		if err != nil {
+			// Migration 072 is manual. If its table is unavailable (or the
+			// observation insert otherwise fails), the task must still become
+			// terminal failed so recovery can never replay an uncertain effect.
+			_ = tx.Rollback()
+			return s.markFailedRecord(taskID, reason, detailBytes)
+		}
+		if err := tx.Commit(); err != nil {
+			return s.ensureTaskFailedRecord(taskID, reason, detailBytes)
+		}
+		return nil
+	}
+
+	return s.markFailedRecord(taskID, reason, detailBytes)
+}
+
+func (s *CheckpointStore) markFailedRecord(taskID uuid.UUID, reason string, detailBytes []byte) error {
 	result, err := s.db.Exec(`
 		UPDATE task_records
 		SET status = $1, failure_reason = $2, failure_details = $3
@@ -622,6 +828,21 @@ func (s *CheckpointStore) MarkFailedWithDetails(taskID uuid.UUID, reason string,
 		TaskStatusDispatched, TaskStatusCheckpointed, TaskStatusRecovering,
 	)
 	return taskTransitionResult(result, err)
+}
+
+func (s *CheckpointStore) ensureTaskFailedRecord(taskID uuid.UUID, reason string, detailBytes []byte) error {
+	err := s.markFailedRecord(taskID, reason, detailBytes)
+	if !errors.Is(err, ErrTaskTransitionRejected) {
+		return err
+	}
+	var status TaskRecordStatus
+	if queryErr := s.db.QueryRow(`
+		SELECT status FROM task_records WHERE task_id = $1`,
+		taskID,
+	).Scan(&status); queryErr == nil && status == TaskStatusFailed {
+		return nil
+	}
+	return err
 }
 
 // StampExecutedTarget records which Action execution target (hosted_api,

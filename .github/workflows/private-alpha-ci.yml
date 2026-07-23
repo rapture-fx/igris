@@ -266,8 +266,8 @@ jobs:
         with:
           name: private-alpha-sdk-artifacts
           path: |
-            artifact-out/build-a/igris-*.whl
-            artifact-out/build-a/igris-*.tar.gz
+            artifact-out/build-a/igris_sdk-*.whl
+            artifact-out/build-a/igris_sdk-*.tar.gz
             artifact-out/artifact-manifest.json
           if-no-files-found: error
           retention-days: 14
