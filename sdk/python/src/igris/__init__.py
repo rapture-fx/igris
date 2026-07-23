@@ -13,9 +13,10 @@ Igris records a signed decision event; after it runs, a signed outcome event.
 The journal is hash-chained and verifiable offline with ``igris verify``.
 Embedded Igris requires no account, no backend, and makes no network calls.
 
-For durable Run → Recover → Prove, construct an explicit
-:class:`~igris.IgrisDurableClient` — environment variables alone never make
-``wrap_tool`` remote.
+For managed durable Action → Run → Proof, construct :class:`~igris.Igris`
+explicitly (``Igris.from_env()``). Environment variables alone never make
+``wrap_tool`` remote. :class:`~igris.IgrisDurableClient` remains available for
+advanced compatibility usage.
 """
 
 from __future__ import annotations
@@ -35,6 +36,7 @@ from .durable import (
     DurableRun,
     DurableRunStatus,
     EvidenceLinkResult,
+    Igris,
     IgrisDurableClient,
     IgrisRunProof,
 )
@@ -128,6 +130,7 @@ __all__ = [
     "ExecutionCompletedEvidenceError",
     "IdempotencyConflictError",
     "IdentityError",
+    "Igris",
     "IgrisDurableClient",
     "IgrisError",
     "IgrisRunProof",
