@@ -695,10 +695,15 @@ func handleContractBindingCreate(db *sql.DB) fiber.Handler {
 				"detail": "Clock 3B binds only an explicit authenticated webhook target",
 			})
 		}
-		if !isLoopbackHTTPURL(target.TargetURL) {
+		if class, err := ValidateActionTargetURL(target.TargetURL); err != nil {
 			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
 				"error":  "unsafe_target_url",
-				"detail": "Clock 3B durable-local bindings require a loopback HTTP target",
+				"detail": err.Error(),
+			})
+		} else if class != ActionTargetURLLoopbackHTTP && class != ActionTargetURLExternalHTTPS {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "unsafe_target_url",
+				"detail": "target URL class is not allowed for durable bindings",
 			})
 		}
 		headerName := stringFromMap(target.TargetMetadata, localWebhookAuthHeaderNameMetadata)
