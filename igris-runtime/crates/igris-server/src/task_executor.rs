@@ -541,18 +541,30 @@ pub enum TaskStatus {
     Failed { reason: String },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TaskFailureDetails {
     pub source: String,
     pub operation: String,
     pub rejection_type: String,
     pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub status_code: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub step_index: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub domain: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub node_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effect_state: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reconciliation_required: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_error_code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_host: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub target_response_digest: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1044,7 +1056,7 @@ pub async fn handle_task_submit(
                 };
                 let _ = persist_task_record(&state, &submission_key, &request_hash, &response);
                 if let Err(callback_err) =
-                    send_failed_callback(&state, &req, "behavior tree execution error").await
+                    send_failed_callback(&state, &req, "behavior tree execution error", None).await
                 {
                     return runtime_callback_failure_response(req.task_id, "failed", callback_err);
                 }
@@ -1140,7 +1152,7 @@ pub async fn handle_task_submit(
                 }
             }
             TaskStatus::Failed { reason } => {
-                if let Err(callback_err) = send_failed_callback(&state, &req, reason).await {
+                if let Err(callback_err) = send_failed_callback(&state, &req, reason, None).await {
                     return runtime_callback_failure_response(req.task_id, "failed", callback_err);
                 }
             }
@@ -1469,11 +1481,7 @@ pub async fn handle_task_submit(
                     checkpoint,
                     final_output: last_output,
                     usage: last_usage,
-                    failure_details: Some(runtime_execution_failure_details(
-                        "step_failed",
-                        e.to_string(),
-                        Some(step),
-                    )),
+                    failure_details: Some(runtime_execution_failure_details_from_error(&e, step)),
                     execution_envelope,
                     execution_receipt,
                 };
@@ -2279,10 +2287,33 @@ fn runtime_execution_failure_details(
         operation: "execution".to_string(),
         rejection_type: rejection_type.to_string(),
         message,
+        status_code: None,
         step_index: step.map(RuntimeTaskStep::step_index),
         domain: step.map(|step| step.domain_name().to_string()),
         node_id: step.map(|step| step.node_id().to_string()),
+        effect_state: None,
+        reconciliation_required: None,
+        target_error_code: None,
+        target_host: None,
+        target_response_digest: None,
     }
+}
+
+fn runtime_execution_failure_details_from_error(
+    error: &anyhow::Error,
+    step: &RuntimeTaskStep,
+) -> TaskFailureDetails {
+    let mut details =
+        runtime_execution_failure_details("step_failed", error.to_string(), Some(step));
+    if let Some(uncertain) = error.downcast_ref::<UncertainExternalEffectError>() {
+        details.status_code = Some(uncertain.status_code);
+        details.effect_state = Some("unknown_effect_state".to_string());
+        details.reconciliation_required = Some(true);
+        details.target_error_code = Some("idempotency_unresolved".to_string());
+        details.target_host = Some(uncertain.target_host.clone());
+        details.target_response_digest = Some(uncertain.response_digest.clone());
+    }
+    details
 }
 
 fn build_checkpoint(
@@ -2461,10 +2492,21 @@ async fn send_failed_callback(
     state: &AppState,
     req: &TaskSubmitRequest,
     reason: &str,
+    failure_details: Option<&TaskFailureDetails>,
 ) -> Result<(), String> {
-    let body = serde_json::to_vec(&serde_json::json!({ "reason": reason }))
-        .map_err(|_| "failed callback body serialization failed".to_string())?;
+    let body = build_failed_callback_body(reason, failure_details)?;
     send_runtime_callback(state, req, "failed", body).await
+}
+
+fn build_failed_callback_body(
+    reason: &str,
+    failure_details: Option<&TaskFailureDetails>,
+) -> Result<Vec<u8>, String> {
+    serde_json::to_vec(&serde_json::json!({
+        "reason": reason,
+        "failure_details": failure_details,
+    }))
+    .map_err(|_| "failed callback body serialization failed".to_string())
 }
 
 async fn send_lifecycle_callbacks_for_response(
@@ -2485,7 +2527,9 @@ async fn send_lifecycle_callbacks_for_response(
             }
             Ok(())
         }
-        TaskStatus::Failed { reason } => send_failed_callback(state, req, reason).await,
+        TaskStatus::Failed { reason } => {
+            send_failed_callback(state, req, reason, response.failure_details.as_ref()).await
+        }
     }
 }
 
@@ -5167,6 +5211,24 @@ async fn execute_memory_store_step(
     }
 }
 
+#[derive(Debug)]
+struct UncertainExternalEffectError {
+    status_code: u16,
+    target_host: String,
+    response_digest: String,
+}
+
+impl std::fmt::Display for UncertainExternalEffectError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "target reported an unknown consequential effect state; automatic replay refused"
+        )
+    }
+}
+
+impl std::error::Error for UncertainExternalEffectError {}
+
 async fn execute_tool_step(
     state: AppState,
     task_id: Uuid,
@@ -5190,6 +5252,50 @@ async fn execute_tool_step(
         .execute_idempotent(&idempotency_key, &step.tool_name, args.clone())
         .await?;
     if !result.success {
+        if step.tool_name == "http_request"
+            && result.metadata.get("failure_class").map(String::as_str)
+                == Some("uncertain_external_effect")
+            && result.metadata.get("effect_state").map(String::as_str)
+                == Some("unknown_effect_state")
+            && result
+                .metadata
+                .get("reconciliation_required")
+                .map(String::as_str)
+                == Some("true")
+            && result.metadata.get("target_error_code").map(String::as_str)
+                == Some("idempotency_unresolved")
+        {
+            let status_code = result
+                .metadata
+                .get("status_code")
+                .and_then(|value| value.parse::<u16>().ok())
+                .unwrap_or_default();
+            let target_host = result
+                .metadata
+                .get("url_host")
+                .filter(|value| {
+                    !value.is_empty()
+                        && value.len() <= 253
+                        && value
+                            .chars()
+                            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '-' | ':'))
+                })
+                .cloned()
+                .unwrap_or_else(|| "unknown".to_string());
+            let response_digest = result
+                .metadata
+                .get("response_digest")
+                .filter(|value| value.len() == 64 && value.chars().all(|ch| ch.is_ascii_hexdigit()))
+                .map(|value| value.to_ascii_lowercase())
+                .unwrap_or_default();
+            if status_code >= 400 && !response_digest.is_empty() {
+                return Err(anyhow::Error::new(UncertainExternalEffectError {
+                    status_code,
+                    target_host,
+                    response_digest,
+                }));
+            }
+        }
         anyhow::bail!(
             "tool {} failed: {}",
             step.tool_name,
@@ -6003,7 +6109,7 @@ fn truncate_preview(text: &str, max_chars: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        attach_stream_task_headers, build_checkpoint_mismatch_payload,
+        attach_stream_task_headers, build_checkpoint_mismatch_payload, build_failed_callback_body,
         build_idempotency_conflict_payload, build_step_checkpoint_metadata,
         build_stream_replay_unavailable_payload, build_task_cancel_response,
         build_task_result_payload, canonical_policy_decision_bytes,
@@ -6012,15 +6118,16 @@ mod tests {
         evaluate_robotics_safety_gate, initialize_graph_blackboard, local_demo_failure_reason,
         materialize_execution_graph, normalize_agent_mode, permission_failure_for_step,
         persist_task_status_index, resolve_graph_value, robotics_action_name,
-        runtime_execution_failure_details, should_checkpoint_after_steps,
-        stream_durability_metadata, task_status_key, unix_now_ms, update_graph_blackboard,
-        validate_external_resume_checkpoint, validate_task_permission_envelope,
-        verified_resume_start_step, verified_resume_start_step_from_local_or_checkpoint,
-        AgentApprovalOptions, AgentExecutionMode, AgentIdentity, AgentMemoryOptions,
-        BehaviorTreeStep, CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode,
-        GovernedAction, GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep,
-        RuntimeTaskStep, StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope,
-        TaskStatus, TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep,
+        runtime_execution_failure_details, runtime_execution_failure_details_from_error,
+        should_checkpoint_after_steps, stream_durability_metadata, task_status_key, unix_now_ms,
+        update_graph_blackboard, validate_external_resume_checkpoint,
+        validate_task_permission_envelope, verified_resume_start_step,
+        verified_resume_start_step_from_local_or_checkpoint, AgentApprovalOptions,
+        AgentExecutionMode, AgentIdentity, AgentMemoryOptions, BehaviorTreeStep,
+        CapabilityDecision, CredentialReference, ExecutionGraph, ExecutionNode, GovernedAction,
+        GovernedPolicyDecision, HumanApprovalStep, RoboticsAction, RoboticsStep, RuntimeTaskStep,
+        StepExecutionResult, TaskFailureDetails, TaskPermissionEnvelope, TaskStatus,
+        TaskSubmitRequest, TaskSubmitResponse, TaskType, ToolStep, UncertainExternalEffectError,
     };
     use crate::runtime_execute::{Bounds, ExecuteMessage, ExecuteUsage};
     use axum::{body::Body, http::StatusCode, response::Response};
@@ -6951,6 +7058,7 @@ mod tests {
                 step_index: Some(3),
                 domain: Some("tool".to_string()),
                 node_id: Some("tool-3".to_string()),
+                ..TaskFailureDetails::default()
             }),
             execution_envelope: None,
             execution_receipt: None,
@@ -6997,8 +7105,49 @@ mod tests {
                 step_index: Some(3),
                 domain: Some("tool".to_string()),
                 node_id: Some("tool-3".to_string()),
+                ..TaskFailureDetails::default()
             }
         );
+    }
+
+    #[test]
+    fn uncertain_external_effect_is_a_typed_failure_detail() {
+        let step = RuntimeTaskStep::Tool(ToolStep {
+            step_index: 0,
+            node_id: "contract-bound-http-0".to_string(),
+            checkpoint_key: None,
+            read_slots: None,
+            write_slot: None,
+            tool_name: "http_request".to_string(),
+            args: None,
+        });
+        let error = anyhow::Error::new(UncertainExternalEffectError {
+            status_code: 409,
+            target_host: "adapter.internal".to_string(),
+            response_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                .to_string(),
+        });
+
+        let details = runtime_execution_failure_details_from_error(&error, &step);
+        assert_eq!(
+            details.effect_state.as_deref(),
+            Some("unknown_effect_state")
+        );
+        assert_eq!(details.reconciliation_required, Some(true));
+        assert_eq!(
+            details.target_error_code.as_deref(),
+            Some("idempotency_unresolved")
+        );
+        assert_eq!(details.status_code, Some(409));
+        assert_eq!(details.target_host.as_deref(), Some("adapter.internal"));
+
+        let body = build_failed_callback_body("unknown effect", Some(&details)).unwrap();
+        let callback: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            callback["failure_details"]["effect_state"],
+            "unknown_effect_state"
+        );
+        assert_eq!(callback["failure_details"]["reconciliation_required"], true);
     }
 
     #[test]
@@ -7052,6 +7201,7 @@ mod tests {
                 step_index: Some(3),
                 domain: Some("tool".to_string()),
                 node_id: Some("tool-3".to_string()),
+                ..TaskFailureDetails::default()
             }),
             execution_envelope: None,
             execution_receipt: None,

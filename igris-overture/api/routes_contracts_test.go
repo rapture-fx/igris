@@ -34,6 +34,8 @@ func contractTestApp(db *sql.DB, tenantID string) *fiber.App {
 	})
 	app.Post("/v1/contracts/sync", handleContractSync(db))
 	app.Get("/v1/contracts/actions/:name", handleContractActionGet(db))
+	app.Post("/v1/contracts/actions/:name/versions/:contract_hash/bindings", handleContractBindingCreate(db))
+	app.Get("/v1/contracts/actions/:name/versions/:contract_hash/binding", handleContractBindingGet(db))
 	app.Get("/v1/contracts/actions/:name/versions/:contract_hash", handleContractVersionGet(db))
 	return app
 }

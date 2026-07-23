@@ -24,6 +24,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -32,6 +34,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
 	"github.com/Igris-inertial/system/igris-overture/internal/canonicaljson"
@@ -91,6 +94,8 @@ func RegisterContractRoutes(app *fiber.App, db *sql.DB) {
 
 	v1.Post("/sync", handleContractSync(db))
 	v1.Get("/actions/:name", handleContractActionGet(db))
+	v1.Post("/actions/:name/versions/:contract_hash/bindings", handleContractBindingCreate(db))
+	v1.Get("/actions/:name/versions/:contract_hash/binding", handleContractBindingGet(db))
 	v1.Get("/actions/:name/versions/:contract_hash", handleContractVersionGet(db))
 }
 
@@ -605,6 +610,279 @@ func handleContractVersionGet(db *sql.DB) fiber.Handler {
 			"policy_flags":              policyFlags,
 			"contract":                  contract,
 		})
+	}
+}
+
+type contractBindingCreateRequest struct {
+	TargetActionID      string            `json:"target_action_id"`
+	InputMapping        map[string]string `json:"input_mapping"`
+	EndpointConfigRef   string            `json:"endpoint_config_ref"`
+	TimeoutMS           int               `json:"timeout_ms"`
+	ReplayClass         string            `json:"replay_class"`
+	IdempotencyRequired *bool             `json:"idempotency_required"`
+}
+
+type contractParameterDescriptor struct {
+	Name       string  `json:"name"`
+	Kind       string  `json:"kind"`
+	HasDefault bool    `json:"has_default"`
+	Annotation *string `json:"annotation"`
+}
+
+func handleContractBindingCreate(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		name, hash, verr := contractBindingPath(c)
+		if verr != nil {
+			return c.Status(verr.status).JSON(fiber.Map{"error": verr.code, "detail": verr.detail})
+		}
+
+		decoder := json.NewDecoder(strings.NewReader(string(c.Body())))
+		decoder.DisallowUnknownFields()
+		var request contractBindingCreateRequest
+		if err := decoder.Decode(&request); err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body", "detail": err.Error()})
+		}
+		if err := decoder.Decode(&struct{}{}); err != io.EOF {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid_body", "detail": "request must contain exactly one JSON object"})
+		}
+		targetID, err := uuid.Parse(strings.TrimSpace(request.TargetActionID))
+		if err != nil {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{"error": "invalid_target_action_id"})
+		}
+		if request.TimeoutMS == 0 {
+			request.TimeoutMS = 30_000
+		}
+		if request.TimeoutMS != 30_000 {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "unsupported_timeout_ms",
+				"detail": "Clock 3B uses the existing Runtime HTTP tool's fixed 30000 ms timeout",
+			})
+		}
+		if request.IdempotencyRequired == nil || !*request.IdempotencyRequired {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "idempotency_required",
+				"detail": "Clock 3B contract-bound targets must honor end-to-end idempotency",
+			})
+		}
+
+		tx, err := db.BeginTx(c.Context(), nil)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		defer func() { _ = tx.Rollback() }()
+
+		version, err := getContractVersion(c.Context(), tx, tenantID, name, hash)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "contract_version_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		target, err := loadActionDefinitionByIDFromQuerier(c.Context(), tx, tenantID, targetID.String())
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "target_action_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if canonicalActionTargetType(target.TargetType) != actionTargetWebhook {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "unsupported_bound_target",
+				"detail": "Clock 3B binds only an explicit authenticated webhook target",
+			})
+		}
+		if !isLoopbackHTTPURL(target.TargetURL) {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "unsafe_target_url",
+				"detail": "Clock 3B durable-local bindings require a loopback HTTP target",
+			})
+		}
+		headerName := stringFromMap(target.TargetMetadata, localWebhookAuthHeaderNameMetadata)
+		secretEnv := stringFromMap(target.TargetMetadata, localWebhookAuthSecretEnvMetadata)
+		if !localWebhookAuthHeaderPattern.MatchString(headerName) ||
+			!localWebhookSecretEnvPattern.MatchString(secretEnv) {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "adapter_auth_required",
+				"detail": "target metadata must reference an allowed auth header and IGRIS_* secret environment variable",
+			})
+		}
+
+		descriptors, err := contractParameterDescriptors(version.Contract)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "invalid_stored_contract"})
+		}
+		if err := validateContractInputMapping(descriptors, request.InputMapping); err != nil {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error": "invalid_input_mapping", "detail": err.Error(),
+			})
+		}
+
+		replayClass := strings.TrimSpace(request.ReplayClass)
+		if replayClass == "" {
+			replayClass = target.ReplayClass
+		}
+		if !validReplayClass(replayClass) {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{"error": "invalid_replay_class"})
+		}
+		if target.ReplayClass == "non_retryable" && replayClass != "non_retryable" {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error":  "policy_weakening",
+				"detail": "binding replay_class cannot weaken a non_retryable target",
+			})
+		}
+
+		snapshot := boundTargetSnapshot{
+			Name:             target.Name,
+			TargetType:       canonicalActionTargetType(target.TargetType),
+			TargetURL:        target.TargetURL,
+			Method:           target.Method,
+			PolicyPreset:     target.PolicyPreset,
+			ReplayClass:      target.ReplayClass,
+			ApprovalRequired: target.ApprovalRequired,
+			Irreversible:     target.Irreversible,
+			SecretRefs:       append([]string(nil), target.SecretRefs...),
+			TargetMetadata:   copyActionMap(target.TargetMetadata),
+		}
+		snapshotBytes, err := canonicaljson.Encode(snapshot)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "target_snapshot_failed"})
+		}
+		targetVersionHash := canonicaljson.SHA256Hex(snapshotBytes)
+		mappingBytes, err := canonicaljson.Encode(request.InputMapping)
+		if err != nil {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{"error": "invalid_input_mapping"})
+		}
+		endpointRef := strings.TrimSpace(request.EndpointConfigRef)
+		if endpointRef == "" {
+			endpointRef = "action_definition:" + target.ID + "@sha256:" + targetVersionHash
+		}
+		if len(endpointRef) > 512 || looksLikeRawActionSecret(endpointRef) {
+			return c.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{"error": "invalid_endpoint_config_ref"})
+		}
+		versionID, err := uuid.Parse(version.ID)
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "invalid_stored_contract"})
+		}
+
+		binding, err := insertContractExecutionBinding(
+			c.Context(), tx, tenantID, name, versionID, hash, targetID,
+			targetVersionHash, snapshotBytes, mappingBytes, endpointRef,
+			request.TimeoutMS, replayClass, true,
+		)
+		if err != nil {
+			if isLikelyUniqueViolation(err) {
+				return c.Status(http.StatusConflict).JSON(fiber.Map{
+					"error":  "binding_exists",
+					"detail": "this immutable contract version already has an execution binding",
+				})
+			}
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		if err := tx.Commit(); err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.Status(http.StatusCreated).JSON(contractBindingResponse(binding))
+	}
+}
+
+func handleContractBindingGet(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tenantID := middleware.GetClerkUserID(c)
+		if tenantID == "" {
+			return c.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthenticated"})
+		}
+		name, hash, verr := contractBindingPath(c)
+		if verr != nil {
+			return c.Status(verr.status).JSON(fiber.Map{"error": verr.code, "detail": verr.detail})
+		}
+		binding, err := getContractExecutionBinding(c.Context(), db, tenantID, name, hash)
+		if err == sql.ErrNoRows {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "binding_not_found"})
+		}
+		if err != nil {
+			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(contractBindingResponse(binding))
+	}
+}
+
+func contractBindingPath(c *fiber.Ctx) (string, string, *contractValidationError) {
+	name, verr := contractActionNameParam(c)
+	if verr != nil {
+		return "", "", verr
+	}
+	hash := strings.TrimSpace(c.Params("contract_hash"))
+	if !contractHashPattern.MatchString(hash) {
+		return "", "", &contractValidationError{
+			status: http.StatusBadRequest, code: "invalid_contract_hash",
+			detail: "contract_hash must be 64 lowercase hex chars",
+		}
+	}
+	return name, hash, nil
+}
+
+func contractParameterDescriptors(raw []byte) ([]contractParameterDescriptor, error) {
+	var contract struct {
+		ParameterDescriptors []contractParameterDescriptor `json:"parameter_descriptors"`
+	}
+	if err := json.Unmarshal(raw, &contract); err != nil {
+		return nil, err
+	}
+	return contract.ParameterDescriptors, nil
+}
+
+func validateContractInputMapping(descriptors []contractParameterDescriptor, mapping map[string]string) error {
+	if len(mapping) != len(descriptors) {
+		return fmt.Errorf("input_mapping must contain exactly one target field for every contract parameter")
+	}
+	targetFields := make(map[string]bool, len(mapping))
+	for _, descriptor := range descriptors {
+		targetField, ok := mapping[descriptor.Name]
+		targetField = strings.TrimSpace(targetField)
+		if !ok || targetField == "" {
+			return fmt.Errorf("missing mapping for contract parameter %q", descriptor.Name)
+		}
+		if !contractActionNamePattern.MatchString(targetField) {
+			return fmt.Errorf("mapped target field %q is invalid", targetField)
+		}
+		if targetFields[targetField] {
+			return fmt.Errorf("target field %q is mapped more than once", targetField)
+		}
+		targetFields[targetField] = true
+	}
+	for parameter := range mapping {
+		found := false
+		for _, descriptor := range descriptors {
+			if parameter == descriptor.Name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("mapping contains unknown contract parameter %q", parameter)
+		}
+	}
+	return nil
+}
+
+func contractBindingResponse(binding *contractExecutionBindingRecord) fiber.Map {
+	return fiber.Map{
+		"id":                   binding.ID.String(),
+		"action_name":          binding.ActionName,
+		"contract_hash":        binding.ContractHash,
+		"target_action_id":     binding.TargetActionID.String(),
+		"target_version_hash":  binding.TargetVersionHash,
+		"input_mapping":        json.RawMessage(binding.InputMapping),
+		"endpoint_config_ref":  binding.EndpointConfigRef,
+		"timeout_ms":           binding.TimeoutMS,
+		"replay_class":         binding.ReplayClass,
+		"idempotency_required": binding.IdempotencyRequired,
+		"created_at":           contractTimestamp(binding.CreatedAt),
+		"immutable":            true,
 	}
 }
 

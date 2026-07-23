@@ -38,6 +38,7 @@ const (
 )
 
 var ErrInvalidTaskDefinition = errors.New("invalid task_definition")
+var ErrTaskIdempotencyConflict = errors.New("idempotency key reused with a different request")
 
 // TaskCoordinator dispatches tasks to runtimes and handles failure recovery.
 type TaskCoordinator struct {
@@ -104,6 +105,7 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		DeadlineAt:           req.DeadlineAt,
 		RegisteredAgentID:    req.RegisteredAgentID,
 		RegisteredAgentName:  req.RegisteredAgentName,
+		BoundAction:          req.BoundAction,
 		CreatedAt:            time.Now(),
 	}
 
@@ -112,6 +114,18 @@ func (tc *TaskCoordinator) Submit(ctx context.Context, req *TaskSubmitRequest) (
 		return nil, fmt.Errorf("create task record: %w", err)
 	}
 	if !inserted {
+		if req.BoundAction != nil {
+			existingBound, boundErr := tc.store.GetBoundActionRunByIdempotency(ctx, req.TenantID, idempotencyKey)
+			if boundErr == sql.ErrNoRows {
+				return nil, ErrTaskIdempotencyConflict
+			}
+			if boundErr != nil {
+				return nil, fmt.Errorf("lookup contract-bound idempotency: %w", boundErr)
+			}
+			if existingBound.RequestFingerprint != req.BoundAction.RequestFingerprint {
+				return nil, ErrTaskIdempotencyConflict
+			}
+		}
 		existing, err := tc.store.GetTaskByIdempotencyKey(req.TenantID, idempotencyKey)
 		if err == nil {
 			return existing, nil
@@ -223,6 +237,7 @@ func (tc *TaskCoordinator) SubmitDemoSimulatedFailure(ctx context.Context, req *
 		DeadlineAt:           req.DeadlineAt,
 		RegisteredAgentID:    req.RegisteredAgentID,
 		RegisteredAgentName:  req.RegisteredAgentName,
+		BoundAction:          req.BoundAction,
 		CreatedAt:            time.Now(),
 	}
 	inserted, err := tc.store.CreateTaskWithExecutionInputRefs(ctx, task, protectedDefinition.Refs)
@@ -264,6 +279,13 @@ func (tc *TaskCoordinator) HandleComplete(taskID uuid.UUID) error {
 // HandleFailed marks a task as failed.
 func (tc *TaskCoordinator) HandleFailed(taskID uuid.UUID, reason string) error {
 	return tc.store.MarkFailed(taskID, reason)
+}
+
+// HandleFailedWithDetails preserves the signed Runtime callback's structured
+// failure metadata. Unknown-effect reconciliation eligibility is established
+// here before the Runtime's synchronous task response can race the callback.
+func (tc *TaskCoordinator) HandleFailedWithDetails(taskID uuid.UUID, reason string, details *TaskFailureDetails) error {
+	return tc.store.MarkFailedWithDetails(taskID, reason, details)
 }
 
 // RecordRuntimeFailedRecoveryDecision persists the conservative recovery
@@ -1603,8 +1625,9 @@ type TaskSubmitRequest struct {
 	// runtime exists Submit returns a no-healthy-runtime error.
 	PreferredRuntimeID string `json:"-"`
 
-	RegisteredAgentID   *uuid.UUID `json:"-"`
-	RegisteredAgentName string     `json:"-"`
+	RegisteredAgentID   *uuid.UUID              `json:"-"`
+	RegisteredAgentName string                  `json:"-"`
+	BoundAction         *BoundActionRunIdentity `json:"-"`
 }
 
 func normalizePublicTaskDefinition(taskType string, raw json.RawMessage) (json.RawMessage, error) {

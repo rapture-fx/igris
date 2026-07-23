@@ -377,6 +377,42 @@
     },
     {
       "method": "POST",
+      "path": "/v1/actions/runs/:id/evidence-links",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned action definitions and idempotency",
+      "feature_flag": "",
+      "notes": "Registered action gateway"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/actions/runs/:id/reconciliation",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth admin session",
+      "tenant_scope_expectation": "tenant-owned immutable reconciliation history",
+      "feature_flag": "",
+      "notes": "Operator inspection of typed unknown-effect state; no raw target body or proof mutation"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/actions/runs/:id/reconciliation",
+      "route_group": "actions",
+      "handler_or_registration_source_if_available": "RegisterActionRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth admin session",
+      "tenant_scope_expectation": "tenant-owned append-only operator resolution",
+      "feature_flag": "",
+      "notes": "Appends an operator assertion only; never retries an effect or rewrites execution evidence"
+    },
+    {
+      "method": "POST",
       "path": "/v1/actions/runs/:id/reject",
       "route_group": "actions",
       "handler_or_registration_source_if_available": "RegisterActionRoutes",
@@ -553,7 +589,7 @@
       "auth_expectation": "BetterAuth tenant credential",
       "tenant_scope_expectation": "tenant-owned logical actions and immutable contract versions",
       "feature_flag": "",
-      "notes": "Connected contract synchronization and lookup; declaration only, grants no execution permission"
+      "notes": "Contract sync remains declaration-only; execution requires a separate explicit immutable target binding"
     },
     {
       "method": "GET",
@@ -565,7 +601,31 @@
       "auth_expectation": "BetterAuth tenant credential",
       "tenant_scope_expectation": "tenant-owned logical actions and immutable contract versions",
       "feature_flag": "",
-      "notes": "Connected contract synchronization and lookup; declaration only, grants no execution permission"
+      "notes": "Contract sync remains declaration-only; execution requires a separate explicit immutable target binding"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/contracts/actions/:name/versions/:contract_hash/binding",
+      "route_group": "contracts",
+      "handler_or_registration_source_if_available": "RegisterContractRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned logical actions and immutable contract versions",
+      "feature_flag": "",
+      "notes": "Contract sync remains declaration-only; execution requires a separate explicit immutable target binding"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/contracts/actions/:name/versions/:contract_hash/bindings",
+      "route_group": "contracts",
+      "handler_or_registration_source_if_available": "RegisterContractRoutes",
+      "classification": "core_public_product_api",
+      "default_exposure": "authenticated",
+      "auth_expectation": "BetterAuth tenant credential",
+      "tenant_scope_expectation": "tenant-owned logical actions and immutable contract versions",
+      "feature_flag": "",
+      "notes": "Contract sync remains declaration-only; execution requires a separate explicit immutable target binding"
     },
     {
       "method": "POST",
@@ -577,7 +637,7 @@
       "auth_expectation": "BetterAuth tenant credential",
       "tenant_scope_expectation": "tenant-owned logical actions and immutable contract versions",
       "feature_flag": "",
-      "notes": "Connected contract synchronization and lookup; declaration only, grants no execution permission"
+      "notes": "Contract sync remains declaration-only; execution requires a separate explicit immutable target binding"
     },
     {
       "method": "POST",
