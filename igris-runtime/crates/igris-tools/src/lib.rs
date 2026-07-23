@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 pub mod database;
+pub mod destination_policy;
 pub mod filesystem;
 pub mod http;
 pub mod redaction;

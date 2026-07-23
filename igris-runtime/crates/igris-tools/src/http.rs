@@ -1,7 +1,8 @@
 /// HTTP tool provider for making web requests
 use crate::{
-    allowlisted_http_headers, safe_content_output, safe_error_message, Tool, ToolResult,
-    REDACTION_POLICY_VERSION,
+    allowlisted_http_headers,
+    destination_policy::validate_action_destination,
+    safe_content_output, safe_error_message, Tool, ToolResult, REDACTION_POLICY_VERSION,
 };
 use anyhow::Result;
 use serde_json::json;
@@ -106,6 +107,9 @@ impl Tool for HttpTool {
                 self.allowed_domains
             );
         }
+        // Destination policy is independent of the hostname allowlist: even an
+        // allowlisted host must resolve to an approved address class.
+        let _ = validate_action_destination(url)?;
 
         Ok(())
     }
@@ -122,15 +126,24 @@ impl Tool for HttpTool {
             .as_str()
             .ok_or_else(|| anyhow::anyhow!("Missing 'url' field"))?;
 
+        // Re-validate immediately before connect (DNS rebinding window).
+        let destination = validate_action_destination(url)?;
+
         debug!(
             "HTTP request: method={} host={}",
             method,
             extract_url_host(url).unwrap_or_default()
         );
 
-        let client = reqwest::Client::builder()
+        let mut builder = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(30))
-            .build()?;
+            // Never follow redirects: prevents escape to denied IP space and
+            // blocks credential forwarding across redirect boundaries.
+            .redirect(reqwest::redirect::Policy::none());
+        // Pin DNS answers we already validated so the dial cannot use a
+        // different resolution than the policy check.
+        builder = builder.resolve_to_addrs(&destination.host, &destination.addrs);
+        let client = builder.build()?;
 
         let mut request = match method {
             "GET" => client.get(url),
@@ -158,6 +171,27 @@ impl Tool for HttpTool {
         match request.send().await {
             Ok(response) => {
                 let status = response.status();
+                if status.is_redirection() {
+                    let execution_time = start.elapsed().as_millis() as u64;
+                    return Ok(ToolResult::failure(
+                        "http_request".to_string(),
+                        json!({
+                            "error_code": "redirect_refused",
+                            "message": "Action target returned a redirect; redirects are never followed",
+                            "status_code": status.as_u16(),
+                            "url_host": extract_url_host(url).unwrap_or_default(),
+                            "redaction_policy_version": REDACTION_POLICY_VERSION,
+                        })
+                        .to_string(),
+                        execution_time,
+                    )
+                    .with_metadata("status_code".to_string(), status.as_u16().to_string())
+                    .with_metadata("error_code".to_string(), "redirect_refused".to_string())
+                    .with_metadata(
+                        "url_host".to_string(),
+                        extract_url_host(url).unwrap_or_default(),
+                    ));
+                }
                 let content_type = response
                     .headers()
                     .get(reqwest::header::CONTENT_TYPE)
@@ -327,11 +361,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_validate_args() {
-        let tool = HttpTool::new(vec!["example.com".to_string()]);
+        let tool = HttpTool::new(vec!["127.0.0.1".to_string(), "10.0.0.1".to_string()]);
 
         let valid_args = json!({
             "method": "GET",
-            "url": "https://example.com/api"
+            "url": "http://127.0.0.1/api"
         });
 
         assert!(tool.validate_args(&valid_args).await.is_ok());
@@ -342,6 +376,12 @@ mod tests {
         });
 
         assert!(tool.validate_args(&invalid_args).await.is_err());
+
+        let private_https = json!({
+            "method": "GET",
+            "url": "https://10.0.0.1/metadata"
+        });
+        assert!(tool.validate_args(&private_https).await.is_err());
     }
 
     /// Serve exactly one canned HTTP response on a random local port.
@@ -449,6 +489,35 @@ mod tests {
             Some("text/plain"),
             r#"{"error":"idempotency_unresolved","status":"unknown_effect_state","effect_status":"unknown_effect_state","reconciliation_required":true}"#
         ));
+    }
+
+    #[tokio::test]
+    async fn redirect_response_is_refused_and_not_followed() {
+        use std::io::{Read, Write};
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        std::thread::spawn(move || {
+            if let Ok((mut stream, _)) = listener.accept() {
+                let mut buf = [0u8; 4096];
+                let _ = stream.read(&mut buf);
+                let response = "HTTP/1.1 302 Found\r\nLocation: http://169.254.169.254/\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+                let _ = stream.write_all(response.as_bytes());
+            }
+        });
+        let tool = HttpTool::new(vec!["127.0.0.1".to_string()]);
+        let result = tool
+            .execute(json!({
+                "method": "GET",
+                "url": format!("http://127.0.0.1:{port}/start"),
+            }))
+            .await
+            .unwrap();
+        assert!(!result.success);
+        assert!(result.error.unwrap_or_default().contains("redirect_refused"));
+        assert_eq!(
+            result.metadata.get("error_code").map(String::as_str),
+            Some("redirect_refused")
+        );
     }
 
     #[tokio::test]

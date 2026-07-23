@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -237,14 +238,14 @@ func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthHeader(t *testing.T)
 	require.Contains(t, args, "headers", "local auth must be passed to the runtime request, then encrypted by input refs before persistence")
 }
 
-func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthRequiresLoopback(t *testing.T) {
+func TestBuildActionRunRequestFromDefinitionWebhookAuthRejectsPrivateHTTPS(t *testing.T) {
 	t.Setenv("IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET", "test-local-shared-secret")
 
 	_, err := buildActionRunRequestFromDefinition(actionDefinition{
 		ID:           "action-local-webhook",
 		Name:         "repo.push_branch",
 		TargetType:   "webhook",
-		TargetURL:    "https://example.com/repo/push-branch",
+		TargetURL:    "https://10.0.0.1/repo/push-branch",
 		Method:       "POST",
 		PolicyPreset: "Human-gated",
 		ReplayClass:  "non_retryable",
@@ -254,7 +255,35 @@ func TestBuildActionRunRequestFromDefinitionWebhookLocalAuthRequiresLoopback(t *
 		},
 	}, actionRunByNameRequest{Input: map[string]interface{}{"action": "repo.push_branch"}})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "loopback")
+	require.Contains(t, err.Error(), "denied address")
+}
+
+func TestBuildActionRunRequestFromDefinitionWebhookAuthAllowsExternalHTTPS(t *testing.T) {
+	t.Setenv("IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET", "test-local-shared-secret")
+	prev := lookupIP
+	lookupIP = func(host string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("1.2.3.4")}, nil
+	}
+	t.Cleanup(func() { lookupIP = prev })
+
+	req, err := buildActionRunRequestFromDefinition(actionDefinition{
+		ID:           "action-external-webhook",
+		Name:         "deploy.staging",
+		TargetType:   "webhook",
+		TargetURL:    "https://adapter.example.com/v1/deploy/staging",
+		Method:       "POST",
+		PolicyPreset: "Human-gated",
+		ReplayClass:  "non_retryable",
+		TargetMetadata: map[string]interface{}{
+			localWebhookAuthHeaderNameMetadata: "X-Igris-Dogfood-Secret",
+			localWebhookAuthSecretEnvMetadata:  "IGRIS_TEST_DOGFOOD_WEBHOOK_SECRET",
+		},
+	}, actionRunByNameRequest{Input: map[string]interface{}{"service": "api"}})
+	require.NoError(t, err)
+	require.Equal(t, "https://adapter.example.com/v1/deploy/staging", req.Input["url"])
+	headers, ok := req.Input["headers"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "test-local-shared-secret", headers["X-Igris-Dogfood-Secret"])
 }
 
 func TestBuildActionRunRequestFromDefinitionLocalAuthRequiresWebhookTarget(t *testing.T) {

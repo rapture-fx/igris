@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -986,6 +985,10 @@ func buildActionRunRequestFromDefinition(def actionDefinition, req actionRunByNa
 		if strings.TrimSpace(def.TargetURL) == "" {
 			return actionRunRequest{}, fmt.Errorf("target URL is not configured")
 		}
+		// Syntax/literal checks here; bind + Runtime re-resolve DNS near connect.
+		if _, err := ValidateActionTargetURLSyntax(def.TargetURL); err != nil {
+			return actionRunRequest{}, fmt.Errorf("unsafe_target_url: %w", err)
+		}
 		headers, err := localWebhookAuthHeaders(def)
 		if err != nil {
 			return actionRunRequest{}, err
@@ -1069,6 +1072,10 @@ func buildBoundActionRunRequest(
 		Irreversible:     snapshot.Irreversible,
 		SecretRefs:       append([]string(nil), snapshot.SecretRefs...),
 		TargetMetadata:   copyActionMap(snapshot.TargetMetadata),
+	}
+	// Re-validate destination policy near dispatch (DNS may have changed since bind).
+	if _, err := ValidateActionTargetURL(snapshot.TargetURL); err != nil {
+		return actionRunRequest{}, actionDefinition{}, fmt.Errorf("unsafe_target_url: %w", err)
 	}
 	headers, err := localWebhookAuthHeaders(targetDef)
 	if err != nil {
@@ -1225,8 +1232,8 @@ func localWebhookAuthHeaders(def actionDefinition) (map[string]interface{}, erro
 	if !localWebhookSecretEnvPattern.MatchString(secretEnv) {
 		return nil, fmt.Errorf("local webhook auth secret env name is not allowed")
 	}
-	if !isLoopbackHTTPURL(def.TargetURL) {
-		return nil, fmt.Errorf("local webhook auth is only allowed for loopback http targets")
+	if _, err := ValidateActionTargetURL(def.TargetURL); err != nil {
+		return nil, fmt.Errorf("webhook auth target URL rejected: %w", err)
 	}
 	secret, ok := os.LookupEnv(secretEnv)
 	if !ok || strings.TrimSpace(secret) == "" {
@@ -1236,22 +1243,6 @@ func localWebhookAuthHeaders(def actionDefinition) (map[string]interface{}, erro
 		return nil, fmt.Errorf("local webhook auth secret contains invalid characters")
 	}
 	return map[string]interface{}{headerName: secret}, nil
-}
-
-func isLoopbackHTTPURL(raw string) bool {
-	parsed, err := url.Parse(strings.TrimSpace(raw))
-	if err != nil {
-		return false
-	}
-	if parsed.Scheme != "http" {
-		return false
-	}
-	switch strings.ToLower(parsed.Hostname()) {
-	case "127.0.0.1", "localhost", "::1":
-		return true
-	default:
-		return false
-	}
 }
 
 func buildActionExecutionGraphDefinition(req actionRunRequest) (json.RawMessage, error) {
@@ -1625,6 +1616,14 @@ func normalizeActionDefinitionRequest(req actionDefinitionRequest, current *acti
 	}
 	if strings.TrimSpace(req.TargetURL) != "" || current == nil {
 		def.TargetURL = sanitizeActionTargetURL(req.TargetURL)
+	}
+	if def.TargetType == actionTargetWebhook || def.TargetType == actionTargetHostedAPI {
+		if strings.TrimSpace(def.TargetURL) == "" {
+			return actionDefinition{}, fmt.Errorf("target_url is required for %s targets", def.TargetType)
+		}
+		if _, err := ValidateActionTargetURLSyntax(def.TargetURL); err != nil {
+			return actionDefinition{}, fmt.Errorf("unsafe_target_url: %w", err)
+		}
 	}
 	if strings.TrimSpace(req.Method) != "" {
 		def.Method = strings.ToUpper(strings.TrimSpace(req.Method))
