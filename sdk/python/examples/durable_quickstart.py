@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Clean-room durable journey sketch (no repository-private imports).
+"""Clean-room managed journey: Igris.from_env → run → wait → proof.
 
-This example shows the supported SDK path:
+One-time Action setup (sync / target / bind) is shown once, then the ordinary
+path uses Action name + business idempotency key only.
 
-    wrap → contract sync → action target → exact binding → run → wait → proof
-
-It does not start infrastructure. Set endpoint/api_key (or both
-IGRIS_API_URL and IGRIS_API_KEY) and ensure a webhook adapter is reachable.
-
-Install the correct SDK first (never ``pip install igris`` from public PyPI)::
+Does not start infrastructure. Set IGRIS_API_URL + IGRIS_API_KEY and ensure a
+loopback webhook adapter is reachable.
 
     pip install ./sdk/python
 """
@@ -18,7 +15,7 @@ from __future__ import annotations
 import os
 import sys
 
-from igris import IgrisDurableClient, wrap_tool
+from igris import Igris, wrap_tool
 from igris.approval import ApprovalDecision
 
 
@@ -28,46 +25,39 @@ class AlwaysAllow:
         return ApprovalDecision("allowed", "durable quickstart")
 
 
-def consequential_transfer(account_id: str, amount_cents: int) -> dict:
-    return {
-        "account_id": account_id,
-        "amount_cents": amount_cents,
-        "effect": "recorded",
-    }
+def deploy_staging(service: str, commit: str) -> dict:
+    return {"service": service, "commit": commit, "effect": "deployed"}
 
 
 def main() -> int:
-    endpoint = os.environ.get("IGRIS_API_URL", "").strip()
-    api_key = os.environ.get("IGRIS_API_KEY", "").strip()
-    if not endpoint or not api_key:
+    if (
+        not os.environ.get("IGRIS_API_URL", "").strip()
+        or not os.environ.get("IGRIS_API_KEY", "").strip()
+    ):
         print(
-            "Set IGRIS_API_URL and IGRIS_API_KEY, then construct the durable client "
-            "explicitly (or call IgrisDurableClient.from_env()). "
-            "Embedded wrap_tool stays local until you use IgrisDurableClient.",
+            "Set IGRIS_API_URL and IGRIS_API_KEY, then call Igris.from_env(). "
+            "Embedded wrap_tool stays local until you use managed Igris.",
             file=sys.stderr,
         )
         return 2
 
-    # Explicit durable client — env alone never remotes wrap_tool.
-    client = IgrisDurableClient(endpoint=endpoint, api_key=api_key)
+    igris = Igris.from_env()
 
     tool = wrap_tool(
-        consequential_transfer,
-        action="demo.consequential_transfer",
+        deploy_staging,
+        action="deploy.staging",
         risk="critical",
         approval="never",
         approval_provider=AlwaysAllow(),
     )
-    contract = tool.__igris_contract__
-    sync = client.sync_contract(tool)
-    print(f"contract synced: {sync.action_name} hash={sync.contract_hash[:12]}…")
 
+    # --- one-time setup (skip when the Action is already configured) ---
     target_url = os.environ.get(
         "IGRIS_DEMO_TARGET_URL",
-        "http://127.0.0.1:18099/v1/demo/transfer",
+        "http://127.0.0.1:18099/v1/deploy/staging",
     )
-    target = client.create_action_target(
-        name="demo_transfer_adapter",
+    target = igris.create_action_target(
+        name="deploy_staging_adapter",
         target_url=target_url,
         target_type="webhook",
         replay_class="retryable",
@@ -77,34 +67,27 @@ def main() -> int:
             "local_auth_secret_env": "IGRIS_DEMO_ADAPTER_TOKEN",
         },
     )
-    print(f"target_action_id: {target.id}")
-
-    binding = client.ensure_binding(
-        action_name=contract.action_name,
-        contract_hash=contract.contract_hash,
+    binding = igris.configure_action(
+        tool,
         target_action_id=target.id,
-        input_mapping={
-            "account_id": "account_id",
-            "amount_cents": "amount_cents",
-        },
+        input_mapping={"service": "service", "commit": "commit"},
     )
-    print(f"binding: {binding.id}")
+    print(f"configured {binding.action_name} binding={binding.id}")
 
-    idem = os.environ.get("IGRIS_DEMO_IDEMPOTENCY_KEY", "demo-transfer-quickstart-001")
-    run = client.run(
-        contract.action_name,
-        input={"account_id": "acct_demo", "amount_cents": 100},
+    # --- ordinary Action → Run → Proof ---
+    idem = os.environ.get("IGRIS_DEMO_IDEMPOTENCY_KEY", "deploy:api:quickstart-001")
+    run = igris.run(
+        "deploy.staging",
+        input={"service": "api", "commit": "abc123"},
         idempotency_key=idem,
-        contract_hash=contract.contract_hash,
     )
     print(f"run_id: {run.run_id}")
 
     status = run.wait(timeout=float(os.environ.get("IGRIS_DEMO_WAIT_TIMEOUT", "60")))
-    print(f"status={status.status} recovery={status.recovery_status} terminal={status.is_terminal}")
+    print(f"status={status.status} terminal={status.is_terminal}")
 
     proof = run.proof()
-    print(f"proof schema={proof.schema} product_term={proof.product_term}")
-    print(f"statuses={proof.statuses}")
+    print(f"proof schema={proof.schema} statuses={proof.statuses}")
     return 0
 
 

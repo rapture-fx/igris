@@ -451,6 +451,39 @@ class TestDurableHttpClient:
         with pytest.raises(ReconciliationRequiredError):
             handle.wait(timeout=1.0, poll_interval=0.01)
 
+    def test_reconciliation_required_from_top_level_flag_when_status_failed(self):
+        """Clock 3D attaches reconciliation_required on GET run even when
+        task.status remains failed — SDK must not miss that signal."""
+        body = sample_run_status_body(
+            status="failed",
+            durable_execution_status="failed",
+            recovery_status="present",
+        )
+        body["reconciliation_required"] = True
+        body["reconciliation_status"] = "reconciliation_required"
+        body["igris_run_proof"] = {
+            "schema": "igris_run_proof.v1",
+            "product_term": "Igris Run Proof",
+            "run_id": RUN_ID,
+            "statuses": {"reconciliation_status": "reconciliation_required"},
+            "operator_reconciliation": {
+                "claim_type": "operator_reconciliation",
+                "cryptographic_proof": False,
+                "reconciliation_required": True,
+                "status": "reconciliation_required",
+            },
+        }
+        status = igris.DurableRunStatus.from_response(body)
+        assert status.status == "failed"
+        assert status.requires_reconciliation is True
+
+        def opener(request, timeout=None):
+            return FakeHTTPResponse(200, body)
+
+        handle = igris.DurableRun(make_client(opener), run_id=RUN_ID)
+        with pytest.raises(ReconciliationRequiredError):
+            handle.status()
+
     def test_wait_timeout(self, monkeypatch):
         monkeypatch.setattr("igris.durable.time.sleep", lambda _s: None)
 
@@ -553,3 +586,113 @@ class TestDurableHttpClient:
         with pytest.raises(DurableConfigurationError) as excinfo:
             IgrisDurableClient(endpoint=ENDPOINT, api_key="")
         assert API_KEY not in str(excinfo.value)
+
+
+# ---------------------------------------------------------------------------
+# Product facade: Igris (Action → Run → Proof)
+# ---------------------------------------------------------------------------
+
+
+class TestIgrisFacade:
+    def test_public_import(self):
+        from igris import Igris
+
+        assert Igris is igris.Igris
+        assert "Igris" in igris.__all__
+
+    def test_from_env_and_delegation(self, monkeypatch):
+        monkeypatch.setenv("IGRIS_API_URL", ENDPOINT)
+        monkeypatch.setenv("IGRIS_API_KEY", API_KEY)
+        facade = igris.Igris.from_env()
+        assert isinstance(facade.durable, IgrisDurableClient)
+
+        seen: list[str] = []
+
+        def opener(request, timeout=None):
+            seen.append(request.get_method() + " " + request.full_url)
+            if request.full_url.endswith(f"/versions/{CONTRACT_HASH}/binding"):
+                return FakeHTTPResponse(200, sample_binding_body())
+            if request.get_method() == "POST" and request.full_url.endswith(
+                f"/v1/actions/{ACTION_NAME}/run"
+            ):
+                body = json.loads(request.data.decode("utf-8"))
+                assert body["idempotency_key"] == "biz-1"
+                assert body["contract_hash"] == CONTRACT_HASH
+                return FakeHTTPResponse(
+                    202, sample_run_status_body(status="accepted", run_id=RUN_ID)
+                )
+            raise AssertionError(request.full_url)
+
+        facade = igris.Igris(durable=make_client(opener))
+        facade.remember_contract(ACTION_NAME, CONTRACT_HASH)
+        run = facade.run(ACTION_NAME, input={"amount": 1}, idempotency_key="biz-1")
+        assert run.run_id == RUN_ID
+        assert any("/run" in s for s in seen)
+
+    def test_run_requires_idempotency_key(self):
+        facade = igris.Igris(durable=make_client(lambda *a, **k: FakeHTTPResponse(200, {})))
+        facade.remember_contract(ACTION_NAME, CONTRACT_HASH)
+        with pytest.raises(DurableConfigurationError) as excinfo:
+            facade.run(ACTION_NAME, input={"amount": 1})
+        assert "idempotency_key" in str(excinfo.value)
+
+    def test_run_without_remembered_contract_raises(self):
+        facade = igris.Igris(durable=make_client(lambda *a, **k: FakeHTTPResponse(200, {})))
+        with pytest.raises(UnboundActionError):
+            facade.run(ACTION_NAME, input={"amount": 1}, idempotency_key="k1")
+
+    def test_configure_action_caches_hash_for_ordinary_run(self, allow_provider):
+        state = {"bound": False}
+        calls: list[str] = []
+
+        def opener(request, timeout=None):
+            calls.append(request.get_method() + " " + request.full_url)
+            path = request.full_url
+            if path.endswith("/v1/contracts/sync"):
+                return FakeHTTPResponse(
+                    201,
+                    {
+                        "version": {"contract_hash": CONTRACT_HASH, "created": True},
+                        "action": {"action_name": ACTION_NAME},
+                    },
+                )
+            if path.endswith(f"/versions/{CONTRACT_HASH}/binding"):
+                if request.get_method() == "GET":
+                    if not state["bound"]:
+                        raise make_http_error(404, {"error": "binding_not_found"})
+                    return FakeHTTPResponse(200, sample_binding_body())
+            if (
+                path.endswith(f"/versions/{CONTRACT_HASH}/bindings")
+                and request.get_method() == "POST"
+            ):
+                state["bound"] = True
+                return FakeHTTPResponse(201, sample_binding_body())
+            if path.endswith(f"/v1/actions/{ACTION_NAME}/run"):
+                body = json.loads(request.data.decode("utf-8"))
+                assert body["contract_hash"] == CONTRACT_HASH
+                assert body["idempotency_key"] == "k-config"
+                return FakeHTTPResponse(
+                    202, sample_run_status_body(status="accepted", run_id=RUN_ID)
+                )
+            raise AssertionError(path)
+
+        facade = igris.Igris(durable=make_client(opener))
+
+        @igris.guard(action=ACTION_NAME, approval_provider=allow_provider)
+        def refund(amount: int):
+            return amount
+
+        binding = facade.configure_action(
+            refund,
+            target_action_id=TARGET_ACTION_ID,
+            input_mapping={"amount": "amount_cents"},
+        )
+        assert binding.contract_hash == CONTRACT_HASH
+        run = facade.run(ACTION_NAME, input={"amount": 1}, idempotency_key="k-config")
+        assert run.run_id == RUN_ID
+        assert any("/contracts/sync" in c for c in calls)
+        assert any("/run" in c for c in calls)
+
+    def test_durable_client_still_public(self):
+        assert igris.IgrisDurableClient is IgrisDurableClient
+        assert "IgrisDurableClient" in igris.__all__
