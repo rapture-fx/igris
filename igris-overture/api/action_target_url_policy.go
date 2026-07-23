@@ -9,14 +9,50 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/url"
 	"strings"
+	"time"
 )
 
-// lookupIP is swappable for unit tests.
-var lookupIP = net.LookupIP
+// lookupIP is swappable for unit tests. Default prefers the system resolver and
+// falls back to public recursive resolvers when the system resolver fails
+// (common on misconfigured local networks). Both paths still classify every
+// returned address against the SSRF deny list.
+var lookupIP = lookupIPDefault
+
+func lookupIPDefault(host string) ([]net.IP, error) {
+	ips, err := net.LookupIP(host)
+	if err == nil && len(ips) > 0 {
+		return ips, nil
+	}
+	systemErr := err
+	for _, dns := range []string{"1.1.1.1:53", "8.8.8.8:53"} {
+		ips, err := lookupIPViaResolver(host, dns)
+		if err == nil && len(ips) > 0 {
+			return ips, nil
+		}
+	}
+	if systemErr != nil {
+		return nil, systemErr
+	}
+	return nil, fmt.Errorf("no addresses for host %q", host)
+}
+
+func lookupIPViaResolver(host, dnsAddr string) ([]net.IP, error) {
+	resolver := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
+			d := net.Dialer{Timeout: 5 * time.Second}
+			return d.DialContext(ctx, network, dnsAddr)
+		},
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	return resolver.LookupIP(ctx, "ip", host)
+}
 
 // ActionTargetURLClass identifies which allowed target mode matched.
 type ActionTargetURLClass string
