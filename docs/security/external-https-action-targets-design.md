@@ -1,37 +1,40 @@
-# Secure external HTTPS Action targets — design brief (next slice)
+# Secure external HTTPS Action targets
 
-**Status:** investigation only — not implemented in Product Compression Slice 1.  
-**Verified on:** `feature/product-compression` after main `311c17433`.
+**Status:** implemented on `feature/external-action-targets`  
+**Base:** post–PR #82 main
 
-## Current behavior (source)
+## Allowed target classes
 
-Binding create (`POST …/bindings`) in `igris-overture/api/routes_contracts.go`:
+| Class | Scheme | Host | Resolved addresses |
+|---|---|---|---|
+| `loopback_http` | `http` | `127.0.0.1`, `localhost`, `::1` | must be loopback only |
+| `external_https` | `https` | non-loopback hostname or public literal | all answers must be public; deny private/link-local/metadata/CGNAT/ULA/docs |
 
-* Rejects non-loopback webhook URLs with `unsafe_target_url` (“Clock 3B durable-local bindings require a loopback HTTP target”).
-* Requires `local_auth_header_name` + `IGRIS_*` secret env (`adapter_auth_required`).
-* `isLoopbackHTTPURL` (in `routes_actions.go`) allows only `http://` + `127.0.0.1` / `localhost` / `::1`.
+## Enforcement points
 
-Target **registration** (`POST /v1/actions`) can accept broader URLs; failure is deferred to **bind**. That trap door confuses external developers.
+1. **Registration** (`normalizeActionDefinitionRequest`): syntax + literal IP class (`ValidateActionTargetURLSyntax`). No DNS required so operators can register before DNS is live.
+2. **Bind** (`routes_contracts.go`): full `ValidateActionTargetURL` (resolve + deny).
+3. **Dispatch** (`buildBoundActionRunRequest` + `localWebhookAuthHeaders`): full re-validation.
+4. **Runtime** (`igris-tools` destination policy + `HttpTool`): independent re-resolve, pin validated addrs, **never follow redirects**.
 
-## Product impact
+## Explicitly refused
 
-Blocks the intended external coding-agent deployment pilot (real `https://…` adapter). Loopback dogfood remains valid for Slice 1 validation.
+- Arbitrary caller-supplied per-run URLs (URL comes from immutable target snapshot)
+- `http://` to non-loopback
+- `https://` to loopback / private / metadata
+- Embedded URL userinfo
+- Redirects (no credential forwarding across hops)
+- Cross-tenant target references (existing tenant-scoped APIs)
 
-## Narrow next-slice design must address
+## Target ownership (pilot)
 
-| Concern | Direction |
-|---|---|
-| HTTPS | Require `https` for non-loopback; no plaintext remote |
-| DNS | Resolve at bind + at each dispatch; pin or re-check |
-| Private/reserved IP | Deny RFC1918, loopback, link-local, metadata ranges (IPv4+IPv6) unless explicit local-dev exception |
-| Redirects | Do not follow redirects while forwarding credentials (align with SDK `_NoRedirectHandler`) |
-| DNS rebinding | Re-resolve and re-validate IP before connect; short TTL awareness |
-| Credential forwarding | Adapter auth via registered header + secret env / vault ref — never customer Bearer to arbitrary hosts |
-| Ownership | Target must be tenant-owned; bind only to tenant’s target id |
-| Verification | Optional challenge URL / signed handshake before first bind |
-| Local-dev exception | Keep today’s loopback path behind explicit `http://127.0.0.1` rule |
-| Auditability | Log bind decisions (tenant, host, resolved IPs, policy version) |
+Authenticated tenant-scoped `POST /v1/actions` + bind to that tenant’s target id.
+No separate domain-ownership challenge in this slice. Residual risk: a tenant can point at any public HTTPS URL they do not own; SSRF controls still prevent reaching private/cloud-metadata space. Acceptable for disposable pilot; domain proof remains a follow-up.
 
-## Hard rule
+## Adapter auth
 
-Do not allow arbitrary external URLs. Implement as a dedicated security slice after Slice 1 facade lands.
+Target-scoped header + `IGRIS_*` secret env (existing mechanism). Igris tenant API keys are never forwarded to the Action target.
+
+## Disposable adapter
+
+`examples/deploy_staging_https_adapter.py` — `deploy.staging` with idempotency, lookup, and pre/post-effect failure injection. Serve behind a publicly trusted HTTPS endpoint for product validation; Runtime requires a trusted certificate chain.
