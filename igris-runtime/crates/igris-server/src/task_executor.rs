@@ -403,6 +403,13 @@ pub enum TaskType {
         /// graphs to prove recovery without replaying committed actions.
         #[serde(default)]
         checkpoint_after_steps: Option<u32>,
+        /// When true with `checkpoint_after_steps`, persist the Overture-visible
+        /// checkpoint (callback) and continue executing remaining steps in the
+        /// same request instead of yielding `Checkpointed`. Default false keeps
+        /// recovery-proof stop semantics. Contract-bound product runs set this
+        /// so checkpoints stay durable but transparent to developers.
+        #[serde(default)]
+        continue_after_checkpoint: bool,
         /// Local/demo-only deterministic failure trigger. Ignored unless
         /// IGRIS_ENABLE_LOCAL_DEMO_FAILURE is explicitly enabled.
         #[serde(default)]
@@ -1692,6 +1699,30 @@ pub async fn handle_task_submit(
                 }
             };
 
+            // Transparent product continuation: durably notify Overture, then
+            // keep executing. Recovery proofs omit continue_after_checkpoint so
+            // they still yield Checkpointed for controlled Runtime replacement.
+            if continue_after_checkpoint(&req.task_type) {
+                if let Err(callback_err) =
+                    send_checkpoint_callback(&state, &req, &payload).await
+                {
+                    return runtime_callback_failure_response(
+                        req.task_id,
+                        "checkpoint",
+                        callback_err,
+                    );
+                }
+                // Optional test/harness pause after the durable checkpoint is
+                // acknowledged, so recovery proofs can interrupt Runtime before
+                // the next step. Disabled by default (no product delay).
+                if let Some(pause) = continue_after_checkpoint_pause() {
+                    tokio::time::sleep(pause).await;
+                }
+                checkpoint = Some(payload);
+                entries_since_checkpoint.clear();
+                continue;
+            }
+
             let response = TaskSubmitResponse {
                 task_id: req.task_id,
                 steps_completed,
@@ -2371,6 +2402,25 @@ fn should_checkpoint_after_steps(
         return true;
     }
     *checkpoint_after_steps > 1 && steps_completed % *checkpoint_after_steps == 0
+}
+
+fn continue_after_checkpoint(task_type: &TaskType) -> bool {
+    matches!(
+        task_type,
+        TaskType::ExecutionGraph {
+            continue_after_checkpoint: true,
+            ..
+        }
+    )
+}
+
+fn continue_after_checkpoint_pause() -> Option<std::time::Duration> {
+    let raw = std::env::var("IGRIS_CONTINUE_AFTER_CHECKPOINT_PAUSE_MS").ok()?;
+    let ms: u64 = raw.trim().parse().ok()?;
+    if ms == 0 {
+        return None;
+    }
+    Some(std::time::Duration::from_millis(ms.min(30_000)))
 }
 
 fn local_demo_failure_reason(task_type: &TaskType, steps_completed: u32) -> Option<String> {
@@ -6119,7 +6169,7 @@ mod tests {
         materialize_execution_graph, normalize_agent_mode, permission_failure_for_step,
         persist_task_status_index, resolve_graph_value, robotics_action_name,
         runtime_execution_failure_details, runtime_execution_failure_details_from_error,
-        should_checkpoint_after_steps, stream_durability_metadata, task_status_key, unix_now_ms,
+        should_checkpoint_after_steps, continue_after_checkpoint, stream_durability_metadata, task_status_key, unix_now_ms,
         update_graph_blackboard, validate_external_resume_checkpoint,
         validate_task_permission_envelope, verified_resume_start_step,
         verified_resume_start_step_from_local_or_checkpoint, AgentApprovalOptions,
@@ -6256,6 +6306,7 @@ mod tests {
                     nodes: vec![],
                 },
                 checkpoint_after_steps: None,
+                continue_after_checkpoint: false,
                 local_demo_failure: None,
             },
             containment: None,
@@ -6364,6 +6415,7 @@ mod tests {
 
         let graph_task_type = TaskType::ExecutionGraph {
             checkpoint_after_steps: Some(2),
+            continue_after_checkpoint: false,
             local_demo_failure: None,
             graph: ExecutionGraph {
                 graph_id: Some("action-task-v1".to_string()),
@@ -6381,6 +6433,26 @@ mod tests {
             steps: Vec::new(),
         };
         assert!(!should_checkpoint_after_steps(&disabled, 0, 1, 5));
+    }
+
+    #[test]
+    fn continue_after_checkpoint_deserializes_for_execution_graph() {
+        let raw = serde_json::json!({
+            "type": "execution_graph",
+            "checkpoint_after_steps": 1,
+            "continue_after_checkpoint": true,
+            "graph": {
+                "nodes": [{
+                    "kind": "tool",
+                    "node_id": "http-0",
+                    "tool_name": "http_request"
+                }]
+            }
+        });
+        let task_type: TaskType =
+            serde_json::from_value(raw).expect("execution graph with continue_after_checkpoint");
+        assert!(continue_after_checkpoint(&task_type));
+        assert!(should_checkpoint_after_steps(&task_type, 0, 1, 2));
     }
 
     #[test]
@@ -6425,6 +6497,7 @@ mod tests {
                     nodes: vec![],
                 },
                 checkpoint_after_steps: None,
+                continue_after_checkpoint: false,
                 local_demo_failure: None,
             },
             containment: None,
@@ -6479,6 +6552,7 @@ mod tests {
                     }],
                 },
                 checkpoint_after_steps: None,
+                continue_after_checkpoint: false,
                 local_demo_failure: None,
             },
             containment: None,
@@ -7485,6 +7559,7 @@ mod tests {
                     nodes: Vec::new(),
                 },
                 checkpoint_after_steps: Some(2),
+                continue_after_checkpoint: false,
                 local_demo_failure: None,
             },
             containment: None,

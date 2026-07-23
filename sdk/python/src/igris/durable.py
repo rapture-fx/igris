@@ -1,22 +1,19 @@
-"""Explicit durable Igris client: bind → run → status/wait → Igris Run Proof.
+"""Managed Igris client: Action → Run → Proof (plus advanced setup).
 
-This module is the supported product path for **durable** execution. It is
-deliberately separate from Embedded ``igris.wrap_tool`` / ``@igris.guard``:
+Ordinary managed journey uses :class:`Igris`::
 
-* Embedded remains local by default and is never made remote by environment
-  variables alone.
-* Durable execution requires constructing :class:`IgrisDurableClient`
-  explicitly (or calling :meth:`IgrisDurableClient.from_env`).
-* Durable mode orchestrates typed Actions through the Igris control plane and
-  Runtime; it does **not** upload Python source, wheels, pickle payloads,
-  import paths, or shell commands, and Runtime is not an arbitrary Python
-  executor.
-* Exact ``contract_hash`` binding is required — never bind by Action name
-  alone. Consequential runs require an explicit business ``idempotency_key``.
+    igris = Igris.from_env()
+    run = igris.run("deploy.staging", input={...}, idempotency_key="...")
+    run.wait()
+    run.proof()
 
-Authentication uses the same tenant-scoped ``igris_…`` API key as Connected
-contract sync (``Authorization: Bearer``). Session cookies are never read or
-stored by this client.
+:class:`IgrisDurableClient` remains the compatibility / advanced client that
+talks to the managed REST API. :class:`Igris` is a thin facade over it — not a
+second durable state machine.
+
+Embedded ``igris.wrap_tool`` / ``@igris.guard`` stay local by default and are
+never remoted by environment variables alone. Exact contract-hash bindings and
+caller-supplied business idempotency keys remain mandatory underneath.
 """
 
 from __future__ import annotations
@@ -333,6 +330,20 @@ class DurableRunStatus:
         }
         if candidates & _RECONCILIATION_STATUSES:
             return True
+        if self.raw.get("reconciliation_required") is True:
+            return True
+        if (self.raw.get("reconciliation_status") or "").lower() in _RECONCILIATION_STATUSES:
+            return True
+        if self.igris_run_proof is not None:
+            recon_status = (self.igris_run_proof.statuses or {}).get("reconciliation_status")
+            if str(recon_status or "").lower() in _RECONCILIATION_STATUSES:
+                return True
+            claim = self.igris_run_proof.raw.get("operator_reconciliation")
+            if isinstance(claim, dict) and (
+                claim.get("reconciliation_required") is True
+                or str(claim.get("status") or "").lower() in _RECONCILIATION_STATUSES
+            ):
+                return True
         raw_result = self.raw.get("result")
         if isinstance(raw_result, dict) and raw_result.get("reconciliation_required") is True:
             return True
@@ -1198,6 +1209,145 @@ def _scrubbed_reason(exc: urllib.error.URLError) -> str:
     return str(reason)[:_MAX_ERROR_DETAIL_CHARS]
 
 
+# ---------------------------------------------------------------------------
+# Product facade (Action → Run → Proof)
+# ---------------------------------------------------------------------------
+
+
+class Igris:
+    """Thin managed product facade: configure once, then run → wait → proof.
+
+    This class does **not** implement durable recovery, retry-of-effects, or
+    reconciliation. Those remain server-side. It only:
+
+    * wraps :class:`IgrisDurableClient` (REST source of truth);
+    * caches Action name → exact ``contract_hash`` after one-time setup so
+      ordinary ``run(action_name, …)`` calls need not pass raw hashes;
+    * delegates advanced sync / target / binding / evidence APIs unchanged.
+
+    Embedded ``wrap_tool`` is never switched to remote by constructing this
+    client.
+    """
+
+    def __init__(
+        self,
+        *,
+        durable: IgrisDurableClient | None = None,
+        endpoint: str | None = None,
+        api_key: str | None = None,
+        timeout: float = DEFAULT_TIMEOUT_SECONDS,
+        opener: Any = None,
+        config: ConnectedConfig | None = None,
+    ) -> None:
+        if durable is not None:
+            self._durable = durable
+        else:
+            self._durable = IgrisDurableClient(
+                endpoint=endpoint,
+                api_key=api_key,
+                timeout=timeout,
+                opener=opener,
+                config=config,
+            )
+        # Local setup cache only — not a durable execution state machine.
+        self._action_contract_hashes: dict[str, str] = {}
+
+    @classmethod
+    def from_env(cls, environ: Any = None, **kwargs: Any) -> Igris:
+        """Build from ``IGRIS_API_URL`` + ``IGRIS_API_KEY`` (explicit call)."""
+        return cls(durable=IgrisDurableClient.from_env(environ, **kwargs))
+
+    @property
+    def durable(self) -> IgrisDurableClient:
+        """Compatibility access to the underlying durable REST client."""
+        return self._durable
+
+    def remember_contract(self, action_name: str, contract_hash: str) -> None:
+        """Cache an exact contract hash for later ``run(action_name, …)`` calls."""
+        name = str(action_name or "").strip()
+        hash_ = str(contract_hash or "").strip().lower()
+        if not name:
+            raise DurableConfigurationError("action_name is required to remember a contract")
+        if not _CONTRACT_HASH_RE.fullmatch(hash_):
+            raise DurableConfigurationError(
+                "contract_hash must be a 64-character lowercase hex digest"
+            )
+        self._action_contract_hashes[name] = hash_
+
+    def configure_action(
+        self,
+        contract: ActionContract | Any,
+        *,
+        target_action_id: str,
+        input_mapping: Mapping[str, str],
+        **binding_kwargs: Any,
+    ) -> ContractBinding:
+        """One-time setup: sync contract and ensure an exact immutable binding.
+
+        After this returns, ordinary ``run(action_name, input=…,
+        idempotency_key=…)`` can omit ``contract_hash`` / ``contract`` for that
+        Action name. Does not create targets and does not invent bindings
+        silently on every run.
+        """
+        sync = self._durable.sync_contract(contract)
+        binding = self._durable.ensure_binding(
+            action_name=sync.action_name,
+            contract_hash=sync.contract_hash,
+            target_action_id=target_action_id,
+            input_mapping=input_mapping,
+            **binding_kwargs,
+        )
+        self.remember_contract(binding.action_name, binding.contract_hash)
+        return binding
+
+    def run(
+        self,
+        action_name: str | None = None,
+        *,
+        input: Mapping[str, Any] | None = None,
+        idempotency_key: str | None = None,
+        contract_hash: str | None = None,
+        contract: ActionContract | Any | None = None,
+        metadata: Mapping[str, Any] | None = None,
+        require_binding: bool = True,
+    ) -> DurableRun:
+        """Submit one durable Action run; return :class:`DurableRun`.
+
+        Requires an explicit business ``idempotency_key``. Exact contract
+        identity comes from ``contract`` / ``contract_hash``, or from a hash
+        previously stored by :meth:`configure_action` / :meth:`remember_contract`.
+        """
+        resolved_hash = contract_hash
+        if resolved_hash is None and contract is None and action_name:
+            resolved_hash = self._action_contract_hashes.get(str(action_name).strip())
+        if resolved_hash is None and contract is None:
+            hint = (
+                f"action {action_name!r} has no remembered contract_hash. "
+                "Call configure_action(...) once after binding, pass contract=..., "
+                "or pass contract_hash=... explicitly."
+                if action_name
+                else "Provide action_name after configure_action(...), or pass "
+                "contract=... / contract_hash=... explicitly."
+            )
+            raise UnboundActionError(hint)
+        return self._durable.run(
+            action_name,
+            input=input,
+            idempotency_key=idempotency_key,
+            contract_hash=resolved_hash,
+            contract=contract,
+            metadata=metadata,
+            require_binding=require_binding,
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        # Advanced REST helpers (sync_contract, create_action_target, …)
+        # remain available without re-implementing them.
+        if name.startswith("_"):
+            raise AttributeError(name)
+        return getattr(self._durable, name)
+
+
 # Re-export for tests / advanced callers that build wire payloads.
 __all__ = [
     "ActionTarget",
@@ -1206,6 +1356,7 @@ __all__ = [
     "DurableRun",
     "DurableRunStatus",
     "EvidenceLinkResult",
+    "Igris",
     "IgrisDurableClient",
     "IgrisRunProof",
     "contract_wire_payload",

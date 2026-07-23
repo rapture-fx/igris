@@ -1372,7 +1372,41 @@ func buildBoundActionExecutionGraphDefinition(req actionRunRequest) (json.RawMes
 		},
 	}
 	checkpointAfter := uint32(1)
-	return buildExecutionGraphDefinition(req.Action, []map[string]interface{}{actionNode, completionNode}, &checkpointAfter)
+	definition, err := buildExecutionGraphDefinition(
+		req.Action,
+		[]map[string]interface{}{actionNode, completionNode},
+		&checkpointAfter,
+	)
+	if err != nil {
+		return nil, err
+	}
+	// Product path: durable mid-effect checkpoint that continues automatically.
+	// Recovery proofs that must stop after the HTTP step set
+	// IGRIS_BOUND_ACTION_YIELD_AFTER_CHECKPOINT=1 so continue_after_checkpoint
+	// is omitted and Runtime yields Checkpointed (Clock 3B harness).
+	if boundActionYieldAfterCheckpoint() {
+		return definition, nil
+	}
+	var decoded map[string]interface{}
+	if err := json.Unmarshal(definition, &decoded); err != nil {
+		return nil, fmt.Errorf("decode bound action graph definition: %w", err)
+	}
+	decoded["continue_after_checkpoint"] = true
+	encoded, err := json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("encode bound action graph definition: %w", err)
+	}
+	return encoded, nil
+}
+
+func boundActionYieldAfterCheckpoint() bool {
+	value := strings.TrimSpace(os.Getenv("IGRIS_BOUND_ACTION_YIELD_AFTER_CHECKPOINT"))
+	switch strings.ToLower(value) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
 }
 
 func buildActionRunResponse(task *coordinator.TaskRecord, resolved *agentregistry.ResolvedAgent) fiber.Map {
