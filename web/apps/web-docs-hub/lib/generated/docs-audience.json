@@ -1,6 +1,7 @@
 {
-  "generated_at": "2026-07-02T14:21:08.761Z",
+  "generated_at": "2026-07-24T13:18:34.921Z",
   "pages": {
+    "/docs/action-protocol": "public",
     "/docs/agent-lifecycle": "public",
     "/docs/agent-templates": "public",
     "/docs/agents": "public",
@@ -144,6 +145,7 @@
     "/docs/context-engineering": "public",
     "/docs/data-privacy": "public",
     "/docs/deploy-local-runtime": "public",
+    "/docs/deploy-staging": "public",
     "/docs/deployment": "public",
     "/docs/docs-authoring-components": "internal",
     "/docs/docs-authoring-schemas": "internal",
@@ -187,6 +189,7 @@
     "/docs/quickstart": "public",
     "/docs/rate-limiting": "public",
     "/docs/receipts-audit-workflow": "public",
+    "/docs/reconciliation": "public",
     "/docs/request-execute-verify": "public",
     "/docs/robotics": "public",
     "/docs/ros2-integration": "public",

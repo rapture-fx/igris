@@ -11,6 +11,10 @@ export function docsUrl(path: string): string {
 export const DOCS_LINKS = {
   home: docsUrl('/docs'),
   quickstart: docsUrl('/docs/quickstart'),
+  deployStaging: docsUrl('/docs/deploy-staging'),
+  reconciliation: docsUrl('/docs/reconciliation'),
+  proofStatus: docsUrl('/docs/proof-status'),
+  actionProtocol: docsUrl('/docs/action-protocol'),
   apiReference: docsUrl('/docs/api-reference'),
   sdk: docsUrl('/docs/sdk'),
   verification: docsUrl('/docs/verification'),

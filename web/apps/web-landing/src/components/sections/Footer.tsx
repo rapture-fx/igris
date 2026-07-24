@@ -4,12 +4,10 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { DOCS_LINKS, DOCS_ORIGIN } from '../../lib/docs-urls'
-import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections'
 import LandingSectionLink from '../LandingSectionLink'
 
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
-const borderStyle = 'var(--section-border)'
 
 type FooterLink = { label: string; href: string; external?: boolean; section?: boolean }
 
@@ -19,33 +17,30 @@ const columns: FooterColumn[] = [
   {
     heading: 'Product',
     links: [
-      { label: 'Run', href: landingHash(LANDING_SECTIONS.productRun), section: true },
-      { label: 'Recover', href: landingHash(LANDING_SECTIONS.productRecover), section: true },
-      { label: 'Verify', href: landingHash(LANDING_SECTIONS.productProve), section: true },
-      { label: 'Action endpoint', href: landingHash(LANDING_SECTIONS.actionEndpoint), section: true },
+      { label: 'Action', href: DOCS_LINKS.quickstart, external: true },
+      { label: 'Run', href: DOCS_LINKS.deployStaging, external: true },
+      { label: 'Proof', href: DOCS_LINKS.proofStatus, external: true },
+      { label: 'Reconciliation', href: DOCS_LINKS.reconciliation, external: true },
       { label: 'Pricing', href: '/pricing' },
     ],
   },
   {
     heading: 'Developers',
     links: [
-      { label: 'Documentation', href: DOCS_LINKS.home, external: true },
-      { label: 'Quick start', href: DOCS_LINKS.quickstart, external: true },
-      { label: 'API reference', href: DOCS_LINKS.apiReference, external: true },
-      { label: 'SDKs', href: DOCS_LINKS.sdk, external: true },
-      { label: 'Verification', href: DOCS_LINKS.verification, external: true },
-      { label: 'Architecture', href: DOCS_LINKS.architecture, external: true },
-      { label: 'Tools', href: DOCS_LINKS.tools, external: true },
+      { label: 'Python quickstart', href: DOCS_LINKS.quickstart, external: true },
+      { label: 'Deploy staging', href: DOCS_LINKS.deployStaging, external: true },
+      { label: 'REST API', href: DOCS_LINKS.apiReference, external: true },
+      { label: 'Python SDK', href: DOCS_LINKS.sdk, external: true },
+      { label: 'Proof status', href: DOCS_LINKS.proofStatus, external: true },
     ],
   },
   {
-    heading: 'Solutions',
+    heading: 'Advanced',
     links: [
-      { label: 'AI agents', href: DOCS_LINKS.agents, external: true },
-      { label: 'Robotics', href: DOCS_LINKS.robotics, external: true },
-      { label: 'Runtime', href: DOCS_LINKS.runtime, external: true },
-      { label: 'Use cases', href: DOCS_LINKS.useCases, external: true },
-      { label: 'Platform', href: DOCS_LINKS.platform, external: true },
+      { label: 'Action Protocol', href: DOCS_LINKS.actionProtocol, external: true },
+      { label: 'Architecture', href: DOCS_LINKS.architecture, external: true },
+      { label: 'Security', href: DOCS_LINKS.security, external: true },
+      { label: 'Data privacy', href: DOCS_LINKS.dataPrivacy, external: true },
     ],
   },
   {
@@ -124,7 +119,7 @@ export default function Footer() {
                 className="mt-4 text-gray-600 dark:text-[#a8a898]"
                 style={{ fontFamily: SANS, fontSize: '1rem', lineHeight: 1.6 }}
               >
-                Governed execution for agent actions, with recovery and proof built in.
+                Safe execution for consequential coding-agent actions. Action → Run → Proof.
               </p>
             </div>
 

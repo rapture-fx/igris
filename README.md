@@ -1,105 +1,73 @@
 # Igris Inertial
 
-Igris is the trust layer between AI agents and the actions they perform.
+Igris lets coding agents safely execute consequential actions through a durable
+**Action → Run → Proof** boundary.
 
-Keep your LLM stack. Route risky actions through Igris.
+Keep your coding agent, application, and delivery tools. Configure an Action
+once, submit Runs with stable business idempotency keys, and inspect honest
+Proof afterward. The hosted-alpha wedge is:
 
-The product model is:
+- `deploy.staging`
+- `deploy.production`
+- `migrate.database`
+- `publish.package`
 
-1. Agent reasons in your app
-2. Your app calls `igris.runAction()` instead of the tool directly
-3. Igris governs, executes, records, recovers, and verifies the action
+Igris is not an agent framework or workflow builder. REST is the canonical
+managed interface; the Python SDK is a thin convenience layer.
 
-Igris does not replace OpenAI, Anthropic, your agent framework, or your application code. It sits between your app and the tools, APIs, files, databases, and workflows your agent can affect.
+## First integration path
 
-```text
-Before:  app/agent -> createIssue() -> GitHub/API/database
-After:   app/agent -> igris.runAction("github.create_issue", input) -> Igris -> GitHub/API/database
+The managed SDK flow is:
+
+```python
+from igris import Igris
+
+igris = Igris.from_env()
+run = igris.run(
+    "deploy.staging",
+    input={"service": "api", "commit": "abc123"},
+    idempotency_key="deploy:api:abc123",
+)
+run.wait()
+proof = run.proof()
 ```
 
-Igris applies execution boundaries, records execution events, produces signed records, and returns task IDs, run IDs, proof status, and console links for actions that need governance and post-run inspection.
+Action configuration is a one-time operator/setup concern. Ordinary agent calls
+use the Action name and a meaningful idempotency key; they do not need to know
+about internal execution components.
 
-## First Integration Path
+See the
+[Durable Action Quickstart](./sdk/python/docs/durable-action-quickstart.md) for
+the source-backed `Igris.from_env()` → `configure_action()` → `run()` →
+`wait()` → `proof()` flow.
 
-Install the TypeScript SDK and change the action/tool execution line:
+## Safe failure and honest Proof
 
-```bash
-npm install @igris-inertial/sdk
-```
+Idempotency prevents duplicate submissions inside Igris. It does not make an
+external system exactly-once. If Igris cannot determine whether an external
+effect occurred, it blocks blind replay and surfaces exceptional
+Reconciliation.
 
-```ts
-import { IgrisClient } from '@igris-inertial/sdk';
+Proof records what Igris authorized, dispatched, observed, and verified.
+Signatures and hash-linked records can establish integrity and provenance of
+Igris-observed events; they do not cryptographically prove that an
+external-world effect was correct.
 
-const igris = new IgrisClient({
-  apiKey: process.env.IGRIS_API_KEY,
-  baseUrl: process.env.IGRIS_BASE_URL,
-});
+Action Protocol is the open trust and interoperability layer underneath Igris.
+It is advanced material, not the first onboarding step. Internal components
+such as Overture, Runtime, WAL, checkpoints, bindings, and receipts are
+documented for contributors and operators, not required for ordinary use.
 
-await igris.runAction('github.create_issue', {
-  method: 'POST',
-  url: 'http://localhost:8787/issues',
-  body: { repo, title, body },
-}, { runtimeTarget: 'http_request' });
+## Product truth
 
-const safeTool = igris.wrapTool('db.update_customer', updateCustomer, {
-  runtimeTarget: 'database_write',
-});
-```
-
-Action manifests make the available actions explicit:
-
-```json
-{
-  "actions": [
-    {
-      "name": "github.create_issue",
-      "description": "Create a GitHub issue.",
-      "risk": "medium",
-      "replay_class": "non_retryable",
-      "irreversible": true,
-      "requires_approval": false,
-      "required_secrets": ["GITHUB_TOKEN"],
-      "runtime_target": "http_request"
-    }
-  ]
-}
-```
-
-See [examples/node-action-wrapper](./examples/node-action-wrapper) for the before/after integration.
-
-The HTTP contract behind the SDK is:
-
-- `POST /v1/actions/run`
-- `GET /v1/actions/runs/:id`
-
-Responses include `task_id`, `run_id`, `execution_id` when available, `status`, `proof_status`, `result` when available, and `console_url` when configured. Secrets and raw proof internals are not returned.
-
-## Deployment Modes
-
-Igris can run in different execution surfaces without changing the product story:
-
-- Hosted: provider-backed execution through the control plane
-- Local: execution closer to where work happens
-- Hybrid: hosted coordination with local execution where needed
-
-These are deployment modes of one system, not separate products.
-
-## Proof Status
-
-The current public docs distinguish between:
-
-- Proven locally
-- Source-confirmed
-- Technical preview
-- In development / not yet proven
-
-Use [Proof Status](./web/apps/web-docs-hub/content/docs/proof-status.mdx) and [First Verified Run](./web/apps/web-docs-hub/content/docs/first-verified-run.mdx) as the source of truth for what is demonstrated today.
-
-Areas such as real-provider proof, local fallback, checkpoint recovery, fleet failover, robotics, ROS2, and multimodal execution should be treated according to those labels rather than assumed production-ready.
+[docs/product/PRD.md](./docs/product/PRD.md) is the canonical product
+definition, allowed engineering policy, and frozen-scope policy.
 
 ## Start Here
 
-- Quick install: `curl -fsSL https://igrisinertial.com/install | bash`
+- Product truth: [docs/product/PRD.md](./docs/product/PRD.md)
+- Managed SDK quickstart: [sdk/python/docs/durable-action-quickstart.md](./sdk/python/docs/durable-action-quickstart.md)
+- Cloud development: [docs/development/cloud-development.md](./docs/development/cloud-development.md)
 - Docs app: [web/apps/web-docs-hub](./web/apps/web-docs-hub)
 - Docs overview: [web/apps/web-docs-hub/content/docs/index.mdx](./web/apps/web-docs-hub/content/docs/index.mdx)
 - First tenant action: [web/apps/web-docs-hub/content/docs/first-tenant-action.mdx](./web/apps/web-docs-hub/content/docs/first-tenant-action.mdx)
@@ -154,8 +122,8 @@ curl -s -X POST localhost:18095/plan -d '{"filename":"064_execution_evals.sql"}'
 #    sha256 3471cf5d") so the approver sees what the run intends
 #    -> the run pauses in approval_required
 # 4. review in the console (/runs/<id>) and the gateway (GET /plans), approve
-# 5. the runtime applies through the gateway exactly once; inspect the run,
-#    the signed receipt, and the dogfood_migration_audit row
+# 5. the gateway permits at most one apply; inspect the database, run,
+#    signed receipt, and dogfood_migration_audit row before declaring success
 ```
 
 The gateway enforces staging-only (loopback DSN), plan-checksum match at apply
@@ -188,30 +156,21 @@ deployment, the credential rotation in
 [SECURITY_ROTATION_2026-07-04.md](./SECURITY_ROTATION_2026-07-04.md) must be
 completed and attested.
 
-## Quick Install
+## SDK installation
 
-The public first-run path installs the Igris CLI into `~/.igris/bin`:
+`igris-sdk` is not currently published on PyPI. Do not run `pip install igris`:
+that name belongs to an unrelated project.
 
-```bash
-curl -fsSL https://igrisinertial.com/install | bash
-```
-
-The first product path does not require local Postgres, Docker, Homebrew Postgres,
-or a cloned repository. Start with the SDK/action path:
-
-After install:
+For repository and operator-assisted alpha use:
 
 ```bash
-igris init
-igris runtime start
-igris actions register ./igris.actions.json
-igris actions list
-igris doctor
-igris version
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install ./sdk/python
 ```
 
-The installer does not use `sudo`, does not silently edit shell profiles, and
-prints PATH instructions if `~/.igris/bin` is not already available.
+The distribution name is `igris-sdk`; the import is `from igris import Igris`.
+See [sdk/python/RELEASE.md](./sdk/python/RELEASE.md) for the publication gate.
 
 ## Advanced Local Validation
 

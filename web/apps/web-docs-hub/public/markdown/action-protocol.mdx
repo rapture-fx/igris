@@ -1,0 +1,35 @@
+---
+title: "Action Protocol"
+description: "The advanced open trust and interoperability layer underneath managed Igris."
+audience: "public"
+---
+
+# Action Protocol
+
+Action Protocol is the open trust and interoperability layer underneath
+managed Igris. It defines portable contracts, evidence, canonicalization, and
+verification behavior where ratified specifications exist.
+
+It is not the first onboarding step. To run a consequential coding-agent
+operation, begin with [Managed Python quickstart](/docs/quickstart) or the
+canonical REST API.
+
+## Claim boundaries
+
+Action Protocol Evidence can establish integrity and provenance for the claims
+contained in a conforming signed artifact. It does not automatically prove a
+managed Run, bind itself to an external effect, or prove that an external-world
+operation was correct.
+
+Managed Run Proof and Action Protocol Evidence remain distinct claim types even
+when the product presents a linked view.
+
+## Stability
+
+Signed-byte compatibility is irreversible. Only ratified protocol
+specifications define canonical bytes and verification behavior. Product work
+under the hosted-alpha PRD does not authorize a new protocol version or
+Evidence v2.
+
+Repository contributors should start with `docs/rfcs`, `docs/adr`, and the
+frozen conformance fixtures under `spec/test-vectors` where present.
