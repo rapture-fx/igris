@@ -1,0 +1,21 @@
+# Hosted Alpha provisioning runbook
+
+Status: dependency-ordered plan; execute only from a separately approved provisioning branch.
+
+This branch is non-executable. Stop on an unknown resource, unpinned image, failed health check, or uncertain external effect. Record evidence without secrets.
+
+| Step | Preconditions / resources | Secret names and approval | Method, validation, rollback, evidence |
+| --- | --- | --- | --- |
+| 1. Alpha regional baseline | Approved subscription, region, `rg-igris-hosted-alpha`, Container Apps environment, Log Analytics, tags/budget; no unverified prod reuse. | Azure OIDC names; founder + platform approval. | Provision through reviewed IaC/approved CLI. Validate scope, tags, log destination, private Runtime ingress. Roll back only new alpha resources. Record private IDs, region, policy/budget evidence. |
+| 2. Neon + 070--072 | Approved project, protected `hosted-alpha` branch/database, restore point, migration/runtime roles. | `DATABASE_URL_DIRECT`, `DATABASE_URL`; database-owner approval. | Verify checksums then apply 070/071/072 one manual transaction at a time. Validate schema/indexes and no startup migration. Restore/additive repair only. Record SHA, operator, timestamp, query results. |
+| 3. Secret storage/keyring | Key Vault/managed identity designed. | Input keyring and listed names; security approval. | Store versioned keyring only in secret storage. Test active/prior decrypt and missing-version failure. Retain old key through recovery window. Record names/version labels only. |
+| 4. BetterAuth + Resend | Auth app, Neon role, public origins, verified sender, matching protected environment. | `BETTER_AUTH_SECRET`, `DATABASE_URL`, `RESEND_API_KEY`; identity approval. | Deploy pinned image. Test health, session, disposable verification, expiry/replay denial, redaction. Roll back prior digest/config. Record digest/origins/sender state/results. |
+| 5. Overture/API | Database/keyring/auth ready; API hostname/cert approved. | API references and GHCR pull identity; release approval. | Deploy pinned public API image. Test health/ready, unauthenticated denial, tenant key scope, no migration. Roll back prior revision. Record digest/revision/probes. |
+| 6. Managed Runtime | API ready; internal ingress, stable identity, callback retention configured. | `IGRIS_API_KEY`, callback private key, Overture public key; security + release approval. | Deploy existing pinned Runtime only. Test config, health, registration, heartbeat, signed callback/replay refusal, restart. Roll back digest/config while retaining identity history. Record digest/runtime fingerprint/callback evidence. |
+| 7. Trust/gateway/allowlist | Exact HTTPS target, owner, credential reference, idempotency contract approved. | Target credential; security approval. | Add one target policy; gateway only if separately approved. Test redirect/DNS/private-address rejection and idempotency. Roll back config revision; never replay unknown effect. Record hostname/policy/test result. |
+| 8. Operator API key | Auth/API tenant flow passes. | One tenant key; onboarding approval. | Create authenticated key, reveal once, deliver securely, validate list/revoke. Roll back by revocation. Record fingerprint/recipient attestation only. |
+| 9. Private wheel | Reviewed SDK commit and artifact policy. | Private access if needed; release approval. | Build, inspect, SHA-256, clean-install, privately distribute. Withdraw access to roll back; do not publish PyPI. Record commit/SHA/recipient. |
+| 10. Hosted smoke | Steps 1--9 accepted; operator present; disposable staging target. | Existing scoped key/target credential; founder approval. | Exercise success, denial, duplicate, timeout/unknown/no-replay, Proof, Reconciliation. Roll back independent image/config/target access. Record redacted Run/Proof/Reconciliation IDs. |
+| 11. External User #1 | Smoke accepted; support owner on call. | User scoped key; onboarding approval. | Assisted account, Action, one `deploy.staging` Run, Proof, recovery instructions. Stop access via key revocation/Action disablement. Record consent/Action/outcome/support handoff. |
+
+This runbook never authorizes self-service, public package release, production traffic, deletion, migration replay, or claims of exactly-once execution/external-world correctness.
