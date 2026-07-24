@@ -1,18 +1,34 @@
-# Igris
+# Igris Python SDK
 
-**Igris is a drop-in action layer for consequential AI-agent actions.**
+Igris lets coding agents safely execute consequential actions through
+**Action → Run → Proof**.
 
-Add one decorator to a consequential function. Keep your agent (Claude Code,
-Codex, Cursor, scripts, anything), keep your code, keep your workflow. Before
-the function runs, Igris records a signed decision event; after it runs, a
-signed outcome event. The journal is hash-chained and verifiable offline.
+The hosted-alpha path is managed Igris:
 
-No account. No backend. No registration step. No network calls by default.
-Connected contract synchronization and evidence upload are separate, explicit
-capabilities described below; evidence upload is never automatic.
+```python
+from igris import Igris
+
+igris = Igris.from_env()
+run = igris.run(
+    "deploy.staging",
+    input={"service": "api", "commit": "abc123"},
+    idempotency_key="deploy:api:abc123",
+)
+run.wait()
+proof = run.proof()
+```
+
+See [Durable Action Quickstart](docs/durable-action-quickstart.md) for one-time
+Action configuration, external HTTPS target requirements, idempotency,
+uncertain effects, Reconciliation, and Proof boundaries.
+
+The local decorator and wrapper APIs remain available as an advanced Embedded
+profile. They record signed local decision and outcome events without sending
+function inputs or evidence to a backend by default:
 
 ```python
 import igris
+
 
 @igris.guard(
     action="customer.refund",
@@ -23,8 +39,8 @@ def refund_customer(customer_id: str, amount: int):
     return payment_provider.refund(customer_id=customer_id, amount=amount)
 ```
 
-The code declaration **is** the action registration. There is nothing else to
-configure, register, or deploy.
+For the Embedded profile, the code declaration is the local registration.
+Managed execution has an explicit one-time target and contract-binding setup.
 
 Can't edit the function source? Wrap an existing callable instead:
 
@@ -42,10 +58,11 @@ See [Wrapping existing tools](docs/wrapping-existing-tools.md) for
 
 ## Installation
 
-**Private alpha:** Do **not** run `pip install igris` from the public package
-index — that name resolves to an unrelated third-party package and also
-collides with legacy distributions (see `RELEASE.md`). This SDK’s distribution
-name is **`igris-sdk`**; the import remains `import igris`.
+**Hosted alpha:** `igris-sdk` is not currently published on PyPI. Do **not** run
+`pip install igris` from the public package index — that name resolves to an
+unrelated third-party package and also collides with legacy distributions (see
+`RELEASE.md`). This SDK's distribution name is **`igris-sdk`**; the import
+remains `import igris`.
 
 Supported interim install paths:
 
@@ -84,8 +101,9 @@ Embedded `wrap_tool` stays local. For managed durable runs, use
    *before* execution. If the decision is denied — or if signing, redaction,
    canonicalization, or the journal write fails — the function **does not
    run** (`ActionDenied`, or the specific pre-execution error).
-4. The function runs exactly once. Its return value is passed through
-   untouched; its exception is re-raised unchanged.
+4. The function is invoked once for that guarded call; Igris does not
+   automatically retry it. Its return value is passed through untouched; its
+   exception is re-raised unchanged.
 5. A **signed outcome event** (`succeeded` / `failed`) is appended.
 
 ### First run: local signing identity
@@ -337,9 +355,9 @@ What it does **not** give you:
 * **Journal tail truncation is not detectable** from the journal alone;
   detecting it needs an external witness or checkpoint.
 * Igris does not make an action idempotent, and does not provide containment,
-  exactly-once execution, runtime isolation, or safe recovery. Those
-  guarantees require executing through the managed Igris runtime (a separate,
-  explicit assurance level — not part of Embedded mode).
+  exactly-once execution, runtime isolation, or safe recovery. These are not
+  guarantees of Embedded mode; external idempotency and managed execution
+  controls must be assessed separately.
 
 ## The bigger picture
 

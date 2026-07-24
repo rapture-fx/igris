@@ -1,0 +1,70 @@
+---
+title: "Deploy staging"
+description: "Configure and run the first hosted-alpha Action without blind replay."
+audience: "public"
+---
+
+# Deploy staging
+
+`deploy.staging` is the first hosted-alpha wedge Action. Use it to prove the
+managed path before enabling production deployment, database migration, or
+package publication.
+
+## Operator checklist
+
+Before configuration:
+
+- expose a narrow deployment adapter at a publicly trusted HTTPS URL;
+- require target-specific authentication;
+- allow only the staging project, environment, and service identifiers;
+- implement target-side idempotency or a status lookup by deployment key;
+- deny redirects and dynamic caller-supplied destination URLs;
+- add the exact adapter hostname to Runtime `allowed_http_domains`;
+- keep deployment credentials in the adapter's secret store, not in Igris Run
+  inputs; and
+- define how an operator independently checks whether a deployment occurred.
+
+## Configure once
+
+Follow the setup section in [Managed Python quickstart](/docs/quickstart).
+Configure the Action as approval-required and irreversible unless the target
+contract proves a narrower safe retry class.
+
+The Action input should contain deployment intent, not credentials:
+
+```json
+{
+  "service": "api",
+  "commit": "abc123"
+}
+```
+
+## Run from an agent
+
+```python
+run = igris.run(
+    "deploy.staging",
+    input={"service": "api", "commit": "abc123"},
+    idempotency_key="deploy:api:abc123",
+)
+status = run.wait(timeout=120)
+proof = run.proof()
+```
+
+The Run may pause for approval. A second approval after dispatch must not
+dispatch the Action again.
+
+## Interpret outcomes
+
+| State | Meaning | Operator action |
+|---|---|---|
+| `completed` | Igris received a completed target result. | Inspect Proof and the deployment provider before promotion. |
+| `failed` | The Run failed with no reported success. | Use the failure detail and target lookup before deciding whether retry is safe. |
+| `approval_required` | The Run has not been dispatched. | Review safe Run fields, then approve or reject. |
+| `reconciliation_required` | The external effect may have occurred. | Do not replay. Check the deployment provider and reconcile. |
+
+## Promotion boundary
+
+A successful staging Run does not authorize `deploy.production`. Production
+needs its own Action, approval policy, target restriction, rollback procedure,
+and idempotency namespace.

@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-02T14:21:48.952Z",
+  "generated_at": "2026-07-24T13:18:42.993Z",
   "summary": {
-    "total": 975,
+    "total": 973,
     "by_status": {
-      "implemented": 975
+      "implemented": 973
     }
   },
   "guide_summary": {
-    "total": 138,
+    "total": 136,
     "by_status": {
-      "implemented": 138
+      "implemented": 136
     }
   },
   "pages": [
@@ -1134,14 +1134,6 @@
       "total_route_claims": 8
     },
     {
-      "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "implemented": 2,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 2
-    },
-    {
       "file": "web/apps/web-docs-hub/content/docs/rate-limiting.mdx",
       "implemented": 1,
       "missing": 0,
@@ -1382,14 +1374,6 @@
       "wrong_surface": 0,
       "wrong_method": 0,
       "total_route_claims": 8
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "implemented": 2,
-      "missing": 0,
-      "wrong_surface": 0,
-      "wrong_method": 0,
-      "total_route_claims": 2
     },
     {
       "file": "web/apps/web-docs-hub/content/docs/rate-limiting.mdx",
@@ -8181,6 +8165,12 @@
           "path": "/v1/runtime/task/:task_id/wal",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/task/:task_id/wal",
+          "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -11193,6 +11183,12 @@
           "path": "/v1/runtime/task/:task_id/wal",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
           "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/task/:task_id/wal",
+          "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
+          "surface": "local-runtime"
         }
       ]
     },
@@ -11209,6 +11205,12 @@
           "method": "GET",
           "path": "/v1/runtime/task/:task_id/wal",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/task/:task_id/wal",
+          "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -11319,6 +11321,12 @@
           "method": "GET",
           "path": "/v1/runtime/task/:task_id/wal",
           "file": "igris-runtime/crates/igris-server/src/main.rs",
+          "surface": "local-runtime"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/runtime/task/:task_id/wal",
+          "file": "igris-runtime/crates/igris-server/src/server_flow_tests.rs",
           "surface": "local-runtime"
         }
       ]
@@ -20400,64 +20408,6 @@
           "method": "DELETE",
           "path": "/v1/agents/memory/:key",
           "file": "igris-overture/api/routes_agent.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 80,
-      "method": null,
-      "path": "/v1/infer",
-      "expected_surface": null,
-      "source": "The script prepares local proof artifacts, builds or reuses the Runtime binary, builds Overture, starts a local mock upstream, starts Runtime on `127.0.0.1:8080`, starts Overture on `127.0.0.1:8081`, submits one `/v1/infer` request, and fails if Overture falls back away from Runtime.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        }
-      ]
-    },
-    {
-      "file": "web/apps/web-docs-hub/content/docs/quickstart.mdx",
-      "line": 98,
-      "method": null,
-      "path": "/v1/infer",
-      "expected_surface": null,
-      "source": "- **Request**: the script sends one request through Overture's `/v1/infer` surface.",
-      "status": "implemented",
-      "evidence": [
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
-          "surface": "cloud-api"
-        },
-        {
-          "method": "POST",
-          "path": "/v1/infer",
-          "file": "igris-overture/api/routes_infer.go",
           "surface": "cloud-api"
         }
       ]

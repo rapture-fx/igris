@@ -1,84 +1,60 @@
 ---
-title: "Overview"
-description: "Igris helps engineers run AI tasks with governed, verifiable execution."
+title: "Igris documentation"
+description: "Safely execute consequential coding-agent actions through Action → Run → Proof."
 audience: "public"
 ---
 
-# Igris
+# Safe execution for consequential coding-agent actions
 
-Igris helps engineers run AI tasks with governed, verifiable execution.
+Igris sits between a coding agent and operations such as deploy, migrate, and
+publish. It gives those operations one durable product model:
 
-Direct provider calls are still the right tool for simple chat or one-off prompting. Igris becomes useful when AI output starts doing work: calling tools, crossing system boundaries, touching customer data, or triggering decisions that need to be reviewed later.
+1. **Action** — a named operation configured once by an operator.
+2. **Run** — one durable attempt with policy, idempotency, approval, and
+   explicit failure state.
+3. **Proof** — an honest record of what Igris authorized, dispatched, observed,
+   and verified.
 
-The simplest mental model is:
+If an external effect may have occurred but Igris cannot confirm it, the Run
+requires exceptional **Reconciliation**. Igris does not blindly replay the
+effect or label an operator assertion as cryptographic proof.
 
-1. **Request** through one Igris API surface.
-2. **Execute** with governance, routing, events, and failure handling.
-3. **Verify** with signed records and verification-ready receipts.
-
----
-
-## Request -> Execute -> Verify
-
-### Request
-
-Send a request once. The surface can be a registered action run, a durable task submission, or an MCP tool call — different doors into the same system. The point is not "many products." The point is one execution system that can accept work in a stable, inspectable way.
-
-### Execute
-
-Igris decides how the run should proceed for the deployment you have configured. That can include routing to a runtime, applying capability and policy boundaries, capturing execution events, and surfacing failure paths instead of hiding them behind a plain model response.
-
-### Verify
-
-Igris returns more than output text. The system can also return execution metadata, signed execution records, and receipt material that can be checked after the run. That is the difference between "the model answered" and "the execution can be inspected."
-
----
-
-## What To Expect From The Current Product
-
-**Governed execution.** Igris is built for runs that need boundaries, not just completions. Capability checks, policy controls, and execution-state visibility are part of the product story.
-
-**Execution visibility.** The system tracks route decisions, execution metadata, and receipt-oriented records so engineers can inspect what happened after a run.
-
-**Verification-ready records.** Signed envelopes and receipts are part of the product today, and the local unified proof demonstrates signature and hash verification on the proof-backed path.
-
-**Honest proof status.** The strongest proven path today is the local unified proof with a mock upstream. Real-provider mode is wired, but it requires sanctioned credentials and was not proven in the prior environment. Advanced areas such as local GGUF fallback, checkpoint recovery, fleet failover, robotics, and multimodal should be treated according to their page-level proof labels.
-
-## Recommended Path
-
-Start with the first tenant action path if you are adopting Igris. Use the
-local demo when you only want to see the Run / Recover / Prove story without an
-account.
+## Start here
 
 | Step | Page | Outcome |
 |---:|---|---|
-| 1 | [First Tenant Action in 5 Minutes](/docs/first-tenant-action) | Create an account, get a key, install the starter pack, register an agent, run `demo.echo`, and inspect the run. |
-| 2 | [Install](/docs/install) | Install `igris` and run the no-account local demo. |
-| 3 | [First Agent Onboarding](/docs/first-agent-onboarding) | Connect Claude Code, Codex, Cursor, or a custom agent to registered actions. |
-| 4 | [Quick Start](/docs/quickstart) | Understand the first-run Run / Recover / Prove story. |
-| 5 | [First Verified Run](/docs/first-verified-run) | Inspect the advanced local proof in more detail, including the execution artifacts it checks. |
-| 6 | [Request -> Execute -> Verify](/docs/request-execute-verify) | Learn the core execution model before choosing a deployment shape. |
-| 7 | [Verification](/docs/verification) | Understand execution metadata, signed records, receipts, and the limits of current verification surfaces. |
-| 8 | [Architecture](/docs/architecture) | See how the unified product maps onto hosted and runtime execution components. |
-| 9 | [Proof Status](/docs/proof-status) | Separate proven behavior from source-confirmed, preview, and not-yet-proven claims. |
-| 10 | [API Reference](/docs/api-reference) | Move to endpoint-level contracts once you know which workflow you are implementing. |
+| 1 | [Quickstart](/docs/quickstart) | Use the Python SDK for the managed `Igris.from_env()` → `configure_action()` → `run()` → `wait()` → `proof()` flow. |
+| 2 | [Deploy staging](/docs/deploy-staging) | Configure and run the first hosted-alpha wedge Action. |
+| 3 | [API reference](/docs/api-reference) | Integrate directly with the canonical managed REST interface. |
+| 4 | [Proof status](/docs/proof-status) | Separate verified behavior from source-confirmed or unproven claims. |
 
----
+The Python SDK is a thin convenience layer over REST. MCP and CLI surfaces are
+optional adapters for coding agents, not separate product models.
 
-## Find By Goal
+## The hosted-alpha wedge
 
-| Goal | Start here |
-|---|---|
-| Run the first tenant-scoped action | [First Tenant Action in 5 Minutes](/docs/first-tenant-action) |
-| Install Igris and run the first local demo | [Install](/docs/install) |
-| Connect an agent to Igris | [First Agent Onboarding](/docs/first-agent-onboarding) |
-| Understand the product before integrating | [Request -> Execute -> Verify](/docs/request-execute-verify) |
-| Run the advanced local validation path | [First Verified Run](/docs/first-verified-run) |
-| Inspect receipts and proof semantics | [Verification](/docs/verification) |
-| Prepare a hosted or hybrid integration | [Quick Start](/docs/quickstart) |
-| Review endpoint contracts | [API Reference](/docs/api-reference) |
-| Evaluate advanced deployment topics | [Architecture](/docs/architecture) |
+- `deploy.staging`
+- `deploy.production`
+- `migrate.database`
+- `publish.package`
 
-## Advanced Directions
+Start with `deploy.staging`. Production deploy, database migration, and package
+publication need stronger approval and target-specific safety controls; do not
+infer readiness from their names alone.
 
-Hybrid deployment, runtime fleets, edge execution, and robotics-adjacent workflows remain part of the broader docs set, but they are not the first-contact story. Start with the verified execution path first, then move into those areas deliberately.
+## Proof boundaries
+
+Signed records can establish integrity and provenance for events Igris
+observed. They do not cryptographically prove that an external deployment,
+migration, or publication was correct. See [Proof status](/docs/proof-status)
+before making operational or compliance claims.
+
+## Advanced material
+
+[Action Protocol](/docs/action-protocol) is the open trust and interoperability
+layer underneath Igris. Architecture, internal execution components, local
+Runtime operation, fleet, robotics, and protocol schemas are advanced or
+internal topics. They are not prerequisites for a first Action.
+
+The canonical product definition and engineering freeze live in the repository
+at `docs/product/PRD.md`.
