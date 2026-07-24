@@ -75,13 +75,16 @@ Do this when introducing a new Action version — not on every run.
 from igris import Igris, wrap_tool
 from igris.approval import ApprovalDecision
 
+
 class AlwaysAllow:
     def decide(self, request):
         _ = request
         return ApprovalDecision("allowed", "setup")
 
+
 def deploy_staging(service: str, commit: str) -> dict:
     return {"service": service, "commit": commit, "effect": "deployed"}
+
 
 tool = wrap_tool(
     deploy_staging,

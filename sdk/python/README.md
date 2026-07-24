@@ -29,6 +29,7 @@ function inputs or evidence to a backend by default:
 ```python
 import igris
 
+
 @igris.guard(
     action="customer.refund",
     risk="critical",
