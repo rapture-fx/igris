@@ -18,28 +18,27 @@ type ChangeStep = {
   latency?: string
   receipt?: string
   status?: string
-  isRecovered?: boolean
+  isFailure?: boolean
 }
 
-const SUCCESS_STATUSES = new Set(['allowed', 'routed', 'committed', 'verified', 'resumed', 'recovered'])
+const SUCCESS_STATUSES = new Set(['allowed', 'routed', 'recorded', 'verified', 'confirmed'])
 
 const DEMO_STEPS: ChangeStep[] = [
-  { index: 1, name: 'policy_check', detail: 'idempotent, 3 retries', latency: '4ms', status: 'allowed' },
-  { index: 2, name: 'approval_check', detail: 'approval not required', latency: '2ms', status: 'allowed' },
-  { index: 3, name: 'route_execution', detail: 'connected worker, action endpoint', latency: '2ms', status: 'routed' },
-  { index: 4, name: 'action_input', detail: '0.6KB digest', latency: '12ms', receipt: 'r₀₁', status: 'committed' },
-  { index: 5, name: 'action_call', detail: 'POST /v1/actions/create_invoice, 200 OK', latency: '38ms', receipt: 'r₀₂', status: 'committed' },
-  { index: 6, name: 'host_fault', detail: 'checkpoint preserved, resumed', latency: '31ms', status: 'recovered', isRecovered: true },
-  { index: 7, name: 'action_call', detail: 'retry 2 of 3, 202 Accepted', latency: '42ms', receipt: 'r₀₃', status: 'committed' },
-  { index: 8, name: 'write_result', detail: 'accounts_staged, r_7720', latency: '18ms', receipt: 'r₀₄', status: 'committed' },
-  { index: 9, name: 'rate_limit', detail: 'upstream 429, backoff 250ms, resumed', latency: '250ms', status: 'recovered', isRecovered: true },
-  { index: 10, name: 'action_call', detail: 'retry 1 of 3, 202 Accepted', latency: '29ms', receipt: 'r₀₅', status: 'committed' },
-  { index: 11, name: 'proof_recorded', detail: 'ed25519 chain, ready for team review', latency: '6ms', receipt: 'r₀₆', status: 'verified' },
-  { index: 12, name: 'receipt_verify', detail: 'receipt r₀₆ cross-checked', latency: '3ms', status: 'verified' },
-  { index: 13, name: 'receipt_publish', detail: 'chain anchored, team notified', latency: '5ms', receipt: 'r₀₇', status: 'verified' },
+  { index: 1, name: 'action_requested', detail: 'deploy.staging, tenant scoped', latency: '4ms', status: 'recorded' },
+  { index: 2, name: 'policy_check', detail: 'business idempotency key accepted', latency: '2ms', status: 'allowed' },
+  { index: 3, name: 'approval_check', detail: 'operator approval recorded', latency: '2ms', status: 'allowed' },
+  { index: 4, name: 'target_validated', detail: 'public HTTPS destination allowed', latency: '12ms', status: 'verified' },
+  { index: 5, name: 'action_dispatched', detail: 'POST deploy.staging', latency: '38ms', receipt: 'r₀₁', status: 'routed' },
+  { index: 6, name: 'connection_lost', detail: 'response missing after dispatch', latency: '31ms', status: 'uncertain', isFailure: true },
+  { index: 7, name: 'automatic_replay', detail: 'blocked — external effect may exist', latency: '2ms', status: 'blocked' },
+  { index: 8, name: 'run_state', detail: 'reconciliation_required', latency: '3ms', receipt: 'r₀₂', status: 'recorded' },
+  { index: 9, name: 'operator_check', detail: 'deployment provider inspected', latency: '—', status: 'confirmed' },
+  { index: 10, name: 'reconciliation', detail: 'operator assertion recorded', latency: '5ms', receipt: 'r₀₃', status: 'recorded' },
+  { index: 11, name: 'proof_assembled', detail: 'authorization and observation linked', latency: '6ms', receipt: 'r₀₄', status: 'verified' },
+  { index: 12, name: 'claim_boundary', detail: 'external correctness not cryptographic', latency: '3ms', status: 'recorded' },
 ]
 
-const recoveredCount = DEMO_STEPS.filter((s) => s.isRecovered).length
+const failureCount = DEMO_STEPS.filter((s) => s.isFailure).length
 const ADDED_COUNT = DEMO_STEPS.length
 
 const STAT_LINE_EM = 1.1
@@ -148,12 +147,12 @@ function RunStatRoll({
 }
 
 const HIGHLIGHT_RULES: [RegExp, string][] = [
-  [/\b(allowed|routed|committed|verified|recovered)\b/g, '#047857'],
-  [/\b(429|failed|blocked|denied)\b/g, '#be123c'],
+  [/\b(allowed|routed|recorded|verified|confirmed)\b/g, '#047857'],
+  [/\b(uncertain|failed|blocked|denied)\b/g, '#be123c'],
   [/\b(200 OK|202 Accepted)\b/g, '#2563eb'],
   [/\b(POST|GET|PUT|PATCH|DELETE)\b/g, '#2563eb'],
   [/\b(r_[\w₀₁₂₃₄₅₆₇₈₉]+)\b/g, '#2563eb'],
-  [/\b(retry|backoff|resumed|checkpoint)\b/g, '#d97706'],
+  [/\b(replay|reconciliation_required|Reconciliation)\b/g, '#d97706'],
 ]
 
 function highlightText(text: string) {
@@ -323,12 +322,12 @@ function statusTone(status: string): 'ok' | 'bad' {
 
 function signTone(step: ChangeStep): null | 'ok' | 'bad' {
   if (step.status === 'committed') return 'ok'
-  if (step.isRecovered) return 'bad'
+  if (step.isFailure) return 'bad'
   return null
 }
 
 function rowClass(step: ChangeStep): string {
-  if (step.isRecovered) return 'ic-diff__line--recovered'
+  if (step.isFailure) return 'ic-diff__line--recovered'
   if (step.status === 'committed') return 'ic-diff__line--committed'
   return ''
 }
@@ -364,7 +363,7 @@ function ChangesDiff({ playKey }: { playKey: number }) {
       <VisionChangesStyles />
       <div className="ic-evidence ic-diff">
         <p className="ic-evidence__intro ic-evidence__intro--enter">
-          See what was checked, what ran, what failed, what recovered, and what proof was kept.
+          See what was checked, what ran, where uncertainty stopped replay, and what Proof retained.
         </p>
         <div className="ic-diff__lines ic-diff__lines--enter">
           {visibleSteps.map((step) => {
@@ -429,7 +428,7 @@ export default function VisionChangesPanel() {
         <span>Run record </span>
         <span className="ic-diff__stat" aria-hidden>
           <RunStatRoll value={ADDED_COUNT} sign="+" rollTick={statRollTick} />
-          <RunStatRoll value={recoveredCount} sign="−" rollTick={statRollTick} />
+          <RunStatRoll value={failureCount} sign="−" rollTick={statRollTick} />
         </span>
         <ChevronDown
           size={16}

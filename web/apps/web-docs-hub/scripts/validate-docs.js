@@ -118,12 +118,10 @@ function main() {
 
     const requiredStartPath = [
       'quickstart',
+      'deploy-staging',
+      'reconciliation',
+      'proof-status',
       'sdk',
-      'sdk-integration-patterns',
-      'first-cloud-integration',
-      'deploy-local-runtime',
-      'hybrid-deployment-workflow',
-      'receipts-audit-workflow',
     ];
     let previousIndex = -1;
     for (const page of requiredStartPath) {
@@ -302,8 +300,8 @@ function main() {
   }
 
   const quickstart = fs.readFileSync(path.join(docsDir, 'quickstart.mdx'), 'utf8');
-  if (!quickstart.includes('/docs/first-cloud-integration')) {
-    failures.push('quickstart.mdx must point readers at the actions-first First Hosted Integration guide.');
+  if (!quickstart.includes('/docs/deploy-staging')) {
+    failures.push('quickstart.mdx must point readers at the deploy.staging hosted-alpha guide.');
   }
 
   const sdkPage = fs.readFileSync(path.join(docsDir, 'sdk.mdx'), 'utf8');

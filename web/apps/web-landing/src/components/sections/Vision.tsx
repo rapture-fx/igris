@@ -21,9 +21,9 @@ import { CODING_AGENT_PROMPT } from '../../lib/coding-agent-prompt'
 const SANS = 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 const MONO = 'var(--font-geist-mono), ui-monospace, "SF Mono", monospace'
 
-const LINE_1_CONT = ' to call APIs, trigger workflows, access files, and run tasks through one controlled path'
-const LINE_2_CONT = ' across cloud, webhooks, MCP, and connected workers, with policy, recovery, and receipts built in'
-const LINE_3_CONT = ' that records what happened, recovers from failure, and leaves evidence your team can inspect'
+const LINE_1_CONT = ' when a code change needs to deploy, migrate, or publish'
+const LINE_2_CONT = ' with policy, idempotency, approval, and conservative failure handling'
+const LINE_3_CONT = ' with an honest record of what Igris observed and verified'
 
 const PRICING_VISION_SUBTEXT =
   'Open Source: self-host Igris for free. Use Igris Cloud when you want hosted infrastructure, managed retention, team access, and support.'
@@ -107,43 +107,40 @@ type Block =
   | { type: 'agent-setup' }
 
 const HOW_IT_WORKS_CHART = `flowchart LR
-    A["Agent request"] --> B["Policy"]
-    B --> C["Execution"]
-    C --> D["Proof"]
-    C --> F["Recovery"]
-    F -.->|resume| C
-    D --> E["Review"]
+    A["Action"] --> B["Run"]
+    B --> C["Proof"]
+    B -.->|uncertain effect| D["Reconciliation"]
+    D --> C
 
     classDef stage fill:#fafafa,stroke:#d4d4d4,color:#171717
     classDef proof fill:#ecf5ed,stroke:#b8dfc4,color:#047857
     classDef fault fill:#fdf4f4,stroke:#f0c4c4,color:#be123c
 
-    class A,B,C stage
-    class D,E proof
-    class F fault`
+    class A,B stage
+    class C proof
+    class D fault`
 
 const ARTICLE: Block[] = [
   { type: 'h2', text: 'Action layer' },
-  { type: 'lead', text: 'Agents already do useful work. Igris makes it safer to trust.' },
-  { type: 'p', text: 'Agents can still plan, decide, and request work in their own way. Igris starts when that request becomes an action your team needs to govern.' },
+  { type: 'lead', text: 'Let coding agents do consequential work without handing them a blind tool call.' },
+  { type: 'p', text: 'Keep your agent and deployment tools. Route deploy, migrate, and publish operations through one durable boundary your team can inspect.' },
 
-  { type: 'section', text: 'From request to review' },
-  { type: 'p', text: 'Direct calls are easy to start, but they become harder to manage once agents begin taking actions across workflows your team depends on. A request can succeed and still leave important questions unanswered: who requested it, whether it was allowed, whether approval was needed, what failed, what recovered, and what record exists after the action finished.' },
-  { type: 'p', text: 'Igris gives each action the same path from request to review. The flow, example call, and run record below show what that looks like in practice.' },
+  { type: 'section', text: 'Action → Run → Proof' },
+  { type: 'p', text: 'Configure an Action once. Each request becomes a durable Run with tenant-scoped policy, a business idempotency key, approval when required, and an explicit outcome. Proof records what Igris authorized, dispatched, observed, and verified.' },
   { type: 'how-it-works' },
-  { type: 'code-card', label: 'Agent call', code: 'await fetch("https://api.igris.dev/v1/actions/run", {\n  method: "POST",\n  headers: {\n    authorization: `Bearer ${IGRIS_API_KEY}`,\n    "content-type": "application/json",\n  },\n  body: JSON.stringify({\n    action: "create_task",\n    input: {\n      title: "Review failed payment",\n      priority: "high",\n    },\n  }),\n});' },
-  { type: 'p', text: 'This gives agents useful capabilities without handing them direct access to every tool, credential, workflow, or endpoint.' },
+  { type: 'code-card', label: 'Python SDK', code: 'from igris import Igris\n\nigris = Igris.from_env()\nrun = igris.run(\n    "deploy.staging",\n    input={"service": "api", "commit": "abc123"},\n    idempotency_key="deploy:api:abc123",\n)\nrun.wait()\nproof = run.proof()' },
+  { type: 'p', text: 'The same model covers deploy.staging, deploy.production, migrate.database, and publish.package. REST is the canonical interface; the Python SDK is a thin convenience layer.' },
 
-  { type: 'section', text: 'What Igris adds' },
-  { type: 'p', text: 'Beyond routing, Igris leaves a run record your team can open later: who triggered the action, what changed, what failed, what recovered, and the signed receipt attached to the run.' },
+  { type: 'section', text: 'Safe failure, honest Proof' },
+  { type: 'p', text: 'Idempotency prevents duplicate submissions inside Igris; it does not make an external system exactly-once. If Igris cannot determine whether an external effect occurred, it blocks blind replay and requires operator Reconciliation.' },
   { type: 'changes-panel' },
-  { type: 'p-with-resources', text: 'That matters once agents can trigger work, change data, call services, open tasks, or perform operational steps your team depends on.' },
+  { type: 'p-with-resources', text: 'Proof can establish the integrity and provenance of Igris-observed records. It does not cryptographically prove that an external-world effect was correct. Reconciliation is an attributable operator decision, not cryptographic proof.' },
 
   { type: 'section', text: 'Get started' },
-  { type: 'p', text: 'Install Igris and connect your first agent.' },
-  { type: 'code', text: 'curl -fsSL https://igrisinertial.com/install | bash' },
+  { type: 'p', text: 'The hosted alpha is operator-assisted while the public Python package is prepared. Start with the managed SDK quickstart and request access.' },
+  { type: 'code', text: 'python -m pip install ./sdk/python' },
   { type: 'agent-setup' },
-  { type: 'p', text: 'After installation, log in, connect an agent, register an action, run it, and review the result in the console.' },
+  { type: 'p', text: 'Action Protocol is the open trust and interoperability layer underneath Igris. It is advanced material, not a prerequisite for your first Action.' },
 ]
 
 const SECTION_TITLE_STYLE: CSSProperties = {
@@ -329,7 +326,7 @@ function HowItWorksBlock() {
 function CodeCardBlock({ label, code }: { label: string; code: string }) {
   const [open, setOpen] = useState(false)
 
-  const summary = 'POST /v1/actions/run'
+  const summary = 'from igris import Igris'
 
   return (
     <div className="mb-7">
@@ -747,21 +744,20 @@ export default function Vision() {
       <div className="mx-auto max-w-[1200px] px-4 pt-24 pb-52 sm:px-6 lg:px-8 md:pt-36 md:pb-72">
         <article className="mx-auto max-w-[920px]">
           <h3 id="vision-hero" className="mb-4 mt-3 scroll-mt-28 text-black" style={TITLE_STYLE}>
-            Action layer{' '}
+            Coding agents{' '}
             <HoverPhrase
-              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">for AI agents</span>}
+              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">execute consequential actions</span>}
               cont={LINE_1_CONT}
             />
             <br />
             <HoverPhrase
-              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">Run actions safely</span>}
+              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">through one safe boundary</span>}
               cont={LINE_2_CONT}
             />
             ,{' '}
             <br />
-            with{' '}
             <HoverPhrase
-              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">proof from every run</span>}
+              base={<span className="underline underline-offset-4 decoration-[#d4d4d4] decoration-2">Action → Run → Proof</span>}
               cont={LINE_3_CONT}
               endPunct="."
             />

@@ -1,46 +1,53 @@
 # Igris Inertial
 
-> Igris is one execution system for AI tasks you can verify. It helps engineers send a request through one API surface, govern execution, inspect events, and verify signed records after the run.
+Igris lets coding agents safely execute consequential actions through a durable
+Action → Run → Proof boundary.
 
-## Product Model
+## Product model
 
-Request -> Execute -> Verify
+- Action: a named operation configured once by an operator.
+- Run: one durable attempt with policy, idempotency, approval, and explicit
+  failure state.
+- Proof: an honest record of what Igris authorized, dispatched, observed, and
+  verified.
+- Reconciliation: an exceptional operator workflow for an uncertain external
+  effect. It is not cryptographic proof.
 
-- Request: submit a chat, task, or tool-using run through one Igris API surface
-- Execute: Igris applies boundaries, records execution events, and runs work in hosted, local, or hybrid environments
-- Verify: Igris returns execution metadata and verification-ready receipts
+## Hosted-alpha wedge
 
-## Deployment Modes
+- deploy.staging
+- deploy.production
+- migrate.database
+- publish.package
 
-- Hosted: provider-backed execution through the control plane
-- Local: execution closer to where work happens
-- Hybrid: hosted coordination plus local execution where needed
+Start with deploy.staging.
 
-These are deployment modes of one system, not separate products.
+## Interfaces
 
-## Proof Language
+REST is the canonical managed interface. The Python SDK is a thin convenience
+layer. MCP and CLI are optional adapters.
 
-- Proven locally: unified local proof path and receipt verification
-- Source-confirmed: code exists but no reproducible proof artifact is captured here
-- Technical preview: runnable or exposed surfaces with limited proof or production evidence
-- In development: partial or not-yet-proven behavior
+The `igris-sdk` distribution is not currently published on PyPI. Do not install
+the unrelated public package named `igris`.
 
-Preview-heavy areas such as robotics, ROS2, multimodal execution, local fallback, and coordinated rollout should be read using those labels.
+## Proof language
+
+Igris signatures and hash-linked records can establish integrity and provenance
+for Igris-observed events. They do not cryptographically prove that an external
+deployment, migration, or publication was correct. Idempotency does not make
+external systems exactly-once, and uncertain effects must not be blindly
+replayed.
 
 ## Documentation
 
 - [Overview](https://docs.igrisinertial.com/docs/)
-- [Quick Start](https://docs.igrisinertial.com/docs/quickstart/)
-- [First Verified Run](https://docs.igrisinertial.com/docs/first-verified-run/)
-- [Request -> Execute -> Verify](https://docs.igrisinertial.com/docs/request-execute-verify/)
-- [Verification](https://docs.igrisinertial.com/docs/verification/)
-- [Proof Status](https://docs.igrisinertial.com/docs/proof-status/)
-- [Architecture](https://docs.igrisinertial.com/docs/architecture/)
-- [Deployment](https://docs.igrisinertial.com/docs/deployment/)
-- [API Reference](https://docs.igrisinertial.com/docs/api-reference/)
+- [Managed Python quickstart](https://docs.igrisinertial.com/docs/quickstart/)
+- [Deploy staging](https://docs.igrisinertial.com/docs/deploy-staging/)
+- [Reconciliation](https://docs.igrisinertial.com/docs/reconciliation/)
+- [Proof status](https://docs.igrisinertial.com/docs/proof-status/)
+- [REST API](https://docs.igrisinertial.com/docs/api-reference/)
+- [Action Protocol](https://docs.igrisinertial.com/docs/action-protocol/)
 
-## Related Surfaces
-
-- [Pricing](https://igrisinertial.com/pricing/)
-- [Use Cases](https://igrisinertial.com/use-cases/)
-- [Machine-readable site](https://igrisinertial.com/machine/)
+Action Protocol is the advanced open trust and interoperability layer
+underneath managed Igris. Internal components and fleet/robotics material are
+not first-step onboarding.

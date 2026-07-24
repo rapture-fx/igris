@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { DOCS_LINKS } from '../../lib/docs-urls';
 import { getConsoleUrl, PROD_CONSOLE } from '../../lib/console-url';
-import { LANDING_SECTIONS, landingHash } from '../../lib/landing-sections';
 import LandingSectionLink from '../LandingSectionLink';
 import { useTheme } from 'next-themes';
 
@@ -27,20 +26,19 @@ interface DropdownItem {
 }
 
 const productItems: DropdownItem[] = [
-  { label: 'Run', description: 'Every call goes through policy and routing with recorded progress.', href: landingHash(LANDING_SECTIONS.productRun) },
-  { label: 'Recover', description: 'Resume from checkpoints when providers rate-limit or workers fail.', href: landingHash(LANDING_SECTIONS.productRecover) },
-  { label: 'Prove', description: 'Signed receipts for every action. Inspect what ran and what recovered.', href: landingHash(LANDING_SECTIONS.productProve) },
+  { label: 'Action', description: 'Configure a consequential operation once.', href: DOCS_LINKS.quickstart, external: true },
+  { label: 'Run', description: 'Submit one durable attempt with a business idempotency key.', href: DOCS_LINKS.deployStaging, external: true },
+  { label: 'Proof', description: 'Inspect what Igris authorized, observed, and verified.', href: DOCS_LINKS.proofStatus, external: true },
+  { label: 'Reconciliation', description: 'Resolve an uncertain external effect without blind replay.', href: DOCS_LINKS.reconciliation, external: true },
 ];
 
 const docsItems: DropdownItem[] = [
-  { label: 'Getting Started', description: 'Run your first verified execution path.', href: DOCS_LINKS.quickstart, external: true },
-  { label: 'API Reference', description: 'Endpoints, request format, and response fields.', href: DOCS_LINKS.apiReference, external: true },
-  { label: 'SDKs', description: 'JavaScript, Python, Go, Rust, and cURL examples.', href: DOCS_LINKS.sdk, external: true },
-  { label: 'Receipt Verification', description: 'Understand signed records and verification.', href: DOCS_LINKS.verification, external: true },
-  { label: 'Architecture', description: 'How Igris governs execution across environments.', href: DOCS_LINKS.architecture, external: true },
+  { label: 'Python quickstart', description: 'Configure an Action, run it, wait, and retrieve Proof.', href: DOCS_LINKS.quickstart, external: true },
+  { label: 'Deploy staging', description: 'Use the first hosted-alpha wedge Action.', href: DOCS_LINKS.deployStaging, external: true },
+  { label: 'REST API', description: 'The canonical managed interface.', href: DOCS_LINKS.apiReference, external: true },
+  { label: 'Proof status', description: 'Understand claims and verification limits.', href: DOCS_LINKS.proofStatus, external: true },
+  { label: 'Action Protocol', description: 'Advanced open trust and interoperability layer.', href: DOCS_LINKS.actionProtocol, external: true },
 ];
-
-const SIDEBAR_WIDTH = 256;
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -64,8 +62,6 @@ export default function Header() {
   const logoSrc = mounted && theme === 'dark' ? '/inertiadm.png' : '/inertia.png';
   const consoleUrl = mounted ? getConsoleUrl() : (process.env.NEXT_PUBLIC_CONSOLE_URL || PROD_CONSOLE);
 
-  const navLinkClass =
-    'rounded-[8px] px-2.5 py-1.5 text-[14px] text-gray-600 dark:text-[#a8a898] hover:bg-[#f4f4f5] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
   const navToggleClass =
     'flex items-center gap-1 rounded-[8px] px-2.5 py-1.5 text-[14px] text-gray-600 dark:text-[#a8a898] hover:bg-[#f4f4f5] dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-[#f6f6f4] transition-colors';
   const navToggleActiveClass =
