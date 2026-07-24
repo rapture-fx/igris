@@ -27,8 +27,7 @@ business parameter that should not be retained:
     action="customer.update",
     redact=["customer_reference", "requested_change"],
 )
-def update_customer(customer_reference: str, requested_change: dict):
-    ...
+def update_customer(customer_reference: str, requested_change: dict): ...
 ```
 
 Matching is name-based and case-insensitive. A field name is not evidence that
