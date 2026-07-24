@@ -21,10 +21,11 @@ IDs to run an Action that is already configured for your tenant.
 Embedded `igris.wrap_tool` / `@igris.guard` remain a **separate local profile**
 of the same product. Setting `IGRIS_API_URL` alone never remotes them.
 
-## Install (supported interim path)
+## Install (supported alpha path)
 
-Do **not** run `pip install igris` from the public package index. Install the
-`igris-sdk` distribution (import path stays `import igris`):
+`igris-sdk` is not currently published on PyPI. Do **not** run
+`pip install igris`; that name resolves to an unrelated project. From a
+repository checkout or operator-provided alpha kit:
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -37,6 +38,8 @@ python -m pip install ./sdk/python
 * Igris API endpoint (`IGRIS_API_URL`)
 * Tenant API key (`IGRIS_API_KEY`, `igris_…`)
 * An Action that has already been configured once for your tenant (see below)
+* For external targets, a public HTTPS URL whose hostname is present in
+  Runtime `allowed_http_domains`
 
 ## Ordinary journey (after one-time setup)
 
@@ -92,10 +95,11 @@ igris = Igris.from_env()
 # create_action_target is advanced — typically done by an operator once.
 target = igris.create_action_target(
     name="deploy_staging_adapter",
-    target_url="http://127.0.0.1:18099/v1/deploy/staging",
+    target_url="https://deploy.example.com/v1/deploy/staging",
     target_type="webhook",
-    replay_class="retryable",
-    approval_required=False,
+    replay_class="non_retryable",
+    approval_required=True,
+    irreversible=True,
     target_metadata={
         "local_auth_header_name": "X-Igris-Adapter-Token",
         "local_auth_secret_env": "IGRIS_DEMO_ADAPTER_TOKEN",
@@ -132,7 +136,12 @@ workflow.
 
 ## External HTTPS targets
 
-Current binding policy rejects non-loopback webhook URLs (`unsafe_target_url`)
-and requires local adapter auth metadata. That blocks a real external
-coding-agent deployment pilot until a dedicated secure external-target slice
-lands. Keep local / loopback adapters for this quickstart.
+Managed Igris accepts public HTTPS Action targets and rejects public HTTP,
+loopback/private/metadata HTTPS destinations, unsafe DNS answers, and
+redirects. The Runtime independently requires the exact target hostname in
+`allowed_http_domains`. The configured target URL comes from the immutable
+binding; callers cannot override it per Run.
+
+Use a publicly trusted certificate and target-scoped authentication. Igris
+tenant API keys are never forwarded to the target. For local development only,
+loopback HTTP remains supported.
