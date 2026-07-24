@@ -441,7 +441,8 @@ Passed:
 - devcontainer JSON and docs navigation JSON parsing
 - `.devcontainer/post-create.sh` shell syntax
 - Python SDK: 292 tests
-- Python SDK Ruff lint and format checks
+- Python SDK Ruff lint
+- Ruff formatting for the two changed SDK documents
 - branch-source import: `from igris import Igris`
 - docs artifact generation and docs validation
 - focused landing ESLint on every changed TypeScript/TSX file: zero errors
@@ -449,12 +450,16 @@ Passed:
 
 Not proven:
 
-- clean wheel rebuild: local `uv` panicked in macOS system-configuration code
-  before resolving the build environment;
-- Rust focused test: the sandbox lacked cached `aes-gcm` and could not resolve
-  crates.io; and
+- clean wheel build and disposable-environment install were intentionally left
+  to the alpha distribution workstream;
+- the global SDK Ruff format check still reports the unrelated existing
+  `sdk/python/docs/evidence-privacy.md` example;
 - full landing typecheck: existing unrelated Pricing, API, and component type
-  failures remain outside this product-copy change.
+  failures remain outside this product-copy change; the two errors reported in
+  changed landing files are on pre-existing, unchanged motion-component call
+  sites; and
+- docs validation skipped absent standalone JavaScript, Go, and Rust SDK source
+  trees and the unbuilt local Runtime CLI.
 
 These limitations do not change the hosted verdict: a clean cloud run must
 repeat the build and test matrix before merge or deployment.
