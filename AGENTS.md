@@ -39,4 +39,3 @@ console work:
   evidence. Tests or docs alone are not sufficient.
 - Keep changes focused. Do not fold frozen-scope cleanup or capability work into
   an alpha-readiness change.
-

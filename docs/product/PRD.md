@@ -1,8 +1,11 @@
 # Igris Product Requirements Document
 
-Status: Ratified product truth  
-Product stage: Hosted alpha  
-Ratified from: `origin/main` at `018d1c17df32f18b1c990d0d1a9e88c0e7a368e3`  
+Status: Ratified product truth
+
+Product stage: Hosted alpha
+
+Ratified from: `origin/main` at `018d1c17df32f18b1c990d0d1a9e88c0e7a368e3`
+
 Last updated: 2026-07-24
 
 ## Product definition
