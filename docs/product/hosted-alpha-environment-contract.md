@@ -9,6 +9,17 @@ This is the single pre-provisioning contract for one operator-assisted Hosted Al
 
 Repository source proves implementation intent, not a cloud resource exists. Statuses are `VERIFIED_EXISTS`, `DECLARED_NOT_VERIFIED`, `REQUIRED_NEW`, `OBSOLETE`, or `UNKNOWN`. Azure, Neon, Cloudflare, and Resend authenticated read-only access was unavailable for this audit.
 
+## Provider-access evidence (2026-07-25)
+
+| Provider | Access status | Evidence / limit |
+| --- | --- | --- |
+| GitHub | `READ_ONLY_READY` | Authenticated repository read access exposed environment metadata, environment-scoped names, deployment history, PR checks, and workflow source. It does not authorize environment mutation in this task. |
+| Azure | `UNAVAILABLE` | Azure CLI and an Azure workload/user identity are absent. No Azure control-plane query was performed. |
+| Neon | `UNAVAILABLE` | No Neon CLI/API identity or safe database read credential is available. |
+| Cloudflare | `AUTHENTICATED_BUT_INSUFFICIENT` | GitHub received successful Pages checks, and public endpoints were observed; no Cloudflare account/API identity is available for Pages, zone, or DNS inventory. |
+| BetterAuth | `AUTHENTICATED_BUT_INSUFFICIENT` | Public DNS/HTTPS probes are possible; no app/container or database identity is available. |
+| Resend | `UNAVAILABLE` | No Resend API identity is available. |
+
 ## Product and security assumptions
 
 - Public objects: Action, Run, Proof; Reconciliation is the exceptional, attributable resolution of an uncertain effect and is never cryptographic proof.
@@ -25,9 +36,9 @@ Repository source proves implementation intent, not a cloud resource exists. Sta
 | GHCR API/auth/console images | `DECLARED_NOT_VERIFIED` | Build and digest-deploy workflows exist; package visibility/digests unverified. |
 | Neon project, branch, database, roles, restore point, applied schema | `UNKNOWN` | No Neon API/CLI or safe direct read access. |
 | Migrations 070--072 | `VERIFIED_EXISTS` | Ordered manual-only SQL files; applied state unknown. |
-| Cloudflare Pages | `DECLARED_NOT_VERIFIED` | PR #84 Pages checks passed for `igris`, `igris-inertial`, `docs-igris`; dashboard, domains, and production state unknown. |
-| BetterAuth / Resend | `UNKNOWN` | Deployment configuration exists; provider status and domain verification unknown. |
-| GitHub deploy environments | `VERIFIED_EXISTS` | Only `Preview` and `Production` exist; both show no protection rules/admin bypass. Workflows require lower-case `staging`/`production`: blocking mismatch. |
+| Cloudflare Pages | `DECLARED_NOT_VERIFIED` | PR #84 and #85 Pages checks passed for `igris`, `igris-inertial`, `docs-igris`. `igrisinertial.com` and `docs.igrisinertial.com` returned HTTPS 200 from this runner; account, Pages, zone, DNS, and branch configuration remain unverified. |
+| BetterAuth / Resend | `INCOMPLETE` / `UNKNOWN` | Public `auth.igrisinertial.com` did not resolve; `console` and `api` host probes timed out from this runner. This is not a provider-control-plane diagnosis. Resend domain/sender/key metadata is unknown. |
+| GitHub deploy environments | `VERIFIED_EXISTS` | Only `Preview` and `Production` exist; both show no protection rules/admin bypass. `Preview` has no observed environment secrets/variables. `Production` has GHCR secret names and Azure variable names. Workflows require lower-case `staging`/`production`: blocking mismatch. |
 
 ## Naming, ownership, and regional decisions
 
@@ -60,6 +71,24 @@ Operator browser -> Cloudflare landing/docs; optional console -> auth.<approved-
 | Historic `api.igrisinertial.com`, `app.igrisinertial.com`, `overture.igrisinertial.com` | Repository references only, not DNS ownership/live routing proof | `DECLARED_NOT_VERIFIED` |
 
 The docs Pages `wrangler.toml` still has a placeholder project name; dashboard confirmation is required before any deployment.
+
+## GitHub environment reconciliation (approval required)
+
+The canonical model is `preview`, `staging`, and `production`, with only
+`staging` enabled for Hosted Alpha. Retain the existing title-case `Preview`
+only for current Cloudflare preview history, and retain title-case `Production`
+as a legacy environment until its deployment consumers and scoped names are
+reconciled. Do not rename or delete either environment in place.
+
+The future approved migration is: (1) founder approves lower-case canonical
+names and required reviewers/branch restrictions/no-admin-bypass; (2) the
+environment owner inventories legacy deployment consumers and names without
+copying values; (3) a separate security/provisioning change creates protected
+`staging` and `production`, recreating only required names at environment scope;
+(4) deployment workflows use the protected lower-case names and pinned image
+digests; (5) legacy `Production` and repository-wide deployment secrets are
+retired only after a recorded no-consumer proof. Historic GitHub deployment
+records exist for both legacy environments, so silent replacement is forbidden.
 
 ## Neon and migrations
 

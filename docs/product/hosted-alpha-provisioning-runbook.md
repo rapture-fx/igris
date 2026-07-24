@@ -2,7 +2,7 @@
 
 Status: dependency-ordered plan; execute only from a separately approved provisioning branch.
 
-This branch is non-executable. Stop on an unknown resource, unpinned image, failed health check, or uncertain external effect. Record evidence without secrets.
+This branch is non-executable. Stop on an unknown resource, unpinned image, failed health check, or uncertain external effect. Record evidence without secrets. The present discovery gate is not passed: Azure, Neon, Cloudflare account, and Resend control-plane inventory are unavailable, and legacy GitHub environments are unprotected/mismatched. No row below is authorized until that gate is closed on a reviewed change.
 
 | Step | Preconditions / resources | Secret names and approval | Method, validation, rollback, evidence |
 | --- | --- | --- | --- |

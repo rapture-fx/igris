@@ -30,7 +30,7 @@ Names an operator may validate, never values: `AZURE_CLIENT_ID`, `AZURE_TENANT_I
 
 Install provider CLIs only in the ephemeral remote environment and authenticate solely with the approved read-only identity. Record names, region, lifecycle, tags, and non-secret configuration references in the private release record; redact subscription, tenant, project, and private-host identifiers from repository documents. Never use create/update/delete/restart, secret-read, migration, DNS, email, or publication commands during discovery.
 
-This audit could not execute provider discovery because authenticated Azure, Neon, Cloudflare, and Resend access was unavailable. It did verify a blocking GitHub mismatch: `Preview` and `Production` exist, while deployment workflows require `staging` and `production`. Resolve matching protected environments before deployment.
+This audit has GitHub repository read access only. Azure and Neon CLIs/identities, Cloudflare account access, and Resend access are unavailable; provider inventory must remain explicitly blocked rather than inferred from source. GitHub shows `Preview` and `Production` with no protection rules and admin bypass enabled, while deployment workflows require `staging` and `production`. The approved future model is lower-case `preview`/`staging`/`production`, with only protected `staging` enabled for Hosted Alpha; do not rename or replace the legacy environments in place.
 
 - Work from a clean dedicated worktree; never clean another checkout.
 - Require commit SHA and immutable image digest in review records.
