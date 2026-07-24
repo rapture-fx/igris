@@ -1,6 +1,6 @@
 # Hosted Alpha environment contract
 
-Status: approval-required; no provisioning authorized  
+Status: approval-required; no provisioning authorized
 Evidence snapshot: 2026-07-25 on `ops/hosted-alpha-environment-contract`
 
 ## Purpose and scope
