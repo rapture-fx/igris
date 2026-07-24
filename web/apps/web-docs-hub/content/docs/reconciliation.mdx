@@ -1,0 +1,46 @@
+---
+title: "Reconciliation"
+description: "Resolve an uncertain external effect without blind replay or false proof claims."
+audience: "public"
+---
+
+# Reconciliation
+
+Reconciliation is the exceptional operator workflow for a Run whose external
+effect is uncertain or conflicts with independently observed reality.
+
+It is not the fourth step of every Action. It is not cryptographic proof.
+
+## When it is required
+
+Typical case:
+
+1. Igris dispatches `deploy.staging`.
+2. The target receives the request.
+3. The connection fails before Igris receives a reliable result.
+4. Igris cannot safely infer whether the deployment occurred.
+5. Automatic replay stops and the Run becomes
+   `reconciliation_required`.
+
+## Operator procedure
+
+1. Authenticate through the operator path.
+2. Confirm tenant and Run ownership.
+3. Inspect the Run's safe request summary and idempotency key.
+4. Query the external provider using an independent status or lookup path.
+5. Record one of the supported dispositions with a concise reason.
+6. Re-read the Run and Proof to confirm the attributable decision is present.
+
+Reconciliation records who decided, when, why, and the disposition. The record
+must state `cryptographic_proof=false` for an external-effect assertion.
+
+## What not to do
+
+- Do not submit the Action again with a new idempotency key.
+- Do not mark the Run completed because the request was dispatched.
+- Do not put provider credentials or raw sensitive output in the reason.
+- Do not treat a signature on the reconciliation record as proof that the
+  external assertion is objectively true.
+
+For the exact REST contract, see the operator reconciliation API reference and
+`docs/api/operator-reconciliation.md` in the repository.

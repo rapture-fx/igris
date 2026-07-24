@@ -22,7 +22,7 @@ export const VISION_RAIL_ITEMS: RunRailItem[] = [
   EVENT,
   EVENT,
   EVENT,
-  { type: 'section', id: 'vision-request-review', label: 'From request to review' },
+  { type: 'section', id: 'vision-action-run-proof', label: 'Action → Run → Proof' },
   EVENT,
   EVENT,
   EVENT,
@@ -30,7 +30,7 @@ export const VISION_RAIL_ITEMS: RunRailItem[] = [
   EVENT,
   EVENT,
   EVENT,
-  { type: 'section', id: 'vision-what-igris-adds', label: 'What Igris adds' },
+  { type: 'section', id: 'vision-safe-failure-proof', label: 'Safe failure, honest Proof' },
   EVENT,
   EVENT,
   EVENT,
@@ -56,8 +56,8 @@ export const VISION_RAIL_ITEMS: RunRailItem[] = [
 ]
 
 export const VISION_SECTION_IDS: Record<string, string> = {
-  'From request to review': 'vision-request-review',
-  'What Igris adds': 'vision-what-igris-adds',
+  'Action → Run → Proof': 'vision-action-run-proof',
+  'Safe failure, honest Proof': 'vision-safe-failure-proof',
   'Get started': 'vision-get-started',
 }
 

@@ -15,11 +15,11 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL('https://igris.inertial'),
-  title: 'Action layer for AI agents.',
-  description: 'Your agent calls Igris instead of calling tools directly. Igris checks policy, routes execution, recovers from failures, and proves what happened.',
+  title: 'Safe execution for consequential coding-agent actions.',
+  description: 'Route deploy, migrate, and publish actions through a durable Action → Run → Proof boundary.',
   openGraph: {
-    title: 'Action layer for AI agents.',
-    description: 'Your agent calls Igris instead of calling tools directly. Igris checks policy, routes execution, recovers from failures, and proves what happened.',
+    title: 'Safe execution for consequential coding-agent actions.',
+    description: 'Route deploy, migrate, and publish actions through a durable Action → Run → Proof boundary.',
     url: 'https://igris.inertial',
     siteName: 'Igris Inertial',
     images: [{ url: '/foot2.png', width: 1200, height: 630, alt: 'Igris Inertial logo' }],
@@ -28,8 +28,8 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Action layer for AI agents.',
-    description: 'Your agent calls Igris instead of calling tools directly. Igris checks policy, routes execution, recovers from failures, and proves what happened.',
+    title: 'Safe execution for consequential coding-agent actions.',
+    description: 'Route deploy, migrate, and publish actions through a durable Action → Run → Proof boundary.',
     images: ['/foot2.png']
   },
   icons: {
