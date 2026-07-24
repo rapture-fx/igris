@@ -452,8 +452,6 @@ Not proven:
 
 - clean wheel build and disposable-environment install were intentionally left
   to the alpha distribution workstream;
-- the global SDK Ruff format check still reports the unrelated existing
-  `sdk/python/docs/evidence-privacy.md` example;
 - full landing typecheck: existing unrelated Pricing, API, and component type
   failures remain outside this product-copy change; the two errors reported in
   changed landing files are on pre-existing, unchanged motion-component call
