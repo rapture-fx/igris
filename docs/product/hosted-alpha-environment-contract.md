@@ -14,9 +14,9 @@ Repository source proves implementation intent, not a cloud resource exists. Sta
 | Provider | Access status | Evidence / limit |
 | --- | --- | --- |
 | GitHub | `READ_ONLY_READY` | Authenticated repository read access exposed environment metadata, environment-scoped names, deployment history, PR checks, and workflow source. It does not authorize environment mutation in this task. |
-| Azure | `UNAVAILABLE` | Azure CLI and an Azure workload/user identity are absent. No Azure control-plane query was performed. |
+| Azure | `UNAVAILABLE` | Azure CLI is absent. A local Azure profile exists but reports zero subscriptions; no workload/user identity is usable for a control-plane query. |
 | Neon | `UNAVAILABLE` | No Neon CLI/API identity or safe database read credential is available. |
-| Cloudflare | `AUTHENTICATED_BUT_INSUFFICIENT` | GitHub received successful Pages checks, and public endpoints were observed; no Cloudflare account/API identity is available for Pages, zone, or DNS inventory. |
+| Cloudflare | `AUTHENTICATED_BUT_INSUFFICIENT` | All three PR #85 Pages checks (`igris`, `igris-inertial`, `docs-igris`) succeeded, and public endpoints were observed; no Cloudflare account/API identity is available for Pages, zone, or DNS inventory. |
 | BetterAuth | `AUTHENTICATED_BUT_INSUFFICIENT` | Public DNS/HTTPS probes are possible; no app/container or database identity is available. |
 | Resend | `UNAVAILABLE` | No Resend API identity is available. |
 
@@ -38,7 +38,8 @@ Repository source proves implementation intent, not a cloud resource exists. Sta
 | Migrations 070--072 | `VERIFIED_EXISTS` | Ordered manual-only SQL files; applied state unknown. |
 | Cloudflare Pages | `DECLARED_NOT_VERIFIED` | PR #84 and #85 Pages checks passed for `igris`, `igris-inertial`, `docs-igris`. `igrisinertial.com` and `docs.igrisinertial.com` returned HTTPS 200 from this runner; account, Pages, zone, DNS, and branch configuration remain unverified. |
 | BetterAuth / Resend | `INCOMPLETE` / `UNKNOWN` | Public `auth.igrisinertial.com` did not resolve; `console` and `api` host probes timed out from this runner. This is not a provider-control-plane diagnosis. Resend domain/sender/key metadata is unknown. |
-| GitHub deploy environments | `VERIFIED_EXISTS` | Only `Preview` and `Production` exist; both show no protection rules/admin bypass. `Preview` has no observed environment secrets/variables. `Production` has GHCR secret names and Azure variable names. Workflows require lower-case `staging`/`production`: blocking mismatch. |
+| GitHub deploy environments | `VERIFIED_EXISTS` | Only title-case `Preview` and `Production` exist; both have no protection rules and allow administrator bypass. `Preview` has no environment-scoped names. `Production` has GHCR secret names and Azure variable names. Every Azure deployment workflow selects lower-case `staging`/`production`: blocking mismatch. |
+| Hosted DNS/HTTPS probe | `VERIFIED_EXISTS` / `UNKNOWN` | `igrisinertial.com` and `docs.igrisinertial.com` returned HTTPS 200. `api.igrisinertial.com` and `console.igrisinertial.com` timed out; `auth.igrisinertial.com` did not resolve. These network observations do not prove provider ownership or diagnose the cause. |
 
 ## Naming, ownership, and regional decisions
 
@@ -89,6 +90,32 @@ copying values; (3) a separate security/provisioning change creates protected
 digests; (5) legacy `Production` and repository-wide deployment secrets are
 retired only after a recorded no-consumer proof. Historic GitHub deployment
 records exist for both legacy environments, so silent replacement is forbidden.
+
+### Verified GitHub environment and legacy-name inventory
+
+This is metadata-only evidence obtained through authenticated GitHub read
+access on 2026-07-25. It records names, scopes, and source consumers; no
+secret or variable value was read. `Preview` and `Production` have historical
+deployment records, so neither may be renamed, deleted, or silently reused.
+
+| Current scope | Names observed | Protection / consumer evidence | Classification and required disposition |
+| --- | --- | --- | --- |
+| `Preview` (legacy) | none | No protection rules; administrator bypass allowed; historical Vercel deployments. | `OBSOLETE_REMOVE_LATER`: preserve history; after a no-consumer proof, retire separately. It is never a Hosted Alpha deployment environment. |
+| `Production` (legacy) | `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP`, `AZURE_CONTAINERAPPS_ENV`, `AZURE_API_APP`, `AZURE_CONSOLE_APP` (variables) | Used by `deploy-api-azure.yml`, `deploy-auth-azure.yml`, and/or `deploy-console-azure.yml`; no protection rules; administrator bypass allowed. | `CREATE_STAGING_REPLACEMENT`: platform owner must create fresh, owner-attested lower-case `staging` variables after the Azure inventory. Do not copy values. The matching lower-case `production` names remain reserved and inactive for Hosted Alpha. |
+| `Production` (legacy) | `GHCR_USERNAME`, `GHCR_TOKEN` (secrets) | Consumed by all Azure deployment workflows for image pull configuration. | `CREATE_STAGING_REPLACEMENT`: package/platform owner creates a least-privilege staging credential or replaces this mechanism with approved workload identity. Do not copy the legacy value. |
+| Repository | `DOCS_SYNC_TOKEN` | Consumed only by `sync-docs.yml`; not a Hosted Alpha deployment consumer. Owner/rotation state not established by this audit. | `UNKNOWN_OWNER_BLOCKED`: do not reuse for staging; docs owner must attest purpose and rotation, then retain outside Hosted Alpha or remove later. |
+| Repository | `PROD_HOST`, `PROD_SSH_KEY`, `PROD_USER`, `TAILSCALE_AUTHKEY` | No current consumer was established in the reviewed Hosted Alpha workflows. Owner and rotation state are unknown. | `UNKNOWN_OWNER_BLOCKED`: never copy or reuse; owner must classify and rotate before any future use, then remove only after a no-consumer proof. |
+| Repository | `VPS_SSH_KEY` | Consumed by `igris-runtime-release.yml` for a legacy VPS release path. Owner and rotation state are not evidenced. | `UNKNOWN_OWNER_BLOCKED`: it is outside Hosted Alpha and must not enter `staging`; release owner must attest, rotate if retained, and remove only after a no-consumer proof. |
+
+The lower-case `staging` environment must be created only in the subsequent,
+approved provisioning/security change with: one required human reviewer;
+deployment branch restrictions limited to the approved release branch or
+commit-SHA promotion workflow; no administrator bypass; and no repository-wide
+fallback for deployment credentials. The lower-case `production` environment
+uses the same or stricter protection, remains reserved/inactive for Hosted
+Alpha, and requires an explicit later activation decision. `preview` is
+disposable web-preview scope only; it must contain no production, Neon, Azure,
+or target credentials.
 
 ## Neon and migrations
 
