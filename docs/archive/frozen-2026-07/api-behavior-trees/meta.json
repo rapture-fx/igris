@@ -1,0 +1,10 @@
+{
+  "title": "Behavior Trees",
+  "pages": [
+    "get-v1-bt-templates",
+    "get-v1-bt-definitions",
+    "get-v1-bt-definitions-id",
+    "post-v1-bt-definitions",
+    "delete-v1-bt-definitions-id"
+  ]
+}
