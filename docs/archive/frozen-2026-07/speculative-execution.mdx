@@ -1,0 +1,74 @@
+---
+title: "Speculative Execution"
+description: "Speculative execution is an advanced path-selection mode that can race draft and primary execution paths for selected workloads."
+audience: "public"
+---
+
+# Speculative Execution
+
+Speculative execution is an advanced execution mode.
+
+It can run a draft path in parallel with a primary path and decide whether the draft is good enough to return. This is useful for advanced latency-sensitive setups, but it should be treated as an optimization layer under the Execute stage, not as the core product story.
+
+---
+
+## What It Does
+
+At a high level:
+
+1. a draft path starts
+2. the primary path starts
+3. the system decides whether the draft is acceptable
+4. one result is returned
+
+The caller still receives one execution result. The internal race is an advanced mechanism, not a separate surface the application needs to learn first.
+
+## Where It Can Help
+
+Speculative execution is most relevant when teams are experimenting with:
+
+- streaming workloads
+- predictable request types
+- advanced latency tuning
+
+It is less relevant for ordinary onboarding or for teams that have not yet established a stable baseline execution path.
+
+## What To Say Carefully
+
+Do not assume speculative execution always improves latency or cost. The exact outcome depends on workload shape, provider behavior, and how often the draft path is accepted.
+
+This page intentionally does not promise headline percentage improvements without benchmark evidence for the environment in question.
+
+## Operational Reading
+
+If you enable speculative execution, watch for:
+
+- acceptance rate
+- cost impact
+- path-selection stability
+- whether the workload is actually a good fit
+
+If acceptance is consistently low, the feature is probably adding complexity without enough benefit.
+
+## Simulation And Analytics
+
+The product exposes speculative status, analytics, and simulation surfaces so operators can inspect how the mode behaves before using it broadly.
+
+Treat these surfaces as advanced evaluation tools, not as proof that the optimization is beneficial for every workload.
+
+## Related Features
+
+- council and shadow features should be evaluated independently
+- receipts should still reflect the path that actually produced the returned result
+- proof claims should stay aligned with [Proof Status](/docs/proof-status)
+
+## Proof Language
+
+Speculative execution is best documented as an advanced, source-confirmed capability. Use production claims only when you have workload-specific evidence.
+
+## Related Pages
+
+- [Routing Engine →](/docs/escapevector)
+- [Shadow Mode →](/docs/shadow-mode)
+- [Cloud Coordination →](/docs/cloud-coordination)
+- [Proof Status →](/docs/proof-status)
