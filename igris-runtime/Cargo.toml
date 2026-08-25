@@ -4,14 +4,13 @@ members = [
     "crates/igris-routing",
     "crates/igris-server",
     "crates/igris-emergency",
-    "crates/igris-local-llm",
-    "crates/igris-lora-trainer",
-    "crates/igris-reflection",
     "crates/igris-tools",
-    "crates/igris-planning",
     "crates/igris-license-client",
     "crates/mcp-server",
-    "crates/mcp-client", "crates/igris-rt", "crates/igris-memory", "crates/igris-recovery", "crates/igris-multimodal", "crates/igris-btree", "crates/igris-ros2", "crates/igris-sensors", "crates/igris-safety", "crates/igris-swarm", "crates/igris-fleet", "crates/igris-federated", "crates/igris-model-manager", "crates/igris-hitl", "crates/igris-simulation", "crates/overture-server", "crates/igris-wal",
+    "crates/mcp-client",
+    "crates/igris-rt",
+    "crates/igris-recovery",
+    "crates/igris-wal",
 ]
 resolver = "2"
 
