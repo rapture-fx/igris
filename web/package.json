@@ -48,19 +48,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/wiramahendra/Schlep-engine"
+    "url": "https://github.com/Igris-inertial/system"
   },
   "keywords": [
-    "data-processing",
-    "data-cleaning",
-    "csv-handler",
-    "data-schlep",
-    "data-preparation",
-    "etl",
-    "data-pipeline"
+    "action-run-proof",
+    "durable-execution",
+    "safe-automation",
+    "tenant-isolation",
+    "signed-receipts"
   ],
-  "author": "Schlep-engine Team",
-  "homepage": "https://schlep-engine.com",
+  "author": "Igris Inertial Team",
+  "homepage": "https://igrisinertial.com",
   "dependencyVersions": {
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.24",
