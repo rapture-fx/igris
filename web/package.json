@@ -1,8 +1,8 @@
 {
-  "name": "schlep-engine-monorepo",
+  "name": "igris-inertial-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "Schlep-engine - The Data Schlep Handler. We handle the schlep so you don't have to",
+  "description": "Igris Inertial - Safe execution boundary for consequential actions (Action -> Run -> Proof)",
   "workspaces": [
     "apps/*",
     "packages/*"
