@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import json
 import sys
+from typing import NamedTuple
 
 import pytest
 from conftest import FailingProvider, FakeTty, StaticProvider, read_events
@@ -416,3 +418,63 @@ class TestInputHash:
         decisions = [e for e in events if e["event_type"] == "decision"]
         assert decisions[0]["input_hash"] == decisions[1]["input_hash"]
         _ = p2  # symmetry; provider identity is irrelevant to the hash
+
+
+class TestNamedFieldRedactionEndToEnd:
+    """A secret in a dataclass or named tuple must not reach signed evidence.
+
+    Regression coverage for a disclosure where redaction traversed mappings and
+    sequences only, while canonicalization additionally expanded dataclasses
+    and named tuples by field name. The end-to-end assertions matter as much as
+    the unit ones: the leak surfaced in three places at once — the journal, the
+    input hash, and the text shown to the human approving the call.
+    """
+
+    SECRET = "sk-live-GUARD-E2E-SECRET-9999"
+
+    def test_dataclass_secret_reaches_neither_journal_nor_prompt(self, igris_home):
+        @dataclasses.dataclass
+        class Credentials:
+            user: str
+            api_key: str
+
+        provider = StaticProvider("allowed")
+
+        @igris.guard(action="tests.dataclass.leak", approval_provider=provider)
+        def act(config):
+            return "done"
+
+        act(Credentials("wira", self.SECRET))
+
+        assert self.SECRET not in (igris_home / "journal.jsonl").read_text()
+        assert self.SECRET not in provider.requests[0].redacted_input_summary
+
+    def test_named_tuple_secret_reaches_neither_journal_nor_prompt(self, igris_home):
+        class Credentials(NamedTuple):
+            user: str
+            api_key: str
+
+        provider = StaticProvider("allowed")
+
+        @igris.guard(action="tests.namedtuple.leak", approval_provider=provider)
+        def act(config):
+            return "done"
+
+        act(Credentials("wira", self.SECRET))
+
+        assert self.SECRET not in (igris_home / "journal.jsonl").read_text()
+        assert self.SECRET not in provider.requests[0].redacted_input_summary
+
+    def test_error_echoing_a_dataclass_secret_is_scrubbed(self, igris_home):
+        @dataclasses.dataclass
+        class Credentials:
+            api_key: str
+
+        @igris.guard(action="tests.dataclass.error", approval_provider=StaticProvider("allowed"))
+        def act(config):
+            raise ValueError(f"upstream rejected {config.api_key}")
+
+        with pytest.raises(ValueError):
+            act(Credentials(self.SECRET))
+
+        assert self.SECRET not in (igris_home / "journal.jsonl").read_text()

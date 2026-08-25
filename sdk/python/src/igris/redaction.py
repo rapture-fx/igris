@@ -13,10 +13,22 @@ hashes).
 
 Nested mappings are also scanned: a dict key whose lowercase form is in the
 sensitive set is redacted wherever it appears in the argument structure.
+
+Redaction must cover every container type that :mod:`igris.canonical`
+expands into named fields, not only mappings. Canonicalization runs *after*
+redaction and expands dataclasses and named tuples by field name, so any such
+type the redactor does not traverse is a route for a named secret into signed
+evidence: the redactor passes it through untouched, and canonicalization then
+turns ``Credentials(api_key="sk-live-...")`` into
+``{"api_key": "sk-live-..."}`` for the input hash, the journal, and the
+approval prompt. Named tuples need care in particular, because a named tuple
+is also a ``tuple``: matching the sequence branch first flattens it
+positionally and destroys the field names before anything can match them.
 """
 
 from __future__ import annotations
 
+import dataclasses
 from collections.abc import Iterable
 from typing import Any
 
@@ -56,12 +68,48 @@ def is_sensitive_name(name: str, sensitive: frozenset[str]) -> bool:
     return name.lower() in sensitive
 
 
+def named_fields(value: Any) -> tuple[str, ...] | None:
+    """Field names of a value canonicalization expands by name, else None.
+
+    Covers dataclass instances and named tuples — the two types
+    :func:`igris.canonical.to_canonical` turns into JSON objects keyed by
+    field name. There is no ``isinstance`` test for a named tuple; the
+    structural check against ``_fields`` is the documented approach.
+    """
+    if isinstance(value, tuple) and hasattr(value, "_fields"):
+        fields = getattr(value, "_fields", ())
+        if all(isinstance(name, str) for name in fields):
+            return tuple(fields)
+        return None
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        return tuple(field.name for field in dataclasses.fields(value))
+    return None
+
+
 def redact_value(value: Any, sensitive: frozenset[str]) -> Any:
     """Recursively redact sensitive keys inside *value*.
 
     Only container structure is traversed; leaf values are returned as-is
     (canonicalization decides how leaves are represented).
+
+    A dataclass or named tuple is converted to a mapping keyed by field name
+    so its named fields are matched against the sensitive set. Canonicalization
+    would produce the same mapping shape from the original object, so this does
+    not change the canonical form of values that contain no sensitive names —
+    with one exception: a named tuple previously canonicalized to a JSON array
+    and now canonicalizes to a JSON object, which is both a fidelity
+    improvement and a change to ``input_hash`` for actions that take one.
     """
+    names = named_fields(value)
+    if names is not None:
+        return {
+            name: (
+                REDACTED
+                if is_sensitive_name(name, sensitive)
+                else redact_value(getattr(value, name), sensitive)
+            )
+            for name in names
+        }
     if isinstance(value, dict):
         return {
             key: (
@@ -103,7 +151,14 @@ def collect_sensitive_raw_values(
             if isinstance(value, str) and len(value) >= 4:
                 found.append(value)
             return
-        if isinstance(value, dict):
+        # Must mirror redact_value's traversal exactly. A type redacted there
+        # but not walked here would be removed from the journal yet left
+        # unscrubbed in a sanitized error summary, which echoes its inputs.
+        names = named_fields(value)
+        if names is not None:
+            for field_name in names:
+                walk(field_name, getattr(value, field_name))
+        elif isinstance(value, dict):
             for key, item in value.items():
                 walk(key if isinstance(key, str) else None, item)
         elif isinstance(value, (list, tuple)):
