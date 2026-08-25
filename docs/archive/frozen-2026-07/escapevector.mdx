@@ -1,0 +1,69 @@
+---
+title: "Routing Engine"
+description: "The routing engine is an advanced path-selection layer inside Igris execution, combining policy, health, trust, and strategy-specific selection logic."
+audience: "public"
+---
+
+# Routing Engine
+
+The routing engine is an advanced path-selection layer inside Igris execution.
+
+Its job is to choose among the execution paths that remain allowed and usable after policy, health, and trust have already narrowed the field. This makes it important to advanced operators, but it should not be read as the primary product identity.
+
+---
+
+## What It Is
+
+At a simple level:
+
+```text
+Request
+  -> policy and boundary checks
+  -> health and trust filters
+  -> routing engine
+  -> selected execution path
+```
+
+That means the routing engine is not a standalone product story. It is one layer inside the broader Execute stage.
+
+## What It Considers
+
+Depending on configuration, the engine may consider:
+
+- latency behavior
+- success or failure history
+- cost signals
+- availability
+- strategy-specific selection logic
+
+Different deployment modes may expose different routing behavior, but the core idea is the same: choose an execution path under governance, not by ad hoc client-side guessing.
+
+## Strategy Layer
+
+Different strategy modes can exist on top of the engine, such as adaptive, cost-aware, or latency-aware selection. Those strategies are advanced operator tools and should be evaluated with workload-specific evidence rather than broad assumptions.
+
+## Relationship To Other Controls
+
+The engine sits behind:
+
+- policy
+- health
+- trust
+- circuit-breaker state
+
+That ordering matters. Advanced path selection should not override the safety and governance layers that determine whether a path should even be considered.
+
+## Console And Inspection
+
+Routing dashboards can help explain which path was chosen and why, but they should be treated as advanced execution diagnostics. They are useful after you already understand the main product model.
+
+## Proof Language
+
+The routing engine is a real advanced control layer, but this page should not promise globally optimal provider choice, automatic savings, or universal reliability gains without evidence for the specific workload and environment.
+
+## Related Pages
+
+- [Semantic Routing →](/docs/semantic-routing)
+- [Provider Health →](/docs/provider-health)
+- [Circuit Breaker →](/docs/circuit-breaker)
+- [Cloud Coordination →](/docs/cloud-coordination)
