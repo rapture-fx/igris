@@ -242,14 +242,11 @@ tree = BehaviorTree.from_json(tree_dict, runtime=rt)
 tree = BehaviorTree.from_yaml(yaml_string, runtime=rt)  # requires pyyaml
 ```
 
-**Vault and fleet**
+**Vault**
 
 ```python
 # Store a provider API key
 client.vault.store("openai", os.environ["OPENAI_API_KEY"])
-
-# List registered fleet agents
-agents = client.fleet.agents()
 ```
 
 **Receipt verification**
@@ -292,7 +289,7 @@ The same integration can point at different Igris deployments without becoming a
 - local runtime: `http://localhost:8080`
 - hybrid: keep your application on the hosted API and let Igris coordinate work across runtimes
 
-Use the hosted API unless the workload truly needs on-device execution, offline behavior, or fleet-local control. Note the direction of dispatch for `local_runtime` actions: Igris pushes work to your registered runtime endpoint, so that endpoint must be reachable by Overture — a runtime that is only reachable on `localhost` cannot receive hosted-dispatched work.
+Use the hosted API unless the workload truly needs on-device execution or offline behavior. Note the direction of dispatch for `local_runtime` actions: Igris pushes work to your registered runtime endpoint, so that endpoint must be reachable by Overture — a runtime that is only reachable on `localhost` cannot receive hosted-dispatched work.
 
 ## Code Quality Expectations
 
@@ -303,7 +300,7 @@ Well-written Igris integrations usually share a few traits:
 - every action run that has real side effects sends an `idempotency_key`
 - `429`, auth failures, validation failures, and `5xx` responses are handled differently
 - `409 approval_required` is handled as an expected pause for human-gated actions, not as an error
-- receipt, audit, and fleet features are adopted intentionally rather than scattered across request paths
+- receipt and audit features are adopted intentionally rather than scattered across request paths
 
 ---
 

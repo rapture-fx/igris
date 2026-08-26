@@ -274,7 +274,6 @@ function main() {
     'deploy-local-runtime.mdx',
     'hybrid-deployment-workflow.mdx',
     'receipts-audit-workflow.mdx',
-    'fleet-rollout-workflow.mdx',
   ];
   for (const fileName of requiredWorkflowDocs) {
     const fullPath = path.join(docsDir, fileName);
@@ -289,7 +288,6 @@ function main() {
     'documentation-roadmap.mdx',
     'mcp.mdx',
     'mcp-server.mdx',
-    'mcp-swarm.mdx',
     'mcp-integration-patterns.mdx',
   ];
   for (const fileName of requiredReferenceDocs) {

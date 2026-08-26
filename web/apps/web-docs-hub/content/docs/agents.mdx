@@ -1,12 +1,12 @@
 ---
 title: "Agents"
-description: "Igris supports four agent patterns: reflection, planning, tool use, and swarms. All run inside the execution envelope with full governance applied."
+description: "Igris supports three agent patterns: reflection, planning, and tool use. All run inside the execution envelope with full governance applied."
 audience: "public"
 ---
 
 # Agents
 
-Igris supports four agent patterns: reflection, planning, tool use, and swarms. All run inside the execution envelope with full governance applied.
+Igris supports three agent patterns: reflection, planning, and tool use. All run inside the execution envelope with full governance applied. Swarm and fleet coordination are archived frozen scope (see `docs/archive/frozen-2026-07/`).
 
 ---
 
@@ -91,43 +91,6 @@ Tool calls are recorded in the execution receipt including the call parameters, 
 
 ---
 
-## Multi-Agent Swarms
-
-A swarm executes a task using multiple specialized agents in parallel. Each agent contributes a perspective; a synthesizer agent combines the contributions into a final result.
-
-**Execution:**
-1. Task is distributed to N specialized agents (researcher, engineer, critic, synthesizer)
-2. Agents execute independently
-3. Synthesizer receives all outputs and produces the final response
-4. Consensus voting is applied for high-stakes decisions
-
-**Configuration:**
-```json
-{
-  "mode": "swarm",
-  "swarm_size": 3
-}
-```
-
-Each agent in the swarm runs its own execution envelope. The swarm's total resource consumption is the sum of all agent envelopes.
-
-[Memory →](/docs/memory)
-
----
-
-## MCP Swarm Mode
-
-MCP Swarm Mode enables peer-to-peer context sharing across multiple engine instances. Instances auto-discover each other via mDNS and share execution context in encrypted storage.
-
-Any instance in the swarm can continue an execution that another instance started. Context is encrypted at rest with AES-256-GCM.
-
-**Use cases:**
-- High-availability deployments where any node can handle any request
-- Edge deployments where context must persist across reboots
-- Multi-robot coordination where agents share mission state
-
-[Memory →](/docs/memory)
-
 ---
 
 ## Agent Lifecycle
@@ -155,10 +118,8 @@ Lifecycle events are recorded in the execution envelope and queryable via the ob
 | Needs consistent quality (code gen, structured output) | Reflection |
 | Multi-step with unknown intermediate results | Planning |
 | Requires external data or actions | Tool-Use |
-| Benefits from multiple perspectives | Swarm |
-| Needs cross-instance state sharing | MCP Swarm Mode |
 
-**Combining patterns** — patterns can be combined. A planning agent can use tools at each step. A swarm can use reflection to score each agent's contribution before synthesis.
+**Combining patterns** — patterns can be combined. A planning agent can use tools at each step.
 
 ---
 
