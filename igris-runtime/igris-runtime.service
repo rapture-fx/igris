@@ -1,7 +1,7 @@
 [Unit]
 Description=Igris Runtime v1.1 - AI Routing Engine with Local Fallback
 After=network.target
-Documentation=https://github.com/your-org/schlep-engine/tree/main/runtime
+Documentation=https://github.com/rapture-fx/system/tree/main/runtime
 
 [Service]
 Type=simple
