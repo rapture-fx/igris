@@ -593,7 +593,6 @@ func (te *TierEnforcer) getRequiredFeature(path string) string {
 
 		// Routing Features (Growth+ only)
 		"/v1/speculative":     "speculative_execution",   // Growth+ only
-		"/v1/council":         "council_mode",            // Growth+ only
 		"/v1/thompson":        "thompson_sampling",       // Growth+ only (live exploration)
 
 		// Cognitive Advisor
