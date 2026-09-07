@@ -3,7 +3,7 @@
 // Dogfood staging migration gateway (localhost-only, staging-only).
 //
 // This is the execution target for the `dogfood.apply_staging_migration`
-// action (see DOGFOOD_STAGING_MIGRATION_2026-07-03.md). It is the ONLY
+// action (see docs/archive/dogfood-2026-07/DOGFOOD_STAGING_MIGRATION_2026-07-03.md). It is the ONLY
 // component that holds the staging database DSN — Overture, the runtime, and
 // the console never see credentials. Igris controls WHEN an apply may happen
 // (policy + human approval + dispatch); this gateway controls WHAT an apply
