@@ -62,8 +62,6 @@ func TestFrontendExperimentalGroupsDisabledByDefault(t *testing.T) {
 
 	require.True(t, hasRoute(app, "GET", "/v1/project/"))
 	require.False(t, hasRoute(app, "GET", "/v1/cognitive/status"))
-	require.False(t, hasRoute(app, "GET", "/v1/shadow/status"))
-	require.False(t, hasRoute(app, "GET", "/v1/council/status"))
 	require.False(t, hasRoute(app, "GET", "/v1/escapevector/status"))
 	require.False(t, hasRoute(app, "GET", "/v1/analytics/cost"))
 }
@@ -79,8 +77,6 @@ func TestFrontendExperimentalGroupsCanBeEnabledIndependently(t *testing.T) {
 	app := fiber.New()
 	RegisterFrontendRoutes(app, db)
 
-	require.True(t, hasRoute(app, "GET", "/v1/shadow/status"))
-	require.True(t, hasRoute(app, "GET", "/v1/council/status"))
 	require.True(t, hasRoute(app, "GET", "/v1/escapevector/status"))
 	require.False(t, hasRoute(app, "GET", "/v1/cognitive/status"))
 	require.False(t, hasRoute(app, "GET", "/v1/analytics/cost"))
@@ -163,7 +159,6 @@ func TestRouteRegistrationSourceGuard(t *testing.T) {
 		"RegisterROSRoutes":                   "experimental_non_core",
 		"RegisterBTRoutes":                    "experimental_non_core",
 		"RegisterAgentRoutes":                 "feature_flag_required",
-		"RegisterCouncilRoutes":               "experimental_non_core",
 		"RegisterRuntimeRoutes":               "runtime_registration_or_callback",
 		"RegisterDownloadRoutes":              "runtime_registration_or_callback",
 		"RegisterTrialRoutes":                 "console_support_api",
