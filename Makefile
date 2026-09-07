@@ -43,7 +43,7 @@ approval-loop-smoke-console:
 
 # Internal dogfood workflow: controlled staging migration. Plan -> Human-gated
 # approval -> gateway apply -> audit row + signed receipt; tamper + reject +
-# double-approve guards included. See DOGFOOD_STAGING_MIGRATION_2026-07-03.md.
+# double-approve guards included. See docs/archive/dogfood-2026-07/DOGFOOD_STAGING_MIGRATION_2026-07-03.md.
 # Run `make igris-local-up` first.
 dogfood-migration-smoke:
 	./scripts/dogfood_migration_approval_smoke.sh
