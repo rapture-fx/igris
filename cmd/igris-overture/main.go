@@ -642,7 +642,7 @@ func main() {
 		log.Println("[Routes] ✅ Core dashboard routes registered (stats, execution, evals, proof, governance)")
 
 		// Register all web-console frontend endpoints (tenant/current, usage/summary,
-		// cognitive/status, speculative/races, shadow/*, council/*, escapevector/*)
+		// cognitive/status, speculative/races, escapevector/*)
 		api.RegisterFrontendRoutes(app, dbInstance)
 		log.Println("[Routes] ✅ Frontend routes registered (web-console endpoints)")
 
@@ -655,8 +655,7 @@ func main() {
 			api.RegisterPolicyExtRoutes(app, dbInstance)
 			api.RegisterSubscriptionRoutes(app, dbInstance)
 			api.RegisterAgentRoutes(app, dbInstance)
-			api.RegisterCouncilRoutes(app, dbInstance)
-			log.Println("[Routes] ✅ Console gap-fill routes registered (devices, history, settings, cost, policy-ext, subscription, agent-blackboard, council)")
+			log.Println("[Routes] ✅ Console gap-fill routes registered (devices, history, settings, cost, policy-ext, subscription, agent-blackboard)")
 		} else {
 			log.Printf("[Routes] Console gap-fill routes disabled (%s not enabled)", api.ExperimentalConsoleGapRoutesFlag)
 		}
