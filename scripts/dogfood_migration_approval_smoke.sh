@@ -2,7 +2,7 @@
 
 # Dogfood Staging Migration Smoke
 #
-# Proves the internal dogfood workflow from DOGFOOD_STAGING_MIGRATION_2026-07-03.md
+# Proves the internal dogfood workflow from docs/archive/dogfood-2026-07/DOGFOOD_STAGING_MIGRATION_2026-07-03.md
 # end to end against a fully local stack, using only supported product surfaces:
 #
 #   1. The staging-only migration gateway starts against the LOCAL database
