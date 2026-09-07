@@ -24,8 +24,8 @@ Igris Runtime v1.1 is designed to be **unkillable**. Even when all cloud LLM pro
 #### 1. Clone and Initialize
 
 ```bash
-git clone https://github.com/your-org/schlep-engine.git
-cd schlep-engine/runtime
+git clone https://github.com/rapture-fx/system.git
+cd system/igris-runtime
 git submodule update --init --recursive
 ```
 
@@ -600,8 +600,8 @@ server: { port: 8082 }  // Instance 3
 
 ## Support and Feedback
 
-**Issues**: https://github.com/your-org/schlep-engine/issues
-**Discussions**: https://github.com/your-org/schlep-engine/discussions
+**Issues**: https://github.com/rapture-fx/system/issues
+**Discussions**: https://github.com/rapture-fx/system/discussions
 **Documentation**: https://docs.igris-runtime.dev
 
 ---
