@@ -116,7 +116,7 @@ apt-get install jq
 ### Run Full Validation Suite
 
 ```bash
-cd /Users/wira/Desktop/igris-inertial
+cd $REPO_ROOT
 bash tests/run_phase_0_5_validation.sh http://localhost:8080 redis://localhost:6379/0
 ```
 
@@ -254,7 +254,7 @@ go run main.go
 ```bash
 # Ensure you're in the project root
 pwd
-# Should be: /Users/wira/Desktop/igris-inertial
+# Should be: $REPO_ROOT
 
 # Create results directories if missing
 mkdir -p tests/results tests/security
