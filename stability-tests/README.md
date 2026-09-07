@@ -23,7 +23,7 @@ This testing suite validates:
 pip install aiohttp psutil requests
 
 # Start API in benchmark mode (no real API costs)
-cd /Users/wira/Desktop/igris-inertial
+cd $REPO_ROOT
 export PROVIDER_MODE=benchmark
 export ENABLE_COGNITIVE_ADVISOR=true
 export OPTIMIZER_MODE=shadow  # or "full" to test FFI
