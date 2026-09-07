@@ -1,13 +1,16 @@
 # Orchestration gRPC - Version Incompatibility
 
-## Status: Temporarily Disabled  
+## Status: Active
 
 The orchestration package provides gRPC services for distributed inference routing.
-Currently disabled due to gRPC version incompatibility.
+It is imported by `igris-overture/orchestration/grpc_server.go`,
+`igris-overture/router/transaction_replay.go`, and
+`igris-overture/router/state_checkpoint.go` — do not delete the generated files.
 
-## Issue:
-Generated proto files require grpc.SupportPackageIsVersion9 (gRPC-Go v1.64.0+)
-Current project uses an older gRPC version.
+## Issue (resolved):
+
+Generated proto files require grpc.SupportPackageIsVersion9 (gRPC-Go v1.64.0+).
+`go.mod` already uses gRPC-Go v1.67.1, so the version condition is met.
 
 ## Required Fixes:
 1. Update google.golang.org/grpc to v1.64.0 or later
