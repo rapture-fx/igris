@@ -6,7 +6,7 @@
 # 1. Start API in benchmark mode (no costs)
 export PROVIDER_MODE=benchmark
 export OPTIMIZER_MODE=shadow
-cd /Users/wira/Desktop/igris-inertial
+cd $REPO_ROOT
 go run cmd/igris-overture/main.go &
 
 # 2. Wait and verify
@@ -177,7 +177,7 @@ export OPTIMIZER_SAMPLE_RATE=0.1
 ## 📚 Documentation
 
 - **README**: `stability-tests/README.md`
-- **Incident Response**: `stability-tests/INCIDENT_RESPONSE_PLAYBOOK.md`
+- **Incident Response**: `docs/archive/non-core/INCIDENT_RESPONSE_PLAYBOOK.md`
 - **Summary**: `stability-tests/TESTING_SUMMARY.md`
 - **This Card**: `stability-tests/QUICK_REFERENCE.md`
 
