@@ -99,7 +99,7 @@ The first workflow we run through Igris for our own engineering work: applying
 a SQL migration to a **staging/local** database only after a recorded plan and
 an explicit human approval, with a signed receipt and a database-side audit
 trail. Contract and acceptance record:
-[DOGFOOD_STAGING_MIGRATION_2026-07-03.md](./DOGFOOD_STAGING_MIGRATION_2026-07-03.md).
+[DOGFOOD_STAGING_MIGRATION_2026-07-03.md](./docs/archive/dogfood-2026-07/DOGFOOD_STAGING_MIGRATION_2026-07-03.md).
 
 ```bash
 make igris-local-up               # once: local Postgres + migrations
@@ -138,9 +138,9 @@ The second dogfood loop routes risky development actions through Igris itself:
 intentionally disabled).
 
 - Operator guide (start here):
-  [DOGFOOD_ROUTED_DEV_OPERATOR_GUIDE.md](./DOGFOOD_ROUTED_DEV_OPERATOR_GUIDE.md)
+  [DOGFOOD_ROUTED_DEV_OPERATOR_GUIDE.md](./docs/archive/dogfood-2026-07/DOGFOOD_ROUTED_DEV_OPERATOR_GUIDE.md)
 - Normative contract:
-  [DOGFOOD_IGRIS_ROUTED_DEVELOPMENT.md](./DOGFOOD_IGRIS_ROUTED_DEVELOPMENT.md)
+  [DOGFOOD_IGRIS_ROUTED_DEVELOPMENT.md](./docs/archive/dogfood-2026-07/DOGFOOD_IGRIS_ROUTED_DEVELOPMENT.md)
 
 ```bash
 make igris-local-up               # once: local Postgres + migrations
@@ -153,7 +153,7 @@ IGRIS_SMOKE_CONSOLE_PORT=3101 make dogfood-routed-dev-smoke-console
 
 Staging is the current milestone. Before any staging or production
 deployment, the credential rotation in
-[SECURITY_ROTATION_2026-07-04.md](./SECURITY_ROTATION_2026-07-04.md) must be
+[SECURITY_ROTATION_2026-07-04.md](./docs/archive/point-in-time/SECURITY_ROTATION_2026-07-04.md) must be
 completed and attested.
 
 ## SDK installation
