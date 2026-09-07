@@ -218,9 +218,9 @@ var RouteGroupInventory = []RouteGroupClassification{
 		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "advisor/applier control plane", FeatureFlag: ExperimentalCognitiveRoutesFlag,
 	},
 	{
-		Method: "GET,POST,PATCH", Path: "/v1/routing,/v1/shadow,/v1/council,/v1/escapevector", RegistrationFile: "igris-overture/api/routes_routing.go",
+		Method: "GET,POST,PATCH", Path: "/v1/routing,/v1/escapevector", RegistrationFile: "igris-overture/api/routes_routing.go",
 		HandlerOrGroup: "routing experiments", RegistrationFunction: "RegisterRoutingRoutes", AuthMiddleware: "BetterAuth", TenantSource: "tenant credential",
-		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "speculative, council, shadow, and routing config experiments", FeatureFlag: ExperimentalRoutingRoutesFlag,
+		Classification: "experimental_non_core,feature_flag_required", DefaultExposureAfterTask: "disabled_by_default", RiskNotes: "speculative and routing config experiments", FeatureFlag: ExperimentalRoutingRoutesFlag,
 	},
 	{
 		Method: "GET,POST,PUT", Path: "/v1/federated", RegistrationFile: "igris-overture/api/routes_federated.go",
