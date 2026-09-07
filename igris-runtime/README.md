@@ -527,7 +527,7 @@ See [MCP Swarm Mode Guide](#mcp-swarm-mode-guide) below for details.
 1. **Thompson Sampling** - Bayesian multi-armed bandit optimization
    - Learns which providers are fastest/cheapest over time
    - Beta distribution sampling for exploration vs exploitation
-   - Reuses production Rust kernel from schlep-engine
+   - Reuses production Rust kernel from the Igris runtime
 
 2. **Speculative Execution** - Race providers, first response wins
    - Launches top N providers in parallel
