@@ -1,6 +1,6 @@
 // Package canonicaljson is the production implementation of the Igris
 // contract-v1 canonical JSON rules. The protocol is defined in exact UTF-8
-// bytes (docs/architecture/igris-progressive-contract-v1.md §12): keys sorted
+// bytes (docs/archive/non-core/igris-progressive-contract-v1.md §12): keys sorted
 // lexicographically, compact separators, non-ASCII emitted raw, and `<`, `>`,
 // `&` NOT HTML-escaped. Decoded-JSON equality is not conformance; byte
 // equality with the Python SDK's output is.
