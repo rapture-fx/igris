@@ -7,7 +7,7 @@
 Open a terminal and run:
 
 ```bash
-cd /Users/wira/Desktop/igris-inertial
+cd $REPO_ROOT
 
 # Set test configuration (NO API COSTS - uses benchmark mode)
 export PROVIDER_MODE=benchmark
@@ -37,7 +37,7 @@ go run cmd/igris-overture/main.go
 Open a **new terminal** and run:
 
 ```bash
-cd /Users/wira/Desktop/igris-inertial/stability-tests/scripts
+cd $REPO_ROOT/stability-tests/scripts
 
 # Interactive menu (recommended for first time)
 ./setup_and_test.sh
@@ -298,7 +298,7 @@ curl http://localhost:8081/v1/providers/stats | jq
    ```
 
 4. **Get Help**
-   - Review: `stability-tests/INCIDENT_RESPONSE_PLAYBOOK.md`
+   - Review: `docs/archive/non-core/INCIDENT_RESPONSE_PLAYBOOK.md`
    - Check: `stability-tests/README.md`
    - Contact: Platform engineering team
 
