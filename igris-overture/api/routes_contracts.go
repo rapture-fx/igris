@@ -485,7 +485,7 @@ func validateContractV1(contract map[string]any) (*validatedContract, *contractV
 // contractSecurityDelta compares SEMANTIC fields against the latest prior
 // version. A new version alone is never flagged (code_fingerprint is inside
 // contract_hash in v1, so formatting-only edits over-version by design —
-// docs/architecture/igris-progressive-contract-v1.md §4a).
+// docs/archive/non-core/igris-progressive-contract-v1.md §4a).
 func contractSecurityDelta(prior *contractVersionRecord, next *validatedContract) (bool, []string) {
 	flags := []string{}
 	if prior == nil {
