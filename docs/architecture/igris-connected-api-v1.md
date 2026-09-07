@@ -86,7 +86,7 @@ Headers: `Content-Type: application/json`; optional `Idempotency-Key`
 ```
 
 - `contract` is the complete ActionContract v1 object
-  (`docs/architecture/igris-progressive-contract-v1.md` §4; fixture:
+  (`../archive/non-core/igris-progressive-contract-v1.md` §4; fixture:
   `testdata/igris-contract-v1/action_contract.json`).
 - `client.key_id` is optional advisory context (which local identity is
   syncing); it is **not** authentication.
